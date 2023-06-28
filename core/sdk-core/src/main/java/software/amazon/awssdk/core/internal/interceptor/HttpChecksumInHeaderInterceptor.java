@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.interceptor;
 
-import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_VALUE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
 import static software.amazon.awssdk.core.internal.util.HttpChecksumResolver.getResolvedChecksumSpecs;
 
@@ -23,7 +22,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -47,49 +45,27 @@ import software.amazon.awssdk.utils.BinaryUtils;
 @SdkInternalApi
 public class HttpChecksumInHeaderInterceptor implements ExecutionInterceptor {
 
-    @Override
-    public void afterMarshalling(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
-        ChecksumSpecs headerChecksumSpecs = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).orElse(null);
-
-        if (shouldSkipHttpChecksumInHeader(context, executionAttributes, headerChecksumSpecs)) {
-            return;
-        }
-        Optional<RequestBody> syncContent = context.requestBody();
-        syncContent.ifPresent(
-            requestBody -> saveContentChecksum(requestBody, executionAttributes, headerChecksumSpecs.algorithm()));
-    }
-
-    @Override
-    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        ChecksumSpecs checksumSpecs = getResolvedChecksumSpecs(executionAttributes);
-
-        if (shouldSkipHttpChecksumInHeader(context, executionAttributes, checksumSpecs)) {
-            return context.httpRequest();
-        }
-
-        String httpChecksumValue = executionAttributes.getAttribute(HTTP_CHECKSUM_VALUE);
-        if (httpChecksumValue != null) {
-            return context.httpRequest().copy(r -> r.putHeader(checksumSpecs.headerName(), httpChecksumValue));
-        }
-        return context.httpRequest();
-
-    }
-
     /**
-     * Calculates the checksumSpecs of the provided request (and base64 encodes it), storing the result in
-     * executionAttribute "HttpChecksumValue".
+     * Calculates the checksum of the provided request (and base64 encodes it), and adds the header to the request.
      *
      * <p>Note: This assumes that the content stream provider can create multiple new streams. If it only supports one (e.g. with
      * an input stream that doesn't support mark/reset), we could consider buffering the content in memory here and updating the
      * request body to use that buffered content. We obviously don't want to do that for giant streams, so we haven't opted to do
      * that yet.
      */
-    private static void saveContentChecksum(RequestBody requestBody, ExecutionAttributes executionAttributes,
-                                            Algorithm algorithm) {
+    @Override
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+        ChecksumSpecs checksumSpecs = getResolvedChecksumSpecs(executionAttributes);
+        Optional<RequestBody> syncContent = context.requestBody();
+
+        if (shouldSkipHttpChecksumInHeader(context, executionAttributes, checksumSpecs) || !syncContent.isPresent()) {
+            return context.httpRequest();
+        }
+
         try {
             String payloadChecksum = BinaryUtils.toBase64(HttpChecksumUtils.computeChecksum(
-                requestBody.contentStreamProvider().newStream(), algorithm));
-            executionAttributes.putAttribute(HTTP_CHECKSUM_VALUE, payloadChecksum);
+                syncContent.get().contentStreamProvider().newStream(), checksumSpecs.algorithm()));
+            return context.httpRequest().copy(r -> r.putHeader(checksumSpecs.headerName(), payloadChecksum));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
