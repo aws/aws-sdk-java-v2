@@ -58,7 +58,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         Compressor compressor = resolveCompressionType(context.executionAttributes());
 
         // non-streaming
-        if (!context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming()) {
+        if (!isStreaming(context)) {
             ContentStreamProvider wrappedProvider = input.contentStreamProvider();
             ContentStreamProvider compressedStreamProvider = () -> compressor.compress(wrappedProvider.newStream());
             input.contentStreamProvider(compressedStreamProvider);
@@ -86,13 +86,17 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         if (!resolveRequestCompressionEnabled(context)) {
             return false;
         }
-        if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming()) {
+        if (isStreaming(context)) {
             return true;
         }
         if (input.contentStreamProvider() == null) {
             return false;
         }
         return isRequestSizeWithinThreshold(input, context);
+    }
+
+    private static boolean isStreaming(RequestExecutionContext context) {
+        return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming();
     }
 
     private static SdkHttpFullRequest.Builder updateContentEncodingHeader(SdkHttpFullRequest.Builder input, Compressor compressor) {
