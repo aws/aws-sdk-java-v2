@@ -1,3 +1,32 @@
+# __2.20.95__ __2023-06-28__
+## __AWS Lambda__
+  - ### Features
+    - Surface ResourceConflictException in DeleteEventSourceMapping
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds a new feature for Amazon CloudWatch Internet Monitor that enables customers to set custom thresholds, for performance and availability drops, for triggering when to create a health event.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for new runtime environment in Kinesis Data Analytics Studio: Zeppelin-0.10, Apache Flink-1.15
+
+## __Amazon Omics__
+  - ### Features
+    - Add Common Workflow Language (CWL) as a supported language for Omics workflows
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon Relational Database Service (RDS) now supports joining a RDS for SQL Server instance to a self-managed Active Directory.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for Model Cards Model Registry integration.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - The S3 LISTObjects, ListObjectsV2 and ListObjectVersions API now supports a new optional header x-amz-optional-object-attributes. If header contains RestoreStatus as the value, then S3 will include Glacier restore status i.e. isRestoreInProgress and RestoreExpiryDate in List response.
+
 # __2.20.94__ __2023-06-27__
 ## __AWS Private 5G__
   - ### Features
@@ -276,7 +305,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

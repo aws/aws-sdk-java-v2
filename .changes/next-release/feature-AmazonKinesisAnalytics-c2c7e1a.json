@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Analytics",
-    "contributor": "",
-    "description": "Support for new runtime environment in Kinesis Data Analytics Studio: Zeppelin-0.10, Apache Flink-1.15"
-}
