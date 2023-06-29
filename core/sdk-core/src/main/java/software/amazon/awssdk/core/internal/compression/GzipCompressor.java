@@ -45,6 +45,7 @@ public final class GzipCompressor implements Compressor {
             ByteArrayOutputStream compressedOutputStream = new ByteArrayOutputStream();
             gzipOutputStream = new GZIPOutputStream(compressedOutputStream);
             gzipOutputStream.write(content.asByteArray());
+            gzipOutputStream.close();
             return SdkBytes.fromByteArray(compressedOutputStream.toByteArray());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
