@@ -62,6 +62,7 @@ public class SigningStage implements RequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
+        // TODO: Add unit tests for SRA signing logic.
         if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
             return sraSignRequest(request, context);
         }
@@ -69,10 +70,13 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
-
         ExecutionAttributes executionAttributes = context.executionAttributes();
         SelectedAuthScheme<T> selectedAuthScheme =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+
+        if (!shouldSign(selectedAuthScheme)) {
+            return request;
+        }
 
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
 
@@ -148,6 +152,16 @@ public class SigningStage implements RequestToRequestPipeline {
      */
     private void updateInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
         executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.httpRequest(request)));
+    }
+
+    /**
+     * We do not sign if the Auth SchemeId is smithy.api#noAuth.
+     *
+     * @return True if request should be signed, false if not.
+     */
+    private boolean shouldSign(SelectedAuthScheme<?> selectedAuthScheme) {
+        // TODO: Should this string be a constant somewhere. Similar logic is used in AuthSchemeInterceptors.
+        return "smithy.api#noAuth".equals(selectedAuthScheme.authSchemeOption().schemeId());
     }
 
     /**
