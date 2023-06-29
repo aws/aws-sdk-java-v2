@@ -1,3 +1,208 @@
+# __2.20.96__ __2023-06-29__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for the OR operator in RSQL join match conditions and the ability to control which operators (AND, OR) are allowed in a join match condition.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for AWS Glue Crawler with Iceberg Tables, allowing Crawlers to discover Iceberg Tables in S3 and register them in Glue Data Catalog for query engines to query against.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release introduces app block builder, allowing customers to provision a resource to package applications into an app block
+
+## __Amazon Chime__
+  - ### Features
+    - The Amazon Chime SDK APIs in the Chime namespace are no longer supported. Customers should use APIs in the dedicated Amazon Chime SDK namespaces: ChimeSDKIdentity, ChimeSDKMediaPipelines, ChimeSDKMeetings, ChimeSDKMessaging, and ChimeSDKVoice.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release adds ReturnValuesOnConditionCheckFailure parameter to PutItem, UpdateItem, DeleteItem, ExecuteStatement, BatchExecuteStatement and ExecuteTransaction APIs. When set to ALL_OLD, API returns a copy of the item as it was when a conditional write failed
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift now supports game builds that use the Amazon Linux 2023 (AL2023) operating system.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding support for timeseries forecasting in the CreateAutoMLJobV2 API.
+
+# __2.20.95__ __2023-06-28__
+## __AWS Lambda__
+  - ### Features
+    - Surface ResourceConflictException in DeleteEventSourceMapping
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds a new feature for Amazon CloudWatch Internet Monitor that enables customers to set custom thresholds, for performance and availability drops, for triggering when to create a health event.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for new runtime environment in Kinesis Data Analytics Studio: Zeppelin-0.10, Apache Flink-1.15
+
+## __Amazon Omics__
+  - ### Features
+    - Add Common Workflow Language (CWL) as a supported language for Omics workflows
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon Relational Database Service (RDS) now supports joining a RDS for SQL Server instance to a self-managed Active Directory.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for Model Cards Model Registry integration.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - The S3 LISTObjects, ListObjectsV2 and ListObjectVersions API now supports a new optional header x-amz-optional-object-attributes. If header contains RestoreStatus as the value, then S3 will include Glacier restore status i.e. isRestoreInProgress and RestoreExpiryDate in List response.
+
+# __2.20.94__ __2023-06-27__
+## __AWS Private 5G__
+  - ### Features
+    - This release allows Private5G customers to choose different commitment plans (60-days, 1-year, 3-years) when placing new orders, enables automatic renewal option for 1-year and 3-years commitments. It also allows customers to update the commitment plan of an existing radio unit.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release adds support to bypass SSO with the SAPOData connector when connecting to an SAP instance.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - IVS customers can now revoke the viewer session associated with an auth token, to prevent and stop playback using that token.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - General Availability (GA) release of Kinesis Video Streams at Edge, enabling customers to provide a configuration for the Kinesis Video Streams EdgeAgent running on an on-premise IoT device. Customers can now locally record from cameras and stream videos to the cloud on a configured schedule.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for configuring new classification jobs to use the set of managed data identifiers that we recommend for jobs. For the managed data identifier selection type (managedDataIdentifierSelector), specify RECOMMENDED.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Introducing TTL for online store records for feature groups.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introducing TTL for online store records in feature groups.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager doc-only update for June 2023.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - This update fixes several broken links to the Cedar documentation.
+
+## __AppFabric__
+  - ### Features
+    - Initial release of AWS AppFabric for connecting SaaS applications for better productivity and security.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Added support for StreamSpecification in the CreateTableEnhancedRequest, allowing configuration of table stream specification using DynamoDB Enhanced Client.
+        - Contributed by: [@acouvreur](https://github.com/acouvreur)
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support to update the release label of an EMR Serverless application to upgrade it to a different version of Amazon EMR via UpdateApplication API.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@acouvreur](https://github.com/acouvreur)
+# __2.20.93__ __2023-06-26__
+## __AWS Glue__
+  - ### Features
+    - Timestamp Starting Position For Kinesis and Kafka Data Sources in a Glue Streaming Job
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Support for a new API "GetMFADevice" to present MFA device metadata such as device certifications
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release provides a way to search for existing tags within an instance. Before tagging a resource, ensure consistency by searching for pre-existing key:value pairs.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add support for user.extra.sessionName in Kubernetes Audit Logs Findings.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Added time zone estimation support for journeys
+
+# __2.20.92__ __2023-06-23__
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds support for encryption via customer managed keys.
+
+## __Amazon FSx__
+  - ### Features
+    - Update to Amazon FSx documentation.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation improvements for create, describe, and modify DB clusters and DB instances.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Added improved descriptions and new code samples to SDK documentation.
+
+# __2.20.91__ __2023-06-22__
+## __AWS Step Functions__
+  - ### Features
+    - Adds support for Versions and Aliases. Adds 8 operations: PublishStateMachineVersion, DeleteStateMachineVersion, ListStateMachineVersions, CreateStateMachineAlias, DescribeStateMachineAlias, UpdateStateMachineAlias, DeleteStateMachineAlias, ListStateMachineAliases
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Introducing Amazon Kendra Retrieve API that can be used to retrieve relevant passages or text excerpts given an input query.
+
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - AppInstanceBots can be configured to be invoked or not using the Target or the CHIME.mentions attribute for ChannelMessages
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - ChannelMessages can be made visible to sender and intended recipient rather than all channel members with the target attribute. For example, a user can send messages to a bot and receive messages back in a group channel without other members seeing them.
+
+## __Maven config__
+  - ### Bugfixes
+    - Fix the scm.url in the maven project
+        - Contributed by: [@jensim](https://github.com/jensim)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@jensim](https://github.com/jensim)
+# __2.20.90__ __2023-06-21__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release introduces the bandwidth reduction filter for the HEVC encoder, increases the limits of outputs per job, and updates support for the Nagra SDK to version 1.14.7.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds a new parameter StructuredLogDestinations to CreateServer, UpdateServer APIs.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB
+
+## __Amazon EMR__
+  - ### Features
+    - This release introduces a new Amazon EMR EPI called ListSupportedInstanceTypes that returns a list of all instance types supported by a given EMR release.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release provides support in SageMaker for output files in training jobs to be uploaded without compression and enable customer to deploy uncompressed model from S3 to real-time inference Endpoints. In addition, ml.trn1n.32xlarge is added to supported instance type list in training job.
+
+## __AmazonMQ__
+  - ### Features
+    - The Cross Region Disaster Recovery feature allows to replicate a brokers state from one region to another in order to provide customers with multi-region resiliency in the event of a regional outage.
+
+## __Inspector2__
+  - ### Features
+    - This release adds support for Software Bill of Materials (SBOM) export and the general availability of code scanning for AWS Lambda functions.
+
 # __2.20.89__ __2023-06-20__
 ## __AWS Config__
   - ### Features
