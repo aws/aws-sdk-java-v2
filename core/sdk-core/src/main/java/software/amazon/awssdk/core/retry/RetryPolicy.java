@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.retry;
 
-import java.time.Duration;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;

@@ -23,6 +23,7 @@ import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultLegacyRetryStrategy
@@ -34,9 +35,9 @@ public final class DefaultLegacyRetryStrategy
 
     DefaultLegacyRetryStrategy(Builder builder) {
         super(LOG, builder);
-        this.throttlingExceptionCost = builder.throttlingExceptionCost;
-        this.throttlingBackoffStrategy = builder.throttlingBackoffStrategy;
-        this.treatAsThrottling = builder.treatAsThrottling;
+        this.throttlingExceptionCost = Validate.paramNotNull(builder.throttlingExceptionCost, "throttlingExceptionCost");
+        this.throttlingBackoffStrategy = Validate.paramNotNull(builder.throttlingBackoffStrategy, "throttlingBackoffStrategy");
+        this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
     }
 
     @Override
