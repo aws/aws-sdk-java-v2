@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
+import software.amazon.awssdk.core.internal.io.AwsCompressionInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -59,23 +60,27 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
         Compressor compressor = resolveCompressionType(context.executionAttributes());
 
-        // non-streaming
-        if (!isStreaming(context)) {
-            ContentStreamProvider wrappedProvider = input.contentStreamProvider();
-            ContentStreamProvider compressedStreamProvider = () -> compressor.compress(wrappedProvider.newStream());
-            input.contentStreamProvider(compressedStreamProvider);
-            input = updateContentEncodingHeader(input, compressor);
-            return updateContentLengthHeader(input);
+        // non-streaming OR transfer-encoding chunked
+        if (!isStreaming(context) || isTransferEncodingChunked(input)) {
+            compressEntirePayload(input, compressor);
+            updateContentEncodingHeader(input, compressor);
+            if (!isStreaming(context)) {
+                return updateContentLengthHeader(input);
+            } else {
+                return removeContentLengthHeader(input);
+            }
         }
 
-        /*if (context.requestProvider() == null) {
+        if (context.requestProvider() == null) {
             // sync streaming
-
-        } else {
+            input.contentStreamProvider(new CompressionContentStreamProvider(input.contentStreamProvider(), compressor));
+        }
+        /*else {
             // async streaming
-
         }*/
-        return updateContentEncodingHeader(input, compressor);
+        updateContentEncodingHeader(input, compressor);
+        removeContentLengthHeader(input);
+        return input.putHeader("Transfer-Encoding", "chunked");
     }
 
     private static boolean shouldCompress(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
@@ -101,12 +106,17 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming();
     }
 
+    private SdkHttpFullRequest.Builder compressEntirePayload(SdkHttpFullRequest.Builder input, Compressor compressor) {
+        ContentStreamProvider wrappedProvider = input.contentStreamProvider();
+        ContentStreamProvider compressedStreamProvider = () -> compressor.compress(wrappedProvider.newStream());
+        return input.contentStreamProvider(compressedStreamProvider);
+    }
+
     private static SdkHttpFullRequest.Builder updateContentEncodingHeader(SdkHttpFullRequest.Builder input,
                                                                           Compressor compressor) {
         if (input.firstMatchingHeader("Content-encoding").isPresent()) {
             return input.appendHeader("Content-encoding", compressor.compressorType());
         }
-
         return input.putHeader("Content-encoding", compressor.compressorType());
     }
 
@@ -121,12 +131,15 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         }
     }
 
-    /*private boolean isTransferEncodingChunked(Context.ModifyHttpRequest context) {
-        return context.httpRequest()
-                      .firstMatchingHeader("Transfer-Encoding")
-                      .map(headerValue -> headerValue.equals("chunked"))
-                      .orElse(false);
-    }*/
+    private static SdkHttpFullRequest.Builder removeContentLengthHeader(SdkHttpFullRequest.Builder input) {
+        return input.removeHeader("Content-Length");
+    }
+
+    private boolean isTransferEncodingChunked(SdkHttpFullRequest.Builder input) {
+        return input.firstMatchingHeader("Transfer-Encoding")
+                    .map(headerValue -> headerValue.equals("chunked"))
+                    .orElse(false);
+    }
 
     private static Compressor resolveCompressionType(ExecutionAttributes executionAttributes) {
         List<String> encodings =
@@ -224,6 +237,34 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         if (!(minCompressionSize >= 0 && minCompressionSize <= MIN_COMPRESSION_SIZE_LIMIT)) {
             throw SdkClientException.create("The minimum compression size must be non-negative with a maximum value of "
                                             + "10485760.", new IllegalArgumentException());
+        }
+    }
+
+    static final class CompressionContentStreamProvider implements ContentStreamProvider {
+        private final ContentStreamProvider underlyingInputStreamProvider;
+        private InputStream currentStream;
+        private final Compressor compressor;
+
+        CompressionContentStreamProvider(ContentStreamProvider underlyingInputStreamProvider, Compressor compressor) {
+            this.underlyingInputStreamProvider = underlyingInputStreamProvider;
+            this.compressor = compressor;
+        }
+
+        @Override
+        public InputStream newStream() {
+            closeCurrentStream();
+            currentStream = AwsCompressionInputStream.builder()
+                                                     .inputStream(underlyingInputStreamProvider.newStream())
+                                                     .compressor(compressor)
+                                                     .build();
+            return currentStream;
+        }
+
+        private void closeCurrentStream() {
+            if (currentStream != null) {
+                IoUtils.closeQuietly(currentStream, null);
+                currentStream = null;
+            }
         }
     }
 }
