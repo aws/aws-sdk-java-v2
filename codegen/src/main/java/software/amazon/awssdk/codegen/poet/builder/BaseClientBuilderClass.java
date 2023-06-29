@@ -117,6 +117,12 @@ public class BaseClientBuilderClass implements ClassSpec {
             });
         }
 
+        if (hasSdkClientContextParams()) {
+            model.getCustomizationConfig().getCustomClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
+        }
+
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(setServiceConfigurationMethod())
                    .addMethod(beanStyleSetServiceConfigurationMethod());
@@ -435,6 +441,19 @@ public class BaseClientBuilderClass implements ClassSpec {
                    .addCode("}");
         }
 
+        if (model.getCustomizationConfig().getServiceConfig().hasCrossRegionAccessEnabledProperty()) {
+            builder.addCode("if (serviceConfigBuilder.crossRegionAccessEnabled() != null) {")
+                   .addCode("    $T.validState(clientContextParams.get($T.CROSS_REGION_ACCESS_ENABLED) == null, "
+                            + "\"Cross region access enabled has been configured on both $L and the client level. "
+                            + "Please limit this configuration to one location.\");",
+                            Validate.class, endpointRulesSpecUtils.clientContextParamsName(), clientConfigClassName)
+                   .addCode("} else {")
+                   .addCode("    serviceConfigBuilder.crossRegionAccessEnabled(clientContextParams.get($T"
+                            + ".CROSS_REGION_ACCESS_ENABLED));",
+                            endpointRulesSpecUtils.clientContextParamsName())
+                   .addCode("}");
+        }
+
         builder.addStatement("$T finalServiceConfig = serviceConfigBuilder.build()", clientConfigClass);
 
         if (model.getCustomizationConfig().getServiceConfig().hasUseArnRegionProperty()) {
@@ -466,6 +485,14 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addCode(CodeBlock.builder()
                                      .addStatement("clientContextParams.put($T.ACCELERATE, finalServiceConfig"
                                                    + ".accelerateModeEnabled())",
+                                                   endpointRulesSpecUtils.clientContextParamsName())
+                                     .build());
+        }
+
+        if (model.getCustomizationConfig().getServiceConfig().hasCrossRegionAccessEnabledProperty()) {
+            builder.addCode(CodeBlock.builder()
+                                     .addStatement("clientContextParams.put($T.CROSS_REGION_ACCESS_ENABLED, finalServiceConfig"
+                                                   + ".crossRegionAccessEnabled())",
                                                    endpointRulesSpecUtils.clientContextParamsName())
                                      .build());
         }
@@ -607,6 +634,12 @@ public class BaseClientBuilderClass implements ClassSpec {
     private boolean hasClientContextParams() {
         Map<String, ClientContextParam> clientContextParams = model.getClientContextParams();
         return clientContextParams != null && !clientContextParams.isEmpty();
+    }
+
+    private boolean hasSdkClientContextParams() {
+        return model.getCustomizationConfig() != null
+               && model.getCustomizationConfig().getCustomClientContextParams() != null
+               && !model.getCustomizationConfig().getCustomClientContextParams().isEmpty();
     }
 
     private MethodSpec validateClientOptionsMethod() {

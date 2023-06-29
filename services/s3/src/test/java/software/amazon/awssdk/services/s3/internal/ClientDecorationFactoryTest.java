@@ -27,36 +27,36 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.internal.client.S3AsyncClientComposer;
-import software.amazon.awssdk.services.s3.internal.client.S3SyncClientComposer;
+import software.amazon.awssdk.services.s3.internal.client.S3AsyncClientDecorator;
+import software.amazon.awssdk.services.s3.internal.client.S3SyncClientDecorator;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionSyncClient;
 
-public class ClientCompositionFactoryTest {
+public class ClientDecorationFactoryTest {
 
     @ParameterizedTest
     @MethodSource("syncTestCases")
     void syncClientTest(Consumer<S3Configuration.Builder> s3ConfigSettings, Class<Object> clazz, boolean isClass) {
-        S3SyncClientComposer composer = new S3SyncClientComposer();
-        S3Client composedClient = composer.compose(S3Client.create(),
-                                                   clientConfigWithServiceConfig(s3ConfigSettings));
+        S3SyncClientDecorator decorator = new S3SyncClientDecorator();
+        S3Client decorateClient = decorator.decorate(S3Client.create(),
+                                                    clientConfigWithServiceConfig(s3ConfigSettings));
         if (isClass) {
-            assertThat(composedClient).isInstanceOf(clazz);
+            assertThat(decorateClient).isInstanceOf(clazz);
         } else {
-            assertThat(composedClient).isNotInstanceOf(clazz);
+            assertThat(decorateClient).isNotInstanceOf(clazz);
         }
     }
 
     @ParameterizedTest
     @MethodSource("asyncTestCases")
     void asyncClientTest(Consumer<S3Configuration.Builder> s3ConfigSettings, Class<Object> clazz, boolean isClass) {
-        S3AsyncClientComposer composer = new S3AsyncClientComposer();
-        S3AsyncClient composedClient = composer.compose(S3AsyncClient.create(),
-                                                        clientConfigWithServiceConfig(s3ConfigSettings));
+        S3AsyncClientDecorator decorator = new S3AsyncClientDecorator();
+        S3AsyncClient decoratedClient = decorator.decorate(S3AsyncClient.create(),
+                                                         clientConfigWithServiceConfig(s3ConfigSettings));
         if (isClass) {
-            assertThat(composedClient).isInstanceOf(clazz);
+            assertThat(decoratedClient).isInstanceOf(clazz);
         } else {
-            assertThat(composedClient).isNotInstanceOf(clazz);
+            assertThat(decoratedClient).isNotInstanceOf(clazz);
         }
     }
 

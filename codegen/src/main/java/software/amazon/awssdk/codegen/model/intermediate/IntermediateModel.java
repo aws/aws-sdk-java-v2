@@ -235,17 +235,17 @@ public final class IntermediateModel {
         }
     }
 
-    public Optional<String> syncClientComposerClassName() {
-        if (customizationConfig.getSyncClientComposer() != null) {
-            return Optional.of(customizationConfig.getSyncClientComposer());
+    public Optional<String> syncClientDecoratorClassName() {
+        if (customizationConfig.getSyncClientDecorator() != null) {
+            return Optional.of(customizationConfig.getSyncClientDecorator());
         }
         return Optional.empty();
     }
 
-    public Optional<String> asyncClientComposerClassName() {
-        String asyncClientComposer = customizationConfig.getAsyncClientComposer();
-        if (customizationConfig.getAsyncClientComposer() != null) {
-            return Optional.of(asyncClientComposer);
+    public Optional<String> asyncClientDecoratorClassName() {
+        String asyncClientDecorator = customizationConfig.getAsyncClientDecorator();
+        if (customizationConfig.getAsyncClientDecorator() != null) {
+            return Optional.of(asyncClientDecorator);
         }
         return Optional.empty();
     }

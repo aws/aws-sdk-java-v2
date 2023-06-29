@@ -19,30 +19,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.internal.client.ClientComposer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionSyncClient;
+import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
 import software.amazon.awssdk.utils.ConditionalDecorator;
 
 @SdkInternalApi
-public class S3SyncClientComposer implements ClientComposer<S3Client> {
+public class S3AsyncClientDecorator {
 
-    public S3SyncClientComposer() {
+    public S3AsyncClientDecorator() {
     }
 
-    @Override
-    public S3Client compose(S3Client base, SdkClientConfiguration clientConfiguration) {
-        List<ConditionalDecorator<S3Client>> decorators = new ArrayList<>();
-        decorators.add(ConditionalDecorator.create(isCrossRegionEnabledSync(clientConfiguration),
-                                                   S3CrossRegionSyncClient::new));
+    public S3AsyncClient decorate(S3AsyncClient base, SdkClientConfiguration clientConfiguration) {
+        List<ConditionalDecorator<S3AsyncClient>> decorators = new ArrayList<>();
+        decorators.add(ConditionalDecorator.create(isCrossRegionEnabledAsync(clientConfiguration),
+                                                   S3CrossRegionAsyncClient::new));
         return ConditionalDecorator.decorate(base, decorators);
     }
 
-    private Predicate<S3Client> isCrossRegionEnabledSync(SdkClientConfiguration clientConfiguration) {
+    private Predicate<S3AsyncClient> isCrossRegionEnabledAsync(SdkClientConfiguration clientConfiguration) {
         return client -> ((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
             .crossRegionAccessEnabled();
     }
+
 }

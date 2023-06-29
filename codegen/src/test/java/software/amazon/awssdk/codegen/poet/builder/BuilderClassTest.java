@@ -84,6 +84,17 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void syncComposedDefaultClientBuilderClass() throws Exception {
+        validateComposedClientGeneration(BaseClientBuilderClass::new, "test-composed-sync-default-client-builder.java");
+    }
+
+    @Test
+    public void syncHasCrossRegionAccessEnabledPropertyBuilderClass() throws Exception {
+        validateComposedClientGeneration(BaseClientBuilderInterface::new, "test-customcontextparams-sync-client-builder-class.java");
+    }
+
+
+    @Test
     public void asyncClientBuilderInterface() throws Exception {
         validateGeneration(AsyncClientBuilderInterface::new, "test-async-client-builder-interface.java");
     }

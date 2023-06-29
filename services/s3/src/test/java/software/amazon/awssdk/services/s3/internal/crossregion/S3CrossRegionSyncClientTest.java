@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.successHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CHANGED_CROSS_REGION;
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -353,6 +352,34 @@ class S3CrossRegionSyncClientTest {
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
         assertThat(mockSyncHttpClient.getLastRequest().firstMatchingHeader("User-Agent").get())
             .doesNotContain("hll/cross-region");
+    }
+
+
+    @Test
+    void standardOp_crossRegionClient_FromContextParamBuilder_containUserAgent(){
+        mockSyncHttpClient.stubResponses(successHttpResponse());
+        S3Client crossRegionClient = clientBuilder().crossRegionAccessEnabled(true).build();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
+        assertThat(mockSyncHttpClient.getLastRequest().firstMatchingHeader("User-Agent").get()).contains("hll/cross-region");
+    }
+
+    @ParameterizedTest
+    @MethodSource("stubResponses")
+    void crossRegionClient_fromParamBuilder_createdWithWrapping_SuccessfullyIntercepts(Consumer<MockSyncHttpClient> stubConsumer,
+                                                                                       Class<?> endpointProviderType) {
+        stubConsumer.accept(mockSyncHttpClient);
+        S3Client crossRegionClient = clientBuilder().crossRegionAccessEnabled(true).build();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(endpointProviderType);
+    }
+
+    @Test
+    void crossRegionClient_with_both_configAndContextParams(){
+
+        assertThatIllegalStateException().isThrownBy(() -> clientBuilder().crossRegionAccessEnabled(true).serviceConfiguration(s -> s.crossRegionAccessEnabled(false)).build())
+                                         .withMessage("Cross region access enabled has been configured on both "
+                                                      + "S3Configuration and the client level. Please limit this configuration to one location.");
+        mockSyncHttpClient.stubResponses(successHttpResponse());
     }
 
     private S3ClientBuilder clientBuilder() {
