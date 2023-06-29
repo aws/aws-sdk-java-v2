@@ -70,6 +70,8 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
+        updateInterceptorContext(request, context.executionContext());
+
         ExecutionAttributes executionAttributes = context.executionAttributes();
         SelectedAuthScheme<T> selectedAuthScheme =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
@@ -96,7 +98,10 @@ public class SigningStage implements RequestToRequestPipeline {
 
         HttpSigner<T> signer = selectedAuthScheme.signer();
         SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
-        return toSdkHttpFullRequest(signedRequest);
+
+        SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
+        updateInterceptorContext(request, context.executionContext());
+        return result;
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
