@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.async.CompressionAsyncRequestBody;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.io.AwsCompressionInputStream;
@@ -75,9 +76,13 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             // sync streaming
             input.contentStreamProvider(new CompressionContentStreamProvider(input.contentStreamProvider(), compressor));
         }
-        /*else {
+        else {
             // async streaming
-        }*/
+            context.requestProvider(CompressionAsyncRequestBody.builder()
+                                        .asyncRequestBody(context.requestProvider())
+                                        .compressor(compressor)
+                                        .build());
+        }
         updateContentEncodingHeader(input, compressor);
         removeContentLengthHeader(input);
         return input.putHeader("Transfer-Encoding", "chunked");
