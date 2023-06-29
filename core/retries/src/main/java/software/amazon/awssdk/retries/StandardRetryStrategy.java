@@ -71,13 +71,6 @@ public interface StandardRetryStrategy extends RetryStrategy<StandardRetryStrate
 
     interface Builder extends RetryStrategy.Builder<Builder, StandardRetryStrategy> {
         /**
-         * Configure the backoff strategy used by this executor.
-         *
-         * <p>By default, this uses jittered exponential backoff.
-         */
-        Builder backoffStrategy(BackoffStrategy backoffStrategy);
-
-        /**
          * Whether circuit breaking is enabled for this executor.
          *
          * <p>The circuit breaker will prevent attempts (even below the {@link #maxAttempts(int)}) if a large number of

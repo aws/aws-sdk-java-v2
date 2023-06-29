@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RecordSuccessRequest;
 import software.amazon.awssdk.retries.api.RecordSuccessResponse;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
@@ -162,6 +163,11 @@ public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapte
         @Override
         public Builder maxAttempts(int maxAttempts) {
             throw new UnsupportedOperationException("RetryPolicyAdapter does not support calling retryOnException");
+        }
+
+        @Override
+        public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
+            throw new UnsupportedOperationException("RetryPolicyAdapter does not support calling backoffStrategy");
         }
 
         public Builder retryPolicy(RetryPolicy retryPolicy) {

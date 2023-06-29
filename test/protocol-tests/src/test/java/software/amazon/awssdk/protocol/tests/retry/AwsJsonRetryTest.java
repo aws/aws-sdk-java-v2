@@ -31,7 +31,6 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocoljsonrpc.ProtocolJsonRpcClient;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesRequest;

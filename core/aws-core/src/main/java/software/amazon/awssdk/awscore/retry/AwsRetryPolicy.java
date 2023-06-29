@@ -25,8 +25,11 @@ import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 
 /**
  * Retry Policy used by clients when communicating with AWS services.
+ *
+ * @deprecated Use instead {@link AwsRetryStrategy}
  */
 @SdkPublicApi
+@Deprecated
 public final class AwsRetryPolicy {
 
     private AwsRetryPolicy() {

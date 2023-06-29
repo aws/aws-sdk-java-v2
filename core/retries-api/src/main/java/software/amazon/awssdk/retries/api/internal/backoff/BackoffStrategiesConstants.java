@@ -42,7 +42,7 @@ class BackoffStrategiesConstants {
      * get capped to 30.
      */
     static int calculateExponentialDelay(int retriesAttempted, Duration baseDelay, Duration maxBackoffTime) {
-        int cappedRetries = Math.min(retriesAttempted, BackoffStrategiesConstants.RETRIES_ATTEMPTED_CEILING);
+        int cappedRetries = Math.min(retriesAttempted, RETRIES_ATTEMPTED_CEILING);
         return (int) Math.min(baseDelay.multipliedBy(1L << (cappedRetries - 2)).toMillis(), maxBackoffTime.toMillis());
     }
 }

@@ -60,7 +60,6 @@ public class HttpClientApiCallTimeoutTest {
     @Before
     public void setup() {
         httpClient = testClientBuilder()
-            .retryPolicy(RetryPolicy.none())
             .retryStrategy(DefaultRetryStrategy.none())
             .apiCallTimeout(API_CALL_TIMEOUT)
             .build();

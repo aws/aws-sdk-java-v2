@@ -19,7 +19,6 @@ import java.time.Duration;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 
 /**
  * A set of tests to test ApiCallTimeout for synchronous streaming operations because they are tricky.

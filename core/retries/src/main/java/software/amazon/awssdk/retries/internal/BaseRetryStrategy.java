@@ -146,7 +146,6 @@ public abstract class BaseRetryStrategy<
     @Override
     public abstract B toBuilder();
 
-
     /**
      * Computes the backoff before the first attempt, by default
      * {@link Duration#ZERO}. Extending classes can override
