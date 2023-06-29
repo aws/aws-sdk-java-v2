@@ -15,21 +15,23 @@
 
 package software.amazon.awssdk.core.internal.compression;
 
-import java.io.ByteArrayInputStream;
+import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
+import java.io.UncheckedIOException;
 import java.util.zip.GZIPOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.compression.Compressor;
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi
 public final class GzipCompressor implements Compressor {
 
     private static final String COMPRESSOR_TYPE = "gzip";
+    private static final Logger log = LoggerFactory.getLogger(GzipCompressor.class);
 
     @Override
     public String compressorType() {
@@ -37,34 +39,18 @@ public final class GzipCompressor implements Compressor {
     }
 
     @Override
-    public byte[] compress(byte[] content) {
+    public SdkBytes compress(SdkBytes content) {
+        GZIPOutputStream gzipOutputStream = null;
         try {
             ByteArrayOutputStream compressedOutputStream = new ByteArrayOutputStream();
-            GZIPOutputStream gzipOutputStream = new GZIPOutputStream(compressedOutputStream);
-            gzipOutputStream.write(content);
+            gzipOutputStream = new GZIPOutputStream(compressedOutputStream);
+            gzipOutputStream.write(content.asByteArray());
             gzipOutputStream.close();
-            return compressedOutputStream.toByteArray();
+            return SdkBytes.fromByteArray(compressedOutputStream.toByteArray());
         } catch (IOException e) {
-            throw SdkClientException.create(e.getMessage(), e);
+            throw new UncheckedIOException(e);
+        } finally {
+            closeQuietly(gzipOutputStream, log);
         }
-    }
-
-    @Override
-    public InputStream compress(InputStream inputStream) {
-        try {
-            byte[] content = IoUtils.toByteArray(inputStream);
-            byte[] compressedContent = compress(content);
-            return new ByteArrayInputStream(compressedContent);
-        } catch (IOException e) {
-            throw SdkClientException.create(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public ByteBuffer compress(ByteBuffer byteBuffer) {
-        byte[] content = new byte[byteBuffer.remaining()];
-        byteBuffer.get(content);
-        byte[] compressedContent = compress(content);
-        return ByteBuffer.wrap(compressedContent);
     }
 }

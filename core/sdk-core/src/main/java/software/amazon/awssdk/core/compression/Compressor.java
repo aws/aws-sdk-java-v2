@@ -17,47 +17,58 @@ package software.amazon.awssdk.core.compression;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.internal.compression.GzipCompressor;
-import software.amazon.awssdk.core.internal.interceptor.RequestCompressionInterceptor;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 
 /**
- * Interface for compressors to be used by {@link RequestCompressionInterceptor} to compress requests.
+ * Interface for compressors used by {@link CompressRequestStage} to compress requests.
  */
-@SdkPublicApi
+@SdkInternalApi
 public interface Compressor {
 
     /**
      * The compression algorithm type.
+     *
+     * @return The {@link String} compression algorithm type.
      */
     String compressorType();
 
     /**
-     * Compress a byte array.
+     * Compress a {@link SdkBytes} payload.
+     *
+     * @param content
+     * @return The compressed {@link SdkBytes}.
      */
-    byte[] compress(byte[] content);
+    SdkBytes compress(SdkBytes content);
 
     /**
-     * Compress an {@link InputStream}.
+     * Compress a byte[] payload.
+     *
+     * @param content
+     * @return The compressed byte array.
      */
-    InputStream compress(InputStream inputStream);
+    default byte[] compress(byte[] content) {
+        return compress(SdkBytes.fromByteArray(content)).asByteArray();
+    }
 
     /**
-     * Compress a {@link ByteBuffer}.
+     * Compress an {@link InputStream} payload.
+     *
+     * @param content
+     * @return The compressed {@link InputStream}.
      */
-    ByteBuffer compress(ByteBuffer byteBuffer);
+    default InputStream compress(InputStream content) {
+        return compress(SdkBytes.fromInputStream(content)).asInputStream();
+    }
 
     /**
-     * Maps the {@link CompressionType} to its corresponding {@link Compressor}.
-     * TODO: Update mappings here when additional compressors are supported in the future
+     * Compress an {@link ByteBuffer} payload.
+     *
+     * @param content
+     * @return The compressed {@link ByteBuffer}.
      */
-    static Compressor forCompressorType(CompressionType compressionType) {
-        switch (compressionType) {
-            case GZIP:
-                return new GzipCompressor();
-            default:
-                throw new IllegalArgumentException("The compresssion type " + compressionType + "does not have an implemenation"
-                                                   + " of Compressor.");
-        }
+    default ByteBuffer compress(ByteBuffer content) {
+        return compress(SdkBytes.fromByteBuffer(content)).asByteBuffer();
     }
 }
