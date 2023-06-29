@@ -1,3 +1,32 @@
+# __2.20.96__ __2023-06-29__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for the OR operator in RSQL join match conditions and the ability to control which operators (AND, OR) are allowed in a join match condition.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for AWS Glue Crawler with Iceberg Tables, allowing Crawlers to discover Iceberg Tables in S3 and register them in Glue Data Catalog for query engines to query against.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release introduces app block builder, allowing customers to provision a resource to package applications into an app block
+
+## __Amazon Chime__
+  - ### Features
+    - The Amazon Chime SDK APIs in the Chime namespace are no longer supported. Customers should use APIs in the dedicated Amazon Chime SDK namespaces: ChimeSDKIdentity, ChimeSDKMediaPipelines, ChimeSDKMeetings, ChimeSDKMessaging, and ChimeSDKVoice.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release adds ReturnValuesOnConditionCheckFailure parameter to PutItem, UpdateItem, DeleteItem, ExecuteStatement, BatchExecuteStatement and ExecuteTransaction APIs. When set to ALL_OLD, API returns a copy of the item as it was when a conditional write failed
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift now supports game builds that use the Amazon Linux 2023 (AL2023) operating system.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding support for timeseries forecasting in the CreateAutoMLJobV2 API.
+
 # __2.20.95__ __2023-06-28__
 ## __AWS Lambda__
   - ### Features
