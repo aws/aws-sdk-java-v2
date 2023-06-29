@@ -80,28 +80,32 @@ public class SigningStage implements RequestToRequestPipeline {
             return request;
         }
 
-        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+        Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
+            () -> {
+                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
 
-        // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based endpoints
-        //  and also to logically separate out identity resolution as its own step.
-        ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
-        authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
+                // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based
+                //  endpoints and also to logically separate out identity resolution as its own step.
+                ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
+                authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
 
-        IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
-        T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
+                IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
+                T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
 
-        SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
-            .builder(identity)
-            .request(request)
-            .payload(request.contentStreamProvider().orElse(null));
-        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+                SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+                    .builder(identity)
+                    .request(request)
+                    .payload(request.contentStreamProvider().orElse(null));
+                authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
-        HttpSigner<T> signer = selectedAuthScheme.signer();
-        SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
-
-        SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
-        updateInterceptorContext(request, context.executionContext());
-        return result;
+                HttpSigner<T> signer = selectedAuthScheme.signer();
+                SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+                SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
+                updateInterceptorContext(result, context.executionContext());
+                return result;
+            });
+        context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
+        return measuredSign.left();
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
