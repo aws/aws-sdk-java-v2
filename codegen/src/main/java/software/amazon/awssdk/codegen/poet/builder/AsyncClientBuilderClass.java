@@ -148,7 +148,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
         builder.addStatement("$1T client = new $2T(serviceClientConfiguration, clientConfiguration)",
                              clientInterfaceName, clientClassName);
         if (model.asyncClientDecoratorClassName().isPresent()) {
-            builder.addStatement("return  new $T().decorate(client, clientConfiguration)",
+            builder.addStatement("return  new $T().decorate(client, clientConfiguration, clientContextParams.copy().build())",
                                  PoetUtils.classNameFromFqcn(model.asyncClientDecoratorClassName().get()));
         } else {
             builder.addStatement("return client");

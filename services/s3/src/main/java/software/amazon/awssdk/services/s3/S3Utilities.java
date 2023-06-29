@@ -499,8 +499,6 @@ public final class S3Utilities {
                    !s3Configuration.multiRegionEnabled());
         params.put(S3ClientContextParams.FORCE_PATH_STYLE, s3Configuration.pathStyleAccessEnabled());
         params.put(S3ClientContextParams.ACCELERATE, s3Configuration.accelerateModeEnabled());
-        params.put(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED, s3Configuration.crossRegionAccessEnabled());
-
         return params.build();
     }
 

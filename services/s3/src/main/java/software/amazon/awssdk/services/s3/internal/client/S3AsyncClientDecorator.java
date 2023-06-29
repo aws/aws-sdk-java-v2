@@ -20,10 +20,10 @@ import java.util.List;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.ConditionalDecorator;
 
 @SdkInternalApi
@@ -32,16 +32,18 @@ public class S3AsyncClientDecorator {
     public S3AsyncClientDecorator() {
     }
 
-    public S3AsyncClient decorate(S3AsyncClient base, SdkClientConfiguration clientConfiguration) {
+    public S3AsyncClient decorate(S3AsyncClient base,
+                                  SdkClientConfiguration clientConfiguration,
+                                  AttributeMap clientContextParams) {
         List<ConditionalDecorator<S3AsyncClient>> decorators = new ArrayList<>();
-        decorators.add(ConditionalDecorator.create(isCrossRegionEnabledAsync(clientConfiguration),
+        decorators.add(ConditionalDecorator.create(isCrossRegionEnabledAsync(clientContextParams),
                                                    S3CrossRegionAsyncClient::new));
         return ConditionalDecorator.decorate(base, decorators);
     }
 
-    private Predicate<S3AsyncClient> isCrossRegionEnabledAsync(SdkClientConfiguration clientConfiguration) {
-        return client -> ((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-            .crossRegionAccessEnabled();
+    private Predicate<S3AsyncClient> isCrossRegionEnabledAsync(AttributeMap clientContextParams) {
+        Boolean crossRegionEnabled = clientContextParams.get(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED);
+        return  client ->  crossRegionEnabled != null && crossRegionEnabled.booleanValue();
     }
 
 }

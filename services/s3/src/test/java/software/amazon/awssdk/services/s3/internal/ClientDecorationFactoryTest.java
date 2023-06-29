@@ -27,19 +27,23 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.client.S3AsyncClientDecorator;
 import software.amazon.awssdk.services.s3.internal.client.S3SyncClientDecorator;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionSyncClient;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public class ClientDecorationFactoryTest {
 
+    AttributeMap.Builder clientContextParams = AttributeMap.builder();
+
     @ParameterizedTest
     @MethodSource("syncTestCases")
-    void syncClientTest(Consumer<S3Configuration.Builder> s3ConfigSettings, Class<Object> clazz, boolean isClass) {
+
+    void syncClientTest(AttributeMap clientContextParams, Class<Object> clazz, boolean isClass) {
         S3SyncClientDecorator decorator = new S3SyncClientDecorator();
-        S3Client decorateClient = decorator.decorate(S3Client.create(),
-                                                    clientConfigWithServiceConfig(s3ConfigSettings));
+        S3Client decorateClient = decorator.decorate(S3Client.create(), null, clientContextParams);
         if (isClass) {
             assertThat(decorateClient).isInstanceOf(clazz);
         } else {
@@ -49,10 +53,10 @@ public class ClientDecorationFactoryTest {
 
     @ParameterizedTest
     @MethodSource("asyncTestCases")
-    void asyncClientTest(Consumer<S3Configuration.Builder> s3ConfigSettings, Class<Object> clazz, boolean isClass) {
+    void asyncClientTest(AttributeMap clientContextParams, Class<Object> clazz, boolean isClass) {
         S3AsyncClientDecorator decorator = new S3AsyncClientDecorator();
         S3AsyncClient decoratedClient = decorator.decorate(S3AsyncClient.create(),
-                                                         clientConfigWithServiceConfig(s3ConfigSettings));
+                                                         null ,clientContextParams);
         if (isClass) {
             assertThat(decoratedClient).isInstanceOf(clazz);
         } else {
@@ -60,24 +64,28 @@ public class ClientDecorationFactoryTest {
         }
     }
 
-    private SdkClientConfiguration clientConfigWithServiceConfig(Consumer<S3Configuration.Builder> s3ConfigSettings) {
-        S3Configuration s3Configuration = S3Configuration.builder().applyMutation(s3ConfigSettings).build();
-        return SdkClientConfiguration.builder().option(SdkClientOption.SERVICE_CONFIGURATION, s3Configuration).build();
-    }
 
     private static Stream<Arguments> syncTestCases() {
         return Stream.of(
-            Arguments.of((Consumer<S3Configuration.Builder>) c -> {}, S3CrossRegionSyncClient.class, false),
-            Arguments.of((Consumer<S3Configuration.Builder>) c -> c.crossRegionAccessEnabled(false), S3CrossRegionSyncClient.class, false),
-            Arguments.of((Consumer<S3Configuration.Builder>) c -> c.crossRegionAccessEnabled(true), S3CrossRegionSyncClient.class, true)
+            Arguments.of(AttributeMap.builder().build(), S3CrossRegionSyncClient.class, false),
+            Arguments.of(AttributeMap.builder().put(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED, false).build(),
+                         S3CrossRegionSyncClient.class, false),
+            Arguments.of(AttributeMap.builder().put(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED, true).build(),
+                         S3CrossRegionSyncClient.class, true)
         );
     }
 
     private static Stream<Arguments> asyncTestCases() {
         return Stream.of(
-            Arguments.of((Consumer<S3Configuration.Builder>) c -> {}, S3CrossRegionAsyncClient.class, false),
-            Arguments.of((Consumer<S3Configuration.Builder>) c -> c.crossRegionAccessEnabled(false), S3CrossRegionAsyncClient.class, false),
-            Arguments.of((Consumer<S3Configuration.Builder>) c -> c.crossRegionAccessEnabled(true), S3CrossRegionAsyncClient.class, true)
+            Arguments.of(AttributeMap.builder().build(),
+                         S3CrossRegionAsyncClient.class,
+                         false),
+            Arguments.of(AttributeMap.builder().put(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED, false).build(),
+                         S3CrossRegionAsyncClient.class,
+                         false),
+            Arguments.of(AttributeMap.builder().put(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED, true).build()
+                , S3CrossRegionAsyncClient.class,
+                         true)
         );
     }
 }

@@ -96,7 +96,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             // Disable checksum, it is handled in CRT
                             .serviceConfiguration(S3Configuration.builder()
                                                                  .checksumValidationEnabled(false)
-                                                                 .crossRegionAccessEnabled(builder.crossRegionAccessEnabled)
                                                                  .build())
                             .region(builder.region)
                             .endpointOverride(builder.endpointOverride)
@@ -104,6 +103,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             .overrideConfiguration(overrideConfigurationBuilder.build())
                             .accelerate(builder.accelerate)
                             .forcePathStyle(builder.forcePathStyle)
+                            .crossRegionAccessEnabled(builder.crossRegionAccessEnabled)
                             .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder))
                             .build();
     }

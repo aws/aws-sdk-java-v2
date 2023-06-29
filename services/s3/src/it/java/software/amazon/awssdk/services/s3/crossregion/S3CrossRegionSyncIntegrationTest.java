@@ -60,7 +60,7 @@ public class S3CrossRegionSyncIntegrationTest extends S3CrossRegionIntegrationTe
     public void initialize() {
         crossRegionS3Client = S3Client.builder()
                                       .region(CROSS_REGION)
-                                      .serviceConfiguration(s -> s.crossRegionAccessEnabled(true))
+                                      .crossRegionAccessEnabled(true)
                                       .build();
     }
 

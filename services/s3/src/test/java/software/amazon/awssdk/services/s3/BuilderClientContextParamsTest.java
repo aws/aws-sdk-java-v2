@@ -49,7 +49,6 @@ public class BuilderClientContextParamsTest {
                                          .put(S3ClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS, false)
                                          .put(S3ClientContextParams.ACCELERATE, false)
                                          .put(S3ClientContextParams.FORCE_PATH_STYLE, false)
-                                         .put(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED, false)
                                          .build();
     }
 

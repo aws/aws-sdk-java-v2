@@ -140,13 +140,12 @@ public class SyncClientBuilderClass implements ClassSpec {
                                          .addStatement("$T serviceClientConfiguration = initializeServiceClientConfig"
                                                        + "(clientConfiguration)",
                                                        serviceConfigClassName);
-
         addQueryProtocolInterceptors(builder);
 
         builder.addStatement("$1T client = new $2T(serviceClientConfiguration, clientConfiguration)",
                              clientInterfaceName, clientClassName);
         if (model.syncClientDecoratorClassName().isPresent()) {
-            builder.addStatement("return new $T().decorate(client, clientConfiguration)",
+            builder.addStatement("return new $T().decorate(client, clientConfiguration, clientContextParams.copy().build())",
                                  PoetUtils.classNameFromFqcn(model.syncClientDecoratorClassName().get()));
         } else {
             builder.addStatement("return client");

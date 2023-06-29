@@ -69,17 +69,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             .profileFileSupplier() : config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
         serviceConfigBuilder.profileName(serviceConfigBuilder.profileName() != null ? serviceConfigBuilder.profileName() : config
             .option(SdkClientOption.PROFILE_NAME));
-        if (serviceConfigBuilder.crossRegionAccessEnabled() != null) {
-            Validate.validState(
-                clientContextParams.get(JsonClientContextParams.CROSS_REGION_ACCESS_ENABLED) == null,
-                "Cross region access enabled has been configured on both ServiceConfiguration and the client level. Please limit this configuration to one location.");
-        } else {
-            serviceConfigBuilder.crossRegionAccessEnabled(clientContextParams
-                                                              .get(JsonClientContextParams.CROSS_REGION_ACCESS_ENABLED));
-        }
         ServiceConfiguration finalServiceConfig = serviceConfigBuilder.build();
-        clientContextParams.put(JsonClientContextParams.CROSS_REGION_ACCESS_ENABLED,
-                                finalServiceConfig.crossRegionAccessEnabled());
         return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
                      .option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig).build();
     }
