@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.auth.aws;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.aws.internal.DefaultAwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
@@ -26,6 +27,20 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  */
 @SdkPublicApi
 public interface AwsS3V4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
+
+    /**
+     * Whether to enable chunked encoding or not.
+     * This property defaults to false.
+     */
+    SignerProperty<Boolean> CHUNKED_ENCODING =
+        SignerProperty.create(Boolean.class, "ChunkedEncoding");
+
+    /**
+     * Whether to enable payload signing or not.
+     * This property defaults to false.
+     */
+    SignerProperty<Boolean> PAYLOAD_SIGNING =
+        SignerProperty.create(Boolean.class, "PayloadSigning");
 
     /**
      * Get a default implementation of a {@link AwsS3V4HttpSigner}

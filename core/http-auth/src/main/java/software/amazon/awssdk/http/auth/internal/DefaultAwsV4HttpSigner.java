@@ -85,6 +85,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     protected SdkChecksum sdkChecksum;
 
     // compound
+    protected byte[] signingKey;
     protected String signature;
 
     @Override
@@ -103,9 +104,11 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         SdkHttpRequest.Builder requestBuilder = sign(request, contentChecksum);
 
+        ContentStreamProvider payload = processPayload(request.payload().orElse(null));
+
         return SyncSignedRequest.builder()
             .request(requestBuilder.build())
-            .payload(request.payload().orElse(null))
+            .payload(payload)
             .build();
     }
 
@@ -189,7 +192,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         String stringToSign = createSignString(algorithm, credentialScope, canonicalRequestHash);
 
         // Step 4: Calculate the signature
-        byte[] signingKey = deriveSigningKey(credentials, credentialScope);
+        signingKey = deriveSigningKey(credentials, credentialScope);
         signature = createSignature(stringToSign, signingKey);
 
         // Step 5: Add the signature to the request
@@ -230,7 +233,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     /**
      * Generate a content hash by using the {@link ContentStreamProvider} and the {@link SdkChecksum}.
      */
-    private String createContentHash(ContentStreamProvider payload) {
+    protected String createContentHash(ContentStreamProvider payload) {
         return HttpChecksumUtils.calculateContentHash(payload, sdkChecksum);
     }
 
@@ -323,6 +326,15 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             + ", Signature=" + signature;
 
         requestBuilder.putHeader(SignerConstant.AUTHORIZATION, authHeader);
+    }
+
+    /**
+     * Process a request payload ({@link ContentStreamProvider}).
+     */
+    protected ContentStreamProvider processPayload(ContentStreamProvider payload) {
+        // The default implementation does nothing, as this version of signing does not
+        // modify or update the payload object
+        return payload;
     }
 
     /**

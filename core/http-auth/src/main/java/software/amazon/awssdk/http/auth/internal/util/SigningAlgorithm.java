@@ -32,6 +32,10 @@ public enum SigningAlgorithm {
         macReference = new MacThreadLocal(algorithmName);
     }
 
+    public String getAlgorithmName() {
+        return algorithmName;
+    }
+
     /**
      * Returns the thread local reference for the crypto algorithm
      */
