@@ -154,6 +154,11 @@ class RetryStrategyBuilderTest {
         }
 
         @Override
+        public BuilderToTestDefaults backoffStrategy(BackoffStrategy backoffStrategy) {
+            return this;
+        }
+
+        @Override
         public DummyRetryStrategy build() {
             return null;
         }

@@ -111,13 +111,14 @@ public final class DefaultAdaptiveRetryStrategy
             return this;
         }
 
-        public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
-            setCircuitBreakerEnabled(circuitBreakerEnabled);
+        @Override
+        public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
+            setBackoffStrategy(backoffStrategy);
             return this;
         }
 
-        public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
-            setBackoffStrategy(backoffStrategy);
+        public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
+            setCircuitBreakerEnabled(circuitBreakerEnabled);
             return this;
         }
 

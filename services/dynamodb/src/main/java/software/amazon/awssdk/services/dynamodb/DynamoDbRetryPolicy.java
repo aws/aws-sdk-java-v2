@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.dynamodb;
 
+import static software.amazon.awssdk.retries.api.BackoffStrategy.exponentialDelay;
+
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
@@ -64,6 +66,10 @@ final class DynamoDbRetryPolicy {
     private DynamoDbRetryPolicy() {
     }
 
+    /**
+     * @deprecated Use instead {@link #resolveRetryStrategy}.
+     */
+    @Deprecated
     public static RetryPolicy resolveRetryPolicy(SdkClientConfiguration config) {
         RetryPolicy configuredRetryPolicy = config.option(SdkClientOption.RETRY_POLICY);
         if (configuredRetryPolicy != null) {
@@ -95,9 +101,11 @@ final class DynamoDbRetryPolicy {
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
+
         return AwsRetryStrategy.forRetryMode(retryMode)
             .toBuilder()
             .maxAttempts(MAX_ATTEMPTS)
+            .backoffStrategy(exponentialDelay(BASE_DELAY, SdkDefaultRetrySetting.MAX_BACKOFF))
             .build();
     }
 }

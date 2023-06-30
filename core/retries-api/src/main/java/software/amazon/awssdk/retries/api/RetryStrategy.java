@@ -205,6 +205,13 @@ public interface RetryStrategy<
         B maxAttempts(int maxAttempts);
 
         /**
+         * Configure the backoff strategy used by this executor.
+         *
+         * <p>By default, this uses jittered exponential backoff.
+         */
+        B backoffStrategy(BackoffStrategy backoffStrategy);
+
+        /**
          * Build a new {@link RetryStrategy} with the current configuration on this builder.
          */
         @Override

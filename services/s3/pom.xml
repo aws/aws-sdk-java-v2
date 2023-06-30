@@ -87,6 +87,11 @@
             <!-- Only required for certain features such as S3 CRT client -->
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>retries-api</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
         <!-- Test Dependencies -->
         <dependency>
             <artifactId>commons-io</artifactId>

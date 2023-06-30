@@ -75,13 +75,6 @@ public interface LegacyRetryStrategy extends RetryStrategy<LegacyRetryStrategy.B
 
     interface Builder extends RetryStrategy.Builder<Builder, LegacyRetryStrategy> {
         /**
-         * Configure the backoff strategy used by this strategy.
-         *
-         * <p>By default, this uses jittered exponential backoff.
-         */
-        Builder backoffStrategy(BackoffStrategy backoffStrategy);
-
-        /**
          * Configure the backoff strategy used for throttling exceptions by this strategy.
          *
          * <p>By default, this uses jittered exponential backoff.

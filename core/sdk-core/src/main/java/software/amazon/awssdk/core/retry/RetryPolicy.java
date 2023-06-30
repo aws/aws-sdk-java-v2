@@ -42,9 +42,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  * @see RetryCondition for a list of SDK provided retry condition strategies
  * @see BackoffStrategy for a list of SDK provided backoff strategies
+ *
+ * @deprecated Use instead {@link software.amazon.awssdk.retries.api.RetryStrategy}.
  */
 @Immutable
 @SdkPublicApi
+@Deprecated
 public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder, RetryPolicy> {
     private final boolean additionalRetryConditionsAllowed;
     private final RetryMode retryMode;

@@ -47,12 +47,10 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
-import software.amazon.awssdk.retries.api.RetryStrategy;
 import utils.ValidSdkObjects;
 
 public class AsyncHttpClientApiCallTimeoutTests {
@@ -65,7 +63,6 @@ public class AsyncHttpClientApiCallTimeoutTests {
     @Before
     public void setup() {
         httpClient = testAsyncClientBuilder()
-            .retryPolicy(RetryPolicy.none())
             .retryStrategy(DefaultRetryStrategy.none())
             .apiCallTimeout(API_CALL_TIMEOUT)
             .build();

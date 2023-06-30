@@ -20,7 +20,11 @@ import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 
 /**
  * Test implementation of {@link BackoffStrategy} to wait a fixed time between retries
+ *
+ * @deprecated Use instead {@link software.amazon.awssdk.retries.api.BackoffStrategy} and
+ * {@link software.amazon.awssdk.retries.api.BackoffStrategy#fixedDelay(Duration)}.
  */
+@Deprecated
 public class FixedTimeBackoffStrategy implements BackoffStrategy {
 
     private final Duration fixedTimeDelay;
