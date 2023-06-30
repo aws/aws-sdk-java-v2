@@ -1,3 +1,32 @@
+# __2.20.97__ __2023-06-30__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes improved color handling of overlays and general updates to user documentation.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add outbound Basic authentication support to AS2 connectors
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Added new field "credentialspecs" to the ecs task definition to support gMSA of windows/linux in both domainless and domain-joined mode
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Corrects the HTTP response code in the generated docs for PutMetadata and DeleteRecordingConfiguration APIs.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - AWS SDK service model generation tool version upgrade.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for rolling deployment in SageMaker Inference.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - This release corrects several broken links in the documentation.
+
 # __2.20.96__ __2023-06-29__
 ## __AWS Clean Rooms Service__
   - ### Features
