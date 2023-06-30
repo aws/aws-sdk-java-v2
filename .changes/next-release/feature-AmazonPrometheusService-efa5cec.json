@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Prometheus Service",
+    "contributor": "",
+    "description": "AWS SDK service model generation tool version upgrade."
+}
