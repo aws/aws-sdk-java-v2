@@ -103,7 +103,7 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
 
         Optional<String> bucketRegionFromException = getBucketRegionFromException((S3Exception) throwable.getCause());
         if (bucketRegionFromException.isPresent()) {
-            sendRequestWithRightRegion(request, operation, bucketName, returnFuture, bucketRegionFromException);
+            sendRequestWithRightRegion(request, operation, bucketName, returnFuture, bucketRegionFromException.get());
         } else {
             fetchRegionAndSendRequest(request, operation, bucketName, returnFuture);
         }
@@ -121,7 +121,7 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
                     bucketToRegionCache.remove(bucketName);
                     Optional<String> bucketRegion = getBucketRegionFromException((S3Exception) throwable.getCause());
                     if (bucketRegion.isPresent()) {
-                        sendRequestWithRightRegion(request, operation, bucketName, returnFuture, bucketRegion);
+                        sendRequestWithRightRegion(request, operation, bucketName, returnFuture, bucketRegion.get());
                     } else {
                         returnFuture.completeExceptionally(throwable);
                     }
@@ -136,8 +136,7 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
                                                                            Function<T, CompletableFuture<ReturnT>> operation,
                                                                            String bucketName,
                                                                            CompletableFuture<ReturnT> returnFuture,
-                                                                           Optional<String> bucketRegionFromException) {
-        String region = bucketRegionFromException.get();
+                                                                           String region) {
         bucketToRegionCache.put(bucketName, Region.of(region));
         CompletableFuture<ReturnT> newFuture = operation.apply(
             requestWithDecoratedEndpointProvider(request,
