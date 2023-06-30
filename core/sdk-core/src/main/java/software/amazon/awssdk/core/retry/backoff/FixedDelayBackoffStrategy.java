@@ -29,6 +29,7 @@ import software.amazon.awssdk.utils.ToString;
  * {@link software.amazon.awssdk.retries.api.BackoffStrategy#fixedDelay(Duration)}.
  */
 @SdkPublicApi
+@Deprecated
 public final class FixedDelayBackoffStrategy implements BackoffStrategy {
 
     private final Duration fixedBackoff;
