@@ -46,7 +46,6 @@ public class S3ConfigurationTest {
         assertThat(config.multiRegionEnabled()).isEqualTo(true);
         assertThat(config.pathStyleAccessEnabled()).isEqualTo(false);
         assertThat(config.useArnRegionEnabled()).isEqualTo(false);
-        assertThat(config.crossRegionAccessEnabled()).isEqualTo(false);
     }
 
     @Test
@@ -116,13 +115,5 @@ public class S3ConfigurationTest {
         assertThat(config.useArnRegionEnabled()).isEqualTo(false);
     }
 
-    @Test
-    public void crossRegionEnabled__enabledInConfigOnly_shouldResolveCorrectly() {
-        S3Configuration config = S3Configuration.builder().crossRegionAccessEnabled(true).build();
-        assertThat(config.crossRegionAccessEnabled()).isEqualTo(true);
-
-        S3Configuration configDisabled = S3Configuration.builder().crossRegionAccessEnabled(false).build();
-        assertThat(configDisabled.crossRegionAccessEnabled()).isEqualTo(false);
-    }
 
 }

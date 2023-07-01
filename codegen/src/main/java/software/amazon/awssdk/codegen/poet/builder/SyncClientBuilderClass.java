@@ -28,7 +28,6 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.internal.client.ClientComposer;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -141,16 +140,13 @@ public class SyncClientBuilderClass implements ClassSpec {
                                          .addStatement("$T serviceClientConfiguration = initializeServiceClientConfig"
                                                        + "(clientConfiguration)",
                                                        serviceConfigClassName);
-
         addQueryProtocolInterceptors(builder);
 
         builder.addStatement("$1T client = new $2T(serviceClientConfiguration, clientConfiguration)",
                              clientInterfaceName, clientClassName);
-        if (model.syncClientComposerClassName().isPresent()) {
-            builder.addStatement("$1T composer = new $2T()",
-                                 ClientComposer.class,
-                                 PoetUtils.classNameFromFqcn(model.syncClientComposerClassName().get()));
-            builder.addStatement("return ($T) composer.compose(client, clientConfiguration)", clientInterfaceName);
+        if (model.syncClientDecoratorClassName().isPresent()) {
+            builder.addStatement("return new $T().decorate(client, clientConfiguration, clientContextParams.copy().build())",
+                                 PoetUtils.classNameFromFqcn(model.syncClientDecoratorClassName().get()));
         } else {
             builder.addStatement("return client");
         }

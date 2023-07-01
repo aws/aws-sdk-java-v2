@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.awscore.internal.client.ClientComposer;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -216,16 +216,16 @@ public class CustomizationConfig {
     /**
      * Fully qualified name of a class that given the default sync client instance can return the final client instance,
      * for instance by decorating the client with specific-purpose implementations of the client interface.
-     * The class should implement the {@link ClientComposer} interface. See S3 customization.config for an example.
+     * See S3 customization.config for an example.
      */
-    private String syncClientComposer;
+    private String syncClientDecorator;
 
     /**
      * Fully qualified name of a class that given the default async client instance can return the final client instance,
      * for instance by decorating the client with specific-purpose implementations of the client interface.
-     * The class should implement the {@link ClientComposer} interface. See S3 customization.config for an example.
+     * See S3 customization.config for an example.
      */
-    private String asyncClientComposer;
+    private String asyncClientDecorator;
 
     /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
@@ -250,6 +250,11 @@ public class CustomizationConfig {
      * Whether marshallers perform validations against members marked with RequiredTrait.
      */
     private boolean requiredTraitValidationEnabled = false;
+
+    /**
+     * Customization to attach map of Custom client param configs that can be set on a client builder.
+     */
+    private Map<String, ClientContextParam> customClientContextParams;
 
     private CustomizationConfig() {
     }
@@ -581,20 +586,20 @@ public class CustomizationConfig {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
     }
 
-    public String getSyncClientComposer() {
-        return syncClientComposer;
+    public String getSyncClientDecorator() {
+        return syncClientDecorator;
     }
 
-    public void setSyncClientComposer(String syncClientComposer) {
-        this.syncClientComposer = syncClientComposer;
+    public void setSyncClientDecorator(String syncClientDecorator) {
+        this.syncClientDecorator = syncClientDecorator;
     }
 
-    public String getAsyncClientComposer() {
-        return asyncClientComposer;
+    public String getAsyncClientDecorator() {
+        return asyncClientDecorator;
     }
 
-    public void setAsyncClientComposer(String asyncClientComposer) {
-        this.asyncClientComposer = asyncClientComposer;
+    public void setAsyncClientDecorator(String asyncClientDecorator) {
+        this.asyncClientDecorator = asyncClientDecorator;
     }
 
     public boolean isDelegateSyncClientClass() {
@@ -651,5 +656,13 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public Map<String, ClientContextParam> getCustomClientContextParams() {
+        return customClientContextParams;
+    }
+
+    public void setCustomClientContextParams(Map<String, ClientContextParam> customClientContextParams) {
+        this.customClientContextParams = customClientContextParams;
     }
 }
