@@ -113,7 +113,7 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
                                                                           Function<T, CompletableFuture<ReturnT>> operation,
                                                                           String bucketName,
                                                                           CompletableFuture<ReturnT> returnFuture) {
-        // // TODO: will fix the casts with separate PR
+        // // TODO: Need to change codegen of Delegating Client to avoid the cast, have taken a backlog item to fix this.
         ((S3AsyncClient) delegate()).headBucket(b -> b.bucket(bucketName)).whenComplete((response,
                                                                                          throwable) -> {
             if (throwable != null) {
