@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "GetMetricDataV2 API: Channels filters do not count towards overall limitation of 100 filter values."
+}
