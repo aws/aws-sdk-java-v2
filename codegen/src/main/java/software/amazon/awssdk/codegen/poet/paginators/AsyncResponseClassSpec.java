@@ -128,7 +128,10 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
                          .addParameter(requestType(), REQUEST_MEMBER)
                          .addParameter(boolean.class, LAST_PAGE_FIELD)
                          .addStatement("this.$L = $L", CLIENT_MEMBER, CLIENT_MEMBER)
-                         .addStatement("this.$L = $L", REQUEST_MEMBER, REQUEST_MEMBER)
+                         .addStatement("this.$L = $T.applyPaginatorUserAgent($L)",
+                                       REQUEST_MEMBER,
+                                       poetExtensions.getUserAgentClass(),
+                                       REQUEST_MEMBER)
                          .addStatement("this.$L = $L", LAST_PAGE_FIELD, LAST_PAGE_FIELD)
                          .addStatement("this.$L = new $L()", NEXT_PAGE_FETCHER_MEMBER, nextPageFetcherClassName())
                          .build();
@@ -246,4 +249,5 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
                                             .addCode(nextPageMethodBody())
                                             .build());
     }
+
 }

@@ -10,7 +10,6 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -27,7 +26,6 @@ import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -63,8 +61,6 @@ import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationR
 import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
-import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable;
-import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable;
 import software.amazon.awssdk.services.json.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.BearerAuthOperationRequestMarshaller;
@@ -460,84 +456,6 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     /**
-     * Some paginated operation with result_key in paginators.json file<br/>
-     * <p>
-     * This is a variant of
-     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
-     * operation. The return type is a custom iterable that can be used to iterate through all the pages. SDK will
-     * internally handle making service calls for you.
-     * </p>
-     * <p>
-     * When this operation is called, a custom iterable is returned but no service calls are made yet. So there is no
-     * guarantee that the request is valid. As you iterate through the iterable, SDK will start lazily loading response
-     * pages by making service calls until there are no pages left or your iteration stops. If there are errors in your
-     * request, you will see the failures only after you start iterating through the iterable.
-     * </p>
-     *
-     * <p>
-     * The following are few ways to iterate through the response pages:
-     * </p>
-     * 1) Using a Stream
-     *
-     * <pre>
-     * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
-     * responses.stream().forEach(....);
-     * }
-     * </pre>
-     *
-     * 2) Using For loop
-     *
-     * <pre>
-     * {
-     *     &#064;code
-     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client
-     *             .paginatedOperationWithResultKeyPaginator(request);
-     *     for (software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response : responses) {
-     *         // do something;
-     *     }
-     * }
-     * </pre>
-     *
-     * 3) Use iterator directly
-     *
-     * <pre>
-     * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
-     * responses.iterator().forEachRemaining(....);
-     * }
-     * </pre>
-     * <p>
-     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
-     * paginator. It only limits the number of results in each page.</b>
-     * </p>
-     * <p>
-     * <b>Note: If you prefer to have control on service calls, use the
-     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
-     * operation.</b>
-     * </p>
-     *
-     * @param paginatedOperationWithResultKeyRequest
-     * @return A custom iterable that can be used to iterate through all the response pages.
-     * @throws SdkException
-     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
-     *         catch all scenarios.
-     * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
-     * @throws JsonException
-     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
-     * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
-     *      target="_top">AWS API Documentation</a>
-     */
-    @Override
-    public PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
-        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws AwsServiceException,
-                                                                                              SdkClientException, JsonException {
-        return new PaginatedOperationWithResultKeyIterable(this, applyPaginatorUserAgent(paginatedOperationWithResultKeyRequest));
-    }
-
-    /**
      * Some paginated operation without result_key in paginators.json file
      *
      * @param paginatedOperationWithoutResultKeyRequest
@@ -582,85 +500,6 @@ final class DefaultJsonClient implements JsonClient {
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
-    }
-
-    /**
-     * Some paginated operation without result_key in paginators.json file<br/>
-     * <p>
-     * This is a variant of
-     * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
-     * operation. The return type is a custom iterable that can be used to iterate through all the pages. SDK will
-     * internally handle making service calls for you.
-     * </p>
-     * <p>
-     * When this operation is called, a custom iterable is returned but no service calls are made yet. So there is no
-     * guarantee that the request is valid. As you iterate through the iterable, SDK will start lazily loading response
-     * pages by making service calls until there are no pages left or your iteration stops. If there are errors in your
-     * request, you will see the failures only after you start iterating through the iterable.
-     * </p>
-     *
-     * <p>
-     * The following are few ways to iterate through the response pages:
-     * </p>
-     * 1) Using a Stream
-     *
-     * <pre>
-     * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
-     * responses.stream().forEach(....);
-     * }
-     * </pre>
-     *
-     * 2) Using For loop
-     *
-     * <pre>
-     * {
-     *     &#064;code
-     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client
-     *             .paginatedOperationWithoutResultKeyPaginator(request);
-     *     for (software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response : responses) {
-     *         // do something;
-     *     }
-     * }
-     * </pre>
-     *
-     * 3) Use iterator directly
-     *
-     * <pre>
-     * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
-     * responses.iterator().forEachRemaining(....);
-     * }
-     * </pre>
-     * <p>
-     * <b>Please notice that the configuration of MaxResults won't limit the number of results you get with the
-     * paginator. It only limits the number of results in each page.</b>
-     * </p>
-     * <p>
-     * <b>Note: If you prefer to have control on service calls, use the
-     * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
-     * operation.</b>
-     * </p>
-     *
-     * @param paginatedOperationWithoutResultKeyRequest
-     * @return A custom iterable that can be used to iterate through all the response pages.
-     * @throws SdkException
-     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
-     *         catch all scenarios.
-     * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
-     * @throws JsonException
-     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
-     * @sample JsonClient.PaginatedOperationWithoutResultKey
-     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
-     *      target="_top">AWS API Documentation</a>
-     */
-    @Override
-    public PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
-        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws AwsServiceException,
-                                                                                                    SdkClientException, JsonException {
-        return new PaginatedOperationWithoutResultKeyIterable(this,
-                                                              applyPaginatorUserAgent(paginatedOperationWithoutResultKeyRequest));
     }
 
     /**
@@ -947,15 +786,6 @@ final class DefaultJsonClient implements JsonClient {
     @Override
     public JsonUtilities utilities() {
         return JsonUtilities.create(param1, param2, param3);
-    }
-
-    private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {
-        Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
-                                                                                                      .version(VersionInfo.SDK_VERSION).name("PAGINATED").build());
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
     private <T extends JsonRequest> T applySignerOverride(T request, Signer signer) {

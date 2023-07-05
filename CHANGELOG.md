@@ -1,3 +1,28 @@
+# __2.20.99__ __2023-07-05__
+## __AWS Comprehend Medical__
+  - ### Features
+    - Update to Amazon Comprehend Medical documentation.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added Dry Run Feature to cryptographic and cross-account mutating KMS APIs (14 in all). This feature allows users to test their permissions and parameters before making the actual API call.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Cross region bucket access for S3 Client. This feature will allow users to access buckets of different region using a single cross region configured client.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 API: Channels filters do not count towards overall limitation of 100 filter values.
+
+## __Application Migration Service__
+  - ### Features
+    - This release introduces the Global view feature and new Replication state APIs.
+
 # __2.20.98__ __2023-07-03__
 ## __AWS Batch__
   - ### Features

@@ -115,4 +115,5 @@ public class S3ConfigurationTest {
         assertThat(config.useArnRegionEnabled()).isEqualTo(false);
     }
 
+
 }
