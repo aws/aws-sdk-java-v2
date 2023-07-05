@@ -144,7 +144,7 @@ public class SsoAccessTokenProviderTest {
     }
 
     @Test
-    void cachedTokenFile_JustExpired_resolveAccessTokenCorrectly() throws IOException {
+    void cachedTokenFile_JustExpired_throwsExpiredTokenException() throws IOException {
         String tokenFile = String.format("{\n" +
                                          "\"accessToken\": \"base64string\",\n" +
                                          "\"expiresAt\": \"%s\",\n" +
@@ -157,7 +157,7 @@ public class SsoAccessTokenProviderTest {
     }
 
     @Test
-    void cachedTokenFile_ExpiredFewSecondsAgo_resolveAccessTokenCorrectly() throws IOException {
+    void cachedTokenFile_ExpiredFewSecondsAgo_throwsExpiredTokenException() throws IOException {
         String tokenFile = String.format("{\n" +
                                          "\"accessToken\": \"base64string\",\n" +
                                          "\"expiresAt\": \"%s\",\n" +
