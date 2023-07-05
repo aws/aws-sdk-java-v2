@@ -72,9 +72,7 @@ public class StsGetSessionTokenCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("StsGetSessionTokenCredentialsProvider")
-                       .add("refreshRequest", getSessionTokenRequest)
-                       .build();
+        return ToString.create("StsGetSessionTokenCredentialsProvider");
     }
 
     @Override
