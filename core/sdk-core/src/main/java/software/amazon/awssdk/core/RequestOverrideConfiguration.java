@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -51,6 +52,8 @@ public abstract class RequestOverrideConfiguration {
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
 
+    private final EndpointProvider endpointProvider;
+
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
         this.rawQueryParameters = CollectionUtils.deepUnmodifiableMap(builder.rawQueryParameters());
@@ -60,6 +63,7 @@ public abstract class RequestOverrideConfiguration {
         this.signer = builder.signer();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
+        this.endpointProvider = builder.endpointProvider();
     }
 
     /**
@@ -153,6 +157,14 @@ public abstract class RequestOverrideConfiguration {
         return executionAttributes;
     }
 
+    /**
+     * Returns the endpoint provider for resolving the endpoint for this request. This supersedes the
+     * endpoint provider set on the client.
+     */
+    public Optional<EndpointProvider> endpointProvider() {
+        return Optional.ofNullable(endpointProvider);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -169,7 +181,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(apiCallAttemptTimeout, that.apiCallAttemptTimeout) &&
                Objects.equals(signer, that.signer) &&
                Objects.equals(metricPublishers, that.metricPublishers) &&
-               Objects.equals(executionAttributes, that.executionAttributes);
+               Objects.equals(executionAttributes, that.executionAttributes) &&
+               Objects.equals(endpointProvider, that.endpointProvider);
     }
 
     @Override
@@ -183,6 +196,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(signer);
         hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
         hashCode = 31 * hashCode + Objects.hashCode(executionAttributes);
+        hashCode = 31 * hashCode + Objects.hashCode(endpointProvider);
         return hashCode;
     }
 
@@ -413,6 +427,18 @@ public abstract class RequestOverrideConfiguration {
         ExecutionAttributes executionAttributes();
 
         /**
+         * Sets the endpointProvider to use for resolving the endpoint of the request. This endpointProvider gets priority
+         * over the endpointProvider set on the client while resolving the endpoint for  the requests.
+         * If this value is null, then the client level endpointProvider is used for resolving the endpoint.
+         *
+         * @param endpointProvider Endpoint Provider that will override the resolving the endpoint for the request.
+         * @return This object for method chaining
+         */
+        B endpointProvider(EndpointProvider endpointProvider);
+
+        EndpointProvider endpointProvider();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -430,6 +456,9 @@ public abstract class RequestOverrideConfiguration {
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
 
+        private EndpointProvider endpointProvider;
+
+
         protected BuilderImpl() {
         }
 
@@ -442,6 +471,7 @@ public abstract class RequestOverrideConfiguration {
             signer(sdkRequestOverrideConfig.signer().orElse(null));
             metricPublishers(sdkRequestOverrideConfig.metricPublishers());
             executionAttributes(sdkRequestOverrideConfig.executionAttributes());
+            endpointProvider(sdkRequestOverrideConfig.endpointProvider);
         }
 
         @Override
@@ -594,6 +624,22 @@ public abstract class RequestOverrideConfiguration {
 
         public void setExecutionAttributes(ExecutionAttributes executionAttributes) {
             executionAttributes(executionAttributes);
+        }
+
+
+        @Override
+        public B endpointProvider(EndpointProvider endpointProvider) {
+            this.endpointProvider = endpointProvider;
+            return (B) this;
+        }
+
+        public void setEndpointProvider(EndpointProvider endpointProvider) {
+            endpointProvider(endpointProvider);
+        }
+
+        @Override
+        public EndpointProvider endpointProvider() {
+            return endpointProvider;
         }
     }
 }

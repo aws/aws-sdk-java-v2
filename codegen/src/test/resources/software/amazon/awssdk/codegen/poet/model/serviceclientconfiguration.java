@@ -5,6 +5,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -45,6 +46,13 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
          */
         @Override
         Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
+
+        /**
+         * Configure the endpointProvider
+         */
+        @Override
+        Builder endpointProvider(EndpointProvider endpointProvider);
+
     }
 
     private static final class BuilderImpl extends AwsServiceClientConfiguration.BuilderImpl implements Builder {
@@ -70,6 +78,12 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
         @Override
         public Builder endpointOverride(URI endpointOverride) {
             this.endpointOverride = endpointOverride;
+            return this;
+        }
+
+        @Override
+        public Builder endpointProvider(EndpointProvider endpointProvider) {
+            this.endpointProvider = endpointProvider;
             return this;
         }
 
