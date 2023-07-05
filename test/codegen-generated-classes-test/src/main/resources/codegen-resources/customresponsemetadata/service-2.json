@@ -277,6 +277,30 @@
         "requestAlgorithmMember": "ChecksumAlgorithm"
       }
     },
+    "PutOperationWithRequestCompression":{
+      "name":"PutOperationWithRequestCompression",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RequestCompressionStructure"},
+      "output":{"shape":"RequestCompressionStructure"},
+      "requestCompression": {
+        "encodings": ["gzip"]
+      }
+    },
+    "PutOperationWithStreamingRequestCompression":{
+      "name":"PutOperationWithStreamingRequestCompression",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RequestCompressionStructureWithStreaming"},
+      "output":{"shape":"RequestCompressionStructureWithStreaming"},
+      "requestCompression": {
+        "encodings": ["gzip"]
+      }
+    },
     "GetOperationWithChecksum":{
       "name":"GetOperationWithChecksum",
       "http":{
@@ -1007,6 +1031,28 @@
         }
       },
       "payload":"NestedQueryParameterOperation"
+    },
+    "RequestCompressionStructure":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":false
+        }
+      },
+      "payload":"Body"
+    },
+    "RequestCompressionStructureWithStreaming":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":true
+        }
+      },
+      "payload":"Body"
     }
   }
 }

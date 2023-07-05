@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class AwsCompressionInputStream extends AwsChunkedInputStream {
-    private Compressor compressor;
+    private final Compressor compressor;
 
     private AwsCompressionInputStream(InputStream in, Compressor compressor) {
         this.compressor = compressor;
