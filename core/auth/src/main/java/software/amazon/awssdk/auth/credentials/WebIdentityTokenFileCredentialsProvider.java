@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
@@ -90,6 +91,8 @@ public class WebIdentityTokenFileCredentialsProvider
                                                     .roleSessionName(roleSessionName)
                                                     .webIdentityTokenFile(webIdentityTokenFile)
                                                     .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
+                                                    .prefetchTime(builder.prefetchTime)
+                                                    .staleTime(builder.staleTime)
                                                     .build();
 
             credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);
@@ -163,8 +166,26 @@ public class WebIdentityTokenFileCredentialsProvider
         /**
          * Define whether the provider should fetch credentials asynchronously in the background.
          */
-
         Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
+
+        /**
+         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
+         * close to stale and should be updated.
+         *
+         * <p>Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch
+         * updates may be asynchronous. See {@link #asyncCredentialUpdateEnabled}.
+         *
+         * <p>By default, this is 5 minutes.
+         */
+        Builder prefetchTime(Duration prefetchTime);
+
+        /**
+         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
+         * stale and must be updated. All threads will block until the value is updated.
+         *
+         * <p>By default, this is 1 minute.
+         */
+        Builder staleTime(Duration staleTime);
 
         /**
          * Create a {@link WebIdentityTokenFileCredentialsProvider} using the configuration applied to this builder.
@@ -177,6 +198,8 @@ public class WebIdentityTokenFileCredentialsProvider
         private String roleSessionName;
         private Path webIdentityTokenFile;
         private Boolean asyncCredentialUpdateEnabled;
+        private Duration prefetchTime;
+        private Duration staleTime;
 
         BuilderImpl() {
         }
@@ -222,6 +245,26 @@ public class WebIdentityTokenFileCredentialsProvider
         public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
             return this;
+        }
+
+        @Override
+        public Builder prefetchTime(Duration prefetchTime) {
+            this.prefetchTime = prefetchTime;
+            return this;
+        }
+
+        public void setPrefetchTime(Duration prefetchTime) {
+            prefetchTime(prefetchTime);
+        }
+
+        @Override
+        public Builder staleTime(Duration staleTime) {
+            this.staleTime = staleTime;
+            return this;
+        }
+
+        public void setStaleTime(Duration staleTime) {
+            staleTime(staleTime);
         }
 
         public void setAsyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {

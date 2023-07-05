@@ -88,6 +88,8 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                                                                .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                                .stsClient(stsClient)
                                                                .refreshRequest(supplier)
+                                                               .prefetchTime(credentialProperties.prefetchTime())
+                                                               .staleTime(credentialProperties.staleTime())
                                                                .build();
         }
 

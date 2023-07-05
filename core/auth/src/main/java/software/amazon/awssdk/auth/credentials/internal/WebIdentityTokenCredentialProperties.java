@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials.internal;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -28,12 +29,16 @@ public class WebIdentityTokenCredentialProperties {
     private final String roleSessionName;
     private final Path webIdentityTokenFile;
     private final Boolean asyncCredentialUpdateEnabled;
+    private final Duration prefetchTime;
+    private final Duration staleTime;
 
     private WebIdentityTokenCredentialProperties(Builder builder) {
         this.roleArn = builder.roleArn;
         this.roleSessionName = builder.roleSessionName;
         this.webIdentityTokenFile = builder.webIdentityTokenFile;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
+        this.prefetchTime = builder.prefetchTime;
+        this.staleTime = builder.staleTime;
     }
 
     public String roleArn() {
@@ -52,6 +57,14 @@ public class WebIdentityTokenCredentialProperties {
         return asyncCredentialUpdateEnabled;
     }
 
+    public Duration prefetchTime() {
+        return prefetchTime;
+    }
+
+    public Duration staleTime() {
+        return staleTime;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -61,6 +74,8 @@ public class WebIdentityTokenCredentialProperties {
         private String roleSessionName;
         private Path webIdentityTokenFile;
         private Boolean asyncCredentialUpdateEnabled;
+        private Duration prefetchTime;
+        private Duration staleTime;
 
         public Builder roleArn(String roleArn) {
             this.roleArn = roleArn;
@@ -79,6 +94,16 @@ public class WebIdentityTokenCredentialProperties {
 
         public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+            return this;
+        }
+
+        public Builder prefetchTime(Duration prefetchTime) {
+            this.prefetchTime = prefetchTime;
+            return this;
+        }
+
+        public Builder staleTime(Duration staleTime) {
+            this.staleTime = staleTime;
             return this;
         }
 
