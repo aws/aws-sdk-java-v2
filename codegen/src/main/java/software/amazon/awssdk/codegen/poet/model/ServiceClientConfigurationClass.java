@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.regions.Region;
 
 public class ServiceClientConfigurationClass implements ClassSpec {
@@ -110,6 +111,13 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                             .returns(className().nestedClass("Builder"))
                                             .addJavadoc("Configure the client override configuration")
                                             .build())
+                       .addMethod(MethodSpec.methodBuilder("endpointProvider")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(PUBLIC, ABSTRACT)
+                                            .addParameter(EndpointProvider.class, "endpointProvider")
+                                            .returns(className().nestedClass("Builder"))
+                                            .addJavadoc("Configure the endpointProvider")
+                                            .build())
                        .build();
     }
 
@@ -148,6 +156,14 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                             .addParameter(URI.class, "endpointOverride")
                                             .returns(className().nestedClass("Builder"))
                                             .addStatement("this.endpointOverride = endpointOverride")
+                                            .addStatement("return this")
+                                            .build())
+                       .addMethod(MethodSpec.methodBuilder("endpointProvider")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(PUBLIC)
+                                            .addParameter(EndpointProvider.class, "endpointProvider")
+                                            .returns(className().nestedClass("Builder"))
+                                            .addStatement("this.endpointProvider = endpointProvider")
                                             .addStatement("return this")
                                             .build())
                        .addMethod(MethodSpec.methodBuilder("build")
