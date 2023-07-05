@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Cross region bucket access for S3 Client. This feature will allow users to access buckets of different region using a single cross region configured client."
-}
