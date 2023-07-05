@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.compression.CompressionType;
 import software.amazon.awssdk.core.compression.Compressor;
@@ -32,7 +33,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.core.internal.io.AwsCompressionInputStream;
+import software.amazon.awssdk.core.internal.sync.CompressionContentStreamProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -67,7 +68,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             if (!isStreaming(context)) {
                 return updateContentLengthHeader(input);
             } else {
-                return removeContentLengthHeader(input);
+                return input.removeHeader("Content-Length");
             }
         }
 
@@ -79,8 +80,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             // async streaming
         }*/
         updateContentEncodingHeader(input, compressor);
-        removeContentLengthHeader(input);
-        return input.putHeader("Transfer-Encoding", "chunked");
+        input.removeHeader("Content-Length");
+        return input;
     }
 
     private static boolean shouldCompress(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
@@ -129,10 +130,6 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    private static SdkHttpFullRequest.Builder removeContentLengthHeader(SdkHttpFullRequest.Builder input) {
-        return input.removeHeader("Content-Length");
     }
 
     private boolean isTransferEncodingChunked(SdkHttpFullRequest.Builder input) {
@@ -192,9 +189,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
     private static boolean isRequestSizeWithinThreshold(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
         int minimumCompressionThreshold = resolveMinCompressionSize(context);
         validateMinCompressionSizeInput(minimumCompressionThreshold);
-
-        long contentLength = Long.parseLong(input.firstMatchingHeader("Content-Length").orElse("0"));
-        return contentLength >= minimumCompressionThreshold;
+        int requestSize = SdkBytes.fromInputStream(input.contentStreamProvider().newStream()).asByteArray().length;
+        return requestSize >= minimumCompressionThreshold;
     }
 
     private static int resolveMinCompressionSize(RequestExecutionContext context) {
@@ -237,34 +233,6 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         if (!(minCompressionSize >= 0 && minCompressionSize <= MIN_COMPRESSION_SIZE_LIMIT)) {
             throw SdkClientException.create("The minimum compression size must be non-negative with a maximum value of "
                                             + "10485760.", new IllegalArgumentException());
-        }
-    }
-
-    static final class CompressionContentStreamProvider implements ContentStreamProvider {
-        private final ContentStreamProvider underlyingInputStreamProvider;
-        private InputStream currentStream;
-        private final Compressor compressor;
-
-        CompressionContentStreamProvider(ContentStreamProvider underlyingInputStreamProvider, Compressor compressor) {
-            this.underlyingInputStreamProvider = underlyingInputStreamProvider;
-            this.compressor = compressor;
-        }
-
-        @Override
-        public InputStream newStream() {
-            closeCurrentStream();
-            currentStream = AwsCompressionInputStream.builder()
-                                                     .inputStream(underlyingInputStreamProvider.newStream())
-                                                     .compressor(compressor)
-                                                     .build();
-            return currentStream;
-        }
-
-        private void closeCurrentStream() {
-            if (currentStream != null) {
-                IoUtils.closeQuietly(currentStream, null);
-                currentStream = null;
-            }
         }
     }
 }
