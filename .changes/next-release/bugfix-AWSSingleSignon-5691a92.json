@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS Single Sign-on",
-    "contributor": "",
-    "description": "Fixed issue with SsoAccessTokenProvider prematurely throwing ExpiredTokenException."
-}
