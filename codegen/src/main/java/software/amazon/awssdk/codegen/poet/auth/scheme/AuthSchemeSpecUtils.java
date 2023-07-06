@@ -70,8 +70,12 @@ public final class AuthSchemeSpecUtils {
         return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "AuthSchemeProvider");
     }
 
-    public ClassName providerDefaultImplName() {
+    public ClassName defaultAuthSchemeProviderName() {
         return ClassName.get(internalPackage(), "Default" + providerInterfaceName().simpleName());
+    }
+
+    public ClassName internalModeledAuthSchemeProviderName() {
+        return ClassName.get(internalPackage(), "InternalModeled" + providerInterfaceName().simpleName());
     }
 
     public TypeName resolverReturnType() {
@@ -80,6 +84,13 @@ public final class AuthSchemeSpecUtils {
 
     public boolean usesSigV4() {
         return AuthUtils.usesAwsAuth(intermediateModel);
+    }
+
+    public boolean useEndpointBasedAuthProvider() {
+        // Endpoint based auth provider is gated using the same setting that enables the use of auth scheme params. One does
+        // not make sense without the other so there's no much point on creating another setting if both have to be at the same
+        // time enabled or disabled.
+        return generateEndpointBasedParams();
     }
 
     public String paramMethodName(String name) {
