@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ToString;
@@ -190,7 +191,10 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
 
         @Override
         public Builder properties(Map<String, String> properties) {
-            this.properties = Collections.unmodifiableMap(new LinkedHashMap<>(properties));
+            Map<String, String> keyCaseInsensitiveMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            keyCaseInsensitiveMap.putAll(properties);
+            //TODO: Why LinkedHashMap being used here, should we really consider insertion order?
+            this.properties = Collections.unmodifiableMap(keyCaseInsensitiveMap);
             return this;
         }
 
