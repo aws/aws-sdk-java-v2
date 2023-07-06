@@ -1,3 +1,32 @@
+# __2.20.100__ __2023-07-06__
+## __AWS Outposts__
+  - ### Features
+    - Added paginator support to several APIs. Added the ISOLATED enum value to AssetState.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-on__
+  - ### Bugfixes
+    - Fixed issue with SsoAccessTokenProvider prematurely throwing ExpiredTokenException.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Nitro Enclaves support on DescribeInstanceTypes
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds support for authenticating with Amazon Location Service's Places & Routes APIs with an API Key. Also, with this release developers can publish tracked device position updates to Amazon EventBridge.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release includes below three changes: small multiples axes improvement, field based coloring, removed required trait from Aggregation function for TopBottomFilter.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for creating DB instances and creating Aurora global clusters.
+
 # __2.20.99__ __2023-07-05__
 ## __AWS Comprehend Medical__
   - ### Features
