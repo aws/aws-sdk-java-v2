@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "contributor": "",
+    "description": "This release includes below three changes: small multiples axes improvement, field based coloring, removed required trait from Aggregation function for TopBottomFilter."
+}
