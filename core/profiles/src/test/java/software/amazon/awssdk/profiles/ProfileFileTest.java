@@ -73,6 +73,22 @@ public class ProfileFileTest {
     }
 
     @Test
+    public void profilesCanContainPropertiesWithMixedCase() {
+        Map<String, Profile> profiles = profiles(profile("foo", property("name", "value")));
+        assertThat(configFileProfiles("[profile foo]\n" +
+                                      "Name = value"))
+            .isEqualTo(profiles);
+
+        profiles.forEach((s, profile) -> {
+            assertThat(s).isEqualTo("foo");
+            assertThat(profile.properties().containsKey("NAME")).isTrue();
+            assertThat(profile.properties().containsKey("Name")).isTrue();
+            assertThat(profile.properties().containsKey("naMe")).isTrue();
+            assertThat(profile.properties().containsKey("name")).isTrue();
+        });
+    }
+
+    @Test
     public void windowsStyleLineEndingsAreSupported() {
         assertThat(configFileProfiles("[profile foo]\r\n" +
                                       "name = value"))
