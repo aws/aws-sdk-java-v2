@@ -50,7 +50,9 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
 
     @Override
     public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams params) {
-        QueryEndpointParams endpointParameters = QueryEndpointParams.builder().defaultTrueParam(params.defaultTrueParam())
+        QueryEndpointParams endpointParameters = QueryEndpointParams.builder()
+                .useDualStackEndpoint(params.useDualStackEndpoint()).useFipsEndpoint(params.useFipsEndpoint())
+                .endpointId(params.endpointId()).defaultTrueParam(params.defaultTrueParam())
                 .defaultStringParam(params.defaultStringParam()).deprecatedParam(params.deprecatedParam())
                 .booleanContextParam(params.booleanContextParam()).stringContextParam(params.stringContextParam())
                 .operationContextParam(params.operationContextParam()).build();
@@ -67,13 +69,10 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                 SigV4AuthScheme sigv4AuthScheme = Validate.isInstanceOf(SigV4AuthScheme.class, authScheme,
                         "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s", authScheme.getClass()
                                 .getName());
-                options.add(AuthSchemeOption
-                        .builder()
-                        .schemeId("aws.auth#sigv4")
+                options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                         .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, sigv4AuthScheme.signingName())
                         .putSignerProperty(AwsV4HttpSigner.REGION_NAME, sigv4AuthScheme.signingRegion())
-                        .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding())
-                            .build());
+                        .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding()).build());
                 break;
             case "sigv4a":
                 throw new UnsupportedOperationException("SigV4a is not yet supported.");
