@@ -24,22 +24,33 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 
 public final class AuthSchemeSpecUtils {
+    private static final Set<String> DEFAULT_AUTH_SCHEME_PARAMS = Collections.unmodifiableSet(setOf("region", "operation"));
     private final IntermediateModel intermediateModel;
     private final Set<String> allowedEndpointAuthSchemeParams;
+    private final boolean allowedEndpointAuthSchemeParamsConfigured;
 
     public AuthSchemeSpecUtils(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
-        this.allowedEndpointAuthSchemeParams = Collections.unmodifiableSet(
-            new HashSet<>(intermediateModel.getCustomizationConfig().getAllowedEndpointAuthSchemeParams()));
+        CustomizationConfig customization = intermediateModel.getCustomizationConfig();
+        if (customization.getAllowedEndpointAuthSchemeParamsConfigured()) {
+            this.allowedEndpointAuthSchemeParams = Collections.unmodifiableSet(
+                new HashSet<>(customization.getAllowedEndpointAuthSchemeParams()));
+            this.allowedEndpointAuthSchemeParamsConfigured = true;
+        } else {
+            this.allowedEndpointAuthSchemeParams = Collections.emptySet();
+            this.allowedEndpointAuthSchemeParamsConfigured = false;
+        }
     }
 
     private String basePackage() {
@@ -75,7 +86,7 @@ public final class AuthSchemeSpecUtils {
     }
 
     public ClassName internalModeledAuthSchemeProviderName() {
-        return ClassName.get(internalPackage(), "InternalModeled" + providerInterfaceName().simpleName());
+        return ClassName.get(internalPackage(), "Modeled" + providerInterfaceName().simpleName());
     }
 
     public TypeName resolverReturnType() {
@@ -102,7 +113,12 @@ public final class AuthSchemeSpecUtils {
     }
 
     public boolean includeParam(String name) {
-        return allowedEndpointAuthSchemeParams.contains(name);
+        if (allowedEndpointAuthSchemeParamsConfigured) {
+            return allowedEndpointAuthSchemeParams.contains(name);
+        }
+        // If no explicit allowed endpoint auth scheme params are configured then by default we include all of them except the
+        // ones already defined by default.
+        return !DEFAULT_AUTH_SCHEME_PARAMS.contains(name.toLowerCase(Locale.US));
     }
 
     public String serviceName() {
@@ -143,5 +159,12 @@ public final class AuthSchemeSpecUtils {
         operationsToAuthType.remove(operationsWithDefaults);
         operationsToAuthType.put(Collections.emptyList(), serviceDefaults);
         return operationsToAuthType;
+    }
+
+    private static Set<String> setOf(String v1, String v2) {
+        Set<String> set = new HashSet<>();
+        set.add(v1);
+        set.add(v2);
+        return set;
     }
 }
