@@ -39,8 +39,15 @@ class CrtConnectionUtilsTest {
 
         TlsContext tlsContext = Mockito.mock(TlsContext.class);
 
-        Optional<HttpProxyOptions> httpProxyOptions = CrtConfigurationUtils.resolveProxy(configuration, tlsContext);
+        Optional<HttpProxyOptions> httpProxyOptions = CrtConfigurationUtils.resolveProxy(configuration, tlsContext, "http");
         assertThat(httpProxyOptions).hasValueSatisfying(proxy -> {
+            assertThat(proxy.getTlsContext()).isEqualTo(tlsContext);
+            assertThat(proxy.getAuthorizationPassword()).isEqualTo("bar");
+            assertThat(proxy.getAuthorizationUsername()).isEqualTo("foo");
+            assertThat(proxy.getAuthorizationType()).isEqualTo(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
+        });
+        Optional<HttpProxyOptions> httpsProxyOptions = CrtConfigurationUtils.resolveProxy(configuration, tlsContext, "https");
+        assertThat(httpsProxyOptions).hasValueSatisfying(proxy -> {
             assertThat(proxy.getTlsContext()).isEqualTo(tlsContext);
             assertThat(proxy.getAuthorizationPassword()).isEqualTo("bar");
             assertThat(proxy.getAuthorizationUsername()).isEqualTo("foo");
@@ -51,7 +58,8 @@ class CrtConnectionUtilsTest {
     @Test
     void resolveProxy_emptyProxy_shouldReturnEmpty() {
         TlsContext tlsContext = Mockito.mock(TlsContext.class);
-        assertThat(CrtConfigurationUtils.resolveProxy(null, tlsContext)).isEmpty();
+        assertThat(CrtConfigurationUtils.resolveProxy(null, tlsContext, "http")).isEmpty();
+        assertThat(CrtConfigurationUtils.resolveProxy(null, tlsContext, "https")).isEmpty();
     }
 
     @Test
@@ -61,8 +69,15 @@ class CrtConnectionUtilsTest {
                                                                      .build();
         TlsContext tlsContext = Mockito.mock(TlsContext.class);
 
-        Optional<HttpProxyOptions> httpProxyOptions = CrtConfigurationUtils.resolveProxy(configuration, tlsContext);
+        Optional<HttpProxyOptions> httpProxyOptions = CrtConfigurationUtils.resolveProxy(configuration, tlsContext, "http");
         assertThat(httpProxyOptions).hasValueSatisfying(proxy -> {
+            assertThat(proxy.getTlsContext()).isNull();
+            assertThat(proxy.getAuthorizationPassword()).isNull();
+            assertThat(proxy.getAuthorizationUsername()).isNull();
+            assertThat(proxy.getAuthorizationType()).isEqualTo(HttpProxyOptions.HttpProxyAuthorizationType.None);
+        });
+        Optional<HttpProxyOptions> httpsProxyOptions = CrtConfigurationUtils.resolveProxy(configuration, tlsContext, "https");
+        assertThat(httpsProxyOptions).hasValueSatisfying(proxy -> {
             assertThat(proxy.getTlsContext()).isNull();
             assertThat(proxy.getAuthorizationPassword()).isNull();
             assertThat(proxy.getAuthorizationUsername()).isNull();

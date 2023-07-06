@@ -75,9 +75,20 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
+        // All requests happen over HTTP, by configuring a proxy for HTTPS requests
+        // we are implicitly testing that requests can only proxy when the scheme
+        // is correct.
         client = AwsCrtAsyncHttpClient.builder()
                                       .connectionHealthConfiguration(b -> b.minimumThroughputInBps(4068L)
                                                                            .minimumThroughputTimeout(Duration.ofSeconds(3)))
+                                      .proxyConfiguration(
+                                          ProxyConfiguration.builder()
+                                                            .host("foobar.com")
+                                                            .port(321)
+                                                            .scheme("https")
+                                                            .proxyOverHttp(false)
+                                                            .build()
+                                      )
                                       .build();
     }
 

@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 /**
  * Tests for {@link ProxyConfiguration}.
@@ -37,15 +38,21 @@ public class ProxyConfigurationTest {
     private static final String TEST_NON_PROXY_HOST = "bar.com";
     private static final String TEST_USER = "testuser";
     private static final String TEST_PASSWORD = "123";
+    private static final String ENV_HOST = "foobar.com";
+    private static final int ENV_PORT = 8888;
+    private static final String ENV_USER = "usertest";
+    private static final String ENV_PASSWORD = "321";
 
     @BeforeEach
     public void setup() {
         clearProxyProperties();
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
     }
 
     @AfterAll
     public static void cleanup() {
         clearProxyProperties();
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
     }
 
     @Test
@@ -60,12 +67,12 @@ public class ProxyConfigurationTest {
         nonProxyHost.add("bar.com");
         ProxyConfiguration config = ProxyConfiguration.builder().build();
 
-        assertThat(config.host()).isEqualTo(TEST_HOST);
-        assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.host("http")).isEqualTo(TEST_HOST);
+        assertThat(config.port("http")).isEqualTo(TEST_PORT);
+        assertThat(config.username("http")).isEqualTo(TEST_USER);
+        assertThat(config.password("http")).isEqualTo(TEST_PASSWORD);
+        assertThat(config.scheme("http")).isEqualTo("http");
         assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
-        assertThat(config.username()).isEqualTo(TEST_USER);
-        assertThat(config.password()).isEqualTo(TEST_PASSWORD);
-        assertThat(config.scheme()).isNull();
     }
 
     @Test
@@ -73,38 +80,27 @@ public class ProxyConfigurationTest {
         setHttpsProxyProperties();
         Set<String> nonProxyHost = new HashSet<>();
         nonProxyHost.add("bar.com");
-        ProxyConfiguration config = ProxyConfiguration.builder()
-                                                      .scheme("https")
-                                                      .useSystemPropertyValues(Boolean.TRUE).build();
+        ProxyConfiguration config = ProxyConfiguration.builder().build();
 
-        assertThat(config.host()).isEqualTo(TEST_HOST);
-        assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.host("https")).isEqualTo(TEST_HOST);
+        assertThat(config.port("https")).isEqualTo(TEST_PORT);
+        assertThat(config.username("https")).isEqualTo(TEST_USER);
+        assertThat(config.password("https")).isEqualTo(TEST_PASSWORD);
+        assertThat(config.scheme("https")).isEqualTo("http");
         assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
-        assertThat(config.username()).isEqualTo(TEST_USER);
-        assertThat(config.password()).isEqualTo(TEST_PASSWORD);
-        assertThat(config.scheme()).isEqualTo("https");
     }
 
     @Test
     void build_systemPropertyDisabled() {
         setHttpProxyProperties();
-        Set<String> nonProxyHost = new HashSet<>();
-        nonProxyHost.add("test.com");
+        ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(false).build();
 
-        ProxyConfiguration config = ProxyConfiguration.builder()
-                                                      .host("localhost")
-                                                      .port(8888)
-                                                      .nonProxyHosts(nonProxyHost)
-                                                      .username("username")
-                                                      .password("password")
-                                                      .useSystemPropertyValues(Boolean.FALSE).build();
-
-        assertThat(config.host()).isEqualTo("localhost");
-        assertThat(config.port()).isEqualTo(8888);
-        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
-        assertThat(config.username()).isEqualTo("username");
-        assertThat(config.password()).isEqualTo("password");
-        assertThat(config.scheme()).isNull();
+        assertThat(config.host("http")).isNull();
+        assertThat(config.port("http")).isEqualTo(0);
+        assertThat(config.username("http")).isNull();
+        assertThat(config.password("http")).isNull();
+        assertThat(config.scheme("http")).isNull();
+        assertThat(config.nonProxyHosts()).isEmpty();
     }
 
     @Test
@@ -119,14 +115,141 @@ public class ProxyConfigurationTest {
                                                       .nonProxyHosts(nonProxyHost)
                                                       .username("username")
                                                       .password("password")
+                                                      .scheme("https")
                                                       .build();
 
-        assertThat(config.host()).isEqualTo("localhost");
-        assertThat(config.port()).isEqualTo(8888);
+        assertThat(config.host("http")).isEqualTo("localhost");
+        assertThat(config.port("http")).isEqualTo(8888);
         assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
-        assertThat(config.username()).isEqualTo("username");
-        assertThat(config.password()).isEqualTo("password");
-        assertThat(config.scheme()).isNull();
+        assertThat(config.username("http")).isEqualTo("username");
+        assertThat(config.password("http")).isEqualTo("password");
+        assertThat(config.scheme("https")).isEqualTo("https");
+    }
+
+    @Test
+    void testExplicitEndpointOverridesEnvironmentVariables() {
+        setEnvHttp();
+        setEnvHttps();
+        ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder()
+                                                                  .host("localhost")
+                                                                  .port(9999)
+                                                                  .username("mycooluser")
+                                                                  .password("mycoolpass")
+                                                                  .scheme("http")
+                                                                  .build();
+
+        assertThat(proxyConfiguration.host("http")).isEqualTo("localhost");
+        assertThat(proxyConfiguration.host("https")).isEqualTo("localhost");
+        assertThat(proxyConfiguration.port("http")).isEqualTo(9999);
+        assertThat(proxyConfiguration.port("https")).isEqualTo(9999);
+        assertThat(proxyConfiguration.scheme("http")).isEqualTo("http");
+        assertThat(proxyConfiguration.scheme("https")).isEqualTo("http");
+        assertThat(proxyConfiguration.username("http")).isEqualTo("mycooluser");
+        assertThat(proxyConfiguration.username("https")).isEqualTo("mycooluser");
+        assertThat(proxyConfiguration.password("http")).isEqualTo("mycoolpass");
+        assertThat(proxyConfiguration.password("https")).isEqualTo("mycoolpass");
+    }
+
+    @Test
+    void testExplicitPropertiesOverridesEnvironmentVariables() {
+        setEnvHttp();
+        setEnvHttps();
+        setHttpProxyProperties();
+        setHttpsProxyProperties();
+        ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
+
+        assertThat(proxyConfiguration.host("http")).isEqualTo(TEST_HOST);
+        assertThat(proxyConfiguration.host("https")).isEqualTo(TEST_HOST);
+        assertThat(proxyConfiguration.port("http")).isEqualTo(TEST_PORT);
+        assertThat(proxyConfiguration.port("https")).isEqualTo(TEST_PORT);
+        assertThat(proxyConfiguration.scheme("http")).isEqualTo("http");
+        assertThat(proxyConfiguration.scheme("https")).isEqualTo("http");
+        assertThat(proxyConfiguration.username("http")).isEqualTo(TEST_USER);
+        assertThat(proxyConfiguration.username("https")).isEqualTo(TEST_USER);
+        assertThat(proxyConfiguration.password("http")).isEqualTo(TEST_PASSWORD);
+        assertThat(proxyConfiguration.password("https")).isEqualTo(TEST_PASSWORD);
+    }
+
+    @Test
+    void testCanParseEnvironmentVariables() {
+        setEnvHttp();
+        ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
+
+        assertThat(proxyConfiguration.host("http")).isEqualTo(ENV_HOST);
+        assertThat(proxyConfiguration.port("http")).isEqualTo(ENV_PORT);
+        assertThat(proxyConfiguration.scheme("http")).isEqualTo("https");
+        assertThat(proxyConfiguration.username("http")).isEqualTo(ENV_USER);
+        assertThat(proxyConfiguration.password("http")).isEqualTo(ENV_PASSWORD);
+    }
+
+    @Test
+    void testEnvWorksWhenExplicitNotConfigured() {
+        setEnvHttps();
+        ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder()
+                                                                  .host("example.com")
+                                                                  .port(80)
+                                                                  .scheme("https")
+                                                                  .username("insecure")
+                                                                  .password("insecure")
+                                                                  .proxyOverHttps(false)
+                                                                  .build();
+
+        assertThat(proxyConfiguration.host("http")).isEqualTo("example.com");
+        assertThat(proxyConfiguration.port("http")).isEqualTo(80);
+        assertThat(proxyConfiguration.scheme("http")).isEqualTo("https");
+        assertThat(proxyConfiguration.username("http")).isEqualTo("insecure");
+        assertThat(proxyConfiguration.password("http")).isEqualTo("insecure");
+
+        assertThat(proxyConfiguration.host("https")).isEqualTo(ENV_HOST);
+        assertThat(proxyConfiguration.port("https")).isEqualTo(ENV_PORT);
+        assertThat(proxyConfiguration.scheme("https")).isEqualTo("http");
+        assertThat(proxyConfiguration.username("https")).isEqualTo(ENV_USER);
+        assertThat(proxyConfiguration.password("https")).isEqualTo(ENV_PASSWORD);
+    }
+
+    @Test
+    void testCanInferSchemeBasedOnEnvironmentVariables() {
+        setEnvHttp();
+        setEnvHttps();
+
+        ProxyConfiguration config = ProxyConfiguration.builder().build();
+        assertThat(config.scheme("http")).isEqualTo("https");
+        assertThat(config.scheme("https")).isEqualTo("http");
+    }
+
+    @Test
+    void testEnvironmentVariableNoProxy() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(
+            "no_proxy",
+            "169.254.169.254,test-two.example.com,*.example.com"
+        );
+        // This shouldn't be taken as it isn't being used.
+        System.setProperty("http.nonProxyHosts", "");
+        ProxyConfiguration config = ProxyConfiguration.builder().build();
+
+        assertThat(config.nonProxyHosts()).contains("test-two.example.com", ".*?.example.com", "169.254.169.254");
+    }
+
+    @Test
+    void testIgnoresEnvironmentWhenToldTo() {
+        setEnvHttp();
+        setEnvHttps();
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(
+            "no_proxy",
+            "localhost,test-two.example.com,*.example.com"
+        );
+        ProxyConfiguration config = ProxyConfiguration.builder().useEnvironmentVariables(false).build();
+
+        assertThat(config.host("http")).isNull();
+        assertThat(config.host("https")).isNull();
+        assertThat(config.port("http")).isEqualTo(0);
+        assertThat(config.port("https")).isEqualTo(0);
+        assertThat(config.username("http")).isNull();
+        assertThat(config.username("https")).isNull();
+        assertThat(config.password("http")).isNull();
+        assertThat(config.password("https")).isNull();
+        assertThat(config.nonProxyHosts()).isEmpty();
+        assertThat(config.scheme("http")).isNull();
     }
 
     @Test
@@ -224,6 +347,32 @@ public class ProxyConfigurationTest {
             ss.add(randomString());
         }
         return ss;
+    }
+
+    private void setEnvHttp() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(
+            "http_proxy",
+            String.format(
+                "https://%s:%s@%s:%d",
+                ENV_USER,
+                ENV_PASSWORD,
+                ENV_HOST,
+                ENV_PORT
+            )
+        );
+    }
+
+    private void setEnvHttps() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(
+            "https_proxy",
+            String.format(
+                "http://%s:%s@%s:%d",
+                ENV_USER,
+                ENV_PASSWORD,
+                ENV_HOST,
+                ENV_PORT
+            )
+        );
     }
 
     private void setHttpProxyProperties() {

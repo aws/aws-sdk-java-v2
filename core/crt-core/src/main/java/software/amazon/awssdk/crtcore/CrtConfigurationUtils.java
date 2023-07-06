@@ -29,23 +29,26 @@ public final class CrtConfigurationUtils {
     }
 
     public static Optional<HttpProxyOptions> resolveProxy(CrtProxyConfiguration proxyConfiguration,
-                                                          TlsContext tlsContext) {
+                                                          TlsContext tlsContext,
+                                                          String scheme) {
         if (proxyConfiguration == null) {
             return Optional.empty();
         }
 
         HttpProxyOptions clientProxyOptions = new HttpProxyOptions();
 
-        clientProxyOptions.setHost(proxyConfiguration.host());
-        clientProxyOptions.setPort(proxyConfiguration.port());
+        clientProxyOptions.setHost(proxyConfiguration.host(scheme));
+        clientProxyOptions.setPort(proxyConfiguration.port(scheme));
 
-        if ("https".equalsIgnoreCase(proxyConfiguration.scheme())) {
+        if ("https".equalsIgnoreCase(proxyConfiguration.scheme(scheme))) {
             clientProxyOptions.setTlsContext(tlsContext);
         }
 
-        if (proxyConfiguration.username() != null && proxyConfiguration.password() != null) {
-            clientProxyOptions.setAuthorizationUsername(proxyConfiguration.username());
-            clientProxyOptions.setAuthorizationPassword(proxyConfiguration.password());
+        String username = proxyConfiguration.username(scheme);
+        String password = proxyConfiguration.password(scheme);
+        if (username != null && password != null) {
+            clientProxyOptions.setAuthorizationUsername(username);
+            clientProxyOptions.setAuthorizationPassword(password);
             clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
         } else {
             clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);

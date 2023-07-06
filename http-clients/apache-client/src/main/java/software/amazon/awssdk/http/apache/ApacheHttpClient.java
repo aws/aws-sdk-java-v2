@@ -106,6 +106,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
     public static final String CLIENT_NAME = "Apache";
 
     private static final Logger log = Logger.loggerFor(ApacheHttpClient.class);
+    private static final String HTTPS = "https";
+    private static final String HTTP = "http";
 
     private final ApacheHttpRequestFactory apacheHttpRequestFactory = new ApacheHttpRequestFactory();
     private final ConnectionManagerAwareHttpClient httpClient;
@@ -174,22 +176,25 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                 DefaultBuilder configuration) {
         ProxyConfiguration proxyConfiguration = configuration.proxyConfiguration;
 
+        boolean isAuthenticatedHttp = isAuthenticatedProxy(proxyConfiguration, HTTP);
+        boolean isAuthenticatedHttps = isAuthenticatedProxy(proxyConfiguration, HTTPS);
         Validate.isTrue(configuration.httpRoutePlanner == null || !isProxyEnabled(proxyConfiguration),
                         "The httpRoutePlanner and proxyConfiguration can't both be configured.");
-        Validate.isTrue(configuration.credentialsProvider == null || !isAuthenticatedProxy(proxyConfiguration),
+        Validate.isTrue(configuration.credentialsProvider == null || (!isAuthenticatedHttp && !isAuthenticatedHttps),
                         "The credentialsProvider and proxyConfiguration username/password can't both be configured.");
 
         HttpRoutePlanner routePlanner = configuration.httpRoutePlanner;
         if (isProxyEnabled(proxyConfiguration)) {
-            log.debug(() -> "Configuring Proxy. Proxy Host: " + proxyConfiguration.host());
-            routePlanner = new SdkProxyRoutePlanner(proxyConfiguration.host(),
-                                                    proxyConfiguration.port(),
-                                                    proxyConfiguration.scheme(),
-                                                    proxyConfiguration.nonProxyHosts());
+            log.debug(() ->
+                "Configuring Proxy. Proxy Host (HTTP): " +
+                proxyConfiguration.host("http") +
+                "Proxy Host (HTTPS): " +
+                proxyConfiguration.host("https"));
+            routePlanner = new SdkProxyRoutePlanner(proxyConfiguration);
         }
 
         CredentialsProvider credentialsProvider = configuration.credentialsProvider;
-        if (isAuthenticatedProxy(proxyConfiguration)) {
+        if (isAuthenticatedHttp || isAuthenticatedHttps) {
             credentialsProvider = ApacheUtils.newProxyCredentialsProvider(proxyConfiguration);
         }
 
@@ -211,13 +216,13 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return Boolean.TRUE.equals(standardOptions.get(SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS));
     }
 
-    private boolean isAuthenticatedProxy(ProxyConfiguration proxyConfiguration) {
-        return proxyConfiguration.username() != null && proxyConfiguration.password() != null;
+    private boolean isAuthenticatedProxy(ProxyConfiguration proxyConfiguration, String scheme) {
+        return proxyConfiguration.username(scheme) != null && proxyConfiguration.password(scheme) != null;
     }
 
     private boolean isProxyEnabled(ProxyConfiguration proxyConfiguration) {
-        return proxyConfiguration.host() != null
-               && proxyConfiguration.port() > 0;
+        return (proxyConfiguration.host(HTTP) != null && proxyConfiguration.port(HTTP) > 0) ||
+            (proxyConfiguration.host(HTTPS) != null && proxyConfiguration.port(HTTPS) > 0);
     }
 
     @Override
@@ -420,7 +425,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         /**
          * Configuration that defines a custom credential provider for HTTP requests.
-         * May not be used in conjunction with {@link ProxyConfiguration#username()} and {@link ProxyConfiguration#password()}.
+         * May not be used in conjunction with {@link ProxyConfiguration#username(String)} and
+         * {@link ProxyConfiguration#password(String)}.
          */
         Builder credentialsProvider(CredentialsProvider credentialsProvider);
 

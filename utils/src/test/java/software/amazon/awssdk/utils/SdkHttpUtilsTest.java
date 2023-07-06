@@ -21,18 +21,59 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class SdkHttpUtilsTest {
+    private final Map<String, String> savedEnvironmentVariableValues = new HashMap<>();
+
+    private static final List<String> SAVED_ENVIRONMENT_VARIABLES = Arrays.asList("http_proxy",
+                                                                                  "https_proxy",
+                                                                                  "no_proxy");
+
+    private EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
+
+    /**
+     * Save the current state of the environment variables we're messing around with in these tests so that we can restore them
+     * when we are done.
+     */
+    @BeforeEach
+    public void saveEnvironment() throws Exception {
+        for (String variable : SAVED_ENVIRONMENT_VARIABLES) {
+            savedEnvironmentVariableValues.put(variable, System.getenv(variable));
+        }
+    }
+
+    /**
+     * Reset the environment variables after each test.
+     */
+    @AfterEach
+    public void restoreEnvironment() throws Exception {
+        for (String variable : SAVED_ENVIRONMENT_VARIABLES) {
+            String savedValue = savedEnvironmentVariableValues.get(variable);
+
+            if (savedValue == null) {
+                ENVIRONMENT_VARIABLE_HELPER.remove(variable);
+            } else {
+                ENVIRONMENT_VARIABLE_HELPER.set(variable, savedValue);
+            }
+        }
+    }
+
     @Test
     public void urlValuesEncodeCorrectly() {
         String nonEncodedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~";
@@ -217,6 +258,61 @@ public class SdkHttpUtilsTest {
                                        entry("oParam", Collections.singletonList("3456")),
                                        entry("noval", Arrays.asList((String)null)),
                                        entry("decoded&Part", Arrays.asList("equals=val")));
+    }
+
+    @Test
+    public void canParseHttpUsername() throws MalformedURLException {
+        assertThat(SdkHttpUtils.parseUsernameFromUrl(new URL("http://user@localhost:25565")))
+            .isEqualTo(Optional.of("user"));
+        assertThat(SdkHttpUtils.parseUsernameFromUrl(new URL("https://userTwo:password@localhost")))
+            .isEqualTo(Optional.of("userTwo"));
+        assertThat(SdkHttpUtils.parseUsernameFromUrl(new URL("http://localhost:25565/"))).isEmpty();
+        assertThat(SdkHttpUtils.parseUsernameFromUrl(new URL("http://   :    @localhost:25565/"))).isEmpty();
+        assertThat(SdkHttpUtils.parseUsernameFromUrl(null)).isEmpty();
+    }
+
+    @Test
+    public void canParseHttpPassword() throws MalformedURLException {
+        assertThat(SdkHttpUtils.parsePasswordFromUrl(new URL("http://user@localhost:25565"))).isEmpty();
+        assertThat(SdkHttpUtils.parsePasswordFromUrl(new URL("https://userTwo:password@localhost")))
+            .isEqualTo(Optional.of("password"));
+        assertThat(SdkHttpUtils.parsePasswordFromUrl(new URL("http://localhost:25565/"))).isEmpty();
+        assertThat(SdkHttpUtils.parsePasswordFromUrl(new URL("http://   :    @localhost:25565/"))).isEmpty();
+        assertThat(SdkHttpUtils.parsePasswordFromUrl(null)).isEmpty();
+    }
+
+    @Test
+    public void loadsCorrectProxyFromScheme() throws Exception {
+        ENVIRONMENT_VARIABLE_HELPER.set("http_proxy", "http://localhost:25565");
+        ENVIRONMENT_VARIABLE_HELPER.set("https_proxy", "https://localhost:25566");
+
+        assertThat(SdkHttpUtils.fetchProxyFromEnvironment("https"))
+            .isEqualTo(Optional.of(new URL("https://localhost:25566")));
+        assertThat(SdkHttpUtils.fetchProxyFromEnvironment("http"))
+            .isEqualTo(Optional.of(new URL("http://localhost:25565")));
+        assertThat(SdkHttpUtils.fetchProxyFromEnvironment(null)).isEmpty();
+
+        ENVIRONMENT_VARIABLE_HELPER.set("https_proxy", "invalid-url");
+        assertThat(SdkHttpUtils.fetchProxyFromEnvironment("https")).isEmpty();
+
+        ENVIRONMENT_VARIABLE_HELPER.remove("http_proxy");
+        ENVIRONMENT_VARIABLE_HELPER.remove("https_proxy");
+    }
+
+    @Test
+    public void loadsNoProxyFromEnvironment() throws Exception {
+        ENVIRONMENT_VARIABLE_HELPER.set(
+            "no_proxy",
+            "HTTP://LOCALHOST:25565,internal.example.com,internal.example.com,*.example.com"
+        );
+
+        assertThat(SdkHttpUtils.parseNonProxyHostsEnvironment()).contains(
+            "http://localhost:25565",
+            "internal.example.com",
+            ".*?.example.com"
+        );
+
+        ENVIRONMENT_VARIABLE_HELPER.remove("no_proxy");
     }
 
 }

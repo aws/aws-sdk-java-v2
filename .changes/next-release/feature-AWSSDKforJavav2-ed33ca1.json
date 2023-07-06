@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "Mythra",
+    "description": "Support checking `http_proxy` & `https_proxy` environment variables for the HTTP clients in tree."
+}
