@@ -16,7 +16,6 @@
 package software.amazon.awssdk.profiles;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -193,7 +192,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
         public Builder properties(Map<String, String> properties) {
             Map<String, String> keyCaseInsensitiveMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
             keyCaseInsensitiveMap.putAll(properties);
-            //TODO: Why LinkedHashMap being used here, should we really consider insertion order?
+            //Why LinkedHashMap being used here, should we really consider insertion order?
             this.properties = Collections.unmodifiableMap(keyCaseInsensitiveMap);
             return this;
         }
