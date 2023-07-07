@@ -145,12 +145,13 @@ public final class SdkDefaultRetryStrategy {
      * Configures a retry strategy using its builder to add SDK-generic retry exceptions.
      *
      * @param builder The builder to add the SDK-generic retry exceptions
+     * @param <T>     The type of the builder extending {@link RetryStrategy.Builder}
      * @return The given builder
-     * @param <T> The type of the builder extending {@link RetryStrategy.Builder}
      */
 
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
-        builder.retryOnException(SdkDefaultRetryStrategy::retryOnStatusCodes)
+        builder.retryOnException(SdkDefaultRetryStrategy::retryOnRetryableException)
+               .retryOnException(SdkDefaultRetryStrategy::retryOnStatusCodes)
                .retryOnException(SdkDefaultRetryStrategy::retryOnClockSkewException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnThrottlingCondition);
         SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS.forEach(builder::retryOnExceptionOrCauseInstanceOf);
@@ -160,6 +161,13 @@ public final class SdkDefaultRetryStrategy {
     private static boolean treatAsThrottling(Throwable t) {
         if (t instanceof SdkException) {
             return RetryUtils.isThrottlingException((SdkException) t);
+        }
+        return false;
+    }
+
+    private static boolean retryOnRetryableException(Throwable ex) {
+        if (ex instanceof SdkException) {
+            return RetryUtils.isRetryableException((SdkException) ex);
         }
         return false;
     }

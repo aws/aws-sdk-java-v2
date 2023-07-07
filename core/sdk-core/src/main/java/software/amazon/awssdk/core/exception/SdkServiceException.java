@@ -76,19 +76,28 @@ public class SdkServiceException extends SdkException implements SdkPojo {
     }
 
     /**
-     * Specifies whether or not an exception may have been caused by clock skew.
+     * Specifies whether an exception may have been caused by clock skew.
      */
     public boolean isClockSkewException() {
         return false;
     }
 
     /**
-     * Specifies whether or not an exception is caused by throttling.
+     * Specifies whether an exception is caused by throttling.
      *
      * @return true if the status code is 429, otherwise false.
      */
     public boolean isThrottlingException() {
         return statusCode == HttpStatusCode.THROTTLING;
+    }
+
+    /**
+     * Specifies whether an exception is retryable.
+     *
+     * @return true if the exception is classified as retryable.
+     */
+    public boolean isRetryableException() {
+        return false;
     }
 
     /**

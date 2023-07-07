@@ -75,6 +75,9 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     private boolean union;
 
+    private boolean retryable;
+    private boolean throttling;
+
     public ShapeModel() {
     }
 
@@ -646,6 +649,24 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public ShapeModel withIsFault(boolean fault) {
         this.fault = fault;
+        return this;
+    }
+
+    public boolean isRetryable() {
+        return retryable;
+    }
+
+    public ShapeModel withIsRetryable(boolean retryable) {
+        this.retryable = retryable;
+        return this;
+    }
+
+    public boolean isThrottling() {
+        return throttling;
+    }
+
+    public ShapeModel withIsThrottling(boolean throttling) {
+        this.throttling = throttling;
         return this;
     }
 }
