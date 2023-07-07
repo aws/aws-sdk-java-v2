@@ -1,3 +1,28 @@
+# __2.20.101__ __2023-07-07__
+## __AWS Database Migration Service__
+  - ### Features
+    - Releasing DMS Serverless. Adding support for PostgreSQL 15.x as source and target endpoint. Adding support for DocDB Elastic Clusters with sharded collections, PostgreSQL datatype mapping customization and disabling hostname validation of the certificate authority in Kafka endpoint settings
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release enables the use of Thumbnails in AWS Elemental MediaLive.
+
+## __AWS Glue__
+  - ### Features
+    - This release enables customers to create new Apache Iceberg tables and associated metadata in Amazon S3 by using native AWS Glue CreateTable operation.
+
+## __AWS MediaTailor__
+  - ### Features
+    - The AWS Elemental MediaTailor SDK for Channel Assembly has added support for EXT-X-CUE-OUT and EXT-X-CUE-IN tags to specify ad breaks in HLS outputs, including support for EXT-OATCLS, EXT-X-ASSET, and EXT-X-CUE-OUT-CONT accessory tags.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Add CMK encryption support for CloudWatch Logs Insights query result data
+
 # __2.20.100__ __2023-07-06__
 ## __AWS Outposts__
   - ### Features
