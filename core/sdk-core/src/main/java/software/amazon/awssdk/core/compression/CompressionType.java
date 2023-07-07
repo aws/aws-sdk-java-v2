@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.compression;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -79,6 +80,27 @@ public final class CompressionType {
     @Override
     public String toString() {
         return id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        CompressionType that = (CompressionType) o;
+        return Objects.equals(id, that.id)
+            && Objects.equals(compressorMap, that.compressorMap);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (compressorMap != null ? compressorMap.hashCode() : 0);
+        return result;
     }
 
     private static class CompressionTypeCache {
