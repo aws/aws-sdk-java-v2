@@ -119,6 +119,12 @@ public class BaseClientBuilderClass implements ClassSpec {
             });
         }
 
+        if (hasSdkClientContextParams()) {
+            model.getCustomizationConfig().getCustomClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
+        }
+
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(setServiceConfigurationMethod())
                    .addMethod(beanStyleSetServiceConfigurationMethod());
@@ -623,6 +629,12 @@ public class BaseClientBuilderClass implements ClassSpec {
     private boolean hasClientContextParams() {
         Map<String, ClientContextParam> clientContextParams = model.getClientContextParams();
         return clientContextParams != null && !clientContextParams.isEmpty();
+    }
+
+    private boolean hasSdkClientContextParams() {
+        return model.getCustomizationConfig() != null
+               && model.getCustomizationConfig().getCustomClientContextParams() != null
+               && !model.getCustomizationConfig().getCustomClientContextParams().isEmpty();
     }
 
     private MethodSpec validateClientOptionsMethod() {
