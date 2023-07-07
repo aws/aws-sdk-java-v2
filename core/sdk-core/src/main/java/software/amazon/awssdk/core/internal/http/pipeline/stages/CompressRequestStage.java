@@ -77,7 +77,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             input.contentStreamProvider(new CompressionContentStreamProvider(input.contentStreamProvider(), compressor));
         }
         /*else {
-            // async streaming
+            // TODO: async streaming
         }*/
         updateContentEncodingHeader(input, compressor);
         input.removeHeader("Content-Length");
