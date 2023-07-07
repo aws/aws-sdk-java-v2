@@ -246,7 +246,7 @@ public abstract class BaseRetryStrategy<
         Throwable failure = request.failure();
         if (isNonRetryableException(request)) {
             String message = nonRetryableExceptionMessage(token);
-            log.error(() -> message, failure);
+            log.debug(() -> message, failure);
             TokenBucket tokenBucket = tokenBucketStore.tokenBucketForScope(token.scope());
             DefaultRetryToken refreshedToken =
                 token.toBuilder()

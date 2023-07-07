@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultLegacyRetryStrategy
     extends BaseRetryStrategy<LegacyRetryStrategy.Builder, LegacyRetryStrategy> implements LegacyRetryStrategy {
-    private static final Logger LOG = Logger.loggerFor(DefaultLegacyRetryStrategy.class);
+    private static final Logger LOG = Logger.loggerFor(LegacyRetryStrategy.class);
     private final BackoffStrategy throttlingBackoffStrategy;
     private final int throttlingExceptionCost;
     private final Predicate<Throwable> treatAsThrottling;
