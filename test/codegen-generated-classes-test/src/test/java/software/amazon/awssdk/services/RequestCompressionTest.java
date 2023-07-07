@@ -74,7 +74,7 @@ public class RequestCompressionTest {
     }
 
     @Test
-    public void sync_nonStreaming_compression_compressesCorrectly() throws InterruptedException {
+    public void sync_nonStreaming_compression_compressesCorrectly() {
         mockHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
 
         byte[] uncompressedData = COMPRESSABLE_BODY.getBytes(StandardCharsets.UTF_8);
@@ -98,7 +98,7 @@ public class RequestCompressionTest {
     }
 
     @Test
-    public void async_nonStreaming_compression_compressesCorrectly() throws InterruptedException {
+    public void async_nonStreaming_compression_compressesCorrectly() {
         mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
 
         byte[] uncompressedData = COMPRESSABLE_BODY.getBytes(StandardCharsets.UTF_8);
@@ -123,8 +123,81 @@ public class RequestCompressionTest {
     }
 
     @Test
-    public void sync_streaming_compression_compressesCorrectly() throws InterruptedException {
+    public void sync_streaming_compression_compressesCorrectly() {
         mockHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
+        byte[] uncompressedData = COMPRESSABLE_BODY.getBytes(StandardCharsets.UTF_8);
+        PutOperationWithStreamingRequestCompressionRequest request =
+            PutOperationWithStreamingRequestCompressionRequest.builder().build();
+        syncClient.putOperationWithStreamingRequestCompression(request, RequestBody.fromBytes(uncompressedData),
+                                                               ResponseTransformer.toBytes());
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockHttpClient.getLastRequest();
+        InputStream loggedStream = loggedRequest.contentStreamProvider().get().newStream();
+        byte[] loggedBody = SdkBytes.fromInputStream(loggedStream).asByteArray();
+        byte[] compressedData = compressor.compress(uncompressedData);
+        String chunkBody = Integer.toHexString(compressedData.length) + CRLF + new String(compressedData) + CRLF + "0" + CRLF;
+
+        assertThat(new String(loggedBody)).isEqualTo(chunkBody);
+        assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
+        assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();
+    }
+
+    @Test
+    public void sync_nonStreaming_compression_withRetry_compressesCorrectly() {
+        mockHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
+        mockHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
+
+        byte[] uncompressedData = COMPRESSABLE_BODY.getBytes(StandardCharsets.UTF_8);
+        PutOperationWithRequestCompressionRequest request =
+            PutOperationWithRequestCompressionRequest.builder()
+                                                     .body(SdkBytes.fromByteArray(uncompressedData))
+                                                     .overrideConfiguration(o -> o.requestCompressionConfiguration(
+                                                         c -> c.minimumCompressionThresholdInBytes(1)))
+                                                     .build();
+        syncClient.putOperationWithRequestCompression(request);
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockHttpClient.getLastRequest();
+        InputStream loggedStream = loggedRequest.contentStreamProvider().get().newStream();
+        byte[] loggedBody = SdkBytes.fromInputStream(loggedStream).asByteArray();
+        int loggedSize = Integer.valueOf(loggedRequest.firstMatchingHeader("Content-Length").get());
+        byte[] compressedData = compressor.compress(uncompressedData);
+
+        assertThat(loggedBody).isEqualTo(compressedData);
+        assertThat(loggedSize).isEqualTo(compressedData.length);
+        assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
+    }
+
+    @Test
+    public void async_nonStreaming_compression_withRetry_compressesCorrectly() {
+        mockAsyncHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
+        mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
+
+        byte[] uncompressedData = COMPRESSABLE_BODY.getBytes(StandardCharsets.UTF_8);
+        PutOperationWithRequestCompressionRequest request =
+            PutOperationWithRequestCompressionRequest.builder()
+                                                     .body(SdkBytes.fromByteArray(uncompressedData))
+                                                     .overrideConfiguration(o -> o.requestCompressionConfiguration(
+                                                         c -> c.minimumCompressionThresholdInBytes(1)))
+                                                     .build();
+
+        asyncClient.putOperationWithRequestCompression(request);
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
+        InputStream loggedStream = loggedRequest.contentStreamProvider().get().newStream();
+        byte[] loggedBody = SdkBytes.fromInputStream(loggedStream).asByteArray();
+        int loggedSize = Integer.valueOf(loggedRequest.firstMatchingHeader("Content-Length").get());
+        byte[] compressedData = compressor.compress(uncompressedData);
+
+        assertThat(loggedBody).isEqualTo(compressedData);
+        assertThat(loggedSize).isEqualTo(compressedData.length);
+        assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
+    }
+
+    @Test
+    public void sync_streaming_compression_withRetry_compressesCorrectly() {
+        mockHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
+        mockHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
+
         byte[] uncompressedData = COMPRESSABLE_BODY.getBytes(StandardCharsets.UTF_8);
         PutOperationWithStreamingRequestCompressionRequest request =
             PutOperationWithStreamingRequestCompressionRequest.builder().build();
@@ -145,6 +218,12 @@ public class RequestCompressionTest {
     private HttpExecuteResponse mockResponse() {
         return HttpExecuteResponse.builder()
                                   .response(SdkHttpResponse.builder().statusCode(200).build())
+                                  .build();
+    }
+
+    private HttpExecuteResponse mockErrorResponse() {
+        return HttpExecuteResponse.builder()
+                                  .response(SdkHttpResponse.builder().statusCode(500).build())
                                   .build();
     }
 }
