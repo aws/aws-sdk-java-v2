@@ -46,13 +46,9 @@ import software.amazon.awssdk.http.async.SimpleSubscriber;
 @RunWith(Parameterized.class)
 public class CompressionAsyncRequestBodyTest {
     private static final Compressor compressor = new GzipCompressor();;
-    public static final String CRLF = "\r\n";
     private final static String testString =
         "RequestCompressionTest-RequestCompressionTest-RequestCompressionTest-RequestCompressionTest-RequestCompressionTest";
-
-    private static byte[] compressedData = compressor.compress(testString.getBytes(StandardCharsets.UTF_8));
-    private static String expectedTestString =
-        Integer.toHexString(compressedData.length) + CRLF + new String(compressedData) + CRLF + "0" + CRLF;
+    private static String expectedTestString = new String(compressor.compress(testString.getBytes(StandardCharsets.UTF_8)));
     private final static Path path;
 
     static {

@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.internal.async;
 
-import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChunk;
-
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -134,20 +132,9 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            boolean lastByte = this.remainingBytes.addAndGet(-byteBuffer.remaining()) <= 0;
+            this.remainingBytes.addAndGet(-byteBuffer.remaining());
             ByteBuffer compressedBuffer = compressor.compress(byteBuffer);
-            ByteBuffer allocatedBuffer = lastByte ? getFinalChunk(compressedBuffer) : createChunk(compressedBuffer, false);
-            wrapped.onNext(allocatedBuffer);
-        }
-
-        private ByteBuffer getFinalChunk(ByteBuffer byteBuffer) {
-            ByteBuffer finalChunk = createChunk(ByteBuffer.wrap(new byte[0]), true);
-            ByteBuffer contentChunk = byteBuffer.hasRemaining() ? createChunk(byteBuffer, false) : byteBuffer;
-
-            ByteBuffer finalBuffer = ByteBuffer.allocate(finalChunk.remaining() + contentChunk.remaining());
-            finalBuffer.put(contentChunk).put(finalChunk);
-            finalBuffer.flip();
-            return finalBuffer;
+            wrapped.onNext(compressedBuffer);
         }
 
         @Override
