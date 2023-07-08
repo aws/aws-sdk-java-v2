@@ -98,7 +98,7 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public Optional<Long> contentLength() {
-        return wrapped.contentLength();
+        return Optional.empty();
     }
 
     @Override
@@ -120,7 +120,6 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
         private final Subscriber<? super ByteBuffer> wrapped;
         private final Compressor compressor;
         private final AtomicLong remainingBytes;
-        private Subscription subscription;
 
         CompressionSubscriber(Subscriber<? super ByteBuffer> wrapped, Compressor compressor, long totalBytes) {
             this.wrapped = wrapped;
@@ -130,7 +129,6 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
 
         @Override
         public void onSubscribe(Subscription subscription) {
-            this.subscription = subscription;
             wrapped.onSubscribe(subscription);
         }
 
@@ -138,8 +136,18 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
         public void onNext(ByteBuffer byteBuffer) {
             boolean lastByte = this.remainingBytes.addAndGet(-byteBuffer.remaining()) <= 0;
             ByteBuffer compressedBuffer = compressor.compress(byteBuffer);
-            ByteBuffer allocatedBuffer = createChunk(compressedBuffer, lastByte);
+            ByteBuffer allocatedBuffer = lastByte ? getFinalChunk(compressedBuffer) : createChunk(compressedBuffer, false);
             wrapped.onNext(allocatedBuffer);
+        }
+
+        private ByteBuffer getFinalChunk(ByteBuffer byteBuffer) {
+            ByteBuffer finalChunk = createChunk(ByteBuffer.wrap(new byte[0]), true);
+            ByteBuffer contentChunk = byteBuffer.hasRemaining() ? createChunk(byteBuffer, false) : byteBuffer;
+
+            ByteBuffer finalBuffer = ByteBuffer.allocate(finalChunk.remaining() + contentChunk.remaining());
+            finalBuffer.put(contentChunk).put(finalChunk);
+            finalBuffer.flip();
+            return finalBuffer;
         }
 
         @Override

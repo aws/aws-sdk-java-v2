@@ -76,8 +76,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         if (context.requestProvider() == null) {
             // sync streaming
             input.contentStreamProvider(new CompressionContentStreamProvider(input.contentStreamProvider(), compressor));
-        }
-        else {
+        } else {
             // async streaming
             context.requestProvider(CompressionAsyncRequestBody.builder()
                                         .asyncRequestBody(context.requestProvider())
