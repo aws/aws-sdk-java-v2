@@ -76,11 +76,11 @@ public class CompressionAsyncRequestBodyTest {
         AsyncRequestBody[] asyncRequestBodies = {
             CompressionAsyncRequestBody.builder()
                                        .asyncRequestBody(AsyncRequestBody.fromString(testString))
-                                       .compressor(new GzipCompressor()).build(),
+                                       .compressor(compressor).build(),
 
             CompressionAsyncRequestBody.builder()
                                        .asyncRequestBody(AsyncRequestBody.fromFile(path))
-                                       .compressor(new GzipCompressor()).build(),
+                                       .compressor(compressor).build(),
             };
         return asyncRequestBodies;
     }

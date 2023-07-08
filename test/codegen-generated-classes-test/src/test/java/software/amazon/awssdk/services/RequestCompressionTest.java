@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.compression.Compressor;
 import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -143,6 +145,20 @@ public class RequestCompressionTest {
     }
 
     @Test
+    public void async_streaming_compression_hasCorrectHeaders() {
+        mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
+        byte[] uncompressedData = COMPRESSABLE_BODY.getBytes(StandardCharsets.UTF_8);
+        PutOperationWithStreamingRequestCompressionRequest request =
+            PutOperationWithStreamingRequestCompressionRequest.builder().build();
+        asyncClient.putOperationWithStreamingRequestCompression(request, AsyncRequestBody.fromBytes(uncompressedData),
+                                                                AsyncResponseTransformer.toBytes()).join();
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
+        assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
+        assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();
+    }
+
+    @Test
     public void sync_nonStreaming_compression_withRetry_compressesCorrectly() {
         mockHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
         mockHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
@@ -211,6 +227,22 @@ public class RequestCompressionTest {
         String chunkBody = Integer.toHexString(compressedData.length) + CRLF + new String(compressedData) + CRLF + "0" + CRLF;
 
         assertThat(new String(loggedBody)).isEqualTo(chunkBody);
+        assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
+        assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();
+    }
+
+    @Test
+    public void async_streaming_compression_withRetry_hasCorrectHeaders() {
+        mockAsyncHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
+        mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
+
+        byte[] uncompressedData = COMPRESSABLE_BODY.getBytes(StandardCharsets.UTF_8);
+        PutOperationWithStreamingRequestCompressionRequest request =
+            PutOperationWithStreamingRequestCompressionRequest.builder().build();
+        asyncClient.putOperationWithStreamingRequestCompression(request, AsyncRequestBody.fromBytes(uncompressedData),
+                                                                AsyncResponseTransformer.toBytes()).join();
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
         assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
         assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();
     }

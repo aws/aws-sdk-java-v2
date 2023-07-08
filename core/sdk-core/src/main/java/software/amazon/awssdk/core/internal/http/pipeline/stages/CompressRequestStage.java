@@ -62,7 +62,6 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
         Compressor compressor = resolveCompressionType(context.executionAttributes());
 
-        // non-streaming OR transfer-encoding chunked
         if (!isStreaming(context) || isTransferEncodingChunked(input)) {
             compressEntirePayload(input, compressor);
             updateContentEncodingHeader(input, compressor);
@@ -74,10 +73,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         }
 
         if (context.requestProvider() == null) {
-            // sync streaming
             input.contentStreamProvider(new CompressionContentStreamProvider(input.contentStreamProvider(), compressor));
         } else {
-            // async streaming
             context.requestProvider(CompressionAsyncRequestBody.builder()
                                         .asyncRequestBody(context.requestProvider())
                                         .compressor(compressor)
