@@ -18,19 +18,34 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.AsyncSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
 public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
@@ -48,7 +63,98 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     @Override
     public CompletableFuture<SdkHttpFullRequest> execute(SdkHttpFullRequest request, RequestExecutionContext context)
             throws Exception {
+        // TODO: Add unit tests for SRA signing logic.
+        if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
+            return sraSignRequest(request, context);
+        }
         return signRequest(request, context);
+    }
+
+    private <T extends Identity> CompletableFuture<SdkHttpFullRequest> sraSignRequest(SdkHttpFullRequest request,
+                                                                                      RequestExecutionContext context) {
+        updateInterceptorContext(request, context.executionContext());
+
+        ExecutionAttributes executionAttributes = context.executionAttributes();
+        SelectedAuthScheme<T> selectedAuthScheme =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+
+        if (!shouldSign(selectedAuthScheme)) {
+            return CompletableFuture.completedFuture(request);
+        }
+
+        Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
+            () -> {
+                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+
+                // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based
+                //  endpoints and also to logically separate out identity resolution as its own step.
+                ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
+                authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
+
+                IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
+                T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
+
+                HttpSigner<T> signer = selectedAuthScheme.signer();
+
+                SdkHttpFullRequest result;
+                if (context.requestProvider() == null) {
+                    SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+                        .builder(identity)
+                        .request(request)
+                        .payload(request.contentStreamProvider().orElse(null));
+                    authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+
+                    SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+                    result = toSdkHttpFullRequest(signedRequest);
+                } else {
+                    AsyncSignRequest.Builder<T> signRequestBuilder = AsyncSignRequest
+                        .builder(identity)
+                        .request(request)
+                        .payload(context.requestProvider());
+                    authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+
+                    AsyncSignedRequest signedRequest = signer.signAsync(signRequestBuilder.build());
+                    result = toSdkHttpFullRequest(signedRequest);
+
+                    if (signedRequest.payload().isPresent()) {
+                        context.requestProvider(AsyncRequestBody.fromPublisher(signedRequest.payload().get()));
+                    } else {
+                        // TODO: to confirm. Seems like it is possible that a request with async payload, can go through
+                        //  signAsync and result is no async payload, so better to unset the input async payload than use it
+                        //  as-is if the signer returned null payload?
+                        context.requestProvider(null);
+                    }
+                }
+
+                // TODO: the below updates the result in interceptor context, but if signAsync is called the asyncRequestBody
+                //  could also be different. Should it also be updated in InterceptorContext?
+                //  executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.asyncRequestBody(...))).
+                //  This is NOT done in current non-SRA code.
+                updateInterceptorContext(result, context.executionContext());
+                return result;
+            });
+        context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
+        return CompletableFuture.completedFuture(measuredSign.left());
+    }
+
+    private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
+        return toSdkHttpFullRequestBuilder(signedRequest).contentStreamProvider(signedRequest.payload().orElse(null)).build();
+    }
+
+    private SdkHttpFullRequest toSdkHttpFullRequest(AsyncSignedRequest signedRequest) {
+        return toSdkHttpFullRequestBuilder(signedRequest).build();
+    }
+
+    private SdkHttpFullRequest.Builder toSdkHttpFullRequestBuilder(SignedRequest<?> signedRequest) {
+        SdkHttpRequest request = signedRequest.request();
+        return SdkHttpFullRequest.builder()
+                                 .protocol(request.protocol())
+                                 .method(request.method())
+                                 .host(request.host())
+                                 .port(request.port())
+                                 .encodedPath(request.encodedPath())
+                                 .applyMutation(r -> request.forEachHeader(r::putHeader))
+                                 .applyMutation(r -> request.forEachRawQueryParameter(r::putRawQueryParameter));
     }
 
     /**
@@ -90,6 +196,16 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     }
 
     /**
+     * We do not sign if the Auth SchemeId is smithy.api#noAuth.
+     *
+     * @return True if request should be signed, false if not.
+     */
+    private boolean shouldSign(SelectedAuthScheme<?> selectedAuthScheme) {
+        // TODO: Should this string be a constant somewhere. Similar logic is used in AuthSchemeInterceptors.
+        return !"smithy.api#noAuth".equals(selectedAuthScheme.authSchemeOption().schemeId());
+    }
+
+    /**
      * We sign if a signer is provided is not null.
      *
      * @return True if request should be signed, false if not.
@@ -127,7 +243,5 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
 
             return CompletableFuture.completedFuture(signedRequest);
         };
-
-
     }
 }
