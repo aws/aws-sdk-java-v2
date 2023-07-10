@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "StephenFlavin",
+    "description": "Enable zero-copy ByteBuffer publishing in AsyncRequestBody via \"unsafe\" constructors"
+}
