@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -71,8 +72,18 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
      */
     @Override
     public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
-        SdkToken credentials = resolveToken(defaultTokenProvider, metricCollector);
+        SdkTokenProvider tokenProvider = resolveTokenProvider(request, defaultTokenProvider);
+        SdkToken credentials = resolveToken(tokenProvider, metricCollector);
         executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, credentials);
+    }
+
+    private static SdkTokenProvider resolveTokenProvider(SdkRequest originalRequest,
+                                                         SdkTokenProvider defaultProvider) {
+        return originalRequest.overrideConfiguration()
+                              .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+                              .map(c -> (AwsRequestOverrideConfiguration) c)
+                              .flatMap(AwsRequestOverrideConfiguration::tokenProvider)
+                              .orElse(defaultProvider);
     }
 
     private static SdkToken resolveToken(SdkTokenProvider tokenProvider, MetricCollector metricCollector) {

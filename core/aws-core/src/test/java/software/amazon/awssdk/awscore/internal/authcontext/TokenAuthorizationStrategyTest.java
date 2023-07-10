@@ -30,6 +30,7 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.internal.token.TestToken;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
@@ -39,19 +40,25 @@ import software.amazon.awssdk.metrics.MetricCollector;
 public class TokenAuthorizationStrategyTest {
 
     private static final String TOKEN_VALUE = "token_value";
+    private static final String REQUEST_OVERRIDE_TOKEN_VALUE = "request_override_token_value";
+
     private SdkToken token;
+    private SdkToken requestOverrideToken;
 
     @Mock SdkRequest sdkRequest;
     @Mock Signer defaultSigner;
     @Mock Signer requestOverrideSigner;
     @Mock SdkTokenProvider tokenProvider;
+    @Mock SdkTokenProvider requestOverrideTokenProvider;
     @Mock MetricCollector metricCollector;
 
     @Before
     public void setUp() throws Exception {
         token = TestToken.builder().token(TOKEN_VALUE).build();
+        requestOverrideToken = TestToken.builder().token(REQUEST_OVERRIDE_TOKEN_VALUE).build();
         when(sdkRequest.overrideConfiguration()).thenReturn(Optional.empty());
         when(tokenProvider.resolveToken()).thenReturn(token);
+        when(requestOverrideTokenProvider.resolveToken()).thenReturn(requestOverrideToken);
     }
 
     @Test
@@ -68,7 +75,7 @@ public class TokenAuthorizationStrategyTest {
 
     @Test
     public void overrideSigner_returnsOverrideSigner() {
-        Optional cfg = Optional.of(requestOverrideConfiguration());
+        Optional cfg = Optional.of(requestOverrideSignerConfiguration());
         when(sdkRequest.overrideConfiguration()).thenReturn(cfg);
         TokenAuthorizationStrategy authorizationContext = TokenAuthorizationStrategy.builder()
                                                                                     .request(sdkRequest)
@@ -93,7 +100,7 @@ public class TokenAuthorizationStrategyTest {
     }
 
     @Test
-    public void providerExists_credentialsAddedToExecutionAttributes() {
+    public void noOverrideProvider_tokenAddedToExecutionAttributes() {
         TokenAuthorizationStrategy authorizationContext = TokenAuthorizationStrategy.builder()
                                                                                     .request(sdkRequest)
                                                                                     .defaultSigner(defaultSigner)
@@ -103,6 +110,21 @@ public class TokenAuthorizationStrategyTest {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         authorizationContext.addCredentialsToExecutionAttributes(executionAttributes);
         assertThat(executionAttributes.getAttribute(SdkTokenExecutionAttribute.SDK_TOKEN)).isEqualTo(token);
+    }
+
+    @Test
+    public void overrideProvider_overrideTokenAddedToExecutionAttributes() {
+        Optional cfg = Optional.of(requestOverrideTokenProviderConfiguration());
+        when(sdkRequest.overrideConfiguration()).thenReturn(cfg);
+        TokenAuthorizationStrategy authorizationContext = TokenAuthorizationStrategy.builder()
+                                                                                    .request(sdkRequest)
+                                                                                    .defaultSigner(defaultSigner)
+                                                                                    .defaultTokenProvider(tokenProvider)
+                                                                                    .metricCollector(metricCollector)
+                                                                                    .build();
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        authorizationContext.addCredentialsToExecutionAttributes(executionAttributes);
+        assertThat(executionAttributes.getAttribute(SdkTokenExecutionAttribute.SDK_TOKEN)).isEqualTo(requestOverrideToken);
     }
 
     @Test
@@ -119,9 +141,15 @@ public class TokenAuthorizationStrategyTest {
             .hasMessageContaining("No token provider exists to resolve a token from.");
     }
 
-    private AwsRequestOverrideConfiguration requestOverrideConfiguration() {
+    private AwsRequestOverrideConfiguration requestOverrideSignerConfiguration() {
         return AwsRequestOverrideConfiguration.builder()
                                               .signer(requestOverrideSigner)
+                                              .build();
+    }
+
+    private AwsRequestOverrideConfiguration requestOverrideTokenProviderConfiguration() {
+        return AwsRequestOverrideConfiguration.builder()
+                                              .tokenProvider(requestOverrideTokenProvider)
                                               .build();
     }
 }
