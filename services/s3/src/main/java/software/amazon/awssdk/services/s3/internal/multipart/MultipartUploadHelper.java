@@ -70,7 +70,8 @@ public final class MultipartUploadHelper {
                                                              AsyncRequestBody asyncRequestBody) {
         Long contentLength = asyncRequestBody.contentLength().orElseGet(putObjectRequest::contentLength);
 
-        // TODO: support null content length. Should be trivial to support it now
+        // TODO: support null content length. Need to determine whether to use single object or MPU based on the first
+        //  AsyncRequestBody
         if (contentLength == null) {
             throw new IllegalArgumentException("Content-length is required");
         }
