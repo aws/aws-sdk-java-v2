@@ -189,8 +189,15 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
     private static boolean isRequestSizeWithinThreshold(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
         int minimumCompressionThreshold = resolveMinCompressionSize(context);
         validateMinCompressionSizeInput(minimumCompressionThreshold);
-        int requestSize = SdkBytes.fromInputStream(input.contentStreamProvider().newStream()).asByteArray().length;
-        return requestSize >= minimumCompressionThreshold;
+        return getRequestSize(input) >= minimumCompressionThreshold;
+    }
+
+    private static int getRequestSize(SdkHttpFullRequest.Builder input) {
+        Optional<String> header = input.firstMatchingHeader("Content-Length");
+        if (header.isPresent()) {
+            return Integer.valueOf(header.get());
+        }
+        return SdkBytes.fromInputStream(input.contentStreamProvider().newStream()).asByteArray().length;
     }
 
     private static int resolveMinCompressionSize(RequestExecutionContext context) {
