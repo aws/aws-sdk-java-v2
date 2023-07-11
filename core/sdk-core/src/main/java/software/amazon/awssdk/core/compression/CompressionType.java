@@ -37,7 +37,7 @@ public final class CompressionType {
             put("gzip", new GzipCompressor());
         }};
 
-    private String id;
+    private final String id;
 
     private CompressionType(String id) {
         this.id = id;
