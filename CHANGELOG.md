@@ -1,3 +1,17 @@
+# __2.20.102__ __2023-07-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Enable zero-copy ByteBuffer publishing in AsyncRequestBody via "unsafe" constructors
+        - Contributed by: [@StephenFlavin](https://github.com/StephenFlavin)
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - API model updated in Amazon Cognito
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@StephenFlavin](https://github.com/StephenFlavin)
 # __2.20.101__ __2023-07-07__
 ## __AWS Database Migration Service__
   - ### Features
