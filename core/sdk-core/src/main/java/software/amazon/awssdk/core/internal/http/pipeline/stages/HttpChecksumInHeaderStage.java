@@ -13,7 +13,8 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.interceptor;
+package software.amazon.awssdk.core.internal.http.pipeline.stages;
+
 
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
 import static software.amazon.awssdk.core.internal.util.HttpChecksumResolver.getResolvedChecksumSpecs;
@@ -23,12 +24,13 @@ import java.io.UncheckedIOException;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
-import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -39,11 +41,11 @@ import software.amazon.awssdk.utils.BinaryUtils;
  *     <li>non streaming payload and Header-based Signing auth</li>
  *     <li>streaming payload and Header-based Signing auth</li>
  * </ol>
- * This interceptor will inject the Http checksum only for case 1 as above i.e. for unsigned payloads.
+ * This stage will inject the Http checksum only for case 1 as above i.e. for unsigned payloads.
  * For the other two cases the http checksum will be injected by the signers
  */
 @SdkInternalApi
-public class HttpChecksumInHeaderInterceptor implements ExecutionInterceptor {
+public class HttpChecksumInHeaderStage implements MutableRequestToRequestPipeline {
 
     /**
      * Calculates the checksum of the provided request (and base64 encodes it), and adds the header to the request.
@@ -54,24 +56,26 @@ public class HttpChecksumInHeaderInterceptor implements ExecutionInterceptor {
      * that yet.
      */
     @Override
-    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        ChecksumSpecs checksumSpecs = getResolvedChecksumSpecs(executionAttributes);
-        Optional<RequestBody> syncContent = context.requestBody();
+    public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder input, RequestExecutionContext context)
+            throws Exception {
+        ChecksumSpecs checksumSpecs = getResolvedChecksumSpecs(context.executionAttributes());
+        Optional<RequestBody> syncContent = context.executionContext().interceptorContext().requestBody();
 
-        if (shouldSkipHttpChecksumInHeader(context, executionAttributes, checksumSpecs) || !syncContent.isPresent()) {
-            return context.httpRequest();
+        if (shouldSkipHttpChecksumInHeader(context.executionContext().interceptorContext(), context.executionAttributes(),
+                                           checksumSpecs) || !syncContent.isPresent()) {
+            return input;
         }
 
         try {
             String payloadChecksum = BinaryUtils.toBase64(HttpChecksumUtils.computeChecksum(
                 syncContent.get().contentStreamProvider().newStream(), checksumSpecs.algorithm()));
-            return context.httpRequest().copy(r -> r.putHeader(checksumSpecs.headerName(), payloadChecksum));
+            return input.putHeader(checksumSpecs.headerName(), payloadChecksum);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private boolean shouldSkipHttpChecksumInHeader(Context.AfterMarshalling context, ExecutionAttributes executionAttributes,
+    private boolean shouldSkipHttpChecksumInHeader(InterceptorContext context, ExecutionAttributes executionAttributes,
                                                    ChecksumSpecs headerChecksumSpecs) {
         return headerChecksumSpecs == null ||
                headerChecksumSpecs.algorithm() == null ||

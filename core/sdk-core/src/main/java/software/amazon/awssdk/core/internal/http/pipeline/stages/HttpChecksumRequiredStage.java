@@ -13,21 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.interceptor;
+package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.Header;
-import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.Md5Utils;
 
 /**
@@ -39,7 +36,7 @@ import software.amazon.awssdk.utils.Md5Utils;
  * interface changes of some sort, because it's not currently possible to do a non-blocking update to request headers.
  */
 @SdkInternalApi
-public class HttpChecksumRequiredInterceptor implements ExecutionInterceptor {
+public class HttpChecksumRequiredStage implements MutableRequestToRequestPipeline {
 
     /**
      * Calculates the MD5 checksum of the provided request (and base64 encodes it), and adds the header to the request.
@@ -50,31 +47,29 @@ public class HttpChecksumRequiredInterceptor implements ExecutionInterceptor {
      * that yet.
      */
     @Override
-    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        boolean isHttpChecksumRequired = isHttpChecksumRequired(executionAttributes);
-        boolean requestAlreadyHasMd5 = context.httpRequest().firstMatchingHeader(Header.CONTENT_MD5).isPresent();
-
-        Optional<RequestBody> syncContent = context.requestBody();
-        Optional<AsyncRequestBody> asyncContent = context.asyncRequestBody();
+    public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
+            throws Exception {
+        boolean isHttpChecksumRequired = isHttpChecksumRequired(context.executionAttributes());
+        boolean requestAlreadyHasMd5 = request.firstMatchingHeader(Header.CONTENT_MD5).isPresent();
 
         if (!isHttpChecksumRequired || requestAlreadyHasMd5) {
-            return context.httpRequest();
+            return request;
         }
 
-        if (asyncContent.isPresent()) {
+        if (context.requestProvider() != null) {
             throw new IllegalArgumentException("This operation requires a content-MD5 checksum, but one cannot be calculated "
                                                + "for non-blocking content.");
         }
 
-        if (syncContent.isPresent()) {
+        if (context.executionContext().interceptorContext().requestBody().isPresent()) {
             try {
-                String payloadMd5 = Md5Utils.md5AsBase64(syncContent.get().contentStreamProvider().newStream());
-                return context.httpRequest().copy(r -> r.putHeader(Header.CONTENT_MD5, payloadMd5));
+                String payloadMd5 = Md5Utils.md5AsBase64(request.contentStreamProvider().newStream());
+                return request.putHeader(Header.CONTENT_MD5, payloadMd5);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         }
-        return context.httpRequest();
+        return request;
     }
 
     private boolean isHttpChecksumRequired(ExecutionAttributes executionAttributes) {

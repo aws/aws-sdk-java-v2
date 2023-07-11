@@ -35,8 +35,11 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallMet
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncBeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRequestBodyHttpChecksumTrailerStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncSigningStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumInHeaderStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumRequiredStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeAsyncHttpRequestStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
@@ -169,6 +172,9 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(ApplyUserAgentStage::new)
                                 .then(MergeCustomHeadersStage::new)
                                 .then(MergeCustomQueryParamsStage::new)
+                                .then(HttpChecksumRequiredStage::new)
+                                .then(AsyncRequestBodyHttpChecksumTrailerStage::new)
+                                .then(HttpChecksumInHeaderStage::new)
                                 .then(MakeRequestImmutableStage::new)
                                 .then(RequestPipelineBuilder
                                         .first(AsyncSigningStage::new)
