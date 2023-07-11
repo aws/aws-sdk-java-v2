@@ -19,6 +19,7 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.AWS_CHUNKED_HEADE
 import static software.amazon.awssdk.core.HttpChecksumConstant.CONTENT_SHA_256_FOR_UNSIGNED_TRAILER;
 import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
+import static software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE;
 import static software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumContentLength;
 import static software.amazon.awssdk.core.internal.util.HttpChecksumResolver.getResolvedChecksumSpecs;
@@ -39,7 +40,6 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.async.ChecksumCalculatingAsyncRequestBody;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -125,10 +125,12 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
         }
 
         long originalContentLength = 0;
+        int chunkSize = 0;
         if (clientType.equals(ClientType.SYNC)) {
             request.contentStreamProvider(new ChecksumCalculatingStreamProvider(request.contentStreamProvider(), checksumSpecs));
             originalContentLength =
                 context.executionContext().interceptorContext().requestBody().get().optionalContentLength().orElse(0L);
+            chunkSize = DEFAULT_CHUNK_SIZE;
         } else if (clientType.equals(ClientType.ASYNC)) {
             if (context.requestProvider() != null) {
                 context.requestProvider(ChecksumCalculatingAsyncRequestBody.builder()
@@ -137,11 +139,18 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
                                                                            .trailerHeader(checksumSpecs.headerName()).build());
                 originalContentLength =
                     context.executionContext().interceptorContext().asyncRequestBody().get().contentLength().orElse(0L);
+                chunkSize = DEFAULT_ASYNC_CHUNK_SIZE;
             }
         }
 
         long checksumContentLength = calculateChecksumContentLength(checksumSpecs.algorithm(), checksumSpecs.headerName());
-        updateHeadersForTrailerChecksum(request, checksumSpecs, checksumContentLength, originalContentLength, clientType);
+        long contentLen = checksumContentLength + calculateStreamContentLength(originalContentLength, chunkSize);
+
+        request.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksumSpecs.headerName())
+               .appendHeader("Content-encoding", AWS_CHUNKED_HEADER)
+               .putHeader("x-amz-content-sha256", CONTENT_SHA_256_FOR_UNSIGNED_TRAILER)
+               .putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength))
+               .putHeader(CONTENT_LENGTH, Long.toString(contentLen));
     }
 
     /**
@@ -195,23 +204,6 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
                    context.httpRequest().protocol(),
                    context.requestBody().map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false)) ||
                headerChecksumSpecs.isRequestStreaming();
-    }
-
-    private static void updateHeadersForTrailerChecksum(SdkHttpFullRequest.Builder input, ChecksumSpecs checksum,
-                                                        long checksumContentLength, long originalContentLength,
-                                                        ClientType clientType) {
-        long contentLen = checksumContentLength;
-        if (clientType.equals(ClientType.SYNC)) {
-            contentLen += calculateStreamContentLength(originalContentLength, AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE);
-        } else if (clientType.equals(ClientType.ASYNC)) {
-            contentLen += calculateStreamContentLength(originalContentLength, DEFAULT_ASYNC_CHUNK_SIZE);
-        }
-
-        input.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksum.headerName())
-             .appendHeader("Content-encoding", AWS_CHUNKED_HEADER)
-             .putHeader("x-amz-content-sha256", CONTENT_SHA_256_FOR_UNSIGNED_TRAILER)
-             .putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength))
-             .putHeader(CONTENT_LENGTH, Long.toString(contentLen));
     }
 
     private static boolean shouldAddTrailerBasedChecksumInRequest(InterceptorContext context,
