@@ -15,12 +15,21 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
+import software.amazon.awssdk.services.s3.model.CopyObjectResult;
 import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -33,130 +42,78 @@ import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 /**
  * Request conversion utility method for POJO classes associated with multipart feature.
  */
-//TODO: iterate over SDK fields to get the data
 @SdkInternalApi
 public final class RequestConversionUtils {
+
+    private static final HashSet<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
+        new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32"));
 
     private RequestConversionUtils() {
     }
 
+    public static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest, int partNumber, String uploadId) {
+
+        UploadPartRequest.Builder builder = UploadPartRequest.builder();
+
+        setSdkFields(builder, putObjectRequest, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE);
+
+        return builder.uploadId(uploadId).partNumber(partNumber).build();
+    }
+
     public static CreateMultipartUploadRequest toCreateMultipartUploadRequest(PutObjectRequest putObjectRequest) {
 
-        return CreateMultipartUploadRequest.builder()
-                                           .bucket(putObjectRequest.bucket())
-                                           .key(putObjectRequest.key())
-                                           .sseCustomerAlgorithm(putObjectRequest.sseCustomerAlgorithm())
-                                           .sseCustomerKey(putObjectRequest.sseCustomerKey())
-                                           .sseCustomerKeyMD5(putObjectRequest.sseCustomerKeyMD5())
-                                           .requestPayer(putObjectRequest.requestPayer())
-                                           .acl(putObjectRequest.acl())
-                                           .cacheControl(putObjectRequest.cacheControl())
-                                           .metadata(putObjectRequest.metadata())
-                                           .contentDisposition(putObjectRequest.contentDisposition())
-                                           .contentEncoding(putObjectRequest.contentEncoding())
-                                           .contentType(putObjectRequest.contentType())
-                                           .contentLanguage(putObjectRequest.contentLanguage())
-                                           .grantFullControl(putObjectRequest.grantFullControl())
-                                           .expires(putObjectRequest.expires())
-                                           .grantRead(putObjectRequest.grantRead())
-                                           .grantFullControl(putObjectRequest.grantFullControl())
-                                           .grantReadACP(putObjectRequest.grantReadACP())
-                                           .grantWriteACP(putObjectRequest.grantWriteACP())
-                                           //TODO filter out headers
-                                           //.overrideConfiguration(putObjectRequest.overrideConfiguration())
-                                           .build();
+        CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
+        setSdkFields(builder, putObjectRequest);
+        return builder.build();
     }
 
     public static HeadObjectRequest toHeadObjectRequest(CopyObjectRequest copyObjectRequest) {
-        return HeadObjectRequest.builder()
-                                .bucket(copyObjectRequest.sourceBucket())
-                                .key(copyObjectRequest.sourceKey())
-                                .versionId(copyObjectRequest.sourceVersionId())
-                                .ifMatch(copyObjectRequest.copySourceIfMatch())
-                                .ifModifiedSince(copyObjectRequest.copySourceIfModifiedSince())
-                                .ifNoneMatch(copyObjectRequest.copySourceIfNoneMatch())
-                                .ifUnmodifiedSince(copyObjectRequest.copySourceIfUnmodifiedSince())
-                                .expectedBucketOwner(copyObjectRequest.expectedSourceBucketOwner())
-                                .sseCustomerAlgorithm(copyObjectRequest.copySourceSSECustomerAlgorithm())
-                                .sseCustomerKey(copyObjectRequest.copySourceSSECustomerKey())
-                                .sseCustomerKeyMD5(copyObjectRequest.copySourceSSECustomerKeyMD5())
-                                .build();
+        HeadObjectRequest.Builder builder = HeadObjectRequest.builder();
+        setSdkFields(builder, copyObjectRequest);
+        return builder.build();
     }
 
     public static CompletedPart toCompletedPart(CopyPartResult copyPartResult, int partNumber) {
-        return CompletedPart.builder()
-                            .partNumber(partNumber)
-                            .eTag(copyPartResult.eTag())
-                            .checksumCRC32C(copyPartResult.checksumCRC32C())
-                            .checksumCRC32(copyPartResult.checksumCRC32())
-                            .checksumSHA1(copyPartResult.checksumSHA1())
-                            .checksumSHA256(copyPartResult.checksumSHA256())
-                            .eTag(copyPartResult.eTag())
-                            .build();
+        CompletedPart.Builder builder = CompletedPart.builder();
+
+        setSdkFields(builder, copyPartResult);
+        return builder.partNumber(partNumber).build();
     }
 
     public static CompletedPart toCompletedPart(UploadPartResponse partResponse, int partNumber) {
-        return CompletedPart.builder()
-                            .partNumber(partNumber)
-                            .eTag(partResponse.eTag())
-                            .checksumCRC32C(partResponse.checksumCRC32C())
-                            .checksumCRC32(partResponse.checksumCRC32())
-                            .checksumSHA1(partResponse.checksumSHA1())
-                            .checksumSHA256(partResponse.checksumSHA256())
-                            .eTag(partResponse.eTag())
-                            .build();
+        CompletedPart.Builder builder = CompletedPart.builder();
+        setSdkFields(builder, partResponse);
+        return builder.partNumber(partNumber).build();
+    }
+
+    private static void setSdkFields(SdkPojo targetBuilder, SdkPojo sourceObject) {
+        setSdkFields(targetBuilder, sourceObject, new HashSet<>());
+    }
+
+    private static void setSdkFields(SdkPojo targetBuilder, SdkPojo sourceObject, Set<String> fieldsToIgnore) {
+        Map<String, Object> sourceFields = retrieveSdkFields(sourceObject, sourceObject.sdkFields());
+        List<SdkField<?>> targetSdkFields = targetBuilder.sdkFields();
+
+        for (SdkField<?> field : targetSdkFields) {
+            if (fieldsToIgnore.contains(field.memberName())) {
+                continue;
+            }
+            field.set(targetBuilder, sourceFields.getOrDefault(field.memberName(), null));
+        }
     }
 
     public static CreateMultipartUploadRequest toCreateMultipartUploadRequest(CopyObjectRequest copyObjectRequest) {
-        return CreateMultipartUploadRequest.builder()
-                                           .bucket(copyObjectRequest.destinationBucket())
-                                           .contentEncoding(copyObjectRequest.contentEncoding())
-                                           .checksumAlgorithm(copyObjectRequest.checksumAlgorithmAsString())
-                                           .tagging(copyObjectRequest.tagging())
-                                           .contentType(copyObjectRequest.contentType())
-                                           .contentLanguage(copyObjectRequest.contentLanguage())
-                                           .contentDisposition(copyObjectRequest.contentDisposition())
-                                           .cacheControl(copyObjectRequest.cacheControl())
-                                           .expires(copyObjectRequest.expires())
-                                           .key(copyObjectRequest.destinationKey())
-                                           .websiteRedirectLocation(copyObjectRequest.websiteRedirectLocation())
-                                           .expectedBucketOwner(copyObjectRequest.expectedBucketOwner())
-                                           .requestPayer(copyObjectRequest.requestPayerAsString())
-                                           .acl(copyObjectRequest.aclAsString())
-                                           .grantRead(copyObjectRequest.grantRead())
-                                           .grantReadACP(copyObjectRequest.grantReadACP())
-                                           .grantWriteACP(copyObjectRequest.grantWriteACP())
-                                           .grantFullControl(copyObjectRequest.grantFullControl())
-                                           .storageClass(copyObjectRequest.storageClassAsString())
-                                           .ssekmsKeyId(copyObjectRequest.ssekmsKeyId())
-                                           .sseCustomerKey(copyObjectRequest.sseCustomerKey())
-                                           .sseCustomerAlgorithm(copyObjectRequest.sseCustomerAlgorithm())
-                                           .sseCustomerKeyMD5(copyObjectRequest.sseCustomerKeyMD5())
-                                           .ssekmsEncryptionContext(copyObjectRequest.ssekmsEncryptionContext())
-                                           .serverSideEncryption(copyObjectRequest.serverSideEncryptionAsString())
-                                           .bucketKeyEnabled(copyObjectRequest.bucketKeyEnabled())
-                                           .objectLockMode(copyObjectRequest.objectLockModeAsString())
-                                           .objectLockLegalHoldStatus(copyObjectRequest.objectLockLegalHoldStatusAsString())
-                                           .objectLockRetainUntilDate(copyObjectRequest.objectLockRetainUntilDate())
-                                           .metadata(copyObjectRequest.metadata())
-                                           .build();
+        CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
+
+        setSdkFields(builder, copyObjectRequest);
+        return builder.build();
     }
 
     public static CopyObjectResponse toCopyObjectResponse(CompleteMultipartUploadResponse response) {
-        CopyObjectResponse.Builder builder = CopyObjectResponse.builder()
-                                                               .versionId(response.versionId())
-                                                               .copyObjectResult(b -> b.checksumCRC32(response.checksumCRC32())
-                                                                                       .checksumSHA1(response.checksumSHA1())
-                                                                                       .checksumSHA256(response.checksumSHA256())
-                                                                                       .checksumCRC32C(response.checksumCRC32C())
-                                                                                       .eTag(response.eTag())
-                                                                                       .build())
-                                                               .expiration(response.expiration())
-                                                               .bucketKeyEnabled(response.bucketKeyEnabled())
-                                                               .serverSideEncryption(response.serverSideEncryption())
-                                                               .ssekmsKeyId(response.ssekmsKeyId())
-                                                               .serverSideEncryption(response.serverSideEncryptionAsString())
-                                                               .requestCharged(response.requestChargedAsString());
+        CopyObjectResponse.Builder builder = CopyObjectResponse.builder();
+
+        setSdkFields(builder, response);
+
         if (response.responseMetadata() != null) {
             builder.responseMetadata(response.responseMetadata());
         }
@@ -165,86 +122,46 @@ public final class RequestConversionUtils {
             builder.sdkHttpResponse(response.sdkHttpResponse());
         }
 
+        return builder.copyObjectResult(toCopyObjectResult(response))
+                      .build();
+    }
+
+    private static CopyObjectResult toCopyObjectResult(CompleteMultipartUploadResponse response) {
+        CopyObjectResult.Builder builder = CopyObjectResult.builder();
+
+        setSdkFields(builder, response);
         return builder.build();
     }
 
     public static AbortMultipartUploadRequest.Builder toAbortMultipartUploadRequest(CopyObjectRequest copyObjectRequest) {
-        return AbortMultipartUploadRequest.builder()
-                                          .bucket(copyObjectRequest.destinationBucket())
-                                          .key(copyObjectRequest.destinationKey())
-                                          .requestPayer(copyObjectRequest.requestPayerAsString())
-                                          .expectedBucketOwner(copyObjectRequest.expectedBucketOwner());
+        AbortMultipartUploadRequest.Builder builder = AbortMultipartUploadRequest.builder();
+        setSdkFields(builder, copyObjectRequest);
+        return builder;
     }
 
     public static AbortMultipartUploadRequest.Builder toAbortMultipartUploadRequest(PutObjectRequest putObjectRequest) {
-        return AbortMultipartUploadRequest.builder()
-                                          .bucket(putObjectRequest.bucket())
-                                          .key(putObjectRequest.key())
-                                          .requestPayer(putObjectRequest.requestPayerAsString())
-                                          .expectedBucketOwner(putObjectRequest.expectedBucketOwner());
+        AbortMultipartUploadRequest.Builder builder = AbortMultipartUploadRequest.builder();
+        setSdkFields(builder, putObjectRequest);
+        return builder;
     }
 
     public static UploadPartCopyRequest toUploadPartCopyRequest(CopyObjectRequest copyObjectRequest,
                                                                 int partNumber,
                                                                 String uploadId,
                                                                 String range) {
-
-        return UploadPartCopyRequest.builder()
-                                    .sourceBucket(copyObjectRequest.sourceBucket())
-                                    .sourceKey(copyObjectRequest.sourceKey())
-                                    .sourceVersionId(copyObjectRequest.sourceVersionId())
-                                    .uploadId(uploadId)
-                                    .partNumber(partNumber)
-                                    .destinationBucket(copyObjectRequest.destinationBucket())
-                                    .destinationKey(copyObjectRequest.destinationKey())
-                                    .copySourceIfMatch(copyObjectRequest.copySourceIfMatch())
-                                    .copySourceIfNoneMatch(copyObjectRequest.copySourceIfNoneMatch())
-                                    .copySourceIfUnmodifiedSince(copyObjectRequest.copySourceIfUnmodifiedSince())
-                                    .copySourceRange(range)
-                                    .copySourceSSECustomerAlgorithm(copyObjectRequest.copySourceSSECustomerAlgorithm())
-                                    .copySourceSSECustomerKeyMD5(copyObjectRequest.copySourceSSECustomerKeyMD5())
-                                    .copySourceSSECustomerKey(copyObjectRequest.copySourceSSECustomerKey())
-                                    .copySourceIfModifiedSince(copyObjectRequest.copySourceIfModifiedSince())
-                                    .expectedBucketOwner(copyObjectRequest.expectedBucketOwner())
-                                    .expectedSourceBucketOwner(copyObjectRequest.expectedSourceBucketOwner())
-                                    .requestPayer(copyObjectRequest.requestPayerAsString())
-                                    .sseCustomerKey(copyObjectRequest.sseCustomerKey())
-                                    .sseCustomerAlgorithm(copyObjectRequest.sseCustomerAlgorithm())
-                                    .sseCustomerKeyMD5(copyObjectRequest.sseCustomerKeyMD5())
-                                    .build();
-    }
-
-    public static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest, int partNumber, String uploadId) {
-        return UploadPartRequest.builder()
-                                    .bucket(putObjectRequest.bucket())
-                                    .key(putObjectRequest.key())
-                                    .uploadId(uploadId)
-                                    .partNumber(partNumber)
-                                    .sseCustomerAlgorithm(putObjectRequest.sseCustomerAlgorithm())
-                                    .sseCustomerKeyMD5(putObjectRequest.sseCustomerKeyMD5())
-                                    .sseCustomerKey(putObjectRequest.sseCustomerKey())
-                                    .expectedBucketOwner(putObjectRequest.expectedBucketOwner())
-                                    .requestPayer(putObjectRequest.requestPayerAsString())
-                                    .sseCustomerKey(putObjectRequest.sseCustomerKey())
-                                    .sseCustomerAlgorithm(putObjectRequest.sseCustomerAlgorithm())
-                                    .sseCustomerKeyMD5(putObjectRequest.sseCustomerKeyMD5())
-                                    .build();
+        UploadPartCopyRequest.Builder builder = UploadPartCopyRequest.builder();
+        setSdkFields(builder, copyObjectRequest);
+        return builder.copySourceRange(range)
+                      .partNumber(partNumber)
+                      .uploadId(uploadId)
+                      .build();
     }
 
     public static PutObjectResponse toPutObjectResponse(CompleteMultipartUploadResponse response) {
-        PutObjectResponse.Builder builder = PutObjectResponse.builder()
-                                                             .versionId(response.versionId())
-                                                             .checksumCRC32(response.checksumCRC32())
-                                                             .checksumSHA1(response.checksumSHA1())
-                                                             .checksumSHA256(response.checksumSHA256())
-                                                             .checksumCRC32C(response.checksumCRC32C())
-                                                             .eTag(response.eTag())
-                                                             .expiration(response.expiration())
-                                                             .bucketKeyEnabled(response.bucketKeyEnabled())
-                                                             .serverSideEncryption(response.serverSideEncryption())
-                                                             .ssekmsKeyId(response.ssekmsKeyId())
-                                                             .serverSideEncryption(response.serverSideEncryptionAsString())
-                                                             .requestCharged(response.requestChargedAsString());
+
+        PutObjectResponse.Builder builder = PutObjectResponse.builder();
+
+        setSdkFields(builder, response);
 
         // TODO: check why we have to do null check
         if (response.responseMetadata() != null) {
@@ -256,5 +173,13 @@ public final class RequestConversionUtils {
         }
 
         return builder.build();
+    }
+
+    private static Map<String, Object> retrieveSdkFields(SdkPojo sourceObject, List<SdkField<?>> sdkFields) {
+        return sdkFields.stream().collect(
+            HashMap::new,
+            (map, field) -> map.put(field.memberName(),
+                                    field.getValueOrDefault(sourceObject)),
+            Map::putAll);
     }
 }
