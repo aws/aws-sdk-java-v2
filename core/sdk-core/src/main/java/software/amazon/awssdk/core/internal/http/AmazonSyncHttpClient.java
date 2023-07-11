@@ -37,8 +37,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmiss
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumInHeaderStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumRequiredStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
@@ -46,7 +45,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHead
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.SyncHttpChecksumInTrailerStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -173,9 +171,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .then(ApplyUserAgentStage::new)
                                .then(MergeCustomHeadersStage::new)
                                .then(MergeCustomQueryParamsStage::new)
-                               .then(HttpChecksumRequiredStage::new)
-                               .then(SyncHttpChecksumInTrailerStage::new)
-                               .then(HttpChecksumInHeaderStage::new)
+                               .then(HttpChecksumStage::new)
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
                                .then(RequestPipelineBuilder
