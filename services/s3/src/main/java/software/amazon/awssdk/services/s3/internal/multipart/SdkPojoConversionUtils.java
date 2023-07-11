@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.crt;
+package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,12 +43,12 @@ import software.amazon.awssdk.services.s3.model.UploadPartResponse;
  * Request conversion utility method for POJO classes associated with multipart feature.
  */
 @SdkInternalApi
-public final class RequestConversionUtils {
+public final class SdkPojoConversionUtils {
 
     private static final HashSet<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
         new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32"));
 
-    private RequestConversionUtils() {
+    private SdkPojoConversionUtils() {
     }
 
     public static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest, int partNumber, String uploadId) {

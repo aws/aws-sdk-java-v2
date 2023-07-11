@@ -24,6 +24,7 @@ import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.GenericMultipartHelper;
+import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
@@ -54,8 +55,8 @@ public final class CopyObjectHelper {
         this.s3AsyncClient = s3AsyncClient;
         this.partSizeInBytes = partSizeInBytes;
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
-                                                                   RequestConversionUtils::toAbortMultipartUploadRequest,
-                                                                   RequestConversionUtils::toCopyObjectResponse);
+                                                                   SdkPojoConversionUtils::toAbortMultipartUploadRequest,
+                                                                   SdkPojoConversionUtils::toCopyObjectResponse);
     }
 
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
@@ -64,7 +65,7 @@ public final class CopyObjectHelper {
 
         try {
             CompletableFuture<HeadObjectResponse> headFuture =
-                s3AsyncClient.headObject(RequestConversionUtils.toHeadObjectRequest(copyObjectRequest));
+                s3AsyncClient.headObject(SdkPojoConversionUtils.toHeadObjectRequest(copyObjectRequest));
 
             // Ensure cancellations are forwarded to the head future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
@@ -101,7 +102,7 @@ public final class CopyObjectHelper {
                              Long contentLength,
                              CompletableFuture<CopyObjectResponse> returnFuture) {
 
-        CreateMultipartUploadRequest request = RequestConversionUtils.toCreateMultipartUploadRequest(copyObjectRequest);
+        CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(copyObjectRequest);
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
             s3AsyncClient.createMultipartUpload(request);
 
@@ -212,7 +213,7 @@ public final class CopyObjectHelper {
                                                                UploadPartCopyResponse uploadPartCopyResponse) {
         CopyPartResult copyPartResult = uploadPartCopyResponse.copyPartResult();
         CompletedPart completedPart =
-            RequestConversionUtils.toCompletedPart(copyPartResult,
+            SdkPojoConversionUtils.toCompletedPart(copyPartResult,
                                                    partNumber);
 
         completedParts.set(partNumber - 1, completedPart);
