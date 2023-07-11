@@ -217,13 +217,13 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
         }
 
         return checksumSpecs != null
-               && context.requestBody().isPresent()
+               && checksumSpecs.headerName() != null
                && HttpChecksumUtils.isTrailerBasedChecksumForClientType(
-            executionAttributes,
-            context.httpRequest(),
-            clientType, checksumSpecs,
-            hasRequestBody,
-            context.requestBody().map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false));
+                   executionAttributes,
+                   context.httpRequest(),
+                   clientType, checksumSpecs,
+                   hasRequestBody,
+                   context.requestBody().map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false));
     }
 
     static final class ChecksumCalculatingStreamProvider implements ContentStreamProvider {
