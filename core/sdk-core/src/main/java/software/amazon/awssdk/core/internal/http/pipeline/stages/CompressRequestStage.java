@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.compression.CompressionType;
+import software.amazon.awssdk.core.compression.CompressorType;
 import software.amazon.awssdk.core.compression.Compressor;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -144,8 +144,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
         for (String encoding: encodings) {
             encoding = encoding.toLowerCase(Locale.ROOT);
-            if (CompressionType.isSupported(encoding)) {
-                return CompressionType.of(encoding).newCompressor();
+            if (CompressorType.isSupported(encoding)) {
+                return CompressorType.of(encoding).newCompressor();
             }
         }
         return null;

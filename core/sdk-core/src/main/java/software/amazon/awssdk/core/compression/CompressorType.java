@@ -29,9 +29,9 @@ import software.amazon.awssdk.utils.Validate;
  * {@link Compressor} implementation.
  */
 @SdkInternalApi
-public final class CompressionType {
+public final class CompressorType {
 
-    public static final CompressionType GZIP = CompressionType.of("gzip");
+    public static final CompressorType GZIP = CompressorType.of("gzip");
 
     private static Map<String, Compressor> compressorMap = new HashMap<String, Compressor>() {{
             put("gzip", new GzipCompressor());
@@ -39,22 +39,22 @@ public final class CompressionType {
 
     private final String id;
 
-    private CompressionType(String id) {
+    private CompressorType(String id) {
         this.id = id;
     }
 
     /**
-     * Creates a new {@link CompressionType} of the given value.
+     * Creates a new {@link CompressorType} of the given value.
      */
-    public static CompressionType of(String value) {
+    public static CompressorType of(String value) {
         Validate.paramNotBlank(value, "compressionType");
-        return CompressionTypeCache.put(value);
+        return CompressorTypeCache.put(value);
     }
 
     /**
      * Returns the {@link Set} of {@link String}s of compression types supported by the SDK.
      */
-    public static Set<String> compressionTypes() {
+    public static Set<String> compressorTypes() {
         return compressorMap.keySet();
     }
 
@@ -62,11 +62,11 @@ public final class CompressionType {
      * Whether or not the compression type is supported by the SDK.
      */
     public static boolean isSupported(String compressionType) {
-        return compressionTypes().contains(compressionType);
+        return compressorTypes().contains(compressionType);
     }
 
     /**
-     * Maps the {@link CompressionType} to its corresponding {@link Compressor}.
+     * Maps the {@link CompressorType} to its corresponding {@link Compressor}.
      */
     public Compressor newCompressor() {
         Compressor compressor = compressorMap.getOrDefault(this.id, null);
@@ -91,7 +91,7 @@ public final class CompressionType {
             return false;
         }
 
-        CompressionType that = (CompressionType) o;
+        CompressorType that = (CompressorType) o;
         return Objects.equals(id, that.id)
             && Objects.equals(compressorMap, that.compressorMap);
     }
@@ -103,14 +103,14 @@ public final class CompressionType {
         return result;
     }
 
-    private static class CompressionTypeCache {
-        private static final ConcurrentHashMap<String, CompressionType> VALUES = new ConcurrentHashMap<>();
+    private static class CompressorTypeCache {
+        private static final ConcurrentHashMap<String, CompressorType> VALUES = new ConcurrentHashMap<>();
 
-        private CompressionTypeCache() {
+        private CompressorTypeCache() {
         }
 
-        private static CompressionType put(String value) {
-            return VALUES.computeIfAbsent(value, v -> new CompressionType(value));
+        private static CompressorType put(String value) {
+            return VALUES.computeIfAbsent(value, v -> new CompressorType(value));
         }
     }
 }

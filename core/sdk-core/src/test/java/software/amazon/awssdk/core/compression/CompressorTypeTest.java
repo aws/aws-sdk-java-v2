@@ -20,27 +20,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-public class CompressionTypeTest {
+public class CompressorTypeTest {
 
     @Test
     public void equalsHashcode() {
-        EqualsVerifier.forClass(CompressionType.class)
+        EqualsVerifier.forClass(CompressorType.class)
                       .withNonnullFields("id")
                       .verify();
     }
 
     @Test
-    public void compressionType_gzip() {
-        CompressionType gzip = CompressionType.GZIP;
-        CompressionType gzipFromString = CompressionType.of("gzip");
+    public void compressorType_gzip() {
+        CompressorType gzip = CompressorType.GZIP;
+        CompressorType gzipFromString = CompressorType.of("gzip");
         assertThat(gzip).isSameAs(gzipFromString);
         assertThat(gzip).isEqualTo(gzipFromString);
     }
 
     @Test
-    public void compressionType_usesSameInstance_when_sameCompressionTypeOfSameValue() {
-        CompressionType brotliFromString = CompressionType.of("brotli");
-        CompressionType brotliFromStringDuplicate = CompressionType.of("brotli");
+    public void compressorType_usesSameInstance_when_sameCompressorTypeOfSameValue() {
+        CompressorType brotliFromString = CompressorType.of("brotli");
+        CompressorType brotliFromStringDuplicate = CompressorType.of("brotli");
         assertThat(brotliFromString).isSameAs(brotliFromStringDuplicate);
         assertThat(brotliFromString).isEqualTo(brotliFromStringDuplicate);
     }
