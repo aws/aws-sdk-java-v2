@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.crt;
+package software.amazon.awssdk.services.s3.internal.multipart;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +35,7 @@ import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -43,19 +44,23 @@ import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3ResponseMetadata;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.utils.Logger;
 
-class CopyRequestConversionUtilsTest {
-    private static final Logger log = Logger.loggerFor(RequestConversionUtils.class);
+class SdkPojoConversionUtilsTest {
+    private static final Logger log = Logger.loggerFor(SdkPojoConversionUtils.class);
 
     private static final Random RNG = new Random();
 
     @Test
     void toHeadObject_shouldCopyProperties() {
         CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
-        HeadObjectRequest convertedToHeadObject = RequestConversionUtils.toHeadObjectRequest(randomCopyObject);
+        HeadObjectRequest convertedToHeadObject = SdkPojoConversionUtils.toHeadObjectRequest(randomCopyObject);
         Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList("ExpectedBucketOwner",
                                                                  "RequestPayer",
                                                                  "Bucket",
@@ -69,12 +74,12 @@ class CopyRequestConversionUtilsTest {
     }
 
     @Test
-    void toCompletedPart_shouldCopyProperties() {
+    void toCompletedPart_copy_shouldCopyProperties() {
         CopyPartResult.Builder fromObject = CopyPartResult.builder();
         setFieldsToRandomValues(fromObject.sdkFields(), fromObject);
         CopyPartResult result = fromObject.build();
 
-        CompletedPart convertedCompletedPart = RequestConversionUtils.toCompletedPart(result, 1);
+        CompletedPart convertedCompletedPart = SdkPojoConversionUtils.toCompletedPart(result, 1);
         verifyFieldsAreCopied(result, convertedCompletedPart, new HashSet<>(),
                               CopyPartResult.builder().sdkFields(),
                               CompletedPart.builder().sdkFields());
@@ -82,9 +87,9 @@ class CopyRequestConversionUtilsTest {
     }
 
     @Test
-    void toCreateMultipartUploadRequest_shouldCopyProperties() {
+    void toCreateMultipartUploadRequest_copyObject_shouldCopyProperties() {
         CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
-        CreateMultipartUploadRequest convertedRequest = RequestConversionUtils.toCreateMultipartUploadRequest(randomCopyObject);
+        CreateMultipartUploadRequest convertedRequest = SdkPojoConversionUtils.toCreateMultipartUploadRequest(randomCopyObject);
         Set<String> fieldsToIgnore = new HashSet<>();
         verifyFieldsAreCopied(randomCopyObject, convertedRequest, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
@@ -100,7 +105,7 @@ class CopyRequestConversionUtilsTest {
         responseBuilder.responseMetadata(s3ResponseMetadata).sdkHttpResponse(sdkHttpFullResponse);
         CompleteMultipartUploadResponse result = responseBuilder.build();
 
-        CopyObjectResponse convertedRequest = RequestConversionUtils.toCopyObjectResponse(result);
+        CopyObjectResponse convertedRequest = SdkPojoConversionUtils.toCopyObjectResponse(result);
         Set<String> fieldsToIgnore = new HashSet<>();
         verifyFieldsAreCopied(result, convertedRequest, fieldsToIgnore,
                               CompleteMultipartUploadResponse.builder().sdkFields(),
@@ -111,26 +116,89 @@ class CopyRequestConversionUtilsTest {
     }
 
     @Test
-    void toAbortMultipartUploadRequest_shouldCopyProperties() {
+    void toAbortMultipartUploadRequest_copyObject_shouldCopyProperties() {
         CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
-        AbortMultipartUploadRequest convertedRequest = RequestConversionUtils.toAbortMultipartUploadRequest(randomCopyObject).build();
+        AbortMultipartUploadRequest convertedRequest = SdkPojoConversionUtils.toAbortMultipartUploadRequest(randomCopyObject).build();
         Set<String> fieldsToIgnore = new HashSet<>();
         verifyFieldsAreCopied(randomCopyObject, convertedRequest, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
                               AbortMultipartUploadRequest.builder().sdkFields());
+    }
 
-        //assertThat(convertedRequest.uploadId()).isEqualTo("id");
+    @Test
+    void toAbortMultipartUploadRequest_putObject_shouldCopyProperties() {
+        PutObjectRequest randomCopyObject = randomPutObjectRequest();
+        AbortMultipartUploadRequest convertedRequest = SdkPojoConversionUtils.toAbortMultipartUploadRequest(randomCopyObject).build();
+        Set<String> fieldsToIgnore = new HashSet<>();
+        verifyFieldsAreCopied(randomCopyObject, convertedRequest, fieldsToIgnore,
+                              PutObjectRequest.builder().sdkFields(),
+                              AbortMultipartUploadRequest.builder().sdkFields());
     }
 
     @Test
     void toUploadPartCopyRequest_shouldCopyProperties() {
         CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
-        UploadPartCopyRequest convertedObject = RequestConversionUtils.toUploadPartCopyRequest(randomCopyObject, 1, "id",
+        UploadPartCopyRequest convertedObject = SdkPojoConversionUtils.toUploadPartCopyRequest(randomCopyObject, 1, "id",
                                                                                                "bytes=0-1024");
         Set<String> fieldsToIgnore = new HashSet<>(Collections.singletonList("CopySource"));
         verifyFieldsAreCopied(randomCopyObject, convertedObject, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
                               UploadPartCopyRequest.builder().sdkFields());
+    }
+
+    @Test
+    void toUploadPartRequest_shouldCopyProperties() {
+        PutObjectRequest randomObject = randomPutObjectRequest();
+        UploadPartRequest convertedObject = SdkPojoConversionUtils.toUploadPartRequest(randomObject, 1, "id");
+        Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList("ChecksumCRC32", "ChecksumSHA256", "ContentMD5", "ChecksumSHA1",
+                                                                 "ChecksumCRC32C"));
+        verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
+                              PutObjectRequest.builder().sdkFields(),
+                              UploadPartRequest.builder().sdkFields());
+        assertThat(convertedObject.partNumber()).isEqualTo(1);
+        assertThat(convertedObject.uploadId()).isEqualTo("id");
+    }
+
+    @Test
+    void toPutObjectResponse_shouldCopyProperties() {
+        CompleteMultipartUploadResponse.Builder builder = CompleteMultipartUploadResponse.builder();
+        populateFields(builder);
+        S3ResponseMetadata s3ResponseMetadata = S3ResponseMetadata.create(DefaultAwsResponseMetadata.create(new HashMap<>()));
+        SdkHttpFullResponse sdkHttpFullResponse = SdkHttpFullResponse.builder().statusCode(200).build();
+        builder.responseMetadata(s3ResponseMetadata).sdkHttpResponse(sdkHttpFullResponse);
+        CompleteMultipartUploadResponse randomObject = builder.build();
+        PutObjectResponse convertedObject = SdkPojoConversionUtils.toPutObjectResponse(randomObject);
+        Set<String> fieldsToIgnore = new HashSet<>();
+        verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
+                              CompleteMultipartUploadResponse.builder().sdkFields(),
+                              PutObjectResponse.builder().sdkFields());
+
+        assertThat(convertedObject.sdkHttpResponse()).isEqualTo(sdkHttpFullResponse);
+        assertThat(convertedObject.responseMetadata()).isEqualTo(s3ResponseMetadata);
+    }
+
+    @Test
+    void toCreateMultipartUploadRequest_putObjectRequest_shouldCopyProperties() {
+        PutObjectRequest randomObject = randomPutObjectRequest();
+        CreateMultipartUploadRequest convertedObject = SdkPojoConversionUtils.toCreateMultipartUploadRequest(randomObject);
+        Set<String> fieldsToIgnore = new HashSet<>();
+        System.out.println(convertedObject);
+        verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
+                              PutObjectRequest.builder().sdkFields(),
+                              CreateMultipartUploadRequest.builder().sdkFields());
+    }
+
+    @Test
+    void toCompletedPart_putObject_shouldCopyProperties() {
+        UploadPartResponse.Builder fromObject = UploadPartResponse.builder();
+        setFieldsToRandomValues(fromObject.sdkFields(), fromObject);
+        UploadPartResponse result = fromObject.build();
+
+        CompletedPart convertedCompletedPart = SdkPojoConversionUtils.toCompletedPart(result, 1);
+        verifyFieldsAreCopied(result, convertedCompletedPart, new HashSet<>(),
+                              UploadPartResponse.builder().sdkFields(),
+                              CompletedPart.builder().sdkFields());
+        assertThat(convertedCompletedPart.partNumber()).isEqualTo(1);
     }
 
     private static void verifyFieldsAreCopied(SdkPojo requestConvertedFrom,
@@ -147,7 +215,7 @@ class CopyRequestConversionUtilsTest {
             SdkField<?> toField = toObjectEntry.getValue();
 
             if (fieldsToIgnore.contains(toField.memberName())) {
-                log.info(() -> "Ignoring fields: " + toField.locationName());
+                log.info(() -> "Ignoring fields: " + toField.memberName());
                 continue;
             }
 
@@ -155,7 +223,7 @@ class CopyRequestConversionUtilsTest {
 
             if (fromField == null) {
                 log.info(() -> String.format("Ignoring field [%s] because the object to convert from does not have such field ",
-                                             toField.locationName()));
+                                             toField.memberName()));
                 continue;
             }
 
@@ -173,6 +241,16 @@ class CopyRequestConversionUtilsTest {
         CopyObjectRequest.Builder builder = CopyObjectRequest.builder();
         setFieldsToRandomValues(builder.sdkFields(), builder);
         return builder.build();
+    }
+
+    private PutObjectRequest randomPutObjectRequest() {
+        PutObjectRequest.Builder builder = PutObjectRequest.builder();
+        setFieldsToRandomValues(builder.sdkFields(), builder);
+        return builder.build();
+    }
+
+    private void populateFields(SdkPojo pojo) {
+        setFieldsToRandomValues(pojo.sdkFields(), pojo);
     }
 
     private void setFieldsToRandomValues(Collection<SdkField<?>> fields, Object builder) {
@@ -193,6 +271,8 @@ class CopyRequestConversionUtilsTest {
             sdkField.set(obj, new HashMap<>());
         } else if (targetClass.equals(Boolean.class)) {
             sdkField.set(obj, true);
+        } else if (targetClass.equals(Long.class)) {
+            sdkField.set(obj, randomLong());
         } else {
             throw new IllegalArgumentException("Unknown SdkField type: " + targetClass + " name: " + sdkField.memberName());
         }
@@ -201,7 +281,7 @@ class CopyRequestConversionUtilsTest {
     private static Map<String, SdkField<?>> sdkFieldMap(Collection<? extends SdkField<?>> sdkFields) {
         Map<String, SdkField<?>> map = new HashMap<>(sdkFields.size());
         for (SdkField<?> f : sdkFields) {
-            String locName = f.locationName();
+            String locName = f.memberName();
             if (map.put(locName, f) != null) {
                 throw new IllegalArgumentException("Multiple SdkFields map to same location name");
             }
@@ -215,5 +295,9 @@ class CopyRequestConversionUtilsTest {
 
     private static Integer randomInteger() {
         return RNG.nextInt();
+    }
+
+    private static long randomLong() {
+        return RNG.nextLong();
     }
 }

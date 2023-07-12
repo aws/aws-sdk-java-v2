@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -27,6 +28,9 @@ import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -164,7 +168,12 @@ public class MultipartUploadHelperTest {
         AbortMultipartUploadRequest actualRequest = argumentCaptor.getValue();
         assertThat(actualRequest.uploadId()).isEqualTo(UPLOAD_ID);
 
-        assertThat(ongoingRequest).isCompletedExceptionally();
+        try {
+            ongoingRequest.get(1, TimeUnit.MILLISECONDS);
+            fail("no exception thrown");
+        } catch (Exception e) {
+            assertThat(e.getCause()).hasMessageContaining("request failed");
+        }
     }
 
     @Test

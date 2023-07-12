@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
-import static software.amazon.awssdk.services.s3.internal.crt.RequestConversionUtils.toAbortMultipartUploadRequest;
+import static software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils.toAbortMultipartUploadRequest;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -27,7 +27,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.crt.RequestConversionUtils;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -60,8 +59,8 @@ public final class MultipartUploadHelper {
         this.s3AsyncClient = s3AsyncClient;
         this.partSizeInBytes = partSizeInBytes;
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
-                                                                   RequestConversionUtils::toAbortMultipartUploadRequest,
-                                                                   RequestConversionUtils::toPutObjectResponse);
+                                                                   SdkPojoConversionUtils::toAbortMultipartUploadRequest,
+                                                                   SdkPojoConversionUtils::toPutObjectResponse);
         this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
         this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
     }
@@ -97,7 +96,7 @@ public final class MultipartUploadHelper {
     private void uploadInParts(PutObjectRequest putObjectRequest, long contentLength, AsyncRequestBody asyncRequestBody,
                                CompletableFuture<PutObjectResponse> returnFuture) {
 
-        CreateMultipartUploadRequest request = RequestConversionUtils.toCreateMultipartUploadRequest(putObjectRequest);
+        CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(putObjectRequest);
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
             s3AsyncClient.createMultipartUpload(request);
 
@@ -216,7 +215,7 @@ public final class MultipartUploadHelper {
     private static CompletedPart convertUploadPartResponse(AtomicReferenceArray<CompletedPart> completedParts,
                                                            Integer partNumber,
                                                            UploadPartResponse uploadPartResponse) {
-        CompletedPart completedPart = RequestConversionUtils.toCompletedPart(uploadPartResponse, partNumber);
+        CompletedPart completedPart = SdkPojoConversionUtils.toCompletedPart(uploadPartResponse, partNumber);
 
         completedParts.set(partNumber - 1, completedPart);
         return completedPart;
@@ -246,7 +245,7 @@ public final class MultipartUploadHelper {
         public Pair<UploadPartRequest, AsyncRequestBody> apply(AsyncRequestBody asyncRequestBody) {
             log.trace(() -> "Generating uploadPartRequest for partNumber " + partNumber);
             UploadPartRequest uploadRequest =
-                RequestConversionUtils.toUploadPartRequest(putObjectRequest,
+                SdkPojoConversionUtils.toUploadPartRequest(putObjectRequest,
                                                            partNumber,
                                                            uploadId);
             ++partNumber;
