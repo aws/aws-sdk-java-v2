@@ -87,7 +87,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null ||
             HttpChecksumUtils.isMd5ChecksumRequired(context.executionAttributes());
 
-        boolean requestAlreadyHasMd5 = !request.firstMatchingHeader(Header.CONTENT_MD5).isPresent();
+        boolean requestAlreadyHasMd5 = request.firstMatchingHeader(Header.CONTENT_MD5).isPresent();
 
         if (!isHttpChecksumRequired || requestAlreadyHasMd5) {
             return false;
