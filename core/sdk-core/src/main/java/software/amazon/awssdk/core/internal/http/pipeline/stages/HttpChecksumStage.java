@@ -28,13 +28,11 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.async.ChecksumCalculatingAsyncRequestBody;
@@ -42,7 +40,6 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -56,15 +53,52 @@ import software.amazon.awssdk.utils.Md5Utils;
 @SdkInternalApi
 public class HttpChecksumStage implements MutableRequestToRequestPipeline {
 
+    private final ClientType clientType;
+
+    public HttpChecksumStage(ClientType clientType) {
+        this.clientType = clientType;
+    }
+
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        ChecksumSpecs checksumSpecs = getResolvedChecksumSpecs(context.executionAttributes());
-        httpChecksumRequired(request, context);
-        httpChecksumInTrailer(request, context, ClientType.SYNC, checksumSpecs);
-        httpChecksumInTrailer(request, context, ClientType.ASYNC, checksumSpecs);
-        httpChecksumInHeader(request, context, checksumSpecs);
+        if (md5ChecksumRequired(request, context)) {
+            addMd5ChecksumInHeader(request, context);
+            return request;
+        }
+
+        ChecksumSpecs resolvedChecksumSpecs = getResolvedChecksumSpecs(context.executionAttributes());
+
+        if (flexibleChecksumInTrailerRequired(context, resolvedChecksumSpecs)) {
+            addFlexibleChecksumInTrailer(request, context, resolvedChecksumSpecs);
+            return request;
+        }
+
+        if (flexibleChecksumInHeaderRequired(context, resolvedChecksumSpecs)) {
+            addFlexibleChecksumInHeader(request, context, resolvedChecksumSpecs);
+            return request;
+        }
+
         return request;
+    }
+
+    private boolean md5ChecksumRequired(SdkHttpFullRequest.Builder request, RequestExecutionContext context) {
+        boolean isHttpChecksumRequired =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null ||
+            HttpChecksumUtils.isMd5ChecksumRequired(context.executionAttributes());
+
+        boolean requestAlreadyHasMd5 = !request.firstMatchingHeader(Header.CONTENT_MD5).isPresent();
+
+        if (!isHttpChecksumRequired || requestAlreadyHasMd5) {
+            return false;
+        }
+
+        if (context.requestProvider() != null) {
+            throw new IllegalArgumentException("This operation requires a content-MD5 checksum, but one cannot be calculated "
+                                               + "for non-blocking content.");
+        }
+
+        return context.executionContext().interceptorContext().requestBody().isPresent();
     }
 
     /**
@@ -84,25 +118,31 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
      * request body to use that buffered content. We obviously don't want to do that for giant streams, so we haven't opted to do
      * that yet.
      */
-    private void httpChecksumRequired(SdkHttpFullRequest.Builder request, RequestExecutionContext context) {
-        boolean isHttpChecksumRequired = isHttpChecksumRequired(context.executionAttributes());
-        boolean requestAlreadyHasMd5 = request.firstMatchingHeader(Header.CONTENT_MD5).isPresent();
+    private void addMd5ChecksumInHeader(SdkHttpFullRequest.Builder request, RequestExecutionContext context) {
+        try {
+            String payloadMd5 = Md5Utils.md5AsBase64(request.contentStreamProvider().newStream());
+            request.putHeader(Header.CONTENT_MD5, payloadMd5);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
-        if (!isHttpChecksumRequired || requestAlreadyHasMd5) {
-            return;
+    private boolean flexibleChecksumInTrailerRequired(RequestExecutionContext context, ChecksumSpecs checksumSpecs) {
+        boolean hasRequestBody = true;
+        if (clientType == ClientType.SYNC) {
+            hasRequestBody = context.executionContext().interceptorContext().requestBody().isPresent();
+        } else if (clientType == ClientType.ASYNC) {
+            hasRequestBody = context.executionContext().interceptorContext().asyncRequestBody().isPresent();
         }
-        if (context.requestProvider() != null) {
-            throw new IllegalArgumentException("This operation requires a content-MD5 checksum, but one cannot be calculated "
-                                               + "for non-blocking content.");
-        }
-        if (context.executionContext().interceptorContext().requestBody().isPresent()) {
-            try {
-                String payloadMd5 = Md5Utils.md5AsBase64(request.contentStreamProvider().newStream());
-                request.putHeader(Header.CONTENT_MD5, payloadMd5);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
+
+        return checksumSpecs != null
+               && checksumSpecs.headerName() != null
+               && HttpChecksumUtils.isTrailerBasedChecksumForClientType(
+                   context.executionAttributes(),
+                   context.executionContext().interceptorContext().httpRequest(),
+                   clientType, checksumSpecs, hasRequestBody,
+                   context.executionContext().interceptorContext().requestBody()
+                   .map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false));
     }
 
     /**
@@ -116,22 +156,17 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
      *     <li>Request has the algorithm checksum mentioned.</li>
      * </ol>
      */
-    private void httpChecksumInTrailer(SdkHttpFullRequest.Builder request, RequestExecutionContext context,
-                                       ClientType clientType, ChecksumSpecs checksumSpecs) {
-        if (!shouldAddTrailerBasedChecksumInRequest(context.executionContext().interceptorContext(),
-                                                    context.executionContext().executionAttributes(),
-                                                    checksumSpecs, clientType)) {
-            return;
-        }
-
+    private void addFlexibleChecksumInTrailer(SdkHttpFullRequest.Builder request, RequestExecutionContext context,
+                                              ChecksumSpecs checksumSpecs) {
         long originalContentLength = 0;
         int chunkSize = 0;
-        if (clientType.equals(ClientType.SYNC)) {
+
+        if (clientType == ClientType.SYNC) {
             request.contentStreamProvider(new ChecksumCalculatingStreamProvider(request.contentStreamProvider(), checksumSpecs));
             originalContentLength =
                 context.executionContext().interceptorContext().requestBody().get().optionalContentLength().orElse(0L);
             chunkSize = DEFAULT_CHUNK_SIZE;
-        } else if (clientType.equals(ClientType.ASYNC)) {
+        } else if (clientType == ClientType.ASYNC) {
             if (context.requestProvider() != null) {
                 context.requestProvider(ChecksumCalculatingAsyncRequestBody.builder()
                                                                            .asyncRequestBody(context.requestProvider())
@@ -153,6 +188,23 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
                .putHeader(CONTENT_LENGTH, Long.toString(contentLen));
     }
 
+    private boolean flexibleChecksumInHeaderRequired(RequestExecutionContext context, ChecksumSpecs headerChecksumSpecs) {
+        if (!context.executionContext().interceptorContext().requestBody().isPresent()) {
+            return false;
+        }
+
+        InterceptorContext interceptorContext = context.executionContext().interceptorContext();
+
+        return headerChecksumSpecs != null &&
+               headerChecksumSpecs.algorithm() != null &&
+               !HttpChecksumUtils.isHttpChecksumPresent(interceptorContext.httpRequest(), headerChecksumSpecs) &&
+               HttpChecksumUtils.isUnsignedPayload(
+                   context.executionAttributes().getAttribute(SIGNING_METHOD), interceptorContext.httpRequest().protocol(),
+                   interceptorContext.requestBody()
+                                     .map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false)) &&
+               !headerChecksumSpecs.isRequestStreaming();
+    }
+
     /**
      * Implements the "HttpChecksum" C2J trait for a request.
      * HttpChecksum is added in the header only in following cases:
@@ -172,58 +224,16 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
      * request body to use that buffered content. We obviously don't want to do that for giant streams, so we haven't opted to do
      * that yet.
      */
-    private void httpChecksumInHeader(SdkHttpFullRequest.Builder request, RequestExecutionContext context,
-                                      ChecksumSpecs checksumSpecs) {
-        Optional<RequestBody> syncContent = context.executionContext().interceptorContext().requestBody();
-        if (shouldSkipHttpChecksumInHeader(context.executionContext().interceptorContext(), context.executionAttributes(),
-                                           checksumSpecs) || !syncContent.isPresent()) {
-            return;
-        }
-
+    private void addFlexibleChecksumInHeader(SdkHttpFullRequest.Builder request, RequestExecutionContext context,
+                                             ChecksumSpecs checksumSpecs) {
         try {
             String payloadChecksum = BinaryUtils.toBase64(HttpChecksumUtils.computeChecksum(
-                syncContent.get().contentStreamProvider().newStream(), checksumSpecs.algorithm()));
+                context.executionContext().interceptorContext().requestBody().get().contentStreamProvider().newStream(),
+                checksumSpecs.algorithm()));
             request.putHeader(checksumSpecs.headerName(), payloadChecksum);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    private boolean isHttpChecksumRequired(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null
-               || HttpChecksumUtils.isMd5ChecksumRequired(executionAttributes);
-    }
-
-    private boolean shouldSkipHttpChecksumInHeader(InterceptorContext context, ExecutionAttributes executionAttributes,
-                                                   ChecksumSpecs headerChecksumSpecs) {
-        return headerChecksumSpecs == null ||
-               headerChecksumSpecs.algorithm() == null ||
-               HttpChecksumUtils.isHttpChecksumPresent(context.httpRequest(), headerChecksumSpecs) ||
-               !HttpChecksumUtils.isUnsignedPayload(
-                   executionAttributes.getAttribute(SIGNING_METHOD),
-                   context.httpRequest().protocol(),
-                   context.requestBody().map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false)) ||
-               headerChecksumSpecs.isRequestStreaming();
-    }
-
-    private static boolean shouldAddTrailerBasedChecksumInRequest(InterceptorContext context,
-                                                                  ExecutionAttributes executionAttributes,
-                                                                  ChecksumSpecs checksumSpecs, ClientType clientType) {
-        boolean hasRequestBody = true;
-        if (clientType.equals(ClientType.SYNC)) {
-            hasRequestBody = context.requestBody().isPresent();
-        } else if (clientType.equals(ClientType.ASYNC)) {
-            hasRequestBody = context.asyncRequestBody().isPresent();
-        }
-
-        return checksumSpecs != null
-               && checksumSpecs.headerName() != null
-               && HttpChecksumUtils.isTrailerBasedChecksumForClientType(
-                   executionAttributes,
-                   context.httpRequest(),
-                   clientType, checksumSpecs,
-                   hasRequestBody,
-                   context.requestBody().map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false));
     }
 
     static final class ChecksumCalculatingStreamProvider implements ContentStreamProvider {
