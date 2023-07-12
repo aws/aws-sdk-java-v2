@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.async;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +46,8 @@ public class SplittingPublisherTest {
     private static final int CHUNK_SIZE = 5;
 
     private static final int CONTENT_SIZE = 101;
+    private static final byte[] CONTENT =
+        RandomStringUtils.randomAscii(CONTENT_SIZE).getBytes(Charset.defaultCharset());
 
     private static final int NUM_OF_CHUNK = (int) Math.ceil(CONTENT_SIZE / (double) CHUNK_SIZE);
 
@@ -123,9 +127,59 @@ public class SplittingPublisherTest {
         assertThat(downstreamSubscriber.asyncRequestBodies.size()).isEqualTo(1);
     }
 
-    private static final class TestAsyncRequestBody implements AsyncRequestBody {
-        private static final byte[] CONTENT = RandomStringUtils.random(200).getBytes(Charset.defaultCharset());
-        private boolean cancelled;
+    @Test
+    void contentLengthNotPresent_shouldHandle() throws Exception {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        TestAsyncRequestBody asyncRequestBody = new TestAsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.empty();
+            }
+        };
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                                                                  .resultFuture(future)
+                                                                  .asyncRequestBody(asyncRequestBody)
+                                                                  .chunkSizeInBytes((long) CHUNK_SIZE)
+                                                                  .maxMemoryUsageInBytes(10L)
+                                                                  .build();
+
+
+        List<CompletableFuture<byte[]>> futures = new ArrayList<>();
+        AtomicInteger index = new AtomicInteger(0);
+
+        splittingPublisher.subscribe(requestBody -> {
+            CompletableFuture<byte[]> baosFuture = new CompletableFuture<>();
+            BaosSubscriber subscriber = new BaosSubscriber(baosFuture);
+            futures.add(baosFuture);
+            requestBody.subscribe(subscriber);
+            if (index.incrementAndGet() == NUM_OF_CHUNK) {
+                assertThat(requestBody.contentLength()).hasValue(1L);
+            } else {
+                assertThat(requestBody.contentLength()).hasValue((long) CHUNK_SIZE);
+            }
+        }).get(5, TimeUnit.SECONDS);
+        assertThat(futures.size()).isEqualTo(NUM_OF_CHUNK);
+
+        for (int i = 0; i < futures.size(); i++) {
+            try (ByteArrayInputStream inputStream = new ByteArrayInputStream(CONTENT)) {
+                byte[] expected;
+                if (i == futures.size() - 1) {
+                    expected = new byte[1];
+                } else {
+                    expected = new byte[CHUNK_SIZE];
+                }
+                inputStream.skip(i * CHUNK_SIZE);
+                inputStream.read(expected);
+                byte[] actualBytes = futures.get(i).join();
+                assertThat(actualBytes).isEqualTo(expected);
+            };
+        }
+
+    }
+
+    private static class TestAsyncRequestBody implements AsyncRequestBody {
+        private volatile boolean cancelled;
+        private volatile boolean isDone;
 
         @Override
         public Optional<Long> contentLength() {
@@ -137,8 +191,13 @@ public class SplittingPublisherTest {
             s.onSubscribe(new Subscription() {
                 @Override
                 public void request(long n) {
+                    if (isDone) {
+                        return;
+                    }
+                    isDone = true;
                     s.onNext(ByteBuffer.wrap(CONTENT));
                     s.onComplete();
+
                 }
 
                 @Override
