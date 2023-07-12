@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -38,9 +39,8 @@ import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -74,7 +74,7 @@ public class SigningStage implements RequestToRequestPipeline {
 
         ExecutionAttributes executionAttributes = context.executionAttributes();
         SelectedAuthScheme<T> selectedAuthScheme =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            (SelectedAuthScheme<T>) executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
 
         if (!shouldSign(selectedAuthScheme)) {
             return request;
@@ -82,20 +82,14 @@ public class SigningStage implements RequestToRequestPipeline {
 
         Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
             () -> {
-                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
-
-                // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based
-                //  endpoints and also to logically separate out identity resolution as its own step.
-                ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
-                authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
-
-                IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
-                T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
+                CompletableFuture<T> identityFuture =
+                    (CompletableFuture<T>) executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY);
 
                 SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
-                    .builder(identity)
+                    .builder(CompletableFutureUtils.joinLikeSync(identityFuture))
                     .request(request)
                     .payload(request.contentStreamProvider().orElse(null));
+                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
                 authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
                 HttpSigner<T> signer = selectedAuthScheme.signer();
@@ -125,7 +119,7 @@ public class SigningStage implements RequestToRequestPipeline {
     /**
      * Sign the request if the signer if provided and credentials are present.
      */
-    private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
+    private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
         updateInterceptorContext(request, context.executionContext());
 
         Signer signer = context.signer();

@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.interceptor.ResolveIdentityInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
@@ -73,6 +74,7 @@ abstract class DefaultCodeCatalystBaseClientBuilder<B extends CodeCatalystBaseCl
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         endpointInterceptors.add(new CodeCatalystAuthSchemeInterceptor());
+        endpointInterceptors.add(new ResolveIdentityInterceptor());
         endpointInterceptors.add(new CodeCatalystResolveEndpointInterceptor());
         endpointInterceptors.add(new CodeCatalystEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new CodeCatalystRequestSetEndpointInterceptor());
