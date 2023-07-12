@@ -37,8 +37,8 @@ public final class SelectedAuthScheme<T extends Identity> {
     public SelectedAuthScheme(IdentityProvider<T> identityProvider,
                               HttpSigner<T> signer,
                               AuthSchemeOption authSchemeOption) {
-        this.identityProvider = Validate.paramNotNull(identityProvider, "identityProvider");
-        this.signer = Validate.paramNotNull(signer, "signer");
+        this.identityProvider = identityProvider;
+        this.signer = signer;
         this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
     }
 

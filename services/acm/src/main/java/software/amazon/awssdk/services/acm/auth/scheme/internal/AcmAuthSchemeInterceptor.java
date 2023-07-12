@@ -83,7 +83,7 @@ public final class AcmAuthSchemeInterceptor implements ExecutionInterceptor {
         for (AuthSchemeOption authOption : authOptions) {
             // If we're using no-auth, don't consider which options are enabled.
             if (authOption.schemeId().equals("smithy.auth#noAuth")) {
-                return new SelectedAuthScheme(null, null, authOption);
+                return new SelectedAuthScheme<>(null, null, authOption);
             }
 
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
