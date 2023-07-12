@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 
@@ -65,7 +66,7 @@ public final class UploadPartCopyRequestIterable implements SdkIterable<UploadPa
             long partSize = Math.min(optimalPartSize, remainingBytes);
             String range = range(partSize);
             UploadPartCopyRequest uploadPartCopyRequest =
-                RequestConversionUtils.toUploadPartCopyRequest(copyObjectRequest,
+                SdkPojoConversionUtils.toUploadPartCopyRequest(copyObjectRequest,
                                                                partNumber,
                                                                uploadId,
                                                                range);
