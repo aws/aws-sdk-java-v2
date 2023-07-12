@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import software.amazon.awssdk.annotations.Immutable;
@@ -182,12 +183,34 @@ public final class CanonicalRequestV2 {
 
     /**
      * Get the list of headers that are to be signed.
+     * <p>
+     * If calling from a site with the request object handy, this method should be used instead
+     * of passing the headers themselves, as doing so creates a redundant copy.
      */
     public static List<Pair<String, List<String>>> getCanonicalHeaders(SdkHttpRequest request) {
         List<Pair<String, List<String>>> result = new ArrayList<>(request.numHeaders());
 
         // headers retrieved from the request are already sorted case-insensitively
         request.forEachHeader((key, value) -> {
+            String lowerCaseHeader = lowerCase(key);
+            if (!HEADERS_TO_IGNORE_IN_LOWER_CASE.contains(lowerCaseHeader)) {
+                result.add(Pair.of(lowerCaseHeader, value));
+            }
+        });
+
+        result.sort(Comparator.comparing(Pair::left));
+
+        return result;
+    }
+
+    /**
+     * Get the list of headers that are to be signed.
+     */
+    public static List<Pair<String, List<String>>> getCanonicalHeaders(Map<String, List<String>> headers) {
+        List<Pair<String, List<String>>> result = new ArrayList<>(headers.size());
+
+        // headers retrieved from the request are already sorted case-insensitively
+        headers.forEach((key, value) -> {
             String lowerCaseHeader = lowerCase(key);
             if (!HEADERS_TO_IGNORE_IN_LOWER_CASE.contains(lowerCaseHeader)) {
                 result.add(Pair.of(lowerCaseHeader, value));
@@ -208,7 +231,7 @@ public final class CanonicalRequestV2 {
      * <p>
      * Each header-value pair is separated by a newline.
      */
-    private static String getCanonicalHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
+    public static String getCanonicalHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
         StringBuilder result = new StringBuilder(512);
         canonicalHeaders.forEach(header -> {
             result.append(header.left());

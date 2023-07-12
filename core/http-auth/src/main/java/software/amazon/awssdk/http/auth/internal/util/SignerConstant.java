@@ -16,14 +16,16 @@
 package software.amazon.awssdk.http.auth.internal.util;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class SignerConstant {
 
     public static final String AWS4_TERMINATOR = "aws4_request";
 
     public static final String AWS4_SIGNING_ALGORITHM = "AWS4-HMAC-SHA256";
+
+    public static final String AWS4_CHUNK_SIGNING_ALGORITHM = "AWS4-HMAC-SHA256-PAYLOAD";
 
     public static final String X_AMZ_CONTENT_SHA256 = "x-amz-content-sha256";
 
@@ -46,6 +48,10 @@ public final class SignerConstant {
     public static final String HOST = "Host";
 
     public static final String LINE_SEPARATOR = "\n";
+
+    public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
+
+    public static final String STREAMING_UNSIGNED_PAYLOAD_TRAILER = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
 
     /**
      * Seconds in a week, which is the max expiration time Sig-v4 accepts.

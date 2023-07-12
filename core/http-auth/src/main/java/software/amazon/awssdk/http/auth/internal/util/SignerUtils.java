@@ -16,14 +16,17 @@
 package software.amazon.awssdk.http.auth.internal.util;
 
 import static software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils.hash;
+import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.UNSIGNED_PAYLOAD;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
@@ -39,7 +42,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Utility methods to be used by various AWS Signer implementations.
  * This class is strictly internal and is subjected to change.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class SignerUtils {
 
     private static final Logger LOG = Logger.loggerFor(SignerUtils.class);
@@ -225,6 +228,17 @@ public final class SignerUtils {
      * Check if a payload is unsigned based on the content hash
      */
     private static boolean isUnsignedPayload(String contentHashString) {
-        return "UNSIGNED-PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
+        return UNSIGNED_PAYLOAD.equals(contentHashString) || STREAMING_UNSIGNED_PAYLOAD_TRAILER.equals(contentHashString);
+    }
+
+    /**
+     * parse a string into a Long, or return null if it's un-parseable
+     */
+    public static Optional<Long> safeParseLong(String longStr) {
+        try {
+            return Optional.of(Long.parseLong(longStr));
+        } catch (NumberFormatException ex) {
+            return Optional.empty();
+        }
     }
 }

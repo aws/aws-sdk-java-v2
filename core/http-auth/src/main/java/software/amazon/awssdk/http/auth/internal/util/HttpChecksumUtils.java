@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.internal.util;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +24,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
@@ -33,7 +34,7 @@ import software.amazon.awssdk.http.auth.internal.io.SdkDigestInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class HttpChecksumUtils {
 
     public static final String X_AMZ_TRAILER = "x-amz-trailer";
@@ -88,6 +89,18 @@ public final class HttpChecksumUtils {
         }
     }
 
+    public static byte[] hash(byte[] data, SdkChecksum sdkChecksum) {
+        try {
+            MessageDigest md = getMessageDigestInstance();
+            md.update(data);
+            if (sdkChecksum != null) {
+                sdkChecksum.update(data);
+            }
+            return md.digest();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());
+        }
+    }
 
     public static byte[] hash(String text) {
         try {
@@ -126,5 +139,37 @@ public final class HttpChecksumUtils {
             return trailerBasedChecksum.filter(checksum -> checksum.equalsIgnoreCase(checksumSpec.headerName())).isPresent();
         }
         return false;
+    }
+
+    /**
+     * Calculates the content length of a request. If the content-length isn't in the header,
+     * the method reads the whole input stream to get the length.
+     */
+    public static <T> long calculateContentLength(T payload) {
+        long contentLength;
+        if (payload instanceof ContentStreamProvider) {
+            try {
+                contentLength = calculateStreamContentLength(((ContentStreamProvider) payload).newStream());
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot get the content-length of the request content.");
+            }
+            return contentLength;
+        } else {
+            throw new IllegalArgumentException("Cannot get the content-length from paylaod of type " +
+                payload.getClass().getSimpleName() + " .");
+        }
+    }
+
+    /**
+     * Read a stream to get the length.
+     */
+    private static long calculateStreamContentLength(InputStream content) throws IOException {
+        long contentLength = 0;
+        byte[] tmp = new byte[4096];
+        int read;
+        while ((read = content.read(tmp)) != -1) {
+            contentLength += read;
+        }
+        return contentLength;
     }
 }

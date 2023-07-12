@@ -15,17 +15,17 @@
 
 package software.amazon.awssdk.http.auth.eventstream;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.eventstream.internal.DefaultAwsV4EventStreamHttpSigner;
-import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.AwsV4HttpProperties;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * An {@link HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}),
+ * An {@link AwsV4HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}),
  * specifically for Event Streams.
  */
-@SdkPublicApi
-public interface AwsV4EventStreamHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
+@SdkProtectedApi
+public interface AwsV4EventStreamHttpSigner extends AwsV4HttpSigner<AwsV4HttpProperties> {
 
     /**
      * Get a default implementation of a {@link AwsV4EventStreamHttpSigner}
@@ -33,6 +33,6 @@ public interface AwsV4EventStreamHttpSigner extends HttpSigner<AwsCredentialsIde
      * @return AwsV4EventStreamHttpSigner
      */
     static AwsV4EventStreamHttpSigner create() {
-        return new DefaultAwsV4EventStreamHttpSigner();
+        return null;
     }
 }

@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class SignerConstant {
 
     public static final String AWS4_TERMINATOR = "aws4_request";

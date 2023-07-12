@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.aws;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.aws.internal.DefaultAwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
@@ -33,6 +32,6 @@ public interface AwsS3V4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      * @return AwsS3V4HttpSigner
      */
     static AwsS3V4HttpSigner create() {
-        return new DefaultAwsS3V4HttpSigner();
+        return null;
     }
 }

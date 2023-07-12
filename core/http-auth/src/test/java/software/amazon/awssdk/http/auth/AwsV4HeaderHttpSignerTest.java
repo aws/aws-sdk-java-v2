@@ -18,16 +18,15 @@ package software.amazon.awssdk.http.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHECKSUM_HEADER_NAME;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SIGNING_CLOCK;
-import static software.amazon.awssdk.http.auth.TestUtils.TickingClock;
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicAsyncRequest;
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicRequest;
 
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.auth.TestUtils.AnonymousCredentialsIdentity;
+import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HeaderHttpSigner;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
@@ -36,8 +35,13 @@ import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 
-class AwsV4HttpSignerTest {
+/**
+ * This test suite also tests much of the base V4 signer implementation, and validates behaviors such as header/query-param
+ * processing, checksum scenarios, and so on.
+ */
+class AwsV4HeaderHttpSignerTest {
 
     private static final String AWS_4_HMAC_SHA_256_AUTHORIZATION =
         "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, ";
@@ -50,7 +54,9 @@ class AwsV4HttpSignerTest {
     private static final String SIGNER_HEADER_WITH_CHECKSUMS_IN_TRAILER =
         "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-trailer, ";
 
-    private static final AwsV4HttpSigner signer = AwsV4HttpSigner.create();
+    private static final AwsV4HttpSigner<?> signer = new DefaultAwsV4HeaderHttpSigner(
+        AwsV4HttpSigner.create()
+    );
 
     @Test
     public void sign_withoutSHA256Header_shouldSign() {
@@ -64,34 +70,15 @@ class AwsV4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest -> {
-            })
+            (signRequest -> signRequest.putProperty(AUTH_LOCATION, "Header"))
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
-        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
-            .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
-    }
-
-    @Test
-    public void signAsync_withoutSHA256Header_shouldSign() {
-        final String expectedAuthorizationHeaderWithoutSha256Header =
-            AWS_4_HMAC_SHA_256_AUTHORIZATION +
-                "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
-                "Signature=77fe7c02927966018667f21d1dc3dfad9057e58401cbb9ed64f1b7868288e35a";
-
-        // Test request without 'x-amz-sha256' header
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
-        );
-
-        AsyncSignedRequest signedRequest = signer.signAsync(request);
-
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
@@ -113,27 +100,10 @@ class AwsV4HttpSignerTest {
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
-        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
-            .hasValue(expectedAuthorizationHeaderWithSha256Header);
-    }
-
-    @Test
-    public void signAsync_withSHA256Header_shouldSignAndHaveHeader() {
-        final String expectedAuthorizationHeaderWithSha256Header =
-            AWS_4_HMAC_SHA_256_AUTHORIZATION +
-                "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-sha256, " +
-                "Signature=e73e20539446307a5dc71252dbd5b97e861f1d1267456abda3ebd8d57e519951";
-
-        // Test request with 'x-amz-sha256' header
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.putHeader("x-amz-sha256", "required")),
-            (signRequest -> {
-            })
-        );
-
-        AsyncSignedRequest signedRequest = signer.signAsync(request);
-
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeaderWithSha256Header);
     }
@@ -155,6 +125,10 @@ class AwsV4HttpSignerTest {
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
@@ -195,6 +169,10 @@ class AwsV4HttpSignerTest {
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
     }
@@ -212,17 +190,19 @@ class AwsV4HttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("akid", "skid"),
-            (httpRequest -> {
-                httpRequest
-                    .appendHeader("foo", "bar")
-                    .appendHeader("foo", "baz");
-            }),
+            (httpRequest -> httpRequest
+                .appendHeader("foo", "bar")
+                .appendHeader("foo", "baz")),
             (signRequest -> {
             })
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
     }
@@ -241,17 +221,19 @@ class AwsV4HttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("akid", "skid"),
-            (httpRequest -> {
-                httpRequest
-                    .putHeader("My-header1", "    a   b   c  ")
-                    .putHeader("My-Header2", "    \"a   b   c\"  ");
-            }),
+            (httpRequest -> httpRequest
+                .putHeader("My-header1", "    a   b   c  ")
+                .putHeader("My-Header2", "    \"a   b   c\"  ")),
             (signRequest -> {
             })
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
     }
@@ -276,6 +258,10 @@ class AwsV4HttpSignerTest {
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
     }
@@ -291,15 +277,17 @@ class AwsV4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest -> {
-                signRequest
-                    .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                    .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32);
-            })
+            (signRequest -> signRequest
+                .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
+                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32))
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
         assertThat(signedRequest.request().firstMatchingHeader("x-amzn-header-crc").get()).contains("oL+a/g==");
@@ -317,15 +305,18 @@ class AwsV4HttpSignerTest {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> httpRequest.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, "required")),
-            (signRequest -> {
-                signRequest
-                    .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                    .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32);
-            })
+            (signRequest -> signRequest
+                .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
+                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32))
         );
+
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
         assertThat(signedRequest.request().firstMatchingHeader("x-amzn-header-crc").get()).contains("oL+a/g==");
@@ -340,15 +331,17 @@ class AwsV4HttpSignerTest {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> httpRequest.appendHeader("x-amzn-header-crc", "preCalculatedChecksum")),
-            (signRequest -> {
-                signRequest
-                    .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                    .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32);
-            })
+            (signRequest -> signRequest
+                .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
+                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32))
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
         assertThat(signedRequest.request().firstMatchingHeader("x-amzn-header-crc")).hasValue("preCalculatedChecksum");
@@ -363,66 +356,21 @@ class AwsV4HttpSignerTest {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> httpRequest.appendHeader("x-amz-trailer", "x-amzn-header-crc")),
-            (signRequest -> {
-                signRequest
-                    .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                    .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32);
-            })
+            (signRequest -> signRequest
+                .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
+                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32))
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
         assertThat(signedRequest.request().firstMatchingHeader("x-amzn-header-crc")).isNotPresent();
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).contains("x-amzn-header-crc");
         assertThat(signedRequest.request().firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)).isNotPresent();
         assertThat(signedRequest.request().firstMatchingHeader("Authorization")).hasValue(expectedAuthorizationHeader);
-    }
-
-    // TODO: Add tests about clock changing, and require properties
-    @Test
-    public void sign_withTickingClock_shouldUseSameTimeThroughoutSigning() {
-        final String expectedAuthorizationHeaderWithSha256Header =
-            AWS_4_HMAC_SHA_256_AUTHORIZATION +
-                "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-sha256, " +
-                "Signature=e73e20539446307a5dc71252dbd5b97e861f1d1267456abda3ebd8d57e519951";
-
-        // use a "ticking" clock that ticks each time an instant is requested - this lets us
-        // confirm that the same instant is used throughout the request
-        TickingClock clock = new TickingClock(Instant.ofEpochMilli(351153000968L));
-
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.putHeader("x-amz-sha256", "required")),
-            (signRequest -> signRequest.putProperty(SIGNING_CLOCK, clock))
-        );
-
-        SyncSignedRequest signedRequest = signer.sign(request);
-
-        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
-            .hasValue(expectedAuthorizationHeaderWithSha256Header);
-    }
-
-    @Test
-    public void signAsync_withTickingClock_shouldUseSameTimeThroughoutSigning() {
-        final String expectedAuthorizationHeaderWithSha256Header =
-            AWS_4_HMAC_SHA_256_AUTHORIZATION +
-                "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-sha256, " +
-                "Signature=e73e20539446307a5dc71252dbd5b97e861f1d1267456abda3ebd8d57e519951";
-
-        // use a "ticking" clock that ticks each time an instant is requested - this lets us
-        // confirm that the same instant is used throughout the request
-        TickingClock clock = new TickingClock(Instant.ofEpochMilli(351153000968L));
-
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.putHeader("x-amz-sha256", "required")),
-            (signRequest -> signRequest.putProperty(SIGNING_CLOCK, clock))
-        );
-
-        AsyncSignedRequest signedRequest = signer.signAsync(request);
-
-        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
-            .hasValue(expectedAuthorizationHeaderWithSha256Header);
     }
 
     @Test
@@ -431,10 +379,12 @@ class AwsV4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "RegionName"), null))
+            (signRequest -> signRequest
+                .putProperty(SignerProperty.create(String.class, "RegionName"), null))
         );
 
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.sign(request));
+        NullPointerException exception =
+            assertThrows(NullPointerException.class, () -> signer.sign(request));
 
         assertThat(exception.getMessage()).contains("must not be null");
     }
@@ -445,12 +395,119 @@ class AwsV4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
+            (signRequest -> signRequest
+                .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
         );
 
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.sign(request));
+        NullPointerException exception =
+            assertThrows(NullPointerException.class, () -> signer.sign(request));
 
         assertThat(exception.getMessage()).contains("must not be null");
+    }
+
+    @Test
+    public void sign_withSessionCredentials_shouldSignAndAddTokenHeader() {
+        final String expectedAuthorizationHeaderWithoutSha256Header =
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+                "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-security-token, " +
+                "Signature=f44a6c23e168c186a982f20322655a932659db5b75b0917f55eb4519a8e7169e";
+
+        // Test request without 'x-amz-sha256' header
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsSessionCredentialsIdentity.create("access", "secret", "token"),
+            (httpRequest -> {
+            }),
+            (signRequest -> {
+            })
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Security-Token")).hasValue("token");
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
+            .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
+    }
+
+    @Test
+    public void signAsync_withoutSHA256Header_shouldSign() {
+        final String expectedAuthorizationHeaderWithoutSha256Header =
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+                "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+                "Signature=77fe7c02927966018667f21d1dc3dfad9057e58401cbb9ed64f1b7868288e35a";
+
+        // Test request without 'x-amz-sha256' header
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> {
+            }),
+            (signRequest -> {
+            })
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
+            .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
+    }
+
+    @Test
+    public void signAsync_withSHA256Header_shouldSignAndHaveHeader() {
+        final String expectedAuthorizationHeaderWithSha256Header =
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+                "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-sha256, " +
+                "Signature=e73e20539446307a5dc71252dbd5b97e861f1d1267456abda3ebd8d57e519951";
+
+        // Test request with 'x-amz-sha256' header
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> httpRequest.putHeader("x-amz-sha256", "required")),
+            (signRequest -> {
+            })
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
+            .hasValue(expectedAuthorizationHeaderWithSha256Header);
+    }
+
+    @Test
+    public void signAsync_withSessionCredentials_shouldSignAndAddTokenHeader() {
+        final String expectedAuthorizationHeaderWithoutSha256Header =
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+                "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-security-token, " +
+                "Signature=f44a6c23e168c186a982f20322655a932659db5b75b0917f55eb4519a8e7169e";
+
+        // Test request without 'x-amz-sha256' header
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsSessionCredentialsIdentity.create("access", "secret", "token"),
+            (httpRequest -> {
+            }),
+            (signRequest -> {
+            })
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(request.request().host());
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-archive-description")).hasValue(
+            request.request().firstMatchingHeader("x-amz-archive-description").get());
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("19810216T063000Z");
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Security-Token")).hasValue("token");
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
+            .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
 
     @Test
@@ -459,10 +516,12 @@ class AwsV4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "RegionName"), null))
+            (signRequest -> signRequest
+                .putProperty(SignerProperty.create(String.class, "RegionName"), null))
         );
 
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.signAsync(request));
+        NullPointerException exception =
+            assertThrows(NullPointerException.class, () -> signer.signAsync(request));
 
         assertThat(exception.getMessage()).contains("must not be null");
     }
@@ -473,11 +532,59 @@ class AwsV4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
+            (signRequest -> signRequest
+                .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
         );
 
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.signAsync(request));
+        NullPointerException exception =
+            assertThrows(NullPointerException.class, () -> signer.signAsync(request));
 
         assertThat(exception.getMessage()).contains("must not be null");
+    }
+
+    // TODO: Move to a mega signer test
+    @Test
+    public void sign_withoutAuthLocation_shouldSignWithHeader() {
+        final String expectedAuthorizationHeaderWithoutSha256Header =
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+                "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+                "Signature=77fe7c02927966018667f21d1dc3dfad9057e58401cbb9ed64f1b7868288e35a";
+
+        // Test request without 'x-amz-sha256' header
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> {
+            }),
+            (signRequest -> {
+            })
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
+            .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
+    }
+
+    // TODO: Move to a mega signer test
+    @Test
+    public void signAsync_withoutAuthLocation_shouldSignWithHeader() {
+        final String expectedAuthorizationHeaderWithoutSha256Header =
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
+                "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+                "Signature=77fe7c02927966018667f21d1dc3dfad9057e58401cbb9ed64f1b7868288e35a";
+
+        // Test request without 'x-amz-sha256' header
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> {
+            }),
+            (signRequest -> {
+            })
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
+            .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
 }

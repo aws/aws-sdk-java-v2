@@ -48,6 +48,11 @@ public final class CredentialUtils {
                 StringUtils.trim(sessionCredentials.sessionToken()));
         }
 
+        // given credentials are anonymous, so don't create new instance
+        if (accessKeyId == null && secretKey == null) {
+            return credentials;
+        }
+
         return AwsCredentialsIdentity.create(accessKeyId, secretKey);
     }
 }
