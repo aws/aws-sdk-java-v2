@@ -40,7 +40,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * A default implementation of {@link AwsV4EventStreamHttpSigner}.
  */
 @SdkInternalApi
-public final class DefaultAwsV4EventStreamHttpSigner implements AwsV4EventStreamHttpSigner {
+public final class DefaultAwsV4EventStreamHttpSigner implements AwsV4HttpSigner<AwsV4HttpProperties> {
 
     private static final String HTTP_CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-EVENTS";
 

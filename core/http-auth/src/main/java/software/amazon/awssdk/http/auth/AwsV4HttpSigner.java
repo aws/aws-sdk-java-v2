@@ -22,7 +22,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.internal.AwsV4HttpProperties;
@@ -44,12 +44,13 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
- * An {@link HttpSigner} that will sign a request using an AWS credentials {@link AwsCredentialsIdentity}).
+ * An {@link HttpSigner} that will sign a request using an AWS credentials {@link AwsCredentialsIdentity}) and a
+ * set of properties {@link T}.
  * <p>
  * The process for signing requests to AWS services is documented
  * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html">here</a>.
  */
-@SdkPublicApi
+@SdkProtectedApi
 public interface AwsV4HttpSigner<T extends AwsV4HttpProperties> extends HttpSigner<AwsCredentialsIdentity> {
     /**
      * The AWS region name to be used for computing the signature.

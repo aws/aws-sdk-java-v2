@@ -45,10 +45,10 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
- * A default implementation of {@link AwsS3V4HttpSigner}.
+ * An implementation of a {@link AwsS3V4HttpSigner} for S3 use-cases, which includes chunked-encoded request payloads.
  */
 @SdkProtectedApi
-public final class DefaultAwsS3V4ComposedHttpSigner implements AwsV4HttpSigner<AwsS3V4HttpProperties> {
+public final class DefaultAwsS3V4HttpSigner implements AwsV4HttpSigner<AwsS3V4HttpProperties> {
 
     private static final String CONTENT_SHA_256_WITH_CHECKSUM = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
     private static final String CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
@@ -56,8 +56,8 @@ public final class DefaultAwsS3V4ComposedHttpSigner implements AwsV4HttpSigner<A
     private final AwsV4HttpSigner<AwsV4HttpProperties> v4Signer;
     private final AwsChunkedEncodingConfig encodingConfig;
 
-    public DefaultAwsS3V4ComposedHttpSigner(AwsV4HttpSigner<AwsV4HttpProperties> v4HttpSigner,
-                                            AwsChunkedEncodingConfig encodingConfig) {
+    public DefaultAwsS3V4HttpSigner(AwsV4HttpSigner<AwsV4HttpProperties> v4HttpSigner,
+                                    AwsChunkedEncodingConfig encodingConfig) {
         this.v4Signer = v4HttpSigner;
         this.encodingConfig = encodingConfig;
     }

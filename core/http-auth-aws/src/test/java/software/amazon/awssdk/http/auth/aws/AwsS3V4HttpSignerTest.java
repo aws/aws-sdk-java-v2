@@ -19,7 +19,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.internal.DefaultAwsS3V4ComposedHttpSigner;
+import software.amazon.awssdk.http.auth.aws.internal.DefaultAwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.internal.io.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HeaderHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.IoUtils;
 
 public class AwsS3V4HttpSignerTest {
 
-    private static final AwsV4HttpSigner<?> signer = new DefaultAwsS3V4ComposedHttpSigner(
+    private static final AwsV4HttpSigner<?> signer = new DefaultAwsS3V4HttpSigner(
         new DefaultAwsV4HeaderHttpSigner(
             AwsV4HttpSigner.create()
         ),
@@ -44,7 +44,7 @@ public class AwsS3V4HttpSignerTest {
     );
 
     @Test
-    public void sign_shouldSignRequest() {
+    public void sign_withBasicRequest_shouldSign() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("akid", "skid"),
             (httpRequest -> {
