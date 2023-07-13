@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize",
+    "contributor": "",
+    "description": "This release provides ability to customers to change schema associated with their datasets in Amazon Personalize"
+}
