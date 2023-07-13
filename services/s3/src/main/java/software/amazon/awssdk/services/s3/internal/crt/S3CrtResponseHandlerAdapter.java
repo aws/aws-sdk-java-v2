@@ -69,6 +69,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             return 0;
         }
 
+        int bytesReceived = bodyBytesIn.remaining();
         CompletableFuture<Void> writeFuture = responsePublisher.send(bodyBytesIn);
 
         writeFuture.whenComplete((result, failure) -> {
@@ -77,7 +78,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                 return;
             }
 
-            metaRequest.incrementReadWindow(bodyBytesIn.remaining());
+            metaRequest.incrementReadWindow(bytesReceived);
         });
 
         // Returning 0 to disable flow control because we manually increase read window above
