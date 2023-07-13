@@ -29,9 +29,6 @@ import software.amazon.awssdk.http.HttpStatusCode;
  * reason, the service was not able to process it, and returned an error
  * response instead.
  * <p>
- * Exceptions that extend {@link SdkServiceException} are assumed to be able to be
- * successfully retried.
- * <p>
  * SdkServiceException provides callers several pieces of information that can
  * be used to obtain more information about the error and why it occurred.
  *
@@ -83,18 +80,23 @@ public class SdkServiceException extends SdkException implements SdkPojo {
     }
 
     /**
-     * Specifies whether an exception is caused by throttling.
+     * Specifies whether an exception is caused by throttling. This method by default returns {@code true} if the status code is
+     * equal to <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#429">429 Too Many Requests</a>
+     * but subclasses can override this method to signal that the specific subclass is considered a throttling exception.
      *
-     * @return true if the status code is 429, otherwise false.
+     * @return true if the exception is classified as throttling, otherwise false.
+     * @see #isRetryableException()
      */
     public boolean isThrottlingException() {
         return statusCode == HttpStatusCode.THROTTLING;
     }
 
     /**
-     * Specifies whether an exception is retryable.
+     * Specifies whether an exception is retryable. This method by default returns {@code false} but subclasses can override this
+     * value to signal that the specific subclass is considered retryable.
      *
-     * @return true if the exception is classified as retryable.
+     * @return true if the exception is classified as retryable, otherwise false.
+     * @see #isThrottlingException()
      */
     public boolean isRetryableException() {
         return false;
