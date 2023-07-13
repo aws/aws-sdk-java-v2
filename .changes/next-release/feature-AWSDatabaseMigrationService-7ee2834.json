@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "Enhanced PostgreSQL target endpoint settings for providing Babelfish support."
-}

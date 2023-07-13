@@ -1,3 +1,60 @@
+# __2.20.103__ __2023-07-13__
+## __AWS DataSync__
+  - ### Features
+    - Added LunCount to the response object of DescribeStorageSystemResourcesResponse, LunCount represents the number of LUNs on a storage system resource.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Enhanced PostgreSQL target endpoint settings for providing Babelfish support.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS MediaTailor__
+  - ### Features
+    - Adds categories to MediaTailor channel assembly alerts
+
+## __AWS Proton__
+  - ### Features
+    - This release adds support for deployment history for Proton provisioned resources
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - API model updated in Amazon Cognito
+
+## __Amazon Connect Service__
+  - ### Features
+    - Add support for deleting Queues and Routing Profiles.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for the C7gn and Hpc7g instances. C7gn instances are powered by AWS Graviton3 processors and the fifth-generation AWS Nitro Cards. Hpc7g instances are powered by AWS Graviton 3E processors and provide up to 200 Gbps network bandwidth.
+
+## __Amazon FSx__
+  - ### Features
+    - Amazon FSx for NetApp ONTAP now supports SnapLock, an ONTAP feature that enables you to protect your files in a volume by transitioning them to a write once, read many (WORM) state.
+
+## __Amazon Personalize__
+  - ### Features
+    - This release provides ability to customers to change schema associated with their datasets in Amazon Personalize
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Canvas adds WorkspeceSettings support for CanvasAppSettings
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - S3 Inventory now supports Object Access Control List and Object Owner as available object metadata fields in inventory reports.
+
 # __2.20.102__ __2023-07-10__
 ## __AWS SDK for Java v2__
   - ### Features
