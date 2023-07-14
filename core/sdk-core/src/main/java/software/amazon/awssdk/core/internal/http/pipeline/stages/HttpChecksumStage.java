@@ -63,7 +63,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
         if (md5ChecksumRequired(request, context)) {
-            addMd5ChecksumInHeader(request, context);
+            addMd5ChecksumInHeader(request);
             return request;
         }
 
@@ -118,7 +118,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
      * request body to use that buffered content. We obviously don't want to do that for giant streams, so we haven't opted to do
      * that yet.
      */
-    private void addMd5ChecksumInHeader(SdkHttpFullRequest.Builder request, RequestExecutionContext context) {
+    private void addMd5ChecksumInHeader(SdkHttpFullRequest.Builder request) {
         try {
             String payloadMd5 = Md5Utils.md5AsBase64(request.contentStreamProvider().newStream());
             request.putHeader(Header.CONTENT_MD5, payloadMd5);
@@ -135,14 +135,15 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             hasRequestBody = context.executionContext().interceptorContext().asyncRequestBody().isPresent();
         }
 
+        boolean isContentStreaming = context.executionContext().interceptorContext().requestBody()
+                                            .map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false);
+
         return checksumSpecs != null
                && checksumSpecs.headerName() != null
                && HttpChecksumUtils.isTrailerBasedChecksumForClientType(
                    context.executionAttributes(),
                    context.executionContext().interceptorContext().httpRequest(),
-                   clientType, checksumSpecs, hasRequestBody,
-                   context.executionContext().interceptorContext().requestBody()
-                   .map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false));
+                   clientType, checksumSpecs, hasRequestBody, isContentStreaming);
     }
 
     /**
@@ -195,13 +196,15 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
 
         InterceptorContext interceptorContext = context.executionContext().interceptorContext();
 
+        boolean isContentStreaming = context.executionContext().interceptorContext().requestBody()
+                                            .map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false);
+
         return headerChecksumSpecs != null &&
                headerChecksumSpecs.algorithm() != null &&
                !HttpChecksumUtils.isHttpChecksumPresent(interceptorContext.httpRequest(), headerChecksumSpecs) &&
                HttpChecksumUtils.isUnsignedPayload(
                    context.executionAttributes().getAttribute(SIGNING_METHOD), interceptorContext.httpRequest().protocol(),
-                   interceptorContext.requestBody()
-                                     .map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false)) &&
+                   isContentStreaming) &&
                !headerChecksumSpecs.isRequestStreaming();
     }
 
