@@ -271,7 +271,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
-        public S3CrtAsyncClientBuilder crossRegionAccessEnabled(boolean crossRegionAccessEnabled) {
+        public S3CrtAsyncClientBuilder crossRegionAccessEnabled(Boolean crossRegionAccessEnabled) {
             this.crossRegionAccessEnabled = crossRegionAccessEnabled;
             return this;
         }
