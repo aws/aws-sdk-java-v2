@@ -162,8 +162,6 @@ public class AuthSchemeSpecTest {
                     .caseName("mini-s3")
                     .outputFileSuffix("default-provider")
                     .build()
-
-
         );
     }
 

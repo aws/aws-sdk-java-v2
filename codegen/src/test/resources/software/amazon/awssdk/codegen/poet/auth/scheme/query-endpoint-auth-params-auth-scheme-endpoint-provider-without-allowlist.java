@@ -50,7 +50,7 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
 
     @Override
     public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams params) {
-        QueryEndpointParams endpointParameters = QueryEndpointParams.builder()
+        QueryEndpointParams endpointParameters = QueryEndpointParams.builder().region(params.region())
                 .useDualStackEndpoint(params.useDualStackEndpoint()).useFipsEndpoint(params.useFipsEndpoint())
                 .endpointId(params.endpointId()).defaultTrueParam(params.defaultTrueParam())
                 .defaultStringParam(params.defaultStringParam()).deprecatedParam(params.deprecatedParam())

@@ -50,10 +50,10 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
 
     @Override
     public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams params) {
-        QueryEndpointParams endpointParameters = QueryEndpointParams.builder().defaultTrueParam(params.defaultTrueParam())
-                .defaultStringParam(params.defaultStringParam()).deprecatedParam(params.deprecatedParam())
-                .booleanContextParam(params.booleanContextParam()).stringContextParam(params.stringContextParam())
-                .operationContextParam(params.operationContextParam()).build();
+        QueryEndpointParams endpointParameters = QueryEndpointParams.builder().region(params.region())
+                .defaultTrueParam(params.defaultTrueParam()).defaultStringParam(params.defaultStringParam())
+                .deprecatedParam(params.deprecatedParam()).booleanContextParam(params.booleanContextParam())
+                .stringContextParam(params.stringContextParam()).operationContextParam(params.operationContextParam()).build();
         Endpoint endpoint = DELEGATE.resolveEndpoint(endpointParameters).join();
         List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
         if (authSchemes == null) {

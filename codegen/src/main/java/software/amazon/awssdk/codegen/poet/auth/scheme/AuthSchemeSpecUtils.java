@@ -121,6 +121,16 @@ public final class AuthSchemeSpecUtils {
         return !DEFAULT_AUTH_SCHEME_PARAMS.contains(name.toLowerCase(Locale.US));
     }
 
+    public boolean includeParamForProvider(String name) {
+        if (allowedEndpointAuthSchemeParamsConfigured) {
+            if (DEFAULT_AUTH_SCHEME_PARAMS.contains(name.toLowerCase(Locale.US))) {
+                return true;
+            }
+            return allowedEndpointAuthSchemeParams.contains(name);
+        }
+        return true;
+    }
+
     public String serviceName() {
         return intermediateModel.getMetadata().getServiceName();
     }
