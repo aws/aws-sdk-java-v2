@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.auth.internal;
 
-import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.AUTHORIZATION;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.BearerHttpSigner;
@@ -32,8 +30,6 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
  */
 @SdkInternalApi
 public final class DefaultBearerHttpSigner implements BearerHttpSigner {
-
-    private static final String BEARER_LABEL = "Bearer";
 
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
@@ -58,7 +54,7 @@ public final class DefaultBearerHttpSigner implements BearerHttpSigner {
     private SdkHttpRequest doSign(SignRequest<?, ? extends TokenIdentity> request) {
         return request.request().toBuilder()
             .putHeader(
-                AUTHORIZATION,
+                "Authorization",
                 buildAuthorizationHeader(request.identity()))
             .build();
     }
@@ -67,6 +63,6 @@ public final class DefaultBearerHttpSigner implements BearerHttpSigner {
      * Use a {@link TokenIdentity} to build an authorization header.
      */
     private String buildAuthorizationHeader(TokenIdentity tokenIdentity) {
-        return BEARER_LABEL + " " + tokenIdentity.token();
+        return "Bearer " + tokenIdentity.token();
     }
 }

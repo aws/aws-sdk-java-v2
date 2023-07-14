@@ -21,8 +21,9 @@ import static software.amazon.awssdk.http.auth.TestUtils.generateBasicAsyncReque
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicRequest;
 
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HeaderHttpSigner;
-import software.amazon.awssdk.http.auth.internal.DefaultAwsV4UnsignedPayloadHttpSigner;
+import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.AwsV4HeaderHttpSigner;
+import software.amazon.awssdk.http.auth.internal.AwsV4UnsignedPayloadHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
@@ -35,9 +36,9 @@ class AwsV4UnsignedPayloadHttpSignerTest {
     private static final String AWS_4_HMAC_SHA_256_AUTHORIZATION =
         "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, ";
 
-    private static final AwsV4HttpSigner<?> signer = new DefaultAwsV4UnsignedPayloadHttpSigner(
-        new DefaultAwsV4HeaderHttpSigner(
-            AwsV4HttpSigner.create()
+    private static final BaseAwsV4HttpSigner<?> signer = new AwsV4UnsignedPayloadHttpSigner(
+        new AwsV4HeaderHttpSigner(
+            BaseAwsV4HttpSigner.create()
         )
     );
 

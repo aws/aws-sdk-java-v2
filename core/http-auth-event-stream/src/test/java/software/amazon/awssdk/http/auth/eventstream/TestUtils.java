@@ -1,6 +1,9 @@
 package software.amazon.awssdk.http.auth.eventstream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SIGNING_CLOCK;
 
 import io.reactivex.Flowable;
 import java.net.URI;
@@ -16,7 +19,6 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.eventstream.Message;
 
@@ -44,9 +46,9 @@ public class TestUtils {
                 .build()
                 .copy(requestOverrides))
             .payload(payload)
-            .putProperty(SignerProperty.create(String.class, "RegionName"), "us-west-2")
-            .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "name")
-            .putProperty(SignerProperty.create(Clock.class, "SigningClock"), clock)
+            .putProperty(REGION_NAME, "us-west-2")
+            .putProperty(SERVICE_SIGNING_NAME, "name")
+            .putProperty(SIGNING_CLOCK, clock)
             .build()
             .copy(signRequestOverrides);
     }

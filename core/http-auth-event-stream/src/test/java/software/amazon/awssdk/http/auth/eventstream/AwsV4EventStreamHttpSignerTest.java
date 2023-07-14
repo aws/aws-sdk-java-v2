@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.eventstream.internal.DefaultAwsV4EventStreamHttpSigner;
-import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HeaderHttpSigner;
+import software.amazon.awssdk.http.auth.internal.AwsV4HeaderHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
@@ -29,9 +29,9 @@ import software.amazon.eventstream.MessageDecoder;
 
 public class AwsV4EventStreamHttpSignerTest {
 
-    private static final AwsV4HttpSigner<?> signer = new DefaultAwsV4EventStreamHttpSigner(
-        new DefaultAwsV4HeaderHttpSigner(
-            AwsV4HttpSigner.create()
+    private static final BaseAwsV4HttpSigner<?> signer = new DefaultAwsV4EventStreamHttpSigner(
+        new AwsV4HeaderHttpSigner(
+            BaseAwsV4HttpSigner.create()
         )
     );
 

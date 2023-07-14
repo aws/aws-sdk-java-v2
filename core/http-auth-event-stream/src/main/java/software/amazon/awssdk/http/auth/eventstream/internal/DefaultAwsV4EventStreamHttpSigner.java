@@ -23,10 +23,10 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.SigV4RequestContext;
 import software.amazon.awssdk.http.auth.eventstream.AwsV4EventStreamHttpSigner;
 import software.amazon.awssdk.http.auth.internal.AwsV4HttpProperties;
+import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.SigV4RequestContext;
 import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.internal.util.CanonicalRequestV2;
@@ -38,15 +38,16 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
  * A default implementation of {@link AwsV4EventStreamHttpSigner}.
+ * TODO: Rename this correctly once the interface is gone and checkstyle can pass
  */
 @SdkInternalApi
-public final class DefaultAwsV4EventStreamHttpSigner implements AwsV4HttpSigner<AwsV4HttpProperties> {
+public final class DefaultAwsV4EventStreamHttpSigner implements BaseAwsV4HttpSigner<AwsV4HttpProperties> {
 
     private static final String HTTP_CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-EVENTS";
 
-    private final AwsV4HttpSigner<AwsV4HttpProperties> v4Signer;
+    private final BaseAwsV4HttpSigner<AwsV4HttpProperties> v4Signer;
 
-    public DefaultAwsV4EventStreamHttpSigner(AwsV4HttpSigner<AwsV4HttpProperties> v4Signer) {
+    public DefaultAwsV4EventStreamHttpSigner(BaseAwsV4HttpSigner<AwsV4HttpProperties> v4Signer) {
         this.v4Signer = v4Signer;
     }
 

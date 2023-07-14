@@ -21,17 +21,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHECKSUM_HEADER_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicAsyncRequest;
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicRequest;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.auth.TestUtils.AnonymousCredentialsIdentity;
-import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HeaderHttpSigner;
+import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.AwsV4HeaderHttpSigner;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -54,8 +56,8 @@ class AwsV4HeaderHttpSignerTest {
     private static final String SIGNER_HEADER_WITH_CHECKSUMS_IN_TRAILER =
         "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-trailer, ";
 
-    private static final AwsV4HttpSigner<?> signer = new DefaultAwsV4HeaderHttpSigner(
-        AwsV4HttpSigner.create()
+    private static final BaseAwsV4HttpSigner<?> signer = new AwsV4HeaderHttpSigner(
+        BaseAwsV4HttpSigner.create()
     );
 
     @Test
@@ -380,7 +382,7 @@ class AwsV4HeaderHttpSignerTest {
             (httpRequest -> {
             }),
             (signRequest -> signRequest
-                .putProperty(SignerProperty.create(String.class, "RegionName"), null))
+                .putProperty(REGION_NAME, null))
         );
 
         NullPointerException exception =
@@ -396,7 +398,7 @@ class AwsV4HeaderHttpSignerTest {
             (httpRequest -> {
             }),
             (signRequest -> signRequest
-                .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
+                .putProperty(SERVICE_SIGNING_NAME, null))
         );
 
         NullPointerException exception =
@@ -517,7 +519,7 @@ class AwsV4HeaderHttpSignerTest {
             (httpRequest -> {
             }),
             (signRequest -> signRequest
-                .putProperty(SignerProperty.create(String.class, "RegionName"), null))
+                .putProperty(REGION_NAME, null))
         );
 
         NullPointerException exception =
@@ -533,7 +535,7 @@ class AwsV4HeaderHttpSignerTest {
             (httpRequest -> {
             }),
             (signRequest -> signRequest
-                .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
+                .putProperty(SERVICE_SIGNING_NAME, null))
         );
 
         NullPointerException exception =

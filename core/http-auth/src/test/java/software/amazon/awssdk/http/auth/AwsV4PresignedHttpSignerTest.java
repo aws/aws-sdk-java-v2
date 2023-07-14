@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.AwsV4QueryHttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicAsyncRequest;
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicRequest;
@@ -26,11 +25,11 @@ import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.PRES
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.auth.internal.DefaultAwsV4PresignedHttpSigner;
+import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.AwsV4PresignedHttpSigner;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4QueryHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -38,9 +37,9 @@ import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 
 class AwsV4PresignedHttpSignerTest {
 
-    private static final AwsV4HttpSigner<?> signer = new DefaultAwsV4PresignedHttpSigner(
+    private static final BaseAwsV4HttpSigner<?> signer = new AwsV4PresignedHttpSigner(
         new DefaultAwsV4QueryHttpSigner(
-            AwsV4HttpSigner.create()
+            BaseAwsV4HttpSigner.create()
         )
     );
 
@@ -57,9 +56,8 @@ class AwsV4PresignedHttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest ->
-                signRequest.putProperty(SignerProperty.create(String.class, "AuthLocation"), "Query")
-            )
+            (signRequest -> {
+            })
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -179,9 +177,8 @@ class AwsV4PresignedHttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest ->
-                signRequest.putProperty(SignerProperty.create(String.class, "AuthLocation"), "Query")
-            )
+            (signRequest -> {
+            })
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -278,9 +275,8 @@ class AwsV4PresignedHttpSignerTest {
             new TestUtils.AnonymousCredentialsIdentity(),
             (httpRequest -> {
             }),
-            (signRequest ->
-                signRequest.putProperty(AUTH_LOCATION, "Query")
-            )
+            (signRequest -> {
+            })
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);

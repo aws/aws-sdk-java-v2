@@ -24,8 +24,6 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.SigV4RequestContext;
 import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.internal.util.CanonicalRequestV2;
@@ -35,14 +33,14 @@ import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * An implementation of {@link AwsV4HttpSigner} that creates a signed-request with the unsigned payload header.
+ * An implementation of {@link BaseAwsV4HttpSigner} that creates a signed-request with the unsigned payload header.
  */
 @SdkInternalApi
-public class DefaultAwsV4UnsignedPayloadHttpSigner implements AwsV4HttpSigner<AwsV4HttpProperties> {
+public class AwsV4UnsignedPayloadHttpSigner implements BaseAwsV4HttpSigner<AwsV4HttpProperties> {
 
-    private final AwsV4HttpSigner<AwsV4HttpProperties> v4Signer;
+    private final BaseAwsV4HttpSigner<AwsV4HttpProperties> v4Signer;
 
-    public DefaultAwsV4UnsignedPayloadHttpSigner(AwsV4HttpSigner<AwsV4HttpProperties> v4Signer) {
+    public AwsV4UnsignedPayloadHttpSigner(BaseAwsV4HttpSigner<AwsV4HttpProperties> v4Signer) {
         this.v4Signer = v4Signer;
     }
 

@@ -1,5 +1,9 @@
 package software.amazon.awssdk.http.auth;
 
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SIGNING_CLOCK;
+
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -12,7 +16,6 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -35,9 +38,9 @@ public class TestUtils {
                 .build()
                 .copy(requestOverrides))
             .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-            .putProperty(SignerProperty.create(String.class, "RegionName"), "us-east-1")
-            .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "demo")
-            .putProperty(SignerProperty.create(Clock.class, "SigningClock"),
+            .putProperty(REGION_NAME, "us-east-1")
+            .putProperty(SERVICE_SIGNING_NAME, "demo")
+            .putProperty(SIGNING_CLOCK,
                 new TickingClock(Instant.ofEpochMilli(351153000968L)))
             .build()
             .copy(signRequestOverrides);
@@ -63,9 +66,9 @@ public class TestUtils {
                 .build()
                 .copy(requestOverrides))
             .payload(publisher)
-            .putProperty(SignerProperty.create(String.class, "RegionName"), "us-east-1")
-            .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "demo")
-            .putProperty(SignerProperty.create(Clock.class, "SigningClock"),
+            .putProperty(REGION_NAME, "us-east-1")
+            .putProperty(SERVICE_SIGNING_NAME, "demo")
+            .putProperty(SIGNING_CLOCK,
                 new TickingClock(Instant.ofEpochMilli(351153000968L)))
             .build()
             .copy(signRequestOverrides);

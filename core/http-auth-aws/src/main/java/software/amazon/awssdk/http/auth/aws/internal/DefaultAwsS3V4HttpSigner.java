@@ -26,13 +26,13 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.SigV4RequestContext;
 import software.amazon.awssdk.http.auth.aws.AwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.AwsS3V4ChunkSigner;
 import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.io.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.http.auth.internal.AwsV4HttpProperties;
+import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.SigV4RequestContext;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
@@ -46,17 +46,18 @@ import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * An implementation of a {@link AwsS3V4HttpSigner} for S3 use-cases, which includes chunked-encoded request payloads.
+ * TODO: Rename this correctly once the interface is gone and checkstyle can pass
  */
 @SdkProtectedApi
-public final class DefaultAwsS3V4HttpSigner implements AwsV4HttpSigner<AwsS3V4HttpProperties> {
+public final class DefaultAwsS3V4HttpSigner implements BaseAwsV4HttpSigner<AwsS3V4HttpProperties> {
 
     private static final String CONTENT_SHA_256_WITH_CHECKSUM = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
     private static final String CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
 
-    private final AwsV4HttpSigner<AwsV4HttpProperties> v4Signer;
+    private final BaseAwsV4HttpSigner<AwsV4HttpProperties> v4Signer;
     private final AwsChunkedEncodingConfig encodingConfig;
 
-    public DefaultAwsS3V4HttpSigner(AwsV4HttpSigner<AwsV4HttpProperties> v4HttpSigner,
+    public DefaultAwsS3V4HttpSigner(BaseAwsV4HttpSigner<AwsV4HttpProperties> v4HttpSigner,
                                     AwsChunkedEncodingConfig encodingConfig) {
         this.v4Signer = v4HttpSigner;
         this.encodingConfig = encodingConfig;

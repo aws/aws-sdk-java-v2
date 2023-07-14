@@ -4,6 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHUNKED_ENCODING;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.PAYLOAD_SIGNING;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SIGNING_CLOCK;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.AnonymousCredentialsIdentity;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.TickingClock;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncRequest;
@@ -13,17 +18,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.internal.DefaultAwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.internal.io.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HeaderHttpSigner;
+import software.amazon.awssdk.http.auth.internal.AwsV4HeaderHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -32,9 +35,9 @@ import software.amazon.awssdk.utils.IoUtils;
 
 public class AwsS3V4HttpSignerTest {
 
-    private static final AwsV4HttpSigner<?> signer = new DefaultAwsS3V4HttpSigner(
-        new DefaultAwsV4HeaderHttpSigner(
-            AwsV4HttpSigner.create()
+    private static final BaseAwsV4HttpSigner<?> signer = new DefaultAwsS3V4HttpSigner(
+        new AwsV4HeaderHttpSigner(
+            BaseAwsV4HttpSigner.create()
         ),
         // override the default encoding config to match the example given here:
         // https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-streaming.html
@@ -106,11 +109,11 @@ public class AwsS3V4HttpSignerTest {
             }),
             (signRequest -> {
                 signRequest.payload(() -> new ByteArrayInputStream(data));
-                signRequest.putProperty(SignerProperty.create(String.class, "RegionName"), "us-east-1");
-                signRequest.putProperty(SignerProperty.create(Clock.class, "SigningClock"), new TickingClock(Instant.parse(
+                signRequest.putProperty(REGION_NAME, "us-east-1");
+                signRequest.putProperty(SIGNING_CLOCK, new TickingClock(Instant.parse(
                     "2013-05-24T00:00:00Z")));
-                signRequest.putProperty(SignerProperty.create(Boolean.class, "ChunkedEncoding"), true);
-                signRequest.putProperty(SignerProperty.create(Boolean.class, "PayloadSigning"), true);
+                signRequest.putProperty(CHUNKED_ENCODING, true);
+                signRequest.putProperty(PAYLOAD_SIGNING, true);
 
             })
         );
@@ -138,7 +141,7 @@ public class AwsS3V4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "RegionName"), null))
+            (signRequest -> signRequest.putProperty(REGION_NAME, null))
         );
 
         NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.sign(request));
@@ -152,7 +155,7 @@ public class AwsS3V4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
-            (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
+            (signRequest -> signRequest.putProperty(SERVICE_SIGNING_NAME, null))
         );
 
         NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.sign(request));

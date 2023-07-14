@@ -13,13 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth;
+package software.amazon.awssdk.http.auth.internal;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.util.CanonicalRequestV2;
 
+/**
+ * A container for data produced during and as a result of the SigV4 request signing process.
+ */
 @SdkProtectedApi
 public final class SigV4RequestContext {
     private final ContentChecksum contentChecksum;

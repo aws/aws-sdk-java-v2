@@ -31,9 +31,14 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.util.CredentialScope;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 
+/**
+ * An interface which contains "properties" used by a v4-signer at various steps.
+ * These properties are derived from the {@link SignerProperty}'s on a {@link SignRequest}.
+ */
 @SdkProtectedApi
 public interface AwsV4HttpProperties {
 

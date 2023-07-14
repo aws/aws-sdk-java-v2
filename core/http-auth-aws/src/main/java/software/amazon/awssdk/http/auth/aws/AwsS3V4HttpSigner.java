@@ -22,6 +22,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 /**
  * An {@link HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}),
  * specifically for S3.
+ * TODO: Delete this interface once auth-scheme is cleaned up.
  */
 @SdkPublicApi
 public interface AwsS3V4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {

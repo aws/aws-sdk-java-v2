@@ -1,5 +1,9 @@
 package software.amazon.awssdk.http.auth.aws;
 
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SIGNING_CLOCK;
+
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.time.Clock;
@@ -12,7 +16,6 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
@@ -36,9 +39,9 @@ public class TestUtils {
                 .build()
                 .copy(requestOverrides))
             .payload(() -> new ByteArrayInputStream(data))
-            .putProperty(SignerProperty.create(String.class, "RegionName"), "us-west-2")
-            .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "s3")
-            .putProperty(SignerProperty.create(Clock.class, "SigningClock"), new TickingClock(Instant.EPOCH))
+            .putProperty(REGION_NAME, "us-west-2")
+            .putProperty(SERVICE_SIGNING_NAME, "s3")
+            .putProperty(SIGNING_CLOCK, new TickingClock(Instant.EPOCH))
             .build()
             .copy(signRequestOverrides);
     }
@@ -55,9 +58,9 @@ public class TestUtils {
                 .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
                 .build()
                 .copy(requestOverrides))
-            .putProperty(SignerProperty.create(String.class, "RegionName"), "us-west-2")
-            .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "s3")
-            .putProperty(SignerProperty.create(Clock.class, "SigningClock"), new TickingClock(Instant.EPOCH))
+            .putProperty(REGION_NAME, "us-west-2")
+            .putProperty(SERVICE_SIGNING_NAME, "s3")
+            .putProperty(SIGNING_CLOCK, new TickingClock(Instant.EPOCH))
             .build()
             .copy(signRequestOverrides);
     }

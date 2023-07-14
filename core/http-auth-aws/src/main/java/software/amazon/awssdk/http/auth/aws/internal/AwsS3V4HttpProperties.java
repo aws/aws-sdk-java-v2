@@ -24,6 +24,7 @@ import java.time.Clock;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.http.auth.aws.AwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.internal.AwsV4HttpProperties;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.util.CredentialScope;
@@ -31,6 +32,10 @@ import software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
+/**
+ * An extension of {@link AwsV4HttpProperties}, which provides access to more specific parameters
+ * used by {@link AwsS3V4HttpSigner}.
+ */
 @SdkProtectedApi
 interface AwsS3V4HttpProperties extends AwsV4HttpProperties {
 

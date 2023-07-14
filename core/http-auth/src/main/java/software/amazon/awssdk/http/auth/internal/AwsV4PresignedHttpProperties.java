@@ -27,6 +27,10 @@ import software.amazon.awssdk.http.auth.internal.util.CredentialScope;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
+/**
+ * An extension of {@link AwsV4HttpProperties}, which provides access to more specific parameters
+ * used by {@link AwsV4PresignedHttpSigner}.
+ */
 @SdkProtectedApi
 interface AwsV4PresignedHttpProperties extends AwsV4HttpProperties {
 

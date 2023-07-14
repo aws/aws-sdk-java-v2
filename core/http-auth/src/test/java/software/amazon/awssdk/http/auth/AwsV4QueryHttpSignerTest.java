@@ -21,6 +21,7 @@ import static software.amazon.awssdk.http.auth.TestUtils.generateBasicAsyncReque
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicRequest;
 
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4QueryHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
@@ -31,8 +32,8 @@ import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 
 class AwsV4QueryHttpSignerTest {
 
-    private static final AwsV4HttpSigner<?> signer = new DefaultAwsV4QueryHttpSigner(
-        AwsV4HttpSigner.create()
+    private static final BaseAwsV4HttpSigner<?> signer = new DefaultAwsV4QueryHttpSigner(
+        BaseAwsV4HttpSigner.create()
     );
 
     @Test
