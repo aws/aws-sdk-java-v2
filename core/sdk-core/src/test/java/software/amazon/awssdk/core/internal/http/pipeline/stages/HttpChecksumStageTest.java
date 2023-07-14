@@ -53,7 +53,8 @@ public class HttpChecksumStageTest {
     @Test
     public void sync_md5Required_addsMd5Checksum_doesNotAddFlexibleChecksums() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        RequestExecutionContext ctx = md5RequiredRequestContext(false);
+        boolean isAsyncStreaming = false;
+        RequestExecutionContext ctx = md5RequiredRequestContext(isAsyncStreaming);
 
         syncStage.execute(requestBuilder, ctx);
 
@@ -70,7 +71,8 @@ public class HttpChecksumStageTest {
     @Test
     public void async_nonStreaming_md5Required_addsMd5Checksum_doesNotAddFlexibleChecksums() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        RequestExecutionContext ctx = md5RequiredRequestContext(false);
+        boolean isAsyncStreaming = false;
+        RequestExecutionContext ctx = md5RequiredRequestContext(isAsyncStreaming);
 
         asyncStage.execute(requestBuilder, ctx);
 
@@ -87,7 +89,8 @@ public class HttpChecksumStageTest {
     @Test
     public void async_streaming_md5Required_throws_IllegalArgumentException() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        RequestExecutionContext ctx = md5RequiredRequestContext(true);
+        boolean isAsyncStreaming = true;
+        RequestExecutionContext ctx = md5RequiredRequestContext(isAsyncStreaming);
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             asyncStage.execute(requestBuilder, ctx);
@@ -100,7 +103,8 @@ public class HttpChecksumStageTest {
     @Test
     public void sync_flexibleChecksumInTrailerRequired_addsFlexibleChecksumInTrailer_doesNotAddMd5ChecksumAndFlexibleChecksumInHeader() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        RequestExecutionContext ctx = syncFlexibleChecksumRequiredRequestContext(true);
+        boolean isStreaming = true;
+        RequestExecutionContext ctx = syncFlexibleChecksumRequiredRequestContext(isStreaming);
 
         syncStage.execute(requestBuilder, ctx);
 
@@ -117,7 +121,8 @@ public class HttpChecksumStageTest {
     @Test
     public void async_flexibleChecksumInTrailerRequired_addsFlexibleChecksumInTrailer_doesNotAddMd5ChecksumAndFlexibleChecksumInHeader() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        RequestExecutionContext ctx = asyncFlexibleChecksumRequiredRequestContext(true);
+        boolean isStreaming = true;
+        RequestExecutionContext ctx = asyncFlexibleChecksumRequiredRequestContext(isStreaming);
 
         asyncStage.execute(requestBuilder, ctx);
 
@@ -134,7 +139,8 @@ public class HttpChecksumStageTest {
     @Test
     public void sync_flexibleChecksumInHeaderRequired_addsFlexibleChecksumInHeader_doesNotAddMd5ChecksumAndFlexibleChecksumInTrailer() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        RequestExecutionContext ctx = syncFlexibleChecksumRequiredRequestContext(false);
+        boolean isStreaming = false;
+        RequestExecutionContext ctx = syncFlexibleChecksumRequiredRequestContext(isStreaming);
 
         syncStage.execute(requestBuilder, ctx);
 
@@ -151,7 +157,8 @@ public class HttpChecksumStageTest {
     @Test
     public void async_flexibleChecksumInHeaderRequired_addsFlexibleChecksumInHeader_doesNotAddMd5ChecksumAndFlexibleChecksumInTrailer() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        RequestExecutionContext ctx = asyncFlexibleChecksumRequiredRequestContext(false);
+        boolean isStreaming = false;
+        RequestExecutionContext ctx = asyncFlexibleChecksumRequiredRequestContext(isStreaming);
 
         asyncStage.execute(requestBuilder, ctx);
 
