@@ -622,8 +622,7 @@
                             <!-- Service modules that are heavily customized should be included -->
                             <includeModule>s3</includeModule>
                             <includeModule>s3-control</includeModule>
-                            <!-- remove SQS temporarily TODO: re-enable -->
-                            <!-- <includeModule>sqs</includeModule>-->
+                            <includeModule>sqs</includeModule>
                             <includeModule>rds</includeModule>
                             <includeModule>apigateway</includeModule>
                             <includeModule>polly</includeModule>
@@ -632,9 +631,9 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <exclude>software.amazon.awssdk.core.signer.NoOpSigner</exclude>
-                            <exclude>software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory</exclude>
                             <exclude>software.amazon.awssdk.utils.async.InputStreamSubscriber</exclude>
+                            <!-- exclude S3CrtAsyncClientBuilder temporarily TODO: re-enable -->
+                            <exclude>software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>

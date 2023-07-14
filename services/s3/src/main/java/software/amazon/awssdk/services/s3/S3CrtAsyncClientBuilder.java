@@ -232,7 +232,7 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * @param crossRegionAccessEnabled Whether cross region bucket access should be enabled.
      * @return The builder object for method chaining.
      */
-    S3CrtAsyncClientBuilder crossRegionAccessEnabled(boolean crossRegionAccessEnabled);
+    S3CrtAsyncClientBuilder crossRegionAccessEnabled(Boolean crossRegionAccessEnabled);
 
     @Override
     S3AsyncClient build();
