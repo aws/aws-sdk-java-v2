@@ -691,7 +691,7 @@ public class AwsServiceModel implements ClassSpec {
         return CodeBlock.of("return $N;", modelVariable.getVariableName());
     }
 
-    private List<MethodSpec> addRetryableOverrides() {
+    private List<MethodSpec> retryableOverrides() {
         if (shapeModel.isRetryable()) {
             MethodSpec isRetryable = MethodSpec.methodBuilder("isRetryableException")
                                                .addAnnotation(Override.class)
