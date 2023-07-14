@@ -31,13 +31,11 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
- * Splits an {@link SdkPublisher} to multiple smaller {@link AsyncRequestBody}s, each of which publishes a specific portion of the
- * original data.
+ * Splits an {@link AsyncRequestBody} to multiple smaller {@link AsyncRequestBody}s, each of which publishes a specific portion of
+ * the original data.
  *
  * <p>If content length is known, each {@link AsyncRequestBody} is sent to the subscriber right after it's initialized.
  * Otherwise, it is sent after the entire content for that chunk is buffered. This is required to get content length.
- *
- * // TODO: create a default method in AsyncRequestBody for this
  */
 @SdkInternalApi
 public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
@@ -51,9 +49,9 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
 
     private SplittingPublisher(Builder builder) {
         this.upstreamPublisher =  Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
-        this.chunkSizeInBytes = Validate.paramNotNull(builder.chunkSizeInBytes, "chunkSizeInBytes");
+        this.chunkSizeInBytes = Validate.isPositive(builder.chunkSizeInBytes, "chunkSizeInBytes");
         this.splittingSubscriber = new SplittingSubscriber(upstreamPublisher.contentLength().orElse(null));
-        this.maxMemoryUsageInBytes = builder.maxMemoryUsageInBytes == null ? Long.MAX_VALUE : builder.maxMemoryUsageInBytes;
+        this.maxMemoryUsageInBytes = Validate.isPositive(builder.maxMemoryUsageInBytes, "maxMemoryUsageInBytes");
         this.future = builder.future;
 
         // We need to cancel upstream subscription if the future gets cancelled.
@@ -304,13 +302,13 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
          * @param chunkSizeInBytes The new chunkSizeInBytes value.
          * @return This object for method chaining.
          */
-        public Builder chunkSizeInBytes(Long chunkSizeInBytes) {
+        public Builder chunkSizeInBytes(long chunkSizeInBytes) {
             this.chunkSizeInBytes = chunkSizeInBytes;
             return this;
         }
 
         /**
-         * Sets the maximum memory usage in bytes. By default, it uses unlimited memory.
+         * Sets the maximum memory usage in bytes.
          *
          * @param maxMemoryUsageInBytes The new maxMemoryUsageInBytes value.
          * @return This object for method chaining.
@@ -319,7 +317,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         //  on a new byte buffer. But we don't know for sure what the size of a buffer we request will be (we do use the size
         //  for the last byte buffer as a hint), so I don't think we can have a truly accurate max. Maybe we call it minimum
         //  buffer size instead?
-        public Builder maxMemoryUsageInBytes(Long maxMemoryUsageInBytes) {
+        public Builder maxMemoryUsageInBytes(long maxMemoryUsageInBytes) {
             this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
             return this;
         }

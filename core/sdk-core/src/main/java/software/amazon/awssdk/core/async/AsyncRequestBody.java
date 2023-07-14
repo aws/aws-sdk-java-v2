@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -30,8 +31,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
+import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Interface to allow non-blocking streaming of request content. This follows the reactive streams pattern where
@@ -245,5 +248,43 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      */
     static AsyncRequestBody empty() {
         return fromBytes(new byte[0]);
+    }
+
+
+    /**
+     * Converts this {@link AsyncRequestBody} to a publisher of {@link AsyncRequestBody}s, each of which publishes a specific
+     * portion of the original data, based on the configured {code chunkSizeInBytes}.
+     *
+     * <p>
+     * If content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is delivered to the
+     * subscriber right after it's initialized.
+     * <p>
+     * // TODO: API Surface Area review: should we make this behavior configurable?
+     * If content length is null, it is sent after the entire content for that chunk is buffered.
+     * In this case, the configured {@code maxMemoryUsageInBytes} must be larger than or equal to {@code chunkSizeInBytes}.
+     *
+     * @param chunkSizeInBytes      the size for each divided chunk. The last chunk may be smaller of the configured size.
+     * @param maxMemoryUsageInBytes the max memory the SDK will use to buffer the content
+     * @return SplitAsyncRequestBodyResult
+     */
+    default SplitAsyncRequestBodyResponse split(long chunkSizeInBytes, long maxMemoryUsageInBytes) {
+        Validate.isPositive(chunkSizeInBytes, "chunkSizeInBytes");
+        Validate.isPositive(maxMemoryUsageInBytes, "maxMemoryUsageInBytes");
+
+        if (!this.contentLength().isPresent()) {
+            Validate.isTrue(maxMemoryUsageInBytes >= chunkSizeInBytes,
+                            "maxMemoryUsageInBytes must be larger than or equal to " +
+                            "chunkSizeInBytes if the content length is unknown");
+        }
+
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                                                                  .asyncRequestBody(this)
+                                                                  .chunkSizeInBytes(chunkSizeInBytes)
+                                                                  .maxMemoryUsageInBytes(maxMemoryUsageInBytes)
+                                                                  .resultFuture(future)
+                                                                  .build();
+
+        return SplitAsyncRequestBodyResponse.create(splittingPublisher, future);
     }
 }
