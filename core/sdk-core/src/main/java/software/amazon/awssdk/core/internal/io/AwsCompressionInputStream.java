@@ -17,18 +17,16 @@ package software.amazon.awssdk.core.internal.io;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.compression.Compressor;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * A wrapper class of InputStream that implements compression in chunks.
  */
 @SdkInternalApi
-public class AwsCompressionInputStream extends AwsChunkedInputStream {
+public final class AwsCompressionInputStream extends AwsChunkedInputStream {
     private final Compressor compressor;
 
     private AwsCompressionInputStream(InputStream in, Compressor compressor) {
@@ -94,49 +92,26 @@ public class AwsCompressionInputStream extends AwsChunkedInputStream {
             }
         }
         if (chunkSizeInBytes == 0) {
-            byte[] finalChunk = createFinalChunk(FINAL_CHUNK);
-            currentChunkIterator = new ChunkContentIterator(finalChunk);
             return true;
-        } else {
-            if (chunkSizeInBytes < chunkData.length) {
-                chunkData = Arrays.copyOf(chunkData, chunkSizeInBytes);
-            }
-            // Compress the chunk
-            byte[] compressedChunkData = compressor.compress(chunkData);
-            byte[] chunkContent = createChunk(compressedChunkData);
-            currentChunkIterator = new ChunkContentIterator(chunkContent);
-            return false;
         }
+
+        if (chunkSizeInBytes < chunkData.length) {
+            chunkData = Arrays.copyOf(chunkData, chunkSizeInBytes);
+        }
+        // Compress the chunk
+        byte[] compressedChunkData = createChunk(chunkData);
+        currentChunkIterator = new ChunkContentIterator(compressedChunkData);
+        return false;
     }
 
-    protected byte[] createChunk(byte[] compressedChunkData) {
-        StringBuilder chunkHeader = new StringBuilder();
-        chunkHeader.append(Integer.toHexString(compressedChunkData.length));
-        chunkHeader.append(CRLF);
-        try {
-            byte[] header = chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
-            byte[] trailer = CRLF.getBytes(StandardCharsets.UTF_8);
-            byte[] chunk = new byte[header.length + compressedChunkData.length + trailer.length];
-            System.arraycopy(header, 0, chunk, 0, header.length);
-            System.arraycopy(compressedChunkData, 0, chunk, header.length, compressedChunkData.length);
-            System.arraycopy(trailer, 0,
-                             chunk, header.length + compressedChunkData.length,
-                             trailer.length);
-            return chunk;
-        } catch (Exception e) {
-            throw SdkClientException.builder()
-                                    .message("Unable to create chunked data. " + e.getMessage())
-                                    .cause(e)
-                                    .build();
-        }
+    @Override
+    protected byte[] createChunk(byte[] chunkData) {
+        return compressor.compress(chunkData);
     }
 
+    @Override
     protected byte[] createFinalChunk(byte[] finalChunk) {
-        StringBuilder chunkHeader = new StringBuilder();
-        // chunk-size
-        chunkHeader.append(Integer.toHexString(finalChunk.length));
-        chunkHeader.append(CRLF);
-        return chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
+        throw new UnsupportedOperationException();
     }
 
     /**
