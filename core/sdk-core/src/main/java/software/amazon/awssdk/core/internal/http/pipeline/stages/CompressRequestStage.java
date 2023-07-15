@@ -61,16 +61,17 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
         Compressor compressor = resolveCompressionType(context.executionAttributes());
 
-        // non-streaming OR transfer-encoding chunked
-        if (!isStreaming(context) || isTransferEncodingChunked(input)) {
+        // non-streaming
+        if (!isStreaming(context)) {
             compressEntirePayload(input, compressor);
             updateContentEncodingHeader(input, compressor);
-            if (!isStreaming(context)) {
-                updateContentLengthHeader(input);
-                return input;
-            } else {
-                return input.removeHeader("Content-Length");
-            }
+            updateContentLengthHeader(input);
+            return input;
+        }
+
+        // TODO : update this method
+        if (!isTransferEncodingChunked(input)) {
+            return input;
         }
 
         if (context.requestProvider() == null) {
@@ -134,6 +135,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         }
     }
 
+    // TODO : update this method
     private boolean isTransferEncodingChunked(SdkHttpFullRequest.Builder input) {
         return input.firstMatchingHeader("Transfer-Encoding")
                     .map(headerValue -> headerValue.equals("chunked"))
