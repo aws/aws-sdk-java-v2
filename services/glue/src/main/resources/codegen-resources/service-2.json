@@ -6310,6 +6310,10 @@
         "DeltaTargets":{
           "shape":"DeltaTargetList",
           "documentation":"<p>Specifies Delta data store targets.</p>"
+        },
+        "IcebergTargets":{
+          "shape":"IcebergTargetList",
+          "documentation":"<p>Specifies Apache Iceberg data store targets.</p>"
         }
       },
       "documentation":"<p>Specifies data stores to crawl.</p>"
@@ -7377,6 +7381,10 @@
         "TransactionId":{
           "shape":"TransactionIdString",
           "documentation":"<p>The ID of the transaction.</p>"
+        },
+        "OpenTableFormatInput":{
+          "shape":"OpenTableFormatInput",
+          "documentation":"<p>Specifies an <code>OpenTableFormatInput</code> structure when creating an open format table.</p>"
         }
       }
     },
@@ -8223,6 +8231,10 @@
         "DatabaseName":{
           "shape":"NameString",
           "documentation":"<p>The name of the catalog database.</p>"
+        },
+        "Region":{
+          "shape":"NameString",
+          "documentation":"<p>Region of the target database.</p>"
         }
       },
       "documentation":"<p>A structure that describes a target database for resource linking.</p>"
@@ -12651,6 +12663,47 @@
         "snappy"
       ]
     },
+    "IcebergInput":{
+      "type":"structure",
+      "required":["MetadataOperation"],
+      "members":{
+        "MetadataOperation":{
+          "shape":"MetadataOperation",
+          "documentation":"<p>A required metadata operation. Can only be set to <code>CREATE</code>.</p>"
+        },
+        "Version":{
+          "shape":"VersionString",
+          "documentation":"<p>The table version for the Iceberg table. Defaults to 2.</p>"
+        }
+      },
+      "documentation":"<p>A structure that defines an Apache Iceberg metadata table to create in the catalog.</p>"
+    },
+    "IcebergTarget":{
+      "type":"structure",
+      "members":{
+        "Paths":{
+          "shape":"PathList",
+          "documentation":"<p>One or more Amazon S3 paths that contains Iceberg metadata folders as <code>s3://bucket/prefix</code>.</p>"
+        },
+        "ConnectionName":{
+          "shape":"ConnectionName",
+          "documentation":"<p>The name of the connection to use to connect to the Iceberg target.</p>"
+        },
+        "Exclusions":{
+          "shape":"PathList",
+          "documentation":"<p>A list of glob patterns used to exclude from the crawl. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html\">Catalog Tables with a Crawler</a>.</p>"
+        },
+        "MaximumTraversalDepth":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The maximum depth of Amazon S3 paths that the crawler can traverse to discover the Iceberg metadata folder in your Amazon S3 path. Used to limit the crawler run time.</p>"
+        }
+      },
+      "documentation":"<p>Specifies an Apache Iceberg data source where Iceberg tables are stored in Amazon S3.</p>"
+    },
+    "IcebergTargetList":{
+      "type":"list",
+      "member":{"shape":"IcebergTarget"}
+    },
     "IdString":{
       "type":"string",
       "max":255,
@@ -12775,6 +12828,10 @@
       "exception":true
     },
     "IsVersionValid":{"type":"boolean"},
+    "Iso8601DateTime":{
+      "type":"timestamp",
+      "timestampFormat":"iso8601"
+    },
     "JDBCConnectionType":{
       "type":"string",
       "enum":[
@@ -13570,6 +13627,10 @@
         "EmitConsumerLagMetrics":{
           "shape":"EnclosedInStringProperty",
           "documentation":"<p>When this option is set to 'true', for each batch, it will emit the metrics for the duration between the oldest record received by the topic and the time it arrives in Glue to CloudWatch. The metric's name is \"glue.driver.streaming.maxConsumerLagInMs\". The default value is 'false'. This option is supported in Glue version 4.0 or later.</p>"
+        },
+        "StartingTimestamp":{
+          "shape":"Iso8601DateTime",
+          "documentation":"<p>The timestamp of the record in the Kafka topic to start reading data from. The possible values are a timestamp string in UTC format of the pattern <code>yyyy-mm-ddTHH:MM:SSZ</code> (where Z represents a UTC timezone offset with a +/-. For example: \"2023-04-04T08:00:00+08:00\"). </p> <p>Only one of <code>StartingTimestamp</code> or <code>StartingOffsets</code> must be set.</p>"
         }
       },
       "documentation":"<p>Additional options for streaming.</p>"
@@ -13629,7 +13690,7 @@
         },
         "StartingPosition":{
           "shape":"StartingPosition",
-          "documentation":"<p>The starting position in the Kinesis data stream to read data from. The possible values are <code>\"latest\"</code>, <code>\"trim_horizon\"</code>, or <code>\"earliest\"</code>. The default value is <code>\"latest\"</code>.</p>"
+          "documentation":"<p>The starting position in the Kinesis data stream to read data from. The possible values are <code>\"latest\"</code>, <code>\"trim_horizon\"</code>, <code>\"earliest\"</code>, or a timestamp string in UTC format in the pattern <code>yyyy-mm-ddTHH:MM:SSZ</code> (where <code>Z</code> represents a UTC timezone offset with a +/-. For example: \"2023-04-04T08:00:00-04:00\"). The default value is <code>\"latest\"</code>.</p> <p>Note: Using a value that is a timestamp string in UTC format for \"startingPosition\" is supported only for Glue version 4.0 or later.</p>"
         },
         "MaxFetchTimeInMs":{
           "shape":"BoxedNonNegativeLong",
@@ -13690,6 +13751,10 @@
         "EmitConsumerLagMetrics":{
           "shape":"EnclosedInStringProperty",
           "documentation":"<p>When this option is set to 'true', for each batch, it will emit the metrics for the duration between the oldest record received by the stream and the time it arrives in Glue to CloudWatch. The metric's name is \"glue.driver.streaming.maxConsumerLagInMs\". The default value is 'false'. This option is supported in Glue version 4.0 or later.</p>"
+        },
+        "StartingTimestamp":{
+          "shape":"Iso8601DateTime",
+          "documentation":"<p>The timestamp of the record in the Kinesis data stream to start reading data from. The possible values are a timestamp string in UTC format of the pattern <code>yyyy-mm-ddTHH:MM:SSZ</code> (where Z represents a UTC timezone offset with a +/-. For example: \"2023-04-04T08:00:00+08:00\"). </p>"
         }
       },
       "documentation":"<p>Additional options for the Amazon Kinesis streaming data source.</p>"
@@ -14758,6 +14823,10 @@
       "type":"list",
       "member":{"shape":"MetadataKeyValuePair"}
     },
+    "MetadataOperation":{
+      "type":"string",
+      "enum":["CREATE"]
+    },
     "MetadataValueString":{
       "type":"string",
       "max":256,
@@ -15054,6 +15123,16 @@
       "member":{"shape":"NodeId"},
       "max":1,
       "min":1
+    },
+    "OpenTableFormatInput":{
+      "type":"structure",
+      "members":{
+        "IcebergInput":{
+          "shape":"IcebergInput",
+          "documentation":"<p>Specifies an <code>IcebergInput</code> structure that defines an Apache Iceberg metadata table.</p>"
+        }
+      },
+      "documentation":"<p>A structure representing an open format table.</p>"
     },
     "OperationTimeoutException":{
       "type":"structure",
@@ -18323,7 +18402,8 @@
       "enum":[
         "latest",
         "trim_horizon",
-        "earliest"
+        "earliest",
+        "timestamp"
       ]
     },
     "Statement":{
@@ -18740,6 +18820,10 @@
         "Name":{
           "shape":"NameString",
           "documentation":"<p>The name of the target table.</p>"
+        },
+        "Region":{
+          "shape":"NameString",
+          "documentation":"<p>Region of the target table.</p>"
         }
       },
       "documentation":"<p>A structure that describes a target table for resource linking.</p>"

@@ -69,7 +69,17 @@ public final class StaticAttribute<T, R> {
      * @return A new typed builder for an attribute.
      */
     public static <T, R> Builder<T, R> builder(Class<T> itemClass, EnhancedType<R> attributeType) {
-        return new Builder<>(itemClass, attributeType);
+        return new Builder<>(EnhancedType.of(itemClass), attributeType);
+    }
+
+    /**
+     * Constructs a new builder for this class using supplied types.
+     * @param itemType The {@link EnhancedType} of the item that this attribute composes.
+     * @param attributeType A {@link EnhancedType} that represents the type of the value this attribute stores.
+     * @return A new typed builder for an attribute.
+     */
+    public static <T, R> Builder<T, R> builder(EnhancedType<T> itemType, EnhancedType<R> attributeType) {
+        return new Builder<>(itemType, attributeType);
     }
 
     /**
@@ -79,7 +89,7 @@ public final class StaticAttribute<T, R> {
      * @return A new typed builder for an attribute.
      */
     public static <T, R> Builder<T, R> builder(Class<T> itemClass, Class<R> attributeClass) {
-        return new Builder<>(itemClass, EnhancedType.of(attributeClass));
+        return new Builder<>(EnhancedType.of(itemClass), EnhancedType.of(attributeClass));
     }
 
     /**
@@ -146,8 +156,8 @@ public final class StaticAttribute<T, R> {
     public static final class Builder<T, R> {
         private final ImmutableAttribute.Builder<T, T, R> delegateBuilder;
 
-        private Builder(Class<T> itemClass, EnhancedType<R> type) {
-            this.delegateBuilder = ImmutableAttribute.builder(itemClass, itemClass, type);
+        private Builder(EnhancedType<T> itemType, EnhancedType<R> type) {
+            this.delegateBuilder = ImmutableAttribute.builder(itemType, itemType, type);
         }
 
         private Builder(ImmutableAttribute.Builder<T, T, R> delegateBuilder) {

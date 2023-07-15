@@ -805,6 +805,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dave-fn",
+      "name": "David Negrete",
+      "avatar_url": "https://avatars.githubusercontent.com/u/21349334?v=4",
+      "profile": "https://github.com/dave-fn",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "StephenFlavin",
+      "name": "Stephen Flavin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14975957?v=4",
+      "profile": "https://github.com/StephenFlavin",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
