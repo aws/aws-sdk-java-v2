@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.crt;
+package software.amazon.awssdk.services.s3.internal.multipart;
 
 
 import java.util.ArrayList;
@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.UploadPartCopyRequestIterable;
 import software.amazon.awssdk.services.s3.internal.multipart.GenericMultipartHelper;
 import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
@@ -50,13 +51,15 @@ public final class CopyObjectHelper {
     private final S3AsyncClient s3AsyncClient;
     private final long partSizeInBytes;
     private final GenericMultipartHelper<CopyObjectRequest, CopyObjectResponse> genericMultipartHelper;
+    private final long uploadThreshold;
 
-    public CopyObjectHelper(S3AsyncClient s3AsyncClient, long partSizeInBytes) {
+    public CopyObjectHelper(S3AsyncClient s3AsyncClient, long partSizeInBytes, long uploadThreshold) {
         this.s3AsyncClient = s3AsyncClient;
         this.partSizeInBytes = partSizeInBytes;
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
                                                                    SdkPojoConversionUtils::toAbortMultipartUploadRequest,
                                                                    SdkPojoConversionUtils::toCopyObjectResponse);
+        this.uploadThreshold = uploadThreshold;
     }
 
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
@@ -89,7 +92,7 @@ public final class CopyObjectHelper {
                               HeadObjectResponse headObjectResponse) {
         Long contentLength = headObjectResponse.contentLength();
 
-        if (contentLength <= partSizeInBytes) {
+        if (contentLength <= partSizeInBytes || contentLength <= uploadThreshold) {
             log.debug(() -> "Starting the copy as a single copy part request");
             copyInOneChunk(copyObjectRequest, returnFuture);
         } else {

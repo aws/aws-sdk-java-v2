@@ -38,12 +38,14 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Request conversion utility method for POJO classes associated with multipart feature.
  */
 @SdkInternalApi
 public final class SdkPojoConversionUtils {
+    private static final Logger log = Logger.loggerFor(SdkPojoConversionUtils.class);
 
     private static final HashSet<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
         new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32"));
@@ -68,9 +70,22 @@ public final class SdkPojoConversionUtils {
     }
 
     public static HeadObjectRequest toHeadObjectRequest(CopyObjectRequest copyObjectRequest) {
-        HeadObjectRequest.Builder builder = HeadObjectRequest.builder();
-        setSdkFields(builder, copyObjectRequest);
-        return builder.build();
+
+        // We can't set SdkFields directly because the fields in CopyObjectRequest do not match 100% with the ones in
+        // HeadObjectRequest
+        return HeadObjectRequest.builder()
+                                .bucket(copyObjectRequest.sourceBucket())
+                                .key(copyObjectRequest.sourceKey())
+                                .versionId(copyObjectRequest.sourceVersionId())
+                                .ifMatch(copyObjectRequest.copySourceIfMatch())
+                                .ifModifiedSince(copyObjectRequest.copySourceIfModifiedSince())
+                                .ifNoneMatch(copyObjectRequest.copySourceIfNoneMatch())
+                                .ifUnmodifiedSince(copyObjectRequest.copySourceIfUnmodifiedSince())
+                                .expectedBucketOwner(copyObjectRequest.expectedSourceBucketOwner())
+                                .sseCustomerAlgorithm(copyObjectRequest.copySourceSSECustomerAlgorithm())
+                                .sseCustomerKey(copyObjectRequest.copySourceSSECustomerKey())
+                                .sseCustomerKeyMD5(copyObjectRequest.copySourceSSECustomerKeyMD5())
+                                .build();
     }
 
     public static CompletedPart toCompletedPart(CopyPartResult copyPartResult, int partNumber) {
@@ -106,6 +121,8 @@ public final class SdkPojoConversionUtils {
         CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
 
         setSdkFields(builder, copyObjectRequest);
+        builder.bucket(copyObjectRequest.destinationBucket());
+        builder.key(copyObjectRequest.destinationKey());
         return builder.build();
     }
 
@@ -136,6 +153,8 @@ public final class SdkPojoConversionUtils {
     public static AbortMultipartUploadRequest.Builder toAbortMultipartUploadRequest(CopyObjectRequest copyObjectRequest) {
         AbortMultipartUploadRequest.Builder builder = AbortMultipartUploadRequest.builder();
         setSdkFields(builder, copyObjectRequest);
+        builder.bucket(copyObjectRequest.destinationBucket());
+        builder.key(copyObjectRequest.destinationKey());
         return builder;
     }
 
@@ -154,6 +173,8 @@ public final class SdkPojoConversionUtils {
         return builder.copySourceRange(range)
                       .partNumber(partNumber)
                       .uploadId(uploadId)
+                      .bucket(copyObjectRequest.destinationBucket())
+                      .key(copyObjectRequest.destinationKey())
                       .build();
     }
 
