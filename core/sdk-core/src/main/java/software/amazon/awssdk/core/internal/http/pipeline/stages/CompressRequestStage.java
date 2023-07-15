@@ -66,7 +66,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             compressEntirePayload(input, compressor);
             updateContentEncodingHeader(input, compressor);
             if (!isStreaming(context)) {
-                return updateContentLengthHeader(input);
+                updateContentLengthHeader(input);
+                return input;
             } else {
                 return input.removeHeader("Content-Length");
             }
@@ -107,26 +108,27 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming();
     }
 
-    private SdkHttpFullRequest.Builder compressEntirePayload(SdkHttpFullRequest.Builder input, Compressor compressor) {
+    private void compressEntirePayload(SdkHttpFullRequest.Builder input, Compressor compressor) {
         ContentStreamProvider wrappedProvider = input.contentStreamProvider();
         ContentStreamProvider compressedStreamProvider = () -> compressor.compress(wrappedProvider.newStream());
-        return input.contentStreamProvider(compressedStreamProvider);
+        input.contentStreamProvider(compressedStreamProvider);
     }
 
-    private static SdkHttpFullRequest.Builder updateContentEncodingHeader(SdkHttpFullRequest.Builder input,
+    private static void updateContentEncodingHeader(SdkHttpFullRequest.Builder input,
                                                                           Compressor compressor) {
         if (input.firstMatchingHeader("Content-encoding").isPresent()) {
-            return input.appendHeader("Content-encoding", compressor.compressorType());
+            input.appendHeader("Content-encoding", compressor.compressorType());
+        } else {
+            input.putHeader("Content-encoding", compressor.compressorType());
         }
-        return input.putHeader("Content-encoding", compressor.compressorType());
     }
 
-    private static SdkHttpFullRequest.Builder updateContentLengthHeader(SdkHttpFullRequest.Builder input) {
+    private static void updateContentLengthHeader(SdkHttpFullRequest.Builder input) {
         InputStream inputStream = input.contentStreamProvider().newStream();
         try {
             byte[] bytes = IoUtils.toByteArray(inputStream);
             String length = String.valueOf(bytes.length);
-            return input.putHeader("Content-Length", length);
+            input.putHeader("Content-Length", length);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
