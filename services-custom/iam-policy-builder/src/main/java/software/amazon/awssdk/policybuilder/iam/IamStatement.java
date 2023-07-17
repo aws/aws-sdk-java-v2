@@ -404,10 +404,12 @@ public interface IamStatement extends ToCopyableBuilder<IamStatement.Builder, Ia
         /**
          * Configure the
          * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html">{@code
-         * NotPrincipal}</a> element of the statement, denying only the principals that are specified.
+         * NotPrincipal}</a> element of the statement, specifying that all principals are affected by the policy except the
+         * ones listed.
          * <p>
          * Very few scenarios require the use of {@code NotPrincipal}. We recommend that you explore other authorization options
-         * before you decide to use {@code NotPrincipal}.
+         * before you decide to use {@code NotPrincipal}. {@code NotPrincipal} can only be used with {@link IamEffect#DENY}
+         * statements.
          * <p>
          * This will replace any other not-principals already added to the statement.
          * <p>
@@ -435,10 +437,12 @@ public interface IamStatement extends ToCopyableBuilder<IamStatement.Builder, Ia
         /**
          * Append a
          * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html">{@code
-         * NotPrincipal}</a> to this statement, denying access to the principal that is specified.
+         * NotPrincipal}</a> to this statement, specifying that all principals are affected by the policy except the
+         * ones listed.
          * <p>
          * Very few scenarios require the use of {@code NotPrincipal}. We recommend that you explore other authorization options
-         * before you decide to use {@code NotPrincipal}.
+         * before you decide to use {@code NotPrincipal}. {@code NotPrincipal} can only be used with {@link IamEffect#DENY}
+         * statements.
          * <p>
          * {@snippet :
          * IamStatement statement =
@@ -459,10 +463,12 @@ public interface IamStatement extends ToCopyableBuilder<IamStatement.Builder, Ia
         /**
          * Append a
          * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html">{@code
-         * NotPrincipal}</a> to this statement, denying access to the principal that is specified.
+         * NotPrincipal}</a> to this statement, specifying that all principals are affected by the policy except the
+         * ones listed.
          * <p>
          * Very few scenarios require the use of {@code NotPrincipal}. We recommend that you explore other authorization options
-         * before you decide to use {@code NotPrincipal}.
+         * before you decide to use {@code NotPrincipal}. {@code NotPrincipal} can only be used with {@link IamEffect#DENY}
+         * statements.
          * <p>
          * This works the same as {@link #addNotPrincipal(IamPrincipal)}, except you do not need to specify {@code IamPrincipal
          * .builder()} or {@code build()}.
@@ -486,10 +492,12 @@ public interface IamStatement extends ToCopyableBuilder<IamStatement.Builder, Ia
         /**
          * Append a
          * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html">{@code
-         * NotPrincipal}</a> to this statement, denying access to the principal that is specified.
+         * NotPrincipal}</a> to this statement, specifying that all principals are affected by the policy except the
+         * ones listed.
          * <p>
          * Very few scenarios require the use of {@code NotPrincipal}. We recommend that you explore other authorization options
-         * before you decide to use {@code NotPrincipal}.
+         * before you decide to use {@code NotPrincipal}. {@code NotPrincipal} can only be used with {@link IamEffect#DENY}
+         * statements.
          * <p>
          * This works the same as {@link #addNotPrincipal(IamPrincipal)}, except you do not need to specify {@code IamPrincipal
          * .create()}.
@@ -513,10 +521,12 @@ public interface IamStatement extends ToCopyableBuilder<IamStatement.Builder, Ia
         /**
          * Append a
          * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html">{@code
-         * NotPrincipal}</a> to this statement, denying access to the principal that is specified.
+         * NotPrincipal}</a> to this statement, specifying that all principals are affected by the policy except the
+         * ones listed.
          * <p>
          * Very few scenarios require the use of {@code NotPrincipal}. We recommend that you explore other authorization options
-         * before you decide to use {@code NotPrincipal}.
+         * before you decide to use {@code NotPrincipal}. {@code NotPrincipal} can only be used with {@link IamEffect#DENY}
+         * statements.
          * <p>
          * This works the same as {@link #addNotPrincipal(IamPrincipalType, String)}, except you do not need to specify {@code
          * IamPrincipalType.create()}.
@@ -540,10 +550,12 @@ public interface IamStatement extends ToCopyableBuilder<IamStatement.Builder, Ia
         /**
          * Append multiple 
          * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html">{@code
-         * NotPrincipal}s</a> to this statement, denying access to the principal that is specified.
+         * NotPrincipal}s</a> to this statement, specifying that all principals are affected by the policy except the
+         * ones listed.
          * <p>
          * Very few scenarios require the use of {@code NotPrincipal}. We recommend that you explore other authorization options
-         * before you decide to use {@code NotPrincipal}.
+         * before you decide to use {@code NotPrincipal}. {@code NotPrincipal} can only be used with {@link IamEffect#DENY}
+         * statements.
          * <p>
          * This works the same as calling {@link #addNotPrincipal(IamPrincipalType, String)} multiple times with the same
          * {@link IamPrincipalType}.
@@ -569,10 +581,12 @@ public interface IamStatement extends ToCopyableBuilder<IamStatement.Builder, Ia
         /**
          * Append multiple 
          * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notprincipal.html">{@code
-         * NotPrincipal}s</a> to this statement, denying access to the principal that is specified.
+         * NotPrincipal}s</a> to this statement, specifying that all principals are affected by the policy except the
+         * ones listed.
          * <p>
          * Very few scenarios require the use of {@code NotPrincipal}. We recommend that you explore other authorization options
-         * before you decide to use {@code NotPrincipal}.
+         * before you decide to use {@code NotPrincipal}. {@code NotPrincipal} can only be used with {@link IamEffect#DENY}
+         * statements.
          * <p>
          * This works the same as calling {@link #addNotPrincipal(String, String)} multiple times with the same
          * {@link IamPrincipalType}.

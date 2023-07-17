@@ -18,6 +18,7 @@
         "codegen": { "packageName": "AwsJavaSdk-Codegen" },
         "dynamodb-enhanced": { "packageName": "AwsJavaSdk-DynamoDb-Enhanced" },
         "http-client-spi": { "packageName": "AwsJavaSdk-HttpClient" },
+        "iam-policy-builder": { "packageName": "AwsJavaSdk-Iam-PolicyBuilder" },
         "json-utils": { "packageName": "AwsJavaSdk-Core-JsonUtils" },
         "metrics-spi": { "packageName": "AwsJavaSdk-Core-MetricsSpi" },
         "endpoints-spi": { "packageName": "AwsJavaSdk-Core-EndpointsSpi" },

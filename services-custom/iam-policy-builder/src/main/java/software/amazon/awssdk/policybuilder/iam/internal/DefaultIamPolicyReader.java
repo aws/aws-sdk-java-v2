@@ -201,7 +201,7 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
     }
 
     private String expectString(JsonNode node, String name) {
-        Validate.isTrue(node.isString(), "%s was not a string");
+        Validate.isTrue(node.isString(), "%s was not a string", name);
         return node.asString();
     }
 
