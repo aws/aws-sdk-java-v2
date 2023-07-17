@@ -40,15 +40,12 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 final class ClientClassUtils {
-    private static final String PAGINATOR_USER_AGENT = "PAGINATED";
 
     private ClientClassUtils() {
     }
@@ -83,40 +80,6 @@ final class ClientClassUtils {
         result.addStatement(methodBody.toString(), spec.name, firstParameterClass, firstParameter.name);
 
         return result.build();
-    }
-
-    static MethodSpec applyPaginatorUserAgentMethod(PoetExtension poetExtensions, IntermediateModel model) {
-
-        TypeVariableName typeVariableName =
-            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
-
-        ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
-            .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
-
-        CodeBlock codeBlock = CodeBlock.builder()
-                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().version"
-                                                     + "($T.SDK_VERSION).name($S).build())",
-                                                     parameterizedTypeName, ApiName.class,
-                                                     VersionInfo.class,
-                                                     PAGINATOR_USER_AGENT)
-                                       .addStatement("$T overrideConfiguration =\n"
-                                                     + "            request.overrideConfiguration().map(c -> c.toBuilder()"
-                                                     + ".applyMutation"
-                                                     + "(userAgentApplier).build())\n"
-                                                     + "            .orElse((AwsRequestOverrideConfiguration.builder()"
-                                                     + ".applyMutation"
-                                                     + "(userAgentApplier).build()))", AwsRequestOverrideConfiguration.class)
-                                       .addStatement("return (T) request.toBuilder().overrideConfiguration"
-                                                     + "(overrideConfiguration).build()")
-                                       .build();
-
-        return MethodSpec.methodBuilder("applyPaginatorUserAgent")
-                         .addModifiers(Modifier.PRIVATE)
-                         .addParameter(typeVariableName, "request")
-                         .addTypeVariable(typeVariableName)
-                         .addCode(codeBlock)
-                         .returns(typeVariableName)
-                         .build();
     }
 
     static MethodSpec applySignerOverrideMethod(PoetExtension poetExtensions, IntermediateModel model) {

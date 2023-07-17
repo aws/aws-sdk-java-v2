@@ -20,15 +20,21 @@ import static java.util.stream.Collectors.toList;
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
@@ -36,7 +42,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.utils.Validate;
 
@@ -88,14 +93,9 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-        MethodSpec delegate = MethodSpec.methodBuilder("delegate")
-                                        .addModifiers(PUBLIC)
-                                        .addStatement("return this.delegate")
-                                        .returns(SdkClient.class)
-                                        .build();
-
         type.addMethod(nameMethod())
-            .addMethod(delegate);
+            .addMethod(delegateMethod())
+            .addMethod(invokeMethod());
     }
 
     private MethodSpec nameMethod() {
@@ -104,6 +104,37 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                          .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
                          .addStatement("return delegate.serviceName()")
+                         .build();
+    }
+
+    private MethodSpec delegateMethod() {
+        return MethodSpec.methodBuilder("delegate")
+                         .addModifiers(PUBLIC)
+                         .addStatement("return this.delegate")
+                         .returns(SdkClient.class)
+                         .build();
+    }
+
+    private MethodSpec invokeMethod() {
+        TypeVariableName requestTypeVariableName =
+            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
+
+        TypeVariableName responseTypeVariableName = STREAMING_TYPE_VARIABLE;
+
+        ParameterizedTypeName responseFutureTypeName = ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                                                                                 responseTypeVariableName);
+
+        ParameterizedTypeName functionTypeName = ParameterizedTypeName
+            .get(ClassName.get(Function.class), requestTypeVariableName, responseFutureTypeName);
+
+        return MethodSpec.methodBuilder("invokeOperation")
+                         .addModifiers(PROTECTED)
+                         .addParameter(requestTypeVariableName, "request")
+                         .addParameter(functionTypeName, "operation")
+                         .addTypeVariable(requestTypeVariableName)
+                         .addTypeVariable(responseTypeVariableName)
+                         .returns(responseFutureTypeName)
+                         .addStatement("return operation.apply(request)")
                          .build();
     }
 
@@ -139,9 +170,6 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     private Stream<MethodSpec> operations(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(traditionalMethod(opModel));
-        if (opModel.isPaginated()) {
-            methods.add(paginatedTraditionalMethod(opModel));
-        }
         return methods.stream();
     }
 
@@ -164,20 +192,21 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
         builder.addModifiers(PUBLIC)
                .addAnnotation(Override.class);
 
-        builder.addStatement("return delegate.$N($L)",
+        if (builder.parameters.isEmpty()) {
+            throw new IllegalStateException("All client methods must have an argument");
+        }
+
+        List<ParameterSpec> parameters = new ArrayList<>(builder.parameters);
+        String requestParameter = parameters.remove(0).name;
+        String additionalParameters = String.format(", %s", parameters.stream().map(p -> p.name).collect(joining(", ")));
+
+        builder.addStatement("return invokeOperation($N, request -> delegate.$N(request$N))",
+                             requestParameter,
                              opModel.getMethodName(),
-                             builder.parameters.stream().map(p -> p.name).collect(joining(", ")));
+                             parameters.isEmpty() ? "" : additionalParameters);
+
         return builder;
     }
-
-    @Override
-    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
-        String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
-        return builder.addModifiers(PUBLIC)
-                      .addAnnotation(Override.class)
-                      .addStatement("return delegate.$N($N)", methodName, opModel.getInput().getVariableName());
-    }
-
 
     @Override
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {

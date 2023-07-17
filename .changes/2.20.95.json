@@ -1,0 +1,48 @@
+{
+    "version": "2.20.95",
+    "date": "2023-06-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Surface ResourceConflictException in DeleteEventSourceMapping"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Internet Monitor",
+            "contributor": "",
+            "description": "This release adds a new feature for Amazon CloudWatch Internet Monitor that enables customers to set custom thresholds, for performance and availability drops, for triggering when to create a health event."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Analytics",
+            "contributor": "",
+            "description": "Support for new runtime environment in Kinesis Data Analytics Studio: Zeppelin-0.10, Apache Flink-1.15"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "Add Common Workflow Language (CWL) as a supported language for Omics workflows"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Amazon Relational Database Service (RDS) now supports joining a RDS for SQL Server instance to a self-managed Active Directory."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for Model Cards Model Registry integration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "The S3 LISTObjects, ListObjectsV2 and ListObjectVersions API now supports a new optional header x-amz-optional-object-attributes. If header contains RestoreStatus as the value, then S3 will include Glacier restore status i.e. isRestoreInProgress and RestoreExpiryDate in List response."
+        }
+    ]
+}
