@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client.traits;
 import com.squareup.javapoet.CodeBlock;
 import java.util.List;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -38,7 +39,7 @@ public class RequestCompressionTrait {
      * context of initializing {@link ClientExecutionParams}. If request compression is not required by the operation, this will
      * return an empty code-block.
      */
-    public static CodeBlock create(OperationModel operationModel) {
+    public static CodeBlock create(OperationModel operationModel, IntermediateModel model) {
         if (operationModel.getRequestCompression() == null) {
             return CodeBlock.of("");
         }
@@ -47,6 +48,11 @@ public class RequestCompressionTrait {
         if (operationModel.isStreaming()) {
             throw new IllegalStateException("Request compression for streaming operations is not yet supported in the AWS SDK "
                                             + "for Java.");
+        }
+
+        // TODO : remove once S3 checksum interceptors are moved to occur after CompressRequestStage
+        if (model.getMetadata().getServiceName().equals("S3")) {
+            throw new IllegalStateException("Request compression for S3 is not yet supported in the AWS SDK for Java.");
         }
 
         List<String> encodings = operationModel.getRequestCompression().getEncodings();

@@ -189,7 +189,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel))
                      .add(NoneAuthTypeRequestTrait.create(opModel))
-                     .add(RequestCompressionTrait.create(opModel));
+                     .add(RequestCompressionTrait.create(opModel, model));
 
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
@@ -259,7 +259,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel))
                .add(NoneAuthTypeRequestTrait.create(opModel))
-               .add(RequestCompressionTrait.create(opModel))
+               .add(RequestCompressionTrait.create(opModel, model))
                .add(".withInput($L)$L);",
                     opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel));
 

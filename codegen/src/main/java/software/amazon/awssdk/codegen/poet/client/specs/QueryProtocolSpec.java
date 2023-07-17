@@ -118,7 +118,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel))
                      .add(NoneAuthTypeRequestTrait.create(opModel))
-                     .add(RequestCompressionTrait.create(opModel));
+                     .add(RequestCompressionTrait.create(opModel, intermediateModel));
 
 
         if (opModel.hasStreamingInput()) {
@@ -154,7 +154,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel))
                      .add(NoneAuthTypeRequestTrait.create(opModel))
-                     .add(RequestCompressionTrait.create(opModel));
+                     .add(RequestCompressionTrait.create(opModel, intermediateModel));
 
 
         builder.add(hostPrefixExpression(opModel) + asyncRequestBody + ".withInput($L)$L);",

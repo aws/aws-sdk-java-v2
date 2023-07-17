@@ -137,7 +137,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                                                .add(HttpChecksumTrait.create(opModel))
                                                .add(NoneAuthTypeRequestTrait.create(opModel))
-                                               .add(RequestCompressionTrait.create(opModel));
+                                               .add(RequestCompressionTrait.create(opModel, model));
 
 
         s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
@@ -216,7 +216,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel))
                .add(NoneAuthTypeRequestTrait.create(opModel))
-               .add(RequestCompressionTrait.create(opModel));
+               .add(RequestCompressionTrait.create(opModel, model));
 
         s3ArnableFields(opModel, model).ifPresent(builder::add);
 
