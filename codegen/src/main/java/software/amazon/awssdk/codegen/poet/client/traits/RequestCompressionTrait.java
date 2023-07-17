@@ -43,6 +43,12 @@ public class RequestCompressionTrait {
             return CodeBlock.of("");
         }
 
+        // TODO : remove once request compression for streaming operations is supported
+        if (operationModel.isStreaming()) {
+            throw new IllegalStateException("Request compression for streaming operations is not yet supported in the AWS SDK "
+                                            + "for Java.");
+        }
+
         List<String> encodings = operationModel.getRequestCompression().getEncodings();
 
         return CodeBlock.builder()
