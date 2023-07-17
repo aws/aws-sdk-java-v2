@@ -438,7 +438,7 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(builderMethod());
                 methodSpecs.add(serializableBuilderClass());
                 methodSpecs.addAll(memberGetters());
-                methodSpecs.addAll(addRetryableOverrides());
+                methodSpecs.addAll(retryableOverrides());
                 break;
             default:
                 methodSpecs.addAll(addModifier(memberGetters(), FINAL));
