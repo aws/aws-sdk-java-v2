@@ -31,6 +31,7 @@ public class WebIdentityTokenCredentialProperties {
     private final Boolean asyncCredentialUpdateEnabled;
     private final Duration prefetchTime;
     private final Duration staleTime;
+    private final Duration roleSessionDuration;
 
     private WebIdentityTokenCredentialProperties(Builder builder) {
         this.roleArn = builder.roleArn;
@@ -39,6 +40,7 @@ public class WebIdentityTokenCredentialProperties {
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.prefetchTime = builder.prefetchTime;
         this.staleTime = builder.staleTime;
+        this.roleSessionDuration = builder.roleSessionDuration;
     }
 
     public String roleArn() {
@@ -65,6 +67,10 @@ public class WebIdentityTokenCredentialProperties {
         return staleTime;
     }
 
+    public Duration roleSessionDuration() {
+        return this.roleSessionDuration;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -76,6 +82,7 @@ public class WebIdentityTokenCredentialProperties {
         private Boolean asyncCredentialUpdateEnabled;
         private Duration prefetchTime;
         private Duration staleTime;
+        private Duration roleSessionDuration;
 
         public Builder roleArn(String roleArn) {
             this.roleArn = roleArn;
@@ -104,6 +111,11 @@ public class WebIdentityTokenCredentialProperties {
 
         public Builder staleTime(Duration staleTime) {
             this.staleTime = staleTime;
+            return this;
+        }
+
+        public Builder roleSessionDuration(Duration roleSessionDuration) {
+            this.roleSessionDuration = roleSessionDuration;
             return this;
         }
 
