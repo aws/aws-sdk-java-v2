@@ -147,6 +147,9 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
 
     private SdkHttpFullRequest.Builder toSdkHttpFullRequestBuilder(SignedRequest<?> signedRequest) {
         SdkHttpRequest request = signedRequest.request();
+        if (request instanceof SdkHttpFullRequest) {
+            return ((SdkHttpFullRequest) request).toBuilder();
+        }
         return SdkHttpFullRequest.builder()
                                  .protocol(request.protocol())
                                  .method(request.method())
