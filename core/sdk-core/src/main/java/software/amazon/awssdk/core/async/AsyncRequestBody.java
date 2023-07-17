@@ -263,7 +263,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * If content length is null, it is sent after the entire content for that chunk is buffered.
      * In this case, the configured {@code maxMemoryUsageInBytes} must be larger than or equal to {@code chunkSizeInBytes}.
      *
-     * @param chunkSizeInBytes      the size for each divided chunk. The last chunk may be smaller of the configured size.
+     * @param chunkSizeInBytes      the size for each divided chunk. The last chunk may be smaller than the configured size.
      * @param maxMemoryUsageInBytes the max memory the SDK will use to buffer the content
      * @return SplitAsyncRequestBodyResult
      */

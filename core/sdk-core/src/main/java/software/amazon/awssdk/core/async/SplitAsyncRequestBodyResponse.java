@@ -33,7 +33,8 @@ public final class SplitAsyncRequestBodyResponse {
         this.future = Validate.paramNotNull(future, "future");
     }
 
-    public static SplitAsyncRequestBodyResponse create(SdkPublisher<AsyncRequestBody> asyncRequestBody, CompletableFuture<Void> future) {
+    public static SplitAsyncRequestBodyResponse create(SdkPublisher<AsyncRequestBody> asyncRequestBody,
+                                                       CompletableFuture<Void> future) {
         return new SplitAsyncRequestBodyResponse(asyncRequestBody, future);
     }
 
