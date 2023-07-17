@@ -78,13 +78,6 @@ public final class ProcessCredentialsProvider
 
     private final Boolean asyncCredentialUpdateEnabled;
 
-    @Override
-    public String toString() {
-        return ToString.builder("ProcessCredentialsProvider")
-                       .add("cmd", executableCommand)
-                       .build();
-    }
-
     /**
      * @see #builder()
      */
@@ -310,5 +303,12 @@ public final class ProcessCredentialsProvider
         public ProcessCredentialsProvider build() {
             return new ProcessCredentialsProvider(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ProcessCredentialsProvider")
+                       .add("cmd", executableCommand)
+                       .build();
     }
 }
