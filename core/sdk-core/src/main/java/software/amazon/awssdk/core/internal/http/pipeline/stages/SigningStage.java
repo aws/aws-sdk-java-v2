@@ -70,6 +70,8 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
+        updateInterceptorContext(request, context.executionContext());
+
         ExecutionAttributes executionAttributes = context.executionAttributes();
         SelectedAuthScheme<T> selectedAuthScheme =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
@@ -78,25 +80,32 @@ public class SigningStage implements RequestToRequestPipeline {
             return request;
         }
 
-        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+        Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
+            () -> {
+                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
 
-        // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based endpoints
-        //  and also to logically separate out identity resolution as its own step.
-        ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
-        authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
+                // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based
+                //  endpoints and also to logically separate out identity resolution as its own step.
+                ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
+                authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
 
-        IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
-        T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
+                IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
+                T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
 
-        SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
-            .builder(identity)
-            .request(request)
-            .payload(request.contentStreamProvider().orElse(null));
-        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+                SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+                    .builder(identity)
+                    .request(request)
+                    .payload(request.contentStreamProvider().orElse(null));
+                authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
-        HttpSigner<T> signer = selectedAuthScheme.signer();
-        SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
-        return toSdkHttpFullRequest(signedRequest);
+                HttpSigner<T> signer = selectedAuthScheme.signer();
+                SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+                SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
+                updateInterceptorContext(result, context.executionContext());
+                return result;
+            });
+        context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
+        return measuredSign.left();
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
@@ -132,6 +141,8 @@ public class SigningStage implements RequestToRequestPipeline {
 
             SdkHttpFullRequest signedRequest = measuredSign.left();
 
+            // TODO: This case does not apply to SigningStage as event stream operations are not supported by SyncClients that
+            //  use this SigningStage. So this is dead code and can be removed.
             if (signer instanceof AsyncRequestBodySigner) {
                 //Transform request body provider with signing operator
                 AsyncRequestBody transformedRequestProvider =
@@ -161,7 +172,7 @@ public class SigningStage implements RequestToRequestPipeline {
      */
     private boolean shouldSign(SelectedAuthScheme<?> selectedAuthScheme) {
         // TODO: Should this string be a constant somewhere. Similar logic is used in AuthSchemeInterceptors.
-        return "smithy.api#noAuth".equals(selectedAuthScheme.authSchemeOption().schemeId());
+        return !"smithy.api#noAuth".equals(selectedAuthScheme.authSchemeOption().schemeId());
     }
 
     /**
