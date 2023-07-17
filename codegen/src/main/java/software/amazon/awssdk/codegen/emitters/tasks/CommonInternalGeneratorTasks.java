@@ -15,26 +15,35 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.poet.client.SdkClientOptions;
+import software.amazon.awssdk.codegen.poet.common.UserAgentUtilsSpec;
 
-public class ClientOptionsClassGeneratorTasks extends BaseGeneratorTasks {
+public class CommonInternalGeneratorTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams params;
 
-    public ClientOptionsClassGeneratorTasks(GeneratorTaskParams params) {
+    public CommonInternalGeneratorTasks(GeneratorTaskParams params) {
         super(params);
         this.params = params;
     }
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        return Collections.singletonList(
-            new PoetGeneratorTask(clientOptionsDir(), params.getModel().getFileHeader(), new SdkClientOptions(params.getModel()))
-        );
+        return Arrays.asList(createClientOptionTask(), createUserAgentTask());
+    }
+
+    private PoetGeneratorTask createClientOptionTask() {
+        return new PoetGeneratorTask(clientOptionsDir(), params.getModel().getFileHeader(),
+                                         new SdkClientOptions(params.getModel()));
+    }
+
+    private PoetGeneratorTask createUserAgentTask() {
+        return new PoetGeneratorTask(clientOptionsDir(), params.getModel().getFileHeader(),
+                                     new UserAgentUtilsSpec(params.getModel()));
     }
 
     private String clientOptionsDir() {
