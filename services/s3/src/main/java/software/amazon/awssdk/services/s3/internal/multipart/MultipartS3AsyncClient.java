@@ -21,6 +21,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
@@ -33,15 +35,27 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private static final long DEFAULT_MAX_MEMORY = DEFAULT_PART_SIZE_IN_BYTES * 2;
     private final MultipartUploadHelper mpuHelper;
+    private final CopyObjectHelper copyObjectHelper;
 
     public MultipartS3AsyncClient(S3AsyncClient delegate) {
         super(delegate);
         // TODO: pass a config object to the upload helper instead
         mpuHelper = new MultipartUploadHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_THRESHOLD, DEFAULT_MAX_MEMORY);
+        copyObjectHelper = new CopyObjectHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_THRESHOLD);
     }
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
         return mpuHelper.uploadObject(putObjectRequest, requestBody);
+    }
+
+    @Override
+    public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
+        return copyObjectHelper.copyObject(copyObjectRequest);
+    }
+
+    @Override
+    public void close() {
+        delegate().close();
     }
 }

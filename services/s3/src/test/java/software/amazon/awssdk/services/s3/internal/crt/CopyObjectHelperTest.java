@@ -33,6 +33,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
@@ -59,10 +60,13 @@ class CopyObjectHelperTest {
     private S3AsyncClient s3AsyncClient;
     private CopyObjectHelper copyHelper;
 
+    private static final long PART_SIZE = 1024L;
+    private static final long UPLOAD_THRESHOLD = 2048L;
+
     @BeforeEach
     public void setUp() {
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        copyHelper = new CopyObjectHelper(s3AsyncClient, 1024L);
+        copyHelper = new CopyObjectHelper(s3AsyncClient, PART_SIZE, UPLOAD_THRESHOLD);
     }
 
     @Test
@@ -101,6 +105,25 @@ class CopyObjectHelperTest {
         CopyObjectRequest copyObjectRequest = copyObjectRequest();
 
         stubSuccessfulHeadObjectCall(512L);
+
+        CopyObjectResponse expectedResponse = CopyObjectResponse.builder().build();
+        CompletableFuture<CopyObjectResponse> copyFuture =
+            CompletableFuture.completedFuture(expectedResponse);
+
+        when(s3AsyncClient.copyObject(copyObjectRequest)).thenReturn(copyFuture);
+
+        CompletableFuture<CopyObjectResponse> future =
+            copyHelper.copyObject(copyObjectRequest);
+
+        assertThat(future.join()).isEqualTo(expectedResponse);
+    }
+
+    @Test
+    void copy_doesNotExceedThreshold_shouldUseSingleObjectCopy() {
+
+        CopyObjectRequest copyObjectRequest = copyObjectRequest();
+
+        stubSuccessfulHeadObjectCall(2000L);
 
         CopyObjectResponse expectedResponse = CopyObjectResponse.builder().build();
         CompletableFuture<CopyObjectResponse> copyFuture =
