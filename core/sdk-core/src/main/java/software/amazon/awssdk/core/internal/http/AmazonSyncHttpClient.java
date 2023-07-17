@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmiss
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
@@ -170,6 +172,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .then(ApplyUserAgentStage::new)
                                .then(MergeCustomHeadersStage::new)
                                .then(MergeCustomQueryParamsStage::new)
+                               .then(() -> new HttpChecksumStage(ClientType.SYNC))
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
                                .then(RequestPipelineBuilder
