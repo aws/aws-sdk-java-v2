@@ -131,9 +131,14 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("mini-s3")
                     .outputFileSuffix("default-provider")
+                    .build(),
+            // Interceptors
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("interceptor")
                     .build()
-
-
         );
     }
 
