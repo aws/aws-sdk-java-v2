@@ -78,7 +78,7 @@ public final class AuthSchemeSpecUtils {
         return ClassName.get(internalPackage(), "InternalModeled" + providerInterfaceName().simpleName());
     }
 
-    public ClassName internalAuthSchemeInterceptor() {
+    public ClassName authSchemeInterceptor() {
         return ClassName.get(internalPackage(), intermediateModel.getMetadata().getServiceName() + "AuthSchemeInterceptor");
     }
 

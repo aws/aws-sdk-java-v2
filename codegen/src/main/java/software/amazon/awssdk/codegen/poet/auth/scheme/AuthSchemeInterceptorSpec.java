@@ -60,7 +60,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
 
     @Override
     public ClassName className() {
-        return authSchemeSpecUtils.internalAuthSchemeInterceptor();
+        return authSchemeSpecUtils.authSchemeInterceptor();
     }
 
     @Override
