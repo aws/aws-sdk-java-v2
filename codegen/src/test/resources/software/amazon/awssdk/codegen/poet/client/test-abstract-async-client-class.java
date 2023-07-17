@@ -330,7 +330,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<OperationWithRequestCompressionResponse> operationWithRequestCompression(
         OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) {
-        return delegate.operationWithRequestCompression(operationWithRequestCompressionRequest);
+        return invokeOperation(operationWithRequestCompressionRequest,
+                               request -> delegate.operationWithRequestCompression(request));
     }
 
     /**
@@ -496,7 +497,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
         StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         return invokeOperation(streamingInputOutputOperationRequest,
-                        request -> delegate.streamingInputOutputOperation(request, requestBody, asyncResponseTransformer));
+                               request -> delegate.streamingInputOutputOperation(request, requestBody, asyncResponseTransformer));
     }
 
     /**
