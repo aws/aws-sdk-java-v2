@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "GetMetricDataV2 API: Update to include Contact Lens Conversational Analytics Metrics"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Translate",
-    "contributor": "",
-    "description": "Added DOCX word document support to TranslateDocument API"
-}
