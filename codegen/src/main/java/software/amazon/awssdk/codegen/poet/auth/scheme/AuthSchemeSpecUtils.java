@@ -85,7 +85,7 @@ public final class AuthSchemeSpecUtils {
         return ClassName.get(internalPackage(), "Default" + providerInterfaceName().simpleName());
     }
 
-    public ClassName internalModeledAuthSchemeProviderName() {
+    public ClassName modeledAuthSchemeProviderName() {
         return ClassName.get(internalPackage(), "Modeled" + providerInterfaceName().simpleName());
     }
 

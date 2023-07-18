@@ -90,7 +90,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
     private FieldSpec modeledResolverInstance() {
         return FieldSpec.builder(authSchemeSpecUtils.providerInterfaceName(), "MODELED_RESOLVER")
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("$T.create()", authSchemeSpecUtils.internalModeledAuthSchemeProviderName())
+                        .initializer("$T.create()", authSchemeSpecUtils.modeledAuthSchemeProviderName())
                         .build();
     }
 
