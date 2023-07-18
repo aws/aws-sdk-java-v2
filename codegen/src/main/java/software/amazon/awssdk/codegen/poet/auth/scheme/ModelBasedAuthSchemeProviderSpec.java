@@ -46,7 +46,7 @@ public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
     @Override
     public ClassName className() {
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
-            return authSchemeSpecUtils.internalModeledAuthSchemeProviderName();
+            return authSchemeSpecUtils.modeledAuthSchemeProviderName();
         }
         return authSchemeSpecUtils.defaultAuthSchemeProviderName();
     }

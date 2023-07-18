@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.config.customization;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -244,7 +245,12 @@ public class CustomizationConfig {
     /**
      * List of endpoint params to be used for the auth scheme params
      */
-    private List<String> allowedEndpointAuthSchemeParams = new ArrayList<>();
+    private List<String> allowedEndpointAuthSchemeParams = Collections.emptyList();
+
+    /**
+     * Whether the list of allowed endpoint auth scheme params was explicitly configured.
+     */
+    private boolean allowedEndpointAuthSchemeParamsConfigured = false;
 
     private CustomizationConfig() {
     }
@@ -641,10 +647,15 @@ public class CustomizationConfig {
     }
 
     public void setAllowedEndpointAuthSchemeParams(List<String> allowedEndpointAuthSchemeParams) {
+        this.allowedEndpointAuthSchemeParamsConfigured = true;
         this.allowedEndpointAuthSchemeParams = allowedEndpointAuthSchemeParams;
     }
 
     public List<String> getAllowedEndpointAuthSchemeParams() {
         return this.allowedEndpointAuthSchemeParams;
+    }
+
+    public boolean getAllowedEndpointAuthSchemeParamsConfigured() {
+        return allowedEndpointAuthSchemeParamsConfigured;
     }
 }
