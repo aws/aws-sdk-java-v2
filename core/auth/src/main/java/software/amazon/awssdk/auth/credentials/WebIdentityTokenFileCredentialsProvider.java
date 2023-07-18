@@ -24,6 +24,7 @@ import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUt
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class WebIdentityTokenFileCredentialsProvider
     implements AwsCredentialsProvider, SdkAutoCloseable,
                ToCopyableBuilder<WebIdentityTokenFileCredentialsProvider.Builder, WebIdentityTokenFileCredentialsProvider> {
+    private static final Logger log = Logger.loggerFor(WebIdentityTokenFileCredentialsProvider.class);
 
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;

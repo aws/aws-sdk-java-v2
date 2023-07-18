@@ -31,6 +31,7 @@ import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -101,7 +102,8 @@ public final class ProcessCredentialsProvider
         this.commandFromBuilder = builder.command;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
 
-        CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials);
+        CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
+                                                                            .cachedValueName(toString());
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking("process-credentials-provider"));
         }
@@ -301,5 +303,12 @@ public final class ProcessCredentialsProvider
         public ProcessCredentialsProvider build() {
             return new ProcessCredentialsProvider(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ProcessCredentialsProvider")
+                       .add("cmd", executableCommand)
+                       .build();
     }
 }
