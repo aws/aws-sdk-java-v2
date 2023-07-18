@@ -135,9 +135,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("StsWebIdentityTokenFileCredentialsProvider")
-                       .add("refreshRequest", assumeRoleWithWebIdentityRequest)
-                       .build();
+        return ToString.create("StsWebIdentityTokenFileCredentialsProvider");
     }
 
     @Override

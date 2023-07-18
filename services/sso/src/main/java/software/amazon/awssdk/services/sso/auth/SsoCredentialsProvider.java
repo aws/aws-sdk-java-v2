@@ -78,7 +78,9 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
-        CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder = CachedSupplier.builder(this::updateSsoCredentials);
+        CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
+            CachedSupplier.builder(this::updateSsoCredentials)
+                          .cachedValueName(toString());
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
         }
