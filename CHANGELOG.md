@@ -1,3 +1,37 @@
+# __2.20.105__ __2023-07-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for IamPolicy in new module software.amazon.awssdk:iam-policy-builder, a class to simplify the use of AWS policies.
+    - Updated endpoint and partition metadata.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Allows UpdateEnvironment to update the environment to 0 host capacity. New GetSignedBluinsightsUrl API
+
+## __Amazon CodeGuru Security__
+  - ### Features
+    - Documentation updates for CodeGuru Security.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 API: Update to include Contact Lens Conversational Analytics Metrics
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Regex Validation on the ElasticSearch Engine Version attribute
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Adds support for RACK_5U_C. This is the first AWS Snow Family device designed to meet U.S. Military Ruggedization Standards (MIL-STD-810H) with 208 vCPU device in a portable, compact 5U, half-rack width form-factor.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for Lex Developers to view analytics for their bots.
+
+## __Amazon Translate__
+  - ### Features
+    - Added DOCX word document support to TranslateDocument API
+
 # __2.20.104__ __2023-07-17__
 ## __AWS Glue__
   - ### Features

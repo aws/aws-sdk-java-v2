@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elasticsearch Service",
-    "contributor": "",
-    "description": "Regex Validation on the ElasticSearch Engine Version attribute"
-}
