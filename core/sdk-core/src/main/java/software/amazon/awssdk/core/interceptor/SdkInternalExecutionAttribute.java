@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
@@ -27,8 +26,6 @@ import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
-import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -123,11 +120,6 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME = new ExecutionAttribute<>(
         "SelectedAuthScheme");
-
-    /**
-     * The resolved identity for a request as computed by {@link IdentityProvider}.
-     */
-    public static final ExecutionAttribute<CompletableFuture<? extends Identity>> IDENTITY = new ExecutionAttribute<>("Identity");
 
     private SdkInternalExecutionAttribute() {
     }

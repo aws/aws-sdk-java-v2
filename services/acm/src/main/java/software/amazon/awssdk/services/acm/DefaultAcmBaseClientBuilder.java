@@ -34,7 +34,6 @@ import software.amazon.awssdk.services.acm.endpoints.AcmEndpointProvider;
 import software.amazon.awssdk.services.acm.endpoints.internal.AcmEndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.acm.endpoints.internal.AcmRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.acm.endpoints.internal.AcmResolveEndpointInterceptor;
-import software.amazon.awssdk.core.internal.interceptor.ResolveIdentityInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -68,7 +67,6 @@ abstract class DefaultAcmBaseClientBuilder<B extends AcmBaseClientBuilder<B, C>,
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         endpointInterceptors.add(new AcmAuthSchemeInterceptor());
-        endpointInterceptors.add(new ResolveIdentityInterceptor());
         endpointInterceptors.add(new AcmResolveEndpointInterceptor());
         endpointInterceptors.add(new AcmEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new AcmRequestSetEndpointInterceptor());

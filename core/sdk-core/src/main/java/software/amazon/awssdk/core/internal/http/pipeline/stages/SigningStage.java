@@ -64,17 +64,17 @@ public class SigningStage implements RequestToRequestPipeline {
         InterruptMonitor.checkInterrupted();
         // TODO: Add unit tests for SRA signing logic.
         if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
-            return sraSignRequest(request, context);
+            return sraSignRequest(request,
+                                  context,
+                                  context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
         }
         return signRequest(request, context);
     }
 
-    private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
+    private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request,
+                                                                   RequestExecutionContext context,
+                                                                   SelectedAuthScheme<T> selectedAuthScheme) {
         updateInterceptorContext(request, context.executionContext());
-
-        ExecutionAttributes executionAttributes = context.executionAttributes();
-        SelectedAuthScheme<T> selectedAuthScheme =
-            (SelectedAuthScheme<T>) executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
 
         if (!shouldSign(selectedAuthScheme)) {
             return request;
@@ -82,11 +82,11 @@ public class SigningStage implements RequestToRequestPipeline {
 
         Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
             () -> {
-                CompletableFuture<T> identityFuture =
-                    (CompletableFuture<T>) executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY);
+                CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
+                T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
 
                 SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
-                    .builder(CompletableFutureUtils.joinLikeSync(identityFuture))
+                    .builder(identity)
                     .request(request)
                     .payload(request.contentStreamProvider().orElse(null));
                 AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
