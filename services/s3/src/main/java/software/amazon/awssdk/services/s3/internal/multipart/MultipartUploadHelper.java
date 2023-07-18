@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.internal.async.SplittingPublisher;
+import software.amazon.awssdk.core.async.SplitAsyncRequestBodyResponse;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -169,26 +169,26 @@ public final class MultipartUploadHelper {
                                                            CompletableFuture<PutObjectResponse> returnFuture,
                                                            Collection<CompletableFuture<CompletedPart>> futures) {
 
-        CompletableFuture<Void> splittingPublisherFuture = new CompletableFuture<>();
+
 
         AsyncRequestBody asyncRequestBody = mpuRequestContext.request.right();
-        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
-                                                                  .asyncRequestBody(asyncRequestBody)
-                                                                  .chunkSizeInBytes(mpuRequestContext.partSize)
-                                                                  .maxMemoryUsageInBytes(maxMemoryUsageInBytes)
-                                                                  .resultFuture(splittingPublisherFuture)
-                                                                  .build();
 
-        splittingPublisher.map(new BodyToRequestConverter(mpuRequestContext.request.left(), mpuRequestContext.uploadId))
-                          .subscribe(pair -> sendIndividualUploadPartRequest(mpuRequestContext.uploadId,
-                                                                             completedParts,
-                                                                             futures,
-                                                                             pair,
-                                                                             splittingPublisherFuture))
-                          .exceptionally(throwable -> {
-                              returnFuture.completeExceptionally(throwable);
-                              return null;
-                          });
+        SplitAsyncRequestBodyResponse result = asyncRequestBody.split(mpuRequestContext.partSize, maxMemoryUsageInBytes);
+
+        CompletableFuture<Void> splittingPublisherFuture = result.future();
+
+        result.asyncRequestBodyPublisher()
+              .map(new BodyToRequestConverter(mpuRequestContext.request.left(),
+                                              mpuRequestContext.uploadId))
+              .subscribe(pair -> sendIndividualUploadPartRequest(mpuRequestContext.uploadId,
+                                                                 completedParts,
+                                                                 futures,
+                                                                 pair,
+                                                                 splittingPublisherFuture))
+              .exceptionally(throwable -> {
+                  returnFuture.completeExceptionally(throwable);
+                  return null;
+              });
         return splittingPublisherFuture;
     }
 

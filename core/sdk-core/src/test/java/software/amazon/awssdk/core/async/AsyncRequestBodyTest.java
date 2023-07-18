@@ -15,31 +15,23 @@
 
 package software.amazon.awssdk.core.async;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import org.assertj.core.util.Lists;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.reactivestreams.Publisher;
@@ -47,7 +39,6 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.StringInputStream;
 
 @RunWith(Parameterized.class)
 public class AsyncRequestBodyTest {
@@ -176,5 +167,26 @@ public class AsyncRequestBodyTest {
         }
         ByteBuffer publishedBb = Flowable.fromPublisher(body).toList().blockingGet().get(0);
         assertThat(BinaryUtils.copyAllBytesFrom(publishedBb)).isEqualTo(original);
+    }
+
+    @Test
+    public void split_nonPositiveInput_shouldThrowException() {
+        AsyncRequestBody body = AsyncRequestBody.fromString("test");
+        assertThatThrownBy(() -> body.split(0, 4)).hasMessageContaining("must be positive");
+        assertThatThrownBy(() -> body.split(-1, 4)).hasMessageContaining("must be positive");
+        assertThatThrownBy(() -> body.split(5, 0)).hasMessageContaining("must be positive");
+        assertThatThrownBy(() -> body.split(5, -1)).hasMessageContaining("must be positive");
+    }
+
+    @Test
+    public void split_contentUnknownMaxMemorySmallerThanChunkSize_shouldThrowException() {
+        AsyncRequestBody body = AsyncRequestBody.fromPublisher(new Publisher<ByteBuffer>() {
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+
+            }
+        });
+        assertThatThrownBy(() -> body.split(10, 4))
+            .hasMessageContaining("must be larger than or equal");
     }
 }
