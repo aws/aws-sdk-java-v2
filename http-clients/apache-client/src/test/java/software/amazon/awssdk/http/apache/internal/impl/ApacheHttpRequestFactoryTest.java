@@ -71,7 +71,7 @@ public class ApacheHttpRequestFactoryTest {
     }
 
     @Test
-    public void requestBase_putRequestWithTransferEncodingChunked_isChunked_isWrapped_doesNotIncludeHeader() {
+    public void putRequest_withTransferEncodingChunked_isWrappedWithChunkedEntityAndDoesNotIncludeHeader() {
         SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
                                                   .uri(URI.create("http://localhost:12345/"))
                                                   .method(SdkHttpMethod.PUT)
