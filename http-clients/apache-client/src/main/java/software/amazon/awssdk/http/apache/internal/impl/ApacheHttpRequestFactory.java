@@ -38,7 +38,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.internal.ApacheChunkedHttpEntity;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.RepeatableInputStreamRequestEntity;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
@@ -154,11 +153,9 @@ public class ApacheHttpRequestFactory {
          */
         if (request.contentStreamProvider().isPresent()) {
             HttpEntity entity = new RepeatableInputStreamRequestEntity(request);
-            if (!request.httpRequest().firstMatchingHeader(HttpHeaders.CONTENT_LENGTH).isPresent()) {
+            boolean notChunked = !request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED);
+            if (!request.httpRequest().firstMatchingHeader(HttpHeaders.CONTENT_LENGTH).isPresent() && notChunked) {
                 entity = ApacheUtils.newBufferedHttpEntity(entity);
-            }
-            if (request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED)) {
-                entity = new ApacheChunkedHttpEntity(entity);
             }
             entityEnclosingRequest.setEntity(entity);
         }

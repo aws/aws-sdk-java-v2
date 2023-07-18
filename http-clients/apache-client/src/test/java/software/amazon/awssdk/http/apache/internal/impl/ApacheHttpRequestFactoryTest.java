@@ -30,13 +30,14 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.internal.ApacheChunkedHttpEntity;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
+import software.amazon.awssdk.http.apache.internal.RepeatableInputStreamRequestEntity;
 
 public class ApacheHttpRequestFactoryTest {
 
@@ -71,7 +72,7 @@ public class ApacheHttpRequestFactoryTest {
     }
 
     @Test
-    public void putRequest_withTransferEncodingChunked_isWrappedWithChunkedEntityAndDoesNotIncludeHeader() {
+    public void putRequest_withTransferEncodingChunked_isChunkedAndDoesNotIncludeHeader() {
         SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
                                                   .uri(URI.create("http://localhost:12345/"))
                                                   .method(SdkHttpMethod.PUT)
@@ -89,7 +90,8 @@ public class ApacheHttpRequestFactoryTest {
         HttpEntityEnclosingRequestBase enclosingRequest = (HttpEntityEnclosingRequestBase) result;
         HttpEntity httpEntity = enclosingRequest.getEntity();
         assertThat(httpEntity.isChunked()).isTrue();
-        assertThat(httpEntity).isInstanceOf(ApacheChunkedHttpEntity.class);
+        assertThat(httpEntity).isNotInstanceOf(BufferedHttpEntity.class);
+        assertThat(httpEntity).isInstanceOf(RepeatableInputStreamRequestEntity.class);
     }
 
     @Test
