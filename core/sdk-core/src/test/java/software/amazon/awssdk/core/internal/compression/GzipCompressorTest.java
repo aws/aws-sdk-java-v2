@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 import org.junit.Test;
-import software.amazon.awssdk.core.compression.Compressor;
 
 public class GzipCompressorTest {
     private static final Compressor gzipCompressor = new GzipCompressor();

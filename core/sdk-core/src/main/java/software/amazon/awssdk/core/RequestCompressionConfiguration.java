@@ -98,7 +98,8 @@ public final class RequestCompressionConfiguration implements ToCopyableBuilder<
         Builder requestCompressionEnabled(Boolean requestCompressionEnabled);
 
         /**
-         * Configures the minimum compression threshold, inclusive, in bytes. The default value is 10_240. The value must be
+         * Configures the minimum compression threshold, inclusive, in bytes. A request whose size is less than the threshold
+         * will not be compressed, even if the compression trait is present. The default value is 10_240. The value must be
          * non-negative and no greater than 10_485_760.
          *
          * @param minimumCompressionThresholdInBytes

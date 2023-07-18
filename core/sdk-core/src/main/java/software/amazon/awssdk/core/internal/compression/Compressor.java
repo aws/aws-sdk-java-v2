@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.compression;
+package software.amazon.awssdk.core.internal.compression;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;

@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.compression.Compressor;
 
 @SdkInternalApi
 public final class GzipCompressor implements Compressor {

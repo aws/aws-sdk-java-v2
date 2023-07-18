@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.compression;
+package software.amazon.awssdk.core.internal.compression;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +21,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.utils.Validate;
 
 /**

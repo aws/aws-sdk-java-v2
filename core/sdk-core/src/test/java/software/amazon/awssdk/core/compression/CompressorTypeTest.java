@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.internal.compression.CompressorType;
 
 public class CompressorTypeTest {
 
