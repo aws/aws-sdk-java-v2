@@ -34,6 +34,7 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -437,6 +438,7 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(builderMethod());
                 methodSpecs.add(serializableBuilderClass());
                 methodSpecs.addAll(memberGetters());
+                methodSpecs.addAll(retryableOverrides());
                 break;
             default:
                 methodSpecs.addAll(addModifier(memberGetters(), FINAL));
@@ -687,6 +689,28 @@ public class AwsServiceModel implements ClassSpec {
     private CodeBlock getterStatement(MemberModel model) {
         VariableModel modelVariable = model.getVariable();
         return CodeBlock.of("return $N;", modelVariable.getVariableName());
+    }
+
+    private List<MethodSpec> retryableOverrides() {
+        if (shapeModel.isRetryable()) {
+            MethodSpec isRetryable = MethodSpec.methodBuilder("isRetryableException")
+                                               .addAnnotation(Override.class)
+                                               .addModifiers(PUBLIC)
+                                               .returns(TypeName.BOOLEAN)
+                                               .addStatement("return true")
+                                               .build();
+            if (shapeModel.isThrottling()) {
+                MethodSpec isThrottling = MethodSpec.methodBuilder("isThrottlingException")
+                                                   .addAnnotation(Override.class)
+                                                   .addModifiers(PUBLIC)
+                                                   .returns(TypeName.BOOLEAN)
+                                                   .addStatement("return true")
+                                                   .build();
+                return Arrays.asList(isRetryable, isThrottling);
+            }
+            return Arrays.asList(isRetryable);
+        }
+        return emptyList();
     }
 
     private List<TypeSpec> nestedModelClassTypes() {

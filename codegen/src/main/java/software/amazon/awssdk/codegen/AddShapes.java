@@ -87,6 +87,8 @@ abstract class AddShapes {
         shapeModel.withXmlNamespace(shape.getXmlNamespace());
         shapeModel.withIsUnion(shape.isUnion());
         shapeModel.withIsFault(shape.isFault());
+        shapeModel.withIsRetryable(shape.isRetryable());
+        shapeModel.withIsThrottling(shape.isThrottling());
 
         boolean hasHeaderMember = false;
         boolean hasStatusCodeMember = false;

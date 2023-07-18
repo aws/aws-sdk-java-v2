@@ -44,9 +44,10 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
         // Java shape models, to be constructed
         Map<String, ShapeModel> javaShapes = new HashMap<>();
 
-        for (Map.Entry<String, Shape> shape : getServiceModel().getShapes().entrySet()) {
-            if (shape.getValue().isException()) {
-                String errorShapeName = shape.getKey();
+        for (Map.Entry<String, Shape> kvp : getServiceModel().getShapes().entrySet()) {
+            if (kvp.getValue().isException()) {
+                Shape shape = kvp.getValue();
+                String errorShapeName = kvp.getKey();
                 String javaClassName = getNamingStrategy().getExceptionName(errorShapeName);
 
                 ShapeModel exceptionShapeModel = generateShapeModel(javaClassName,
@@ -55,8 +56,10 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
                 exceptionShapeModel.setType(ShapeType.Exception.getValue());
                 exceptionShapeModel.setErrorCode(getErrorCode(errorShapeName));
                 exceptionShapeModel.setHttpStatusCode(getHttpStatusCode(errorShapeName));
+                exceptionShapeModel.withIsRetryable(shape.isRetryable());
+                exceptionShapeModel.withIsThrottling(shape.isThrottling());
                 if (exceptionShapeModel.getDocumentation() == null) {
-                    exceptionShapeModel.setDocumentation(shape.getValue().getDocumentation());
+                    exceptionShapeModel.setDocumentation(shape.getDocumentation());
                 }
 
                 javaShapes.put(javaClassName, exceptionShapeModel);
