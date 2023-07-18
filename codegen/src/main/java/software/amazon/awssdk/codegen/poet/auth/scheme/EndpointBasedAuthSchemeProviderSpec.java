@@ -113,7 +113,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                      endpointRulesSpecUtils.parametersClassName());
 
         parameters().forEach((name, model) -> {
-            if (authSchemeSpecUtils.includeParam(name)) {
+            if (authSchemeSpecUtils.includeParamForProvider(name)) {
                 spec.addCode(".$1L(params.$1L())\n", endpointRulesSpecUtils.paramMethodName(name));
             }
         });

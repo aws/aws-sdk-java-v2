@@ -68,34 +68,64 @@ public class AuthSchemeSpecTest {
                     .build(),
             // query-endpoint-auth-params
             TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
                     .classSpecProvider(AuthSchemeProviderSpec::new)
                     .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("provider")
                     .build(),
+            // Endpoint based AuthScheme provider WITH allow list
+            // - Endpoint Provider
             TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
-                    .classSpecProvider(AuthSchemeParamsSpec::new)
-                    .caseName("query-endpoint-auth-params")
-                    .outputFileSuffix("params")
-                    .build(),
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
                     .classSpecProvider(EndpointBasedAuthSchemeProviderSpec::new)
                     .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("endpoint-provider")
                     .build(),
+            // - Modeled provider
             TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("modeled-provider")
                     .build(),
+            // Endpoint based AuthScheme provider WITHOUT allow list
+            // - Endpoint Provider
             TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithoutAllowList)
+                    .classSpecProvider(EndpointBasedAuthSchemeProviderSpec::new)
+                    .caseName("query-endpoint-auth-params")
+                    .outputFileSuffix("endpoint-provider-without-allowlist")
+                    .build(),
+            // Auth scheme params from endpoint WITH allow list, MUST include ONLY the params in the allow list.
+            // - Interface
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
+                    .classSpecProvider(AuthSchemeParamsSpec::new)
+                    .caseName("query-endpoint-auth-params")
+                    .outputFileSuffix("params-with-allowlist")
+                    .build(),
+            // - Implementation
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
                     .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
                     .caseName("query-endpoint-auth-params")
-                    .outputFileSuffix("default-params")
+                    .outputFileSuffix("default-params-with-allowlist")
+                    .build(),
+            // Auth scheme params from endpoint WITHOUT allow list, it MUST include all the endpoint params except for the
+            // default params.
+            // - Interface
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithoutAllowList)
+                    .classSpecProvider(AuthSchemeParamsSpec::new)
+                    .caseName("query-endpoint-auth-params")
+                    .outputFileSuffix("params-without-allowlist")
+                    .build(),
+            // - Implementation
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithoutAllowList)
+                    .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
+                    .caseName("query-endpoint-auth-params")
+                    .outputFileSuffix("default-params-without-allowlist")
                     .build(),
             // Granular auth
             TestCase.builder()
