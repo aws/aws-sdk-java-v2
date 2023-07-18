@@ -16,13 +16,13 @@
 package software.amazon.awssdk.http.auth.aws.crt;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.aws.crt.internal.DefaultAwsCrtS3V4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
  * An {@link HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}),
  * specifically for S3-CRT.
+ * TODO: Delete this interface once auth-scheme is cleaned up.
  */
 @SdkPublicApi
 public interface AwsCrtS3V4aHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
@@ -33,6 +33,6 @@ public interface AwsCrtS3V4aHttpSigner extends HttpSigner<AwsCredentialsIdentity
      * @return AwsCrtS3V4aHttpSigner
      */
     static AwsCrtS3V4aHttpSigner create() {
-        return new DefaultAwsCrtS3V4aHttpSigner();
+        return null;
     }
 }

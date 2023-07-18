@@ -56,11 +56,11 @@ interface AwsV4PresignedHttpProperties extends AwsV4HttpProperties {
 
     final class AwsV4PresignedHttpPropertiesImpl implements AwsV4PresignedHttpProperties {
         private final Duration expirationDuration;
-        private final AwsV4HttpProperties v4HttpProperties;
+        private final AwsV4HttpProperties v4Properties;
 
         private AwsV4PresignedHttpPropertiesImpl(Duration expirationDuration, AwsV4HttpProperties v4HttpProperties) {
             this.expirationDuration = expirationDuration;
-            this.v4HttpProperties = v4HttpProperties;
+            this.v4Properties = v4HttpProperties;
         }
 
         @Override
@@ -70,37 +70,37 @@ interface AwsV4PresignedHttpProperties extends AwsV4HttpProperties {
 
         @Override
         public AwsCredentialsIdentity getCredentials() {
-            return v4HttpProperties.getCredentials();
+            return v4Properties.getCredentials();
         }
 
         @Override
         public CredentialScope getCredentialScope() {
-            return v4HttpProperties.getCredentialScope();
+            return v4Properties.getCredentialScope();
         }
 
         @Override
         public Clock getSigningClock() {
-            return v4HttpProperties.getSigningClock();
+            return v4Properties.getSigningClock();
         }
 
         @Override
         public ChecksumAlgorithm getChecksumAlgorithm() {
-            return v4HttpProperties.getChecksumAlgorithm();
+            return v4Properties.getChecksumAlgorithm();
         }
 
         @Override
         public String getChecksumHeader() {
-            return v4HttpProperties.getChecksumHeader();
+            return v4Properties.getChecksumHeader();
         }
 
         @Override
         public boolean shouldDoubleUrlEncode() {
-            return v4HttpProperties.shouldDoubleUrlEncode();
+            return v4Properties.shouldDoubleUrlEncode();
         }
 
         @Override
         public boolean shouldNormalizePath() {
-            return v4HttpProperties.shouldNormalizePath();
+            return v4Properties.shouldNormalizePath();
         }
     }
 }
