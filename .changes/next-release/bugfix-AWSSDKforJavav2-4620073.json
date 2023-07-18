@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Handle Temporary redirect error 307 when client configured in us-east-1 accesses cross region."
+}
