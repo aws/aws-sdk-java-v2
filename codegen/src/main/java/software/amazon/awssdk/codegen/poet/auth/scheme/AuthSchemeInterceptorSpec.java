@@ -26,6 +26,7 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -157,7 +159,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
             builder.beginControlFlow("if (authOption.schemeId().equals($S))", SMITHY_NO_AUTH);
             {
                 addLogDebugDiscardedOptions(builder);
-                builder.addStatement("return new $T(null, null, authOption)", SelectedAuthScheme.class)
+                builder.addStatement("return new $T<>(null, null, authOption)", SelectedAuthScheme.class)
                        .endControlFlow();
             }
             builder.addStatement("$T authScheme = authSchemes.get(authOption.schemeId())", wildcardAuthScheme())
@@ -214,7 +216,15 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                    .addStatement("return null")
                    .endControlFlow();
         }
-        builder.addStatement("return new $T<>(identityProvider, authScheme.signer(), authOption)", SelectedAuthScheme.class);
+
+        builder.addStatement("$T.Builder identityRequestBuilder = $T.builder()",
+                             ResolveIdentityRequest.class,
+                             ResolveIdentityRequest.class);
+        builder.addStatement("authOption.forEachIdentityProperty(identityRequestBuilder::putProperty)");
+        builder.addStatement("$T identity = identityProvider.resolveIdentity(identityRequestBuilder.build())",
+                             namedIdentityFuture());
+
+        builder.addStatement("return new $T<>(identity, authScheme.signer(), authOption)", SelectedAuthScheme.class);
         return builder.build();
     }
 
@@ -232,6 +242,11 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
     // IdentityProvider<T>
     private TypeName namedIdentityProvider() {
         return ParameterizedTypeName.get(ClassName.get(IdentityProvider.class), TypeVariableName.get("T"));
+    }
+
+    private TypeName namedIdentityFuture() {
+        return ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                                         WildcardTypeName.subtypeOf(TypeVariableName.get("T")));
     }
 
     // AuthScheme<T>
