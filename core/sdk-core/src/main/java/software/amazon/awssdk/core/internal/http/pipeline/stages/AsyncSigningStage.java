@@ -27,7 +27,6 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.AsyncSigner;
@@ -43,7 +42,6 @@ import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
 public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
@@ -80,25 +78,34 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         }
 
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
-        CompletableFuture<SdkHttpFullRequest> signedRequestFuture = identityFuture.thenCompose((T identity) -> {
-            Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
-                () -> doSraSign(request, context, selectedAuthScheme, identity));
-            context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
-            return CompletableFuture.completedFuture(measuredSign.left());
-        });
+        return identityFuture.thenCompose(identity -> {
+            long signingStart = System.nanoTime();
 
-        return signedRequestFuture;
+            CompletableFuture<SdkHttpFullRequest> signedRequestFuture = doSraSign(request, context, selectedAuthScheme, identity);
+
+            signedRequestFuture.whenComplete((r, t) -> {
+                context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION,
+                                                              Duration.ofNanos(System.nanoTime() - signingStart));
+            });
+
+            return signedRequestFuture.thenApply(r -> {
+                // TODO: the below updates the result in interceptor context, but if signAsync is called the asyncRequestBody
+                //  could also be different. Should it also be updated in InterceptorContext?
+                //  executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.asyncRequestBody(...))).
+                //  This is NOT done in current non-SRA code.
+                updateInterceptorContext(r, context.executionContext());
+                return r;
+            });
+        });
     }
 
-    // TODO: This will return a CompletableFuture, when we change signAsync() to return a CompletableFuture
-    private <T extends Identity> SdkHttpFullRequest doSraSign(SdkHttpFullRequest request,
-                                                              RequestExecutionContext context,
-                                                              SelectedAuthScheme<T> selectedAuthScheme,
-                                                              T identity) {
+    private <T extends Identity> CompletableFuture<SdkHttpFullRequest> doSraSign(SdkHttpFullRequest request,
+                                                                                 RequestExecutionContext context,
+                                                                                 SelectedAuthScheme<T> selectedAuthScheme,
+                                                                                 T identity) {
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
         HttpSigner<T> signer = selectedAuthScheme.signer();
 
-        SdkHttpFullRequest result;
         if (context.requestProvider() == null) {
             SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
                 .builder(identity)
@@ -107,16 +114,18 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
             authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
             SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
-            result = toSdkHttpFullRequest(signedRequest);
-        } else {
-            AsyncSignRequest.Builder<T> signRequestBuilder = AsyncSignRequest
-                .builder(identity)
-                .request(request)
-                .payload(context.requestProvider());
-            authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+            return CompletableFuture.completedFuture(toSdkHttpFullRequest(signedRequest));
+        }
 
-            AsyncSignedRequest signedRequest = signer.signAsync(signRequestBuilder.build());
-            result = toSdkHttpFullRequest(signedRequest);
+        AsyncSignRequest.Builder<T> signRequestBuilder = AsyncSignRequest
+            .builder(identity)
+            .request(request)
+            .payload(context.requestProvider());
+        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+
+        CompletableFuture<AsyncSignedRequest> signedRequestFuture = signAsync(signer, signRequestBuilder.build());
+        return signedRequestFuture.thenCompose(signedRequest -> {
+            SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
 
             if (signedRequest.payload().isPresent()) {
                 context.requestProvider(AsyncRequestBody.fromPublisher(signedRequest.payload().get()));
@@ -126,15 +135,14 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
                 //  as-is if the signer returned null payload?
                 context.requestProvider(null);
             }
-        }
+            return CompletableFuture.completedFuture(result);
+        });
+    }
 
-        // TODO: the below updates the result in interceptor context, but if signAsync is called the asyncRequestBody
-        //  could also be different. Should it also be updated in InterceptorContext?
-        //  executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.asyncRequestBody(...))).
-        //  This is NOT done in current non-SRA code.
-        updateInterceptorContext(result, context.executionContext());
-
-        return result;
+    // TODO: temporary method since signer.signAsync is not returning CompletableFuture yet
+    private <T extends Identity> CompletableFuture<AsyncSignedRequest> signAsync(HttpSigner<T> signer,
+                                                                                 AsyncSignRequest<T> asyncSignRequest) {
+        return CompletableFuture.completedFuture(signer.signAsync(asyncSignRequest));
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {

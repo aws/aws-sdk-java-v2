@@ -80,26 +80,31 @@ public class SigningStage implements RequestToRequestPipeline {
             return request;
         }
 
+        CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
+        T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
+
         Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
-            () -> {
-                CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
-                T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
-
-                SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
-                    .builder(identity)
-                    .request(request)
-                    .payload(request.contentStreamProvider().orElse(null));
-                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
-                authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
-
-                HttpSigner<T> signer = selectedAuthScheme.signer();
-                SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
-                SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
-                updateInterceptorContext(result, context.executionContext());
-                return result;
-            });
+            () -> doSraSign(request, selectedAuthScheme, identity));
         context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
-        return measuredSign.left();
+
+        SdkHttpFullRequest signedRequest = measuredSign.left();
+        updateInterceptorContext(signedRequest, context.executionContext());
+        return signedRequest;
+    }
+
+    private <T extends Identity> SdkHttpFullRequest doSraSign(SdkHttpFullRequest request,
+                                                              SelectedAuthScheme<T> selectedAuthScheme,
+                                                              T identity) {
+        SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+            .builder(identity)
+            .request(request)
+            .payload(request.contentStreamProvider().orElse(null));
+        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+
+        HttpSigner<T> signer = selectedAuthScheme.signer();
+        SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+        return toSdkHttpFullRequest(signedRequest);
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
