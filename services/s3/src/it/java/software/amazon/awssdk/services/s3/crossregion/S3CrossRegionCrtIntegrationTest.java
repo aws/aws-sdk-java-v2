@@ -34,7 +34,7 @@ public class S3CrossRegionCrtIntegrationTest extends S3CrossRegionAsyncIntegrati
 
     @BeforeAll
     static void setUpClass() {
-        s3 = s3ClientBuilder().region(Region.AP_SOUTH_1).httpClient(ApacheHttpClient.create()).build();
+        s3 = s3ClientBuilder().build();
         createBucket(BUCKET);
     }
 
@@ -48,7 +48,7 @@ public class S3CrossRegionCrtIntegrationTest extends S3CrossRegionAsyncIntegrati
         crossRegionS3Client = S3AsyncClient.crtBuilder()
                                            .region(CROSS_REGION)
                                            .crossRegionAccessEnabled(true)
-                                           .build();
+                                             .build();
     }
     @Override
     protected String bucketName() {
