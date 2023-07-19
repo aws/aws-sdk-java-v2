@@ -74,7 +74,7 @@ public class SigningStage implements RequestToRequestPipeline {
     private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request,
                                                                    RequestExecutionContext context,
                                                                    SelectedAuthScheme<T> selectedAuthScheme) {
-        updateInterceptorContext(request, context.executionContext());
+        updateHttpRequestInInterceptorContext(request, context.executionContext());
 
         if (!shouldSign(selectedAuthScheme)) {
             return request;
@@ -88,7 +88,7 @@ public class SigningStage implements RequestToRequestPipeline {
         context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
 
         SdkHttpFullRequest signedRequest = measuredSign.left();
-        updateInterceptorContext(signedRequest, context.executionContext());
+        updateHttpRequestInInterceptorContext(signedRequest, context.executionContext());
         return signedRequest;
     }
 
@@ -128,7 +128,7 @@ public class SigningStage implements RequestToRequestPipeline {
      * Sign the request if the signer if provided and credentials are present.
      */
     private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
-        updateInterceptorContext(request, context.executionContext());
+        updateHttpRequestInInterceptorContext(request, context.executionContext());
 
         Signer signer = context.signer();
         MetricCollector metricCollector = context.attemptMetricCollector();
@@ -152,7 +152,7 @@ public class SigningStage implements RequestToRequestPipeline {
                         .signAsyncRequestBody(signedRequest, context.requestProvider(), context.executionAttributes());
                 context.requestProvider(transformedRequestProvider);
             }
-            updateInterceptorContext(signedRequest, context.executionContext());
+            updateHttpRequestInInterceptorContext(signedRequest, context.executionContext());
             return signedRequest;
         }
 
@@ -163,7 +163,7 @@ public class SigningStage implements RequestToRequestPipeline {
     /**
      * TODO: Remove when we stop having two copies of the request.
      */
-    private void updateInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
+    private void updateHttpRequestInInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
         executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.httpRequest(request)));
     }
 
