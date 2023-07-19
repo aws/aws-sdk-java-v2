@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Fixed the issue where the position of the ByteBuffer from the request is not honored in NettyNioAsyncHttpClient."
+}

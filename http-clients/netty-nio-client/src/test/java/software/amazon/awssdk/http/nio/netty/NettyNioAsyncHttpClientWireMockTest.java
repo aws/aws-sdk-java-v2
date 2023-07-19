@@ -18,14 +18,17 @@ package software.amazon.awssdk.http.nio.netty;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang3.RandomStringUtils.randomAscii;
 import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,6 +44,7 @@ import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestU
 import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestUtils.makeSimpleRequest;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.Channel;
@@ -55,6 +59,7 @@ import io.netty.handler.ssl.SslProvider;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,6 +85,7 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SimpleHttpContentPublisher;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
@@ -556,6 +562,25 @@ public class NettyNioAsyncHttpClientWireMockTest {
         }
 
         assertThat(channelClosedFuture.get(5, TimeUnit.SECONDS)).isTrue();
+    }
+
+    @Test
+    public void execute_requestByteBufferWithNonZeroPosition_shouldHonor() throws Exception {
+        String body = randomAlphabetic(70);
+        byte[] content = randomAscii(100).getBytes();
+        ByteBuffer requestContent = ByteBuffer.wrap(content);
+        requestContent.position(95);
+        String expected = new String(content, 95, 5);
+
+        URI uri = URI.create("http://localhost:" + mockServer.port());
+        stubFor(post(urlPathEqualTo("/"))
+                    .withRequestBody(equalTo(expected)).willReturn(aResponse().withBody(body)));
+        SdkHttpRequest request = createRequest(uri, "/", expected, SdkHttpMethod.POST, emptyMap());
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+
+        client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(new SimpleHttpContentPublisher(requestContent)).responseHandler(recorder).build());
+        recorder.completeFuture.get(5, TimeUnit.SECONDS);
+        verify(postRequestedFor(urlPathEqualTo("/")).withRequestBody(equalTo(expected)));
     }
 
     // Needs to be a non-anon class in order to spy
