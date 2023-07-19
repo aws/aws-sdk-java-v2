@@ -20,7 +20,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,15 +48,18 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     private static final String TEST_KEY = "testfile.dat";
     private static final int OBJ_SIZE = 19 * 1024 * 1024;
 
-    private static RandomTempFile testFile;
+    private static File testFile;
     private static S3AsyncClient mpuS3Client;
 
     @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
         S3IntegrationTestBase.createBucket(TEST_BUCKET);
+        byte[] CONTENT =
+            RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
 
-        testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
+        testFile = File.createTempFile("SplittingPublisherTest", UUID.randomUUID().toString());
+        Files.write(testFile.toPath(), CONTENT);
         mpuS3Client = new MultipartS3AsyncClient(s3Async);
     }
 
@@ -72,6 +81,21 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
 
         assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
         byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+    }
+
+    @Test
+    @Timeout(value = 30, unit = SECONDS)
+    void putObject_byteAsyncRequestBody_objectSentCorrectly() throws Exception {
+        byte[] bytes = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
+        AsyncRequestBody body = AsyncRequestBody.fromBytes(bytes);
+        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
+
+        ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                                               ResponseTransformer.toInputStream());
+
+        assertThat(objContent.response().contentLength()).isEqualTo(OBJ_SIZE);
+        byte[] expectedSum = ChecksumUtils.computeCheckSum(new ByteArrayInputStream(bytes));
         assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
     }
 
