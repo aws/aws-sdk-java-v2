@@ -445,7 +445,7 @@ public final class NettyRequestExecutor {
 
                     try {
                         int newLimit = clampedBufferLimit(contentBytes.remaining());
-                        contentBytes.limit(newLimit);
+                        contentBytes.limit(contentBytes.position() + newLimit);
                         ByteBuf contentByteBuf = Unpooled.wrappedBuffer(contentBytes);
                         HttpContent content = new DefaultHttpContent(contentByteBuf);
 
