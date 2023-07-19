@@ -12,7 +12,6 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package software.amazon.awssdk.services.database.auth.scheme.internal;
 
 import java.util.ArrayList;
@@ -41,26 +40,21 @@ public final class DefaultDatabaseAuthSchemeProvider implements DatabaseAuthSche
     public List<AuthSchemeOption> resolveAuthScheme(DatabaseAuthSchemeParams params) {
         List<AuthSchemeOption> options = new ArrayList<>();
         switch (params.operation()) {
+        case "GetDatabaseVersion":
+            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#noAuth").build());
+            break;
         case "GetRow":
-        case "GetRowV2":
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
                     .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
             options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
-            break;
-        case "ListRows":
-            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
-            break;
-        case "PutRow":
-            options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
-                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
-                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
+            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#noAuth").build());
             break;
         default:
-            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
                     .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
+            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             break;
         }
         return Collections.unmodifiableList(options);

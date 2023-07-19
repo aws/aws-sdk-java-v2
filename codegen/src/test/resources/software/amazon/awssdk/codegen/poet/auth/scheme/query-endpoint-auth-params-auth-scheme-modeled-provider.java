@@ -27,13 +27,13 @@ import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
-    private static final DefaultQueryAuthSchemeProvider DEFAULT = new DefaultQueryAuthSchemeProvider();
+public final class InternalModeledQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
+    private static final InternalModeledQueryAuthSchemeProvider DEFAULT = new InternalModeledQueryAuthSchemeProvider();
 
-    private DefaultQueryAuthSchemeProvider() {
+    private InternalModeledQueryAuthSchemeProvider() {
     }
 
-    public static DefaultQueryAuthSchemeProvider create() {
+    public static InternalModeledQueryAuthSchemeProvider create() {
         return DEFAULT;
     }
 
@@ -42,7 +42,7 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
         List<AuthSchemeOption> options = new ArrayList<>();
         options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                 .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "query-service")
-                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
         return Collections.unmodifiableList(options);
     }
 }

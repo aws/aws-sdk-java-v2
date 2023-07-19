@@ -56,7 +56,7 @@ public class AuthSchemeSpecTest {
                     .build(),
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModels)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("query")
                     .outputFileSuffix("default-provider")
                     .build(),
@@ -81,9 +81,15 @@ public class AuthSchemeSpecTest {
                     .build(),
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(EndpointBasedAuthSchemeProviderSpec::new)
                     .caseName("query-endpoint-auth-params")
-                    .outputFileSuffix("default-provider")
+                    .outputFileSuffix("endpoint-provider")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
+                    .caseName("query-endpoint-auth-params")
+                    .outputFileSuffix("modeled-provider")
                     .build(),
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
@@ -94,24 +100,40 @@ public class AuthSchemeSpecTest {
             // Granular auth
             TestCase.builder()
                     .modelProvider(ClientTestModels::granularAuthProvidersServiceModels)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("granular")
                     .outputFileSuffix("default-provider")
                     .build(),
             // All operations with auth with the same values
             TestCase.builder()
                     .modelProvider(ClientTestModels::allOperationsWithAuthSameValueServiceModels)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("all-ops-auth-same-value")
                     .outputFileSuffix("default-provider")
                     .build(),
             // All operations with auth with different values
             TestCase.builder()
                     .modelProvider(ClientTestModels::allOperationsWithAuthDifferentValueServiceModels)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("all-ops-auth-different-value")
                     .outputFileSuffix("default-provider")
+                    .build(),
+            // Service with operations with auth none
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::serviceWithNoAuth)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
+                    .caseName("service-with-no-auth")
+                    .outputFileSuffix("default-provider")
+                    .build(),
+            // Service with signature version with the same value as S3
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::serviceMiniS3)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
+                    .caseName("mini-s3")
+                    .outputFileSuffix("default-provider")
                     .build()
+
+
         );
     }
 

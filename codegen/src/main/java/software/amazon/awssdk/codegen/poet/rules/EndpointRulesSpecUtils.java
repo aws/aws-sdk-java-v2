@@ -207,6 +207,10 @@ public class EndpointRulesSpecUtils {
         }
     }
 
+    public Map<String, ParameterModel> parameters() {
+        return intermediateModel.getEndpointRuleSetModel().getParameters();
+    }
+
     public boolean isDeclaredParam(String paramName) {
         Map<String, ParameterModel> parameters = intermediateModel.getEndpointRuleSetModel().getParameters();
         return parameters.containsKey(paramName);
