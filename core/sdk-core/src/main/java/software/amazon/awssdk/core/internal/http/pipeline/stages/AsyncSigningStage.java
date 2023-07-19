@@ -89,10 +89,6 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
             });
 
             return signedRequestFuture.thenApply(r -> {
-                // TODO: the below updates the result in interceptor context, but if signAsync is called the asyncRequestBody
-                //  could also be different. Should it also be updated in InterceptorContext?
-                //  executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.asyncRequestBody(...))).
-                //  This is NOT done in current non-SRA code.
                 updateHttpRequestInInterceptorContext(r, context.executionContext());
                 return r;
             });
