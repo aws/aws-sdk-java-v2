@@ -126,17 +126,20 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         CompletableFuture<AsyncSignedRequest> signedRequestFuture = signAsync(signer, signRequestBuilder.build());
         return signedRequestFuture.thenCompose(signedRequest -> {
             SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
-
-            if (signedRequest.payload().isPresent()) {
-                context.requestProvider(AsyncRequestBody.fromPublisher(signedRequest.payload().get()));
-            } else {
-                // TODO: to confirm. Seems like it is possible that a request with async payload, can go through
-                //  signAsync and result is no async payload, so better to unset the input async payload than use it
-                //  as-is if the signer returned null payload?
-                context.requestProvider(null);
-            }
+            updateAsyncRequestBodyInContexts(context, signedRequest);
             return CompletableFuture.completedFuture(result);
         });
+    }
+
+    private static void updateAsyncRequestBodyInContexts(RequestExecutionContext context, AsyncSignedRequest signedRequest) {
+        AsyncRequestBody newAsyncRequestBody = signedRequest.payload().isPresent() ?
+                                               AsyncRequestBody.fromPublisher(signedRequest.payload().get()) : null;
+
+        context.requestProvider(newAsyncRequestBody);
+
+        ExecutionContext executionContext = context.executionContext();
+        executionContext.interceptorContext(executionContext.interceptorContext()
+                                                            .copy(b -> b.asyncRequestBody(newAsyncRequestBody)));
     }
 
     // TODO: temporary method since signer.signAsync is not returning CompletableFuture yet
