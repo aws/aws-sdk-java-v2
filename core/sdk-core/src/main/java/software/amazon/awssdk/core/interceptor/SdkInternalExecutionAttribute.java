@@ -110,7 +110,7 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         "AuthSchemes");
 
     /**
-     * The auth schemes available for a request.
+     * The {@link IdentityProviderConfiguration} for a request.
      */
     public static final ExecutionAttribute<IdentityProviderConfiguration> IDENTITY_PROVIDER_CONFIGURATION =
         new ExecutionAttribute<>("IdentityProviderConfiguration");
@@ -118,7 +118,7 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The selected auth scheme for a request.
      */
-    public static final ExecutionAttribute<SelectedAuthScheme> SELECTED_AUTH_SCHEME = new ExecutionAttribute<>(
+    public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME = new ExecutionAttribute<>(
         "SelectedAuthScheme");
 
     private SdkInternalExecutionAttribute() {

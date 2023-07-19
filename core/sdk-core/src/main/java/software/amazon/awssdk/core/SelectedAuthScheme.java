@@ -17,11 +17,11 @@
 
 package software.amazon.awssdk.core;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -30,20 +30,20 @@ import software.amazon.awssdk.utils.Validate;
 @SdkProtectedApi
 public final class SelectedAuthScheme<T extends Identity> {
 
-    private IdentityProvider<T> identityProvider;
+    private CompletableFuture<? extends T> identity;
     private HttpSigner<T> signer;
     private AuthSchemeOption authSchemeOption;
 
-    public SelectedAuthScheme(IdentityProvider<T> identityProvider,
+    public SelectedAuthScheme(CompletableFuture<? extends T> identity,
                               HttpSigner<T> signer,
                               AuthSchemeOption authSchemeOption) {
-        this.identityProvider = Validate.paramNotNull(identityProvider, "identityProvider");
-        this.signer = Validate.paramNotNull(signer, "signer");
+        this.identity = identity;
+        this.signer = signer;
         this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
     }
 
-    public IdentityProvider<T> identityProvider() {
-        return identityProvider;
+    public CompletableFuture<? extends T> identity() {
+        return identity;
     }
 
     public HttpSigner<T> signer() {
