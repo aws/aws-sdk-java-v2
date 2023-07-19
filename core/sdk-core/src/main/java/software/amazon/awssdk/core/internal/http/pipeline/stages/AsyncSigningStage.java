@@ -71,7 +71,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     private <T extends Identity> CompletableFuture<SdkHttpFullRequest> sraSignRequest(SdkHttpFullRequest request,
                                                                                       RequestExecutionContext context,
                                                                                       SelectedAuthScheme<T> selectedAuthScheme) {
-        updateInterceptorContext(request, context.executionContext());
+        updateHttpRequestInInterceptorContext(request, context.executionContext());
 
         if (!shouldSign(selectedAuthScheme)) {
             return CompletableFuture.completedFuture(request);
@@ -93,7 +93,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
                 //  could also be different. Should it also be updated in InterceptorContext?
                 //  executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.asyncRequestBody(...))).
                 //  This is NOT done in current non-SRA code.
-                updateInterceptorContext(r, context.executionContext());
+                updateHttpRequestInInterceptorContext(r, context.executionContext());
                 return r;
             });
         });
@@ -176,7 +176,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
      */
     private CompletableFuture<SdkHttpFullRequest> signRequest(SdkHttpFullRequest request,
                                                               RequestExecutionContext context) {
-        updateInterceptorContext(request, context.executionContext());
+        updateHttpRequestInInterceptorContext(request, context.executionContext());
 
         Signer signer = context.signer();
         MetricCollector metricCollector = context.attemptMetricCollector();
@@ -197,7 +197,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
                             Duration.ofNanos(System.nanoTime() - signingStart)));
 
         return signedRequestFuture.thenApply(r -> {
-            updateInterceptorContext(r, context.executionContext());
+            updateHttpRequestInInterceptorContext(r, context.executionContext());
             return r;
         });
     }
@@ -205,7 +205,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     /**
      * TODO: Remove when we stop having two copies of the request.
      */
-    private void updateInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
+    private void updateHttpRequestInInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
         executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.httpRequest(request)));
     }
 
