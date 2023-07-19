@@ -110,6 +110,7 @@ public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTest
                                         .call();
 
         mockServer.verify(postRequestedFor(urlPathEqualTo("/")).withHeader(TRANSFER_ENCODING, equalTo(CHUNKED)));
+        mockServer.verify(postRequestedFor(urlPathEqualTo("/")).withRequestBody(equalTo("Body")));
     }
 
 
