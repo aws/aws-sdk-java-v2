@@ -13,14 +13,14 @@
 
 package software.amazon.awssdk.services.acm.auth.scheme.internal;
 
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
 
 import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeParams;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeProvider;
