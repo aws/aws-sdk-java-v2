@@ -89,10 +89,13 @@ public final class ContainerCredentialsProvider
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
+                                                  .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
                                                   .build();
         } else {
-            this.credentialsCache = CachedSupplier.builder(this::refreshCredentials).build();
+            this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
+                                                  .cachedValueName(toString())
+                                                  .build();
         }
     }
 

@@ -1,3 +1,66 @@
+# __2.20.105__ __2023-07-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for IamPolicy in new module software.amazon.awssdk:iam-policy-builder, a class to simplify the use of AWS policies.
+    - Updated endpoint and partition metadata.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Allows UpdateEnvironment to update the environment to 0 host capacity. New GetSignedBluinsightsUrl API
+
+## __Amazon CodeGuru Security__
+  - ### Features
+    - Documentation updates for CodeGuru Security.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 API: Update to include Contact Lens Conversational Analytics Metrics
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Regex Validation on the ElasticSearch Engine Version attribute
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Adds support for RACK_5U_C. This is the first AWS Snow Family device designed to meet U.S. Military Ruggedization Standards (MIL-STD-810H) with 208 vCPU device in a portable, compact 5U, half-rack width form-factor.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for Lex Developers to view analytics for their bots.
+
+## __Amazon Translate__
+  - ### Features
+    - Added DOCX word document support to TranslateDocument API
+
+# __2.20.104__ __2023-07-17__
+## __AWS Glue__
+  - ### Features
+    - Adding new supported permission type flags to get-unfiltered endpoints that callers may pass to indicate support for enforcing Lake Formation fine-grained access control on nested column attributes.
+
+## __AWS Lake Formation__
+  - ### Features
+    - Adds supports for ReadOnlyAdmins and AllowFullTableExternalDataAccess. Adds NESTED_PERMISSION and NESTED_CELL_PERMISSION to SUPPORTED_PERMISSION_TYPES enum. Adds CREATE_LF_TAG on catalog resource and ALTER, DROP, and GRANT_WITH_LF_TAG_EXPRESSION on LF Tag resource.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Added major version upgrade option in ModifyDBCluster API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Nitro TPM support on DescribeInstanceTypes
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - This release provides the flexibility to configure what renditions or thumbnail qualities to record when creating recording configuration.
+
+## __CodeArtifact__
+  - ### Features
+    - Doc only update for AWS CodeArtifact
+
 # __2.20.103__ __2023-07-13__
 ## __AWS DataSync__
   - ### Features
