@@ -54,7 +54,7 @@ public final class DefaultAwsV4EventStreamHttpSigner implements BaseAwsV4HttpSig
 
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request)
-        throws UnsupportedOperationException {
+            throws UnsupportedOperationException {
         // synchronous signing is not something this signer should do since it deals with event-streams
         throw new UnsupportedOperationException();
     }

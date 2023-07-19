@@ -83,7 +83,7 @@ public interface BaseAwsCrtV4aHttpSigner<T extends AwsCrtV4aHttpProperties> exte
 
     @Override
     default AsyncSignedRequest signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request)
-        throws UnsupportedOperationException {
+            throws UnsupportedOperationException {
         // There isn't currently a concept of async for crt signers
         throw new UnsupportedOperationException();
     }
