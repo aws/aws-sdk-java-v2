@@ -4,15 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHUNKED_ENCODING;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.PAYLOAD_SIGNING;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SIGNING_CLOCK;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHUNKED_ENCODING;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.PAYLOAD_SIGNING;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.SIGNING_CLOCK;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.AnonymousCredentialsIdentity;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.TickingClock;
-import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncRequest;
-import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
+import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncS3Request;
+import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicS3Request;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,10 +22,10 @@ import java.time.Instant;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.auth.internal.BaseAwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.internal.DefaultAwsS3V4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.internal.io.AwsChunkedEncodingConfig;
-import software.amazon.awssdk.http.auth.internal.AwsV4HeaderHttpSigner;
+import software.amazon.awssdk.http.auth.aws.chunkedencoding.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.http.auth.aws.internal.signer.AwsV4HeaderHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
@@ -48,7 +48,7 @@ public class AwsS3V4HttpSignerTest {
 
     @Test
     public void sign_withBasicRequest_shouldSign() {
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicS3Request(
             AwsCredentialsIdentity.create("akid", "skid"),
             (httpRequest -> {
             }),
@@ -71,7 +71,7 @@ public class AwsS3V4HttpSignerTest {
     public void sign_withEncodedCharacters_shouldNotThrow() {
         URI target = URI.create("https://test.com/%20foo");
 
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicS3Request(
             AwsCredentialsIdentity.create("akid", "skid"),
             (httpRequest -> {
                 httpRequest.uri(target);
@@ -97,7 +97,7 @@ public class AwsS3V4HttpSignerTest {
                 new String(Arrays.copyOfRange(data, 65536, 66560), StandardCharsets.UTF_8) +
                 "\r\n0;chunk-signature=b6c6ea8a5354eaf15b3cb7646744f4275b71ea724fed81ceb9323e279d449df9\r\n\r\n";
 
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicS3Request(
             AwsCredentialsIdentity.create("AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"),
             (httpRequest -> {
                 httpRequest.method(SdkHttpMethod.PUT);
@@ -137,7 +137,7 @@ public class AwsS3V4HttpSignerTest {
 
     @Test
     public void sign_withoutRegionNameProperty_throws() {
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicS3Request(
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
@@ -151,7 +151,7 @@ public class AwsS3V4HttpSignerTest {
 
     @Test
     public void sign_withoutServiceSigningNameProperty_throws() {
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicS3Request(
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),
@@ -165,7 +165,7 @@ public class AwsS3V4HttpSignerTest {
 
     @Test
     public void sign_withSessionCredentials_shouldSignAndAddTokenHeader() {
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicS3Request(
             AwsSessionCredentialsIdentity.create("akid", "skid", "tok"),
             (httpRequest -> {
             }),
@@ -183,7 +183,7 @@ public class AwsS3V4HttpSignerTest {
 
     @Test
     public void sign_withAnonymousCredentials_shouldNotSign() {
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicS3Request(
             new AnonymousCredentialsIdentity(),
             (httpRequest -> {
             }),
@@ -198,7 +198,7 @@ public class AwsS3V4HttpSignerTest {
 
     @Test
     public void signAsync_throwsUnsupportedOperationException() {
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncS3Request(
             AwsCredentialsIdentity.create("access", "secret"),
             (httpRequest -> {
             }),

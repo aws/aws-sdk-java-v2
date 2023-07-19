@@ -29,6 +29,8 @@ import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.verifyEcdsaSign
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.auth.aws.crt.AwsCrtV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.AwsCrtV4aHttpProperties;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.BaseAwsCrtV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;

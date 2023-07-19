@@ -18,14 +18,14 @@ package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 import java.io.IOException;
 import java.io.InputStream;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.http.auth.internal.io.Releasable;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.internal.io.Releasable;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Base class for AWS Java SDK specific {@link InputStream}.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public abstract class SdkInputStream extends InputStream implements Releasable {
     /**
      * Returns the underlying input stream, if any, from the subclass; or null

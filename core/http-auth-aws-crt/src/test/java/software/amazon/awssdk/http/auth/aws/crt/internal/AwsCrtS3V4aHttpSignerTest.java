@@ -27,8 +27,10 @@ import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRe
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.auth.aws.crt.TestUtils;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
-import software.amazon.awssdk.http.auth.aws.internal.io.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.http.auth.aws.chunkedencoding.AwsSignedChunkedEncodingInputStream;
+import software.amazon.awssdk.http.auth.aws.chunkedencoding.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.BaseAwsCrtV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.DefaultAwsCrtS3V4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;

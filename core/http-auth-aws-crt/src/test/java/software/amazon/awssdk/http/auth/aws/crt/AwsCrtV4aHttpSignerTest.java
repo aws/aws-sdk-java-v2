@@ -19,11 +19,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.http.auth.aws.crt.AwsCrtV4aHttpSigner.CHUNKED_ENCODING;
 import static software.amazon.awssdk.http.auth.aws.crt.AwsCrtV4aHttpSigner.PAYLOAD_SIGNING;
 import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRequest;
-import static software.amazon.awssdk.http.auth.aws.crt.internal.DefaultAwsCrtV4aHttpSigner.getDelegate;
+import static software.amazon.awssdk.http.auth.aws.crt.internal.signer.DefaultAwsCrtV4aHttpSigner.getDelegate;
 
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.auth.aws.crt.internal.BaseAwsCrtV4aHttpSigner;
-import software.amazon.awssdk.http.auth.aws.crt.internal.DefaultAwsCrtS3V4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.BaseAwsCrtV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.DefaultAwsCrtS3V4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 

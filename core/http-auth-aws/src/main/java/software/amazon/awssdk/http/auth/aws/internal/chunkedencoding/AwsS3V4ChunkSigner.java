@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
-import static software.amazon.awssdk.http.auth.internal.util.CanonicalRequestV2.getCanonicalHeaders;
-import static software.amazon.awssdk.http.auth.internal.util.CanonicalRequestV2.getCanonicalHeadersString;
-import static software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils.hash;
+import static software.amazon.awssdk.http.auth.aws.util.CanonicalRequestV2.getCanonicalHeaders;
+import static software.amazon.awssdk.http.auth.aws.util.CanonicalRequestV2.getCanonicalHeadersString;
+import static software.amazon.awssdk.http.auth.aws.util.HttpChecksumUtils.hash;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -28,9 +28,10 @@ import java.util.List;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.internal.util.CredentialScope;
-import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
-import software.amazon.awssdk.http.auth.internal.util.SigningAlgorithm;
+import software.amazon.awssdk.http.auth.aws.chunkedencoding.AwsChunkSigner;
+import software.amazon.awssdk.http.auth.aws.internal.util.SigningAlgorithm;
+import software.amazon.awssdk.http.auth.aws.util.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.util.SignerConstant;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Pair;
 

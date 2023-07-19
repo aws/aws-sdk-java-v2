@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
-class DecodedStreamBuffer {
+public final class DecodedStreamBuffer {
     private static final Logger log = Logger.loggerFor(DecodedStreamBuffer.class);
 
     private final byte[] bufferArray;
@@ -28,7 +28,7 @@ class DecodedStreamBuffer {
     private int pos = -1;
     private boolean bufferSizeOverflow;
 
-    DecodedStreamBuffer(int maxBufferSize) {
+    public DecodedStreamBuffer(int maxBufferSize) {
         bufferArray = new byte[maxBufferSize];
         this.maxBufferSize = maxBufferSize;
     }

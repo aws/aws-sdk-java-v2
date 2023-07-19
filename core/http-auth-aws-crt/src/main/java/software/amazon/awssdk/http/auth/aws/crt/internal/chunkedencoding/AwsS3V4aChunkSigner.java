@@ -29,7 +29,7 @@ import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.AwsChunkSigner;
+import software.amazon.awssdk.http.auth.aws.chunkedencoding.AwsChunkSigner;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**

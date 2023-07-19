@@ -18,12 +18,12 @@ package software.amazon.awssdk.http.auth.aws.internal.io;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-class ChunkContentIterator {
+public final class ChunkContentIterator {
 
     private final byte[] bytes;
     private int pos;
 
-    ChunkContentIterator(byte[] bytes) {
+    public ChunkContentIterator(byte[] bytes) {
         this.bytes = bytes.clone();
     }
 

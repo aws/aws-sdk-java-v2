@@ -17,8 +17,8 @@ package software.amazon.awssdk.http.auth.aws.crt;
 
 import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.aws.crt.internal.DefaultAwsCrtV4aHttpSigner;
-import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
+import software.amazon.awssdk.http.auth.aws.checksum.ChecksumAlgorithm;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.DefaultAwsCrtV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
