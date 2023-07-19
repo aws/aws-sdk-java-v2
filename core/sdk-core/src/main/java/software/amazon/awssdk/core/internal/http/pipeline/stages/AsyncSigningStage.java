@@ -43,7 +43,6 @@ import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
@@ -80,54 +79,62 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
             return CompletableFuture.completedFuture(request);
         }
 
-        Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
-            () -> {
-                CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
-                // TODO: Don't use join in async code.
-                T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
+        CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
+        CompletableFuture<SdkHttpFullRequest> signedRequestFuture = identityFuture.thenCompose((T identity) -> {
+            Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
+                () -> doSraSign(request, context, selectedAuthScheme, identity));
+            context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
+            return CompletableFuture.completedFuture(measuredSign.left());
+        });
 
-                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
-                HttpSigner<T> signer = selectedAuthScheme.signer();
+        return signedRequestFuture;
+    }
 
-                SdkHttpFullRequest result;
-                if (context.requestProvider() == null) {
-                    SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
-                        .builder(identity)
-                        .request(request)
-                        .payload(request.contentStreamProvider().orElse(null));
-                    authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+    // TODO: This will return a CompletableFuture, when we change signAsync() to return a CompletableFuture
+    private <T extends Identity> SdkHttpFullRequest doSraSign(SdkHttpFullRequest request,
+                                                              RequestExecutionContext context,
+                                                              SelectedAuthScheme<T> selectedAuthScheme,
+                                                              T identity) {
+        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+        HttpSigner<T> signer = selectedAuthScheme.signer();
 
-                    SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
-                    result = toSdkHttpFullRequest(signedRequest);
-                } else {
-                    AsyncSignRequest.Builder<T> signRequestBuilder = AsyncSignRequest
-                        .builder(identity)
-                        .request(request)
-                        .payload(context.requestProvider());
-                    authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+        SdkHttpFullRequest result;
+        if (context.requestProvider() == null) {
+            SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+                .builder(identity)
+                .request(request)
+                .payload(request.contentStreamProvider().orElse(null));
+            authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
-                    AsyncSignedRequest signedRequest = signer.signAsync(signRequestBuilder.build());
-                    result = toSdkHttpFullRequest(signedRequest);
+            SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+            result = toSdkHttpFullRequest(signedRequest);
+        } else {
+            AsyncSignRequest.Builder<T> signRequestBuilder = AsyncSignRequest
+                .builder(identity)
+                .request(request)
+                .payload(context.requestProvider());
+            authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
-                    if (signedRequest.payload().isPresent()) {
-                        context.requestProvider(AsyncRequestBody.fromPublisher(signedRequest.payload().get()));
-                    } else {
-                        // TODO: to confirm. Seems like it is possible that a request with async payload, can go through
-                        //  signAsync and result is no async payload, so better to unset the input async payload than use it
-                        //  as-is if the signer returned null payload?
-                        context.requestProvider(null);
-                    }
-                }
+            AsyncSignedRequest signedRequest = signer.signAsync(signRequestBuilder.build());
+            result = toSdkHttpFullRequest(signedRequest);
 
-                // TODO: the below updates the result in interceptor context, but if signAsync is called the asyncRequestBody
-                //  could also be different. Should it also be updated in InterceptorContext?
-                //  executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.asyncRequestBody(...))).
-                //  This is NOT done in current non-SRA code.
-                updateInterceptorContext(result, context.executionContext());
-                return result;
-            });
-        context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
-        return CompletableFuture.completedFuture(measuredSign.left());
+            if (signedRequest.payload().isPresent()) {
+                context.requestProvider(AsyncRequestBody.fromPublisher(signedRequest.payload().get()));
+            } else {
+                // TODO: to confirm. Seems like it is possible that a request with async payload, can go through
+                //  signAsync and result is no async payload, so better to unset the input async payload than use it
+                //  as-is if the signer returned null payload?
+                context.requestProvider(null);
+            }
+        }
+
+        // TODO: the below updates the result in interceptor context, but if signAsync is called the asyncRequestBody
+        //  could also be different. Should it also be updated in InterceptorContext?
+        //  executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.asyncRequestBody(...))).
+        //  This is NOT done in current non-SRA code.
+        updateInterceptorContext(result, context.executionContext());
+
+        return result;
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
