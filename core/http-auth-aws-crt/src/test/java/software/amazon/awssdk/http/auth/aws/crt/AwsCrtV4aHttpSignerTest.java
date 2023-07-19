@@ -44,7 +44,7 @@ public class AwsCrtV4aHttpSignerTest {
 
         AwsCrtV4aHttpSigner delegate = getDelegate(signer, request);
 
-        assertThat(delegate.getClass()).isEqualTo(BaseAwsCrtV4aHttpSigner.class);
+        assertThat(delegate.getClass()).isEqualTo(BaseAwsCrtV4aHttpSigner.BaseAwsCrtV4aHttpSignerImpl.class);
     }
 
     @Test
