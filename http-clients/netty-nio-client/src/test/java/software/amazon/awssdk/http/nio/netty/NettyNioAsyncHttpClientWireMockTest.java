@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -572,13 +573,14 @@ public class NettyNioAsyncHttpClientWireMockTest {
         String expected = new String(content, 95, 5);
 
         URI uri = URI.create("http://localhost:" + mockServer.port());
-        stubFor(any(urlPathEqualTo("/"))
+        stubFor(post(urlPathEqualTo("/"))
                     .withRequestBody(equalTo(expected)).willReturn(aResponse().withBody(body)));
         SdkHttpRequest request = createRequest(uri, "/", expected, SdkHttpMethod.POST, emptyMap());
         RecordingResponseHandler recorder = new RecordingResponseHandler();
 
         client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(new SimpleHttpContentPublisher(requestContent)).responseHandler(recorder).build());
         recorder.completeFuture.get(5, TimeUnit.SECONDS);
+        verify(postRequestedFor(urlPathEqualTo("/")).withRequestBody(equalTo(expected)));
     }
 
     // Needs to be a non-anon class in order to spy
