@@ -37,6 +37,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -59,30 +60,31 @@ public final class TransferEncodingChunkedFunctionalTests {
     @Test
     public void apacheClientStreamingOperation_withoutContentLength_addsTransferEncodingDoesNotAddContentLength() {
         stubSuccessfulResponse();
-        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
-                                                              .httpClient(ApacheHttpClient.create())
-                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                              .build();
+        try (ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+                                                                   .httpClient(ApacheHttpClient.builder().build())
+                                                                   .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                                   .build()) {
+            TestContentProvider provider = new TestContentProvider(RandomStringUtils.random(1000).getBytes(StandardCharsets.UTF_8));
+            RequestBody requestBody = RequestBody.fromContentProvider(provider, "binary/octet-stream");
+            client.streamingInputOperationChunkedEncoding(StreamingInputOperationChunkedEncodingRequest.builder().build(), requestBody);
 
-        TestContentProvider provider = new TestContentProvider(RandomStringUtils.random(1000).getBytes(StandardCharsets.UTF_8));
-        RequestBody requestBody = RequestBody.fromContentProvider(provider, "binary/octet-stream");
-        client.streamingInputOperationChunkedEncoding(StreamingInputOperationChunkedEncodingRequest.builder().build(), requestBody);
-
-        verify(postRequestedFor(anyUrl()).withHeader(TRANSFER_ENCODING, equalTo("chunked")));
-        verify(postRequestedFor(anyUrl()).withoutHeader(CONTENT_LENGTH));
+            verify(postRequestedFor(anyUrl()).withHeader(TRANSFER_ENCODING, equalTo("chunked")));
+            verify(postRequestedFor(anyUrl()).withoutHeader(CONTENT_LENGTH));
+        }
     }
 
     @Test
     public void nettyClientStreamingOperation_withoutContentLength_addsTransferEncodingDoesNotAddContentLength() {
         stubSuccessfulResponse();
-        ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
-                                                                        .httpClient(NettyNioAsyncHttpClient.create())
-                                                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                                        .build();
-        client.streamingInputOperationChunkedEncoding(StreamingInputOperationChunkedEncodingRequest.builder().build(),
-                                                      customAsyncRequestBodyWithoutContentLength()).join();
+        try (ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
+                                                                             .httpClient(NettyNioAsyncHttpClient.create())
+                                                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                                             .build()) {
+            client.streamingInputOperationChunkedEncoding(StreamingInputOperationChunkedEncodingRequest.builder().build(),
+                                                          customAsyncRequestBodyWithoutContentLength()).join();
 
-        verify(postRequestedFor(anyUrl()).withHeader(TRANSFER_ENCODING, equalTo("chunked")));
+            verify(postRequestedFor(anyUrl()).withHeader(TRANSFER_ENCODING, equalTo("chunked")));
+        }
     }
 
     private void stubSuccessfulResponse() {
@@ -104,7 +106,7 @@ public final class TransferEncodingChunkedFunctionalTests {
         };
     }
 
-    private static class TestContentProvider implements ContentStreamProvider {
+    private static final class TestContentProvider implements ContentStreamProvider {
         private final byte[] content;
         private final List<CloseTrackingInputStream> createdStreams = new ArrayList<>();
         private CloseTrackingInputStream currentStream;
@@ -124,7 +126,7 @@ public final class TransferEncodingChunkedFunctionalTests {
         }
 
         List<CloseTrackingInputStream> getCreatedStreams() {
-            return createdStreams;
+            return Collections.unmodifiableList(createdStreams);
         }
     }
 

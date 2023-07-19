@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.apache.internal.impl;
 
-import static software.amazon.awssdk.http.Header.CHUNKED;
-import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.net.URI;
@@ -153,8 +151,7 @@ public class ApacheHttpRequestFactory {
          */
         if (request.contentStreamProvider().isPresent()) {
             HttpEntity entity = new RepeatableInputStreamRequestEntity(request);
-            boolean notChunked = !request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED);
-            if (!request.httpRequest().firstMatchingHeader(HttpHeaders.CONTENT_LENGTH).isPresent() && notChunked) {
+            if (!request.httpRequest().firstMatchingHeader(HttpHeaders.CONTENT_LENGTH).isPresent() && !entity.isChunked()) {
                 entity = ApacheUtils.newBufferedHttpEntity(entity);
             }
             entityEnclosingRequest.setEntity(entity);

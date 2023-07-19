@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.mediastoredata;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import io.reactivex.Flowable;
@@ -37,6 +38,9 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -51,6 +55,9 @@ import software.amazon.awssdk.services.mediastoredata.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
+/**
+ * Integration test to verify Transfer-Encoding:chunked functionalities for all supported HTTP clients. Do not delete.
+ */
 public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBase {
     private static final String CONTAINER_NAME = "java-sdk-test-" + Instant.now().toEpochMilli();
     private static MediaStoreClient mediaStoreClient;
@@ -76,18 +83,21 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
                                                    .endpointOverride(uri)
                                                    .credentialsProvider(credentialsProvider)
                                                    .httpClient(ApacheHttpClient.builder().build())
+                                                   .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureTransferEncodingHeaderInterceptor()))
                                                    .build();
 
         syncClientWithUrlConnection= MediaStoreDataClient.builder()
                                                          .endpointOverride(uri)
                                                          .credentialsProvider(credentialsProvider)
                                                          .httpClient(UrlConnectionHttpClient.create())
+                                                         .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureTransferEncodingHeaderInterceptor()))
                                                          .build();
 
         asyncClientWithNetty = MediaStoreDataAsyncClient.builder()
                                                         .endpointOverride(uri)
                                                         .credentialsProvider(getCredentialsProvider())
                                                         .httpClient(NettyNioAsyncHttpClient.create())
+                                                        .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureTransferEncodingHeaderInterceptor()))
                                                         .build();
 
         putObjectRequest = PutObjectRequest.builder()
@@ -102,20 +112,16 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
 
     @AfterAll
     public static void tearDown() throws Exception {
-        syncClientWithApache.deleteObject(deleteObjectRequest);
-        asyncClientWithNetty.deleteObject(deleteObjectRequest);
-
-        // TODO : uncomment once URL Connection client is fixed
-        // syncClientWithUrlConnection.deleteObject(deleteObjectRequest);
-
-        Thread.sleep(10_000);
+        Waiter.run(() -> syncClientWithApache.deleteObject(deleteObjectRequest));
         mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
+        CaptureTransferEncodingHeaderInterceptor.reset();
     }
 
     @Test
     public void apacheClientPutObject_withoutContentLength_sendsSuccessfully() {
         TestContentProvider provider = new TestContentProvider(RandomStringUtils.random(1000).getBytes(StandardCharsets.UTF_8));
         syncClientWithApache.putObject(putObjectRequest, RequestBody.fromContentProvider(provider, "binary/octet-stream"));
+        assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
     }
 
     // TODO : uncomment once URL Connection client is fixed
@@ -123,11 +129,13 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
     public void urlConnectionClientPutObject_withoutContentLength_sendsSuccessfully() {
         TestContentProvider provider = new TestContentProvider(RandomStringUtils.random(1000).getBytes(StandardCharsets.UTF_8));
         syncClientWithUrlConnection.putObject(putObjectRequest, RequestBody.fromContentProvider(provider, "binary/octet-stream"));
+        assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
     }*/
 
     @Test
     public void nettyClientPutObject_withoutContentLength_sendsSuccessfully() {
         asyncClientWithNetty.putObject(putObjectRequest, customAsyncRequestBodyWithoutContentLength()).join();
+        assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
     }
 
     private static Container createContainer() {
@@ -140,6 +148,19 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
         return Waiter.run(() -> mediaStoreClient.describeContainer(r -> r.containerName(CONTAINER_NAME)))
                      .until(r -> ContainerStatus.ACTIVE.equals(r.container().status()))
                      .orFailAfter(Duration.ofMinutes(3));
+    }
+
+    private static class CaptureTransferEncodingHeaderInterceptor implements ExecutionInterceptor {
+        private static boolean isChunked;
+
+        public static void reset() {
+            isChunked = false;
+        }
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            isChunked = context.httpRequest().matchingHeaders("Transfer-Encoding").contains("chunked");
+        }
     }
 
     private AsyncRequestBody customAsyncRequestBodyWithoutContentLength() {
