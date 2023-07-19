@@ -42,9 +42,8 @@ import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
@@ -65,18 +64,17 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
             throws Exception {
         // TODO: Add unit tests for SRA signing logic.
         if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
-            return sraSignRequest(request, context);
+            return sraSignRequest(request,
+                                  context,
+                                  context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
         }
         return signRequest(request, context);
     }
 
     private <T extends Identity> CompletableFuture<SdkHttpFullRequest> sraSignRequest(SdkHttpFullRequest request,
-                                                                                      RequestExecutionContext context) {
+                                                                                      RequestExecutionContext context,
+                                                                                      SelectedAuthScheme<T> selectedAuthScheme) {
         updateInterceptorContext(request, context.executionContext());
-
-        ExecutionAttributes executionAttributes = context.executionAttributes();
-        SelectedAuthScheme<T> selectedAuthScheme =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
 
         if (!shouldSign(selectedAuthScheme)) {
             return CompletableFuture.completedFuture(request);
@@ -84,16 +82,11 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
 
         Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
             () -> {
+                CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
+                // TODO: Don't use join in async code.
+                T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
+
                 AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
-
-                // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based
-                //  endpoints and also to logically separate out identity resolution as its own step.
-                ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
-                authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
-
-                IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
-                T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
-
                 HttpSigner<T> signer = selectedAuthScheme.signer();
 
                 SdkHttpFullRequest result;
