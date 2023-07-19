@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws.util;
 
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,8 +38,6 @@ import software.amazon.awssdk.utils.StringUtils;
 
 @SdkProtectedApi
 public final class HttpChecksumUtils {
-
-    public static final String X_AMZ_TRAILER = "x-amz-trailer";
 
     private HttpChecksumUtils() {
     }

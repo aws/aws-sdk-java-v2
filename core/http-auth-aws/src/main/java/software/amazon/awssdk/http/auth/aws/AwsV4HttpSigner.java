@@ -126,8 +126,6 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
     /**
      * Get a default implementation of a {@link AwsV4HttpSigner}
-     *
-     * @return BaseAwsV4HttpSigner
      */
     static AwsV4HttpSigner create() {
         return new DefaultAwsV4HttpSigner();

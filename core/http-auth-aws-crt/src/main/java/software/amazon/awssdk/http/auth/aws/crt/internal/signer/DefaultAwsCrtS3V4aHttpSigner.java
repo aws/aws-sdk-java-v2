@@ -16,6 +16,9 @@
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.CONTENT_ENCODING;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
 import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 
 import java.nio.charset.StandardCharsets;
@@ -86,10 +89,10 @@ public final class DefaultAwsCrtS3V4aHttpSigner implements BaseAwsCrtV4aHttpSign
         if (properties.shouldSignPayload() && properties.shouldChunkEncode()) {
             boolean hasTrailingChecksum = properties.getChecksumAlgorithm() != null && isNotBlank(properties.getChecksumHeader());
             if (hasTrailingChecksum) {
-                requestBuilder.putHeader("x-amz-trailer", properties.getChecksumHeader());
-                requestBuilder.appendHeader("Content-Encoding", "aws-chunked");
+                requestBuilder.putHeader(X_AMZ_TRAILER, properties.getChecksumHeader());
+                requestBuilder.appendHeader(CONTENT_ENCODING, "aws-chunked");
             }
-            requestBuilder.putHeader("x-amz-decoded-content-length", Long.toString(properties.getContentLength()));
+            requestBuilder.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, Long.toString(properties.getContentLength()));
             long streamContentLength = AwsSignedChunkedEncodingInputStream
                 .calculateStreamContentLength(
                     properties.getContentLength(), AwsS3V4aChunkSigner.getSignatureLength(),

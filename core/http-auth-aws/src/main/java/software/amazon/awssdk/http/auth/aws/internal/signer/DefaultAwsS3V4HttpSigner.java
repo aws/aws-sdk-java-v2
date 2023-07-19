@@ -16,9 +16,12 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.CONTENT_ENCODING;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.UNSIGNED_PAYLOAD;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -134,11 +137,11 @@ public final class DefaultAwsS3V4HttpSigner implements BaseAwsV4HttpSigner<AwsS3
         }
 
         if (properties.shouldSignPayload() && properties.shouldChunkEncode()) {
-            requestBuilder.putHeader("x-amz-decoded-content-length", Long.toString(properties.getContentLength()));
+            requestBuilder.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, Long.toString(properties.getContentLength()));
             if (shouldTrailChecksum) {
-                requestBuilder.putHeader("x-amz-trailer", properties.getChecksumHeader());
+                requestBuilder.putHeader(X_AMZ_TRAILER, properties.getChecksumHeader());
             }
-            requestBuilder.appendHeader("Content-Encoding", "aws-chunked");
+            requestBuilder.appendHeader(CONTENT_ENCODING, "aws-chunked");
             long streamContentLength = AwsSignedChunkedEncodingInputStream
                 .calculateStreamContentLength(
                     properties.getContentLength(), AwsS3V4ChunkSigner.getSignatureLength(),

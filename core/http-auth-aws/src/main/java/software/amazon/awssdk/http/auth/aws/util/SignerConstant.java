@@ -25,11 +25,11 @@ public final class SignerConstant {
 
     public static final String AWS4_SIGNING_ALGORITHM = "AWS4-HMAC-SHA256";
 
-    public static final String AWS4_CHUNK_SIGNING_ALGORITHM = "AWS4-HMAC-SHA256-PAYLOAD";
-
     public static final String X_AMZ_CONTENT_SHA256 = "x-amz-content-sha256";
 
     public static final String AUTHORIZATION = "Authorization";
+
+    public static final String CONTENT_ENCODING = "Content-Encoding";
 
     public static final String X_AMZ_SECURITY_TOKEN = "X-Amz-Security-Token";
 
@@ -44,6 +44,10 @@ public final class SignerConstant {
     public static final String X_AMZ_SIGNATURE = "X-Amz-Signature";
 
     public static final String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
+
+    public static final String X_AMZ_DECODED_CONTENT_LENGTH = "x-amz-decoded-content-length";
+
+    public static final String X_AMZ_TRAILER = "x-amz-trailer";
 
     public static final String HOST = "Host";
 
