@@ -183,7 +183,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         assertThat(computeCheckSum(copiedObject.asByteBuffer())).isEqualTo(computeCheckSum(ByteBuffer.wrap(originalContent)));
     }
 
-    private static byte[] randomBytes(long size) {
+    public static byte[] randomBytes(long size) {
         byte[] bytes = new byte[Math.toIntExact(size)];
         ThreadLocalRandom.current().nextBytes(bytes);
         return bytes;

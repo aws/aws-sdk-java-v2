@@ -100,7 +100,7 @@
       },
       "input":{"shape":"AllocateAddressRequest"},
       "output":{"shape":"AllocateAddressResult"},
-      "documentation":"<p>Allocates an Elastic IP address to your Amazon Web Services account. After you allocate the Elastic IP address you can associate it with an instance or network interface. After you release an Elastic IP address, it is released to the IP address pool and can be allocated to a different Amazon Web Services account.</p> <p>You can allocate an Elastic IP address from an address pool owned by Amazon Web Services or from an address pool created from a public IPv4 address range that you have brought to Amazon Web Services for use with your Amazon Web Services resources using bring your own IP addresses (BYOIP). For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html\">Bring Your Own IP Addresses (BYOIP)</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>[EC2-VPC] If you release an Elastic IP address, you might be able to recover it. You cannot recover an Elastic IP address that you released after it is allocated to another Amazon Web Services account. You cannot recover an Elastic IP address for EC2-Classic. To attempt to recover an Elastic IP address that you released, specify it in this operation.</p> <p>An Elastic IP address is for use either in the EC2-Classic platform or in a VPC. By default, you can allocate 5 Elastic IP addresses for EC2-Classic per Region and 5 Elastic IP addresses for EC2-VPC per Region.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html\">Elastic IP Addresses</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>You can allocate a carrier IP address which is a public IP address from a telecommunication carrier, to a network interface which resides in a subnet in a Wavelength Zone (for example an EC2 instance). </p> <note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note>"
+      "documentation":"<p>Allocates an Elastic IP address to your Amazon Web Services account. After you allocate the Elastic IP address you can associate it with an instance or network interface. After you release an Elastic IP address, it is released to the IP address pool and can be allocated to a different Amazon Web Services account.</p> <p>You can allocate an Elastic IP address from an address pool owned by Amazon Web Services or from an address pool created from a public IPv4 address range that you have brought to Amazon Web Services for use with your Amazon Web Services resources using bring your own IP addresses (BYOIP). For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html\">Bring Your Own IP Addresses (BYOIP)</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>If you release an Elastic IP address, you might be able to recover it. You cannot recover an Elastic IP address that you released after it is allocated to another Amazon Web Services account. To attempt to recover an Elastic IP address that you released, specify it in this operation.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html\">Elastic IP Addresses</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>You can allocate a carrier IP address which is a public IP address from a telecommunication carrier, to a network interface which resides in a subnet in a Wavelength Zone (for example an EC2 instance).</p>"
     },
     "AllocateHosts":{
       "name":"AllocateHosts",
@@ -120,7 +120,7 @@
       },
       "input":{"shape":"AllocateIpamPoolCidrRequest"},
       "output":{"shape":"AllocateIpamPoolCidrResult"},
-      "documentation":"<p>Allocate a CIDR from an IPAM pool. In IPAM, an allocation is a CIDR assignment from an IPAM pool to another IPAM pool or to a resource. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/allocate-cidrs-ipam.html\">Allocate CIDRs</a> in the <i>Amazon VPC IPAM User Guide</i>.</p> <note> <p>This action creates an allocation with strong consistency. The returned CIDR will not overlap with any other allocations from the same pool.</p> </note>"
+      "documentation":"<p>Allocate a CIDR from an IPAM pool. The Region you use should be the IPAM pool locale. The locale is the Amazon Web Services Region where this IPAM pool is available for allocations.</p> <p>In IPAM, an allocation is a CIDR assignment from an IPAM pool to another IPAM pool or to a resource. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/allocate-cidrs-ipam.html\">Allocate CIDRs</a> in the <i>Amazon VPC IPAM User Guide</i>.</p> <note> <p>This action creates an allocation with strong consistency. The returned CIDR will not overlap with any other allocations from the same pool.</p> </note>"
     },
     "ApplySecurityGroupsToClientVpnTargetNetwork":{
       "name":"ApplySecurityGroupsToClientVpnTargetNetwork",
@@ -170,7 +170,7 @@
       },
       "input":{"shape":"AssociateAddressRequest"},
       "output":{"shape":"AssociateAddressResult"},
-      "documentation":"<p>Associates an Elastic IP address, or carrier IP address (for instances that are in subnets in Wavelength Zones) with an instance or a network interface. Before you can use an Elastic IP address, you must allocate it to your account.</p> <p>An Elastic IP address is for use in either the EC2-Classic platform or in a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html\">Elastic IP Addresses</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>[EC2-Classic, VPC in an EC2-VPC-only account] If the Elastic IP address is already associated with a different instance, it is disassociated from that instance and associated with the specified instance. If you associate an Elastic IP address with an instance that has an existing Elastic IP address, the existing address is disassociated from the instance, but remains allocated to your account.</p> <p>[VPC in an EC2-Classic account] If you don't specify a private IP address, the Elastic IP address is associated with the primary IP address. If the Elastic IP address is already associated with a different instance or a network interface, you get an error unless you allow reassociation. You cannot associate an Elastic IP address with an instance or network interface that has an existing Elastic IP address.</p> <p>[Subnets in Wavelength Zones] You can associate an IP address from the telecommunication carrier to the instance or network interface. </p> <p>You cannot associate an Elastic IP address with an interface in a different network border group.</p> <important> <p>This is an idempotent operation. If you perform the operation more than once, Amazon EC2 doesn't return an error, and you may be charged for each time the Elastic IP address is remapped to the same instance. For more information, see the <i>Elastic IP Addresses</i> section of <a href=\"http://aws.amazon.com/ec2/pricing/\">Amazon EC2 Pricing</a>.</p> </important> <note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note>"
+      "documentation":"<p>Associates an Elastic IP address, or carrier IP address (for instances that are in subnets in Wavelength Zones) with an instance or a network interface. Before you can use an Elastic IP address, you must allocate it to your account.</p> <p>If the Elastic IP address is already associated with a different instance, it is disassociated from that instance and associated with the specified instance. If you associate an Elastic IP address with an instance that has an existing Elastic IP address, the existing address is disassociated from the instance, but remains allocated to your account.</p> <p>[Subnets in Wavelength Zones] You can associate an IP address from the telecommunication carrier to the instance or network interface. </p> <p>You cannot associate an Elastic IP address with an interface in a different network border group.</p> <important> <p>This is an idempotent operation. If you perform the operation more than once, Amazon EC2 doesn't return an error, and you may be charged for each time the Elastic IP address is remapped to the same instance. For more information, see the <i>Elastic IP Addresses</i> section of <a href=\"http://aws.amazon.com/ec2/pricing/\">Amazon EC2 Pricing</a>.</p> </important>"
     },
     "AssociateClientVpnTargetNetwork":{
       "name":"AssociateClientVpnTargetNetwork",
@@ -676,7 +676,7 @@
       },
       "input":{"shape":"CreateFleetRequest"},
       "output":{"shape":"CreateFleetResult"},
-      "documentation":"<p>Launches an EC2 Fleet.</p> <p>You can create a single EC2 Fleet that includes multiple launch specifications that vary by instance type, AMI, Availability Zone, or subnet.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet.html\">EC2 Fleet</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Creates an EC2 Fleet that contains the configuration information for On-Demand Instances and Spot Instances. Instances are launched immediately if there is available capacity.</p> <p>A single EC2 Fleet can include multiple launch specifications that vary by instance type, AMI, Availability Zone, or subnet.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet.html\">EC2 Fleet</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "CreateFlowLogs":{
       "name":"CreateFlowLogs",
@@ -707,6 +707,16 @@
       "input":{"shape":"CreateImageRequest"},
       "output":{"shape":"CreateImageResult"},
       "documentation":"<p>Creates an Amazon EBS-backed AMI from an Amazon EBS-backed instance that is either running or stopped.</p> <p>By default, when Amazon EC2 creates the new AMI, it reboots the instance so that it can take snapshots of the attached volumes while data is at rest, in order to ensure a consistent state. You can set the <code>NoReboot</code> parameter to <code>true</code> in the API request, or use the <code>--no-reboot</code> option in the CLI to prevent Amazon EC2 from shutting down and rebooting the instance.</p> <important> <p>If you choose to bypass the shutdown and reboot process by setting the <code>NoReboot</code> parameter to <code>true</code> in the API request, or by using the <code>--no-reboot</code> option in the CLI, we can't guarantee the file system integrity of the created image.</p> </important> <p>If you customized your instance with instance store volumes or Amazon EBS volumes in addition to the root device volume, the new AMI contains block device mapping information for those volumes. When you launch an instance from this new AMI, the instance automatically launches with those additional volumes.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html\">Create an Amazon EBS-backed Linux AMI</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+    },
+    "CreateInstanceConnectEndpoint":{
+      "name":"CreateInstanceConnectEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateInstanceConnectEndpointRequest"},
+      "output":{"shape":"CreateInstanceConnectEndpointResult"},
+      "documentation":"<p>Creates an EC2 Instance Connect Endpoint.</p> <p>An EC2 Instance Connect Endpoint allows you to connect to a resource, without requiring the resource to have a public IPv4 address. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect-Endpoint.html\">Connect to your resources without requiring a public IPv4 address using EC2 Instance Connect Endpoint</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "CreateInstanceEventWindow":{
       "name":"CreateInstanceEventWindow",
@@ -1463,6 +1473,16 @@
       "output":{"shape":"DeleteFpgaImageResult"},
       "documentation":"<p>Deletes the specified Amazon FPGA Image (AFI).</p>"
     },
+    "DeleteInstanceConnectEndpoint":{
+      "name":"DeleteInstanceConnectEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteInstanceConnectEndpointRequest"},
+      "output":{"shape":"DeleteInstanceConnectEndpointResult"},
+      "documentation":"<p>Deletes the specified EC2 Instance Connect Endpoint.</p>"
+    },
     "DeleteInstanceEventWindow":{
       "name":"DeleteInstanceEventWindow",
       "http":{
@@ -2142,7 +2162,7 @@
       },
       "input":{"shape":"DescribeAccountAttributesRequest"},
       "output":{"shape":"DescribeAccountAttributesResult"},
-      "documentation":"<p>Describes attributes of your Amazon Web Services account. The following are the supported account attributes:</p> <ul> <li> <p> <code>supported-platforms</code>: Indicates whether your account can launch instances into EC2-Classic and EC2-VPC, or only into EC2-VPC.</p> </li> <li> <p> <code>default-vpc</code>: The ID of the default VPC for your account, or <code>none</code>.</p> </li> <li> <p> <code>max-instances</code>: This attribute is no longer supported. The returned value does not reflect your actual vCPU limit for running On-Demand Instances. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-on-demand-instances.html#ec2-on-demand-instances-limits\">On-Demand Instance Limits</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </li> <li> <p> <code>vpc-max-security-groups-per-interface</code>: The maximum number of security groups that you can assign to a network interface.</p> </li> <li> <p> <code>max-elastic-ips</code>: The maximum number of Elastic IP addresses that you can allocate for use with EC2-Classic. </p> </li> <li> <p> <code>vpc-max-elastic-ips</code>: The maximum number of Elastic IP addresses that you can allocate for use with EC2-VPC.</p> </li> </ul> <note> <p>We are retiring EC2-Classic on August 15, 2022. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon EC2 User Guide</i>.</p> </note>"
+      "documentation":"<p>Describes attributes of your Amazon Web Services account. The following are the supported account attributes:</p> <ul> <li> <p> <code>default-vpc</code>: The ID of the default VPC for your account, or <code>none</code>.</p> </li> <li> <p> <code>max-instances</code>: This attribute is no longer supported. The returned value does not reflect your actual vCPU limit for running On-Demand Instances. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-on-demand-instances.html#ec2-on-demand-instances-limits\">On-Demand Instance Limits</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </li> <li> <p> <code>max-elastic-ips</code>: The maximum number of Elastic IP addresses that you can allocate.</p> </li> <li> <p> <code>supported-platforms</code>: This attribute is deprecated.</p> </li> <li> <p> <code>vpc-max-elastic-ips</code>: The maximum number of Elastic IP addresses that you can allocate.</p> </li> <li> <p> <code>vpc-max-security-groups-per-interface</code>: The maximum number of security groups that you can assign to a network interface.</p> </li> </ul>"
     },
     "DescribeAddressTransfers":{
       "name":"DescribeAddressTransfers",
@@ -2152,7 +2172,7 @@
       },
       "input":{"shape":"DescribeAddressTransfersRequest"},
       "output":{"shape":"DescribeAddressTransfersResult"},
-      "documentation":"<p>Describes an Elastic IP address transfer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro\">Transfer Elastic IP addresses</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
+      "documentation":"<p>Describes an Elastic IP address transfer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro\">Transfer Elastic IP addresses</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p> <p>When you transfer an Elastic IP address, there is a two-step handshake between the source and transfer Amazon Web Services accounts. When the source account starts the transfer, the transfer account has seven days to accept the Elastic IP address transfer. During those seven days, the source account can view the pending transfer by using this action. After seven days, the transfer expires and ownership of the Elastic IP address returns to the source account. Accepted transfers are visible to the source account for three days after the transfers have been accepted.</p>"
     },
     "DescribeAddresses":{
       "name":"DescribeAddresses",
@@ -2162,7 +2182,7 @@
       },
       "input":{"shape":"DescribeAddressesRequest"},
       "output":{"shape":"DescribeAddressesResult"},
-      "documentation":"<p>Describes the specified Elastic IP addresses or all of your Elastic IP addresses.</p> <p>An Elastic IP address is for use in either the EC2-Classic platform or in a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html\">Elastic IP Addresses</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note>"
+      "documentation":"<p>Describes the specified Elastic IP addresses or all of your Elastic IP addresses.</p>"
     },
     "DescribeAddressesAttribute":{
       "name":"DescribeAddressesAttribute",
@@ -2584,6 +2604,16 @@
       "output":{"shape":"InstanceAttribute"},
       "documentation":"<p>Describes the specified attribute of the specified instance. You can specify only one attribute at a time. Valid attribute values are: <code>instanceType</code> | <code>kernel</code> | <code>ramdisk</code> | <code>userData</code> | <code>disableApiTermination</code> | <code>instanceInitiatedShutdownBehavior</code> | <code>rootDeviceName</code> | <code>blockDeviceMapping</code> | <code>productCodes</code> | <code>sourceDestCheck</code> | <code>groupSet</code> | <code>ebsOptimized</code> | <code>sriovNetSupport</code> </p>"
     },
+    "DescribeInstanceConnectEndpoints":{
+      "name":"DescribeInstanceConnectEndpoints",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeInstanceConnectEndpointsRequest"},
+      "output":{"shape":"DescribeInstanceConnectEndpointsResult"},
+      "documentation":"<p>Describes the specified EC2 Instance Connect Endpoints or all EC2 Instance Connect Endpoints.</p>"
+    },
     "DescribeInstanceCreditSpecifications":{
       "name":"DescribeInstanceCreditSpecifications",
       "http":{
@@ -2832,7 +2862,7 @@
       },
       "input":{"shape":"DescribeMovingAddressesRequest"},
       "output":{"shape":"DescribeMovingAddressesResult"},
-      "documentation":"<p>Describes your Elastic IP addresses that are being moved to the EC2-VPC platform, or that are being restored to the EC2-Classic platform. This request does not return information about any other Elastic IP addresses in your account.</p>"
+      "documentation":"<note> <p>This action is deprecated.</p> </note> <p>Describes your Elastic IP addresses that are being moved from or being restored to the EC2-Classic platform. This request does not return information about any other Elastic IP addresses in your account.</p>"
     },
     "DescribeNatGateways":{
       "name":"DescribeNatGateways",
@@ -3757,7 +3787,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"DisassociateAddressRequest"},
-      "documentation":"<p>Disassociates an Elastic IP address from the instance or network interface it's associated with.</p> <p>An Elastic IP address is for use in either the EC2-Classic platform or in a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html\">Elastic IP Addresses</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note> <p>This is an idempotent operation. If you perform the operation more than once, Amazon EC2 doesn't return an error.</p>"
+      "documentation":"<p>Disassociates an Elastic IP address from the instance or network interface it's associated with.</p> <p>This is an idempotent operation. If you perform the operation more than once, Amazon EC2 doesn't return an error.</p>"
     },
     "DisassociateClientVpnTargetNetwork":{
       "name":"DisassociateClientVpnTargetNetwork",
@@ -4254,7 +4284,7 @@
       },
       "input":{"shape":"GetIpamPoolAllocationsRequest"},
       "output":{"shape":"GetIpamPoolAllocationsResult"},
-      "documentation":"<p>Get a list of all the CIDR allocations in an IPAM pool.</p> <note> <p>If you use this action after <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AllocateIpamPoolCidr.html\">AllocateIpamPoolCidr</a> or <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html\">ReleaseIpamPoolAllocation</a>, note that all EC2 API actions follow an <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/query-api-troubleshooting.html#eventual-consistency\">eventual consistency</a> model.</p> </note>"
+      "documentation":"<p>Get a list of all the CIDR allocations in an IPAM pool. The Region you use should be the IPAM pool locale. The locale is the Amazon Web Services Region where this IPAM pool is available for allocations.</p> <note> <p>If you use this action after <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AllocateIpamPoolCidr.html\">AllocateIpamPoolCidr</a> or <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html\">ReleaseIpamPoolAllocation</a>, note that all EC2 API actions follow an <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/query-api-troubleshooting.html#eventual-consistency\">eventual consistency</a> model.</p> </note>"
     },
     "GetIpamPoolCidrs":{
       "name":"GetIpamPoolCidrs",
@@ -5225,7 +5255,7 @@
       },
       "input":{"shape":"MoveAddressToVpcRequest"},
       "output":{"shape":"MoveAddressToVpcResult"},
-      "documentation":"<p>Moves an Elastic IP address from the EC2-Classic platform to the EC2-VPC platform. The Elastic IP address must be allocated to your account for more than 24 hours, and it must not be associated with an instance. After the Elastic IP address is moved, it is no longer available for use in the EC2-Classic platform, unless you move it back using the <a>RestoreAddressToClassic</a> request. You cannot move an Elastic IP address that was originally allocated for use in the EC2-VPC platform to the EC2-Classic platform.</p> <note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note>"
+      "documentation":"<note> <p>This action is deprecated.</p> </note> <p>Moves an Elastic IP address from the EC2-Classic platform to the EC2-VPC platform. The Elastic IP address must be allocated to your account for more than 24 hours, and it must not be associated with an instance. After the Elastic IP address is moved, it is no longer available for use in the EC2-Classic platform, unless you move it back using the <a>RestoreAddressToClassic</a> request. You cannot move an Elastic IP address that was originally allocated for use in the EC2-VPC platform to the EC2-Classic platform.</p>"
     },
     "MoveByoipCidrToIpam":{
       "name":"MoveByoipCidrToIpam",
@@ -5403,7 +5433,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"ReleaseAddressRequest"},
-      "documentation":"<p>Releases the specified Elastic IP address.</p> <p>[EC2-Classic, default VPC] Releasing an Elastic IP address automatically disassociates it from any instance that it's associated with. To disassociate an Elastic IP address without releasing it, use <a>DisassociateAddress</a>.</p> <note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note> <p>[Nondefault VPC] You must use <a>DisassociateAddress</a> to disassociate the Elastic IP address before you can release it. Otherwise, Amazon EC2 returns an error (<code>InvalidIPAddress.InUse</code>).</p> <p>After releasing an Elastic IP address, it is released to the IP address pool. Be sure to update your DNS records and any servers or devices that communicate with the address. If you attempt to release an Elastic IP address that you already released, you'll get an <code>AuthFailure</code> error if the address is already allocated to another Amazon Web Services account.</p> <p>[EC2-VPC] After you release an Elastic IP address for use in a VPC, you might be able to recover it. For more information, see <a>AllocateAddress</a>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html\">Elastic IP Addresses</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Releases the specified Elastic IP address.</p> <p>[Default VPC] Releasing an Elastic IP address automatically disassociates it from any instance that it's associated with. To disassociate an Elastic IP address without releasing it, use <a>DisassociateAddress</a>.</p> <p>[Nondefault VPC] You must use <a>DisassociateAddress</a> to disassociate the Elastic IP address before you can release it. Otherwise, Amazon EC2 returns an error (<code>InvalidIPAddress.InUse</code>).</p> <p>After releasing an Elastic IP address, it is released to the IP address pool. Be sure to update your DNS records and any servers or devices that communicate with the address. If you attempt to release an Elastic IP address that you already released, you'll get an <code>AuthFailure</code> error if the address is already allocated to another Amazon Web Services account.</p> <p>After you release an Elastic IP address, you might be able to recover it. For more information, see <a>AllocateAddress</a>.</p>"
     },
     "ReleaseHosts":{
       "name":"ReleaseHosts",
@@ -5423,7 +5453,7 @@
       },
       "input":{"shape":"ReleaseIpamPoolAllocationRequest"},
       "output":{"shape":"ReleaseIpamPoolAllocationResult"},
-      "documentation":"<p>Release an allocation within an IPAM pool. You can only use this action to release manual allocations. To remove an allocation for a resource without deleting the resource, set its monitored state to false using <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html\">ModifyIpamResourceCidr</a>. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/release-pool-alloc-ipam.html\">Release an allocation</a> in the <i>Amazon VPC IPAM User Guide</i>. </p> <note> <p>All EC2 API actions follow an <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/query-api-troubleshooting.html#eventual-consistency\">eventual consistency</a> model.</p> </note>"
+      "documentation":"<p>Release an allocation within an IPAM pool. The Region you use should be the IPAM pool locale. The locale is the Amazon Web Services Region where this IPAM pool is available for allocations. You can only use this action to release manual allocations. To remove an allocation for a resource without deleting the resource, set its monitored state to false using <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html\">ModifyIpamResourceCidr</a>. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/release-pool-alloc-ipam.html\">Release an allocation</a> in the <i>Amazon VPC IPAM User Guide</i>. </p> <note> <p>All EC2 API actions follow an <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/query-api-troubleshooting.html#eventual-consistency\">eventual consistency</a> model.</p> </note>"
     },
     "ReplaceIamInstanceProfileAssociation":{
       "name":"ReplaceIamInstanceProfileAssociation",
@@ -5596,7 +5626,7 @@
       },
       "input":{"shape":"RestoreAddressToClassicRequest"},
       "output":{"shape":"RestoreAddressToClassicResult"},
-      "documentation":"<p>Restores an Elastic IP address that was previously moved to the EC2-VPC platform back to the EC2-Classic platform. You cannot move an Elastic IP address that was originally allocated for use in EC2-VPC. The Elastic IP address must not be associated with an instance or network interface.</p> <note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note>"
+      "documentation":"<note> <p>This action is deprecated.</p> </note> <p>Restores an Elastic IP address that was previously moved to the EC2-VPC platform back to the EC2-Classic platform. You cannot move an Elastic IP address that was originally allocated for use in EC2-VPC. The Elastic IP address must not be associated with an instance or network interface.</p>"
     },
     "RestoreImageFromRecycleBin":{
       "name":"RestoreImageFromRecycleBin",
@@ -5775,7 +5805,7 @@
       },
       "input":{"shape":"StopInstancesRequest"},
       "output":{"shape":"StopInstancesResult"},
-      "documentation":"<p>Stops an Amazon EBS-backed instance. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html\">Stop and start your instance</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>You can use the Stop action to hibernate an instance if the instance is <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#enabling-hibernation\">enabled for hibernation</a> and it meets the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites\">hibernation prerequisites</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html\">Hibernate your instance</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>We don't charge usage for a stopped instance, or data transfer fees; however, your root partition Amazon EBS volume remains and continues to persist your data, and you are charged for Amazon EBS volume usage. Every time you start your instance, Amazon EC2 charges a one-minute minimum for instance usage, and thereafter charges per second for instance usage.</p> <p>You can't stop or hibernate instance store-backed instances. You can't use the Stop action to hibernate Spot Instances, but you can specify that Amazon EC2 should hibernate Spot Instances when they are interrupted. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-interruptions.html#hibernate-spot-instances\">Hibernating interrupted Spot Instances</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>When you stop or hibernate an instance, we shut it down. You can restart your instance at any time. Before stopping or hibernating an instance, make sure it is in a state from which it can be restarted. Stopping an instance does not preserve data stored in RAM, but hibernating an instance does preserve data stored in RAM. If an instance cannot hibernate successfully, a normal shutdown occurs.</p> <p>Stopping and hibernating an instance is different to rebooting or terminating it. For example, when you stop or hibernate an instance, the root device and any other devices attached to the instance persist. When you terminate an instance, the root device and any other devices attached during the instance launch are automatically deleted. For more information about the differences between rebooting, stopping, hibernating, and terminating instances, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html\">Instance lifecycle</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>When you stop an instance, we attempt to shut it down forcibly after a short while. If your instance appears stuck in the stopping state after a period of time, there may be an issue with the underlying host computer. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesStopping.html\">Troubleshoot stopping your instance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Stops an Amazon EBS-backed instance. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html\">Stop and start your instance</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>You can use the Stop action to hibernate an instance if the instance is <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enabling-hibernation.html\">enabled for hibernation</a> and it meets the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hibernating-prerequisites.html\">hibernation prerequisites</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html\">Hibernate your instance</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>We don't charge usage for a stopped instance, or data transfer fees; however, your root partition Amazon EBS volume remains and continues to persist your data, and you are charged for Amazon EBS volume usage. Every time you start your instance, Amazon EC2 charges a one-minute minimum for instance usage, and thereafter charges per second for instance usage.</p> <p>You can't stop or hibernate instance store-backed instances. You can't use the Stop action to hibernate Spot Instances, but you can specify that Amazon EC2 should hibernate Spot Instances when they are interrupted. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-interruptions.html#hibernate-spot-instances\">Hibernating interrupted Spot Instances</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>When you stop or hibernate an instance, we shut it down. You can restart your instance at any time. Before stopping or hibernating an instance, make sure it is in a state from which it can be restarted. Stopping an instance does not preserve data stored in RAM, but hibernating an instance does preserve data stored in RAM. If an instance cannot hibernate successfully, a normal shutdown occurs.</p> <p>Stopping and hibernating an instance is different to rebooting or terminating it. For example, when you stop or hibernate an instance, the root device and any other devices attached to the instance persist. When you terminate an instance, the root device and any other devices attached during the instance launch are automatically deleted. For more information about the differences between rebooting, stopping, hibernating, and terminating instances, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html\">Instance lifecycle</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>When you stop an instance, we attempt to shut it down forcibly after a short while. If your instance appears stuck in the stopping state after a period of time, there may be an issue with the underlying host computer. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesStopping.html\">Troubleshoot stopping your instance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "TerminateClientVpnConnections":{
       "name":"TerminateClientVpnConnections",
@@ -6500,17 +6530,17 @@
         },
         "AllocationId":{
           "shape":"String",
-          "documentation":"<p>The ID representing the allocation of the address for use with EC2-VPC.</p>",
+          "documentation":"<p>The ID representing the allocation of the address.</p>",
           "locationName":"allocationId"
         },
         "AssociationId":{
           "shape":"String",
-          "documentation":"<p>The ID representing the association of the address with an instance in a VPC.</p>",
+          "documentation":"<p>The ID representing the association of the address with an instance.</p>",
           "locationName":"associationId"
         },
         "Domain":{
           "shape":"DomainType",
-          "documentation":"<p>Indicates whether this Elastic IP address is for use with instances in EC2-Classic (<code>standard</code>) or instances in a VPC (<code>vpc</code>).</p>",
+          "documentation":"<p>The network (<code>vpc</code>).</p>",
           "locationName":"domain"
         },
         "NetworkInterfaceId":{
@@ -6704,11 +6734,11 @@
       "members":{
         "Domain":{
           "shape":"DomainType",
-          "documentation":"<p>Indicates whether the Elastic IP address is for use with instances in a VPC or instances in EC2-Classic.</p> <p>Default: If the Region supports EC2-Classic, the default is <code>standard</code>. Otherwise, the default is <code>vpc</code>.</p>"
+          "documentation":"<p>The network (<code>vpc</code>).</p>"
         },
         "Address":{
           "shape":"PublicIpAddress",
-          "documentation":"<p>[EC2-VPC] The Elastic IP address to recover or an IPv4 address from an address pool.</p>"
+          "documentation":"<p>The Elastic IP address to recover or an IPv4 address from an address pool.</p>"
         },
         "PublicIpv4Pool":{
           "shape":"Ipv4PoolEc2Id",
@@ -6744,7 +6774,7 @@
         },
         "AllocationId":{
           "shape":"String",
-          "documentation":"<p>[EC2-VPC] The ID that Amazon Web Services assigns to represent the allocation of the Elastic IP address for use with instances in a VPC.</p>",
+          "documentation":"<p>The ID that represents the allocation of the Elastic IP address.</p>",
           "locationName":"allocationId"
         },
         "PublicIpv4Pool":{
@@ -6759,7 +6789,7 @@
         },
         "Domain":{
           "shape":"DomainType",
-          "documentation":"<p>Indicates whether the Elastic IP address is for use with instances in a VPC (<code>vpc</code>) or instances in EC2-Classic (<code>standard</code>).</p>",
+          "documentation":"<p>The network (<code>vpc</code>).</p>",
           "locationName":"domain"
         },
         "CustomerOwnedIp":{
@@ -6774,17 +6804,14 @@
         },
         "CarrierIp":{
           "shape":"String",
-          "documentation":"<p>The carrier IP address. This option is only available for network interfaces which reside in a subnet in a Wavelength Zone (for example an EC2 instance). </p>",
+          "documentation":"<p>The carrier IP address. This option is only available for network interfaces that reside in a subnet in a Wavelength Zone.</p>",
           "locationName":"carrierIp"
         }
       }
     },
     "AllocateHostsRequest":{
       "type":"structure",
-      "required":[
-        "AvailabilityZone",
-        "Quantity"
-      ],
+      "required":["AvailabilityZone"],
       "members":{
         "AutoPlacement":{
           "shape":"AutoPlacement",
@@ -6812,7 +6839,7 @@
         },
         "Quantity":{
           "shape":"Integer",
-          "documentation":"<p>The number of Dedicated Hosts to allocate to your account with these parameters.</p>",
+          "documentation":"<p>The number of Dedicated Hosts to allocate to your account with these parameters. If you are allocating the Dedicated Hosts on an Outpost, and you specify <b>AssetIds</b>, you can omit this parameter. In this case, Amazon EC2 allocates a Dedicated Host on each specified hardware asset. If you specify both <b>AssetIds</b> and <b>Quantity</b>, then the value that you specify for <b>Quantity</b> must be equal to the number of asset IDs specified.</p>",
           "locationName":"quantity"
         },
         "TagSpecifications":{
@@ -6826,11 +6853,16 @@
         },
         "OutpostArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Outpost on which to allocate the Dedicated Host.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Outpost on which to allocate the Dedicated Host. If you specify <b>OutpostArn</b>, you can optionally specify <b>AssetIds</b>.</p> <p>If you are allocating the Dedicated Host in a Region, omit this parameter.</p>"
         },
         "HostMaintenance":{
           "shape":"HostMaintenance",
           "documentation":"<p>Indicates whether to enable or disable host maintenance for the Dedicated Host. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-maintenance.html\">Host maintenance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+        },
+        "AssetIds":{
+          "shape":"AssetIdList",
+          "documentation":"<p>The IDs of the Outpost hardware assets on which to allocate the Dedicated Hosts. Targeting specific hardware assets on an Outpost can help to minimize latency between your workloads. This parameter is supported only if you specify <b>OutpostArn</b>. If you are allocating the Dedicated Hosts in a Region, omit this parameter.</p> <ul> <li> <p>If you specify this parameter, you can omit <b>Quantity</b>. In this case, Amazon EC2 allocates a Dedicated Host on each specified hardware asset.</p> </li> <li> <p>If you specify both <b>AssetIds</b> and <b>Quantity</b>, then the value for <b>Quantity</b> must be equal to the number of asset IDs specified.</p> </li> </ul>",
+          "locationName":"AssetId"
         }
       }
     },
@@ -6939,7 +6971,7 @@
       "type":"string",
       "max":30,
       "min":1,
-      "pattern":"[a-zA-Z0-9\\.\\*]+"
+      "pattern":"[a-zA-Z0-9\\.\\*\\-]+"
     },
     "AllowedInstanceTypeSet":{
       "type":"list",
@@ -7369,6 +7401,11 @@
         "locationName":"item"
       }
     },
+    "AssetId":{"type":"string"},
+    "AssetIdList":{
+      "type":"list",
+      "member":{"shape":"AssetId"}
+    },
     "AssignIpv6AddressesRequest":{
       "type":"structure",
       "required":["NetworkInterfaceId"],
@@ -7536,19 +7573,19 @@
       "members":{
         "AllocationId":{
           "shape":"AllocationId",
-          "documentation":"<p>[EC2-VPC] The allocation ID. This is required for EC2-VPC.</p>"
+          "documentation":"<p>The allocation ID. This is required.</p>"
         },
         "InstanceId":{
           "shape":"InstanceId",
-          "documentation":"<p>The ID of the instance. The instance must have exactly one attached network interface. For EC2-VPC, you can specify either the instance ID or the network interface ID, but not both. For EC2-Classic, you must specify an instance ID and the instance must be in the running state.</p>"
+          "documentation":"<p>The ID of the instance. The instance must have exactly one attached network interface. You can specify either the instance ID or the network interface ID, but not both.</p>"
         },
         "PublicIp":{
           "shape":"EipAllocationPublicIp",
-          "documentation":"<p>[EC2-Classic] The Elastic IP address to associate with the instance. This is required for EC2-Classic.</p>"
+          "documentation":"<p>Deprecated.</p>"
         },
         "AllowReassociation":{
           "shape":"Boolean",
-          "documentation":"<p>[EC2-VPC] For a VPC in an EC2-Classic account, specify true to allow an Elastic IP address that is already associated with an instance or network interface to be reassociated with the specified instance or network interface. Otherwise, the operation fails. In a VPC in an EC2-VPC-only account, reassociation is automatic, therefore you can specify false to ensure the operation fails if the Elastic IP address is already associated with another resource.</p>",
+          "documentation":"<p>Reassociation is automatic, but you can specify false to ensure the operation fails if the Elastic IP address is already associated with another resource.</p>",
           "locationName":"allowReassociation"
         },
         "DryRun":{
@@ -7558,12 +7595,12 @@
         },
         "NetworkInterfaceId":{
           "shape":"NetworkInterfaceId",
-          "documentation":"<p>[EC2-VPC] The ID of the network interface. If the instance has more than one network interface, you must specify a network interface ID.</p> <p>For EC2-VPC, you can specify either the instance ID or the network interface ID, but not both. </p>",
+          "documentation":"<p>The ID of the network interface. If the instance has more than one network interface, you must specify a network interface ID.</p> <p>You can specify either the instance ID or the network interface ID, but not both. </p>",
           "locationName":"networkInterfaceId"
         },
         "PrivateIpAddress":{
           "shape":"String",
-          "documentation":"<p>[EC2-VPC] The primary or secondary private IP address to associate with the Elastic IP address. If no private IP address is specified, the Elastic IP address is associated with the primary private IP address.</p>",
+          "documentation":"<p>The primary or secondary private IP address to associate with the Elastic IP address. If no private IP address is specified, the Elastic IP address is associated with the primary private IP address.</p>",
           "locationName":"privateIpAddress"
         }
       }
@@ -7573,7 +7610,7 @@
       "members":{
         "AssociationId":{
           "shape":"String",
-          "documentation":"<p>[EC2-VPC] The ID that represents the association of the Elastic IP address with an instance.</p>",
+          "documentation":"<p>The ID that represents the association of the Elastic IP address with an instance.</p>",
           "locationName":"associationId"
         }
       }
@@ -8830,6 +8867,7 @@
       },
       "documentation":"<p>Describes Availability Zones, Local Zones, and Wavelength Zones.</p>"
     },
+    "AvailabilityZoneId":{"type":"string"},
     "AvailabilityZoneList":{
       "type":"list",
       "member":{
@@ -11412,7 +11450,7 @@
         },
         "AmdSevSnp":{
           "shape":"AmdSevSnpSpecification",
-          "documentation":"<p>Indicates whether the instance is enabled for AMD SEV-SNP.</p>",
+          "documentation":"<p>Indicates whether the instance is enabled for AMD SEV-SNP. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/sev-snp.html\">AMD SEV-SNP</a>.</p>",
           "locationName":"amdSevSnp"
         }
       },
@@ -11431,7 +11469,7 @@
         },
         "AmdSevSnp":{
           "shape":"AmdSevSnpSpecification",
-          "documentation":"<p>Indicates whether to enable the instance for AMD SEV-SNP. AMD SEV-SNP is supported with M6a, R6a, and C6a instance types only.</p>"
+          "documentation":"<p>Indicates whether to enable the instance for AMD SEV-SNP. AMD SEV-SNP is supported with M6a, R6a, and C6a instance types only. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/sev-snp.html\">AMD SEV-SNP</a>.</p>"
         }
       },
       "documentation":"<p>The CPU options for the instance. Both the core count and threads per core must be specified in the request.</p>"
@@ -11565,11 +11603,11 @@
           "documentation":"<p>The type of operating system for which to reserve capacity.</p>"
         },
         "AvailabilityZone":{
-          "shape":"String",
+          "shape":"AvailabilityZoneName",
           "documentation":"<p>The Availability Zone in which to create the Capacity Reservation.</p>"
         },
         "AvailabilityZoneId":{
-          "shape":"String",
+          "shape":"AvailabilityZoneId",
           "documentation":"<p>The ID of the Availability Zone in which to create the Capacity Reservation.</p>"
         },
         "Tenancy":{
@@ -12387,6 +12425,54 @@
           "shape":"String",
           "documentation":"<p>The ID of the new AMI.</p>",
           "locationName":"imageId"
+        }
+      }
+    },
+    "CreateInstanceConnectEndpointRequest":{
+      "type":"structure",
+      "required":["SubnetId"],
+      "members":{
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "SubnetId":{
+          "shape":"SubnetId",
+          "documentation":"<p>The ID of the subnet in which to create the EC2 Instance Connect Endpoint.</p>"
+        },
+        "SecurityGroupIds":{
+          "shape":"SecurityGroupIdStringListRequest",
+          "documentation":"<p>One or more security groups to associate with the endpoint. If you don't specify a security group, the default security group for your VPC will be associated with the endpoint.</p>",
+          "locationName":"SecurityGroupId"
+        },
+        "PreserveClientIp":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether your client's IP address is preserved as the source. The value is <code>true</code> or <code>false</code>.</p> <ul> <li> <p>If <code>true</code>, your client's IP address is used when you connect to a resource.</p> </li> <li> <p>If <code>false</code>, the elastic network interface IP address is used when you connect to a resource.</p> </li> </ul> <p>Default: <code>true</code> </p>"
+        },
+        "ClientToken":{
+          "shape":"String",
+          "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        },
+        "TagSpecifications":{
+          "shape":"TagSpecificationList",
+          "documentation":"<p>The tags to apply to the EC2 Instance Connect Endpoint during creation.</p>",
+          "locationName":"TagSpecification"
+        }
+      }
+    },
+    "CreateInstanceConnectEndpointResult":{
+      "type":"structure",
+      "members":{
+        "InstanceConnectEndpoint":{
+          "shape":"Ec2InstanceConnectEndpoint",
+          "documentation":"<p>Information about the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"instanceConnectEndpoint"
+        },
+        "ClientToken":{
+          "shape":"String",
+          "documentation":"<p>Unique, case-sensitive idempotency token provided by the client in the the request.</p>",
+          "locationName":"clientToken"
         }
       }
     },
@@ -13397,7 +13483,7 @@
         },
         "InterfaceType":{
           "shape":"NetworkInterfaceCreationType",
-          "documentation":"<p>The type of network interface. The default is <code>interface</code>.</p> <p>The only supported values are <code>efa</code> and <code>trunk</code>.</p>"
+          "documentation":"<p>The type of network interface. The default is <code>interface</code>.</p> <p>The only supported values are <code>interface</code>, <code>efa</code>, and <code>trunk</code>.</p>"
         },
         "SubnetId":{
           "shape":"SubnetId",
@@ -16150,6 +16236,30 @@
         }
       }
     },
+    "DeleteInstanceConnectEndpointRequest":{
+      "type":"structure",
+      "required":["InstanceConnectEndpointId"],
+      "members":{
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "InstanceConnectEndpointId":{
+          "shape":"InstanceConnectEndpointId",
+          "documentation":"<p>The ID of the EC2 Instance Connect Endpoint to delete.</p>"
+        }
+      }
+    },
+    "DeleteInstanceConnectEndpointResult":{
+      "type":"structure",
+      "members":{
+        "InstanceConnectEndpoint":{
+          "shape":"Ec2InstanceConnectEndpoint",
+          "documentation":"<p>Information about the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"instanceConnectEndpoint"
+        }
+      }
+    },
     "DeleteInstanceEventWindowRequest":{
       "type":"structure",
       "required":["InstanceEventWindowId"],
@@ -17816,6 +17926,7 @@
     },
     "DeregisterInstanceEventNotificationAttributesRequest":{
       "type":"structure",
+      "required":["InstanceTagAttribute"],
       "members":{
         "DryRun":{
           "shape":"Boolean",
@@ -18027,7 +18138,7 @@
       "members":{
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. Filter names and values are case-sensitive.</p> <ul> <li> <p> <code>allocation-id</code> - [EC2-VPC] The allocation ID for the address.</p> </li> <li> <p> <code>association-id</code> - [EC2-VPC] The association ID for the address.</p> </li> <li> <p> <code>domain</code> - Indicates whether the address is for use in EC2-Classic (<code>standard</code>) or in a VPC (<code>vpc</code>).</p> </li> <li> <p> <code>instance-id</code> - The ID of the instance the address is associated with, if any.</p> </li> <li> <p> <code>network-border-group</code> - A unique set of Availability Zones, Local Zones, or Wavelength Zones from where Amazon Web Services advertises IP addresses. </p> </li> <li> <p> <code>network-interface-id</code> - [EC2-VPC] The ID of the network interface that the address is associated with, if any.</p> </li> <li> <p> <code>network-interface-owner-id</code> - The Amazon Web Services account ID of the owner.</p> </li> <li> <p> <code>private-ip-address</code> - [EC2-VPC] The private IP address associated with the Elastic IP address.</p> </li> <li> <p> <code>public-ip</code> - The Elastic IP address, or the carrier IP address.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> </ul>",
+          "documentation":"<p>One or more filters. Filter names and values are case-sensitive.</p> <ul> <li> <p> <code>allocation-id</code> - The allocation ID for the address.</p> </li> <li> <p> <code>association-id</code> - The association ID for the address.</p> </li> <li> <p> <code>instance-id</code> - The ID of the instance the address is associated with, if any.</p> </li> <li> <p> <code>network-border-group</code> - A unique set of Availability Zones, Local Zones, or Wavelength Zones from where Amazon Web Services advertises IP addresses. </p> </li> <li> <p> <code>network-interface-id</code> - The ID of the network interface that the address is associated with, if any.</p> </li> <li> <p> <code>network-interface-owner-id</code> - The Amazon Web Services account ID of the owner.</p> </li> <li> <p> <code>private-ip-address</code> - The private IP address associated with the Elastic IP address.</p> </li> <li> <p> <code>public-ip</code> - The Elastic IP address, or the carrier IP address.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "PublicIps":{
@@ -18037,7 +18148,7 @@
         },
         "AllocationIds":{
           "shape":"AllocationIdList",
-          "documentation":"<p>[EC2-VPC] Information about the allocation IDs.</p>",
+          "documentation":"<p>Information about the allocation IDs.</p>",
           "locationName":"AllocationId"
         },
         "DryRun":{
@@ -19936,6 +20047,48 @@
         }
       }
     },
+    "DescribeInstanceConnectEndpointsRequest":{
+      "type":"structure",
+      "members":{
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "MaxResults":{
+          "shape":"InstanceConnectEndpointMaxResults",
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>One or more filters.</p> <ul> <li> <p> <code>instance-connect-endpoint-id</code> - The ID of the EC2 Instance Connect Endpoint.</p> </li> <li> <p> <code>state</code> - The state of the EC2 Instance Connect Endpoint (<code>create-in-progress</code> | <code>create-complete</code> | <code>create-failed</code> | <code>delete-in-progress</code> | <code>delete-complete</code> | <code>delete-failed</code>).</p> </li> <li> <p> <code>subnet-id</code> - The ID of the subnet in which the EC2 Instance Connect Endpoint was created.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>tag-value</code> - The value of a tag assigned to the resource. Use this filter to find all resources that have a tag with a specific value, regardless of tag key.</p> </li> <li> <p> <code>vpc-id</code> - The ID of the VPC in which the EC2 Instance Connect Endpoint was created.</p> </li> </ul>",
+          "locationName":"Filter"
+        },
+        "InstanceConnectEndpointIds":{
+          "shape":"ValueStringList",
+          "documentation":"<p>One or more EC2 Instance Connect Endpoint IDs.</p>",
+          "locationName":"InstanceConnectEndpointId"
+        }
+      }
+    },
+    "DescribeInstanceConnectEndpointsResult":{
+      "type":"structure",
+      "members":{
+        "InstanceConnectEndpoints":{
+          "shape":"InstanceConnectEndpointSet",
+          "documentation":"<p>Information about the EC2 Instance Connect Endpoints.</p>",
+          "locationName":"instanceConnectEndpointSet"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
     "DescribeInstanceCreditSpecificationsMaxResults":{
       "type":"integer",
       "max":1000,
@@ -20148,7 +20301,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. Filter names and values are case-sensitive.</p> <ul> <li> <p> <code>auto-recovery-supported</code> - Indicates whether Amazon CloudWatch action based recovery is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>bare-metal</code> - Indicates whether it is a bare metal instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>burstable-performance-supported</code> - Indicates whether it is a burstable performance instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>current-generation</code> - Indicates whether this instance type is the latest generation instance type of an instance family (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-bandwidth-in-mbps</code> - The baseline bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-iops</code> - The baseline input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-throughput-in-mbps</code> - The baseline throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-bandwidth-in-mbps</code> - The maximum bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-iops</code> - The maximum input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-throughput-in-mbps</code> - The maximum throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-support</code> - Indicates whether the instance type is EBS-optimized (<code>supported</code> | <code>unsupported</code> | <code>default</code>).</p> </li> <li> <p> <code>ebs-info.encryption-support</code> - Indicates whether EBS encryption is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>ebs-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for EBS volumes (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>free-tier-eligible</code> - Indicates whether the instance type is eligible to use in the free tier (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hibernation-supported</code> - Indicates whether On-Demand hibernation is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor (<code>nitro</code> | <code>xen</code>).</p> </li> <li> <p> <code>instance-storage-info.disk.count</code> - The number of local disks.</p> </li> <li> <p> <code>instance-storage-info.disk.size-in-gb</code> - The storage size of each instance storage disk, in GB.</p> </li> <li> <p> <code>instance-storage-info.disk.type</code> - The storage technology for the local instance storage disks (<code>hdd</code> | <code>ssd</code>).</p> </li> <li> <p> <code>instance-storage-info.encryption-support</code> - Indicates whether data is encrypted at rest (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for instance store (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.total-size-in-gb</code> - The total amount of storage available from all local instance storage, in GB.</p> </li> <li> <p> <code>instance-storage-supported</code> - Indicates whether the instance type has local instance storage (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>instance-type</code> - The instance type (for example <code>c5.2xlarge</code> or c5*).</p> </li> <li> <p> <code>memory-info.size-in-mib</code> - The memory size.</p> </li> <li> <p> <code>network-info.efa-info.maximum-efa-interfaces</code> - The maximum number of Elastic Fabric Adapters (EFAs) per instance.</p> </li> <li> <p> <code>network-info.efa-supported</code> - Indicates whether the instance type supports Elastic Fabric Adapter (EFA) (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ena-support</code> - Indicates whether Elastic Network Adapter (ENA) is supported or required (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>network-info.encryption-in-transit-supported</code> - Indicates whether the instance type automatically encrypts in-transit traffic between instances (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ipv4-addresses-per-interface</code> - The maximum number of private IPv4 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-addresses-per-interface</code> - The maximum number of private IPv6 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-supported</code> - Indicates whether the instance type supports IPv6 (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.maximum-network-cards</code> - The maximum number of network cards per instance.</p> </li> <li> <p> <code>network-info.maximum-network-interfaces</code> - The maximum number of network interfaces per instance.</p> </li> <li> <p> <code>network-info.network-performance</code> - The network performance (for example, \"25 Gigabit\").</p> </li> <li> <p> <code>processor-info.supported-architecture</code> - The CPU architecture (<code>arm64</code> | <code>i386</code> | <code>x86_64</code>).</p> </li> <li> <p> <code>processor-info.sustained-clock-speed-in-ghz</code> - The CPU clock speed, in GHz.</p> </li> <li> <p> <code>supported-boot-mode</code> - The boot mode (<code>legacy-bios</code> | <code>uefi</code>).</p> </li> <li> <p> <code>supported-root-device-type</code> - The root device type (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>supported-usage-class</code> - The usage class (<code>on-demand</code> | <code>spot</code>).</p> </li> <li> <p> <code>supported-virtualization-type</code> - The virtualization type (<code>hvm</code> | <code>paravirtual</code>).</p> </li> <li> <p> <code>vcpu-info.default-cores</code> - The default number of cores for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-threads-per-core</code> - The default number of threads per core for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-vcpus</code> - The default number of vCPUs for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-cores</code> - The number of cores that can be configured for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-threads-per-core</code> - The number of threads per core that can be configured for the instance type. For example, \"1\" or \"1,2\".</p> </li> </ul>",
+          "documentation":"<p>One or more filters. Filter names and values are case-sensitive.</p> <ul> <li> <p> <code>auto-recovery-supported</code> - Indicates whether Amazon CloudWatch action based recovery is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>bare-metal</code> - Indicates whether it is a bare metal instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>burstable-performance-supported</code> - Indicates whether it is a burstable performance instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>current-generation</code> - Indicates whether this instance type is the latest generation instance type of an instance family (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-bandwidth-in-mbps</code> - The baseline bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-iops</code> - The baseline input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-throughput-in-mbps</code> - The baseline throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-bandwidth-in-mbps</code> - The maximum bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-iops</code> - The maximum input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-throughput-in-mbps</code> - The maximum throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-support</code> - Indicates whether the instance type is EBS-optimized (<code>supported</code> | <code>unsupported</code> | <code>default</code>).</p> </li> <li> <p> <code>ebs-info.encryption-support</code> - Indicates whether EBS encryption is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>ebs-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for EBS volumes (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>free-tier-eligible</code> - Indicates whether the instance type is eligible to use in the free tier (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hibernation-supported</code> - Indicates whether On-Demand hibernation is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor (<code>nitro</code> | <code>xen</code>).</p> </li> <li> <p> <code>instance-storage-info.disk.count</code> - The number of local disks.</p> </li> <li> <p> <code>instance-storage-info.disk.size-in-gb</code> - The storage size of each instance storage disk, in GB.</p> </li> <li> <p> <code>instance-storage-info.disk.type</code> - The storage technology for the local instance storage disks (<code>hdd</code> | <code>ssd</code>).</p> </li> <li> <p> <code>instance-storage-info.encryption-support</code> - Indicates whether data is encrypted at rest (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for instance store (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.total-size-in-gb</code> - The total amount of storage available from all local instance storage, in GB.</p> </li> <li> <p> <code>instance-storage-supported</code> - Indicates whether the instance type has local instance storage (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>instance-type</code> - The instance type (for example <code>c5.2xlarge</code> or c5*).</p> </li> <li> <p> <code>memory-info.size-in-mib</code> - The memory size.</p> </li> <li> <p> <code>network-info.efa-info.maximum-efa-interfaces</code> - The maximum number of Elastic Fabric Adapters (EFAs) per instance.</p> </li> <li> <p> <code>network-info.efa-supported</code> - Indicates whether the instance type supports Elastic Fabric Adapter (EFA) (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ena-support</code> - Indicates whether Elastic Network Adapter (ENA) is supported or required (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>network-info.encryption-in-transit-supported</code> - Indicates whether the instance type automatically encrypts in-transit traffic between instances (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ipv4-addresses-per-interface</code> - The maximum number of private IPv4 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-addresses-per-interface</code> - The maximum number of private IPv6 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-supported</code> - Indicates whether the instance type supports IPv6 (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.maximum-network-cards</code> - The maximum number of network cards per instance.</p> </li> <li> <p> <code>network-info.maximum-network-interfaces</code> - The maximum number of network interfaces per instance.</p> </li> <li> <p> <code>network-info.network-performance</code> - The network performance (for example, \"25 Gigabit\").</p> </li> <li> <p> <code>processor-info.supported-architecture</code> - The CPU architecture (<code>arm64</code> | <code>i386</code> | <code>x86_64</code>).</p> </li> <li> <p> <code>processor-info.sustained-clock-speed-in-ghz</code> - The CPU clock speed, in GHz.</p> </li> <li> <p> <code>processor-info.supported-features</code> - The supported CPU features (<code>amd-sev-snp</code>).</p> </li> <li> <p> <code>supported-boot-mode</code> - The boot mode (<code>legacy-bios</code> | <code>uefi</code>).</p> </li> <li> <p> <code>supported-root-device-type</code> - The root device type (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>supported-usage-class</code> - The usage class (<code>on-demand</code> | <code>spot</code>).</p> </li> <li> <p> <code>supported-virtualization-type</code> - The virtualization type (<code>hvm</code> | <code>paravirtual</code>).</p> </li> <li> <p> <code>vcpu-info.default-cores</code> - The default number of cores for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-threads-per-core</code> - The default number of threads per core for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-vcpus</code> - The default number of vCPUs for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-cores</code> - The number of cores that can be configured for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-threads-per-core</code> - The number of threads per core that can be configured for the instance type. For example, \"1\" or \"1,2\".</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -20166,7 +20319,7 @@
       "members":{
         "InstanceTypes":{
           "shape":"InstanceTypeInfoList",
-          "documentation":"<p>The instance type. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html\">Instance types</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "documentation":"<p>The instance type. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html\">Instance types</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>When you change your EBS-backed instance type, instance restart or replacement behavior depends on the instance type compatibility between the old and new types. An instance that's backed by an instance store volume is always replaced. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-resize.html\">Change the instance type</a> in the <i>Amazon EC2 User Guide</i>.</p>",
           "locationName":"instanceTypeSet"
         },
         "NextToken":{
@@ -25146,11 +25299,11 @@
       "members":{
         "AssociationId":{
           "shape":"ElasticIpAssociationId",
-          "documentation":"<p>[EC2-VPC] The association ID. Required for EC2-VPC.</p>"
+          "documentation":"<p>The association ID. This parameter is required.</p>"
         },
         "PublicIp":{
           "shape":"EipAllocationPublicIp",
-          "documentation":"<p>[EC2-Classic] The Elastic IP address. Required for EC2-Classic.</p>"
+          "documentation":"<p>Deprecated.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -25974,6 +26127,98 @@
         "unsupported",
         "supported",
         "default"
+      ]
+    },
+    "Ec2InstanceConnectEndpoint":{
+      "type":"structure",
+      "members":{
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the Amazon Web Services account that created the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"ownerId"
+        },
+        "InstanceConnectEndpointId":{
+          "shape":"InstanceConnectEndpointId",
+          "documentation":"<p>The ID of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"instanceConnectEndpointId"
+        },
+        "InstanceConnectEndpointArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"instanceConnectEndpointArn"
+        },
+        "State":{
+          "shape":"Ec2InstanceConnectEndpointState",
+          "documentation":"<p>The current state of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"state"
+        },
+        "StateMessage":{
+          "shape":"String",
+          "documentation":"<p>The message for the current state of the EC2 Instance Connect Endpoint. Can include a failure message.</p>",
+          "locationName":"stateMessage"
+        },
+        "DnsName":{
+          "shape":"String",
+          "documentation":"<p>The DNS name of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"dnsName"
+        },
+        "FipsDnsName":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "locationName":"fipsDnsName"
+        },
+        "NetworkInterfaceIds":{
+          "shape":"NetworkInterfaceIdSet",
+          "documentation":"<p>The ID of the elastic network interface that Amazon EC2 automatically created when creating the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"networkInterfaceIdSet"
+        },
+        "VpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The ID of the VPC in which the EC2 Instance Connect Endpoint was created.</p>",
+          "locationName":"vpcId"
+        },
+        "AvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"availabilityZone"
+        },
+        "CreatedAt":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time that the EC2 Instance Connect Endpoint was created.</p>",
+          "locationName":"createdAt"
+        },
+        "SubnetId":{
+          "shape":"SubnetId",
+          "documentation":"<p>The ID of the subnet in which the EC2 Instance Connect Endpoint was created.</p>",
+          "locationName":"subnetId"
+        },
+        "PreserveClientIp":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether your client's IP address is preserved as the source. The value is <code>true</code> or <code>false</code>.</p> <ul> <li> <p>If <code>true</code>, your client's IP address is used when you connect to a resource.</p> </li> <li> <p>If <code>false</code>, the elastic network interface IP address is used when you connect to a resource.</p> </li> </ul> <p>Default: <code>true</code> </p>",
+          "locationName":"preserveClientIp"
+        },
+        "SecurityGroupIds":{
+          "shape":"SecurityGroupIdSet",
+          "documentation":"<p>The security groups associated with the endpoint. If you didn't specify a security group, the default security group for your VPC is associated with the endpoint.</p>",
+          "locationName":"securityGroupIdSet"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags assigned to the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"tagSet"
+        }
+      },
+      "documentation":"<p>The EC2 Instance Connect Endpoint.</p>"
+    },
+    "Ec2InstanceConnectEndpointState":{
+      "type":"string",
+      "enum":[
+        "create-in-progress",
+        "create-complete",
+        "create-failed",
+        "delete-in-progress",
+        "delete-complete",
+        "delete-failed"
       ]
     },
     "EfaInfo":{
@@ -26922,7 +27167,7 @@
       "type":"string",
       "max":30,
       "min":1,
-      "pattern":"[a-zA-Z0-9\\.\\*]+"
+      "pattern":"[a-zA-Z0-9\\.\\*\\-]+"
     },
     "ExcludedInstanceTypeSet":{
       "type":"list",
@@ -28242,7 +28487,7 @@
         },
         "ImageId":{
           "shape":"ImageId",
-          "documentation":"<p>The ID of the AMI. An AMI is required to launch an instance. The AMI ID must be specified here or in the launch template.</p>",
+          "documentation":"<p>The ID of the AMI. An AMI is required to launch an instance. This parameter is only available for fleets of type <code>instant</code>. For fleets of type <code>maintain</code> and <code>request</code>, you must specify the AMI ID in the launch template.</p>",
           "locationName":"imageId"
         }
       },
@@ -28299,7 +28544,7 @@
         },
         "ImageId":{
           "shape":"ImageId",
-          "documentation":"<p>The ID of the AMI. An AMI is required to launch an instance. The AMI ID must be specified here or in the launch template.</p>"
+          "documentation":"<p>The ID of the AMI. An AMI is required to launch an instance. This parameter is only available for fleets of type <code>instant</code>. For fleets of type <code>maintain</code> and <code>request</code>, you must specify the AMI ID in the launch template.</p>"
         }
       },
       "documentation":"<p>Describes overrides for a launch template.</p>"
@@ -30673,21 +30918,21 @@
       "members":{
         "Configured":{
           "shape":"Boolean",
-          "documentation":"<p>If this parameter is set to <code>true</code>, your instance is enabled for hibernation; otherwise, it is not enabled for hibernation.</p>",
+          "documentation":"<p>If <code>true</code>, your instance is enabled for hibernation; otherwise, it is not enabled for hibernation.</p>",
           "locationName":"configured"
         }
       },
-      "documentation":"<p>Indicates whether your instance is configured for hibernation. This parameter is valid only if the instance meets the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites\">hibernation prerequisites</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html\">Hibernate your instance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Indicates whether your instance is configured for hibernation. This parameter is valid only if the instance meets the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hibernating-prerequisites.html\">hibernation prerequisites</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html\">Hibernate your instance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "HibernationOptionsRequest":{
       "type":"structure",
       "members":{
         "Configured":{
           "shape":"Boolean",
-          "documentation":"<p>If you set this parameter to <code>true</code>, your instance is enabled for hibernation.</p> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>Set to <code>true</code> to enable your instance for hibernation.</p> <p>Default: <code>false</code> </p>"
         }
       },
-      "documentation":"<p>Indicates whether your instance is configured for hibernation. This parameter is valid only if the instance meets the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites\">hibernation prerequisites</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html\">Hibernate your instance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Indicates whether your instance is configured for hibernation. This parameter is valid only if the instance meets the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hibernating-prerequisites.html\">hibernation prerequisites</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html\">Hibernate your instance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "HistoryRecord":{
       "type":"structure",
@@ -30842,6 +31087,11 @@
           "shape":"HostMaintenance",
           "documentation":"<p>Indicates whether host maintenance is enabled or disabled for the Dedicated Host.</p>",
           "locationName":"hostMaintenance"
+        },
+        "AssetId":{
+          "shape":"AssetId",
+          "documentation":"<p>The ID of the Outpost hardware asset on which the Dedicated Host is allocated.</p>",
+          "locationName":"assetId"
         }
       },
       "documentation":"<p>Describes the properties of the Dedicated Host.</p>"
@@ -32916,6 +33166,19 @@
         }
       },
       "documentation":"<p>Information about the number of instances that can be launched onto the Dedicated Host.</p>"
+    },
+    "InstanceConnectEndpointId":{"type":"string"},
+    "InstanceConnectEndpointMaxResults":{
+      "type":"integer",
+      "max":50,
+      "min":1
+    },
+    "InstanceConnectEndpointSet":{
+      "type":"list",
+      "member":{
+        "shape":"Ec2InstanceConnectEndpoint",
+        "locationName":"item"
+      }
     },
     "InstanceCount":{
       "type":"structure",
@@ -35011,7 +35274,18 @@
         "i4g.2xlarge",
         "i4g.4xlarge",
         "i4g.8xlarge",
-        "i4g.16xlarge"
+        "i4g.16xlarge",
+        "hpc7g.4xlarge",
+        "hpc7g.8xlarge",
+        "hpc7g.16xlarge",
+        "c7gn.medium",
+        "c7gn.large",
+        "c7gn.xlarge",
+        "c7gn.2xlarge",
+        "c7gn.4xlarge",
+        "c7gn.8xlarge",
+        "c7gn.12xlarge",
+        "c7gn.16xlarge"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -35143,6 +35417,21 @@
           "shape":"BootModeTypeList",
           "documentation":"<p>The supported boot modes. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-boot.html\">Boot modes</a> in the <i>Amazon EC2 User Guide</i>.</p>",
           "locationName":"supportedBootModes"
+        },
+        "NitroEnclavesSupport":{
+          "shape":"NitroEnclavesSupport",
+          "documentation":"<p>Indicates whether Nitro Enclaves is supported.</p>",
+          "locationName":"nitroEnclavesSupport"
+        },
+        "NitroTpmSupport":{
+          "shape":"NitroTpmSupport",
+          "documentation":"<p>Indicates whether NitroTPM is supported.</p>",
+          "locationName":"nitroTpmSupport"
+        },
+        "NitroTpmInfo":{
+          "shape":"NitroTpmInfo",
+          "documentation":"<p>Describes the supported NitroTPM versions for the instance type.</p>",
+          "locationName":"nitroTpmInfo"
         }
       },
       "documentation":"<p>Describes the instance type.</p>"
@@ -37156,7 +37445,7 @@
       "members":{
         "LaunchTemplateSpecification":{
           "shape":"FleetLaunchTemplateSpecification",
-          "documentation":"<p>The launch template.</p>",
+          "documentation":"<p>The launch template to use. Make sure that the launch template does not contain the <code>NetworkInterfaceId</code> parameter because you can't specify a network interface ID in a Spot Fleet.</p>",
           "locationName":"launchTemplateSpecification"
         },
         "Overrides":{
@@ -39990,7 +40279,7 @@
         },
         "Tenancy":{
           "shape":"HostTenancy",
-          "documentation":"<p>The tenancy for the instance.</p> <note> <p>For T3 instances, you can't change the tenancy from <code>dedicated</code> to <code>host</code>, or from <code>host</code> to <code>dedicated</code>. Attempting to make one of these unsupported tenancy changes results in the <code>InvalidTenancy</code> error code.</p> </note>",
+          "documentation":"<p>The tenancy for the instance.</p> <note> <p>For T3 instances, you must launch the instance on a Dedicated Host to use a tenancy of <code>host</code>. You can't change the tenancy from <code>host</code> to <code>dedicated</code> or <code>default</code>. Attempting to make one of these unsupported tenancy changes results in an <code>InvalidRequest</code> error code.</p> </note>",
           "locationName":"tenancy"
         },
         "PartitionNumber":{
@@ -39999,7 +40288,7 @@
         },
         "HostResourceGroupArn":{
           "shape":"String",
-          "documentation":"<p>The ARN of the host resource group in which to place the instance.</p>"
+          "documentation":"<p>The ARN of the host resource group in which to place the instance. The instance must have a tenancy of <code>host</code> to specify this parameter.</p>"
         },
         "GroupId":{
           "shape":"PlacementGroupId",
@@ -41891,7 +42180,7 @@
           "documentation":"<p>The range of inside IPv6 addresses for the tunnel. Any specified CIDR blocks must be unique across all VPN connections that use the same transit gateway.</p> <p>Constraints: A size /126 CIDR block from the local <code>fd00::/8</code> range.</p>"
         },
         "PreSharedKey":{
-          "shape":"String",
+          "shape":"preSharedKey",
           "documentation":"<p>The pre-shared key (PSK) to establish initial authentication between the virtual private gateway and the customer gateway.</p> <p>Constraints: Allowed characters are alphanumeric characters, periods (.), and underscores (_). Must be between 8 and 64 characters in length and cannot start with zero (0).</p>"
         },
         "Phase1LifetimeSeconds":{
@@ -41970,7 +42259,8 @@
           "documentation":"<p>Turn on or off tunnel endpoint lifecycle control feature.</p>"
         }
       },
-      "documentation":"<p>The Amazon Web Services Site-to-Site VPN tunnel options to modify.</p>"
+      "documentation":"<p>The Amazon Web Services Site-to-Site VPN tunnel options to modify.</p>",
+      "sensitive":true
     },
     "MonitorInstancesRequest":{
       "type":"structure",
@@ -42097,7 +42387,7 @@
       "members":{
         "MoveStatus":{
           "shape":"MoveStatus",
-          "documentation":"<p>The status of the Elastic IP address that's being moved to the EC2-VPC platform, or restored to the EC2-Classic platform.</p>",
+          "documentation":"<p>The status of the Elastic IP address that's being moved or restored.</p>",
           "locationName":"moveStatus"
         },
         "PublicIp":{
@@ -42106,7 +42396,7 @@
           "locationName":"publicIp"
         }
       },
-      "documentation":"<p>Describes the status of a moving Elastic IP address.</p> <note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note>"
+      "documentation":"<note> <p>This action is deprecated.</p> </note> <p>Describes the status of a moving Elastic IP address.</p>"
     },
     "MovingAddressStatusSet":{
       "type":"list",
@@ -43187,6 +43477,13 @@
         "locationName":"item"
       }
     },
+    "NetworkInterfaceIdSet":{
+      "type":"list",
+      "member":{
+        "shape":"String",
+        "locationName":"item"
+      }
+    },
     "NetworkInterfaceIpv6Address":{
       "type":"structure",
       "members":{
@@ -43372,6 +43669,39 @@
       }
     },
     "NextToken":{"type":"string"},
+    "NitroEnclavesSupport":{
+      "type":"string",
+      "enum":[
+        "unsupported",
+        "supported"
+      ]
+    },
+    "NitroTpmInfo":{
+      "type":"structure",
+      "members":{
+        "SupportedVersions":{
+          "shape":"NitroTpmSupportedVersionsList",
+          "documentation":"<p>Indicates the supported NitroTPM versions.</p>",
+          "locationName":"supportedVersions"
+        }
+      },
+      "documentation":"<p>Describes the supported NitroTPM versions for the instance type.</p>"
+    },
+    "NitroTpmSupport":{
+      "type":"string",
+      "enum":[
+        "unsupported",
+        "supported"
+      ]
+    },
+    "NitroTpmSupportedVersionType":{"type":"string"},
+    "NitroTpmSupportedVersionsList":{
+      "type":"list",
+      "member":{
+        "shape":"NitroTpmSupportedVersionType",
+        "locationName":"item"
+      }
+    },
     "OccurrenceDayRequestSet":{
       "type":"list",
       "member":{
@@ -44272,7 +44602,7 @@
     },
     "PlacementGroupArn":{
       "type":"string",
-      "pattern":"^arn:aws([a-z-]+)?:ec2:[a-z\\d-]+:\\d{12}:placement-group/([^\\s].+[^\\s]){1,255}$"
+      "pattern":"^arn:aws([a-z-]+)?:ec2:[a-z\\d-]+:\\d{12}:placement-group/^.{1,255}$"
     },
     "PlacementGroupId":{"type":"string"},
     "PlacementGroupIdStringList":{
@@ -44821,7 +45151,7 @@
         },
         "SupportedFeatures":{
           "shape":"SupportedAdditionalProcessorFeatureList",
-          "documentation":"<p>Indicates whether the instance type supports AMD SEV-SNP. If the request returns <code>amd-sev-snp</code>, AMD SEV-SNP is supported. Otherwise, it is not supported.</p>",
+          "documentation":"<p>Indicates whether the instance type supports AMD SEV-SNP. If the request returns <code>amd-sev-snp</code>, AMD SEV-SNP is supported. Otherwise, it is not supported. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/sev-snp.html\"> AMD SEV-SNP</a>.</p>",
           "locationName":"supportedFeatures"
         }
       },
@@ -45649,6 +45979,7 @@
     },
     "RegisterInstanceEventNotificationAttributesRequest":{
       "type":"structure",
+      "required":["InstanceTagAttribute"],
       "members":{
         "DryRun":{
           "shape":"Boolean",
@@ -45897,11 +46228,11 @@
       "members":{
         "AllocationId":{
           "shape":"AllocationId",
-          "documentation":"<p>[EC2-VPC] The allocation ID. Required for EC2-VPC.</p>"
+          "documentation":"<p>The allocation ID. This parameter is required.</p>"
         },
         "PublicIp":{
           "shape":"String",
-          "documentation":"<p>[EC2-Classic] The Elastic IP address. Required for EC2-Classic.</p>"
+          "documentation":"<p>Deprecated.</p>"
         },
         "NetworkBorderGroup":{
           "shape":"String",
@@ -47769,7 +48100,8 @@
         "vpn-connection-device-type",
         "vpc-block-public-access-exclusion",
         "ipam-resource-discovery",
-        "ipam-resource-discovery-association"
+        "ipam-resource-discovery-association",
+        "instance-connect-endpoint"
       ]
     },
     "ResponseError":{
@@ -48712,7 +49044,7 @@
         },
         "InstanceType":{
           "shape":"InstanceType",
-          "documentation":"<p>The instance type. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html\">Instance types</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>Default: <code>m1.small</code> </p>"
+          "documentation":"<p>The instance type. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html\">Instance types</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>When you change your EBS-backed instance type, instance restart or replacement behavior depends on the instance type compatibility between the old and new types. An instance that's backed by an instance store volume is always replaced. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-resize.html\">Change the instance type</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>Default: <code>m1.small</code> </p>"
         },
         "Ipv6AddressCount":{
           "shape":"Integer",
@@ -48851,7 +49183,7 @@
         },
         "HibernationOptions":{
           "shape":"HibernationOptionsRequest",
-          "documentation":"<p>Indicates whether an instance is enabled for hibernation. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html\">Hibernate your instance</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>You can't enable hibernation and Amazon Web Services Nitro Enclaves on the same instance.</p>"
+          "documentation":"<p>Indicates whether an instance is enabled for hibernation. This parameter is valid only if the instance meets the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hibernating-prerequisites.html\">hibernation prerequisites</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html\">Hibernate your instance</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>You can't enable hibernation and Amazon Web Services Nitro Enclaves on the same instance.</p>"
         },
         "LicenseSpecifications":{
           "shape":"LicenseSpecificationListRequest",
@@ -48864,7 +49196,7 @@
         },
         "EnclaveOptions":{
           "shape":"EnclaveOptionsRequest",
-          "documentation":"<p>Indicates whether the instance is enabled for Amazon Web Services Nitro Enclaves. For more information, see <a href=\"https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave.html\"> What is Amazon Web Services Nitro Enclaves?</a> in the <i>Amazon Web Services Nitro Enclaves User Guide</i>.</p> <p>You can't enable Amazon Web Services Nitro Enclaves and hibernation on the same instance.</p>"
+          "documentation":"<p>Indicates whether the instance is enabled for Amazon Web Services Nitro Enclaves. For more information, see <a href=\"https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave.html\">What is Amazon Web Services Nitro Enclaves?</a> in the <i>Amazon Web Services Nitro Enclaves User Guide</i>.</p> <p>You can't enable Amazon Web Services Nitro Enclaves and hibernation on the same instance.</p>"
         },
         "PrivateDnsNameOptions":{
           "shape":"PrivateDnsNameOptionsRequest",
@@ -49654,12 +49986,28 @@
         "locationName":"item"
       }
     },
+    "SecurityGroupIdSet":{
+      "type":"list",
+      "member":{
+        "shape":"SecurityGroupId",
+        "locationName":"item"
+      }
+    },
     "SecurityGroupIdStringList":{
       "type":"list",
       "member":{
         "shape":"SecurityGroupId",
         "locationName":"SecurityGroupId"
       }
+    },
+    "SecurityGroupIdStringListRequest":{
+      "type":"list",
+      "member":{
+        "shape":"SecurityGroupId",
+        "locationName":"SecurityGroupId"
+      },
+      "max":16,
+      "min":0
     },
     "SecurityGroupIdentifier":{
       "type":"structure",
@@ -52495,7 +52843,7 @@
           "documentation":"<p>The ID of the Client VPN endpoint to which the client is connected.</p>"
         },
         "ConnectionId":{
-          "shape":"VpnConnectionId",
+          "shape":"String",
           "documentation":"<p>The ID of the client connection to be terminated.</p>"
         },
         "Username":{
@@ -54815,7 +55163,7 @@
           "locationName":"tunnelInsideIpv6Cidr"
         },
         "PreSharedKey":{
-          "shape":"String",
+          "shape":"preSharedKey",
           "documentation":"<p>The pre-shared key (PSK) to establish initial authentication between the virtual private gateway and the customer gateway.</p>",
           "locationName":"preSharedKey"
         },
@@ -55911,9 +56259,17 @@
         "KinesisDataFirehose":{
           "shape":"VerifiedAccessLogKinesisDataFirehoseDestinationOptions",
           "documentation":"<p>Sends Verified Access logs to Kinesis.</p>"
+        },
+        "LogVersion":{
+          "shape":"String",
+          "documentation":"<p> The logging version to use. </p> <p>Valid values: <code>ocsf-0.1</code> | <code>ocsf-1.0.0-rc.2</code> </p>"
+        },
+        "IncludeTrustContext":{
+          "shape":"Boolean",
+          "documentation":"<p> Include trust data sent by trust providers into the logs. </p>"
         }
       },
-      "documentation":"<p>Describes the destinations for Verified Access logs.</p>"
+      "documentation":"<p>Options for Verified Access logs.</p>"
     },
     "VerifiedAccessLogS3Destination":{
       "type":"structure",
@@ -55986,9 +56342,19 @@
           "shape":"VerifiedAccessLogKinesisDataFirehoseDestination",
           "documentation":"<p>Kinesis logging destination.</p>",
           "locationName":"kinesisDataFirehose"
+        },
+        "LogVersion":{
+          "shape":"String",
+          "documentation":"<p> Describes current setting for the logging version. </p>",
+          "locationName":"logVersion"
+        },
+        "IncludeTrustContext":{
+          "shape":"Boolean",
+          "documentation":"<p> Describes current setting for including trust data into the logs. </p>",
+          "locationName":"includeTrustContext"
         }
       },
-      "documentation":"<p>Describes the destinations for Verified Access logs.</p>"
+      "documentation":"<p>Describes the options for Verified Access logs.</p>"
     },
     "VerifiedAccessTrustProvider":{
       "type":"structure",
@@ -57294,7 +57660,7 @@
       "type":"structure",
       "members":{
         "CustomerGatewayConfiguration":{
-          "shape":"String",
+          "shape":"customerGatewayConfiguration",
           "documentation":"<p>The configuration information for the VPN connection's customer gateway (in the native XML format). This element is always present in the <a>CreateVpnConnection</a> response; however, it's present in the <a>DescribeVpnConnections</a> response only if the VPN connection is in the <code>pending</code> or <code>available</code> state.</p>",
           "locationName":"customerGatewayConfiguration"
         },
@@ -57668,7 +58034,7 @@
           "documentation":"<p>The range of inside IPv6 addresses for the tunnel. Any specified CIDR blocks must be unique across all VPN connections that use the same transit gateway.</p> <p>Constraints: A size /126 CIDR block from the local <code>fd00::/8</code> range.</p>"
         },
         "PreSharedKey":{
-          "shape":"String",
+          "shape":"preSharedKey",
           "documentation":"<p>The pre-shared key (PSK) to establish initial authentication between the virtual private gateway and customer gateway.</p> <p>Constraints: Allowed characters are alphanumeric characters, periods (.), and underscores (_). Must be between 8 and 64 characters in length and cannot start with zero (0).</p>"
         },
         "Phase1LifetimeSeconds":{
@@ -57802,6 +58168,14 @@
         "shape":"String",
         "locationName":"ZoneName"
       }
+    },
+    "customerGatewayConfiguration":{
+      "type":"string",
+      "sensitive":true
+    },
+    "preSharedKey":{
+      "type":"string",
+      "sensitive":true
     },
     "scope":{
       "type":"string",

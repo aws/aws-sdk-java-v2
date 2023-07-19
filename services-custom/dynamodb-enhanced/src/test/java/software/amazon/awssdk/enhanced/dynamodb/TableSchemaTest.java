@@ -23,6 +23,7 @@ import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
@@ -33,8 +34,28 @@ public class TableSchemaTest {
     public ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void builder_constructsStaticTableSchemaBuilder() {
+    public void builder_constructsStaticTableSchemaBuilder_fromClass() {
         StaticTableSchema.Builder<FakeItem> builder = TableSchema.builder(FakeItem.class);
+        assertThat(builder).isNotNull();
+    }
+
+    @Test
+    public void builder_constructsStaticTableSchemaBuilder_fromEnhancedType() {
+        StaticTableSchema.Builder<FakeItem> builder = TableSchema.builder(EnhancedType.of(FakeItem.class));
+        assertThat(builder).isNotNull();
+    }
+
+    @Test
+    public void builder_constructsStaticImmutableTableSchemaBuilder_fromClass() {
+        StaticImmutableTableSchema.Builder<SimpleImmutable, SimpleImmutable.Builder> builder =
+            TableSchema.builder(SimpleImmutable.class, SimpleImmutable.Builder.class);
+        assertThat(builder).isNotNull();
+    }
+
+    @Test
+    public void builder_constructsStaticImmutableTableSchemaBuilder_fromEnhancedType() {
+        StaticImmutableTableSchema.Builder<SimpleImmutable, SimpleImmutable.Builder> builder =
+            TableSchema.builder(EnhancedType.of(SimpleImmutable.class), EnhancedType.of(SimpleImmutable.Builder.class));
         assertThat(builder).isNotNull();
     }
 

@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Allowing configuring the prefetchTime and staleTime on WebIdentityTokenFileCredentialsProvider"
+}

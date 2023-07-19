@@ -20,6 +20,7 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -82,6 +83,9 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         Builder endpointOverride(URI endpointOverride);
 
         @Override
+        Builder endpointProvider(EndpointProvider endpointProvider);
+
+        @Override
         AwsServiceClientConfiguration build();
     }
 
@@ -89,6 +93,7 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         protected ClientOverrideConfiguration overrideConfiguration;
         protected Region region;
         protected URI endpointOverride;
+        protected EndpointProvider endpointProvider;
 
         protected BuilderImpl() {
         }
@@ -97,6 +102,7 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
             this.overrideConfiguration = awsServiceClientConfiguration.overrideConfiguration();
             this.region = awsServiceClientConfiguration.region();
             this.endpointOverride = awsServiceClientConfiguration.endpointOverride().orElse(null);
+            this.endpointProvider =  awsServiceClientConfiguration.endpointProvider().orElse(null);
         }
 
         @Override
@@ -113,6 +119,12 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         public final URI endpointOverride() {
             return endpointOverride;
         }
+
+        @Override
+        public final EndpointProvider endpointProvider() {
+            return endpointProvider;
+        }
+
     }
 
 }

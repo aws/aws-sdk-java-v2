@@ -54,6 +54,18 @@ public interface TableSchema<T> {
     }
 
     /**
+     * Returns a builder for the {@link StaticTableSchema} implementation of this interface which allows all attributes,
+     * tags and table structure to be directly declared in the builder.
+     *
+     * @param itemType The {@link EnhancedType} of the item this {@link TableSchema} will map records to.
+     * @param <T> The type of the item this {@link TableSchema} will map records to.
+     * @return A newly initialized {@link StaticTableSchema.Builder}.
+     */
+    static <T> StaticTableSchema.Builder<T> builder(EnhancedType<T> itemType) {
+        return StaticTableSchema.builder(itemType);
+    }
+
+    /**
      * Returns a builder for the {@link StaticImmutableTableSchema} implementation of this interface which allows all
      * attributes, tags and table structure to be directly declared in the builder.
      *
@@ -67,6 +79,22 @@ public interface TableSchema<T> {
     static <T, B> StaticImmutableTableSchema.Builder<T, B> builder(Class<T> immutableItemClass,
                                                                    Class<B> immutableBuilderClass) {
         return StaticImmutableTableSchema.builder(immutableItemClass, immutableBuilderClass);
+    }
+
+    /**
+     * Returns a builder for the {@link StaticImmutableTableSchema} implementation of this interface which allows all
+     * attributes, tags and table structure to be directly declared in the builder.
+     *
+     * @param immutableItemType The {@link EnhancedType} of the immutable item this {@link TableSchema} will map records to.
+     * @param immutableBuilderType The {@link EnhancedType} of the class that can be used to construct immutable items this
+     *                             {@link TableSchema} maps records to.
+     * @param <T> The type of the immutable item this {@link TableSchema} will map records to.
+     * @param <B> The type of the builder used by this {@link TableSchema} to construct immutable items with.
+     * @return A newly initialized {@link StaticImmutableTableSchema.Builder}
+     */
+    static <T, B> StaticImmutableTableSchema.Builder<T, B> builder(EnhancedType<T> immutableItemType,
+                                                                   EnhancedType<B> immutableBuilderType) {
+        return StaticImmutableTableSchema.builder(immutableItemType, immutableBuilderType);
     }
 
     /**
