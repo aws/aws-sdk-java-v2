@@ -36,7 +36,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.utils.Validate;
 
