@@ -1,3 +1,36 @@
+# __2.20.106__ __2023-07-19__
+## __AWS CloudFormation__
+  - ### Features
+    - SDK and documentation updates for GetTemplateSummary API (unrecognized resources)
+
+## __AWS Health Imaging__
+  - ### Features
+    - General Availability (GA) release of AWS Health Imaging, enabling customers to store, transform, and analyze medical imaging data at petabyte-scale.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - This release adds support for securely sharing with AWS service principals.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Allowing configuring the prefetchTime and staleTime on WebIdentityTokenFileCredentialsProvider
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Added support for SAP Hana High Availability discovery (primary and secondary nodes) and Backint agent installation with SSM for SAP.
+
+## __AWS WAFV2__
+  - ### Features
+    - Added the URI path to the custom aggregation keys that you can specify for a rate-based rule.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 documentation updates.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Amazon Managed Grafana now supports grafanaVersion update for existing workspaces with UpdateWorkspaceConfiguration API. DescribeWorkspaceConfiguration API additionally returns grafanaVersion. A new ListVersions API lists available versions or, if given a workspaceId, the versions it can upgrade to.
+
 # __2.20.105__ __2023-07-18__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -589,7 +622,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
