@@ -111,8 +111,8 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
     }
 
     @AfterAll
-    public static void tearDown() throws Exception {
-        Waiter.run(() -> syncClientWithApache.deleteObject(deleteObjectRequest));
+    public static void tearDown() {
+        Waiter.run(() -> syncClientWithApache.deleteObject(deleteObjectRequest)).orFailAfter(Duration.ofSeconds(30));
         mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
         CaptureTransferEncodingHeaderInterceptor.reset();
     }
