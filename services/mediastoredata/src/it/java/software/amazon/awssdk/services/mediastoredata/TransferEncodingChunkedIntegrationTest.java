@@ -124,13 +124,12 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
         assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
     }
 
-    // TODO : uncomment once URL Connection client is fixed
-    /*@Test
+    @Test
     public void urlConnectionClientPutObject_withoutContentLength_sendsSuccessfully() {
         TestContentProvider provider = new TestContentProvider(RandomStringUtils.random(1000).getBytes(StandardCharsets.UTF_8));
         syncClientWithUrlConnection.putObject(putObjectRequest, RequestBody.fromContentProvider(provider, "binary/octet-stream"));
         assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
-    }*/
+    }
 
     @Test
     public void nettyClientPutObject_withoutContentLength_sendsSuccessfully() {
