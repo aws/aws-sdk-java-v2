@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Storage Service",
-    "contributor": "",
-    "description": "Improve performance of S3 clients by simplifying and optimizing endpoint resolution."
-}
