@@ -21,12 +21,10 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestCompressionConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -37,9 +35,6 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
-import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -49,15 +44,6 @@ import software.amazon.awssdk.utils.IoUtils;
 public class CompressRequestStage implements MutableRequestToRequestPipeline {
     private static final int DEFAULT_MIN_COMPRESSION_SIZE = 10_240;
     private static final int MIN_COMPRESSION_SIZE_LIMIT = 10_485_760;
-    private static final Supplier<ProfileFile> PROFILE_FILE = ProfileFile::defaultProfileFile;
-    private static final String PROFILE_NAME = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
-    private static Boolean compressionEnabledClientLevel;
-    private static Boolean compressionEnabledEnvLevel;
-    private static Boolean compressionEnabledProfileLevel;
-    private static int minCompressionSizeClientLevel = -1;
-    private static int minCompressionSizeEnvLevel = -1;
-    private static int minCompressionSizeProfileLevel = -1;
-
 
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder input, RequestExecutionContext context)
@@ -153,36 +139,11 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             return requestCompressionEnabledRequestLevel.get();
         }
 
-        if (compressionEnabledClientLevel != null) {
-            return compressionEnabledClientLevel;
-        }
-        if (context.executionAttributes().getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION) != null) {
-            Boolean requestCompressionEnabledClientLevel = context.executionAttributes().getAttribute(
-                SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION).requestCompressionEnabled();
-            if (requestCompressionEnabledClientLevel != null) {
-                compressionEnabledClientLevel = requestCompressionEnabledClientLevel;
-                return compressionEnabledClientLevel;
-            }
-        }
-
-        if (compressionEnabledEnvLevel != null) {
-            return compressionEnabledEnvLevel;
-        }
-        if (SdkSystemSetting.AWS_DISABLE_REQUEST_COMPRESSION.getBooleanValue().isPresent()) {
-            compressionEnabledEnvLevel = !SdkSystemSetting.AWS_DISABLE_REQUEST_COMPRESSION.getBooleanValue().get();
-            return compressionEnabledEnvLevel;
-        }
-
-        if (compressionEnabledProfileLevel != null) {
-            return compressionEnabledProfileLevel;
-        }
-        Optional<Boolean> profileSetting =
-            PROFILE_FILE.get()
-                        .profile(PROFILE_NAME)
-                        .flatMap(p -> p.booleanProperty(ProfileProperty.DISABLE_REQUEST_COMPRESSION));
-        if (profileSetting.isPresent()) {
-            compressionEnabledProfileLevel = !profileSetting.get();
-            return compressionEnabledProfileLevel;
+        Boolean isEnabled = context.executionAttributes()
+                                   .getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION)
+                                   .requestCompressionEnabled();
+        if (isEnabled != null) {
+            return isEnabled;
         }
 
         return true;
@@ -205,38 +166,11 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             return minimumCompressionSizeRequestLevel.get();
         }
 
-        if (minCompressionSizeClientLevel >= 0) {
-            return minCompressionSizeClientLevel;
-        }
-        if (context.executionAttributes().getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION) != null) {
-            Integer minimumCompressionSizeClientLevel =
-                context.executionAttributes()
-                       .getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION)
-                       .minimumCompressionThresholdInBytes();
-            if (minimumCompressionSizeClientLevel != null) {
-                minCompressionSizeClientLevel = minimumCompressionSizeClientLevel;
-                return minCompressionSizeClientLevel;
-            }
-        }
-
-        if (minCompressionSizeEnvLevel >= 0) {
-            return minCompressionSizeEnvLevel;
-        }
-        if (SdkSystemSetting.AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES.getIntegerValue().isPresent()) {
-            minCompressionSizeEnvLevel = SdkSystemSetting.AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES.getIntegerValue().get();
-            return minCompressionSizeEnvLevel;
-        }
-
-        if (minCompressionSizeProfileLevel >= 0) {
-            return minCompressionSizeProfileLevel;
-        }
-        Optional<String> profileSetting =
-            PROFILE_FILE.get()
-                        .profile(PROFILE_NAME)
-                        .flatMap(p -> p.property(ProfileProperty.REQUEST_MIN_COMPRESSION_SIZE_BYTES));
-        if (profileSetting.isPresent()) {
-            minCompressionSizeProfileLevel = Integer.parseInt(profileSetting.get());
-            return minCompressionSizeProfileLevel;
+        Integer threshold = context.executionAttributes()
+                                   .getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION)
+                                   .minimumCompressionThresholdInBytes();
+        if (threshold != null) {
+            return threshold;
         }
 
         return DEFAULT_MIN_COMPRESSION_SIZE;

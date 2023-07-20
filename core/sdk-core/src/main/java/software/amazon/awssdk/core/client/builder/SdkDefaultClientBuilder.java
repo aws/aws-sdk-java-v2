@@ -64,6 +64,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.RequestCompressionConfiguration;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -83,9 +85,11 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.ScheduledExecutorUtils;
@@ -238,8 +242,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         builder.option(METRIC_PUBLISHERS, clientOverrideConfiguration.metricPublishers());
         builder.option(EXECUTION_ATTRIBUTES, clientOverrideConfiguration.executionAttributes());
         builder.option(TOKEN_SIGNER, clientOverrideConfiguration.advancedOption(TOKEN_SIGNER).orElse(null));
-        builder.option(REQUEST_COMPRESSION_CONFIGURATION,
-                       clientOverrideConfiguration.requestCompressionConfiguration().orElse(null));
 
         clientOverrideConfiguration.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
             builder.option(ENDPOINT_OVERRIDDEN, value);
@@ -318,7 +320,58 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .option(RETRY_POLICY, retryPolicy)
                      .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
+                     .option(REQUEST_COMPRESSION_CONFIGURATION, resolveRequestCompressionConfiguration())
                      .build();
+    }
+
+    private RequestCompressionConfiguration resolveRequestCompressionConfiguration() {
+        Boolean requestCompressionEnabled = null;
+        Integer minCompressionThreshold = null;
+
+        // Client level
+        RequestCompressionConfiguration clientConfig =
+            clientOverrideConfiguration.requestCompressionConfiguration().orElse(null);
+        if (clientConfig != null) {
+            requestCompressionEnabled = clientConfig.requestCompressionEnabled();
+            minCompressionThreshold = clientConfig.minimumCompressionThresholdInBytes();
+        }
+
+        // Env level
+        if (requestCompressionEnabled == null) {
+            Optional<Boolean> systemSetting = SdkSystemSetting.AWS_DISABLE_REQUEST_COMPRESSION.getBooleanValue();
+            if (systemSetting.isPresent()) {
+                requestCompressionEnabled = !systemSetting.get();
+            }
+        }
+        if (minCompressionThreshold == null) {
+            minCompressionThreshold =
+                SdkSystemSetting.AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES.getIntegerValue().orElse(null);
+        }
+
+        // Profile level
+        if (requestCompressionEnabled == null || minCompressionThreshold == null) {
+            Supplier<ProfileFile> profileFileSupplier = ProfileFile::defaultProfileFile;
+            String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+            Profile profile = profileFileSupplier.get().profile(profileName).orElse(null);
+
+            if (requestCompressionEnabled == null && profile != null) {
+                Optional<Boolean> profileSetting = profile.booleanProperty(ProfileProperty.DISABLE_REQUEST_COMPRESSION);
+                if (profileSetting.isPresent()) {
+                    requestCompressionEnabled = !profileSetting.get();
+                }
+            }
+            if (minCompressionThreshold == null && profile != null) {
+                Optional<String> profileSetting = profile.property(ProfileProperty.REQUEST_MIN_COMPRESSION_SIZE_BYTES);
+                if (profileSetting.isPresent()) {
+                    minCompressionThreshold = Integer.parseInt(profileSetting.get());
+                }
+            }
+        }
+
+        return RequestCompressionConfiguration.builder()
+                                              .requestCompressionEnabled(requestCompressionEnabled)
+                                              .minimumCompressionThresholdInBytes(minCompressionThreshold)
+                                              .build();
     }
 
     private String resolveClientUserAgent(SdkClientConfiguration config, RetryPolicy retryPolicy) {
@@ -580,6 +633,4 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             // Do nothing, this client is managed by the customer.
         }
     }
-
-
 }
