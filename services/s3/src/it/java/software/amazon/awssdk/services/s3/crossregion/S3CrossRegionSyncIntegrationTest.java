@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
@@ -59,7 +60,7 @@ public class S3CrossRegionSyncIntegrationTest extends S3CrossRegionIntegrationTe
     @BeforeEach
     public void initialize() {
         crossRegionS3Client = S3Client.builder()
-                                      .region(CROSS_REGION)
+                                      .region(Region.US_EAST_1)
                                       .crossRegionAccessEnabled(true)
                                       .build();
     }

@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.s3.model.S3Request;
 @SdkInternalApi
 public final class CrossRegionUtils {
     public static final int REDIRECT_STATUS_CODE = 301;
+    public static final int TEMPORARY_REDIRECT_STATUS_CODE = 307;
     public static final String AMZ_BUCKET_REGION_HEADER = "x-amz-bucket-region";
     private static final ApiName API_NAME = ApiName.builder().version("cross-region").name("hll").build();
     private static final Consumer<AwsRequestOverrideConfiguration.Builder> USER_AGENT_APPLIER = b -> b.addApiName(API_NAME);
@@ -48,9 +49,14 @@ public final class CrossRegionUtils {
     }
 
     public static boolean isS3RedirectException(Throwable exception) {
-        Throwable exceptionToBeChecked = exception instanceof CompletionException ? exception.getCause() : exception ;
+        Throwable exceptionToBeChecked = exception instanceof CompletionException ? exception.getCause() : exception;
         return exceptionToBeChecked instanceof S3Exception
-               && ((S3Exception) exceptionToBeChecked).statusCode() == REDIRECT_STATUS_CODE;
+               && isRedirectError((S3Exception) exceptionToBeChecked);
+    }
+
+    private static boolean isRedirectError(S3Exception exceptionToBeChecked) {
+        int statusCode = exceptionToBeChecked.statusCode();
+        return statusCode == REDIRECT_STATUS_CODE || statusCode == TEMPORARY_REDIRECT_STATUS_CODE;
     }
 
 

@@ -76,9 +76,7 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("StsAssumeRoleWithSamlCredentialsProvider")
-                       .add("refreshRequest", assumeRoleWithSamlRequestSupplier)
-                       .build();
+        return ToString.create("StsAssumeRoleWithSamlCredentialsProvider");
     }
 
     @Override
