@@ -41,11 +41,11 @@ public class RequestCompressionTest {
         "RequestCompressionTest-RequestCompressionTest-RequestCompressionTest-RequestCompressionTest-RequestCompressionTest";
     private String compressedBody;
     private int compressedLen;
-    MockSyncHttpClient mockHttpClient;
-    MockAsyncHttpClient mockAsyncHttpClient;
-    ProtocolRestJsonClient syncClient;
-    ProtocolRestJsonAsyncClient asyncClient;
-    Compressor compressor;
+    private MockSyncHttpClient mockHttpClient;
+    private MockAsyncHttpClient mockAsyncHttpClient;
+    private ProtocolRestJsonClient syncClient;
+    private ProtocolRestJsonAsyncClient asyncClient;
+    private Compressor compressor;
 
     @BeforeEach
     public void setUp() {
@@ -143,7 +143,7 @@ public class RequestCompressionTest {
 
     @Test
     public void async_nonStreaming_compression_withRetry_compressesCorrectly() {
-        mockHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
+        mockAsyncHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
         mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
 
         PutOperationWithRequestCompressionRequest request =
