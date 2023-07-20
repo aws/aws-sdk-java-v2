@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Security Lake",
+    "contributor": "",
+    "description": "Adding support for Tags on Create and Resource Tagging API."
+}
