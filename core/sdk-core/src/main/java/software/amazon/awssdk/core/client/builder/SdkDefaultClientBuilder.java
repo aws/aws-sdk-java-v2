@@ -329,12 +329,15 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         Integer minCompressionThreshold = null;
 
         // Client level
-        RequestCompressionConfiguration clientConfig =
-            clientOverrideConfiguration.requestCompressionConfiguration().orElse(null);
-        if (clientConfig != null) {
-            requestCompressionEnabled = clientConfig.requestCompressionEnabled();
-            minCompressionThreshold = clientConfig.minimumCompressionThresholdInBytes();
+        if (clientOverrideConfiguration != null) {
+            RequestCompressionConfiguration clientConfig =
+                clientOverrideConfiguration.requestCompressionConfiguration().orElse(null);
+            if (clientConfig != null) {
+                requestCompressionEnabled = clientConfig.requestCompressionEnabled();
+                minCompressionThreshold = clientConfig.minimumCompressionThresholdInBytes();
+            }
         }
+
 
         // Env level
         if (requestCompressionEnabled == null) {
