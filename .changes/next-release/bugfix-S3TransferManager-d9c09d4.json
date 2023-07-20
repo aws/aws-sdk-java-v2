@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fix a bug where the SSE-C parameters are not copied to the CompleteMultipartUpload request when transforming to a multipart copy."
+}
