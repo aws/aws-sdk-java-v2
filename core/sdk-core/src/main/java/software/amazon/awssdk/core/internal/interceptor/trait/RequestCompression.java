@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.interceptor.trait;
+package software.amazon.awssdk.core.internal.interceptor.trait;
 
 import java.util.Arrays;
 import java.util.List;

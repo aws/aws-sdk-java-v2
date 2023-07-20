@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 
 /**
  * The logic for handling the "requestCompression" trait within the code generator.

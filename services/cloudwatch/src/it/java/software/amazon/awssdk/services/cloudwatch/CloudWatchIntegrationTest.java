@@ -44,7 +44,7 @@ import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
 import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest;

@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
-import software.amazon.awssdk.core.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
 import software.amazon.awssdk.core.signer.Signer;
