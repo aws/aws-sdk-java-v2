@@ -51,6 +51,7 @@ import software.amazon.awssdk.services.mediastore.model.Container;
 import software.amazon.awssdk.services.mediastore.model.ContainerStatus;
 import software.amazon.awssdk.services.mediastore.model.DescribeContainerResponse;
 import software.amazon.awssdk.services.mediastoredata.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.mediastoredata.model.ObjectNotFoundException;
 import software.amazon.awssdk.services.mediastoredata.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
@@ -112,8 +113,10 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
 
     @AfterAll
     public static void tearDown() {
-        Waiter.run(() -> syncClientWithApache.deleteObject(deleteObjectRequest)).orFailAfter(Duration.ofSeconds(30));
-        mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
+        syncClientWithApache.deleteObject(deleteObjectRequest);
+        Waiter.run(() -> syncClientWithApache.describeObject(r -> r.path("/foo")))
+              .untilException(ObjectNotFoundException.class)
+              .orFailAfter(Duration.ofMinutes(1));
         CaptureTransferEncodingHeaderInterceptor.reset();
     }
 
