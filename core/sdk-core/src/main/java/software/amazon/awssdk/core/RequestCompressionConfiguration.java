@@ -90,7 +90,8 @@ public final class RequestCompressionConfiguration implements ToCopyableBuilder<
     public interface Builder extends CopyableBuilder<Builder, RequestCompressionConfiguration> {
 
         /**
-         * Configures whether request compression is enabled or not. The default value is true.
+         * Configures whether request compression is enabled or not, for operations that have the "requestCompression" C2J trait.
+         * The default value is true.
          *
          * @param requestCompressionEnabled
          * @return This object for method chaining.
