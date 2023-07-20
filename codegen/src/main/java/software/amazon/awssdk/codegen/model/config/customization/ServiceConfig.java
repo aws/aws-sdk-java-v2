@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.config.customization;
 
+import software.amazon.awssdk.utils.ToString;
+
 public class ServiceConfig {
     /**
      * Specifies the name of the client configuration class to use if a service
@@ -48,6 +50,8 @@ public class ServiceConfig {
     private boolean hasAccelerateModeEnabledProperty = false;
 
     private boolean hasCrossRegionAccessEnabledProperty = false;
+
+    private boolean hasMultipartEnabledProperty = false;
 
     public String getClassName() {
         return className;
@@ -111,5 +115,28 @@ public class ServiceConfig {
 
     public void setHasAccelerateModeEnabledProperty(boolean hasAccelerateModeEnabledProperty) {
         this.hasAccelerateModeEnabledProperty = hasAccelerateModeEnabledProperty;
+    }
+
+    public boolean hasMultipartEnabledProperty() {
+        return hasMultipartEnabledProperty;
+    }
+
+    public void setHasMultipartEnabledProperty(boolean hasMultipartEnabledProperty) {
+        this.hasMultipartEnabledProperty = hasMultipartEnabledProperty;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ServiceConfig")
+                       .add("className", className)
+                       .add("hasDualstackProperty", hasDualstackProperty)
+                       .add("hasFipsProperty", hasFipsProperty)
+                       .add("hasUseArnRegionProperty", hasUseArnRegionProperty)
+                       .add("hasMultiRegionEnabledProperty", hasMultiRegionEnabledProperty)
+                       .add("hasPathStyleAccessEnabledProperty", hasPathStyleAccessEnabledProperty)
+                       .add("hasAccelerateModeEnabledProperty", hasAccelerateModeEnabledProperty)
+                       .add("hasCrossRegionAccessEnabledProperty", hasCrossRegionAccessEnabledProperty)
+                       .add("hasMultipartEnabledProperty", hasMultipartEnabledProperty)
+                       .build();
     }
 }

@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.s3.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.services.s3.crt.S3CrtClientCopyIntegrationTest.randomBytes;
+import static software.amazon.awssdk.services.s3.multipart.S3ClientMultiPartCopyIntegrationTest.randomBytes;
 import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.computeCheckSum;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
@@ -31,7 +31,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

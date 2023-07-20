@@ -228,6 +228,11 @@ public class CustomizationConfig {
     private String asyncClientDecorator;
 
     /**
+     * todo
+     */
+    private String multipartConfigurationClass;
+
+    /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
      */
     private boolean skipEndpointTestGeneration;
@@ -664,5 +669,13 @@ public class CustomizationConfig {
 
     public void setCustomClientContextParams(Map<String, ClientContextParam> customClientContextParams) {
         this.customClientContextParams = customClientContextParams;
+    }
+
+    public String getMultipartConfigurationClass() {
+        return this.multipartConfigurationClass;
+    }
+
+    public void setMultipartConfigurationClass(String multipartConfigurationClass) {
+        this.multipartConfigurationClass = multipartConfigurationClass;
     }
 }
