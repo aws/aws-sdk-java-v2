@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
@@ -14,14 +15,19 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.BearerAuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
+import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -44,6 +50,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
                                   .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                                  .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
                                   .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                   .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
                                   .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
@@ -52,6 +59,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
+        endpointInterceptors.add(new JsonAuthSchemeInterceptor());
         endpointInterceptors.add(new JsonResolveEndpointInterceptor());
         endpointInterceptors.add(new JsonEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
@@ -62,7 +70,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
+        SdkClientConfiguration.Builder builder = config.toBuilder();
+        IdentityProvider<? extends TokenIdentity> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
+        if (identityProvider != null) {
+            IdentityProviderConfiguration identityProviderConfig = config.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
+            builder.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION, identityProviderConfig.toBuilder()
+                                                                                                  .putIdentityProvider(identityProvider).build());
+        }
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+        return builder.build();
     }
 
     @Override
@@ -89,6 +105,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private Signer defaultTokenSigner() {
         return BearerTokenSigner.create();
+    }
+
+    private Map<String, AuthScheme<?>> defaultAuthSchemes() {
+        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
+        return MapUtils.of(bearerAuthScheme.schemeId(), bearerAuthScheme);
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

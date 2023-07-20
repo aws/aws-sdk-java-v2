@@ -160,12 +160,7 @@ public final class AuthSchemeSpecUtils {
                                       Map.Entry::getKey, (a, b) -> b,
                                       LinkedHashMap::new));
 
-        List<AuthType> serviceDefaults;
-        if (intermediateModel.getMetadata().getAuth().isEmpty()) {
-            serviceDefaults = Arrays.asList(intermediateModel.getMetadata().getAuthType());
-        } else {
-            serviceDefaults = intermediateModel.getMetadata().getAuth();
-        }
+        List<AuthType> serviceDefaults = serviceDefaultAuthTypes();
 
         // Get the list of operations that share the same auth schemes as the system defaults and remove it from the result. We
         // will take care of all of these in the fallback `default` case.
@@ -173,6 +168,14 @@ public final class AuthSchemeSpecUtils {
         operationsToAuthType.remove(operationsWithDefaults);
         operationsToAuthType.put(Collections.emptyList(), serviceDefaults);
         return operationsToAuthType;
+    }
+
+    public List<AuthType> serviceDefaultAuthTypes() {
+        List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
+        if (!modeled.isEmpty()) {
+            return modeled;
+        }
+        return Arrays.asList(intermediateModel.getMetadata().getAuthType());
     }
 
     private static Set<String> setOf(String v1, String v2) {

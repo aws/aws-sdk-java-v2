@@ -37,6 +37,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 /**
  * Core metrics test for async streaming API
@@ -45,10 +46,6 @@ import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperati
 public class AsyncEventStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest {
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
-
-    @Mock
-    private IdentityProvider<AwsCredentialsIdentity> mockCredentialsProvider;
-
     @Mock
     private MetricPublisher mockPublisher;
 
@@ -59,20 +56,11 @@ public class AsyncEventStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest
     public void setup() {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_2)
-                                            .credentialsProvider(mockCredentialsProvider)
+                                            .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher)
                                                                          .retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                                             .build();
-
-        when(mockCredentialsProvider.resolveIdentity()).thenAnswer(invocation -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
-            return CompletableFuture.completedFuture(AwsBasicCredentials.create("foo", "bar"));
-        });
     }
 
     @After

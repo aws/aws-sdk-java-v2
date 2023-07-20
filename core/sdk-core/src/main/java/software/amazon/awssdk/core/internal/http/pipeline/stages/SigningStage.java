@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -63,7 +64,7 @@ public class SigningStage implements RequestToRequestPipeline {
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
         // TODO: Add unit tests for SRA signing logic.
-        if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
+        if (shouldUseSelectedAuthScheme(context)) {
             return sraSignRequest(request,
                                   context,
                                   context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
@@ -76,7 +77,7 @@ public class SigningStage implements RequestToRequestPipeline {
                                                                    SelectedAuthScheme<T> selectedAuthScheme) {
         updateHttpRequestInInterceptorContext(request, context.executionContext());
 
-        if (!shouldSign(selectedAuthScheme)) {
+        if (!selectedAuthScheme.supportsSigning()) {
             return request;
         }
 
@@ -168,22 +169,28 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     /**
-     * We do not sign if the Auth SchemeId is smithy.api#noAuth.
-     *
-     * @return True if request should be signed, false if not.
-     */
-    private boolean shouldSign(SelectedAuthScheme<?> selectedAuthScheme) {
-        // TODO: Should this string be a constant somewhere. Similar logic is used in AuthSchemeInterceptors.
-        return !"smithy.api#noAuth".equals(selectedAuthScheme.authSchemeOption().schemeId());
-    }
-
-    /**
      * We sign if a signer is provided is not null.
      *
      * @return True if request should be signed, false if not.
      */
     private boolean shouldSign(Signer signer) {
         return signer != null;
+    }
+
+    /**
+     * Returns true if we should use the selected out scheme attribute for signing. Returns true if the client has overridden
+     * the signer using the advanced configuration setting or if the no selected auth scheme.
+     */
+    private boolean shouldUseSelectedAuthScheme(RequestExecutionContext context) {
+        return !hasClientConfiguredSigner() &&
+               context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
+    }
+
+    /**
+     * Returns true if the client configuration has an override for the signer.
+     */
+    private boolean hasClientConfiguredSigner() {
+        return dependencies.clientConfiguration().option(SdkAdvancedClientOption.SIGNER) != null;
     }
 
     /**

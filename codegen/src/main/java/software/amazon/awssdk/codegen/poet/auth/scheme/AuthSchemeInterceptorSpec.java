@@ -53,7 +53,6 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 public final class AuthSchemeInterceptorSpec implements ClassSpec {
-    private static final String SMITHY_NO_AUTH = "smithy.auth#noAuth";
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
 
     public AuthSchemeInterceptorSpec(IntermediateModel intermediateModel) {
@@ -116,6 +115,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
             builder.addStatement("$T region = executionAttributes.getAttribute($T.AWS_REGION)", Region.class,
                                  AwsExecutionAttribute.class);
         }
+
         builder.addStatement("$1T authSchemeProvider = $2T.isInstanceOf($1T.class, executionAttributes"
                              + ".getAttribute($3T.AUTH_SCHEME_RESOLVER), $4S)",
                              authSchemeSpecUtils.providerInterfaceName(),
@@ -156,7 +156,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
 
         builder.beginControlFlow("for ($T authOption : authOptions)", AuthSchemeOption.class);
         {
-            builder.beginControlFlow("if (authOption.schemeId().equals($S))", SMITHY_NO_AUTH);
+            builder.beginControlFlow("if (authOption.schemeId().equals($S))", SelectedAuthScheme.SMITHY_NO_AUTH);
             {
                 addLogDebugDiscardedOptions(builder);
                 builder.addStatement("return new $T<>(null, null, authOption)", SelectedAuthScheme.class)

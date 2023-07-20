@@ -44,12 +44,10 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
+import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncClientMetricPublisherResolutionTest {
-    @Mock
-    private IdentityProvider<AwsCredentialsIdentity> mockCredentialsProvider;
-
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
 
@@ -58,18 +56,6 @@ public class AsyncClientMetricPublisherResolutionTest {
 
     private ProtocolRestJsonAsyncClient client;
 
-
-    @Before
-    public void setup() {
-        when(mockCredentialsProvider.resolveIdentity()).thenAnswer(invocation -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
-            return CompletableFuture.completedFuture(AwsBasicCredentials.create("foo", "bar"));
-        });
-    }
 
     @After
     public void teardown() {
@@ -153,7 +139,7 @@ public class AsyncClientMetricPublisherResolutionTest {
     private ProtocolRestJsonAsyncClient clientWithPublishers(MetricPublisher... metricPublishers) {
         ProtocolRestJsonAsyncClientBuilder builder = ProtocolRestJsonAsyncClient.builder()
                 .region(Region.US_WEST_2)
-                .credentialsProvider(mockCredentialsProvider)
+                .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                 .endpointOverride(URI.create("http://localhost:" + wireMock.port()));
 
         if (metricPublishers != null) {

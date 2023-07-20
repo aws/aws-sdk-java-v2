@@ -40,6 +40,7 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class ProfileFileConfigurationTest {
+
     @Test
     public void profileIsHonoredForCredentialsAndRegion() {
         EnvironmentVariableHelper.run(env -> {

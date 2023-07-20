@@ -28,6 +28,8 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 @SdkPublicApi
 public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {
 
+    String SCHEME_ID = "smithy.api#httpBearerAuth";
+
     /**
      * Get a default implementation of a {@link BearerAuthScheme}
      */
@@ -41,7 +43,7 @@ public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {
      */
     @Override
     default String schemeId() {
-        return "smithy.api#httpBearerAuth";
+        return SCHEME_ID;
     }
 
     /**

@@ -20,13 +20,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.utils.Validate;
 
 public final class AuthSchemeCodegenMetadata {
 
     static final AuthSchemeCodegenMetadata SIGV4 = builder()
-        .schemeId("aws.auth#sigv4")
+        .schemeId(AwsV4AuthScheme.SCHEME_ID)
         .addProperty(SignerPropertyValueProvider.builder()
                                                 .containingClass(AwsV4HttpSigner.class)
                                                 .fieldName("SERVICE_SIGNING_NAME")
@@ -42,7 +45,7 @@ public final class AuthSchemeCodegenMetadata {
         .build();
 
     static final AuthSchemeCodegenMetadata S3 = builder()
-        .schemeId("aws.auth#sigv4")
+        .schemeId(AwsV4AuthScheme.SCHEME_ID)
         .addProperty(SignerPropertyValueProvider.builder()
                                                 .containingClass(AwsV4HttpSigner.class)
                                                 .fieldName("SERVICE_SIGNING_NAME")
@@ -70,11 +73,11 @@ public final class AuthSchemeCodegenMetadata {
         .build();
 
     static final AuthSchemeCodegenMetadata BEARER = builder()
-        .schemeId("smithy.auth#httpBearerAuth")
+        .schemeId(BearerAuthScheme.SCHEME_ID)
         .build();
 
     static final AuthSchemeCodegenMetadata NO_AUTH = builder()
-        .schemeId("smithy.auth#noAuth")
+        .schemeId(SelectedAuthScheme.SMITHY_NO_AUTH)
         .build();
 
     private final String schemeId;
@@ -87,6 +90,19 @@ public final class AuthSchemeCodegenMetadata {
 
     public String schemeId() {
         return schemeId;
+    }
+
+    public Class<?> authSchemeClass() {
+        switch (schemeId) {
+            case AwsV4AuthScheme.SCHEME_ID:
+                return AwsV4AuthScheme.class;
+            case BearerAuthScheme.SCHEME_ID:
+                return BearerAuthScheme.class;
+            case SelectedAuthScheme.SMITHY_NO_AUTH:
+                return null;
+            default:
+                throw new IllegalArgumentException("Auth scheme class for schemeId: " + schemeId + " not configured.");
+        }
     }
 
     public List<SignerPropertyValueProvider> properties() {

@@ -162,6 +162,12 @@ public class AuthSchemeSpecTest {
                     .caseName("mini-s3")
                     .outputFileSuffix("default-provider")
                     .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::serviceMixedAuth)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
+                    .caseName("mixed")
+                    .outputFileSuffix("default-provider")
+                    .build(),
             // Interceptors
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModels)

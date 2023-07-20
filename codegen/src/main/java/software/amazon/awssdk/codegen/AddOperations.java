@@ -17,10 +17,10 @@ package software.amazon.awssdk.codegen;
 
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.ExceptionModel;
@@ -73,14 +73,11 @@ final class AddOperations {
     }
 
     /**
-     * If there is a member in the output shape that is explicitly marked as the payload (with the
-     * payload trait) this method returns the target shape of that member. Otherwise this method
-     * returns null.
+     * If there is a member in the output shape that is explicitly marked as the payload (with the payload trait) this method
+     * returns the target shape of that member. Otherwise this method returns null.
      *
-     * @param c2jShapes
-     *            All C2J shapes
-     * @param outputShape
-     *            Output shape of operation that may contain a member designated as the payload
+     * @param c2jShapes   All C2J shapes
+     * @param outputShape Output shape of operation that may contain a member designated as the payload
      */
     public static Shape getPayloadShape(Map<String, Shape> c2jShapes, Shape outputShape) {
         if (outputShape.getPayload() == null) {
@@ -169,8 +166,7 @@ final class AddOperations {
             operationModel.setHttpChecksumRequired(op.isHttpChecksumRequired());
             operationModel.setHttpChecksum(op.getHttpChecksum());
             operationModel.setStaticContextParams(op.getStaticContextParams());
-            operationModel.setAuth(Optional.ofNullable(op.getAuth()).orElse(Collections.emptyList())
-                                           .stream().map(AuthType::fromValue).collect(Collectors.toList()));
+            operationModel.setAuth(getAuthFromOperation(op));
 
             Input input = op.getInput();
             if (input != null) {
@@ -180,7 +176,7 @@ final class AddOperations {
                                        c2jShapes.get(originalShapeName).getDocumentation();
 
                 operationModel.setInput(new VariableModel(unCapitalize(inputShape), inputShape)
-                                                .withDocumentation(documentation));
+                                            .withDocumentation(documentation));
 
             }
 
@@ -192,7 +188,7 @@ final class AddOperations {
                 String documentation = getOperationDocumentation(output, outputShape);
 
                 operationModel.setReturnType(
-                        new ReturnTypeModel(responseClassName).withDocumentation(documentation));
+                    new ReturnTypeModel(responseClassName).withDocumentation(documentation));
                 if (isBlobShape(getPayloadShape(c2jShapes, outputShape))) {
                     operationModel.setHasBlobMemberAsPayload(true);
                 }
@@ -202,8 +198,8 @@ final class AddOperations {
                 for (ErrorMap error : op.getErrors()) {
 
                     String documentation =
-                            error.getDocumentation() != null ? error.getDocumentation() :
-                            c2jShapes.get(error.getShape()).getDocumentation();
+                        error.getDocumentation() != null ? error.getDocumentation() :
+                        c2jShapes.get(error.getShape()).getDocumentation();
 
                     Integer httpStatusCode = getHttpStatusCode(error, c2jShapes.get(error.getShape()));
 
@@ -220,6 +216,22 @@ final class AddOperations {
         }
 
         return javaOperationModels;
+    }
+
+    /**
+     * Returns the list of authTypes defined for an operation. If the new auth member is defined we use it, otherwise we retrofit
+     * the list with the value of the authType member if present or return an empty list if not.
+     */
+    private List<AuthType> getAuthFromOperation(Operation op) {
+        List<String> opAuth = op.getAuth();
+        if (opAuth == null) {
+            AuthType legacyAuthType = op.getAuthtype();
+            if (legacyAuthType != null) {
+                return Arrays.asList(legacyAuthType);
+            }
+            return Collections.emptyList();
+        }
+        return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
     }
 
     /**

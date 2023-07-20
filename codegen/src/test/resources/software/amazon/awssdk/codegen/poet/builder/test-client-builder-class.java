@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import software.amazon.MyServiceHttpConfig;
 import software.amazon.MyServiceRetryPolicy;
 import software.amazon.awssdk.annotations.Generated;
@@ -11,15 +12,20 @@ import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
+import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.endpoints.JsonClientContextParams;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
@@ -27,6 +33,7 @@ import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEnd
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -49,6 +56,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
                                   .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                                  .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
                                   .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                                   .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                   .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
@@ -59,6 +67,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
+        endpointInterceptors.add(new JsonAuthSchemeInterceptor());
         endpointInterceptors.add(new JsonResolveEndpointInterceptor());
         endpointInterceptors.add(new JsonEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
@@ -71,36 +80,39 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         ServiceConfiguration.Builder serviceConfigBuilder = ((ServiceConfiguration) config
             .option(SdkClientOption.SERVICE_CONFIGURATION)).toBuilder();
-        serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFileSupplier() != null ?
-                                         serviceConfigBuilder.profileFileSupplier() :
-                                         config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
+        serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFileSupplier() != null ? serviceConfigBuilder
+            .profileFileSupplier() : config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
         serviceConfigBuilder.profileName(serviceConfigBuilder.profileName() != null ? serviceConfigBuilder.profileName() : config
             .option(SdkClientOption.PROFILE_NAME));
         if (serviceConfigBuilder.dualstackEnabled() != null) {
             Validate.validState(
                 config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED) == null,
-                "Dualstack has been configured on both ServiceConfiguration and the client/global level. Please limit dualstack configuration to one location.");
+                "Dualstack has been configured on both ServiceConfiguration and the client/global level. Please limit dualstack"
+                + " configuration to one location.");
         } else {
             serviceConfigBuilder.dualstackEnabled(config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED));
         }
         if (serviceConfigBuilder.fipsModeEnabled() != null) {
             Validate.validState(
                 config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED) == null,
-                "Fips has been configured on both ServiceConfiguration and the client/global level. Please limit fips configuration to one location.");
+                "Fips has been configured on both ServiceConfiguration and the client/global level. Please limit fips "
+                + "configuration to one location.");
         } else {
             serviceConfigBuilder.fipsModeEnabled(config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED));
         }
         if (serviceConfigBuilder.useArnRegionEnabled() != null) {
             Validate.validState(
                 clientContextParams.get(JsonClientContextParams.USE_ARN_REGION) == null,
-                "UseArnRegion has been configured on both ServiceConfiguration and the client/global level. Please limit UseArnRegion configuration to one location.");
+                "UseArnRegion has been configured on both ServiceConfiguration and the client/global level. Please limit "
+                + "UseArnRegion configuration to one location.");
         } else {
             serviceConfigBuilder.useArnRegionEnabled(clientContextParams.get(JsonClientContextParams.USE_ARN_REGION));
         }
         if (serviceConfigBuilder.multiRegionEnabled() != null) {
             Validate.validState(
                 clientContextParams.get(JsonClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS) == null,
-                "DisableMultiRegionAccessPoints has been configured on both ServiceConfiguration and the client/global level. Please limit DisableMultiRegionAccessPoints configuration to one location.");
+                "DisableMultiRegionAccessPoints has been configured on both ServiceConfiguration and the client/global level. "
+                + "Please limit DisableMultiRegionAccessPoints configuration to one location.");
         } else if (clientContextParams.get(JsonClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS) != null) {
             serviceConfigBuilder.multiRegionEnabled(!clientContextParams
                 .get(JsonClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS));
@@ -108,14 +120,16 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         if (serviceConfigBuilder.pathStyleAccessEnabled() != null) {
             Validate.validState(
                 clientContextParams.get(JsonClientContextParams.FORCE_PATH_STYLE) == null,
-                "ForcePathStyle has been configured on both ServiceConfiguration and the client/global level. Please limit ForcePathStyle configuration to one location.");
+                "ForcePathStyle has been configured on both ServiceConfiguration and the client/global level. Please limit "
+                + "ForcePathStyle configuration to one location.");
         } else {
             serviceConfigBuilder.pathStyleAccessEnabled(clientContextParams.get(JsonClientContextParams.FORCE_PATH_STYLE));
         }
         if (serviceConfigBuilder.accelerateModeEnabled() != null) {
             Validate.validState(
                 clientContextParams.get(JsonClientContextParams.ACCELERATE) == null,
-                "Accelerate has been configured on both ServiceConfiguration and the client/global level. Please limit Accelerate configuration to one location.");
+                "Accelerate has been configured on both ServiceConfiguration and the client/global level. Please limit "
+                + "Accelerate configuration to one location.");
         } else {
             serviceConfigBuilder.accelerateModeEnabled(clientContextParams.get(JsonClientContextParams.ACCELERATE));
         }
@@ -125,11 +139,19 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                                 !finalServiceConfig.multiRegionEnabled());
         clientContextParams.put(JsonClientContextParams.FORCE_PATH_STYLE, finalServiceConfig.pathStyleAccessEnabled());
         clientContextParams.put(JsonClientContextParams.ACCELERATE, finalServiceConfig.accelerateModeEnabled());
-        return config.toBuilder().option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())
-                     .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled())
-                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
-                     .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
-                     .option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig).build();
+        SdkClientConfiguration.Builder builder = config.toBuilder();
+        IdentityProvider<? extends TokenIdentity> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
+        if (identityProvider != null) {
+            IdentityProviderConfiguration identityProviderConfig = config.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
+            builder.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION, identityProviderConfig.toBuilder()
+                                                                                                  .putIdentityProvider(identityProvider).build());
+        }
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+               .option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())
+               .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled())
+               .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
+               .option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
+        return builder.build();
     }
 
     private Signer defaultSigner() {
@@ -169,6 +191,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private Signer defaultTokenSigner() {
         return BearerTokenSigner.create();
+    }
+
+    private Map<String, AuthScheme<?>> defaultAuthSchemes() {
+        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
+        return MapUtils.of(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
     }
 
     @Override
