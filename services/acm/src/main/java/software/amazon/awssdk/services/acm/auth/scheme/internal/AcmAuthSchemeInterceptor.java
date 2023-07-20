@@ -15,6 +15,7 @@ package software.amazon.awssdk.services.acm.auth.scheme.internal;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeParams;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeProvider;
@@ -83,7 +85,7 @@ public final class AcmAuthSchemeInterceptor implements ExecutionInterceptor {
         for (AuthSchemeOption authOption : authOptions) {
             // If we're using no-auth, don't consider which options are enabled.
             if (authOption.schemeId().equals("smithy.auth#noAuth")) {
-                return new SelectedAuthScheme(null, null, authOption);
+                return new SelectedAuthScheme<>(null, null, authOption);
             }
 
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
@@ -123,6 +125,10 @@ public final class AcmAuthSchemeInterceptor implements ExecutionInterceptor {
             return null;
         }
 
-        return new SelectedAuthScheme<>(identityProvider, authScheme.signer(), authOption);
+        ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
+        authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
+        CompletableFuture<? extends T> identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
+
+        return new SelectedAuthScheme<>(identity, authScheme.signer(), authOption);
     }
 }

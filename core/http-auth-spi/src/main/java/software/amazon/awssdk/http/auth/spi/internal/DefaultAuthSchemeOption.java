@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.spi.internal;
 
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
+@Immutable
 public final class DefaultAuthSchemeOption implements AuthSchemeOption {
 
     private final String schemeId;
@@ -35,6 +37,10 @@ public final class DefaultAuthSchemeOption implements AuthSchemeOption {
         this.schemeId = Validate.paramNotBlank(builder.schemeId, "schemeId");
         this.identityProperties = new HashMap<>(builder.identityProperties);
         this.signerProperties = new HashMap<>(builder.signerProperties);
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -68,9 +74,16 @@ public final class DefaultAuthSchemeOption implements AuthSchemeOption {
         }
     }
 
+
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("AuthSchemeOption")
+                       .add("schemeId", schemeId)
                        .add("identityProperties", identityProperties)
                        .add("signerProperties", signerProperties)
                        .build();
@@ -81,6 +94,15 @@ public final class DefaultAuthSchemeOption implements AuthSchemeOption {
         private String schemeId;
         private final Map<IdentityProperty<?>, Object> identityProperties = new HashMap<>();
         private final Map<SignerProperty<?>, Object> signerProperties = new HashMap<>();
+
+        private BuilderImpl() {
+        }
+
+        private BuilderImpl(DefaultAuthSchemeOption authSchemeOption) {
+            this.schemeId = authSchemeOption.schemeId;
+            this.identityProperties.putAll(authSchemeOption.identityProperties);
+            this.signerProperties.putAll(authSchemeOption.signerProperties);
+        }
 
         @Override
         public Builder schemeId(String schemeId) {

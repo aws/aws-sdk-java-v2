@@ -34,7 +34,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
-public class AuthSchemeParamsSpec implements ClassSpec {
+public final class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;

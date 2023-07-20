@@ -20,6 +20,7 @@ import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeInterceptorSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeParamsSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeProviderSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
@@ -43,6 +44,7 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
         tasks.add(generateProviderInterface());
         tasks.add(generateDefaultParamsImpl());
         tasks.add(generateModelBasedProvider());
+        tasks.add(generateAuthSchemeInterceptor());
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             tasks.add(generateEndpointBasedProvider());
         }
@@ -68,6 +70,10 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
     private GeneratorTask generateEndpointBasedProvider() {
         return new PoetGeneratorTask(authSchemeInternalDir(), model.getFileHeader(),
                                      new EndpointBasedAuthSchemeProviderSpec(model));
+    }
+
+    private GeneratorTask generateAuthSchemeInterceptor() {
+        return new PoetGeneratorTask(authSchemeInternalDir(), model.getFileHeader(), new AuthSchemeInterceptorSpec(model));
     }
 
     private String authSchemeDir() {

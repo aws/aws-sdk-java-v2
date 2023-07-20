@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -38,9 +39,8 @@ import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -64,52 +64,54 @@ public class SigningStage implements RequestToRequestPipeline {
         InterruptMonitor.checkInterrupted();
         // TODO: Add unit tests for SRA signing logic.
         if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
-            return sraSignRequest(request, context);
+            return sraSignRequest(request,
+                                  context,
+                                  context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
         }
         return signRequest(request, context);
     }
 
-    private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
-        updateInterceptorContext(request, context.executionContext());
-
-        ExecutionAttributes executionAttributes = context.executionAttributes();
-        SelectedAuthScheme<T> selectedAuthScheme =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+    private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request,
+                                                                   RequestExecutionContext context,
+                                                                   SelectedAuthScheme<T> selectedAuthScheme) {
+        updateHttpRequestInInterceptorContext(request, context.executionContext());
 
         if (!shouldSign(selectedAuthScheme)) {
             return request;
         }
 
+        CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
+        T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
+
         Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
-            () -> {
-                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
-
-                // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based
-                //  endpoints and also to logically separate out identity resolution as its own step.
-                ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
-                authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
-
-                IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
-                T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
-
-                SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
-                    .builder(identity)
-                    .request(request)
-                    .payload(request.contentStreamProvider().orElse(null));
-                authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
-
-                HttpSigner<T> signer = selectedAuthScheme.signer();
-                SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
-                SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
-                updateInterceptorContext(result, context.executionContext());
-                return result;
-            });
+            () -> doSraSign(request, selectedAuthScheme, identity));
         context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
-        return measuredSign.left();
+
+        SdkHttpFullRequest signedRequest = measuredSign.left();
+        updateHttpRequestInInterceptorContext(signedRequest, context.executionContext());
+        return signedRequest;
+    }
+
+    private <T extends Identity> SdkHttpFullRequest doSraSign(SdkHttpFullRequest request,
+                                                              SelectedAuthScheme<T> selectedAuthScheme,
+                                                              T identity) {
+        SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+            .builder(identity)
+            .request(request)
+            .payload(request.contentStreamProvider().orElse(null));
+        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+
+        HttpSigner<T> signer = selectedAuthScheme.signer();
+        SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+        return toSdkHttpFullRequest(signedRequest);
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
         SdkHttpRequest request = signedRequest.request();
+        if (request instanceof SdkHttpFullRequest) {
+            return (SdkHttpFullRequest) request;
+        }
         return SdkHttpFullRequest.builder()
                                  .contentStreamProvider(signedRequest.payload().orElse(null))
                                  .protocol(request.protocol())
@@ -125,8 +127,8 @@ public class SigningStage implements RequestToRequestPipeline {
     /**
      * Sign the request if the signer if provided and credentials are present.
      */
-    private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        updateInterceptorContext(request, context.executionContext());
+    private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
+        updateHttpRequestInInterceptorContext(request, context.executionContext());
 
         Signer signer = context.signer();
         MetricCollector metricCollector = context.attemptMetricCollector();
@@ -150,7 +152,7 @@ public class SigningStage implements RequestToRequestPipeline {
                         .signAsyncRequestBody(signedRequest, context.requestProvider(), context.executionAttributes());
                 context.requestProvider(transformedRequestProvider);
             }
-            updateInterceptorContext(signedRequest, context.executionContext());
+            updateHttpRequestInInterceptorContext(signedRequest, context.executionContext());
             return signedRequest;
         }
 
@@ -161,7 +163,7 @@ public class SigningStage implements RequestToRequestPipeline {
     /**
      * TODO: Remove when we stop having two copies of the request.
      */
-    private void updateInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
+    private void updateHttpRequestInInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
         executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.httpRequest(request)));
     }
 

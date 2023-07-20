@@ -18,7 +18,8 @@ package software.amazon.awssdk.http.auth.spi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultAuthSchemeOption;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An authentication scheme option, composed of the scheme ID and properties for use when resolving the identity and signing
@@ -30,13 +31,13 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * @see AuthScheme
  */
 @SdkProtectedApi
-public interface AuthSchemeOption {
+public interface AuthSchemeOption extends ToCopyableBuilder<AuthSchemeOption.Builder, AuthSchemeOption> {
 
     /**
      * Get a new builder for creating a {@link AuthSchemeOption}.
      */
     static Builder builder() {
-        return new DefaultAuthSchemeOption.BuilderImpl();
+        return DefaultAuthSchemeOption.builder();
     }
 
     /**
@@ -80,7 +81,7 @@ public interface AuthSchemeOption {
         <T> void accept(SignerProperty<T> propertyKey, T propertyValue);
     }
 
-    interface Builder extends SdkBuilder<Builder, AuthSchemeOption> {
+    interface Builder extends CopyableBuilder<Builder, AuthSchemeOption> {
         Builder schemeId(String schemeId);
 
         <T> Builder putIdentityProperty(IdentityProperty<T> key, T value);
