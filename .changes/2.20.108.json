@@ -1,0 +1,60 @@
+{
+    "version": "2.20.108",
+    "date": "2023-07-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CodeCatalyst",
+            "contributor": "",
+            "description": "This release adds support for updating and deleting spaces and projects in Amazon CodeCatalyst. It also adds support for creating, getting, and deleting source repositories in CodeCatalyst projects."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Cases",
+            "contributor": "",
+            "description": "This release adds the ability to assign a case to a queue or user."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "This release updates type for Channel field in SessionSpecification and UtteranceSpecification"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "This release adds support for Route 53 On Outposts, a new feature that allows customers to run Route 53 Resolver and Resolver endpoints locally on their Outposts."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Feature Store Runtime",
+            "contributor": "",
+            "description": "Cross account support for SageMaker Feature Store"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Cross account support for SageMaker Feature Store"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Security Lake",
+            "contributor": "",
+            "description": "Adding support for Tags on Create and Resource Tagging API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Improve performance of S3 clients by simplifying and optimizing endpoint resolution."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Added API argument --toxicity-detection to startTranscriptionJob API, which allows users to view toxicity scores of submitted audio."
+        }
+    ]
+}
