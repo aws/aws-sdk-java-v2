@@ -289,6 +289,19 @@
         "encodings": ["gzip"]
       }
     },
+    "PutOperationWithStreamingRequestCompression":{
+      "name":"PutOperationWithStreamingRequestCompression",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RequestCompressionStructureWithStreaming"},
+      "output":{"shape":"RequestCompressionStructureWithStreaming"},
+      "requestCompression": {
+        "encodings": ["gzip"]
+      },
+      "authtype":"v4-unsigned-body"
+    },
     "GetOperationWithChecksum":{
       "name":"GetOperationWithChecksum",
       "http":{
@@ -1027,6 +1040,17 @@
           "shape":"Body",
           "documentation":"<p>Object data.</p>",
           "streaming":false
+        }
+      },
+      "payload":"Body"
+    },
+    "RequestCompressionStructureWithStreaming":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":true
         }
       },
       "payload":"Body"
