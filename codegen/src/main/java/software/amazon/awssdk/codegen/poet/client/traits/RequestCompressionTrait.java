@@ -42,13 +42,9 @@ public class RequestCompressionTrait {
             return CodeBlock.of("");
         }
 
-        // TODO : remove once request compression for streaming operations is supported
-        if (operationModel.isStreaming()) {
-            throw new IllegalStateException("Request compression for streaming operations is not yet supported in the AWS SDK "
-                                            + "for Java.");
-        }
-
-        // TODO : remove once S3 checksum interceptors are moved to occur after CompressRequestStage
+        // TODO : remove once:
+        //  1) S3 checksum interceptors are moved to occur after CompressRequestStage
+        //  2) Transfer-Encoding:chunked is supported in S3
         if (model.getMetadata().getServiceName().equals("S3")) {
             throw new IllegalStateException("Request compression for S3 is not yet supported in the AWS SDK for Java.");
         }
