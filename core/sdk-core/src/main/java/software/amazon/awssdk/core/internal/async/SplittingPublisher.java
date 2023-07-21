@@ -120,23 +120,28 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
                 int amountRemainingInChunk = amountRemainingInChunk();
 
                 // If we have fulfilled this chunk,
-                // we should create a new DownstreamBody if needed
+                // complete the current body
                 if (amountRemainingInChunk == 0) {
-                    completeCurrentBody();
-
-                    if (shouldCreateNewDownstreamRequestBody(byteBuffer)) {
-                        int currentChunk = chunkNumber.incrementAndGet();
-                        long chunkSize = calculateChunkSize(totalDataRemaining());
-                        currentBody = initializeNextDownstreamBody(upstreamSize != null, chunkSize, currentChunk);
-                    }
+                    completeCurrentBodyAndCreateNewIfNeeded(byteBuffer);
                 }
 
                 amountRemainingInChunk = amountRemainingInChunk();
-                if (amountRemainingInChunk >= byteBuffer.remaining()) {
+
+                // If the current ByteBuffer < this chunk, send it as-is
+                if (amountRemainingInChunk > byteBuffer.remaining()) {
                     currentBody.send(byteBuffer.duplicate());
                     break;
                 }
 
+                // If the current ByteBuffer == this chunk, send it as-is and
+                // complete the current body
+                if (amountRemainingInChunk == byteBuffer.remaining()) {
+                    currentBody.send(byteBuffer.duplicate());
+                    completeCurrentBodyAndCreateNewIfNeeded(byteBuffer);
+                    break;
+                }
+
+                // If the current ByteBuffer > this chunk, split this ByteBuffer
                 ByteBuffer firstHalf = byteBuffer.duplicate();
                 int newLimit = firstHalf.position() + amountRemainingInChunk;
                 firstHalf.limit(newLimit);
@@ -145,6 +150,16 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             }
 
             maybeRequestMoreUpstreamData();
+        }
+
+        private void completeCurrentBodyAndCreateNewIfNeeded(ByteBuffer byteBuffer) {
+            completeCurrentBody();
+
+            if (shouldCreateNewDownstreamRequestBody(byteBuffer)) {
+                int currentChunk = chunkNumber.incrementAndGet();
+                long chunkSize = calculateChunkSize(totalDataRemaining());
+                currentBody = initializeNextDownstreamBody(upstreamSize != null, chunkSize, currentChunk);
+            }
         }
 
 
@@ -161,6 +176,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         }
 
         private void completeCurrentBody() {
+            log.debug(() -> "completeCurrentBody");
             currentBody.complete();
             if (upstreamSize == null) {
                 sendCurrentBody(currentBody);
@@ -181,6 +197,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         }
 
         private void sendCurrentBody(AsyncRequestBody body) {
+            log.debug(() -> "sendCurrentBody");
             downstreamPublisher.send(body).exceptionally(t -> {
                 downstreamPublisher.error(t);
                 return null;
@@ -206,7 +223,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         }
 
         private boolean shouldRequestMoreData(long buffered) {
-            return buffered == 0 || buffered + byteBufferSizeHint < maxMemoryUsageInBytes;
+            return buffered == 0 || buffered + byteBufferSizeHint <= maxMemoryUsageInBytes;
         }
 
         private Long totalDataRemaining() {
@@ -240,7 +257,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             }
 
             public void send(ByteBuffer data) {
-                log.trace(() -> "Sending bytebuffer " + data);
+                log.trace(() -> String.format("Sending bytebuffer %s to chunk %d", data, chunkNumber));
                 int length = data.remaining();
                 transferredLength += length;
                 addDataBuffered(length);

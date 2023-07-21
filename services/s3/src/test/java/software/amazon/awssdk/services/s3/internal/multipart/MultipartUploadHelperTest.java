@@ -28,9 +28,7 @@ import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +68,7 @@ public class MultipartUploadHelperTest {
     private static final String UPLOAD_ID = "1234";
 
     private static RandomTempFile testFile;
-    private MultipartUploadHelper uploadHelper;
+    private UploadObjectHelper uploadHelper;
     private S3AsyncClient s3AsyncClient;
 
     @BeforeAll
@@ -86,7 +84,7 @@ public class MultipartUploadHelperTest {
     @BeforeEach
     public void beforeEach() {
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        uploadHelper = new MultipartUploadHelper(s3AsyncClient, PART_SIZE, THRESHOLD, PART_SIZE * 2);
+        uploadHelper = new UploadObjectHelper(s3AsyncClient, PART_SIZE, THRESHOLD, PART_SIZE * 2);
     }
 
     @ParameterizedTest

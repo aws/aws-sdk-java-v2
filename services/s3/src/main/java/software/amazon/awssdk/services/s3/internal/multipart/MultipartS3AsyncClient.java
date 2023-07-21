@@ -34,13 +34,13 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;
 
     private static final long DEFAULT_MAX_MEMORY = DEFAULT_PART_SIZE_IN_BYTES * 2;
-    private final MultipartUploadHelper mpuHelper;
+    private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
 
     public MultipartS3AsyncClient(S3AsyncClient delegate) {
         super(delegate);
         // TODO: pass a config object to the upload helper instead
-        mpuHelper = new MultipartUploadHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_THRESHOLD, DEFAULT_MAX_MEMORY);
+        mpuHelper = new UploadObjectHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_THRESHOLD, DEFAULT_MAX_MEMORY);
         copyObjectHelper = new CopyObjectHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_THRESHOLD);
     }
 

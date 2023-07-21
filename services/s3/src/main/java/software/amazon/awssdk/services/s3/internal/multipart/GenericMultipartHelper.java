@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -79,13 +81,9 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     }
 
     public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
-        RequestT request, String uploadId, AtomicReferenceArray<CompletedPart> completedParts) {
+        RequestT request, String uploadId, CompletedPart[] parts) {
         log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
                                       uploadId));
-        CompletedPart[] parts =
-            IntStream.range(0, completedParts.length())
-                     .mapToObj(completedParts::get)
-                     .toArray(CompletedPart[]::new);
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
             CompleteMultipartUploadRequest.builder()
                                           .bucket(request.getValueForField("Bucket", String.class).get())
@@ -97,6 +95,15 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
                                           .build();
 
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
+    }
+
+    public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
+        RequestT request, String uploadId, AtomicReferenceArray<CompletedPart> completedParts) {
+        CompletedPart[] parts =
+            IntStream.range(0, completedParts.length())
+                     .mapToObj(completedParts::get)
+                     .toArray(CompletedPart[]::new);
+        return completeMultipartUpload(request, uploadId, parts);
     }
 
     public BiFunction<CompleteMultipartUploadResponse, Throwable, Void> handleExceptionOrResponse(
