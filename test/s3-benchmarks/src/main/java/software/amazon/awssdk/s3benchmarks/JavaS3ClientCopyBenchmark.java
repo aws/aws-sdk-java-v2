@@ -27,10 +27,10 @@ public class JavaS3ClientCopyBenchmark extends BaseJavaS3ClientBenchmark {
 
     @Override
     protected void sendOneRequest(List<Double> latencies) throws Exception {
-        Double latency = runWithTime(() -> s3AsyncClient.copyObject(
+        Double latency = runWithTime(s3AsyncClient.copyObject(
             req -> req.sourceKey(key).sourceBucket(bucket)
                       .destinationBucket(bucket).destinationKey(key + COPY_SUFFIX)
-        )).latency;
+        )::join).latency;
         latencies.add(latency);
     }
 

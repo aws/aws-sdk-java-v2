@@ -46,19 +46,18 @@ public class JavaS3ClientUploadBenchmark extends BaseJavaS3ClientBenchmark {
 
     @Override
     protected void sendOneRequest(List<Double> latencies) throws Exception {
-        if (filePath != null) {
-            // upload from file
-            Double latency = runWithTime(
-                s3AsyncClient.putObject(req -> req.key(key).bucket(bucket).checksumAlgorithm(checksumAlgorithm),
-                                        Paths.get(filePath))::join).latency;
+        if (filePath == null) {
+            double latency = uploadFromMemory();
             latencies.add(latency);
             return;
         }
-        // upload from memory
-        uploadFromMemory(latencies);
+        Double latency = runWithTime(
+            s3AsyncClient.putObject(req -> req.key(key).bucket(bucket).checksumAlgorithm(checksumAlgorithm),
+                                    Paths.get(filePath))::join).latency;
+        latencies.add(latency);
     }
 
-    private void uploadFromMemory(List<Double> latencies) throws Exception {
+    private double uploadFromMemory() throws Exception {
         if (contentLengthInMb == null) {
             throw new UnsupportedOperationException("Java upload benchmark - contentLengthInMb required for upload from memory");
         }
@@ -84,13 +83,13 @@ public class JavaS3ClientUploadBenchmark extends BaseJavaS3ClientBenchmark {
         long start = System.currentTimeMillis();
         responseFuture.get(timeout.getSeconds(), TimeUnit.SECONDS);
         long end = System.currentTimeMillis();
-        latencies.add((end - start) / 1000.0);
+        return (end - start) / 1000.0;
     }
 
     @Override
     protected long contentLength() throws Exception {
         return filePath != null
                ? Files.size(Paths.get(filePath))
-               : contentLengthInMb * 1024 * 1024;
+               : contentLengthInMb * MB;
     }
 }
