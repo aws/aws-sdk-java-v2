@@ -71,10 +71,10 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                 .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
         List<Supplier<String>> discardedReasons = new ArrayList<>();
         for (AuthSchemeOption authOption : authOptions) {
-            if (authOption.schemeId().equals("smithy.auth#noAuth")) {
+            if (authOption.schemeId().equals("smithy.api#noAuth")) {
                 if (!discardedReasons.isEmpty()) {
-                    LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(), discardedReasons
-                            .stream().map(Supplier::get).collect(Collectors.joining(", "))));
+                    LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
+                            discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))));
                 }
                 return new SelectedAuthScheme<>(null, null, authOption);
             }
@@ -83,8 +83,8 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                     identityResolvers, discardedReasons);
             if (selectedAuthScheme != null) {
                 if (!discardedReasons.isEmpty()) {
-                    LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(), discardedReasons
-                            .stream().map(Supplier::get).collect(Collectors.joining(", "))));
+                    LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
+                            discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))));
                 }
                 return selectedAuthScheme;
             }
@@ -104,7 +104,8 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         }
         IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
         if (identityProvider == null) {
-            discardedReasons.add(() -> String.format("'%s' does not have an identity provider configured.", authOption.schemeId()));
+            discardedReasons
+                    .add(() -> String.format("'%s' does not have an identity provider configured.", authOption.schemeId()));
             return null;
         }
         ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();

@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkProtectedApi
 public final class SelectedAuthScheme<T extends Identity> {
-    
+
     public static final String SMITHY_NO_AUTH = "smithy.api#noAuth";
 
     private CompletableFuture<? extends T> identity;

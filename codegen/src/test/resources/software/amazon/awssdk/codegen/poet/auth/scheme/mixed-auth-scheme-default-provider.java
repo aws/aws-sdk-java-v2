@@ -41,7 +41,7 @@ public final class DefaultProtocolRestJsonAuthSchemeProvider implements Protocol
         List<AuthSchemeOption> options = new ArrayList<>();
         switch (params.operation()) {
         case "OperationWithNoneAuthType":
-            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#noAuth").build());
+            options.add(AuthSchemeOption.builder().schemeId("smithy.api#noAuth").build());
             break;
         default:
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")

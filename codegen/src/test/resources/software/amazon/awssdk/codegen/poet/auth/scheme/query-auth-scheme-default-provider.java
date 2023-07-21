@@ -40,9 +40,19 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
     @Override
     public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams params) {
         List<AuthSchemeOption> options = new ArrayList<>();
-        options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
-                .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "query-service")
-                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
+        switch (params.operation()) {
+        case "BearerAuthOperation":
+            options.add(AuthSchemeOption.builder().schemeId("smithy.api#httpBearerAuth").build());
+            break;
+        case "OperationWithNoneAuthType":
+            options.add(AuthSchemeOption.builder().schemeId("smithy.api#noAuth").build());
+            break;
+        default:
+            options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
+                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "query-service")
+                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
+            break;
+        }
         return Collections.unmodifiableList(options);
     }
 }
