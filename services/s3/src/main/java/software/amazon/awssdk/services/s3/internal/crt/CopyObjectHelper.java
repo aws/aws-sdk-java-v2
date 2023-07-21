@@ -189,6 +189,9 @@ public final class CopyObjectHelper {
                                           .multipartUpload(CompletedMultipartUpload.builder()
                                                                                    .parts(parts)
                                                                                    .build())
+                                          .sseCustomerAlgorithm(copyObjectRequest.sseCustomerAlgorithm())
+                                          .sseCustomerKey(copyObjectRequest.sseCustomerKey())
+                                          .sseCustomerKeyMD5(copyObjectRequest.sseCustomerKeyMD5())
                                           .build();
 
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);

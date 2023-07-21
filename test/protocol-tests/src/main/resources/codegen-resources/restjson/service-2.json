@@ -187,6 +187,15 @@
       },
       "input":{"shape":"StructureWithStreamingMember"}
     },
+    "StreamingInputOperationChunkedEncoding":{
+      "name":"StreamingInputOperationChunkedEncoding",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/streamingInputOperationChunkedEncoding"
+      },
+      "input":{"shape":"StructureWithStreamingMemberChunkedEncoding"},
+      "authtype":"v4-unsigned-body"
+    },
     "StreamingOutputOperation":{
       "name":"StreamingOutputOperation",
       "http":{
@@ -746,6 +755,11 @@
       "streaming":true,
       "requiresLength":true
     },
+    "StreamTypeChunkedEncoding":{
+      "type":"blob",
+      "streaming":true,
+      "requiresLength":false
+    },
     "String":{"type":"string"},
     "StructWithNestedBlobType":{
       "type":"structure",
@@ -763,6 +777,13 @@
       "type":"structure",
       "members":{
         "StreamingMember":{"shape":"StreamType"}
+      },
+      "payload":"StreamingMember"
+    },
+    "StructureWithStreamingMemberChunkedEncoding":{
+      "type":"structure",
+      "members":{
+        "StreamingMember":{"shape":"StreamTypeChunkedEncoding"}
       },
       "payload":"StreamingMember"
     },
