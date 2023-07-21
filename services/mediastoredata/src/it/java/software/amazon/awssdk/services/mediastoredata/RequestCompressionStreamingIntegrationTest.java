@@ -116,7 +116,7 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
     }
 
     @AfterEach
-    public static void reset() {
+    public void cleanUp() {
         CaptureContentEncodingHeaderInterceptor.reset();
     }
 

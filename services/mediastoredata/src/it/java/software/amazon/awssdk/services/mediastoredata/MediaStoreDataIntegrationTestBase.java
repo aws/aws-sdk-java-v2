@@ -67,7 +67,7 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
     }
 
     @AfterEach
-    public static void reset() {
+    public void reset() {
         CaptureTransferEncodingHeaderInterceptor.reset();
     }
 
