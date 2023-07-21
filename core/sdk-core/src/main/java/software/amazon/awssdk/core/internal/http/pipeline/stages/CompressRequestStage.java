@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.REQUEST_COMPRESSION_CONFIGURATION;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -27,10 +29,10 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.compression.Compressor;
 import software.amazon.awssdk.core.internal.compression.CompressorType;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -44,6 +46,11 @@ import software.amazon.awssdk.utils.IoUtils;
 public class CompressRequestStage implements MutableRequestToRequestPipeline {
     private static final int DEFAULT_MIN_COMPRESSION_SIZE = 10_240;
     private static final int MIN_COMPRESSION_SIZE_LIMIT = 10_485_760;
+    private final RequestCompressionConfiguration compressionConfig;
+
+    public CompressRequestStage(HttpClientDependencies dependencies) {
+        compressionConfig = dependencies.clientConfiguration().option(REQUEST_COMPRESSION_CONFIGURATION);
+    }
 
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder input, RequestExecutionContext context)
@@ -67,7 +74,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return input;
     }
 
-    private static boolean shouldCompress(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
+    private boolean shouldCompress(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
         if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION) == null) {
             return false;
         }
@@ -86,7 +93,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return isRequestSizeWithinThreshold(input, context);
     }
 
-    private static boolean isStreaming(RequestExecutionContext context) {
+    private boolean isStreaming(RequestExecutionContext context) {
         return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming();
     }
 
@@ -96,7 +103,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         input.contentStreamProvider(compressedStreamProvider);
     }
 
-    private static void updateContentEncodingHeader(SdkHttpFullRequest.Builder input,
+    private void updateContentEncodingHeader(SdkHttpFullRequest.Builder input,
                                                                           Compressor compressor) {
         if (input.firstMatchingHeader("Content-encoding").isPresent()) {
             input.appendHeader("Content-encoding", compressor.compressorType());
@@ -105,7 +112,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         }
     }
 
-    private static void updateContentLengthHeader(SdkHttpFullRequest.Builder input) {
+    private void updateContentLengthHeader(SdkHttpFullRequest.Builder input) {
         InputStream inputStream = input.contentStreamProvider().newStream();
         try {
             byte[] bytes = IoUtils.toByteArray(inputStream);
@@ -116,7 +123,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         }
     }
 
-    private static Compressor resolveCompressorType(ExecutionAttributes executionAttributes) {
+    private Compressor resolveCompressorType(ExecutionAttributes executionAttributes) {
         List<String> encodings =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).getEncodings();
 
@@ -129,7 +136,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return null;
     }
 
-    private static boolean resolveRequestCompressionEnabled(RequestExecutionContext context) {
+    private boolean resolveRequestCompressionEnabled(RequestExecutionContext context) {
 
         Optional<Boolean> requestCompressionEnabledRequestLevel =
             context.originalRequest().overrideConfiguration()
@@ -139,9 +146,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             return requestCompressionEnabledRequestLevel.get();
         }
 
-        Boolean isEnabled = context.executionAttributes()
-                                   .getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION)
-                                   .requestCompressionEnabled();
+        Boolean isEnabled = compressionConfig.requestCompressionEnabled();
         if (isEnabled != null) {
             return isEnabled;
         }
@@ -149,14 +154,14 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return true;
     }
 
-    private static boolean isRequestSizeWithinThreshold(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
+    private boolean isRequestSizeWithinThreshold(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
         int minimumCompressionThreshold = resolveMinCompressionSize(context);
         validateMinCompressionSizeInput(minimumCompressionThreshold);
         int requestSize = SdkBytes.fromInputStream(input.contentStreamProvider().newStream()).asByteArray().length;
         return requestSize >= minimumCompressionThreshold;
     }
 
-    private static int resolveMinCompressionSize(RequestExecutionContext context) {
+    private int resolveMinCompressionSize(RequestExecutionContext context) {
 
         Optional<Integer> minimumCompressionSizeRequestLevel =
             context.originalRequest().overrideConfiguration()
@@ -166,9 +171,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             return minimumCompressionSizeRequestLevel.get();
         }
 
-        Integer threshold = context.executionAttributes()
-                                   .getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION)
-                                   .minimumCompressionThresholdInBytes();
+        Integer threshold = compressionConfig.minimumCompressionThresholdInBytes();
         if (threshold != null) {
             return threshold;
         }
@@ -176,7 +179,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return DEFAULT_MIN_COMPRESSION_SIZE;
     }
 
-    private static void validateMinCompressionSizeInput(int minCompressionSize) {
+    private void validateMinCompressionSizeInput(int minCompressionSize) {
         if (!(minCompressionSize >= 0 && minCompressionSize <= MIN_COMPRESSION_SIZE_LIMIT)) {
             throw SdkClientException.create("The minimum compression size must be non-negative with a maximum value of "
                                             + "10485760.", new IllegalArgumentException());

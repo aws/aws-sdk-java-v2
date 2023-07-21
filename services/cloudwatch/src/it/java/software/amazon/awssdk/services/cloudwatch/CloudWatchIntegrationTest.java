@@ -189,10 +189,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                             .credentialsProvider(getCredentialsProvider())
                             .region(Region.US_WEST_2)
                             .overrideConfiguration(c -> c.putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
-                                                                                requestCompressionTrait)
-                                                         .putExecutionAttribute(
-                                                             SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION,
-                                                             compressionConfiguration))
+                                                                                requestCompressionTrait))
                             .build();
 
         String measureName = this.getClass().getName() + System.currentTimeMillis();
@@ -203,7 +200,10 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                                        .unit("Count").value(42.0).build();
 
         requestCompressionClient.putMetricData(PutMetricDataRequest.builder()
-                                                                   .namespace("AWS.EC2").metricData(datum).build());
+                                                                   .namespace("AWS.EC2")
+                                                                   .metricData(datum)
+                                                                   .overrideConfiguration(c -> c.requestCompressionConfiguration(compressionConfiguration))
+                                                                   .build());
 
         GetMetricStatisticsResponse result =
             Waiter.run(() -> requestCompressionClient

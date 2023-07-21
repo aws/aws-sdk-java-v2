@@ -20,9 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 
@@ -63,9 +61,6 @@ public class RequestCompressionTrait {
                                           SdkInternalExecutionAttribute.class, RequestCompression.class,
                                           encodings.stream().collect(Collectors.joining("\", \"", "\"", "\"")),
                                           operationModel.hasStreamingInput()))
-                        .add(CodeBlock.of(".putExecutionAttribute($T.REQUEST_COMPRESSION_CONFIGURATION,"
-                                          + "clientConfiguration.option($T.REQUEST_COMPRESSION_CONFIGURATION))",
-                                          SdkExecutionAttribute.class, SdkClientOption.class))
                         .build();
     }
 }
