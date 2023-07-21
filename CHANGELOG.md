@@ -1,3 +1,28 @@
+# __2.20.109__ __2023-07-21__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes improvements to Preserve 444 handling, compatibility of HEVC sources without frame rates, and general improvements to MP4 outputs.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for AWS Glue Crawler with Apache Hudi Tables, allowing Crawlers to discover Hudi Tables in S3 and register them in Glue Data Catalog for query engines to query against.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for the DBSystemID parameter of CreateDBInstance to RDS Custom for Oracle.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Fixed VolumeEncryptionKey descriptions
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix a bug where the SSE-C parameters are not copied to the CompleteMultipartUpload request when transforming to a multipart copy.
+
 # __2.20.108__ __2023-07-20__
 ## __Amazon CodeCatalyst__
   - ### Features
@@ -676,7 +701,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
