@@ -143,7 +143,7 @@ public final class DefaultIamPolicyWriter implements IamPolicyWriter {
         writePrincipals(writer, "NotPrincipal", statement.notPrincipals());
         writeValueArrayField(writer, "Action", statement.actions());
         writeValueArrayField(writer, "NotAction", statement.notActions());
-        writeValueArrayField(writer, "Resource", statement.actions());
+        writeValueArrayField(writer, "Resource", statement.resources());
         writeValueArrayField(writer, "NotResource", statement.notResources());
         writeConditions(writer, statement.conditions());
         writer.writeEndObject();
