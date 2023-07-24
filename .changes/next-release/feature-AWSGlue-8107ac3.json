@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Added support for Data Preparation Recipe node in Glue Studio jobs"
+}
