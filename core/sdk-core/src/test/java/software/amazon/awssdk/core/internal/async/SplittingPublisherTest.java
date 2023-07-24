@@ -20,15 +20,21 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -51,11 +57,12 @@ public class SplittingPublisherTest {
 
     private static final int NUM_OF_CHUNK = (int) Math.ceil(CONTENT_SIZE / (double) CHUNK_SIZE);
 
-    private static RandomTempFile testFile;
+    private static File testFile;
 
     @BeforeAll
     public static void beforeAll() throws IOException {
-        testFile = new RandomTempFile("testfile.dat", CONTENT_SIZE);
+        testFile = File.createTempFile("SplittingPublisherTest", UUID.randomUUID().toString());
+        Files.write(testFile.toPath(), CONTENT);
     }
 
     @AfterAll
@@ -65,46 +72,19 @@ public class SplittingPublisherTest {
 
     @ParameterizedTest
     @ValueSource(ints = {CHUNK_SIZE, CHUNK_SIZE * 2 - 1, CHUNK_SIZE * 2})
-    void differentChunkSize_shouldSplitAsyncRequestBodyCorrectly(int upstreamByteBufferSize) throws Exception {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
-                                                                  .resultFuture(future)
-                                                                  .asyncRequestBody(FileAsyncRequestBody.builder()
-                                                                                                        .path(testFile.toPath())
-                                                                                                        .chunkSizeInBytes(upstreamByteBufferSize)
-                                                                                                        .build())
+    void differentChunkSize_shouldSplitAsyncRequestBodyCorrectly(int chunkSize) throws Exception {
 
-                                                                  .resultFuture(future)
-                                                                  .chunkSizeInBytes((long) CHUNK_SIZE)
-                                                                  .maxMemoryUsageInBytes((long) CHUNK_SIZE * 4)
-                                                                  .build();
+        FileAsyncRequestBody fileAsyncRequestBody = FileAsyncRequestBody.builder()
+                                                                        .path(testFile.toPath())
+                                                                        .chunkSizeInBytes(chunkSize)
+                                                                        .build();
+        verifySplitContent(fileAsyncRequestBody, chunkSize);
+    }
 
-        List<CompletableFuture<byte[]>> futures = new ArrayList<>();
-
-        splittingPublisher.subscribe(requestBody -> {
-            CompletableFuture<byte[]> baosFuture = new CompletableFuture<>();
-            BaosSubscriber subscriber = new BaosSubscriber(baosFuture);
-            futures.add(baosFuture);
-            requestBody.subscribe(subscriber);
-        }).get(5, TimeUnit.SECONDS);
-
-        assertThat(futures.size()).isEqualTo(NUM_OF_CHUNK);
-
-        for (int i = 0; i < futures.size(); i++) {
-            try (FileInputStream fileInputStream = new FileInputStream(testFile)) {
-                byte[] expected;
-                if (i == futures.size() - 1) {
-                    expected = new byte[1];
-                } else {
-                    expected = new byte[5];
-                }
-                fileInputStream.skip(i * 5);
-                fileInputStream.read(expected);
-                byte[] actualBytes = futures.get(i).join();
-                assertThat(actualBytes).isEqualTo(expected);
-            };
-        }
-        assertThat(future).isCompleted();
+    @ParameterizedTest
+    @ValueSource(ints = {CHUNK_SIZE, CHUNK_SIZE * 2 - 1, CHUNK_SIZE * 2})
+    void differentChunkSize_byteArrayShouldSplitAsyncRequestBodyCorrectly(int chunkSize) throws Exception {
+        verifySplitContent(AsyncRequestBody.fromBytes(CONTENT), chunkSize);
     }
 
 
@@ -115,7 +95,7 @@ public class SplittingPublisherTest {
         SplittingPublisher splittingPublisher = SplittingPublisher.builder()
                                                                   .resultFuture(future)
                                                                   .asyncRequestBody(asyncRequestBody)
-                                                                  .chunkSizeInBytes((long) CHUNK_SIZE)
+                                                                  .chunkSizeInBytes(CHUNK_SIZE)
                                                                   .maxMemoryUsageInBytes(10L)
                                                                   .build();
 
@@ -139,7 +119,7 @@ public class SplittingPublisherTest {
         SplittingPublisher splittingPublisher = SplittingPublisher.builder()
                                                                   .resultFuture(future)
                                                                   .asyncRequestBody(asyncRequestBody)
-                                                                  .chunkSizeInBytes((long) CHUNK_SIZE)
+                                                                  .chunkSizeInBytes(CHUNK_SIZE)
                                                                   .maxMemoryUsageInBytes(10L)
                                                                   .build();
 
@@ -175,6 +155,46 @@ public class SplittingPublisherTest {
             };
         }
 
+    }
+
+
+    private static void verifySplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                                                                  .resultFuture(future)
+                                                                  .asyncRequestBody(asyncRequestBody)
+                                                                  .resultFuture(future)
+                                                                  .chunkSizeInBytes(chunkSize)
+                                                                  .maxMemoryUsageInBytes((long) chunkSize * 4)
+                                                                  .build();
+
+        List<CompletableFuture<byte[]>> futures = new ArrayList<>();
+
+        splittingPublisher.subscribe(requestBody -> {
+            CompletableFuture<byte[]> baosFuture = new CompletableFuture<>();
+            BaosSubscriber subscriber = new BaosSubscriber(baosFuture);
+            futures.add(baosFuture);
+            requestBody.subscribe(subscriber);
+        }).get(5, TimeUnit.SECONDS);
+
+        assertThat(futures.size()).isEqualTo((int) Math.ceil(CONTENT_SIZE / (double) chunkSize));
+
+        for (int i = 0; i < futures.size(); i++) {
+            try (FileInputStream fileInputStream = new FileInputStream(testFile)) {
+                byte[] expected;
+                if (i == futures.size() - 1) {
+                    int lastChunk = CONTENT_SIZE % chunkSize == 0 ? chunkSize : (CONTENT_SIZE % chunkSize);
+                    expected = new byte[lastChunk];
+                } else {
+                    expected = new byte[chunkSize];
+                }
+                fileInputStream.skip(i * chunkSize);
+                fileInputStream.read(expected);
+                byte[] actualBytes = futures.get(i).join();
+                assertThat(actualBytes).isEqualTo(expected);
+            };
+        }
+        assertThat(future).isCompleted();
     }
 
     private static class TestAsyncRequestBody implements AsyncRequestBody {

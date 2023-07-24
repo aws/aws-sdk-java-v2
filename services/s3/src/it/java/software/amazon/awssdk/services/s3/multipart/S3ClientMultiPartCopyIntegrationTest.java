@@ -118,14 +118,12 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         String newB64Key = Base64.getEncoder().encodeToString(newSecretKey);
         String newB64KeyMd5 = Md5Utils.md5AsBase64(newSecretKey);
 
-        // MPU S3 client gets stuck
-        // TODO: change back to s3AsyncClient once the issue is fixed in MPU S3 client
-        s3Async.putObject(r -> r.bucket(BUCKET)
-                                         .key(ORIGINAL_OBJ)
-                                         .sseCustomerKey(b64Key)
-                                         .sseCustomerAlgorithm(AES256.name())
-                                         .sseCustomerKeyMD5(b64KeyMd5),
-                                   AsyncRequestBody.fromBytes(originalContent)).join();
+        s3AsyncClient.putObject(r -> r.bucket(BUCKET)
+                                      .key(ORIGINAL_OBJ)
+                                      .sseCustomerKey(b64Key)
+                                      .sseCustomerAlgorithm(AES256.name())
+                                      .sseCustomerKeyMD5(b64KeyMd5),
+                                AsyncRequestBody.fromBytes(originalContent)).join();
 
         CompletableFuture<CopyObjectResponse> future = s3AsyncClient.copyObject(c -> c
             .sourceBucket(BUCKET)

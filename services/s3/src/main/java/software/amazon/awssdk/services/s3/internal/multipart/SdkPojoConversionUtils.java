@@ -131,13 +131,8 @@ public final class SdkPojoConversionUtils {
 
         setSdkFields(builder, response);
 
-        if (response.responseMetadata() != null) {
-            builder.responseMetadata(response.responseMetadata());
-        }
-
-        if (response.sdkHttpResponse() != null) {
-            builder.sdkHttpResponse(response.sdkHttpResponse());
-        }
+        builder.responseMetadata(response.responseMetadata());
+        builder.sdkHttpResponse(response.sdkHttpResponse());
 
         return builder.copyObjectResult(toCopyObjectResult(response))
                       .build();
@@ -184,14 +179,8 @@ public final class SdkPojoConversionUtils {
 
         setSdkFields(builder, response);
 
-        // TODO: check why we have to do null check
-        if (response.responseMetadata() != null) {
-            builder.responseMetadata(response.responseMetadata());
-        }
-
-        if (response.sdkHttpResponse() != null) {
-            builder.sdkHttpResponse(response.sdkHttpResponse());
-        }
+        builder.responseMetadata(response.responseMetadata());
+        builder.sdkHttpResponse(response.sdkHttpResponse());
 
         return builder.build();
     }
