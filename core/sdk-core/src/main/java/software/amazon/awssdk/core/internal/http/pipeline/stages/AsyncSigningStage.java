@@ -215,8 +215,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     }
 
     /**
-     * Returns true if we should use the selected out scheme attribute for signing. Returns true if the client has overridden
-     * the signer using the advanced configuration setting or if the no selected auth scheme.
+     * Returns true if we should use the selected out scheme attribute for signing.
      */
     private boolean shouldUseSelectedAuthScheme(RequestExecutionContext context) {
         return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
