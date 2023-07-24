@@ -1,3 +1,36 @@
+# __2.20.110__ __2023-07-24__
+## __AWS CloudFormation__
+  - ### Features
+    - This release supports filtering by DRIFT_STATUS for existing API ListStackInstances and adds support for a new API ListStackInstanceResourceDrifts. Customers can now view resource drift information from their StackSet management accounts.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces the new API 'GetSavingsPlanPurchaseRecommendationDetails', which retrieves the details for a Savings Plan recommendation. It also updates the existing API 'GetSavingsPlansPurchaseRecommendation' to include the recommendation detail ID.
+
+## __AWS Glue__
+  - ### Features
+    - Added support for Data Preparation Recipe node in Glue Studio jobs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - AWS Media Pipeline compositing enhancement and Media Insights Pipeline auto language identification.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add "disabled" enum value to SpotInstanceState.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release launches new Snapshot APIs for CSV and PDF exports, adds support for info icon for filters and parameters in Exploration APIs, adds modeled exception to the DeleteAccountCustomization API, and introduces AttributeAggregationFunction's ability to add UNIQUE_VALUE aggregation in tooltips.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Documentation updates for Amazon API Gateway.
+
 # __2.20.109__ __2023-07-21__
 ## __AWS Elemental MediaConvert__
   - ### Features
