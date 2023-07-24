@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Media Pipelines",
+    "contributor": "",
+    "description": "AWS Media Pipeline compositing enhancement and Media Insights Pipeline auto language identification."
+}
