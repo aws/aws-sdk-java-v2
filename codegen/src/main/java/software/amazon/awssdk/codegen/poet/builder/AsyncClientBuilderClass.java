@@ -34,6 +34,7 @@ import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class AsyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -81,7 +82,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
             builder.addMethod(bearerTokenProviderMethod());
         }
 
-        boolean multipartEnabled = model.getCustomizationConfig().getServiceConfig().hasMultipartEnabledProperty();
+        boolean multipartEnabled = StringUtils.isNotBlank(model.getCustomizationConfig().getMultipartConfigurationClass());
         if (multipartEnabled) {
             builder.addMethod(multipartConfigMethod());
         }

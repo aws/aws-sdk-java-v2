@@ -29,6 +29,7 @@ import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class AsyncClientBuilderInterface implements ClassSpec {
     static Logger log = LoggerFactory.getLogger(AsyncClientBuilderInterface.class);
@@ -55,7 +56,7 @@ public class AsyncClientBuilderInterface implements ClassSpec {
                                                          builderInterfaceName, clientInterfaceName))
             .addJavadoc(getJavadoc());
 
-        boolean multipartEnabled = model.getCustomizationConfig().getServiceConfig().hasMultipartEnabledProperty();
+        boolean multipartEnabled = StringUtils.isNotBlank(model.getCustomizationConfig().getMultipartConfigurationClass());
         if (multipartEnabled) {
             includeMultipartMethod(builder);
         }

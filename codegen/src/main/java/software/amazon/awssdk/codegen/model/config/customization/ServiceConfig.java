@@ -51,8 +51,6 @@ public class ServiceConfig {
 
     private boolean hasCrossRegionAccessEnabledProperty = false;
 
-    private boolean hasMultipartEnabledProperty = false;
-
     public String getClassName() {
         return className;
     }
@@ -117,14 +115,6 @@ public class ServiceConfig {
         this.hasAccelerateModeEnabledProperty = hasAccelerateModeEnabledProperty;
     }
 
-    public boolean hasMultipartEnabledProperty() {
-        return hasMultipartEnabledProperty;
-    }
-
-    public void setHasMultipartEnabledProperty(boolean hasMultipartEnabledProperty) {
-        this.hasMultipartEnabledProperty = hasMultipartEnabledProperty;
-    }
-
     @Override
     public String toString() {
         return ToString.builder("ServiceConfig")
@@ -136,7 +126,6 @@ public class ServiceConfig {
                        .add("hasPathStyleAccessEnabledProperty", hasPathStyleAccessEnabledProperty)
                        .add("hasAccelerateModeEnabledProperty", hasAccelerateModeEnabledProperty)
                        .add("hasCrossRegionAccessEnabledProperty", hasCrossRegionAccessEnabledProperty)
-                       .add("hasMultipartEnabledProperty", hasMultipartEnabledProperty)
                        .build();
     }
 }
