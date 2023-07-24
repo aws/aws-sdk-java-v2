@@ -45,6 +45,10 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private final CopyObjectHelper copyObjectHelper;
     private final Executor executor;
 
+    public MultipartS3AsyncClient(S3AsyncClient delegate) {
+        this(delegate, MultipartConfiguration.create());
+    }
+
     public MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration) {
         super(delegate);
         long minPartSizeInBytes = Validate.getOrDefault(multipartConfiguration.minimumPartSizeInBytes(),
