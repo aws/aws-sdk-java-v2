@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen;
 
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -224,14 +223,14 @@ final class AddOperations {
      */
     private List<AuthType> getAuthFromOperation(Operation op) {
         List<String> opAuth = op.getAuth();
-        if (opAuth == null) {
-            AuthType legacyAuthType = op.getAuthtype();
-            if (legacyAuthType != null) {
-                return Arrays.asList(legacyAuthType);
-            }
-            return Collections.emptyList();
+        if (opAuth != null) {
+            return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
         }
-        return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
+        AuthType legacyAuthType = op.getAuthtype();
+        if (legacyAuthType != null) {
+            return Collections.singletonList(legacyAuthType);
+        }
+        return Collections.emptyList();
     }
 
     /**

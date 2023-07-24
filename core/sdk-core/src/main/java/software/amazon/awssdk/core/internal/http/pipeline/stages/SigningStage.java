@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -182,15 +181,7 @@ public class SigningStage implements RequestToRequestPipeline {
      * the signer using the advanced configuration setting or if the no selected auth scheme.
      */
     private boolean shouldUseSelectedAuthScheme(RequestExecutionContext context) {
-        return !hasClientConfiguredSigner() &&
-               context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
-    }
-
-    /**
-     * Returns true if the client configuration has an override for the signer.
-     */
-    private boolean hasClientConfiguredSigner() {
-        return dependencies.clientConfiguration().option(SdkAdvancedClientOption.SIGNER) != null;
+        return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
     }
 
     /**

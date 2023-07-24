@@ -163,7 +163,7 @@ public class AuthSchemeSpecTest {
                     .outputFileSuffix("default-provider")
                     .build(),
             TestCase.builder()
-                    .modelProvider(ClientTestModels::serviceMixedAuth)
+                    .modelProvider(ClientTestModels::granularAuthWithLegacyTraitServiceModels)
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("mixed")
                     .outputFileSuffix("default-provider")

@@ -18,6 +18,7 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -53,12 +54,12 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                                  .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
-                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                  .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-                                  .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
+                .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
+                .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
     }
 
     @Override
@@ -70,7 +71,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         endpointInterceptors.add(new QueryRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-            .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
+                .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -82,10 +83,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         if (identityProvider != null) {
             IdentityProviderConfiguration identityProviderConfig = config.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
             builder.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION, identityProviderConfig.toBuilder()
-                                                                                                  .putIdentityProvider(identityProvider).build());
+                    .putIdentityProvider(identityProvider).build());
         }
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.CLIENT_CONTEXT_PARAMS,
-                                                                                    clientContextParams.build());
+                clientContextParams.build());
         return builder.build();
     }
 
@@ -131,15 +132,16 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private Map<String, AuthScheme<?>> defaultAuthSchemes() {
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
-        return MapUtils.of(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
+        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
+        return MapUtils.of(awsV4AuthScheme.schemeId(), awsV4AuthScheme, bearerAuthScheme.schemeId(), bearerAuthScheme);
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
-                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+                "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
-                         "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
+                "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                         "The 'tokenProvider' must be configured in the client builder.");
+                "The 'tokenProvider' must be configured in the client builder.");
     }
 }

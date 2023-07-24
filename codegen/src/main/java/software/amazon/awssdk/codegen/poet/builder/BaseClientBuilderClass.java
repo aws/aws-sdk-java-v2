@@ -31,9 +31,11 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -336,15 +338,16 @@ public class BaseClientBuilderClass implements ClassSpec {
         // Update configuration
         builder.addStatement("$T builder = config.toBuilder()", SdkClientConfiguration.Builder.class);
         if (AuthUtils.usesBearerAuth(model)) {
-            builder.addStatement("$T<? extends $T> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER)",
-                                 IdentityProvider.class, TokenIdentity.class);
+            builder.addStatement("$T<? extends $T> identityProvider = config.option($T.TOKEN_IDENTITY_PROVIDER)",
+                                 IdentityProvider.class, TokenIdentity.class, AwsClientOption.class);
             builder.beginControlFlow("if (identityProvider != null)");
             builder.addStatement("$T identityProviderConfig = config.option($T.IDENTITY_PROVIDER_CONFIGURATION)",
                                  IdentityProviderConfiguration.class, SdkClientOption.class);
 
-            builder.addCode("builder.option($T.IDENTITY_PROVIDER_CONFIGURATION, ", SdkClientOption.class)
-                   .addCode("identityProviderConfig.toBuilder().putIdentityProvider(identityProvider).build())")
-                   .addCode(";\n");
+            builder.addStatement("builder.option($T.IDENTITY_PROVIDER_CONFIGURATION, "
+                                 + "identityProviderConfig.toBuilder()"
+                                 + ".putIdentityProvider(identityProvider).build())", SdkClientOption.class);
+
             builder.endControlFlow();
         }
 
@@ -668,14 +671,21 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .returns(returns);
 
         List<String> schemesMapPopulate = new ArrayList<>();
-        for (AuthType authType : authSchemeSpecUtils.serviceDefaultAuthTypes()) {
+        // S3 has more than one authType that maps to the same AuthScheme class, we use this set to avoid duplicating the
+        // mappings here.
+        Set<Class<?>> authSchemesAdded = new HashSet<>();
+        for (AuthType authType : authSchemeSpecUtils.allServiceAuthTypes()) {
             AuthSchemeCodegenMetadata metadata = fromAuthType(authType);
             Class<?> concreteAuthScheme = metadata.authSchemeClass();
-            if (concreteAuthScheme != null) {
+            if (concreteAuthScheme != null && !authSchemesAdded.contains(concreteAuthScheme)) {
                 String instanceVariable = CodegenNamingUtils.lowercaseFirstChar(concreteAuthScheme.getSimpleName());
                 builder.addStatement("$1T $2L = $1T.create()", concreteAuthScheme, instanceVariable);
                 schemesMapPopulate.add(String.format("%1$s.schemeId(), %1$s", instanceVariable));
+                authSchemesAdded.add(concreteAuthScheme);
             }
+        }
+        if (schemesMapPopulate.isEmpty()) {
+            builder.addStatement("return $T.emptyMap()", Collections.class);
         }
 
         builder.addStatement("return $T.of($L)", MapUtils.class, String.join(", ", schemesMapPopulate));
