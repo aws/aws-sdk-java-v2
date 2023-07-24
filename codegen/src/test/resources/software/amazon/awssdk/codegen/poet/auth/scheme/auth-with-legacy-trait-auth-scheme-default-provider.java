@@ -12,7 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package software.amazon.awssdk.services.protocolrestjson.auth.scheme.internal;
+package software.amazon.awssdk.services.authwithlegacytrait.auth.scheme.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,31 +21,34 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.services.protocolrestjson.auth.scheme.ProtocolRestJsonAuthSchemeParams;
-import software.amazon.awssdk.services.protocolrestjson.auth.scheme.ProtocolRestJsonAuthSchemeProvider;
+import software.amazon.awssdk.services.authwithlegacytrait.auth.scheme.AuthWithLegacyTraitAuthSchemeParams;
+import software.amazon.awssdk.services.authwithlegacytrait.auth.scheme.AuthWithLegacyTraitAuthSchemeProvider;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class DefaultProtocolRestJsonAuthSchemeProvider implements ProtocolRestJsonAuthSchemeProvider {
-    private static final DefaultProtocolRestJsonAuthSchemeProvider DEFAULT = new DefaultProtocolRestJsonAuthSchemeProvider();
+public final class DefaultAuthWithLegacyTraitAuthSchemeProvider implements AuthWithLegacyTraitAuthSchemeProvider {
+    private static final DefaultAuthWithLegacyTraitAuthSchemeProvider DEFAULT = new DefaultAuthWithLegacyTraitAuthSchemeProvider();
 
-    private DefaultProtocolRestJsonAuthSchemeProvider() {
+    private DefaultAuthWithLegacyTraitAuthSchemeProvider() {
     }
 
-    public static DefaultProtocolRestJsonAuthSchemeProvider create() {
+    public static DefaultAuthWithLegacyTraitAuthSchemeProvider create() {
         return DEFAULT;
     }
 
     @Override
-    public List<AuthSchemeOption> resolveAuthScheme(ProtocolRestJsonAuthSchemeParams params) {
+    public List<AuthSchemeOption> resolveAuthScheme(AuthWithLegacyTraitAuthSchemeParams params) {
         List<AuthSchemeOption> options = new ArrayList<>();
         switch (params.operation()) {
-        case "OperationWithNoneAuthType":
+        case "OperationWithBearerAuth":
+            options.add(AuthSchemeOption.builder().schemeId("smithy.api#httpBearerAuth").build());
+            break;
+        case "OperationWithNoAuth":
             options.add(AuthSchemeOption.builder().schemeId("smithy.api#noAuth").build());
             break;
         default:
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
-                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "customresponsemetadata")
+                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "authwithlegacytraitservice")
                     .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
             break;
         }

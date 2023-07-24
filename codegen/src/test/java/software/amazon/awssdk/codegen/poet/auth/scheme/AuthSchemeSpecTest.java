@@ -165,7 +165,7 @@ public class AuthSchemeSpecTest {
             TestCase.builder()
                     .modelProvider(ClientTestModels::granularAuthWithLegacyTraitServiceModels)
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
-                    .caseName("mixed")
+                    .caseName("auth-with-legacy-trait")
                     .outputFileSuffix("default-provider")
                     .build(),
             // Interceptors
