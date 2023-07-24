@@ -169,8 +169,6 @@ public final class MultipartUploadHelper {
                                                            CompletableFuture<PutObjectResponse> returnFuture,
                                                            Collection<CompletableFuture<CompletedPart>> futures) {
 
-
-
         AsyncRequestBody asyncRequestBody = mpuRequestContext.request.right();
 
         SplitAsyncRequestBodyResponse result = asyncRequestBody.split(mpuRequestContext.partSize, maxMemoryUsageInBytes);

@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 import javax.crypto.KeyGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -66,7 +65,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .region(DEFAULT_REGION)
                                            .build();
-        s3MpuClient = new MultipartS3AsyncClient(s3Async);
+        s3MpuClient = new MultipartS3AsyncClient(s3Async, MultipartConfiguration.create());
     }
 
     @AfterAll

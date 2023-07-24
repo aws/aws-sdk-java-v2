@@ -16,37 +16,42 @@
 package software.amazon.awssdk.services.s3.multipart;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.utils.ThreadFactoryBuilder;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * todo
+ *
  */
+@SdkPublicApi
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {
-    private static final Long DEFAULT_MIN_PART_SIZE_IN_BYTES = 8L * 1024 * 1024; // 8 Mib
-    private static final Long DEFAULT_THRESHOLD_IN_BYTES = 8L * 1024 * 1024; // 8 Mib
+    public static final AttributeMap.Key<MultipartConfiguration> MULTIPART_CONFIGURATION_KEY =
+        new AttributeMap.Key<MultipartConfiguration>(MultipartConfiguration.class){};
 
-    private final Boolean multipartEnable;
+    private final Boolean multipartEnabled;
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
+    private final Long maximumMemoryUsageInBytes;
     private final Executor executor;
     private final MultipartDownloadType multipartDownloadType;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
-        this.multipartEnable = Validate.getOrDefault(builder.multipartEnabled, () -> Boolean.TRUE);
-        this.thresholdInBytes = Validate.getOrDefault(builder.thresholdInBytes, () -> DEFAULT_THRESHOLD_IN_BYTES);
-        this.minimumPartSizeInBytes = Validate.getOrDefault(builder.minimumPartSizeInBytes, () -> DEFAULT_MIN_PART_SIZE_IN_BYTES);
+        this.multipartEnabled = Validate.getOrDefault(builder.multipartEnabled, () -> Boolean.TRUE);
+        this.thresholdInBytes = builder.thresholdInBytes;
+        this.minimumPartSizeInBytes = builder.minimumPartSizeInBytes;
+        this.maximumMemoryUsageInBytes = builder.maximumMemoryUsageInBytes;
         this.multipartDownloadType = builder.multipartDownloadType;
-        this.executor = Validate.getOrDefault(builder.executor, MultipartConfiguration::defaultExecutor);
+        this.executor = builder.executor;
     }
 
     public static Builder builder() {
         return new DefaultMultipartConfigBuilder();
+    }
+
+    public static MultipartConfiguration create() {
+        return builder().build();
     }
 
     @Override
@@ -55,21 +60,34 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
             .executor(executor)
             .minimumPartSizeInBytes(minimumPartSizeInBytes)
             .multipartDownloadType(multipartDownloadType)
-            .multipartEnabled(multipartEnable)
+            .multipartEnabled(multipartEnabled)
             .thresholdInBytes(thresholdInBytes);
     }
 
-    private static Executor defaultExecutor() {
-        int maxPoolSize = 100;
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(0, maxPoolSize,
-                                                             60, TimeUnit.SECONDS,
-                                                             new LinkedBlockingQueue<>(1_000),
-                                                             new ThreadFactoryBuilder()
-                                                                 .threadNamePrefix("s3-multipart-client").build());
-        // Allow idle core threads to time out
-        executor.allowCoreThreadTimeOut(true);
-        return executor;
+    public Boolean multipartEnabled() {
+        return this.multipartEnabled;
     }
+
+    public Long thresholdInBytes() {
+        return this.thresholdInBytes;
+    }
+
+    public Long minimumPartSizeInBytes() {
+        return this.minimumPartSizeInBytes;
+    }
+
+    public Long maximumMemoryUsageInBytes() {
+        return this.maximumMemoryUsageInBytes;
+    }
+
+    public Executor executor() {
+        return this.executor;
+    }
+
+    public MultipartDownloadType multipartDownloadType() {
+        return this.multipartDownloadType;
+    }
+
 
     public interface Builder extends CopyableBuilder<Builder, MultipartConfiguration> {
 
@@ -79,6 +97,11 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return
          */
         Builder multipartEnabled(Boolean multipartEnabled);
+
+        /**
+         *
+         * @return
+         */
         Boolean multipartEnabled();
 
         /**
@@ -87,6 +110,11 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return
          */
         Builder thresholdInBytes(Long thresholdInBytes);
+
+        /**
+         *
+         * @return
+         */
         Long thresholdInBytes();
 
         /**
@@ -95,7 +123,20 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return
          */
         Builder minimumPartSizeInBytes(Long minimumPartSizeInBytes);
+
+        /**
+         *
+         * @return
+         */
         Long minimumPartSizeInBytes();
+
+        Builder maximumMemoryUsageInBytes(Long maximumMemoryUsageInBytes);
+
+        /**
+         *
+         * @return
+         */
+        Long maximumMemoryUsageInBytes();
 
         /**
          *
@@ -103,6 +144,11 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return
          */
         Builder executor(Executor executor);
+
+        /**
+         *
+         * @return
+         */
         Executor executor();
 
         /**
@@ -111,6 +157,11 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return
          */
         Builder multipartDownloadType(MultipartDownloadType multipartDownloadType);
+
+        /**
+         *
+         * @return
+         */
         MultipartDownloadType multipartDownloadType();
     }
 
@@ -118,6 +169,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         private Boolean multipartEnabled;
         private Long thresholdInBytes;
         private Long minimumPartSizeInBytes;
+        private Long maximumMemoryUsageInBytes;
         private Executor executor;
         private MultipartDownloadType multipartDownloadType;
 
@@ -146,6 +198,17 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
         public Long minimumPartSizeInBytes() {
             return this.minimumPartSizeInBytes;
+        }
+
+        @Override
+        public Builder maximumMemoryUsageInBytes(Long maximumMemoryUsageInBytes) {
+            this.maximumMemoryUsageInBytes = maximumMemoryUsageInBytes;
+            return this;
+        }
+
+        @Override
+        public Long maximumMemoryUsageInBytes() {
+            return maximumMemoryUsageInBytes;
         }
 
         public Builder executor(Executor executor) {

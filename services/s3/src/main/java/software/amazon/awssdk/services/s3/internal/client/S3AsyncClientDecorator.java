@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.client;
 
+import static software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.MULTIPART_CONFIGURATION_KEY;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -24,6 +26,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
+import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.ConditionalDecorator;
 
@@ -37,20 +40,23 @@ public class S3AsyncClientDecorator {
                                   SdkClientConfiguration clientConfiguration,
                                   AttributeMap clientContextParams) {
         List<ConditionalDecorator<S3AsyncClient>> decorators = new ArrayList<>();
-        decorators.add(ConditionalDecorator.create(isCrossRegionEnabledAsync(clientContextParams),
-                                                   S3CrossRegionAsyncClient::new));
-        decorators.add(ConditionalDecorator.create(isMultipartEnable(clientContextParams),
-                                                   MultipartS3AsyncClient::new));
+        decorators.add(ConditionalDecorator.create(
+            isCrossRegionEnabledAsync(clientContextParams),
+            S3CrossRegionAsyncClient::new));
+
+        MultipartConfiguration multipartConfiguration = clientContextParams.get(MULTIPART_CONFIGURATION_KEY);
+        decorators.add(ConditionalDecorator.create(
+            isMultipartEnable(multipartConfiguration),
+            client -> new MultipartS3AsyncClient(client, multipartConfiguration)));
         return ConditionalDecorator.decorate(base, decorators);
     }
 
     private Predicate<S3AsyncClient> isCrossRegionEnabledAsync(AttributeMap clientContextParams) {
         Boolean crossRegionEnabled = clientContextParams.get(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED);
-        return  client -> crossRegionEnabled != null && crossRegionEnabled.booleanValue();
+        return client -> crossRegionEnabled != null && crossRegionEnabled.booleanValue();
     }
 
-    private Predicate<S3AsyncClient> isMultipartEnable(AttributeMap clientContextParams) {
-        Boolean multipartEnabled = clientContextParams.get(null); //todo
-        return client -> multipartEnabled != null && multipartEnabled;
+    private Predicate<S3AsyncClient> isMultipartEnable(MultipartConfiguration multipartConfiguration) {
+        return client -> multipartConfiguration != null && multipartConfiguration.multipartEnabled();
     }
 }

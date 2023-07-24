@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.builder;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
@@ -59,12 +60,12 @@ public class AsyncClientBuilderClass implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder builder =
-                PoetUtils.createClassBuilder(builderClassName)
-                         .addAnnotation(SdkInternalApi.class)
-                         .addModifiers(Modifier.FINAL)
-                         .superclass(ParameterizedTypeName.get(builderBaseClassName, builderInterfaceName, clientInterfaceName))
-                         .addSuperinterface(builderInterfaceName)
-                         .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
+            PoetUtils.createClassBuilder(builderClassName)
+                     .addAnnotation(SdkInternalApi.class)
+                     .addModifiers(Modifier.FINAL)
+                     .superclass(ParameterizedTypeName.get(builderBaseClassName, builderInterfaceName, clientInterfaceName))
+                     .addSuperinterface(builderInterfaceName)
+                     .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
 
         if (model.getEndpointOperation().isPresent()) {
             builder.addMethod(endpointDiscoveryEnabled());
@@ -78,6 +79,11 @@ public class AsyncClientBuilderClass implements ClassSpec {
 
         if (AuthUtils.usesBearerAuth(model)) {
             builder.addMethod(bearerTokenProviderMethod());
+        }
+
+        boolean multipartEnabled = model.getCustomizationConfig().getServiceConfig().hasMultipartEnabledProperty();
+        if (multipartEnabled) {
+            builder.addMethod(multipartConfigMethod());
         }
 
         builder.addMethod(buildClientMethod());
@@ -124,15 +130,15 @@ public class AsyncClientBuilderClass implements ClassSpec {
 
     private MethodSpec buildClientMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("buildClient")
-                                         .addAnnotation(Override.class)
-                                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                                         .returns(clientInterfaceName)
-                                         .addStatement("$T clientConfiguration = super.asyncClientConfiguration()",
-                                                       SdkClientConfiguration.class).addStatement("this.validateClientOptions"
-                                                                                                  + "(clientConfiguration)")
-                                         .addStatement("$T serviceClientConfiguration = initializeServiceClientConfig"
-                                                       + "(clientConfiguration)",
-                                                       serviceConfigClassName);
+                                               .addAnnotation(Override.class)
+                                               .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                                               .returns(clientInterfaceName)
+                                               .addStatement("$T clientConfiguration = super.asyncClientConfiguration()",
+                                                             SdkClientConfiguration.class).addStatement("this.validateClientOptions"
+                                                                                                        + "(clientConfiguration)")
+                                               .addStatement("$T serviceClientConfiguration = initializeServiceClientConfig"
+                                                             + "(clientConfiguration)",
+                                                             serviceConfigClassName);
 
         builder.addStatement("$1T client = new $2T(serviceClientConfiguration, clientConfiguration)",
                              clientInterfaceName, clientClassName);
@@ -152,6 +158,20 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .returns(builderClassName)
                          .addStatement("clientConfiguration.option($T.TOKEN_PROVIDER, tokenProvider)",
                                        AwsClientOption.class)
+                         .addStatement("return this")
+                         .build();
+    }
+
+    private MethodSpec multipartConfigMethod() {
+        ClassName mulitpartConfigClassName =
+            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getMultipartConfigurationClass());
+        return MethodSpec.methodBuilder("multipartConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfig").build())
+                         .returns(builderClassName)
+                         .addStatement("clientContextParams.put($T.MULTIPART_CONFIGURATION_KEY, multipartConfig)",
+                                       mulitpartConfigClassName)
                          .addStatement("return this")
                          .build();
     }

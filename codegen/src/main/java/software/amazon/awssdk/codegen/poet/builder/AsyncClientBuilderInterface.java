@@ -63,28 +63,30 @@ public class AsyncClientBuilderInterface implements ClassSpec {
     }
 
     private void includeMultipartMethod(TypeSpec.Builder builder) {
-        log.info("!!!!!!!!!!!!! Adding multipart config methods to builder interface for service '{}'",
-                  model.getMetadata().getServiceId());
-        ClassName mulitpartConfigClassName =
-            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getMultipartConfigurationClass());
-        builder.addMethod(MethodSpec.methodBuilder("multipartConfiguration")
+        log.debug("Adding multipart config methods to builder interface for service '{}'", model.getMetadata().getServiceId());
+        String multipartConfigClass = model.getCustomizationConfig().getMultipartConfigurationClass();
+        ClassName mulitpartConfigClassName = PoetUtils.classNameFromFqcn(multipartConfigClass);
+        String multiPartConfigMethodName = "multipartConfiguration";
+        builder.addMethod(MethodSpec.methodBuilder(multiPartConfigMethodName)
                                     .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
                                     .returns(builderInterfaceName)
                                     .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfig").build())
-                                    .addComment("by default, do nothing.")
-                                    .addComment("Subclasses can override this method and implement the required logic.")
-                                    .addCode("return this;")
+                                    .addCode("throw new $T();", UnsupportedOperationException.class)
                                     .build());
 
-        ParameterizedTypeName consumerBuilder = ParameterizedTypeName.get(ClassName.get(Consumer.class),
-                                                                          mulitpartConfigClassName);
-        builder.addMethod(MethodSpec.methodBuilder("multipartConfiguration")
+        ClassName mulitpartConfigBuilderClassName = PoetUtils.classNameFromFqcn(multipartConfigClass + ".Builder");
+
+        ParameterizedTypeName consumerBuilderType = ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                                                                              mulitpartConfigBuilderClassName);
+        builder.addMethod(MethodSpec.methodBuilder(multiPartConfigMethodName)
                                     .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
                                     .returns(builderInterfaceName)
-                                    .addParameter(ParameterSpec.builder(consumerBuilder, "multipartConfiguration").build())
-                                    .addComment("by default, do nothing.")
-                                    .addComment("Subclasses can override this method and implement the required logic.")
-                                    .addCode("return this;")
+                                    .addParameter(ParameterSpec.builder(consumerBuilderType, "multipartConfiguration").build())
+                                    .addStatement("$T builder = $T.builder()",
+                                                  mulitpartConfigBuilderClassName,
+                                                  mulitpartConfigClassName)
+                                    .addStatement("multipartConfiguration.accept(builder)")
+                                    .addStatement("return multipartConfiguration(builder.build())")
                                     .build());
     }
 

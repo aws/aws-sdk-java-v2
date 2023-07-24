@@ -15,13 +15,11 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.nio.file.Files;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -51,7 +49,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         S3IntegrationTestBase.createBucket(TEST_BUCKET);
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
-        mpuS3Client = new MultipartS3AsyncClient(s3Async);
+        mpuS3Client = new MultipartS3AsyncClient(s3Async, MultipartConfiguration.create());
     }
 
     @AfterAll
