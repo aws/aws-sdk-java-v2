@@ -276,7 +276,11 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         List<ClassName> builtInInterceptors = new ArrayList<>();
 
-        builtInInterceptors.add(authSchemeSpecUtils.authSchemeInterceptor());
+        // TODO(sra-identity-and-auth): Skip S3 for now as there are several tests failing that need to be fixed somewhere else.
+        boolean isS3 = "S3".equals(model.getMetadata().getServiceName());
+        if (!isS3) {
+            builtInInterceptors.add(authSchemeSpecUtils.authSchemeInterceptor());
+        }
         builtInInterceptors.add(endpointRulesSpecUtils.resolverInterceptorName());
         builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
         builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
