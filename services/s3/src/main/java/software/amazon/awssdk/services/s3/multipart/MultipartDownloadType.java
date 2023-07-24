@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
+/**
+ * todo complete
+ */
 public enum MultipartDownloadType {
     PART,
     RANGE

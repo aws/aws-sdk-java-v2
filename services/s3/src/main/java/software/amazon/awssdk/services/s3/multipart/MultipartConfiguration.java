@@ -15,15 +15,27 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
-import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- *
+ * Class that hold configuration properties related to multipart operation for a {@link S3AsyncClient}. Passing this class to the
+ * {@link S3AsyncClientBuilder#multipartConfiguration(MultipartConfiguration)} will enable automatic conversion of
+ * {@link S3AsyncClient#putObject(Consumer, AsyncRequestBody)}, {@link S3AsyncClient#copyObject(CopyObjectRequest)} to their
+ * respective multipart operation.
+ * <p></p>
+ * note: The multipart operation for {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)} is temporarily
+ * disabled and will result in throwing a {@link UnsupportedOperationException} if called when configured for multipart operation.
  */
 @SdkPublicApi
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {
@@ -34,7 +46,6 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
     private final Long maximumMemoryUsageInBytes;
-    private final Executor executor;
     private final MultipartDownloadType multipartDownloadType;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
@@ -43,7 +54,6 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         this.minimumPartSizeInBytes = builder.minimumPartSizeInBytes;
         this.maximumMemoryUsageInBytes = builder.maximumMemoryUsageInBytes;
         this.multipartDownloadType = builder.multipartDownloadType;
-        this.executor = builder.executor;
     }
 
     public static Builder builder() {
@@ -57,17 +67,25 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     @Override
     public Builder toBuilder() {
         return builder()
-            .executor(executor)
             .minimumPartSizeInBytes(minimumPartSizeInBytes)
             .multipartDownloadType(multipartDownloadType)
             .multipartEnabled(multipartEnabled)
             .thresholdInBytes(thresholdInBytes);
     }
 
+    /**
+     * Indicated if the {@link S3AsyncClient} should use multipart operations of not.
+     * @return if the {@link S3AsyncClient} should use multipart operations of not.
+     */
     public Boolean multipartEnabled() {
         return this.multipartEnabled;
     }
 
+    /**
+     * Indicates the value of the configured threshold. Any request whose body size is less than the configured value will not
+     * use multipart operation
+     * @return the value of the configured threshold.
+     */
     public Long thresholdInBytes() {
         return this.thresholdInBytes;
     }
@@ -80,47 +98,49 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         return this.maximumMemoryUsageInBytes;
     }
 
-    public Executor executor() {
-        return this.executor;
-    }
-
     public MultipartDownloadType multipartDownloadType() {
         return this.multipartDownloadType;
     }
 
 
+    /**
+     * Builder for a {@link MultipartConfiguration}.
+     */
     public interface Builder extends CopyableBuilder<Builder, MultipartConfiguration> {
 
         /**
-         *
-         * @param multipartEnabled
-         * @return
+         * Defines if the client should use multipart operation or not. <p></p>
+         * Default value: True.
+         * @param multipartEnabled the value of the boolean to set. Set this to false to disable multipart operation completely.
+         * @return an instance of this builder.
          */
         Builder multipartEnabled(Boolean multipartEnabled);
 
         /**
-         *
-         * @return
+         * Indicated if the {@link S3AsyncClient} should use multipart operations of not.
+         * @return if the {@link S3AsyncClient} should use multipart operations of not.
          */
         Boolean multipartEnabled();
 
         /**
-         *
-         * @param thresholdInBytes
-         * @return
+         * Defines the minimum number of bytes of the body of the request required for requests to be converted to their multipart
+         * equivalent. Any request whose body size is less than the configured value will not use multipart operation,
+         * regardless of the value passed to {@link Builder#multipartEnabled(Boolean)}
+         * @param thresholdInBytes the value of the threshold to set.
+         * @return an instance of this builder.
          */
         Builder thresholdInBytes(Long thresholdInBytes);
 
         /**
-         *
-         * @return
+         * Indicates the value of the configured threshold.
+         * @return the value of the configured threshold.
          */
         Long thresholdInBytes();
 
         /**
          *
          * @param minimumPartSizeInBytes
-         * @return
+         * @return an instance of this builder.
          */
         Builder minimumPartSizeInBytes(Long minimumPartSizeInBytes);
 
@@ -140,21 +160,8 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
         /**
          *
-         * @param executor
-         * @return
-         */
-        Builder executor(Executor executor);
-
-        /**
-         *
-         * @return
-         */
-        Executor executor();
-
-        /**
-         *
          * @param multipartDownloadType
-         * @return
+         * @return an instance of this builder.
          */
         Builder multipartDownloadType(MultipartDownloadType multipartDownloadType);
 
@@ -170,7 +177,6 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         private Long thresholdInBytes;
         private Long minimumPartSizeInBytes;
         private Long maximumMemoryUsageInBytes;
-        private Executor executor;
         private MultipartDownloadType multipartDownloadType;
 
         public Builder multipartEnabled(Boolean multipartEnabled) {
@@ -209,15 +215,6 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         @Override
         public Long maximumMemoryUsageInBytes() {
             return maximumMemoryUsageInBytes;
-        }
-
-        public Builder executor(Executor executor) {
-            this.executor = executor;
-            return this;
-        }
-
-        public Executor executor() {
-            return this.executor;
         }
 
         public Builder multipartDownloadType(MultipartDownloadType multipartDownloadType) {

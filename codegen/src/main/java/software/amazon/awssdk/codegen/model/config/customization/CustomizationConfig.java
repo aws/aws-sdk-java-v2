@@ -233,6 +233,12 @@ public class CustomizationConfig {
     private String multipartConfigurationClass;
 
     /**
+     * todo
+     */
+    private String multipartMethodJavadoc;
+
+
+    /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
      */
     private boolean skipEndpointTestGeneration;
@@ -678,4 +684,13 @@ public class CustomizationConfig {
     public void setMultipartConfigurationClass(String multipartConfigurationClass) {
         this.multipartConfigurationClass = multipartConfigurationClass;
     }
+
+    public String getMultipartMethodDoc() {
+        return this.multipartMethodJavadoc;
+    }
+
+    public void setMultipartMethodDoc(String multipartMethodJavadoc) {
+        this.multipartMethodJavadoc = multipartMethodJavadoc;
+    }
+
 }

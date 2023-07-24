@@ -22,18 +22,19 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
-// This is just a temporary class for testing
-//TODO: change this
 @SdkInternalApi
 public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
@@ -43,7 +44,6 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private static final long DEFAULT_MAX_MEMORY = DEFAULT_MIN_PART_SIZE_IN_BYTES * 2;
     private final MultipartUploadHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
-    private final Executor executor;
 
     public MultipartS3AsyncClient(S3AsyncClient delegate) {
         this(delegate, MultipartConfiguration.create());
@@ -57,7 +57,6 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
                                                () -> DEFAULT_THRESHOLD);
         long maximumMemoryUsageInBytes = Validate.getOrDefault(multipartConfiguration.maximumMemoryUsageInBytes(),
                                                                () -> computeMaxMemoryUsage(multipartConfiguration));
-        this.executor = Validate.getOrDefault(multipartConfiguration.executor(), this::defaultExecutor);
         this.mpuHelper = new MultipartUploadHelper(delegate, minPartSizeInBytes, threshold, maximumMemoryUsageInBytes);
         this.copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
     }
@@ -87,6 +86,12 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
         return copyObjectHelper.copyObject(copyObjectRequest);
+    }
+
+    @Override
+    public <ReturnT> CompletableFuture<ReturnT> getObject(GetObjectRequest getObjectRequest,
+                                                          AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
+        throw new UnsupportedOperationException("Multipart download currently not supported.");
     }
 
     @Override

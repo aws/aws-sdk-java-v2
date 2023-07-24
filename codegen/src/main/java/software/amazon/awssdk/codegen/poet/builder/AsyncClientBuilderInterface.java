@@ -66,13 +66,15 @@ public class AsyncClientBuilderInterface implements ClassSpec {
     private void includeMultipartMethod(TypeSpec.Builder builder) {
         log.debug("Adding multipart config methods to builder interface for service '{}'", model.getMetadata().getServiceId());
         String multipartConfigClass = model.getCustomizationConfig().getMultipartConfigurationClass();
+        String multipartMethodJavaDoc = model.getCustomizationConfig().getMultipartMethodDoc();
         ClassName mulitpartConfigClassName = PoetUtils.classNameFromFqcn(multipartConfigClass);
         String multiPartConfigMethodName = "multipartConfiguration";
         builder.addMethod(MethodSpec.methodBuilder(multiPartConfigMethodName)
                                     .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
                                     .returns(builderInterfaceName)
-                                    .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfig").build())
+                                    .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfiguration").build())
                                     .addCode("throw new $T();", UnsupportedOperationException.class)
+                                    .addJavadoc(CodeBlock.of(multipartMethodJavaDoc))
                                     .build());
 
         ClassName mulitpartConfigBuilderClassName = PoetUtils.classNameFromFqcn(multipartConfigClass + ".Builder");
@@ -88,6 +90,7 @@ public class AsyncClientBuilderInterface implements ClassSpec {
                                                   mulitpartConfigClassName)
                                     .addStatement("multipartConfiguration.accept(builder)")
                                     .addStatement("return multipartConfiguration(builder.build())")
+                                    .addJavadoc(CodeBlock.of(multipartMethodJavaDoc))
                                     .build());
     }
 
