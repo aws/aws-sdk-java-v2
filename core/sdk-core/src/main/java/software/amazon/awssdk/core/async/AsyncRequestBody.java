@@ -24,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -420,24 +419,20 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @param maxMemoryUsageInBytes the max memory the SDK will use to buffer the content
      * @return SplitAsyncRequestBodyResult
      */
-    default SplitAsyncRequestBodyResponse split(long chunkSizeInBytes, long maxMemoryUsageInBytes) {
+    default SdkPublisher<AsyncRequestBody> split(long chunkSizeInBytes, long maxMemoryUsageInBytes) {
         Validate.isPositive(chunkSizeInBytes, "chunkSizeInBytes");
         Validate.isPositive(maxMemoryUsageInBytes, "maxMemoryUsageInBytes");
 
-        if (!this.contentLength().isPresent()) {
+        if (!contentLength().isPresent()) {
             Validate.isTrue(maxMemoryUsageInBytes >= chunkSizeInBytes,
                             "maxMemoryUsageInBytes must be larger than or equal to " +
                             "chunkSizeInBytes if the content length is unknown");
         }
 
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
-                                                                  .asyncRequestBody(this)
-                                                                  .chunkSizeInBytes(chunkSizeInBytes)
-                                                                  .maxMemoryUsageInBytes(maxMemoryUsageInBytes)
-                                                                  .resultFuture(future)
-                                                                  .build();
-
-        return SplitAsyncRequestBodyResponse.create(splittingPublisher, future);
+        return SplittingPublisher.builder()
+                                 .asyncRequestBody(this)
+                                 .chunkSizeInBytes(chunkSizeInBytes)
+                                 .maxMemoryUsageInBytes(maxMemoryUsageInBytes)
+                                 .build();
     }
 }

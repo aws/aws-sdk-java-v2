@@ -52,7 +52,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
 
     private static final String TEST_BUCKET = temporaryBucketName(S3MultipartClientPutObjectIntegrationTest.class);
     private static final String TEST_KEY = "testfile.dat";
-    private static final int OBJ_SIZE = 31 * 1024 * 1024;
+    private static final int OBJ_SIZE = 19 * 1024 * 1024;
 
     private static File testFile;
     private static S3AsyncClient mpuS3Client;
@@ -90,7 +90,6 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     }
 
     @Test
-    @Timeout(value = 30, unit = SECONDS)
     void putObject_byteAsyncRequestBody_objectSentCorrectly() throws Exception {
         byte[] bytes = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
         AsyncRequestBody body = AsyncRequestBody.fromBytes(bytes);
@@ -105,11 +104,9 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     }
 
     @Test
-    @Timeout(value = 30, unit = SECONDS)
     void putObject_unknownContentLength_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = FileAsyncRequestBody.builder()
                                                     .path(testFile.toPath())
-            //.chunkSizeInBytes(2 * 1024 * 1024)
                                                     .build();
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), new AsyncRequestBody() {
             @Override

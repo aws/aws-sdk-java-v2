@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -126,6 +124,7 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     }
 
     public void cleanUpParts(String uploadId, AbortMultipartUploadRequest.Builder abortMultipartUploadRequest) {
+        log.debug(() -> "Aborting multipart upload: " + uploadId);
         s3AsyncClient.abortMultipartUpload(abortMultipartUploadRequest.uploadId(uploadId).build())
                      .exceptionally(throwable -> {
                          log.warn(() -> String.format("Failed to abort previous multipart upload "
