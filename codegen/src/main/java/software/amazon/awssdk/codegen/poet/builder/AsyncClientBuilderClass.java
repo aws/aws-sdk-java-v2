@@ -135,8 +135,8 @@ public class AsyncClientBuilderClass implements ClassSpec {
                                                .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                                                .returns(clientInterfaceName)
                                                .addStatement("$T clientConfiguration = super.asyncClientConfiguration()",
-                                                             SdkClientConfiguration.class).addStatement("this.validateClientOptions"
-                                                                                                        + "(clientConfiguration)")
+                                                             SdkClientConfiguration.class)
+                                               .addStatement("this.validateClientOptions(clientConfiguration)")
                                                .addStatement("$T serviceClientConfiguration = initializeServiceClientConfig"
                                                              + "(clientConfiguration)",
                                                              serviceConfigClassName);

@@ -69,29 +69,31 @@ public class AsyncClientBuilderInterface implements ClassSpec {
         String multipartMethodJavaDoc = model.getCustomizationConfig().getMultipartMethodDoc();
         ClassName mulitpartConfigClassName = PoetUtils.classNameFromFqcn(multipartConfigClass);
         String multiPartConfigMethodName = "multipartConfiguration";
-        builder.addMethod(MethodSpec.methodBuilder(multiPartConfigMethodName)
-                                    .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
-                                    .returns(builderInterfaceName)
-                                    .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfiguration").build())
-                                    .addCode("throw new $T();", UnsupportedOperationException.class)
-                                    .addJavadoc(CodeBlock.of(multipartMethodJavaDoc))
-                                    .build());
+        builder.addMethod(
+            MethodSpec.methodBuilder(multiPartConfigMethodName)
+                      .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+                      .returns(builderInterfaceName)
+                      .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfiguration").build())
+                      .addCode("throw new $T();", UnsupportedOperationException.class)
+                      .addJavadoc(CodeBlock.of(multipartMethodJavaDoc))
+                      .build());
 
         ClassName mulitpartConfigBuilderClassName = PoetUtils.classNameFromFqcn(multipartConfigClass + ".Builder");
 
         ParameterizedTypeName consumerBuilderType = ParameterizedTypeName.get(ClassName.get(Consumer.class),
                                                                               mulitpartConfigBuilderClassName);
-        builder.addMethod(MethodSpec.methodBuilder(multiPartConfigMethodName)
-                                    .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
-                                    .returns(builderInterfaceName)
-                                    .addParameter(ParameterSpec.builder(consumerBuilderType, "multipartConfiguration").build())
-                                    .addStatement("$T builder = $T.builder()",
-                                                  mulitpartConfigBuilderClassName,
-                                                  mulitpartConfigClassName)
-                                    .addStatement("multipartConfiguration.accept(builder)")
-                                    .addStatement("return multipartConfiguration(builder.build())")
-                                    .addJavadoc(CodeBlock.of(multipartMethodJavaDoc))
-                                    .build());
+        builder.addMethod(
+            MethodSpec.methodBuilder(multiPartConfigMethodName)
+                      .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+                      .returns(builderInterfaceName)
+                      .addParameter(ParameterSpec.builder(consumerBuilderType, "multipartConfiguration").build())
+                      .addStatement("$T builder = $T.builder()",
+                                    mulitpartConfigBuilderClassName,
+                                    mulitpartConfigClassName)
+                      .addStatement("multipartConfiguration.accept(builder)")
+                      .addStatement("return multipartConfiguration(builder.build())")
+                      .addJavadoc(CodeBlock.of(multipartMethodJavaDoc))
+                      .build());
     }
 
     @Override
