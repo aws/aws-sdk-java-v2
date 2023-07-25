@@ -16,10 +16,6 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -32,7 +28,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
-import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -40,8 +35,8 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private static final long DEFAULT_MIN_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;
-
     private static final long DEFAULT_MAX_MEMORY = DEFAULT_MIN_PART_SIZE_IN_BYTES * 2;
+
     private final MultipartUploadHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
 
@@ -64,18 +59,6 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private long computeMaxMemoryUsage(MultipartConfiguration multipartConfiguration) {
         return multipartConfiguration.minimumPartSizeInBytes() != null ? multipartConfiguration.minimumPartSizeInBytes() * 2
                                                                        : DEFAULT_MAX_MEMORY;
-    }
-
-    private Executor defaultExecutor() {
-        int maxPoolSize = 100;
-        ThreadPoolExecutor defaultExecutor = new ThreadPoolExecutor(0, maxPoolSize,
-                                                                    60, TimeUnit.SECONDS,
-                                                                    new LinkedBlockingQueue<>(1_000),
-                                                                    new ThreadFactoryBuilder()
-                                                                        .threadNamePrefix("s3-multipart-async-client").build());
-        // Allow idle core threads to time out
-        defaultExecutor.allowCoreThreadTimeOut(true);
-        return defaultExecutor;
     }
 
     @Override

@@ -34,8 +34,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * {@link S3AsyncClient#putObject(Consumer, AsyncRequestBody)}, {@link S3AsyncClient#copyObject(CopyObjectRequest)} to their
  * respective multipart operation.
  * <p></p>
- * note: The multipart operation for {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)} is temporarily
- * disabled and will result in throwing a {@link UnsupportedOperationException} if called when configured for multipart operation.
+ * <em>Note</em>: The multipart operation for {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)} is
+ * temporarily disabled and will result in throwing a {@link UnsupportedOperationException} if called when configured for
+ * multipart operation.
  */
 @SdkPublicApi
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {
@@ -74,7 +75,8 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     }
 
     /**
-     * Indicated if the {@link S3AsyncClient} should use multipart operations of not.
+     * Indicated if the {@link S3AsyncClient} should use multipart operations of not. When false, completely disable any
+     * multipart operations.
      * @return if the {@link S3AsyncClient} should use multipart operations of not.
      */
     public Boolean multipartEnabled() {
@@ -82,7 +84,8 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     }
 
     /**
-     * Indicates the value of the configured threshold. Any request whose body size is less than the configured value will not
+     * Indicates the value of the configured threshold, in bytes. Any request whose size is less than the configured value will
+     * not
      * use multipart operation
      * @return the value of the configured threshold.
      */
@@ -90,14 +93,29 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         return this.thresholdInBytes;
     }
 
+    /**
+     * Indicated the size, in bytes, of each individual part of the part requests. The actual part size used might be bigger to
+     * conforms to
+     * the maximum
+     * number of parts allowed per multipart requests.
+     * @return the value of the configured part size.
+     */
     public Long minimumPartSizeInBytes() {
         return this.minimumPartSizeInBytes;
     }
 
+    /**
+     * The maximum memory, in bytes, that the SDK will use to buffer requests content into memory.
+     * @return the value of the configured maximum memory usage.
+     */
     public Long maximumMemoryUsageInBytes() {
         return this.maximumMemoryUsageInBytes;
     }
 
+    /**
+     * The download type that will be used for multipart get requests.
+     * @return
+     */
     public MultipartDownloadType multipartDownloadType() {
         return this.multipartDownloadType;
     }
@@ -109,8 +127,11 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     public interface Builder extends CopyableBuilder<Builder, MultipartConfiguration> {
 
         /**
-         * Defines if the client should use multipart operation or not. <p></p>
+         * Configures if the client should use multipart operation or not. Setting this to false will completely disable
+         * multipart operations even if the request size goes above the configured {@link Builder#thresholdInBytes() threshold}.
+         * <p></p>
          * Default value: True.
+         *
          * @param multipartEnabled the value of the boolean to set. Set this to false to disable multipart operation completely.
          * @return an instance of this builder.
          */
@@ -123,9 +144,12 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         Boolean multipartEnabled();
 
         /**
-         * Defines the minimum number of bytes of the body of the request required for requests to be converted to their multipart
-         * equivalent. Any request whose body size is less than the configured value will not use multipart operation,
-         * regardless of the value passed to {@link Builder#multipartEnabled(Boolean)}
+         * Configures the minimum number of bytes of the body of the request required for requests to be converted to their
+         * multipart equivalent. Any request whose size is less than the configured value will not use multipart operation,
+         * even if multipart is enabled via {@link Builder#multipartEnabled(Boolean)}.
+         * <p></p>
+         * Default value: 8 Mib
+         *
          * @param thresholdInBytes the value of the threshold to set.
          * @return an instance of this builder.
          */
@@ -133,41 +157,61 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
         /**
          * Indicates the value of the configured threshold.
-         * @return the value of the configured threshold.
+         * @return the value of the threshold.
          */
         Long thresholdInBytes();
 
         /**
+         * Configures the part size, in bytes, to be used in each individual part requests.
+         * <p></p>
+         * When uploading large payload, the size of the payload of each individual part requests might actually be bigger than
+         * the configured value since there is a limit to the maximum number of parts possible per multipart request. If the
+         * configured part size would lead to a number of parts higher than the maximum allowed, a larger part size will be
+         * calculated instead to allow fewer part to be uploaded, to avoid the limit imposed on the maximum number of parts.
+         * <p></p>
+         * Default value: 8 Mib
          *
-         * @param minimumPartSizeInBytes
+         * @param minimumPartSizeInBytes the value of the part size to set
          * @return an instance of this builder.
          */
         Builder minimumPartSizeInBytes(Long minimumPartSizeInBytes);
 
         /**
-         *
-         * @return
+         * Indicated the value of the part configured size.
+         * @return the value of the part size
          */
         Long minimumPartSizeInBytes();
 
+        /**
+         * Configures the maximum amount of memory, in bytes, the SDK will use to buffer content of requests in memory.
+         * Increasing this value my lead to better performance at the cost of using more memory.
+         * <p></p>
+         * Default value: If not specified, the SDK will use the equivalent of two parts worth of memory, so 16 Mib by default.
+         *
+         * @param maximumMemoryUsageInBytes the value of the maximum memory usage.
+         * @return an instance of this builder.
+         */
         Builder maximumMemoryUsageInBytes(Long maximumMemoryUsageInBytes);
 
         /**
-         *
-         * @return
+         * Indicates the value of the maximum memory usage that the SDK will use.
+         * @return the value of the maximum memory usage.
          */
         Long maximumMemoryUsageInBytes();
 
         /**
+         * Configures the download type for individual get part requests for downloading.
+         * <p></p>
+         * Default value: {@link MultipartDownloadType#PART}
          *
-         * @param multipartDownloadType
+         * @param multipartDownloadType the value of the download type.
          * @return an instance of this builder.
          */
         Builder multipartDownloadType(MultipartDownloadType multipartDownloadType);
 
         /**
-         *
-         * @return
+         * Indicates the value of the download type.
+         * @return the value of the download type.
          */
         MultipartDownloadType multipartDownloadType();
     }

@@ -16,9 +16,10 @@
 package software.amazon.awssdk.services.s3.multipart;
 
 /**
- * todo complete
+ *
+ * todo complete when implementing multipart download
  */
 public enum MultipartDownloadType {
     PART,
-    RANGE
+    RANGE;
 }

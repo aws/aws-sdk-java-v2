@@ -24,8 +24,6 @@ import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.UploadPartCopyRequestIterable;
-import software.amazon.awssdk.services.s3.internal.multipart.GenericMultipartHelper;
-import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
@@ -128,6 +126,10 @@ public final class CopyObjectHelper {
                                String uploadId) {
 
         long optimalPartSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
+        if (optimalPartSize > partSizeInBytes) {
+            log.info(() -> String.format("Configured partSize is %d, but using %d to prevent reaching maximum number of parts "
+                                         + "allowed", partSizeInBytes, optimalPartSize));
+        }
 
         int partCount = genericMultipartHelper.determinePartCount(contentLength, optimalPartSize);
 

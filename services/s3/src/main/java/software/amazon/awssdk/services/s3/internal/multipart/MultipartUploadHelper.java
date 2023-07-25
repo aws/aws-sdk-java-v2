@@ -120,6 +120,10 @@ public final class MultipartUploadHelper {
                                  String uploadId) {
 
         long optimalPartSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
+        if (optimalPartSize > partSizeInBytes) {
+            log.info(() -> String.format("Configured partSize is %d, but using %d to prevent reaching maximum number of parts "
+                                         + "allowed", partSizeInBytes, optimalPartSize));
+        }
         int partCount = genericMultipartHelper.determinePartCount(contentLength, optimalPartSize);
 
         log.debug(() -> String.format("Starting multipart upload with partCount: %d, optimalPartSize: %d", partCount,
