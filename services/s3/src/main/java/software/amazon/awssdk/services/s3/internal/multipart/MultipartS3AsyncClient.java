@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
@@ -32,6 +33,8 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
+
+    public static final ApiName USER_AGENT_API_NAME = ApiName.builder().name("hll").version("s3-multipart-async").build();
 
     private static final long DEFAULT_MIN_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;

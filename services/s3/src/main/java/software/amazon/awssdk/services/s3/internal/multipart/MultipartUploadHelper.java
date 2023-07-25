@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient.USER_AGENT_API_NAME;
 import static software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils.toAbortMultipartUploadRequest;
 
 import java.util.Collection;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SplitAsyncRequestBodyResponse;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -97,6 +99,7 @@ public final class MultipartUploadHelper {
                                CompletableFuture<PutObjectResponse> returnFuture) {
 
         CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(putObjectRequest);
+        request = UserAgentUtils.applyUserAgentInfo(request, b -> b.addApiName(USER_AGENT_API_NAME));
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
             s3AsyncClient.createMultipartUpload(request);
 
@@ -199,7 +202,8 @@ public final class MultipartUploadHelper {
                                                  Collection<CompletableFuture<CompletedPart>> futures,
                                                  Pair<UploadPartRequest, AsyncRequestBody> requestPair,
                                                  CompletableFuture<Void> sendUploadPartRequestsFuture) {
-        UploadPartRequest uploadPartRequest = requestPair.left();
+        UploadPartRequest uploadPartRequest = UserAgentUtils.applyUserAgentInfo(requestPair.left(),
+                                                                                b -> b.addApiName(USER_AGENT_API_NAME));
         Integer partNumber = uploadPartRequest.partNumber();
         log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
                         + "contentLength " + requestPair.right().contentLength());
@@ -226,6 +230,7 @@ public final class MultipartUploadHelper {
     private void uploadInOneChunk(PutObjectRequest putObjectRequest,
                                   AsyncRequestBody asyncRequestBody,
                                   CompletableFuture<PutObjectResponse> returnFuture) {
+        putObjectRequest = UserAgentUtils.applyUserAgentInfo(putObjectRequest, b -> b.addApiName(USER_AGENT_API_NAME));
         CompletableFuture<PutObjectResponse> putObjectResponseCompletableFuture = s3AsyncClient.putObject(putObjectRequest,
                                                                                                           asyncRequestBody);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, putObjectResponseCompletableFuture);

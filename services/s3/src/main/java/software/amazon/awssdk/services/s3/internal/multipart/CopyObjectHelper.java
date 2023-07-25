@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient.USER_AGENT_API_NAME;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
 import software.amazon.awssdk.services.s3.internal.crt.UploadPartCopyRequestIterable;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -66,7 +69,8 @@ public final class CopyObjectHelper {
 
         try {
             CompletableFuture<HeadObjectResponse> headFuture =
-                s3AsyncClient.headObject(SdkPojoConversionUtils.toHeadObjectRequest(copyObjectRequest));
+                s3AsyncClient.headObject(UserAgentUtils.applyUserAgentInfo(SdkPojoConversionUtils.toHeadObjectRequest(copyObjectRequest),
+                                                                           b -> b.addApiName(USER_AGENT_API_NAME)));
 
             // Ensure cancellations are forwarded to the head future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
@@ -104,6 +108,7 @@ public final class CopyObjectHelper {
                              CompletableFuture<CopyObjectResponse> returnFuture) {
 
         CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(copyObjectRequest);
+        request = UserAgentUtils.applyUserAgentInfo(request, b -> b.addApiName(USER_AGENT_API_NAME));
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
             s3AsyncClient.createMultipartUpload(request);
 
@@ -173,7 +178,8 @@ public final class CopyObjectHelper {
                                                                                    .build())
                                           .build();
 
-        return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
+        return s3AsyncClient.completeMultipartUpload(UserAgentUtils.applyUserAgentInfo(completeMultipartUploadRequest,
+                                                                                       b -> b.addApiName(USER_AGENT_API_NAME)));
     }
 
     private List<CompletableFuture<CompletedPart>> sendUploadPartCopyRequests(CopyObjectRequest copyObjectRequest,
@@ -203,7 +209,8 @@ public final class CopyObjectHelper {
         log.debug(() -> "Sending uploadPartCopyRequest with range: " + uploadPartCopyRequest.copySourceRange() + " uploadId: "
                         + uploadId);
 
-        CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture = s3AsyncClient.uploadPartCopy(uploadPartCopyRequest);
+        CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture = s3AsyncClient.uploadPartCopy(
+            UserAgentUtils.applyUserAgentInfo(uploadPartCopyRequest, b -> b.addApiName(USER_AGENT_API_NAME)));
 
         CompletableFuture<CompletedPart> convertFuture =
             uploadPartCopyFuture.thenApply(uploadPartCopyResponse ->
@@ -227,8 +234,8 @@ public final class CopyObjectHelper {
 
     private void copyInOneChunk(CopyObjectRequest copyObjectRequest,
                                 CompletableFuture<CopyObjectResponse> returnFuture) {
-        CompletableFuture<CopyObjectResponse> copyObjectFuture =
-            s3AsyncClient.copyObject(copyObjectRequest);
+        CompletableFuture<CopyObjectResponse> copyObjectFuture = s3AsyncClient.copyObject(
+            UserAgentUtils.applyUserAgentInfo(copyObjectRequest, b -> b.addApiName(USER_AGENT_API_NAME)));
         CompletableFutureUtils.forwardExceptionTo(returnFuture, copyObjectFuture);
         CompletableFutureUtils.forwardResultTo(copyObjectFuture, returnFuture);
     }
