@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "This release adds support for monitoring storage optimization progress on the DescribeDBInstances API."
-}

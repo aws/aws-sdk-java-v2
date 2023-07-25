@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSBillingConductor",
-    "contributor": "",
-    "description": "Added support for Auto-Assocate Billing Groups for CreateBillingGroup, UpdateBillingGroup, and ListBillingGroups."
-}

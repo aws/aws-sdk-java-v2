@@ -1,3 +1,60 @@
+# __2.20.111__ __2023-07-25__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports Microsoft Azure Blob Storage locations.
+
+## __AWS IAM Policy Builder__
+  - ### Bugfixes
+    - Fixed bug where actions were written instead of resources.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Python 3.11 (python3.11) support to AWS Lambda
+
+## __AWS Security Token Service__
+  - ### Features
+    - API updates for the AWS Security Token Service
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add support for CONTAINS and NOT_CONTAINS comparison operators for Automation Rules string filters and map filters
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds support for SFTP Connectors.
+
+## __AWSBillingConductor__
+  - ### Features
+    - Added support for Auto-Assocate Billing Groups for CreateBillingGroup, UpdateBillingGroup, and ListBillingGroups.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Amazon Connect Customer Profiles now supports rule-based resolution to match and merge similar profiles into unified profiles, helping companies deliver faster and more personalized customer service by providing access to relevant customer information for agents and automated experiences.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release added two new data types: AssistantIntegrationConfiguration, and SessionIntegrationConfiguration to support Wisdom integration with Amazon Connect Chat
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds an instance's peak and baseline network bandwidth as well as the memory sizes of an instance's inference accelerators to DescribeInstanceTypes.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for monitoring storage optimization progress on the DescribeDBInstances API.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Mark ContentColumn and TargetLabelColumn as required Targets in TextClassificationJobConfig in CreateAutoMLJobV2API
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for publishing application logs to CloudWatch.
+
 # __2.20.110__ __2023-07-24__
 ## __AWS CloudFormation__
   - ### Features
