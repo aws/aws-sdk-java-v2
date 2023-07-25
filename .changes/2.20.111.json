@@ -1,0 +1,90 @@
+{
+    "version": "2.20.111",
+    "date": "2023-07-25",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS IAM Policy Builder",
+            "contributor": "",
+            "description": "Fixed bug where actions were written instead of resources."
+        },
+        {
+            "type": "feature",
+            "category": "AWSBillingConductor",
+            "contributor": "",
+            "description": "Added support for Auto-Assocate Billing Groups for CreateBillingGroup, UpdateBillingGroup, and ListBillingGroups."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "AWS DataSync now supports Microsoft Azure Blob Storage locations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add Python 3.11 (python3.11) support to AWS Lambda"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Add support for CONTAINS and NOT_CONTAINS comparison operators for Automation Rules string filters and map filters"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "API updates for the AWS Security Token Service"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This release adds support for SFTP Connectors."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "Amazon Connect Customer Profiles now supports rule-based resolution to match and merge similar profiles into unified profiles, helping companies deliver faster and more personalized customer service by providing access to relevant customer information for agents and automated experiences."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Wisdom Service",
+            "contributor": "",
+            "description": "This release added two new data types: AssistantIntegrationConfiguration, and SessionIntegrationConfiguration to support Wisdom integration with Amazon Connect Chat"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Documentation updates for DynamoDB"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds an instance's peak and baseline network bandwidth as well as the memory sizes of an instance's inference accelerators to DescribeInstanceTypes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for monitoring storage optimization progress on the DescribeDBInstances API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Mark ContentColumn and TargetLabelColumn as required Targets in TextClassificationJobConfig in CreateAutoMLJobV2API"
+        },
+        {
+            "type": "feature",
+            "category": "EMR Serverless",
+            "contributor": "",
+            "description": "This release adds support for publishing application logs to CloudWatch."
+        }
+    ]
+}

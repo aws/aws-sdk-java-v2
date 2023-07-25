@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * <b>Create a new IAM identity policy that allows a role to write items to an Amazon DynamoDB table.</b>
  * {@snippet :
  * // IamClient requires a dependency on software.amazon.awssdk:iam
- * try (IamClient iam = IamClient.create()) {
+ * try (IamClient iam = IamClient.builder().region(Region.AWS_GLOBAL).build()) {
  *     IamPolicy policy =
  *         IamPolicy.builder()
  *                  .addStatement(IamStatement.builder()
