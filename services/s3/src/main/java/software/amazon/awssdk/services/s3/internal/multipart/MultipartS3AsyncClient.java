@@ -72,8 +72,8 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     }
 
     @Override
-    public <ReturnT> CompletableFuture<ReturnT> getObject(GetObjectRequest getObjectRequest,
-                                                          AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
+    public <ReturnT> CompletableFuture<ReturnT> getObject(
+        GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
         throw new UnsupportedOperationException("Multipart download currently not supported.");
     }
 
