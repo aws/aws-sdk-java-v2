@@ -228,12 +228,13 @@ public class CustomizationConfig {
     private String asyncClientDecorator;
 
     /**
-     * todo
+     * For S3AsyncClient only. Fully qualified name of the class to be used for multipart configuration
      */
     private String multipartConfigurationClass;
 
     /**
-     * todo
+     * For S3AsyncClient only. Javadoc associated with the generated method on the S3AsyncClientBuilder interface for multipart
+     * configuration.
      */
     private String multipartMethodJavadoc;
 
