@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "contributor": "",
+    "description": "Add support for CONTAINS and NOT_CONTAINS comparison operators for Automation Rules string filters and map filters"
+}
