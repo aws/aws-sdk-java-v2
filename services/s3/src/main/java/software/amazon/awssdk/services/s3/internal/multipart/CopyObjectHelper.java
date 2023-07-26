@@ -69,8 +69,9 @@ public final class CopyObjectHelper {
 
         try {
             CompletableFuture<HeadObjectResponse> headFuture =
-                s3AsyncClient.headObject(UserAgentUtils.applyUserAgentInfo(SdkPojoConversionUtils.toHeadObjectRequest(copyObjectRequest),
-                                                                           b -> b.addApiName(USER_AGENT_API_NAME)));
+                s3AsyncClient.headObject(
+                    UserAgentUtils.applyUserAgentInfo(SdkPojoConversionUtils.toHeadObjectRequest(copyObjectRequest),
+                                                      b -> b.addApiName(USER_AGENT_API_NAME)));
 
             // Ensure cancellations are forwarded to the head future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
