@@ -47,6 +47,7 @@ class MultipartClientUserAgentTest {
                                 .httpClient(mockAsyncHttpClient)
                                 .endpointOverride(URI.create("http://localhost"))
                                 .overrideConfiguration(c -> c.addExecutionInterceptor(userAgentInterceptor))
+                                .multipartEnabled(true)
                                 .multipartConfiguration(c -> c.minimumPartSizeInBytes(1024L).thresholdInBytes(1024L))
                                 .region(Region.US_EAST_1)
                                 .build();
@@ -63,7 +64,7 @@ class MultipartClientUserAgentTest {
 
         assertThat(userAgentInterceptor.apiNames).isNotNull();
         assertThat(userAgentInterceptor.apiNames)
-            .anyMatch(api -> "hll".equals(api.name()) && "s3-multipart-async".equals(api.version()));
+            .anyMatch(api -> "hll".equals(api.name()) && "s3Multipart".equals(api.version()));
     }
 
     private static final class UserAgentInterceptor implements ExecutionInterceptor {
