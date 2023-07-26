@@ -33,8 +33,11 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -53,10 +56,14 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 public final class AuthSchemeInterceptorSpec implements ClassSpec {
+    private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AuthSchemeInterceptorSpec(IntermediateModel intermediateModel) {
+        this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
 
     @Override
@@ -78,6 +85,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         builder.addMethod(generateBeforeExecution())
                .addMethod(generateResolveAuthOptions())
                .addMethod(generateSelectAuthScheme())
+               .addMethod(generateAuthSchemeParams())
                .addMethod(generateTrySelectAuthScheme());
         return builder.build();
     }
@@ -109,31 +117,69 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                                .addParameter(ExecutionAttributes.class,
                                                              "executionAttributes");
 
-        builder.addStatement("$T operation = executionAttributes.getAttribute($T.OPERATION_NAME)", String.class,
-                             SdkExecutionAttribute.class);
-        if (authSchemeSpecUtils.usesSigV4()) {
-            builder.addStatement("$T region = executionAttributes.getAttribute($T.AWS_REGION)", Region.class,
-                                 AwsExecutionAttribute.class);
-        }
-
         builder.addStatement("$1T authSchemeProvider = $2T.isInstanceOf($1T.class, executionAttributes"
                              + ".getAttribute($3T.AUTH_SCHEME_RESOLVER), $4S)",
                              authSchemeSpecUtils.providerInterfaceName(),
                              Validate.class,
                              SdkInternalExecutionAttribute.class,
                              "Expected an instance of " + authSchemeSpecUtils.providerInterfaceName().simpleName());
-        if (authSchemeSpecUtils.usesSigV4()) {
-            builder.addStatement("return authSchemeProvider.resolveAuthScheme($T.builder()"
-                                 + ".operation(operation)"
-                                 + ".region(region)"
-                                 + ".build())",
-                                 authSchemeSpecUtils.parametersInterfaceName());
-        } else {
-            builder.addStatement("return authSchemeProvider.resolveAuthScheme($T.builder()"
-                                 + ".operation(operation)"
-                                 + ".build())",
-                                 authSchemeSpecUtils.parametersInterfaceName());
+        builder.addStatement("$T params = authSchemeParams(context.request(), executionAttributes)",
+                             authSchemeSpecUtils.parametersInterfaceName());
+        builder.addStatement("return authSchemeProvider.resolveAuthScheme(params)");
+        return builder.build();
+    }
+
+    private MethodSpec generateAuthSchemeParams() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("authSchemeParams")
+                                               .addModifiers(Modifier.PRIVATE)
+                                               .returns(authSchemeSpecUtils.parametersInterfaceName())
+                                               .addParameter(SdkRequest.class, "request")
+                                               .addParameter(ExecutionAttributes.class, "executionAttributes");
+
+        if (!authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+            builder.addStatement("$T operation = executionAttributes.getAttribute($T.OPERATION_NAME)", String.class,
+                                 SdkExecutionAttribute.class);
+            if (authSchemeSpecUtils.usesSigV4()) {
+                builder.addStatement("$T region = executionAttributes.getAttribute($T.AWS_REGION)", Region.class,
+                                     AwsExecutionAttribute.class);
+                builder.addStatement("return $T.builder()"
+                                     + ".operation(operation)"
+                                     + ".region(region)"
+                                     + ".build()",
+                                     authSchemeSpecUtils.parametersInterfaceName());
+            } else {
+                builder.addStatement("return $T.builder()"
+                                     + ".operation(operation)"
+                                     + ".build()",
+                                     authSchemeSpecUtils.parametersInterfaceName());
+            }
+            return builder.build();
         }
+
+        builder.addStatement("$T endpointParams = $T.ruleParams(request, executionAttributes)",
+                             endpointRulesSpecUtils.parametersClassName(),
+                             endpointRulesSpecUtils.resolverInterceptorName());
+        builder.addStatement("$1T.Builder builder = $1T.builder()", authSchemeSpecUtils.parametersInterfaceName());
+        boolean regionIncluded = false;
+        for (Map.Entry<String, ParameterModel> kvp : parameters().entrySet()) {
+            String paramName = kvp.getKey();
+            if (!authSchemeSpecUtils.includeParamForProvider(paramName)) {
+                continue;
+            }
+            regionIncluded = regionIncluded || paramName.equalsIgnoreCase("region");
+            String methodName = endpointRulesSpecUtils.paramMethodName(paramName);
+            builder.addStatement("builder.$1N(endpointParams.$1N())", methodName);
+        }
+
+        builder.addStatement("$T operation = executionAttributes.getAttribute($T.OPERATION_NAME)", String.class,
+                             SdkExecutionAttribute.class);
+        builder.addStatement("builder.operation(operation)");
+        if (authSchemeSpecUtils.usesSigV4() && !regionIncluded) {
+            builder.addStatement("$T region = executionAttributes.getAttribute($T.AWS_REGION)", Region.class,
+                                 AwsExecutionAttribute.class);
+            builder.addStatement("builder.region(region)");
+        }
+        builder.addStatement("return builder.build()");
         return builder.build();
     }
 
@@ -141,10 +187,8 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("selectAuthScheme")
                                                .addModifiers(Modifier.PRIVATE)
                                                .returns(wildcardSelectedAuthScheme())
-                                               .addParameter(listOf(AuthSchemeOption.class),
-                                                             "authOptions")
-                                               .addParameter(ExecutionAttributes.class,
-                                                             "executionAttributes");
+                                               .addParameter(listOf(AuthSchemeOption.class), "authOptions")
+                                               .addParameter(ExecutionAttributes.class, "executionAttributes");
 
         builder.addStatement("$T authSchemes = executionAttributes.getAttribute($T.AUTH_SCHEMES)",
                              mapOf(String.class, wildcardAuthScheme()),
@@ -298,5 +342,9 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
             throw new IllegalArgumentException("Don't know how to convert " + valueType + " to TypeName");
         }
         return result;
+    }
+
+    private Map<String, ParameterModel> parameters() {
+        return intermediateModel.getEndpointRuleSetModel().getParameters();
     }
 }
