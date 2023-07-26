@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
-    public static final ApiName USER_AGENT_API_NAME = ApiName.builder().name("hll").version("s3-multipart-async").build();
+    public static final ApiName USER_AGENT_API_NAME = ApiName.builder().name("hll").version("s3Multipart").build();
 
     private static final long DEFAULT_MIN_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;
@@ -43,18 +43,16 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private final MultipartUploadHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
 
-    public MultipartS3AsyncClient(S3AsyncClient delegate) {
-        this(delegate, MultipartConfiguration.create());
-    }
-
     public MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration) {
         super(delegate);
-        long minPartSizeInBytes = Validate.getOrDefault(multipartConfiguration.minimumPartSizeInBytes(),
+        MultipartConfiguration validConfiguration = Validate.getOrDefault(multipartConfiguration,
+                                                                          MultipartConfiguration.builder()::build);
+        long minPartSizeInBytes = Validate.getOrDefault(validConfiguration.minimumPartSizeInBytes(),
                                                         () -> DEFAULT_MIN_PART_SIZE_IN_BYTES);
-        long threshold = Validate.getOrDefault(multipartConfiguration.thresholdInBytes(),
+        long threshold = Validate.getOrDefault(validConfiguration.thresholdInBytes(),
                                                () -> DEFAULT_THRESHOLD);
-        long maximumMemoryUsageInBytes = Validate.getOrDefault(multipartConfiguration.maximumMemoryUsageInBytes(),
-                                                               () -> computeMaxMemoryUsage(multipartConfiguration));
+        long maximumMemoryUsageInBytes = Validate.getOrDefault(validConfiguration.maximumMemoryUsageInBytes(),
+                                                               () -> computeMaxMemoryUsage(validConfiguration));
         this.mpuHelper = new MultipartUploadHelper(delegate, minPartSizeInBytes, threshold, maximumMemoryUsageInBytes);
         this.copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
     }
@@ -77,7 +75,8 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        throw new UnsupportedOperationException("Multipart download currently not supported.");
+        throw new UnsupportedOperationException(
+            "Multipart download is not yet supported. Instead use the CRT based S3 client for multipart download.");
     }
 
     @Override

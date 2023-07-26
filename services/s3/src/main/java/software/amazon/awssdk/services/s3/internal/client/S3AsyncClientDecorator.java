@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.client;
 
 import static software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.MULTIPART_CONFIGURATION_KEY;
+import static software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.MULTIPART_ENABLED_KEY;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,10 +45,12 @@ public class S3AsyncClientDecorator {
             isCrossRegionEnabledAsync(clientContextParams),
             S3CrossRegionAsyncClient::new));
 
-        MultipartConfiguration multipartConfiguration = clientContextParams.get(MULTIPART_CONFIGURATION_KEY);
         decorators.add(ConditionalDecorator.create(
-            isMultipartEnable(multipartConfiguration),
-            client -> new MultipartS3AsyncClient(client, multipartConfiguration)));
+            isMultipartEnable(clientContextParams),
+            client -> {
+                MultipartConfiguration multipartConfiguration = clientContextParams.get(MULTIPART_CONFIGURATION_KEY);
+                return new MultipartS3AsyncClient(client, multipartConfiguration);
+            }));
         return ConditionalDecorator.decorate(base, decorators);
     }
 
@@ -56,7 +59,8 @@ public class S3AsyncClientDecorator {
         return client -> crossRegionEnabled != null && crossRegionEnabled.booleanValue();
     }
 
-    private Predicate<S3AsyncClient> isMultipartEnable(MultipartConfiguration multipartConfiguration) {
-        return client -> multipartConfiguration != null && multipartConfiguration.multipartEnabled();
+    private Predicate<S3AsyncClient> isMultipartEnable(AttributeMap clientContextParams) {
+        Boolean multipartEnabled = clientContextParams.get(MULTIPART_ENABLED_KEY);
+        return client -> multipartEnabled != null && multipartEnabled.booleanValue();
     }
 }

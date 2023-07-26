@@ -23,16 +23,17 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
+import software.amazon.awssdk.codegen.model.config.customization.MultipartCustomization;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public class AsyncClientBuilderInterface implements ClassSpec {
-    static Logger log = LoggerFactory.getLogger(AsyncClientBuilderInterface.class);
+    private static final Logger log = Logger.loggerFor(AsyncClientBuilderInterface.class);
+
     private final ClassName builderInterfaceName;
     private final ClassName clientInterfaceName;
     private final ClassName baseBuilderInterfaceName;
@@ -56,30 +57,43 @@ public class AsyncClientBuilderInterface implements ClassSpec {
                                                          builderInterfaceName, clientInterfaceName))
             .addJavadoc(getJavadoc());
 
-        boolean multipartEnabled = StringUtils.isNotBlank(model.getCustomizationConfig().getMultipartConfigurationClass());
-        if (multipartEnabled) {
-            includeMultipartMethod(builder);
+        MultipartCustomization multipartCustomization = model.getCustomizationConfig().getMultipartCustomization();
+        if (multipartCustomization != null) {
+            includeMultipartMethod(builder, multipartCustomization);
         }
         return builder.build();
     }
 
-    private void includeMultipartMethod(TypeSpec.Builder builder) {
-        log.debug("Adding multipart config methods to builder interface for service '{}'", model.getMetadata().getServiceId());
-        String multipartConfigClass = model.getCustomizationConfig().getMultipartConfigurationClass();
-        String multipartMethodJavaDoc = model.getCustomizationConfig().getMultipartMethodDoc();
-        ClassName mulitpartConfigClassName = PoetUtils.classNameFromFqcn(multipartConfigClass);
+    private void includeMultipartMethod(TypeSpec.Builder builder, MultipartCustomization multipartCustomization) {
+        log.debug(() -> String.format("Adding multipart config methods to builder interface for service '%s'",
+                  model.getMetadata().getServiceId()));
+
+        // .multipartEnabled(Boolean)
+        builder.addMethod(
+            MethodSpec.methodBuilder("multipartEnabled")
+                      .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+                      .returns(builderInterfaceName)
+                      .addParameter(Boolean.class, "enabled")
+                      .addCode("throw new $T();", UnsupportedOperationException.class)
+                      .addJavadoc(CodeBlock.of(multipartCustomization.getMultipartEnableMethodDoc()))
+                      .build());
+
+        // .multipartConfiguration(MultipartConfiguration)
         String multiPartConfigMethodName = "multipartConfiguration";
+        String multipartConfigClass = Validate.notNull(multipartCustomization.getMultipartConfigurationClass(),
+                                                       "'multipartConfigurationClass' must be defined");
+        ClassName mulitpartConfigClassName = PoetUtils.classNameFromFqcn(multipartConfigClass);
         builder.addMethod(
             MethodSpec.methodBuilder(multiPartConfigMethodName)
                       .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
                       .returns(builderInterfaceName)
                       .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfiguration").build())
                       .addCode("throw new $T();", UnsupportedOperationException.class)
-                      .addJavadoc(CodeBlock.of(multipartMethodJavaDoc))
+                      .addJavadoc(CodeBlock.of(multipartCustomization.getMultipartConfigMethodDoc()))
                       .build());
 
+        // .multipartConfiguration(Consumer<MultipartConfiguration>)
         ClassName mulitpartConfigBuilderClassName = PoetUtils.classNameFromFqcn(multipartConfigClass + ".Builder");
-
         ParameterizedTypeName consumerBuilderType = ParameterizedTypeName.get(ClassName.get(Consumer.class),
                                                                               mulitpartConfigBuilderClassName);
         builder.addMethod(
@@ -92,7 +106,7 @@ public class AsyncClientBuilderInterface implements ClassSpec {
                                     mulitpartConfigClassName)
                       .addStatement("multipartConfiguration.accept(builder)")
                       .addStatement("return multipartConfiguration(builder.build())")
-                      .addJavadoc(CodeBlock.of(multipartMethodJavaDoc))
+                      .addJavadoc(CodeBlock.of(multipartCustomization.getMultipartConfigMethodDoc()))
                       .build());
     }
 

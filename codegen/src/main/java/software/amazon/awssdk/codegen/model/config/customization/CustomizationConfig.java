@@ -228,16 +228,9 @@ public class CustomizationConfig {
     private String asyncClientDecorator;
 
     /**
-     * For S3AsyncClient only. Fully qualified name of the class to be used for multipart configuration
+     * Only for s3. A set of customization to related to multipart operations.
      */
-    private String multipartConfigurationClass;
-
-    /**
-     * For S3AsyncClient only. Javadoc associated with the generated method on the S3AsyncClientBuilder interface for multipart
-     * configuration.
-     */
-    private String multipartMethodJavadoc;
-
+    private MultipartCustomization multipartCustomization;
 
     /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
@@ -678,20 +671,11 @@ public class CustomizationConfig {
         this.customClientContextParams = customClientContextParams;
     }
 
-    public String getMultipartConfigurationClass() {
-        return this.multipartConfigurationClass;
+    public MultipartCustomization getMultipartCustomization() {
+        return this.multipartCustomization;
     }
 
-    public void setMultipartConfigurationClass(String multipartConfigurationClass) {
-        this.multipartConfigurationClass = multipartConfigurationClass;
+    public void setMultipartCustomization(MultipartCustomization multipartCustomization) {
+        this.multipartCustomization = multipartCustomization;
     }
-
-    public String getMultipartMethodDoc() {
-        return this.multipartMethodJavadoc;
-    }
-
-    public void setMultipartMethodDoc(String multipartMethodJavadoc) {
-        this.multipartMethodJavadoc = multipartMethodJavadoc;
-    }
-
 }

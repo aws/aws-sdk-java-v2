@@ -25,35 +25,36 @@ import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncCli
 class S3MultipartClientBuilderTest {
 
     @Test
-    void builderWithMultipartConfig_shouldBuildMultipartClient() {
+    void multipartEnabledWithConfig_shouldBuildMultipartClient() {
         S3AsyncClient client = S3AsyncClient.builder()
+                                            .multipartEnabled(true)
                                             .multipartConfiguration(MultipartConfiguration.builder().build())
                                             .region(Region.US_EAST_1)
                                             .build();
         assertThat(client).isInstanceOf(MultipartS3AsyncClient.class);
-
     }
 
     @Test
-    void builderWithMultipartConfig_consumerBuilder_shouldBuildMultipartClient() {
+    void multipartEnabledWithoutConfig_shouldBuildMultipartClient() {
         S3AsyncClient client = S3AsyncClient.builder()
-                                            .multipartConfiguration(b -> b.multipartEnabled(true))
+                                            .multipartEnabled(true)
                                             .region(Region.US_EAST_1)
                                             .build();
         assertThat(client).isInstanceOf(MultipartS3AsyncClient.class);
     }
 
     @Test
-    void builderWithMultipartConfig_disabled_shouldNotBuildMultipartClient() {
+    void multipartDisabledWithConfig_shouldNotBuildMultipartClient() {
         S3AsyncClient client = S3AsyncClient.builder()
-                                            .multipartConfiguration(b -> b.multipartEnabled(false))
+                                            .multipartEnabled(false)
+                                            .multipartConfiguration(b -> b.maximumMemoryUsageInBytes(1024L))
                                             .region(Region.US_EAST_1)
                                             .build();
         assertThat(client).isNotInstanceOf(MultipartS3AsyncClient.class);
     }
 
     @Test
-    void builderWithoutMultipartConfig_shouldNotBeMultipartClient() {
+    void noMultipart_shouldNotBeMultipartClient() {
         S3AsyncClient client = S3AsyncClient.builder()
                                             .region(Region.US_EAST_1)
                                             .build();

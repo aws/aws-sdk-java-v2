@@ -56,13 +56,12 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
 
         testFile = File.createTempFile("SplittingPublisherTest", UUID.randomUUID().toString());
         Files.write(testFile.toPath(), CONTENT);
-        // mpuS3Client = new MultipartS3AsyncClient(s3Async);
         mpuS3Client = S3AsyncClient.builder()
                             .region(DEFAULT_REGION)
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                             .overrideConfiguration(o -> o.addExecutionInterceptor(
                                 new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)))
-            .multipartConfiguration(MultipartConfiguration.create())
+            .multipartEnabled(true)
             .build();
     }
 

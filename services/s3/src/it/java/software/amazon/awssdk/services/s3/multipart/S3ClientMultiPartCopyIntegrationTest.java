@@ -71,7 +71,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                    .overrideConfiguration(o -> o.addExecutionInterceptor(
                                        new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)))
-                                   .multipartConfiguration(MultipartConfiguration.create())
+                                   .multipartEnabled(true)
                                    .build();
     }
 

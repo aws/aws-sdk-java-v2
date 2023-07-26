@@ -24,7 +24,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -42,45 +41,29 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {
     public static final AttributeMap.Key<MultipartConfiguration> MULTIPART_CONFIGURATION_KEY =
         new AttributeMap.Key<MultipartConfiguration>(MultipartConfiguration.class){};
+    public static final AttributeMap.Key<Boolean> MULTIPART_ENABLED_KEY =
+        new AttributeMap.Key<Boolean>(Boolean.class){};
 
-    private final Boolean multipartEnabled;
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
     private final Long maximumMemoryUsageInBytes;
-    private final MultipartDownloadType multipartDownloadType;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
-        this.multipartEnabled = Validate.getOrDefault(builder.multipartEnabled, () -> Boolean.TRUE);
         this.thresholdInBytes = builder.thresholdInBytes;
         this.minimumPartSizeInBytes = builder.minimumPartSizeInBytes;
         this.maximumMemoryUsageInBytes = builder.maximumMemoryUsageInBytes;
-        this.multipartDownloadType = builder.multipartDownloadType;
     }
 
     public static Builder builder() {
         return new DefaultMultipartConfigBuilder();
     }
 
-    public static MultipartConfiguration create() {
-        return builder().build();
-    }
-
     @Override
     public Builder toBuilder() {
         return builder()
+            .maximumMemoryUsageInBytes(maximumMemoryUsageInBytes)
             .minimumPartSizeInBytes(minimumPartSizeInBytes)
-            .multipartDownloadType(multipartDownloadType)
-            .multipartEnabled(multipartEnabled)
             .thresholdInBytes(thresholdInBytes);
-    }
-
-    /**
-     * Indicated if the {@link S3AsyncClient} should use multipart operations of not. When false, completely disable any
-     * multipart operations.
-     * @return if the {@link S3AsyncClient} should use multipart operations of not.
-     */
-    public Boolean multipartEnabled() {
-        return this.multipartEnabled;
     }
 
     /**
@@ -113,41 +96,17 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     }
 
     /**
-     * The download type that will be used for multipart get requests.
-     * @return
-     */
-    public MultipartDownloadType multipartDownloadType() {
-        return this.multipartDownloadType;
-    }
-
-
-    /**
      * Builder for a {@link MultipartConfiguration}.
      */
     public interface Builder extends CopyableBuilder<Builder, MultipartConfiguration> {
 
         /**
-         * Configures if the client should use multipart operation or not. Setting this to false will completely disable
-         * multipart operations even if the request size goes above the configured {@link Builder#thresholdInBytes() threshold}.
-         * <p></p>
-         * Default value: True.
-         *
-         * @param multipartEnabled the value of the boolean to set. Set this to false to disable multipart operation completely.
-         * @return an instance of this builder.
-         */
-        Builder multipartEnabled(Boolean multipartEnabled);
-
-        /**
-         * Indicated if the {@link S3AsyncClient} should use multipart operations of not.
-         * @return if the {@link S3AsyncClient} should use multipart operations of not.
-         */
-        Boolean multipartEnabled();
-
-        /**
          * Configures the minimum number of bytes of the body of the request required for requests to be converted to their
-         * multipart equivalent. Any request whose size is less than the configured value will not use multipart operation,
-         * even if multipart is enabled via {@link Builder#multipartEnabled(Boolean)}.
+         * multipart equivalent. Only taken into account when converting {@code putObject} and {@code copyObject} requests.
+         * Any request whose size is less than the  configured value will not use multipart operation,
+         * even if multipart is enabled via {@link S3AsyncClientBuilder#multipartEnabled(Boolean)}.
          * <p></p>
+         *
          * Default value: 8 Mib
          *
          * @param thresholdInBytes the value of the threshold to set.
@@ -164,10 +123,15 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         /**
          * Configures the part size, in bytes, to be used in each individual part requests.
          * <p></p>
-         * When uploading large payload, the size of the payload of each individual part requests might actually be bigger than
+         * When uploading large payload, the size of the payload of each individual part requests might actually be
+         * bigger than
          * the configured value since there is a limit to the maximum number of parts possible per multipart request. If the
          * configured part size would lead to a number of parts higher than the maximum allowed, a larger part size will be
          * calculated instead to allow fewer part to be uploaded, to avoid the limit imposed on the maximum number of parts.
+         * <p></p>
+         * In the case where the {@code minimumPartSizeInBytes} is set to a value higher than the {@code thresholdInBytes}, when
+         * the client receive a request with a size smaller than a single part multipart operation will <em>NOT</em> be performed
+         * even if the size of the request is larger than the threshold.
          * <p></p>
          * Default value: 8 Mib
          *
@@ -198,39 +162,12 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return the value of the maximum memory usage.
          */
         Long maximumMemoryUsageInBytes();
-
-        /**
-         * Configures the download type for individual get part requests for downloading.
-         * <p></p>
-         * Default value: {@link MultipartDownloadType#PART}
-         *
-         * @param multipartDownloadType the value of the download type.
-         * @return an instance of this builder.
-         */
-        Builder multipartDownloadType(MultipartDownloadType multipartDownloadType);
-
-        /**
-         * Indicates the value of the download type.
-         * @return the value of the download type.
-         */
-        MultipartDownloadType multipartDownloadType();
     }
 
     private static class DefaultMultipartConfigBuilder implements Builder {
-        private Boolean multipartEnabled;
         private Long thresholdInBytes;
         private Long minimumPartSizeInBytes;
         private Long maximumMemoryUsageInBytes;
-        private MultipartDownloadType multipartDownloadType;
-
-        public Builder multipartEnabled(Boolean multipartEnabled) {
-            this.multipartEnabled = multipartEnabled;
-            return this;
-        }
-
-        public Boolean multipartEnabled() {
-            return this.multipartEnabled;
-        }
 
         public Builder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
@@ -259,15 +196,6 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         @Override
         public Long maximumMemoryUsageInBytes() {
             return maximumMemoryUsageInBytes;
-        }
-
-        public Builder multipartDownloadType(MultipartDownloadType multipartDownloadType) {
-            this.multipartDownloadType = multipartDownloadType;
-            return this;
-        }
-
-        public MultipartDownloadType multipartDownloadType() {
-            return this.multipartDownloadType;
         }
 
         @Override
