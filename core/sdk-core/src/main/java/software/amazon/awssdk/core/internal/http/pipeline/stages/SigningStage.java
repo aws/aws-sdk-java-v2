@@ -63,7 +63,7 @@ public class SigningStage implements RequestToRequestPipeline {
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
         // TODO: Add unit tests for SRA signing logic.
-        if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
+        if (shouldUseSelectedAuthScheme(context)) {
             return sraSignRequest(request,
                                   context,
                                   context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
@@ -76,7 +76,7 @@ public class SigningStage implements RequestToRequestPipeline {
                                                                    SelectedAuthScheme<T> selectedAuthScheme) {
         updateHttpRequestInInterceptorContext(request, context.executionContext());
 
-        if (!shouldSign(selectedAuthScheme)) {
+        if (!selectedAuthScheme.supportsSigning()) {
             return request;
         }
 
@@ -168,22 +168,19 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     /**
-     * We do not sign if the Auth SchemeId is smithy.api#noAuth.
-     *
-     * @return True if request should be signed, false if not.
-     */
-    private boolean shouldSign(SelectedAuthScheme<?> selectedAuthScheme) {
-        // TODO: Should this string be a constant somewhere. Similar logic is used in AuthSchemeInterceptors.
-        return !"smithy.api#noAuth".equals(selectedAuthScheme.authSchemeOption().schemeId());
-    }
-
-    /**
      * We sign if a signer is provided is not null.
      *
      * @return True if request should be signed, false if not.
      */
     private boolean shouldSign(Signer signer) {
         return signer != null;
+    }
+
+    /**
+     * Returns true if we should use the selected out scheme attribute for signing.
+     */
+    private boolean shouldUseSelectedAuthScheme(RequestExecutionContext context) {
+        return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
     }
 
     /**

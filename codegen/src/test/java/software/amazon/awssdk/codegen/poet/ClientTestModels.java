@@ -169,6 +169,21 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel granularAuthWithLegacyTraitServiceModels() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/fine-grained-auth-legacy-trait/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/fine-grained-auth-legacy-trait/customization.config")
+                                           .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel allOperationsWithAuthSameValueServiceModels() {
         File serviceModel =
             new File(ClientTestModels.class.getResource("client/c2j/all-ops-with-auth-same-value/service-2.json").getFile());

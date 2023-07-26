@@ -26,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +36,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -48,8 +46,6 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
@@ -57,6 +53,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
 import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyIterable;
+import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CoreMetricsTest {
@@ -74,9 +71,6 @@ public class CoreMetricsTest {
     private SdkHttpClient mockHttpClient;
 
     @Mock
-    private IdentityProvider<AwsCredentialsIdentity> mockCredentialsProvider;
-
-    @Mock
     private MetricPublisher mockPublisher;
 
     @Before
@@ -84,7 +78,7 @@ public class CoreMetricsTest {
         client = ProtocolRestJsonClient.builder()
                 .httpClient(mockHttpClient)
                 .region(Region.US_WEST_2)
-                .credentialsProvider(mockCredentialsProvider)
+                .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                 .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                 .build();
         AbortableInputStream content = contentStream("{}");
@@ -110,14 +104,6 @@ public class CoreMetricsTest {
         when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
                 .thenReturn(mockExecuteRequest);
 
-        when(mockCredentialsProvider.resolveIdentity()).thenAnswer(invocation -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
-            return CompletableFuture.completedFuture(AwsBasicCredentials.create("foo", "bar"));
-        });
     }
 
     @After
@@ -132,7 +118,7 @@ public class CoreMetricsTest {
     public void testApiCall_noConfiguredPublisher_succeeds() {
         ProtocolRestJsonClient noPublisher = ProtocolRestJsonClient.builder()
                 .region(Region.US_WEST_2)
-                .credentialsProvider(mockCredentialsProvider)
+                .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                 .httpClient(mockHttpClient)
                 .build();
 

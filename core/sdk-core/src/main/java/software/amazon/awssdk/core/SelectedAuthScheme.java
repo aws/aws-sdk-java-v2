@@ -30,6 +30,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkProtectedApi
 public final class SelectedAuthScheme<T extends Identity> {
 
+    public static final String SMITHY_NO_AUTH = "smithy.api#noAuth";
+
     private CompletableFuture<? extends T> identity;
     private HttpSigner<T> signer;
     private AuthSchemeOption authSchemeOption;
@@ -52,5 +54,9 @@ public final class SelectedAuthScheme<T extends Identity> {
 
     public AuthSchemeOption authSchemeOption() {
         return authSchemeOption;
+    }
+
+    public boolean supportsSigning() {
+        return !authSchemeOption.schemeId().equals(SMITHY_NO_AUTH);
     }
 }

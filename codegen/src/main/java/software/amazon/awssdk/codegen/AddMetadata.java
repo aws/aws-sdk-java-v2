@@ -83,8 +83,11 @@ final class AddMetadata {
                 .withSupportsH2(supportsH2(serviceMetadata))
                 .withJsonVersion(getJsonVersion(metadata, serviceMetadata))
                 .withAwsQueryCompatible(serviceMetadata.getAwsQueryCompatible())
-                .withAuth(Optional.ofNullable(serviceMetadata.getAuth()).orElse(Collections.emptyList())
-                                  .stream().map(AuthType::fromValue).collect(Collectors.toList()));
+                .withAuth(Optional.ofNullable(serviceMetadata.getAuth())
+                                  .orElseGet(() -> Collections.singletonList(serviceMetadata.getSignatureVersion()))
+                                  .stream()
+                                  .map(AuthType::fromValue)
+                                  .collect(Collectors.toList()));
 
         return metadata;
     }

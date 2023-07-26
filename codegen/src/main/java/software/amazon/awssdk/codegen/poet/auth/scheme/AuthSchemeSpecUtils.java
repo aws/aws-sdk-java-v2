@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.poet.auth.scheme;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -30,6 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
@@ -160,12 +160,7 @@ public final class AuthSchemeSpecUtils {
                                       Map.Entry::getKey, (a, b) -> b,
                                       LinkedHashMap::new));
 
-        List<AuthType> serviceDefaults;
-        if (intermediateModel.getMetadata().getAuth().isEmpty()) {
-            serviceDefaults = Arrays.asList(intermediateModel.getMetadata().getAuthType());
-        } else {
-            serviceDefaults = intermediateModel.getMetadata().getAuth();
-        }
+        List<AuthType> serviceDefaults = serviceDefaultAuthTypes();
 
         // Get the list of operations that share the same auth schemes as the system defaults and remove it from the result. We
         // will take care of all of these in the fallback `default` case.
@@ -173,6 +168,27 @@ public final class AuthSchemeSpecUtils {
         operationsToAuthType.remove(operationsWithDefaults);
         operationsToAuthType.put(Collections.emptyList(), serviceDefaults);
         return operationsToAuthType;
+    }
+
+    public List<AuthType> serviceDefaultAuthTypes() {
+        List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
+        if (!modeled.isEmpty()) {
+            return modeled;
+        }
+        return Collections.singletonList(intermediateModel.getMetadata().getAuthType());
+    }
+
+    public List<AuthType> allServiceAuthTypes() {
+        Set<AuthType> result =
+            intermediateModel.getOperations()
+                             .values()
+                             .stream()
+                             .map(OperationModel::getAuth)
+                             .flatMap(List::stream)
+                             .collect(Collectors.toSet());
+        List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
+        result.addAll(modeled);
+        return result.stream().sorted().collect(Collectors.toList());
     }
 
     private static Set<String> setOf(String v1, String v2) {

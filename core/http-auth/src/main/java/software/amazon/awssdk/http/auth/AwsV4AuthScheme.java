@@ -28,6 +28,8 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 @SdkPublicApi
 public interface AwsV4AuthScheme extends AuthScheme<AwsCredentialsIdentity> {
 
+    String SCHEME_ID = "aws.auth#sigv4";
+
     /**
      * Get a default implementation of a {@link AwsV4AuthScheme}
      */
@@ -41,7 +43,7 @@ public interface AwsV4AuthScheme extends AuthScheme<AwsCredentialsIdentity> {
      */
     @Override
     default String schemeId() {
-        return "aws.auth#sigv4";
+        return SCHEME_ID;
     }
 
     /**

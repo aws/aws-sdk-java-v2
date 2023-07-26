@@ -162,6 +162,12 @@ public class AuthSchemeSpecTest {
                     .caseName("mini-s3")
                     .outputFileSuffix("default-provider")
                     .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::granularAuthWithLegacyTraitServiceModels)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
+                    .caseName("auth-with-legacy-trait")
+                    .outputFileSuffix("default-provider")
+                    .build(),
             // Interceptors
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModels)
