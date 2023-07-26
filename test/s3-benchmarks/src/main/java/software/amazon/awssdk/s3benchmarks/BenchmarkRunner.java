@@ -83,8 +83,8 @@ public final class BenchmarkRunner {
         options.addOption(null, CHECKSUM_ALGORITHM, true, "The checksum algorithm to use");
         options.addOption(null, ITERATION, true, "The number of iterations");
         options.addOption(null, READ_BUFFER_IN_MB, true, "Read buffer size in MB");
-        options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: v1 | v2 | crt, default: "
-                                               + "v2");
+        options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: "
+                                               + "v1 | v2 | crt | java, default: v2");
         options.addOption(null, PREFIX, true, "S3 Prefix used in downloadDirectory and uploadDirectory");
 
         options.addOption(null, CONTENT_LENGTH, true, "Content length to upload from memory. Used only in the "
@@ -119,6 +119,16 @@ public final class BenchmarkRunner {
                     break;
                 }
                 throw new UnsupportedOperationException();
+            case JAVA:
+                if (operation == TransferManagerOperation.UPLOAD) {
+                    benchmark = new JavaS3ClientUploadBenchmark(config);
+                    break;
+                }
+                if (operation == TransferManagerOperation.COPY) {
+                    benchmark = new JavaS3ClientCopyBenchmark(config);
+                    break;
+                }
+                throw new UnsupportedOperationException("Java based s3 client benchmark only support upload and copy");
             default:
                 throw new UnsupportedOperationException();
         }
@@ -185,6 +195,7 @@ public final class BenchmarkRunner {
     private enum SdkVersion {
         V1,
         V2,
-        CRT
+        CRT,
+        JAVA
     }
 }
