@@ -117,7 +117,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
         S3TestUtils.deleteBucketAndAllContents(s3, bucketName);
     }
 
-    private static class UserAgentVerifyingExecutionInterceptor implements ExecutionInterceptor {
+    protected static class UserAgentVerifyingExecutionInterceptor implements ExecutionInterceptor {
 
         private final String clientName;
         private final ClientType clientType;
