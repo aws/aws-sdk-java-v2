@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AUTH_LOCATION;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHECKSUM_HEADER_NAME;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.REGION_NAME;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncRequest;
@@ -28,7 +26,6 @@ import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicReques
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.auth.aws.TestUtils.AnonymousCredentialsIdentity;
-import software.amazon.awssdk.http.auth.aws.checksum.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.signer.AwsV4HeaderHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.util.SignerConstant;
@@ -41,7 +38,7 @@ import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 
 /**
  * This test suite also tests much of the base V4 signer implementation, and validates behaviors such as header/query-param
- * processing, checksum scenarios, and so on.
+ * processing, and so on.
  */
 class AwsV4HeaderHttpSignerTest {
 
@@ -70,9 +67,9 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> signRequest.putProperty(AUTH_LOCATION, "Header"))
+            httpRequest -> {
+            },
+            signRequest -> signRequest.putProperty(AUTH_LOCATION, "Header")
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -95,9 +92,9 @@ class AwsV4HeaderHttpSignerTest {
         // Test request with 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.putHeader("x-amz-sha256", "required")),
-            (signRequest -> {
-            })
+            httpRequest -> httpRequest.putHeader("x-amz-sha256", "required"),
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -120,9 +117,9 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.putRawQueryParameter("Foo", (String) null)),
-            (signRequest -> {
-            })
+            httpRequest -> httpRequest.putRawQueryParameter("Foo", (String) null),
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -142,10 +139,10 @@ class AwsV4HeaderHttpSignerTest {
     public void sign_withAnonymousCredentials_shouldNotSign() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             new AnonymousCredentialsIdentity(),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -163,10 +160,10 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("akid", "skid"),
-            (httpRequest -> httpRequest
-                .putHeader("X-Amzn-Trace-Id", " Root=1-584b150a-708479cb060007ffbf3ee1da;Parent=36d3dbcfd150aac9;Sampled=1")),
-            (signRequest -> {
-            })
+            httpRequest -> httpRequest
+                .putHeader("X-Amzn-Trace-Id", " Root=1-584b150a-708479cb060007ffbf3ee1da;Parent=36d3dbcfd150aac9;Sampled=1"),
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -192,11 +189,11 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("akid", "skid"),
-            (httpRequest -> httpRequest
+            httpRequest -> httpRequest
                 .appendHeader("foo", "bar")
-                .appendHeader("foo", "baz")),
-            (signRequest -> {
-            })
+                .appendHeader("foo", "baz"),
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -223,11 +220,11 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("akid", "skid"),
-            (httpRequest -> httpRequest
+            httpRequest -> httpRequest
                 .putHeader("My-header1", "    a   b   c  ")
-                .putHeader("My-Header2", "    \"a   b   c\"  ")),
-            (signRequest -> {
-            })
+                .putHeader("My-Header2", "    \"a   b   c\"  "),
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -253,9 +250,9 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("akid", "skid"),
-            (httpRequest -> httpRequest.putRawQueryParameter("", (String) null)),
-            (signRequest -> {
-            })
+            httpRequest -> httpRequest.putRawQueryParameter("", (String) null),
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -277,11 +274,9 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> signRequest
-                .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32))
+            httpRequest -> httpRequest.putHeader("x-amzn-header-crc", "oL+a/g=="),
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -306,10 +301,11 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, "required")),
-            (signRequest -> signRequest
-                .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32))
+            httpRequest -> httpRequest
+                .putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, "required")
+                .putHeader("x-amzn-header-crc", "oL+a/g=="),
+            signRequest -> {
+            }
         );
 
 
@@ -332,10 +328,8 @@ class AwsV4HeaderHttpSignerTest {
 
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.appendHeader("x-amzn-header-crc", "preCalculatedChecksum")),
-            (signRequest -> signRequest
-                .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32))
+            httpRequest -> httpRequest.appendHeader("x-amzn-header-crc", "preCalculatedChecksum"),
+            signRequest -> {}
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -357,10 +351,8 @@ class AwsV4HeaderHttpSignerTest {
 
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.appendHeader("x-amz-trailer", "x-amzn-header-crc")),
-            (signRequest -> signRequest
-                .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32))
+            httpRequest -> httpRequest.appendHeader("x-amz-trailer", "x-amzn-header-crc"),
+            signRequest -> {}
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -379,10 +371,10 @@ class AwsV4HeaderHttpSignerTest {
     public void sign_withoutRegionNameProperty_throws() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> signRequest
-                .putProperty(REGION_NAME, null))
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(REGION_NAME, null)
         );
 
         NullPointerException exception =
@@ -395,10 +387,10 @@ class AwsV4HeaderHttpSignerTest {
     public void sign_withoutServiceSigningNameProperty_throws() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> signRequest
-                .putProperty(SERVICE_SIGNING_NAME, null))
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(SERVICE_SIGNING_NAME, null)
         );
 
         NullPointerException exception =
@@ -417,10 +409,10 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsSessionCredentialsIdentity.create("access", "secret", "token"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -444,10 +436,10 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -470,9 +462,9 @@ class AwsV4HeaderHttpSignerTest {
         // Test request with 'x-amz-sha256' header
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> httpRequest.putHeader("x-amz-sha256", "required")),
-            (signRequest -> {
-            })
+            httpRequest -> httpRequest.putHeader("x-amz-sha256", "required"),
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -495,10 +487,10 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsSessionCredentialsIdentity.create("access", "secret", "token"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -516,10 +508,10 @@ class AwsV4HeaderHttpSignerTest {
     public void signAsync_withoutRegionNameProperty_throws() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> signRequest
-                .putProperty(REGION_NAME, null))
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(REGION_NAME, null)
         );
 
         NullPointerException exception =
@@ -532,10 +524,10 @@ class AwsV4HeaderHttpSignerTest {
     public void signAsync_withoutServiceSigningNameProperty_throws() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> signRequest
-                .putProperty(SERVICE_SIGNING_NAME, null))
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(SERVICE_SIGNING_NAME, null)
         );
 
         NullPointerException exception =
@@ -555,10 +547,10 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -578,10 +570,10 @@ class AwsV4HeaderHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);

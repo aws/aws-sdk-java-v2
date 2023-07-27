@@ -16,14 +16,12 @@
 package software.amazon.awssdk.http.auth.aws.signer;
 
 import static software.amazon.awssdk.http.auth.aws.util.CredentialUtils.sanitizeCredentials;
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.validatedProperty;
+import static software.amazon.awssdk.http.auth.spi.SignerProperty.validatedProperty;
 
 import java.time.Clock;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.checksum.ChecksumAlgorithm;
-import software.amazon.awssdk.http.auth.aws.util.CredentialScope;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -34,17 +32,15 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * These properties are derived from the {@link SignerProperty}'s on a {@link SignRequest}.
  */
 @SdkProtectedApi
-public interface AwsV4HttpProperties {
+public interface AwsV4Properties {
 
-    static AwsV4HttpProperties create(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
+    static AwsV4Properties create(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
         // required
         String regionName = validatedProperty(signRequest, AwsV4HttpSigner.REGION_NAME);
         String serviceSigningName = validatedProperty(signRequest, AwsV4HttpSigner.SERVICE_SIGNING_NAME);
 
         // optional
         Clock signingClock = validatedProperty(signRequest, AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
-        String checksumHeader = validatedProperty(signRequest, AwsV4HttpSigner.CHECKSUM_HEADER_NAME, "");
-        ChecksumAlgorithm checksumAlgorithm = validatedProperty(signRequest, AwsV4HttpSigner.CHECKSUM_ALGORITHM, null);
         boolean doubleUrlEncode = validatedProperty(signRequest, AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
         boolean normalizePath = validatedProperty(signRequest, AwsV4HttpSigner.NORMALIZE_PATH, true);
 
@@ -57,8 +53,6 @@ public interface AwsV4HttpProperties {
             credentials,
             credentialScope,
             signingClock,
-            checksumAlgorithm,
-            checksumHeader,
             doubleUrlEncode,
             normalizePath
         );
@@ -70,33 +64,23 @@ public interface AwsV4HttpProperties {
 
     Clock getSigningClock();
 
-    ChecksumAlgorithm getChecksumAlgorithm();
-
-    String getChecksumHeader();
-
     boolean shouldDoubleUrlEncode();
 
     boolean shouldNormalizePath();
 
-    final class AwsV4HttpPropertiesImpl implements AwsV4HttpProperties {
+    final class AwsV4HttpPropertiesImpl implements AwsV4Properties {
         private final AwsCredentialsIdentity credentials;
         private final CredentialScope credentialScope;
         private final Clock signingClock;
-        private final ChecksumAlgorithm checksumAlgorithm;
-        private final String checksumHeader;
         private final boolean doubleUrlEncode;
         private final boolean normalizePath;
 
 
         private AwsV4HttpPropertiesImpl(AwsCredentialsIdentity credentials, CredentialScope credentialScope,
-                                        Clock signingClock, ChecksumAlgorithm checksumAlgorithm, String checksumHeader,
-                                        boolean doubleUrlEncode,
-                                        boolean normalizePath) {
+                                        Clock signingClock, boolean doubleUrlEncode, boolean normalizePath) {
             this.credentials = credentials;
             this.credentialScope = credentialScope;
             this.signingClock = signingClock;
-            this.checksumAlgorithm = checksumAlgorithm;
-            this.checksumHeader = checksumHeader;
             this.doubleUrlEncode = doubleUrlEncode;
             this.normalizePath = normalizePath;
         }
@@ -114,16 +98,6 @@ public interface AwsV4HttpProperties {
         @Override
         public Clock getSigningClock() {
             return signingClock;
-        }
-
-        @Override
-        public ChecksumAlgorithm getChecksumAlgorithm() {
-            return checksumAlgorithm;
-        }
-
-        @Override
-        public String getChecksumHeader() {
-            return checksumHeader;
         }
 
         @Override

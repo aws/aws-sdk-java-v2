@@ -21,8 +21,8 @@ import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncR
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
 
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsV4QueryHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
@@ -46,10 +46,10 @@ class AwsV4QueryHttpSignerTest {
 
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -73,10 +73,10 @@ class AwsV4QueryHttpSignerTest {
 
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsSessionCredentialsIdentity.create("access", "secret", "token"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -97,10 +97,10 @@ class AwsV4QueryHttpSignerTest {
     public void sign_withAnonymousCredentials_shouldNotSign() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             new TestUtils.AnonymousCredentialsIdentity(),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -118,10 +118,10 @@ class AwsV4QueryHttpSignerTest {
 
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -145,10 +145,10 @@ class AwsV4QueryHttpSignerTest {
 
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsSessionCredentialsIdentity.create("access", "secret", "token"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -169,10 +169,10 @@ class AwsV4QueryHttpSignerTest {
     public void signAsync_withAnonymousCredentials_shouldNotSign() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             new TestUtils.AnonymousCredentialsIdentity(),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.util;
+package software.amazon.awssdk.http.auth.aws.signer;
 
 
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.AWS4_TERMINATOR;
@@ -22,10 +22,10 @@ import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.formatDateTi
 
 import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
-@SdkInternalApi
+@SdkProtectedApi
 @Immutable
 public final class CredentialScope {
     private final String region;

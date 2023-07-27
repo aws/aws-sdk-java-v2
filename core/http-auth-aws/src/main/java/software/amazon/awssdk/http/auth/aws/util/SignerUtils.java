@@ -15,30 +15,28 @@
 
 package software.amazon.awssdk.http.auth.aws.util;
 
-import static software.amazon.awssdk.http.auth.aws.util.HttpChecksumUtils.hash;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.UNSIGNED_PAYLOAD;
-
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.checksum.ContentChecksum;
-import software.amazon.awssdk.http.auth.aws.checksum.SdkChecksum;
+import software.amazon.awssdk.http.auth.aws.internal.io.SdkDigestInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.util.FifoCache;
 import software.amazon.awssdk.http.auth.aws.internal.util.SignerKey;
 import software.amazon.awssdk.http.auth.aws.internal.util.SigningAlgorithm;
-import software.amazon.awssdk.http.auth.spi.SignRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
+import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -168,24 +166,6 @@ public final class SignerUtils {
     }
 
     /**
-     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
-     * <p>
-     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
-     */
-    public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property) {
-        return Validate.notNull(request.property(property), property.toString() + " must not be null!");
-    }
-
-    /**
-     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
-     * <p>
-     * The value, {@link T}, is return when present, and the default is returned otherwise.
-     */
-    public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property, T defaultValue) {
-        return Validate.getOrDefault(request.property(property), () -> defaultValue);
-    }
-
-    /**
      * Add the host header based on parameters of a request
      */
     public static void addHostHeader(SdkHttpRequest.Builder requestBuilder) {
@@ -207,41 +187,63 @@ public final class SignerUtils {
         requestBuilder.putHeader(SignerConstant.X_AMZ_DATE, dateTime);
     }
 
-    public static void addSha256ContentHeader(SdkHttpRequest.Builder requestBuilder, ContentChecksum contentChecksum) {
+    public static void addContentHashHeader(SdkHttpRequest.Builder requestBuilder, String contentHash) {
         requestBuilder.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
             .filter(h -> h.equals("required"))
-            .ifPresent(h ->
-                requestBuilder.putHeader(
-                    SignerConstant.X_AMZ_CONTENT_SHA256, contentChecksum.contentHash()));
+            .ifPresent(h -> requestBuilder.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, contentHash));
     }
 
-    /**
-     * Add a checksum header if the checksum is not null and the payload is signed
-     */
-    public static void addChecksumHeader(SdkHttpRequest.Builder requestBuilder, SdkChecksum sdkChecksum,
-                                         String contentHashString,
-                                         String checksumHeaderName) {
-
-        if (sdkChecksum != null && !isUnsignedPayload(contentHashString)) {
-            requestBuilder.putHeader(checksumHeaderName, BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
-        }
-    }
-
-    /**
-     * Check if a payload is unsigned based on the content hash
-     */
-    private static boolean isUnsignedPayload(String contentHashString) {
-        return UNSIGNED_PAYLOAD.equals(contentHashString) || STREAMING_UNSIGNED_PAYLOAD_TRAILER.equals(contentHashString);
-    }
-
-    /**
-     * parse a string into a Long, or return null if it's un-parseable
-     */
-    public static Optional<Long> safeParseLong(String longStr) {
+    private static MessageDigest getMessageDigestInstance() {
         try {
-            return Optional.of(Long.parseLong(longStr));
-        } catch (NumberFormatException ex) {
-            return Optional.empty();
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Unable to get SHA256 Function: " + e.getMessage());
         }
     }
+
+    public static InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {
+        try {
+            if (streamProvider == null) {
+                return new ByteArrayInputStream(new byte[0]);
+            }
+            return streamProvider.newStream();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to read request payload to sign request: " + e.getMessage());
+        }
+    }
+
+    public static byte[] hash(InputStream input) {
+        try {
+            MessageDigest md = getMessageDigestInstance();
+            DigestInputStream digestInputStream = new SdkDigestInputStream(input, md);
+            byte[] buffer = new byte[1024];
+            while (digestInputStream.read(buffer) > -1) {
+            }
+            return digestInputStream.getMessageDigest().digest();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());
+        }
+    }
+
+    public static byte[] hash(byte[] data) {
+        try {
+            MessageDigest md = getMessageDigestInstance();
+            md.update(data);
+            return md.digest();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());
+        }
+    }
+
+    public static byte[] hash(String text) {
+        try {
+            MessageDigest md = getMessageDigestInstance();
+            md.update(text.getBytes(StandardCharsets.UTF_8));
+            return md.digest();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());
+        }
+    }
+
+
 }

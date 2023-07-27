@@ -26,8 +26,8 @@ import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_U
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.auth.aws.internal.signer.AwsV4PresignedHttpSigner;
-import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsV4QueryHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
@@ -54,10 +54,10 @@ class AwsV4PresignedHttpSignerTest {
 
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -81,12 +81,11 @@ class AwsV4PresignedHttpSignerTest {
 
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest ->
+            httpRequest -> {
+            },
+            signRequest ->
                 signRequest
                     .putProperty(EXPIRATION_DURATION, Duration.ofSeconds(600))
-            )
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -103,13 +102,12 @@ class AwsV4PresignedHttpSignerTest {
     public void sign_withInvalidExpiration_shouldThrow() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest ->
+            httpRequest -> {
+            },
+            signRequest ->
                 signRequest
                     .putProperty(EXPIRATION_DURATION,
                         PRESIGN_URL_MAX_EXPIRATION_DURATION.plus(Duration.ofSeconds(1)))
-            )
         );
 
         RuntimeException exception = assertThrows(IllegalArgumentException.class, () -> signer.sign(request));
@@ -129,10 +127,10 @@ class AwsV4PresignedHttpSignerTest {
 
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsSessionCredentialsIdentity.create("access", "secret", "token"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -153,10 +151,10 @@ class AwsV4PresignedHttpSignerTest {
     public void sign_withAnonymousCredentials_shouldNotSign() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             new TestUtils.AnonymousCredentialsIdentity(),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -175,10 +173,10 @@ class AwsV4PresignedHttpSignerTest {
 
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -202,12 +200,11 @@ class AwsV4PresignedHttpSignerTest {
 
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest ->
+            httpRequest -> {
+            },
+            signRequest ->
                 signRequest
                     .putProperty(EXPIRATION_DURATION, Duration.ofSeconds(600))
-            )
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -224,12 +221,11 @@ class AwsV4PresignedHttpSignerTest {
     public void signAsync_withInvalidExpiration_shouldThrow() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> signRequest
+            httpRequest -> {
+            },
+            signRequest -> signRequest
                 .putProperty(EXPIRATION_DURATION,
                     PRESIGN_URL_MAX_EXPIRATION_DURATION.plus(Duration.ofSeconds(1)))
-            )
         );
 
         RuntimeException exception = assertThrows(IllegalArgumentException.class, () -> signer.signAsync(request));
@@ -249,10 +245,10 @@ class AwsV4PresignedHttpSignerTest {
 
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsSessionCredentialsIdentity.create("access", "secret", "token"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -273,10 +269,10 @@ class AwsV4PresignedHttpSignerTest {
     public void signAsync_withAnonymousCredentials_shouldNotSign() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             new TestUtils.AnonymousCredentialsIdentity(),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);

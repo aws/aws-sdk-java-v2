@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.util;
+package software.amazon.awssdk.http.auth.aws.signer;
 
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
@@ -26,8 +26,9 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.util.SignerConstant;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -38,9 +39,9 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-canonical-request
  * </p>
  */
-@SdkInternalApi
+@SdkProtectedApi
 @Immutable
-public final class CanonicalRequestV2 {
+public final class AwsV4CanonicalRequest {
     private static final List<String> HEADERS_TO_IGNORE_IN_LOWER_CASE =
         Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
 
@@ -64,7 +65,7 @@ public final class CanonicalRequestV2 {
      * To get such a parameter (i.e. the canonical request string), simply call the getter
      * for that parameter (i.e. getCanonicalRequestString())
      */
-    public CanonicalRequestV2(SdkHttpRequest request, String contentHash, Options options) {
+    public AwsV4CanonicalRequest(SdkHttpRequest request, String contentHash, Options options) {
         this.request = request;
         this.contentHash = contentHash;
         this.options = options;
@@ -204,12 +205,12 @@ public final class CanonicalRequestV2 {
     }
 
     /**
-     * Get the list of headers that are to be signed.
+     * Get the list of headers that are to be signed. The supplied map of headers is expected to be
+     * sorted case-insensitively.
      */
     public static List<Pair<String, List<String>>> getCanonicalHeaders(Map<String, List<String>> headers) {
         List<Pair<String, List<String>>> result = new ArrayList<>(headers.size());
 
-        // headers retrieved from the request are already sorted case-insensitively
         headers.forEach((key, value) -> {
             String lowerCaseHeader = lowerCase(key);
             if (!HEADERS_TO_IGNORE_IN_LOWER_CASE.contains(lowerCaseHeader)) {
@@ -223,8 +224,10 @@ public final class CanonicalRequestV2 {
     }
 
     /**
-     * Get the string representing the headers that will be signed and their values.
-     * Headers names are lower-case, sorted in alphabetical order, and are followed by a colon.
+     * Get the string representing the headers that will be signed and their values. The input list
+     * is expected to be sorted case-insensitively.
+     * <p>
+     * The output string will have header names as lower-case, sorted in alphabetical order, and followed by a colon.
      * <p>
      * Values are trimmed of any leading/trailing spaces, sequential spaces are converted to single
      * space, and multiple values are comma separated.
@@ -329,7 +332,7 @@ public final class CanonicalRequestV2 {
     }
 
     /**
-     * A class for representing options used when creating a {@link CanonicalRequestV2}
+     * A class for representing options used when creating a {@link AwsV4CanonicalRequest}
      */
     public static class Options {
         final boolean doubleUrlEncode;

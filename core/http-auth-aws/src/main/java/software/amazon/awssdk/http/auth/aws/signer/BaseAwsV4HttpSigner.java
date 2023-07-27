@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.http.auth.aws.signer;
 
-import static software.amazon.awssdk.http.auth.aws.util.HttpChecksumUtils.createSdkChecksumFromRequest;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.addHostHeader;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.deriveSigningKey;
+import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.getBinaryRequestPayloadStream;
+import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hash;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hashCanonicalRequest;
 
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
@@ -28,13 +30,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.checksum.ContentChecksum;
-import software.amazon.awssdk.http.auth.aws.checksum.SdkChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.util.DigestComputingSubscriber;
-import software.amazon.awssdk.http.auth.aws.util.CanonicalRequestV2;
-import software.amazon.awssdk.http.auth.aws.util.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.util.CredentialUtils;
-import software.amazon.awssdk.http.auth.aws.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.auth.aws.util.SignerConstant;
 import software.amazon.awssdk.http.auth.aws.util.SignerUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
@@ -46,27 +43,28 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * An internal extension of {@link AwsV4HttpSigner} that enables composable implementations of aws-signers that use
- * a set of properties, which may extend {@link AwsV4HttpProperties}, in order to sign requests.
+ * a set of properties, which may extend {@link AwsV4Properties}, in order to sign requests.
  * <p>
  * The process for signing requests to AWS services is documented
  * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html">here</a>.
  */
 @SdkProtectedApi
-public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV4HttpSigner {
+public interface BaseAwsV4HttpSigner<T extends AwsV4Properties> extends AwsV4HttpSigner {
 
     /**
-     * Get the base implementation of a {@link BaseAwsV4HttpSigner} that uses {@link AwsV4HttpProperties}.
+     * Get the base implementation of a {@link BaseAwsV4HttpSigner} that uses {@link AwsV4Properties}.
      */
-    static BaseAwsV4HttpSigner<AwsV4HttpProperties> create() {
+    static BaseAwsV4HttpSigner<AwsV4Properties> create() {
         return new AwsV4HttpSignerImpl();
     }
 
     @Override
     default SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+        T properties = getProperties(request);
+
         // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(request.identity())) {
             return SyncSignedRequest.builder()
@@ -75,11 +73,9 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
                 .build();
         }
 
-        T properties = getProperties(request);
+        String contentHash = createContentHash(request, properties);
 
-        ContentChecksum contentChecksum = createChecksum(request, properties);
-
-        SigV4RequestContext v4RequestContext = processRequest(request.request(), contentChecksum, properties);
+        SigV4Context v4RequestContext = processRequest(request.request(), contentHash, properties);
 
         ContentStreamProvider payload = processPayload(request.payload().orElse(null), v4RequestContext, properties);
 
@@ -91,6 +87,8 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
 
     @Override
     default AsyncSignedRequest signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+        T properties = getProperties(request);
+
         if (CredentialUtils.isAnonymous(request.identity())) {
             return AsyncSignedRequest.builder()
                 .request(request.request())
@@ -98,11 +96,9 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
                 .build();
         }
 
-        T properties = getProperties(request);
-
-        CompletableFuture<SigV4RequestContext> futureV4RequestContext =
-            createChecksum(request, properties).thenApply(
-                contentChecksum -> processRequest(request.request(), contentChecksum, properties));
+        CompletableFuture<SigV4Context> futureV4RequestContext =
+            createContentHash(request, properties).thenApply(
+                contentHash -> processRequest(request.request(), contentHash, properties));
 
         Publisher<ByteBuffer> payload = processPayload(request.payload().orElse(null), futureV4RequestContext, properties);
 
@@ -113,21 +109,21 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
     }
 
     /**
-     * Using a {@link SignRequest} and a {@link ContentChecksum}, process a request in order to
-     * form a signed request according to the SigV4 signing documentation:
+     * Using a {@link SdkHttpRequest}, a content hash, and properties, process a request in order to
+     * form a signed request (in the form of a {@link SigV4Context}) according to the SigV4 signing documentation:
      * <p>
      * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html
      */
-    default SigV4RequestContext processRequest(SdkHttpRequest request, ContentChecksum contentChecksum, T properties) {
+    default SigV4Context processRequest(SdkHttpRequest request, String contentHash, T properties) {
 
         SdkHttpRequest.Builder requestBuilder = request.toBuilder();
 
         // Perform any necessary pre-work, such as handling session-credentials or adding required headers
         // to the request before it gets signed
-        addPrerequisites(requestBuilder, contentChecksum, properties);
+        addPrerequisites(requestBuilder, contentHash, properties);
 
         // Step 1: Create a canonical request
-        CanonicalRequestV2 canonicalRequest = createCanonicalRequest(requestBuilder.build(), contentChecksum, properties);
+        AwsV4CanonicalRequest canonicalRequest = createCanonicalRequest(requestBuilder.build(), contentHash, properties);
 
         // Step 2: Create a hash of the canonical request
         String canonicalRequestHash = hashCanonicalRequest(canonicalRequest.getCanonicalRequestString());
@@ -143,67 +139,43 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
         // Step 5: Add the signature to the request
         addSignature(requestBuilder, canonicalRequest, signature, properties);
 
-        return new SigV4RequestContext(contentChecksum, canonicalRequest, canonicalRequestHash, stringToSign, signingKey,
-            signature,
-            requestBuilder.build());
+        return new SigV4Context(contentHash, signingKey, signature, requestBuilder.build());
     }
 
     /**
-     * Generate an {@link SdkChecksum} from the {@link SignRequest}.
+     * Generate a content hash.
      */
-    SdkChecksum createSdkChecksum(SignRequest<?, ?> signRequest, T properties);
+    String createContentHash(SyncSignRequest<?> signRequest, T properties);
 
     /**
-     * Generate a {@link ContentChecksum} from the {@link SyncSignRequest}.
+     * Generate a {@link CompletableFuture} for the content hash.
      */
-    ContentChecksum createChecksum(SyncSignRequest<? extends AwsCredentialsIdentity> signRequest, T properties);
+    CompletableFuture<String> createContentHash(AsyncSignRequest<?> signRequest, T properties);
 
     /**
-     * Generate a {@link CompletableFuture<ContentChecksum>} from the {@link AsyncSignRequest}
-     */
-    CompletableFuture<ContentChecksum> createChecksum(AsyncSignRequest<? extends AwsCredentialsIdentity> signRequest,
-                                                      T properties);
-
-    /**
-     * Generate a content hash by using the {@link ContentStreamProvider} and the {@link SdkChecksum}.
-     */
-    String createContentHash(ContentStreamProvider payload, SdkChecksum sdkChecksum, T properties);
-
-    /**
-     * Generate a {@link CompletableFuture} for the content hash by using the {@link Publisher<ByteBuffer>}
-     * and the {@link SdkChecksum}.
-     */
-    CompletableFuture<String> createContentHash(Publisher<ByteBuffer> payload, SdkChecksum sdkChecksum,
-                                                T properties);
-
-    /**
-     * Add any prerequisite items to the request using the {@link SdkHttpRequest.Builder}, the ${@link SignRequest},
-     * and the {@link ContentChecksum}
+     * Add any prerequisite items to the request.
      * <p>
      * Such an item could be a header or query parameter that should be included in the signature of the request.
      */
-    void addPrerequisites(SdkHttpRequest.Builder requestBuilder,
-                          ContentChecksum contentChecksum, T properties);
+    void addPrerequisites(SdkHttpRequest.Builder requestBuilder, String contentHash, T properties);
 
     /**
-     * Generate a {@link CanonicalRequestV2} from the {@link SignRequest},the {@link SdkHttpRequest},
-     * and the {@link ContentChecksum}.
+     * Generate a {@link AwsV4CanonicalRequest}.
      */
-    CanonicalRequestV2 createCanonicalRequest(SdkHttpRequest request, ContentChecksum contentChecksum,
-                                              T properties);
+    AwsV4CanonicalRequest createCanonicalRequest(SdkHttpRequest request, String contentHash, T properties);
 
     /**
-     * Generate a string-to-sign using the algorithm, the {@link CredentialScope}, and the hash of the canonical request.
+     * Generate a string-to-sign.
      */
     String createSignString(String canonicalRequestHash, T properties);
 
     /**
-     * Generate a signing key using properties.
+     * Generate a signing key.
      */
     byte[] createSigningKey(T properties);
 
     /**
-     * Generate a signature using the string-to-sign and the signing key.
+     * Generate a signature for the string-to-sign.
      */
     String createSignature(String stringToSign, byte[] signingKey, T properties);
 
@@ -211,21 +183,21 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
      * Add the signature to the request in some form (as a header, query-parameter, or otherwise).
      */
     void addSignature(SdkHttpRequest.Builder requestBuilder,
-                      CanonicalRequestV2 canonicalRequest,
+                      AwsV4CanonicalRequest canonicalRequest,
                       String signature,
                       T properties);
 
     /**
      * Process a request payload ({@link ContentStreamProvider}).
      */
-    ContentStreamProvider processPayload(ContentStreamProvider payload, SigV4RequestContext v4RequestContext,
+    ContentStreamProvider processPayload(ContentStreamProvider payload, SigV4Context v4RequestContext,
                                          T properties);
 
     /**
      * Process a request payload ({@link Publisher<ByteBuffer>}).
      */
     Publisher<ByteBuffer> processPayload(Publisher<ByteBuffer> payload,
-                                         CompletableFuture<SigV4RequestContext> futureV4RequestContext,
+                                         CompletableFuture<SigV4Context> futureV4RequestContext,
                                          T properties);
 
     /**
@@ -240,56 +212,21 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
      * However, It does not add any product of SigV4 to the request (such as headers or params), as it is meant to be composed
      * with other implementations.
      */
-    final class AwsV4HttpSignerImpl implements BaseAwsV4HttpSigner<AwsV4HttpProperties> {
+    final class AwsV4HttpSignerImpl implements BaseAwsV4HttpSigner<AwsV4Properties> {
 
         private static final Logger LOG = Logger.loggerFor(AwsV4HttpSignerImpl.class);
 
         @Override
-        public SdkChecksum createSdkChecksum(SignRequest<?, ?> signRequest, AwsV4HttpProperties properties) {
-            if (StringUtils.isNotBlank(properties.getChecksumHeader()) && properties.getChecksumAlgorithm() == null) {
-                throw new IllegalArgumentException(
-                    CHECKSUM_ALGORITHM + " cannot be null when " + CHECKSUM_HEADER_NAME + " is given!");
-            }
-
-            return createSdkChecksumFromRequest(signRequest.request(), properties.getChecksumHeader(),
-                properties.getChecksumAlgorithm());
+        public String createContentHash(SyncSignRequest<?> signRequest, AwsV4Properties properties) {
+            ContentStreamProvider payload = signRequest.payload().orElse(null);
+            InputStream payloadStream = getBinaryRequestPayloadStream(payload);
+            return BinaryUtils.toHex(hash(payloadStream));
         }
 
         @Override
-        public ContentChecksum createChecksum(SyncSignRequest<? extends AwsCredentialsIdentity> signRequest,
-                                              AwsV4HttpProperties properties) {
-            SdkChecksum sdkChecksum = HttpChecksumUtils.createSdkChecksumFromRequest(
-                signRequest.request(),
-                properties.getChecksumHeader(),
-                properties.getChecksumAlgorithm()
-            );
-            String contentHash = createContentHash(signRequest.payload().orElse(null), sdkChecksum, properties);
-
-            return new ContentChecksum(contentHash, sdkChecksum);
-        }
-
-        @Override
-        public CompletableFuture<ContentChecksum> createChecksum(AsyncSignRequest<? extends AwsCredentialsIdentity> signRequest,
-                                                                 AwsV4HttpProperties properties) {
-            SdkChecksum sdkChecksum = HttpChecksumUtils.createSdkChecksumFromRequest(
-                signRequest.request(),
-                properties.getChecksumHeader(),
-                properties.getChecksumAlgorithm()
-            );
-
-            return createContentHash(signRequest.payload().orElse(null), sdkChecksum, properties).thenApply(
-                hash -> new ContentChecksum(hash, sdkChecksum));
-        }
-
-        @Override
-        public String createContentHash(ContentStreamProvider payload, SdkChecksum sdkChecksum, AwsV4HttpProperties properties) {
-            return HttpChecksumUtils.calculateContentHash(payload, sdkChecksum);
-        }
-
-        @Override
-        public CompletableFuture<String> createContentHash(Publisher<ByteBuffer> payload, SdkChecksum sdkChecksum,
-                                                           AwsV4HttpProperties properties) {
-            DigestComputingSubscriber bodyDigester = DigestComputingSubscriber.forSha256(sdkChecksum);
+        public CompletableFuture<String> createContentHash(AsyncSignRequest<?> signRequest, AwsV4Properties properties) {
+            DigestComputingSubscriber bodyDigester = DigestComputingSubscriber.forSha256();
+            Publisher<ByteBuffer> payload = signRequest.payload().orElse(null);
 
             if (payload != null) {
                 payload.subscribe(bodyDigester);
@@ -299,22 +236,21 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
         }
 
         @Override
-        public void addPrerequisites(SdkHttpRequest.Builder requestBuilder,
-                                     ContentChecksum contentChecksum, AwsV4HttpProperties properties) {
+        public void addPrerequisites(SdkHttpRequest.Builder requestBuilder, String contentHash, AwsV4Properties properties) {
             addHostHeader(requestBuilder);
         }
 
         @Override
-        public CanonicalRequestV2 createCanonicalRequest(SdkHttpRequest request, ContentChecksum contentChecksum,
-                                                         AwsV4HttpProperties properties) {
-            return new CanonicalRequestV2(request, contentChecksum.contentHash(), new CanonicalRequestV2.Options(
+        public AwsV4CanonicalRequest createCanonicalRequest(SdkHttpRequest request, String contentHash,
+                                                            AwsV4Properties properties) {
+            return new AwsV4CanonicalRequest(request, contentHash, new AwsV4CanonicalRequest.Options(
                 properties.shouldDoubleUrlEncode(),
                 properties.shouldNormalizePath()
             ));
         }
 
         @Override
-        public String createSignString(String canonicalRequestHash, AwsV4HttpProperties properties) {
+        public String createSignString(String canonicalRequestHash, AwsV4Properties properties) {
             LOG.debug(() -> "AWS4 Canonical Request Hash: " + canonicalRequestHash);
 
             String stringToSign = AWS4_SIGNING_ALGORITHM +
@@ -330,13 +266,13 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
         }
 
         @Override
-        public byte[] createSigningKey(AwsV4HttpProperties properties) {
+        public byte[] createSigningKey(AwsV4Properties properties) {
             return deriveSigningKey(properties.getCredentials(),
                 properties.getCredentialScope());
         }
 
         @Override
-        public String createSignature(String stringToSign, byte[] signingKey, AwsV4HttpProperties properties) {
+        public String createSignature(String stringToSign, byte[] signingKey, AwsV4Properties properties) {
             return BinaryUtils.toHex(
                 SignerUtils.computeSignature(stringToSign, signingKey)
             );
@@ -344,14 +280,14 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
 
         @Override
         public void addSignature(SdkHttpRequest.Builder requestBuilder,
-                                 CanonicalRequestV2 canonicalRequest,
+                                 AwsV4CanonicalRequest canonicalRequest,
                                  String signature,
-                                 AwsV4HttpProperties properties) {
+                                 AwsV4Properties properties) {
         }
 
         @Override
         public ContentStreamProvider processPayload(ContentStreamProvider payload,
-                                                    SigV4RequestContext v4RequestContext, AwsV4HttpProperties properties) {
+                                                    SigV4Context v4RequestContext, AwsV4Properties properties) {
             // The default implementation does nothing, as this version of signing does not
             // modify or update the payload object
             return payload;
@@ -359,16 +295,16 @@ public interface BaseAwsV4HttpSigner<T extends AwsV4HttpProperties> extends AwsV
 
         @Override
         public Publisher<ByteBuffer> processPayload(Publisher<ByteBuffer> payload,
-                                                    CompletableFuture<SigV4RequestContext> futureV4RequestContext,
-                                                    AwsV4HttpProperties properties) {
+                                                    CompletableFuture<SigV4Context> futureV4RequestContext,
+                                                    AwsV4Properties properties) {
             // The default implementation does nothing, as this version of signer does not
             // modify or update the payload object
             return payload;
         }
 
         @Override
-        public AwsV4HttpProperties getProperties(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
-            return AwsV4HttpProperties.create(signRequest);
+        public AwsV4Properties getProperties(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
+            return AwsV4Properties.create(signRequest);
         }
     }
 }

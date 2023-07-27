@@ -15,38 +15,31 @@
 
 package software.amazon.awssdk.http.auth.aws.signer;
 
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.checksum.ContentChecksum;
-import software.amazon.awssdk.http.auth.aws.util.CanonicalRequestV2;
 
 /**
  * A container for data produced during and as a result of the SigV4 request signing process.
  */
 @SdkProtectedApi
-public final class SigV4RequestContext {
-    private final ContentChecksum contentChecksum;
-    private final CanonicalRequestV2 canonicalRequest;
-    private final String canonicalRequestHash;
-    private final String stringToSign;
+@Immutable
+public final class SigV4Context {
+    private final String contentHash;
     private final byte[] signingKey;
     private final String signature;
     private final SdkHttpRequest signedRequest;
 
-    public SigV4RequestContext(ContentChecksum contentChecksum, CanonicalRequestV2 canonicalRequest, String canonicalRequestHash,
-                               String stringToSign,
-                               byte[] signingKey, String signature, SdkHttpRequest signedRequest) {
-        this.contentChecksum = contentChecksum;
-        this.canonicalRequest = canonicalRequest;
-        this.canonicalRequestHash = canonicalRequestHash;
-        this.stringToSign = stringToSign;
+    public SigV4Context(String contentHash, byte[] signingKey, String signature,
+                        SdkHttpRequest signedRequest) {
+        this.contentHash = contentHash;
         this.signingKey = signingKey.clone();
         this.signature = signature;
         this.signedRequest = signedRequest;
     }
 
-    public ContentChecksum getContentChecksum() {
-        return contentChecksum;
+    public String getContentChecksum() {
+        return contentHash;
     }
 
     public byte[] getSigningKey() {

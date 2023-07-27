@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.validatedProperty;
+import static software.amazon.awssdk.http.auth.spi.SignerProperty.validatedProperty;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.internal.util.ClassLoaderHelper;
-import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpProperties;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4Properties;
 import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.Logger;
  * An implementation of a {@link AwsV4HttpSigner} that uses properties to compose
  * v4-signers in order to delegate signing of a request and payload (if applicable) accordingly.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
@@ -62,28 +62,29 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         // get the properties to decide on
         String authLocation = validatedProperty(signRequest, AUTH_LOCATION, "Header");
         Duration expirationDuration = validatedProperty(signRequest, EXPIRATION_DURATION, null);
-        Boolean isPayloadSigning = validatedProperty(signRequest, PAYLOAD_SIGNING, true);
-        Boolean isEventStreaming = validatedProperty(signRequest, EVENT_STREAMING, false);
+        boolean isPayloadSigning = validatedProperty(signRequest, PAYLOAD_SIGNING, true);
+        boolean isEventStreaming = validatedProperty(signRequest, EVENT_STREAMING, false);
 
         if (authLocation.equals("Header")) {
-            v4Signer = new AwsV4HeaderHttpSigner((BaseAwsV4HttpSigner<AwsV4HttpProperties>) v4Signer);
+            v4Signer = new AwsV4HeaderHttpSigner((BaseAwsV4HttpSigner<AwsV4Properties>) v4Signer);
         } else if (authLocation.equals("QueryString")) {
-            v4Signer = new DefaultAwsV4QueryHttpSigner((BaseAwsV4HttpSigner<AwsV4HttpProperties>) v4Signer);
+            v4Signer = new DefaultAwsV4QueryHttpSigner((BaseAwsV4HttpSigner<AwsV4Properties>) v4Signer);
             if (expirationDuration != null) {
-                v4Signer = new AwsV4PresignedHttpSigner((BaseAwsV4HttpSigner<AwsV4HttpProperties>) v4Signer);
+                v4Signer = new AwsV4PresignedHttpSigner((BaseAwsV4HttpSigner<AwsV4Properties>) v4Signer);
             }
         } else {
             throw new IllegalArgumentException("Unrecognized auth-location option: " + authLocation);
         }
 
         if (isEventStreaming) {
+            if (!isPayloadSigning) {
+                throw new IllegalArgumentException("Payload signing must be enabled to use event-stream signer!");
+            }
             v4Signer = loadEventStreamSigner(v4Signer);
         }
 
-        // TODO: add s3 case when migrated to auth-aws
-
         if (!isPayloadSigning) {
-            v4Signer = new AwsV4UnsignedPayloadHttpSigner((BaseAwsV4HttpSigner<AwsV4HttpProperties>) v4Signer);
+            v4Signer = new AwsV4UnsignedPayloadHttpSigner((BaseAwsV4HttpSigner<AwsV4Properties>) v4Signer);
         }
 
         return v4Signer;

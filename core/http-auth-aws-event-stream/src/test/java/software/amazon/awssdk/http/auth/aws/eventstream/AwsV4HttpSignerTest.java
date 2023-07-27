@@ -22,11 +22,10 @@ public class AwsV4HttpSignerTest {
     public void sign_WithEventStreaming_DelegatesToEventStreamSigner() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = TestUtils.generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> signRequest
+            httpRequest -> {
+            },
+            signRequest -> signRequest
                 .putProperty(EVENT_STREAMING, true)
-            )
         );
 
         AwsV4HttpSigner delegate = getDelegate(signer, request);

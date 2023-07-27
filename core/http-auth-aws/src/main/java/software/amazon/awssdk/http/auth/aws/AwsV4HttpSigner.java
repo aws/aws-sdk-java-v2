@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.auth.aws;
 import java.time.Clock;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.aws.checksum.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
@@ -52,20 +51,6 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      */
     SignerProperty<Clock> SIGNING_CLOCK =
         SignerProperty.create(Clock.class, "SigningClock");
-
-    /**
-     * The name of the header for the checksum.
-     * This property is optional.
-     */
-    SignerProperty<String> CHECKSUM_HEADER_NAME =
-        SignerProperty.create(String.class, "ChecksumHeaderName");
-
-    /**
-     * The {@link ChecksumAlgorithm} used to compute the checksum.
-     * This property is required *if* a checksum-header name is given.
-     */
-    SignerProperty<ChecksumAlgorithm> CHECKSUM_ALGORITHM =
-        SignerProperty.create(ChecksumAlgorithm.class, "ChecksumAlgorithm");
 
     /**
      * A boolean to indicate whether to double url-encode the resource path
@@ -118,7 +103,8 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
     /**
      * Whether to indicate that a payload is signed or not.
-     * This property defaults to false.
+     * This property defaults to true.
+     * This can be set false to disable payload signing.
      */
     SignerProperty<Boolean> PAYLOAD_SIGNING =
         SignerProperty.create(Boolean.class, "PayloadSigning");

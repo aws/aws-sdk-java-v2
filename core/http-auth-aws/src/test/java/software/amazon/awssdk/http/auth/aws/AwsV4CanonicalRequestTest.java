@@ -22,13 +22,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.util.CanonicalRequestV2;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4CanonicalRequest;
 import software.amazon.awssdk.utils.ToString;
 
 /**
  * Tests how canonical resource paths are created including normalization
  */
-public class CanonicalRequestV2Test {
+public class AwsV4CanonicalRequestTest {
     public static Iterable<TestCase> data() {
         return Arrays.asList(
             // Handling slash
@@ -80,7 +80,7 @@ public class CanonicalRequestV2Test {
         private final String name;
         private final String path;
         private final String expectedPath;
-        private final CanonicalRequestV2 canonicalRequest;
+        private final AwsV4CanonicalRequest canonicalRequest;
 
         public TestCase(String name,
                         String path,
@@ -96,8 +96,8 @@ public class CanonicalRequestV2Test {
             this.name = name;
             this.path = path;
             this.expectedPath = expectedPath;
-            this.canonicalRequest = new CanonicalRequestV2(request, "sha-256",
-                new CanonicalRequestV2.Options(doubleUrlEncode, normalizePath));
+            this.canonicalRequest = new AwsV4CanonicalRequest(request, "sha-256",
+                new AwsV4CanonicalRequest.Options(doubleUrlEncode, normalizePath));
         }
 
         @Override

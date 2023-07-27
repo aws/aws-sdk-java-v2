@@ -27,8 +27,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.auth.aws.checksum.ChecksumAlgorithm;
-import software.amazon.awssdk.http.auth.aws.checksum.SdkChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.util.DigestComputingSubscriber;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -74,24 +72,5 @@ public class DigestComputingSubscriberTest {
         subscriber.onError(error);
 
         assertThatThrownBy(subscriber.digestBytes()::join).hasCause(error);
-    }
-
-    @Test
-    void test_computesCorrectSdkChecksum() {
-        String testString = "Hello world";
-        String expectedDigest = "64ec88ca00b268e5ba1a35678a1b5316d212f4f366b2477232534a8aeca37f3c";
-        String expectedChecksum = "e1AsOh9IyGCa4hLN+2Od7jlnP14=";
-
-        final SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(ChecksumAlgorithm.SHA1);
-        DigestComputingSubscriber subscriber = DigestComputingSubscriber.forSha256(sdkChecksum);
-
-        Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testString.getBytes(StandardCharsets.UTF_8)));
-
-        publisher.subscribe(subscriber);
-
-        String computedDigest = BinaryUtils.toHex(subscriber.digestBytes().join());
-
-        assertThat(computedDigest).isEqualTo(expectedDigest);
-        assertThat(BinaryUtils.toBase64(sdkChecksum.getChecksumBytes())).isEqualTo(expectedChecksum);
     }
 }

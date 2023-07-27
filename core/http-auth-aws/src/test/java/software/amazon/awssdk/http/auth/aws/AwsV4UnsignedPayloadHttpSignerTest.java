@@ -52,11 +52,11 @@ class AwsV4UnsignedPayloadHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
+            httpRequest -> {
                 httpRequest.protocol("https");
-            }),
-            (signRequest -> {
-            })
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -79,10 +79,10 @@ class AwsV4UnsignedPayloadHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -106,11 +106,11 @@ class AwsV4UnsignedPayloadHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsSessionCredentialsIdentity.create("access", "secret", "token"),
-            (httpRequest -> {
+            httpRequest -> {
                 httpRequest.protocol("https");
-            }),
-            (signRequest -> {
-            })
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -131,10 +131,10 @@ class AwsV4UnsignedPayloadHttpSignerTest {
     public void sign_withAnonymousCredentials_shouldNotSign() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             new TestUtils.AnonymousCredentialsIdentity(),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -152,11 +152,11 @@ class AwsV4UnsignedPayloadHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
+            httpRequest -> {
                 httpRequest.protocol("https");
-            }),
-            (signRequest -> {
-            })
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -179,10 +179,10 @@ class AwsV4UnsignedPayloadHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -206,11 +206,11 @@ class AwsV4UnsignedPayloadHttpSignerTest {
         // Test request without 'x-amz-sha256' header
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsSessionCredentialsIdentity.create("access", "secret", "token"),
-            (httpRequest -> {
+            httpRequest -> {
                 httpRequest.protocol("https");
-            }),
-            (signRequest -> {
-            })
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -231,10 +231,10 @@ class AwsV4UnsignedPayloadHttpSignerTest {
     public void signAsync_withAnonymousCredentials_shouldNotSign() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             new TestUtils.AnonymousCredentialsIdentity(),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);

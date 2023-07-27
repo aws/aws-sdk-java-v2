@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.checksum.SdkChecksum;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -30,15 +29,8 @@ import software.amazon.awssdk.utils.IoUtils;
 public final class SdkDigestInputStream extends DigestInputStream implements Releasable {
     private static final int SKIP_BUF_SIZE = 2 * 1024;
 
-    private final SdkChecksum sdkChecksum;
-
-    public SdkDigestInputStream(InputStream stream, MessageDigest digest, SdkChecksum sdkChecksum) {
-        super(stream, digest);
-        this.sdkChecksum = sdkChecksum;
-    }
-
     public SdkDigestInputStream(InputStream stream, MessageDigest digest) {
-        this(stream, digest, null);
+        super(stream, digest);
     }
 
     // https://github.com/aws/aws-sdk-java/issues/232
@@ -103,10 +95,6 @@ public final class SdkDigestInputStream extends DigestInputStream implements Rel
         int ch = in.read();
         if (ch != -1) {
             digest.update((byte) ch);
-            if (sdkChecksum != null) {
-                sdkChecksum.update((byte) ch);
-            }
-
         }
         return ch;
     }
@@ -119,9 +107,6 @@ public final class SdkDigestInputStream extends DigestInputStream implements Rel
         int result = in.read(b, off, len);
         if (result != -1) {
             digest.update(b, off, result);
-            if (sdkChecksum != null) {
-                sdkChecksum.update(b, off, result);
-            }
         }
         return result;
     }

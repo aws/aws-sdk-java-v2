@@ -15,8 +15,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.auth.aws.eventstream.signer.DefaultAwsV4EventStreamHttpSigner;
-import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.internal.signer.AwsV4HeaderHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
@@ -42,10 +42,10 @@ public class AwsV4EventStreamHttpSignerTest {
 
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = TestUtils.generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("a", "s"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -92,10 +92,10 @@ public class AwsV4EventStreamHttpSignerTest {
             "Signature=2387417f091dc51839800a9044510ce172ee5a064fec1733cd480686ad550aa0";
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = TestUtils.generateBasicAsyncRequest(
             AwsSessionCredentialsIdentity.create("a", "s", "t"),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
@@ -115,10 +115,10 @@ public class AwsV4EventStreamHttpSignerTest {
     public void signAsync_withAnonymousCredentials_shouldNotSign() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = TestUtils.generateBasicAsyncRequest(
             new TestUtils.AnonymousCredentialsIdentity(),
-            (httpRequest -> {
-            }),
-            (signRequest -> {
-            })
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);

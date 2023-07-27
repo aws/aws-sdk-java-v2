@@ -32,7 +32,7 @@ import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.auth.aws.util.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.HeaderValue;

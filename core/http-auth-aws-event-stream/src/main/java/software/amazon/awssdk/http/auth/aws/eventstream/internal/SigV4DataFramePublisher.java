@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.http.auth.aws.eventstream.internal;
 
-import static software.amazon.awssdk.http.auth.aws.util.HttpChecksumUtils.hash;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.computeSignature;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.deriveSigningKey;
+import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hash;
 
 import java.nio.ByteBuffer;
 import java.time.Clock;
@@ -31,7 +31,7 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.util.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.util.SignerConstant;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -146,8 +146,8 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
         byte[] event) {
 
         // String to sign
-        String eventHeadersSignature = BinaryUtils.toHex(hash(Message.encodeHeaders(sortHeaders(eventHeaders).entrySet()), null));
-        String eventHash = BinaryUtils.toHex(hash(event, null));
+        String eventHeadersSignature = BinaryUtils.toHex(hash(Message.encodeHeaders(sortHeaders(eventHeaders).entrySet())));
+        String eventHash = BinaryUtils.toHex(hash(event));
         String stringToSign =
             "AWS4-HMAC-SHA256-PAYLOAD" + SignerConstant.LINE_SEPARATOR +
                 credentialScope.getDatetime() + SignerConstant.LINE_SEPARATOR +

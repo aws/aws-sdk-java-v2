@@ -16,26 +16,25 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.validatedProperty;
+import static software.amazon.awssdk.http.auth.spi.SignerProperty.validatedProperty;
 
 import java.time.Clock;
 import java.time.Duration;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.checksum.ChecksumAlgorithm;
-import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpProperties;
-import software.amazon.awssdk.http.auth.aws.util.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4Properties;
+import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * An extension of {@link AwsV4HttpProperties}, which provides access to more specific parameters
+ * An extension of {@link AwsV4Properties}, which provides access to more specific parameters
  * used by {@link AwsV4PresignedHttpSigner}.
  */
-@SdkProtectedApi
-interface AwsV4PresignedHttpProperties extends AwsV4HttpProperties {
+@SdkInternalApi
+interface AwsV4PresignedProperties extends AwsV4Properties {
 
-    static AwsV4PresignedHttpProperties create(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
+    static AwsV4PresignedProperties create(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
         Duration expirationDuration = validatedProperty(signRequest, AwsV4HttpSigner.EXPIRATION_DURATION,
             PRESIGN_URL_MAX_EXPIRATION_DURATION
         );
@@ -49,17 +48,17 @@ interface AwsV4PresignedHttpProperties extends AwsV4HttpProperties {
 
         return new AwsV4PresignedHttpPropertiesImpl(
             expirationDuration,
-            AwsV4HttpProperties.create(signRequest)
+            AwsV4Properties.create(signRequest)
         );
     }
 
     Duration getExpirationDuration();
 
-    final class AwsV4PresignedHttpPropertiesImpl implements AwsV4PresignedHttpProperties {
+    final class AwsV4PresignedHttpPropertiesImpl implements AwsV4PresignedProperties {
         private final Duration expirationDuration;
-        private final AwsV4HttpProperties v4Properties;
+        private final AwsV4Properties v4Properties;
 
-        private AwsV4PresignedHttpPropertiesImpl(Duration expirationDuration, AwsV4HttpProperties v4HttpProperties) {
+        private AwsV4PresignedHttpPropertiesImpl(Duration expirationDuration, AwsV4Properties v4HttpProperties) {
             this.expirationDuration = expirationDuration;
             this.v4Properties = v4HttpProperties;
         }
@@ -82,16 +81,6 @@ interface AwsV4PresignedHttpProperties extends AwsV4HttpProperties {
         @Override
         public Clock getSigningClock() {
             return v4Properties.getSigningClock();
-        }
-
-        @Override
-        public ChecksumAlgorithm getChecksumAlgorithm() {
-            return v4Properties.getChecksumAlgorithm();
-        }
-
-        @Override
-        public String getChecksumHeader() {
-            return v4Properties.getChecksumHeader();
         }
 
         @Override
