@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient.USER_AGENT_API_NAME;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
 import software.amazon.awssdk.services.s3.internal.crt.UploadPartCopyRequestIterable;
 import software.amazon.awssdk.services.s3.internal.multipart.GenericMultipartHelper;
 import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
@@ -67,8 +70,11 @@ public final class CopyObjectHelper {
         CompletableFuture<CopyObjectResponse> returnFuture = new CompletableFuture<>();
 
         try {
+            CopyObjectRequest copyObjectRequestWithUserAgent =
+                UserAgentUtils.applyUserAgentInfo(copyObjectRequest,
+                                                  c -> c.addApiName(USER_AGENT_API_NAME));
             CompletableFuture<HeadObjectResponse> headFuture =
-                s3AsyncClient.headObject(SdkPojoConversionUtils.toHeadObjectRequest(copyObjectRequest));
+                s3AsyncClient.headObject(SdkPojoConversionUtils.toHeadObjectRequest(copyObjectRequestWithUserAgent));
 
             // Ensure cancellations are forwarded to the head future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
@@ -78,7 +84,7 @@ public final class CopyObjectHelper {
                     genericMultipartHelper.handleException(returnFuture, () -> "Failed to retrieve metadata from the source "
                                                                                + "object", throwable);
                 } else {
-                    doCopyObject(copyObjectRequest, returnFuture, headObjectResponse);
+                    doCopyObject(copyObjectRequestWithUserAgent, returnFuture, headObjectResponse);
                 }
             });
         } catch (Throwable throwable) {
@@ -105,7 +111,9 @@ public final class CopyObjectHelper {
                              Long contentLength,
                              CompletableFuture<CopyObjectResponse> returnFuture) {
 
-        CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(copyObjectRequest);
+        CreateMultipartUploadRequest request = UserAgentUtils
+            .applyUserAgentInfo(SdkPojoConversionUtils.toCreateMultipartUploadRequest(copyObjectRequest),
+                                c -> c.addApiName(USER_AGENT_API_NAME));
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
             s3AsyncClient.createMultipartUpload(request);
 
@@ -170,7 +178,8 @@ public final class CopyObjectHelper {
                                                                                    .parts(parts)
                                                                                    .build())
                                           .build();
-
+        completeMultipartUploadRequest = UserAgentUtils.applyUserAgentInfo(completeMultipartUploadRequest,
+                                                                           c -> c.addApiName(USER_AGENT_API_NAME));
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
@@ -201,7 +210,11 @@ public final class CopyObjectHelper {
         log.debug(() -> "Sending uploadPartCopyRequest with range: " + uploadPartCopyRequest.copySourceRange() + " uploadId: "
                         + uploadId);
 
-        CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture = s3AsyncClient.uploadPartCopy(uploadPartCopyRequest);
+        UploadPartCopyRequest uploadPartCopyRequestWithUserAgent =
+            UserAgentUtils.applyUserAgentInfo(uploadPartCopyRequest,
+                                              c -> c.addApiName(USER_AGENT_API_NAME));
+        CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture =
+            s3AsyncClient.uploadPartCopy(uploadPartCopyRequestWithUserAgent);
 
         CompletableFuture<CompletedPart> convertFuture =
             uploadPartCopyFuture.thenApply(uploadPartCopyResponse ->
@@ -225,8 +238,11 @@ public final class CopyObjectHelper {
 
     private void copyInOneChunk(CopyObjectRequest copyObjectRequest,
                                 CompletableFuture<CopyObjectResponse> returnFuture) {
+        CopyObjectRequest copyObjectRequestWithUserAgent =
+            UserAgentUtils.applyUserAgentInfo(copyObjectRequest,
+                                              c -> c.addApiName(USER_AGENT_API_NAME));
         CompletableFuture<CopyObjectResponse> copyObjectFuture =
-            s3AsyncClient.copyObject(copyObjectRequest);
+            s3AsyncClient.copyObject(copyObjectRequestWithUserAgent);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, copyObjectFuture);
         CompletableFutureUtils.forwardResultTo(copyObjectFuture, returnFuture);
     }
