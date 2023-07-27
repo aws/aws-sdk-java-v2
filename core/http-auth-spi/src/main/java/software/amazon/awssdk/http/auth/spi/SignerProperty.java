@@ -41,8 +41,29 @@ public final class SignerProperty<T> {
         this.name = name;
     }
 
+    /**
+     * Create an instance of a property with a given type and name.
+     */
     public static <T> SignerProperty<T> create(Class<T> clazz, String name) {
         return new SignerProperty<>(clazz, name);
+    }
+
+    /**
+     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
+     */
+    public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property) {
+        return Validate.notNull(request.property(property), property.toString() + " must not be null!");
+    }
+
+    /**
+     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and the default is returned otherwise.
+     */
+    public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property, T defaultValue) {
+        return Validate.getOrDefault(request.property(property), () -> defaultValue);
     }
 
     @Override

@@ -21,18 +21,22 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
  * An {@link HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}),
- * specifically for S3.
+ * specifically for query.
+ * <p>
+ * The process for signing requests to AWS services is documented
+ * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html">here</a>.
+ * <p>
  * TODO: Delete this interface once auth-scheme is cleaned up.
  */
 @SdkPublicApi
-public interface AwsS3V4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
+public interface AwsV4QueryHttpSigner extends AwsV4HttpSigner {
 
     /**
-     * Get a default implementation of a {@link AwsS3V4HttpSigner}
+     * Get a default implementation of a {@link AwsV4QueryHttpSigner}
      *
-     * @return AwsS3V4HttpSigner
+     * @return DefaultAwsV4QueryHttpSigner
      */
-    static AwsS3V4HttpSigner create() {
+    static AwsV4QueryHttpSigner create() {
         return null;
     }
 }

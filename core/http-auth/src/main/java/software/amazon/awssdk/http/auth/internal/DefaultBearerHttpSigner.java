@@ -31,9 +31,6 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 @SdkInternalApi
 public final class DefaultBearerHttpSigner implements BearerHttpSigner {
 
-    private static final String AUTHZ_HEADER = "Authorization";
-    private static final String BEARER_LABEL = "Bearer";
-
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
         return SyncSignedRequest.builder()
@@ -57,7 +54,7 @@ public final class DefaultBearerHttpSigner implements BearerHttpSigner {
     private SdkHttpRequest doSign(SignRequest<?, ? extends TokenIdentity> request) {
         return request.request().toBuilder()
             .putHeader(
-                AUTHZ_HEADER,
+                "Authorization",
                 buildAuthorizationHeader(request.identity()))
             .build();
     }
@@ -66,6 +63,6 @@ public final class DefaultBearerHttpSigner implements BearerHttpSigner {
      * Use a {@link TokenIdentity} to build an authorization header.
      */
     private String buildAuthorizationHeader(TokenIdentity tokenIdentity) {
-        return BEARER_LABEL + " " + tokenIdentity.token();
+        return "Bearer " + tokenIdentity.token();
     }
 }
