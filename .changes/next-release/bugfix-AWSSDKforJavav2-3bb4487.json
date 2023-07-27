@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS IAM Policy Builder",
-    "contributor": "",
-    "description": "Fixed bug where actions were written instead of resources."
-}

@@ -1,3 +1,126 @@
+# __2.20.113__ __2023-07-27__
+## __Amazon Elastic Block Store__
+  - ### Features
+    - SDK and documentation updates for Amazon Elastic Block Store API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - SDK and documentation updates for Amazon Elastic Block Store APIs
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add multiple customer error code to handle customer caused failure when managing EKS node groups
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Expose ProfilerConfig attribute in SageMaker Search API response.
+
+## __Auto Scaling__
+  - ### Features
+    - This release updates validation for instance types used in the AllowedInstanceTypes and ExcludedInstanceTypes parameters of the InstanceRequirements property of a MixedInstancesPolicy.
+
+# __2.20.112__ __2023-07-26__
+## __AWS Cloud Control API__
+  - ### Features
+    - Updates the documentation for CreateResource.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes general updates to user documentation.
+
+## __AWS EntityResolution__
+  - ### Features
+    - AWS Entity Resolution can effectively match a source record from a customer relationship management (CRM) system with a source record from a marketing system containing campaign information.
+
+## __AWS Glue__
+  - ### Features
+    - Release Glue Studio Snowflake Connector Node for SDK/CLI
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Updating the HealthLake service documentation.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - Amazon Managed Blockchain (AMB) Query provides serverless access to standardized, multi-blockchain datasets with developer-friendly APIs.
+
+## __Amazon Omics__
+  - ### Features
+    - The service is renaming as a part of AWS Health.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds 1 new voice - Lisa (nl-BE)
+
+## __Amazon Route 53__
+  - ### Features
+    - Update that corrects the documents for received feedback.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - This release adds new collection type VectorSearch.
+
+# __2.20.111__ __2023-07-25__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports Microsoft Azure Blob Storage locations.
+
+## __AWS IAM Policy Builder__
+  - ### Bugfixes
+    - Fixed bug where actions were written instead of resources.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Python 3.11 (python3.11) support to AWS Lambda
+
+## __AWS Security Token Service__
+  - ### Features
+    - API updates for the AWS Security Token Service
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add support for CONTAINS and NOT_CONTAINS comparison operators for Automation Rules string filters and map filters
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds support for SFTP Connectors.
+
+## __AWSBillingConductor__
+  - ### Features
+    - Added support for Auto-Assocate Billing Groups for CreateBillingGroup, UpdateBillingGroup, and ListBillingGroups.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Amazon Connect Customer Profiles now supports rule-based resolution to match and merge similar profiles into unified profiles, helping companies deliver faster and more personalized customer service by providing access to relevant customer information for agents and automated experiences.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release added two new data types: AssistantIntegrationConfiguration, and SessionIntegrationConfiguration to support Wisdom integration with Amazon Connect Chat
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds an instance's peak and baseline network bandwidth as well as the memory sizes of an instance's inference accelerators to DescribeInstanceTypes.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for monitoring storage optimization progress on the DescribeDBInstances API.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Mark ContentColumn and TargetLabelColumn as required Targets in TextClassificationJobConfig in CreateAutoMLJobV2API
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for publishing application logs to CloudWatch.
+
 # __2.20.110__ __2023-07-24__
 ## __AWS CloudFormation__
   - ### Features
