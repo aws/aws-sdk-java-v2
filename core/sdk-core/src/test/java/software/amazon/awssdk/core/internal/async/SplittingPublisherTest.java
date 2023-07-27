@@ -31,10 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -45,7 +42,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class SplittingPublisherTest {
@@ -87,26 +83,6 @@ public class SplittingPublisherTest {
         verifySplitContent(AsyncRequestBody.fromBytes(CONTENT), chunkSize);
     }
 
-
-    @Test
-    void cancelFuture_shouldCancelUpstream() throws IOException {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        TestAsyncRequestBody asyncRequestBody = new TestAsyncRequestBody();
-        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
-                                                                  .resultFuture(future)
-                                                                  .asyncRequestBody(asyncRequestBody)
-                                                                  .chunkSizeInBytes(CHUNK_SIZE)
-                                                                  .maxMemoryUsageInBytes(10L)
-                                                                  .build();
-
-        OnlyRequestOnceSubscriber downstreamSubscriber = new OnlyRequestOnceSubscriber();
-        splittingPublisher.subscribe(downstreamSubscriber);
-
-        future.completeExceptionally(new RuntimeException("test"));
-        assertThat(asyncRequestBody.cancelled).isTrue();
-        assertThat(downstreamSubscriber.asyncRequestBodies.size()).isEqualTo(1);
-    }
-
     @Test
     void contentLengthNotPresent_shouldHandle() throws Exception {
         CompletableFuture<Void> future = new CompletableFuture<>();
@@ -117,7 +93,6 @@ public class SplittingPublisherTest {
             }
         };
         SplittingPublisher splittingPublisher = SplittingPublisher.builder()
-                                                                  .resultFuture(future)
                                                                   .asyncRequestBody(asyncRequestBody)
                                                                   .chunkSizeInBytes(CHUNK_SIZE)
                                                                   .maxMemoryUsageInBytes(10L)
@@ -159,11 +134,8 @@ public class SplittingPublisherTest {
 
 
     private static void verifySplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
-        CompletableFuture<Void> future = new CompletableFuture<>();
         SplittingPublisher splittingPublisher = SplittingPublisher.builder()
-                                                                  .resultFuture(future)
                                                                   .asyncRequestBody(asyncRequestBody)
-                                                                  .resultFuture(future)
                                                                   .chunkSizeInBytes(chunkSize)
                                                                   .maxMemoryUsageInBytes((long) chunkSize * 4)
                                                                   .build();
@@ -194,7 +166,6 @@ public class SplittingPublisherTest {
                 assertThat(actualBytes).isEqualTo(expected);
             };
         }
-        assertThat(future).isCompleted();
     }
 
     private static class TestAsyncRequestBody implements AsyncRequestBody {

@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -45,24 +44,12 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
     private final SimplePublisher<AsyncRequestBody> downstreamPublisher = new SimplePublisher<>();
     private final long chunkSizeInBytes;
     private final long maxMemoryUsageInBytes;
-    private final CompletableFuture<Void> future;
 
     private SplittingPublisher(Builder builder) {
         this.upstreamPublisher =  Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
         this.chunkSizeInBytes = Validate.isPositive(builder.chunkSizeInBytes, "chunkSizeInBytes");
         this.splittingSubscriber = new SplittingSubscriber(upstreamPublisher.contentLength().orElse(null));
         this.maxMemoryUsageInBytes = Validate.isPositive(builder.maxMemoryUsageInBytes, "maxMemoryUsageInBytes");
-        this.future = builder.future;
-
-        // We need to cancel upstream subscription if the future gets cancelled.
-        future.whenComplete((r, t) -> {
-            if (t != null) {
-                if (splittingSubscriber.upstreamSubscription != null) {
-                    log.trace(() -> "Cancelling subscription because return future completed exceptionally ", t);
-                    splittingSubscriber.upstreamSubscription.cancel();
-                }
-            }
-        });
     }
 
     public static Builder builder() {
@@ -117,26 +104,35 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             byteBufferSizeHint = byteBuffer.remaining();
 
             while (true) {
+
+                if (!byteBuffer.hasRemaining()) {
+                    break;
+                }
+
                 int amountRemainingInChunk = amountRemainingInChunk();
 
                 // If we have fulfilled this chunk,
-                // we should create a new DownstreamBody if needed
+                // complete the current body
                 if (amountRemainingInChunk == 0) {
-                    completeCurrentBody();
-
-                    if (shouldCreateNewDownstreamRequestBody(byteBuffer)) {
-                        int currentChunk = chunkNumber.incrementAndGet();
-                        long chunkSize = calculateChunkSize(totalDataRemaining());
-                        currentBody = initializeNextDownstreamBody(upstreamSize != null, chunkSize, currentChunk);
-                    }
+                    completeCurrentBodyAndCreateNewIfNeeded(byteBuffer);
+                    amountRemainingInChunk = amountRemainingInChunk();
                 }
 
-                amountRemainingInChunk = amountRemainingInChunk();
-                if (amountRemainingInChunk >= byteBuffer.remaining()) {
+                // If the current ByteBuffer < this chunk, send it as-is
+                if (amountRemainingInChunk > byteBuffer.remaining()) {
                     currentBody.send(byteBuffer.duplicate());
                     break;
                 }
 
+                // If the current ByteBuffer == this chunk, send it as-is and
+                // complete the current body
+                if (amountRemainingInChunk == byteBuffer.remaining()) {
+                    currentBody.send(byteBuffer.duplicate());
+                    completeCurrentBodyAndCreateNewIfNeeded(byteBuffer);
+                    break;
+                }
+
+                // If the current ByteBuffer > this chunk, split this ByteBuffer
                 ByteBuffer firstHalf = byteBuffer.duplicate();
                 int newLimit = firstHalf.position() + amountRemainingInChunk;
                 firstHalf.limit(newLimit);
@@ -147,13 +143,22 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             maybeRequestMoreUpstreamData();
         }
 
+        private void completeCurrentBodyAndCreateNewIfNeeded(ByteBuffer byteBuffer) {
+            completeCurrentBody();
+            int currentChunk = chunkNumber.incrementAndGet();
+            boolean shouldCreateNewDownstreamRequestBody;
+            Long dataRemaining = totalDataRemaining();
 
-        /**
-         * If content length is known, we should create new DownstreamRequestBody if there's remaining data.
-         * If content length is unknown, we should create new DownstreamRequestBody if upstream is not completed yet.
-         */
-        private boolean shouldCreateNewDownstreamRequestBody(ByteBuffer byteBuffer) {
-            return !upstreamComplete || byteBuffer.remaining() > 0;
+            if (upstreamSize == null) {
+                shouldCreateNewDownstreamRequestBody = !upstreamComplete || byteBuffer.hasRemaining();
+            } else {
+                shouldCreateNewDownstreamRequestBody = dataRemaining != null && dataRemaining > 0;
+            }
+
+            if (shouldCreateNewDownstreamRequestBody) {
+                long chunkSize = calculateChunkSize(dataRemaining);
+                currentBody = initializeNextDownstreamBody(upstreamSize != null, chunkSize, currentChunk);
+            }
         }
 
         private int amountRemainingInChunk() {
@@ -161,6 +166,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         }
 
         private void completeCurrentBody() {
+            log.debug(() -> "completeCurrentBody for chunk " + chunkNumber.get());
             currentBody.complete();
             if (upstreamSize == null) {
                 sendCurrentBody(currentBody);
@@ -172,12 +178,13 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             upstreamComplete = true;
             log.trace(() -> "Received onComplete()");
             completeCurrentBody();
-            downstreamPublisher.complete().thenRun(() -> future.complete(null));
+            downstreamPublisher.complete();
         }
 
         @Override
         public void onError(Throwable t) {
-            currentBody.error(t);
+            log.trace(() -> "Received onError()", t);
+            downstreamPublisher.error(t);
         }
 
         private void sendCurrentBody(AsyncRequestBody body) {
@@ -206,7 +213,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         }
 
         private boolean shouldRequestMoreData(long buffered) {
-            return buffered == 0 || buffered + byteBufferSizeHint < maxMemoryUsageInBytes;
+            return buffered == 0 || buffered + byteBufferSizeHint <= maxMemoryUsageInBytes;
         }
 
         private Long totalDataRemaining() {
@@ -240,7 +247,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             }
 
             public void send(ByteBuffer data) {
-                log.trace(() -> "Sending bytebuffer " + data);
+                log.trace(() -> String.format("Sending bytebuffer %s to chunk %d", data, chunkNumber));
                 int length = data.remaining();
                 transferredLength += length;
                 addDataBuffered(length);
@@ -283,7 +290,6 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         private AsyncRequestBody asyncRequestBody;
         private Long chunkSizeInBytes;
         private Long maxMemoryUsageInBytes;
-        private CompletableFuture<Void> future;
 
         /**
          * Configures the asyncRequestBody to split
@@ -319,18 +325,6 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         //  buffer size instead?
         public Builder maxMemoryUsageInBytes(long maxMemoryUsageInBytes) {
             this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
-            return this;
-        }
-
-        /**
-         * Sets the result future. The future will be completed when all request bodies
-         * have been sent.
-         *
-         * @param future The new future value.
-         * @return This object for method chaining.
-         */
-        public Builder resultFuture(CompletableFuture<Void> future) {
-            this.future = future;
             return this;
         }
 

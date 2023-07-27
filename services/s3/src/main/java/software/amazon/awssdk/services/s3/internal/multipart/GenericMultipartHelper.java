@@ -79,13 +79,9 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     }
 
     public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
-        RequestT request, String uploadId, AtomicReferenceArray<CompletedPart> completedParts) {
+        RequestT request, String uploadId, CompletedPart[] parts) {
         log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
                                       uploadId));
-        CompletedPart[] parts =
-            IntStream.range(0, completedParts.length())
-                     .mapToObj(completedParts::get)
-                     .toArray(CompletedPart[]::new);
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
             CompleteMultipartUploadRequest.builder()
                                           .bucket(request.getValueForField("Bucket", String.class).get())
@@ -97,6 +93,15 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
                                           .build();
 
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
+    }
+
+    public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
+        RequestT request, String uploadId, AtomicReferenceArray<CompletedPart> completedParts) {
+        CompletedPart[] parts =
+            IntStream.range(0, completedParts.length())
+                     .mapToObj(completedParts::get)
+                     .toArray(CompletedPart[]::new);
+        return completeMultipartUpload(request, uploadId, parts);
     }
 
     public BiFunction<CompleteMultipartUploadResponse, Throwable, Void> handleExceptionOrResponse(
@@ -119,6 +124,7 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     }
 
     public void cleanUpParts(String uploadId, AbortMultipartUploadRequest.Builder abortMultipartUploadRequest) {
+        log.debug(() -> "Aborting multipart upload: " + uploadId);
         s3AsyncClient.abortMultipartUpload(abortMultipartUploadRequest.uploadId(uploadId).build())
                      .exceptionally(throwable -> {
                          log.warn(() -> String.format("Failed to abort previous multipart upload "
