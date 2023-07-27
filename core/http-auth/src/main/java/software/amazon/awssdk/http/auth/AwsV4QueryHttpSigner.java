@@ -15,11 +15,9 @@
 
 package software.amazon.awssdk.http.auth;
 
-import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4QueryHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
@@ -31,13 +29,6 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  */
 @SdkPublicApi
 public interface AwsV4QueryHttpSigner extends AwsV4HttpSigner {
-
-    /**
-     * The duration for the request to be valid.
-     * This property defaults to the max valid duration (7 days).
-     */
-    SignerProperty<Duration> EXPIRATION_DURATION =
-        SignerProperty.create(Duration.class, "ExpirationDuration");
 
     /**
      * Get a default implementation of a {@link AwsV4QueryHttpSigner}

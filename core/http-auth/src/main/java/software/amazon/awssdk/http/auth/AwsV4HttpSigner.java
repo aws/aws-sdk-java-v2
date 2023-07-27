@@ -85,12 +85,10 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
     /**
      * The location where auth-related data is inserted, as a result of signing.
-     * The valid choices are "Header" and "QueryString", where "Header" indicates that request
-     * headers are added, and "QueryString" indicates query-parameters are added.
-     * This property defaults to "Header".
+     * This property defaults to HEADER.
      */
-    SignerProperty<String> AUTH_LOCATION =
-        SignerProperty.create(String.class, "AuthLocation");
+    SignerProperty<AuthLocation> AUTH_LOCATION =
+        SignerProperty.create(AuthLocation.class, "AuthLocation");
 
     /**
      * The duration for the request to be valid.
@@ -131,5 +129,20 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      */
     static AwsV4HttpSigner create() {
         return new DefaultAwsV4HttpSigner();
+    }
+
+    /**
+     * This enum represents where auth-related data is inserted, as a result of signing.
+     */
+    enum AuthLocation {
+        /**
+         * Indicates auth-related data is inserted in HTTP headers.
+         */
+        HEADER,
+
+        /**
+         * Indicates auth-related data is inserted in HTTP query-parameters.
+         */
+        QUERY_STRING
     }
 }
