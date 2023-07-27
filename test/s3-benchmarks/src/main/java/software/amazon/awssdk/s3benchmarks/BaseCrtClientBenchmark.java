@@ -52,7 +52,6 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         logger.info(() -> "Benchmark config: " + config);
         Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientBenchmark");
 
-
         Long partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         this.s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                       .partSizeInBytes(partSizeInBytes)

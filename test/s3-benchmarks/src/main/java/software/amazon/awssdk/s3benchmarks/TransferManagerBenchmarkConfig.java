@@ -28,6 +28,7 @@ public final class TransferManagerBenchmarkConfig {
     private final Integer iteration;
     private final Long contentLengthInMb;
     private final Duration timeout;
+    private final Long memoryUsageInMb;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -46,6 +47,7 @@ public final class TransferManagerBenchmarkConfig {
         this.prefix = builder.prefix;
         this.contentLengthInMb = builder.contentLengthInMb;
         this.timeout = builder.timeout;
+        this.memoryUsageInMb = builder.memoryUsage;
     }
 
     public String filePath() {
@@ -96,6 +98,10 @@ public final class TransferManagerBenchmarkConfig {
         return this.timeout;
     }
 
+    public Long memoryUsageInMb() {
+        return this.memoryUsageInMb;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -126,6 +132,7 @@ public final class TransferManagerBenchmarkConfig {
         private Double targetThroughput;
         private Long partSizeInMb;
         private Long contentLengthInMb;
+        private Long memoryUsage;
 
         private Integer iteration;
         private BenchmarkRunner.TransferManagerOperation operation;
@@ -190,6 +197,11 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder timeout(Duration timeout) {
             this.timeout = timeout;
+            return this;
+        }
+
+        public Builder memoryUsageInMb(Long memoryUsage) {
+            this.memoryUsage = memoryUsage;
             return this;
         }
 

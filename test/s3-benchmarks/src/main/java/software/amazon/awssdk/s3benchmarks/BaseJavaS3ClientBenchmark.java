@@ -15,20 +15,48 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.DEFAULT_TIMEOUT;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor(BaseJavaS3ClientBenchmark.class);
 
-    private final
+    protected final S3Client s3Client;
+    private final int iteration;
+
+    protected final S3AsyncClient s3AsyncClient;
+    protected final String bucket;
+    protected final String key;
+    protected final Duration timeout;
 
     public BaseJavaS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
+        this.bucket = Validate.paramNotNull(config.bucket(), "bucket");
+        this.key = Validate.paramNotNull(config.key(), "key");
+        this.timeout = Validate.getOrDefault(config.timeout(), () -> DEFAULT_TIMEOUT);
+        this.iteration = Validate.getOrDefault(config.iteration(), () -> BENCHMARK_ITERATIONS);
+        this.s3Client = S3Client.create();
 
+        Long partSizeInMb = Validate.paramNotNull(config.partSizeInMb(), "partSize");
+        this.s3AsyncClient = S3AsyncClient
+            .builder()
+            .multipartEnabled(true)
+            .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * 1024 * 1024L)
+                                          .thresholdInBytes(partSizeInMb * 1024 * 1024))
+
+            .build();
     }
+
+    protected abstract void sendOneRequest(List<Double> latencies) throws Exception;
+    protected abstract long contentLength() throws Exception;
 
     @Override
     public void run() {
@@ -43,8 +71,8 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
     }
 
     private void cleanup() {
-        s3Sync.close();
-        s3Async.close();
+        s3Client.close();
+        s3AsyncClient.close();
     }
 
     private void warmUp() throws Exception {
@@ -61,8 +89,7 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
         for (int i = 0; i < iteration; i++) {
             sendOneRequest(metrics);
         }
-        printOutResult(metrics, "Download to File", contentLength);
+        printOutResult(metrics, "S3 Async client", contentLength());
     }
-
 
 }

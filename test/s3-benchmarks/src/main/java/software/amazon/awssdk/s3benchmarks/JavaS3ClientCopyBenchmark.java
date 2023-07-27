@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import java.util.List;
+
 public class JavaS3ClientCopyBenchmark extends BaseJavaS3ClientBenchmark {
 
     public JavaS3ClientCopyBenchmark(TransferManagerBenchmarkConfig config) {
@@ -22,7 +24,12 @@ public class JavaS3ClientCopyBenchmark extends BaseJavaS3ClientBenchmark {
     }
 
     @Override
-    public void run() {
+    protected void sendOneRequest(List<Double> latencies) throws Exception {
 
+    }
+
+    @Override
+    protected long contentLength() throws Exception {
+        return s3Client.headObject(b -> b.bucket(bucket).key(key)).contentLength();
     }
 }
