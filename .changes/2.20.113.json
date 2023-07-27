@@ -1,0 +1,36 @@
+{
+    "version": "2.20.113",
+    "date": "2023-07-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Block Store",
+            "contributor": "",
+            "description": "SDK and documentation updates for Amazon Elastic Block Store API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "SDK and documentation updates for Amazon Elastic Block Store APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Add multiple customer error code to handle customer caused failure when managing EKS node groups"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Expose ProfilerConfig attribute in SageMaker Search API response."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "This release updates validation for instance types used in the AllowedInstanceTypes and ExcludedInstanceTypes parameters of the InstanceRequirements property of a MixedInstancesPolicy."
+        }
+    ]
+}

@@ -1,3 +1,24 @@
+# __2.20.113__ __2023-07-27__
+## __Amazon Elastic Block Store__
+  - ### Features
+    - SDK and documentation updates for Amazon Elastic Block Store API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - SDK and documentation updates for Amazon Elastic Block Store APIs
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add multiple customer error code to handle customer caused failure when managing EKS node groups
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Expose ProfilerConfig attribute in SageMaker Search API response.
+
+## __Auto Scaling__
+  - ### Features
+    - This release updates validation for instance types used in the AllowedInstanceTypes and ExcludedInstanceTypes parameters of the InstanceRequirements property of a MixedInstancesPolicy.
+
 # __2.20.112__ __2023-07-26__
 ## __AWS Cloud Control API__
   - ### Features
@@ -836,7 +857,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
