@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Input parameters to sign a request using {@link HttpSigner}.
@@ -52,6 +53,33 @@ public interface SignRequest<PayloadT, IdentityT extends Identity> {
      * Returns the value of a property that the {@link HttpSigner} can use during signing.
      */
     <T> T property(SignerProperty<T> property);
+
+    /**
+     * Ensure that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
+     */
+    default <T> boolean hasProperty(SignerProperty<T> property) {
+        return property(property) != null;
+    }
+
+    /**
+     * Ensure that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
+     */
+    default <T> T requireProperty(SignerProperty<T> property) {
+        return Validate.notNull(property(property), property.toString() + " must not be null!");
+    }
+
+    /**
+     * Ensure that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and the default is returned otherwise.
+     */
+    default <T> T requireProperty(SignerProperty<T> property, T defaultValue) {
+        return Validate.getOrDefault(property(property), () -> defaultValue);
+    }
 
     /**
      * A builder for a {@link SignRequest}.

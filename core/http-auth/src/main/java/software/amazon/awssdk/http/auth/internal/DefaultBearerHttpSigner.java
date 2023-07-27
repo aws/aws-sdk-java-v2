@@ -31,41 +31,37 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 @SdkInternalApi
 public final class DefaultBearerHttpSigner implements BearerHttpSigner {
 
-    private static final String AUTHZ_HEADER = "Authorization";
-    private static final String BEARER_LABEL = "Bearer";
-
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
         return SyncSignedRequest.builder()
-            .request(doSign(request))
-            .payload(request.payload().orElse(null))
-            .build();
+                                .request(doSign(request))
+                                .payload(request.payload().orElse(null))
+                                .build();
     }
 
     @Override
     public AsyncSignedRequest signAsync(AsyncSignRequest<? extends TokenIdentity> request) {
         return AsyncSignedRequest.builder()
-            .request(doSign(request))
-            .payload(request.payload().orElse(null))
-            .build();
+                                 .request(doSign(request))
+                                 .payload(request.payload().orElse(null))
+                                 .build();
     }
 
     /**
-     * Using {@link SignRequest}, sign the request with
-     * a {@link SignRequest} and re-build it.
+     * Using {@link SignRequest}, sign the request with a {@link SignRequest} and re-build it.
      */
     private SdkHttpRequest doSign(SignRequest<?, ? extends TokenIdentity> request) {
         return request.request().toBuilder()
-            .putHeader(
-                AUTHZ_HEADER,
-                buildAuthorizationHeader(request.identity()))
-            .build();
+                      .putHeader(
+                          "Authorization",
+                          buildAuthorizationHeader(request.identity()))
+                      .build();
     }
 
     /**
      * Use a {@link TokenIdentity} to build an authorization header.
      */
     private String buildAuthorizationHeader(TokenIdentity tokenIdentity) {
-        return BEARER_LABEL + " " + tokenIdentity.token();
+        return "Bearer " + tokenIdentity.token();
     }
 }
