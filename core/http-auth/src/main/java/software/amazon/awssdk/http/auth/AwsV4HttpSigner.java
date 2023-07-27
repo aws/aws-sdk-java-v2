@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth;
 
 import java.time.Clock;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
@@ -81,6 +82,47 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      */
     SignerProperty<Boolean> NORMALIZE_PATH =
         SignerProperty.create(Boolean.class, "NormalizePath");
+
+    /**
+     * The location where auth-related data is inserted, as a result of signing.
+     * The valid choices are "Header" and "QueryString", where "Header" indicates that request
+     * headers are added, and "QueryString" indicates query-parameters are added.
+     * This property defaults to "Header".
+     */
+    SignerProperty<String> AUTH_LOCATION =
+        SignerProperty.create(String.class, "AuthLocation");
+
+    /**
+     * The duration for the request to be valid.
+     * This property defaults to the max valid duration (7 days).
+     * This is only used in the case of a pre-signing implementation.
+     */
+    SignerProperty<Duration> EXPIRATION_DURATION =
+        SignerProperty.create(Duration.class, "ExpirationDuration");
+
+    /**
+     * Whether to indicate that a payload is signed or not.
+     * This property defaults to true.
+     * This can be set false to disable payload signing.
+     */
+    SignerProperty<Boolean> PAYLOAD_SIGNING =
+        SignerProperty.create(Boolean.class, "PayloadSigning");
+
+    /**
+     * Whether to handle a request as an event-streaming or not.
+     * This property defaults to false.
+     * This is only used in the case of an implementation that supports event-streams.
+     */
+    SignerProperty<Boolean> EVENT_STREAMING =
+        SignerProperty.create(Boolean.class, "EventStreaming");
+
+    /**
+     * Whether to enable chunked encoding or not.
+     * This property defaults to false.
+     * This is only used in the case of an implementation that supports chunked-encoding.
+     */
+    SignerProperty<Boolean> CHUNKED_ENCODING =
+        SignerProperty.create(Boolean.class, "ChunkedEncoding");
 
     /**
      * Get a default implementation of a {@link AwsV4HttpSigner}
