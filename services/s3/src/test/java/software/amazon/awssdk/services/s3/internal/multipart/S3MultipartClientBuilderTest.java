@@ -47,7 +47,7 @@ class S3MultipartClientBuilderTest {
     void multipartDisabledWithConfig_shouldNotBuildMultipartClient() {
         S3AsyncClient client = S3AsyncClient.builder()
                                             .multipartEnabled(false)
-                                            .multipartConfiguration(b -> b.maximumMemoryUsageInBytes(1024L))
+                                            .multipartConfiguration(b -> b.apiCallBufferSizeInBytes(1024L))
                                             .region(Region.US_EAST_1)
                                             .build();
         assertThat(client).isNotInstanceOf(MultipartS3AsyncClient.class);

@@ -45,11 +45,10 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private static final ApiName USER_AGENT_API_NAME = ApiName.builder().name("hll").version("s3Multipart").build();
 
-    private static final long DEFAULT_MIN_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
-    private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
+    private static final long DEFAULT_MIN_PART_SIZE = 8L * 1024 * 1024;
     private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;
+    private static final long DEFAULT_API_CALL_BUFFER_SIZE = DEFAULT_MIN_PART_SIZE * 2;
 
-    private static final long DEFAULT_MAX_MEMORY = DEFAULT_PART_SIZE_IN_BYTES * 2;
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
 
@@ -58,18 +57,18 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         MultipartConfiguration validConfiguration = Validate.getOrDefault(multipartConfiguration,
                                                                           MultipartConfiguration.builder()::build);
         long minPartSizeInBytes = Validate.getOrDefault(validConfiguration.minimumPartSizeInBytes(),
-                                                        () -> DEFAULT_MIN_PART_SIZE_IN_BYTES);
+                                                        () -> DEFAULT_MIN_PART_SIZE);
         long threshold = Validate.getOrDefault(validConfiguration.thresholdInBytes(),
                                                () -> DEFAULT_THRESHOLD);
-        long maximumMemoryUsageInBytes = Validate.getOrDefault(validConfiguration.maximumMemoryUsageInBytes(),
-                                                               () -> computeMaxMemoryUsage(validConfiguration));
-        mpuHelper = new UploadObjectHelper(delegate, minPartSizeInBytes, threshold, maximumMemoryUsageInBytes);
+        long apiCallBufferSizeInBytes = Validate.getOrDefault(validConfiguration.apiCallBufferSizeInBytes(),
+                                                               () -> computeApiCallBufferSize(validConfiguration));
+        mpuHelper = new UploadObjectHelper(delegate, minPartSizeInBytes, threshold, apiCallBufferSizeInBytes);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
     }
 
-    private long computeMaxMemoryUsage(MultipartConfiguration multipartConfiguration) {
+    private long computeApiCallBufferSize(MultipartConfiguration multipartConfiguration) {
         return multipartConfiguration.minimumPartSizeInBytes() != null ? multipartConfiguration.minimumPartSizeInBytes() * 2
-                                                                       : DEFAULT_MAX_MEMORY;
+                                                                       : DEFAULT_API_CALL_BUFFER_SIZE;
     }
 
     @Override

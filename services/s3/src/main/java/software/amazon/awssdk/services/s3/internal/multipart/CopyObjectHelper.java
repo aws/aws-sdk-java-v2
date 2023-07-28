@@ -128,6 +128,10 @@ public final class CopyObjectHelper {
         long optimalPartSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
 
         int partCount = genericMultipartHelper.determinePartCount(contentLength, optimalPartSize);
+        if (optimalPartSize > partSizeInBytes) {
+            log.debug(() -> String.format("Configured partSize is %d, but using %d to prevent reaching maximum number of parts "
+                                         + "allowed", partSizeInBytes, optimalPartSize));
+        }
 
         log.debug(() -> String.format("Starting multipart copy with partCount: %s, optimalPartSize: %s",
                                       partCount, optimalPartSize));

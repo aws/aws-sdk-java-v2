@@ -46,12 +46,12 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
-    private final Long maximumMemoryUsageInBytes;
+    private final Long apiCallBufferSizeInBytes;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
         this.thresholdInBytes = builder.thresholdInBytes;
         this.minimumPartSizeInBytes = builder.minimumPartSizeInBytes;
-        this.maximumMemoryUsageInBytes = builder.maximumMemoryUsageInBytes;
+        this.apiCallBufferSizeInBytes = builder.apiCallBufferSizeInBytes;
     }
 
     public static Builder builder() {
@@ -61,7 +61,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     @Override
     public Builder toBuilder() {
         return builder()
-            .maximumMemoryUsageInBytes(maximumMemoryUsageInBytes)
+            .apiCallBufferSizeInBytes(apiCallBufferSizeInBytes)
             .minimumPartSizeInBytes(minimumPartSizeInBytes)
             .thresholdInBytes(thresholdInBytes);
     }
@@ -91,8 +91,8 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
      * The maximum memory, in bytes, that the SDK will use to buffer requests content into memory.
      * @return the value of the configured maximum memory usage.
      */
-    public Long maximumMemoryUsageInBytes() {
-        return this.maximumMemoryUsageInBytes;
+    public Long apiCallBufferSizeInBytes() {
+        return this.apiCallBufferSizeInBytes;
     }
 
     /**
@@ -148,26 +148,26 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
         /**
          * Configures the maximum amount of memory, in bytes, the SDK will use to buffer content of requests in memory.
-         * Increasing this value my lead to better performance at the cost of using more memory.
+         * Increasing this value may lead to better performance at the cost of using more memory.
          * <p></p>
          * Default value: If not specified, the SDK will use the equivalent of two parts worth of memory, so 16 Mib by default.
          *
-         * @param maximumMemoryUsageInBytes the value of the maximum memory usage.
+         * @param apiCallBufferSizeInBytes the value of the maximum memory usage.
          * @return an instance of this builder.
          */
-        Builder maximumMemoryUsageInBytes(Long maximumMemoryUsageInBytes);
+        Builder apiCallBufferSizeInBytes(Long apiCallBufferSizeInBytes);
 
         /**
          * Indicates the value of the maximum memory usage that the SDK will use.
          * @return the value of the maximum memory usage.
          */
-        Long maximumMemoryUsageInBytes();
+        Long apiCallBufferSizeInBytes();
     }
 
     private static class DefaultMultipartConfigBuilder implements Builder {
         private Long thresholdInBytes;
         private Long minimumPartSizeInBytes;
-        private Long maximumMemoryUsageInBytes;
+        private Long apiCallBufferSizeInBytes;
 
         public Builder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
@@ -188,14 +188,14 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         }
 
         @Override
-        public Builder maximumMemoryUsageInBytes(Long maximumMemoryUsageInBytes) {
-            this.maximumMemoryUsageInBytes = maximumMemoryUsageInBytes;
+        public Builder apiCallBufferSizeInBytes(Long maximumMemoryUsageInBytes) {
+            this.apiCallBufferSizeInBytes = maximumMemoryUsageInBytes;
             return this;
         }
 
         @Override
-        public Long maximumMemoryUsageInBytes() {
-            return maximumMemoryUsageInBytes;
+        public Long apiCallBufferSizeInBytes() {
+            return apiCallBufferSizeInBytes;
         }
 
         @Override
