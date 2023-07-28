@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Application Insights",
+    "contributor": "",
+    "description": "This release enable customer to add/remove/update more than one workload for a component"
+}
