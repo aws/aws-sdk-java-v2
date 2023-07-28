@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -405,34 +406,36 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
 
     /**
      * Converts this {@link AsyncRequestBody} to a publisher of {@link AsyncRequestBody}s, each of which publishes a specific
-     * portion of the original data, based on the configured {code chunkSizeInBytes}.
+     * portion of the original data, based on the provided {@link AsyncRequestBodySplitConfiguration}. The default chunk size
+     * is 2MB and the default buffer size is 8MB.
      *
      * <p>
      * If content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is delivered to the
      * subscriber right after it's initialized.
      * <p>
-     * // TODO: API Surface Area review: should we make this behavior configurable?
      * If content length is null, it is sent after the entire content for that chunk is buffered.
      * In this case, the configured {@code maxMemoryUsageInBytes} must be larger than or equal to {@code chunkSizeInBytes}.
      *
-     * @param chunkSizeInBytes      the size for each divided chunk. The last chunk may be smaller than the configured size.
-     * @param maxMemoryUsageInBytes the max memory the SDK will use to buffer the content
-     * @return SplitAsyncRequestBodyResult
+     * @see AsyncRequestBodySplitConfiguration
      */
-    default SdkPublisher<AsyncRequestBody> split(long chunkSizeInBytes, long maxMemoryUsageInBytes) {
-        Validate.isPositive(chunkSizeInBytes, "chunkSizeInBytes");
-        Validate.isPositive(maxMemoryUsageInBytes, "maxMemoryUsageInBytes");
-
-        if (!contentLength().isPresent()) {
-            Validate.isTrue(maxMemoryUsageInBytes >= chunkSizeInBytes,
-                            "maxMemoryUsageInBytes must be larger than or equal to " +
-                            "chunkSizeInBytes if the content length is unknown");
-        }
+    default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
 
         return SplittingPublisher.builder()
                                  .asyncRequestBody(this)
-                                 .chunkSizeInBytes(chunkSizeInBytes)
-                                 .maxMemoryUsageInBytes(maxMemoryUsageInBytes)
+                                 .chunkSizeInBytes(splitConfiguration.chunkSizeInBytes())
+                                 .bufferSizeInBytes(splitConfiguration.bufferSizeInBytes())
                                  .build();
+    }
+
+    /**
+     * This is a convenience method that passes an instance of the {@link AsyncRequestBodySplitConfiguration} builder,
+     * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
+     *
+     * @see #split(AsyncRequestBodySplitConfiguration)
+     */
+    default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
     }
 }
