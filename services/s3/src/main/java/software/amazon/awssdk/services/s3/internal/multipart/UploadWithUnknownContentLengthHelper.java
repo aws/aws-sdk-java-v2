@@ -74,8 +74,8 @@ public final class UploadWithUnknownContentLengthHelper {
         CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
 
         SdkPublisher<AsyncRequestBody> splitAsyncRequestBodyResponse =
-            asyncRequestBody.split(partSizeInBytes,
-                                   maxMemoryUsageInBytes);
+            asyncRequestBody.split(b -> b.chunkSizeInBytes(partSizeInBytes)
+                                         .bufferSizeInBytes(maxMemoryUsageInBytes));
 
         splitAsyncRequestBodyResponse.subscribe(new UnknownContentLengthAsyncRequestBodySubscriber(partSizeInBytes,
                                                                                                    putObjectRequest,

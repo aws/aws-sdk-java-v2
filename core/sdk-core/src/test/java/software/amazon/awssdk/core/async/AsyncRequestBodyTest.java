@@ -356,25 +356,4 @@ public class AsyncRequestBodyTest {
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(bodyPublisher);
         assertEquals(Mimetype.MIMETYPE_OCTET_STREAM, requestBody.contentType());
     }
-
-    @Test
-    public void split_nonPositiveInput_shouldThrowException() {
-        AsyncRequestBody body = AsyncRequestBody.fromString("test");
-        assertThatThrownBy(() -> body.split(0, 4)).hasMessageContaining("must be positive");
-        assertThatThrownBy(() -> body.split(-1, 4)).hasMessageContaining("must be positive");
-        assertThatThrownBy(() -> body.split(5, 0)).hasMessageContaining("must be positive");
-        assertThatThrownBy(() -> body.split(5, -1)).hasMessageContaining("must be positive");
-    }
-
-    @Test
-    public void split_contentUnknownMaxMemorySmallerThanChunkSize_shouldThrowException() {
-        AsyncRequestBody body = AsyncRequestBody.fromPublisher(new Publisher<ByteBuffer>() {
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-
-            }
-        });
-        assertThatThrownBy(() -> body.split(10, 4))
-            .hasMessageContaining("must be larger than or equal");
-    }
 }
