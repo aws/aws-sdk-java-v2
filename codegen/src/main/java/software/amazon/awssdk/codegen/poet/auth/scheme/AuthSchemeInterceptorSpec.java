@@ -33,7 +33,6 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
@@ -56,12 +55,10 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 public final class AuthSchemeInterceptorSpec implements ClassSpec {
-    private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AuthSchemeInterceptorSpec(IntermediateModel intermediateModel) {
-        this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
@@ -161,8 +158,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                              endpointRulesSpecUtils.resolverInterceptorName());
         builder.addStatement("$1T.Builder builder = $1T.builder()", authSchemeSpecUtils.parametersInterfaceName());
         boolean regionIncluded = false;
-        for (Map.Entry<String, ParameterModel> kvp : parameters().entrySet()) {
-            String paramName = kvp.getKey();
+        for (String paramName : endpointRulesSpecUtils.parameters().keySet()) {
             if (!authSchemeSpecUtils.includeParamForProvider(paramName)) {
                 continue;
             }
@@ -342,9 +338,5 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
             throw new IllegalArgumentException("Don't know how to convert " + valueType + " to TypeName");
         }
         return result;
-    }
-
-    private Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
     }
 }
