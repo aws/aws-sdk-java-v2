@@ -32,13 +32,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 
@@ -61,13 +61,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
 
         testFile = File.createTempFile("SplittingPublisherTest", UUID.randomUUID().toString());
         Files.write(testFile.toPath(), CONTENT);
-        mpuS3Client = S3AsyncClient.builder()
-                                   .region(DEFAULT_REGION)
-                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                   .multipartEnabled(true)
-                                   .overrideConfiguration(o -> o.addExecutionInterceptor(
-                                       new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)))
-                                   .build();
+        mpuS3Client = new MultipartS3AsyncClient(s3Async, MultipartConfiguration.builder().build());
     }
 
     @AfterAll
@@ -82,8 +76,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
-        ResponseInputStream<GetObjectResponse> objContent =
-            S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+        ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
                                                                                                ResponseTransformer.toInputStream());
 
         assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
@@ -97,8 +90,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         AsyncRequestBody body = AsyncRequestBody.fromBytes(bytes);
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
-        ResponseInputStream<GetObjectResponse> objContent =
-            S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+        ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
                                                                                                ResponseTransformer.toInputStream());
 
         assertThat(objContent.response().contentLength()).isEqualTo(OBJ_SIZE);
@@ -123,8 +115,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
             }
         }).get(30, SECONDS);
 
-        ResponseInputStream<GetObjectResponse> objContent =
-            S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+        ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
                                                                                                ResponseTransformer.toInputStream());
 
         assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());

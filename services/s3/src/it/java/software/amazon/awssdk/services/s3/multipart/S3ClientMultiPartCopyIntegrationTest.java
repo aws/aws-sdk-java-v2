@@ -34,13 +34,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
@@ -57,7 +57,6 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
     private static final long SMALL_OBJ_SIZE = 1024 * 1024;
     private static S3AsyncClient s3CrtAsyncClient;
     private static S3AsyncClient s3MpuClient;
-
     @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
@@ -66,13 +65,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .region(DEFAULT_REGION)
                                            .build();
-        s3MpuClient = S3AsyncClient.builder()
-                                   .region(DEFAULT_REGION)
-                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                   .overrideConfiguration(o -> o.addExecutionInterceptor(
-                                       new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)))
-                                   .multipartEnabled(true)
-                                   .build();
+        s3MpuClient = new MultipartS3AsyncClient(s3Async, MultipartConfiguration.builder().build());
     }
 
     @AfterAll
@@ -164,7 +157,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
 
     private void createOriginalObject(byte[] originalContent, String originalKey) {
         s3CrtAsyncClient.putObject(r -> r.bucket(BUCKET)
-                                         .key(originalKey),
+                           .key(originalKey),
                                    AsyncRequestBody.fromBytes(originalContent)).join();
     }
 

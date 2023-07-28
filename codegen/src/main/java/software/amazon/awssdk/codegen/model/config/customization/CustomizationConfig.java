@@ -256,6 +256,11 @@ public class CustomizationConfig {
      */
     private Map<String, ClientContextParam> customClientContextParams;
 
+    /**
+     * Only for s3. A set of customization to related to multipart operations.
+     */
+    private MultipartCustomization multipartCustomization;
+
     private CustomizationConfig() {
     }
 
@@ -664,5 +669,13 @@ public class CustomizationConfig {
 
     public void setCustomClientContextParams(Map<String, ClientContextParam> customClientContextParams) {
         this.customClientContextParams = customClientContextParams;
+    }
+
+    public MultipartCustomization getMultipartCustomization() {
+        return this.multipartCustomization;
+    }
+
+    public void setMultipartCustomization(MultipartCustomization multipartCustomization) {
+        this.multipartCustomization = multipartCustomization;
     }
 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.builder;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
@@ -24,6 +25,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.codegen.model.config.customization.MultipartCustomization;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -80,6 +82,11 @@ public class AsyncClientBuilderClass implements ClassSpec {
             builder.addMethod(bearerTokenProviderMethod());
         }
 
+        MultipartCustomization multipartCustomization = model.getCustomizationConfig().getMultipartCustomization();
+        if (multipartCustomization != null) {
+            builder.addMethod(multipartEnabledMethod(multipartCustomization));
+            builder.addMethod(multipartConfigMethods(multipartCustomization));
+        }
         builder.addMethod(buildClientMethod());
         builder.addMethod(initializeServiceClientConfigMethod());
 
@@ -179,6 +186,34 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .build();
     }
 
+
+    private MethodSpec multipartEnabledMethod(MultipartCustomization multipartCustomization) {
+        ClassName mulitpartConfigClassName =
+            PoetUtils.classNameFromFqcn(multipartCustomization.getMultipartConfigurationClass());
+        return MethodSpec.methodBuilder("multipartEnabled")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(builderInterfaceName)
+                         .addParameter(Boolean.class, "enabled")
+                         .addStatement("clientContextParams.put($T.MULTIPART_ENABLED_KEY, enabled)",
+                                       mulitpartConfigClassName)
+                         .addStatement("return this")
+                         .build();
+    }
+
+    private MethodSpec multipartConfigMethods(MultipartCustomization multipartCustomization) {
+        ClassName mulitpartConfigClassName =
+            PoetUtils.classNameFromFqcn(multipartCustomization.getMultipartConfigurationClass());
+        return MethodSpec.methodBuilder("multipartConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfig").build())
+                         .returns(builderInterfaceName)
+                         .addStatement("clientContextParams.put($T.MULTIPART_CONFIGURATION_KEY, multipartConfig)",
+                                       mulitpartConfigClassName)
+                         .addStatement("return this")
+                         .build();
+    }
     @Override
     public ClassName className() {
         return builderClassName;
