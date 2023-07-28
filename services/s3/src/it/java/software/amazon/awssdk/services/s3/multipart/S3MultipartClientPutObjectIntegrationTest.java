@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
@@ -61,7 +62,13 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
 
         testFile = File.createTempFile("SplittingPublisherTest", UUID.randomUUID().toString());
         Files.write(testFile.toPath(), CONTENT);
-        mpuS3Client = new MultipartS3AsyncClient(s3Async, MultipartConfiguration.builder().build());
+        mpuS3Client = S3AsyncClient.builder()
+                                   .region(DEFAULT_REGION)
+                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                   .overrideConfiguration(o -> o.addExecutionInterceptor(
+                                       new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)))
+                                   .multipartEnabled(true)
+                                   .build();
     }
 
     @AfterAll
