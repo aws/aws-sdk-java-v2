@@ -1,3 +1,8 @@
+# __2.20.114__ __2023-07-27__
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation changes related to SQS APIs.
+
 # __2.20.113__ __2023-07-27__
 ## __Amazon Elastic Block Store__
   - ### Features
