@@ -28,23 +28,38 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
+import software.amazon.awssdk.utils.Validate;
 
 // This is just a temporary class for testing
 //TODO: change this
 @SdkInternalApi
 public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
-    private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
+    private static final long DEFAULT_MIN_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;
 
-    private static final long DEFAULT_MAX_MEMORY = DEFAULT_PART_SIZE_IN_BYTES * 2;
+    private static final long DEFAULT_MAX_MEMORY = DEFAULT_MIN_PART_SIZE_IN_BYTES * 2;
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
 
-    public MultipartS3AsyncClient(S3AsyncClient delegate) {
+    public MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration configuration) {
         super(delegate);
-        // TODO: pass a config object to the upload helper instead
-        mpuHelper = new UploadObjectHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_THRESHOLD, DEFAULT_MAX_MEMORY);
-        copyObjectHelper = new CopyObjectHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_THRESHOLD);
+        MultipartConfiguration validConfiguration = Validate.getOrDefault(
+            configuration,
+            MultipartConfiguration.builder()::build);
+        long minPartSizeInBytes = Validate.getOrDefault(validConfiguration.minimumPartSizeInBytes(),
+                                                        () -> DEFAULT_MIN_PART_SIZE_IN_BYTES);
+        long threshold = Validate.getOrDefault(validConfiguration.thresholdInBytes(),
+                                               () -> DEFAULT_THRESHOLD);
+        long maximumMemoryUsageInBytes = Validate.getOrDefault(validConfiguration.maximumMemoryUsageInBytes(),
+                                                               () -> computeMaxMemoryUsage(validConfiguration));
+        mpuHelper = new UploadObjectHelper(delegate, minPartSizeInBytes, threshold, maximumMemoryUsageInBytes);
+        copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
+    }
+
+    private long computeMaxMemoryUsage(MultipartConfiguration multipartConfiguration) {
+        return multipartConfiguration.minimumPartSizeInBytes() != null ? multipartConfiguration.minimumPartSizeInBytes() * 2
+                                                                       : DEFAULT_MAX_MEMORY;
     }
 
     @Override

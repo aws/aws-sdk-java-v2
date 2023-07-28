@@ -66,7 +66,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .region(DEFAULT_REGION)
                                            .build();
-        s3MpuClient = new MultipartS3AsyncClient(s3Async);
+        s3MpuClient = new MultipartS3AsyncClient(s3Async, MultipartConfiguration.builder().build());
     }
 
     @AfterAll
