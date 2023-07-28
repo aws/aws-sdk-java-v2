@@ -35,12 +35,15 @@ import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
-// This is just a temporary class for testing
-//TODO: change this
+/**
+ * An {@link S3AsyncClient} that automatically converts put, copy requests to their respective multipart call.
+ * Note: get is not yet supported.
+ * @see MultipartConfiguration
+ */
 @SdkInternalApi
 public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
-    public static final ApiName USER_AGENT_API_NAME = ApiName.builder().name("hll").version("s3Multipart").build();
+    private static final ApiName USER_AGENT_API_NAME = ApiName.builder().name("hll").version("s3Multipart").build();
 
     private static final long DEFAULT_MIN_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
