@@ -214,6 +214,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .addStatement("return this")
                          .build();
     }
+
     @Override
     public ClassName className() {
         return builderClassName;
