@@ -40,6 +40,8 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
  */
 public class Http2MultiplexedChannelPoolTest {
     private static EventLoopGroup loopGroup;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @BeforeClass
     public static void setup() {
@@ -202,10 +205,16 @@ public class Http2MultiplexedChannelPoolTest {
                 }
             });
 
-            t.start();
-            t.interrupt();
-            t.join();
-            assertThat(interrupteFlagPreserved.join()).isTrue();
+            executor.execute(() -> {
+                t.start();
+                t.interrupt();
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                assertThat(interrupteFlagPreserved.join()).isTrue();
+            });
         } finally {
             channel.close().awaitUninterruptibly();
         }
