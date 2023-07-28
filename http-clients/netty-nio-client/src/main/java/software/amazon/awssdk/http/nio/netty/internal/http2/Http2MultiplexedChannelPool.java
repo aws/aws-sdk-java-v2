@@ -46,7 +46,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -95,6 +98,7 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
 
     private AtomicBoolean closed = new AtomicBoolean(false);
 
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     /**
      * @param connectionPool Connection pool for parent channels (i.e. the socket channel).
      */
@@ -384,19 +388,22 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
         if (closed.compareAndSet(false, true)) {
             Future<?> closeCompleteFuture = doClose();
 
-            try {
-                if (!closeCompleteFuture.await(10, TimeUnit.SECONDS)) {
-                    throw new RuntimeException("Event loop didn't close after 10 seconds.");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
-            }
-
-            Throwable exception = closeCompleteFuture.cause();
-            if (exception != null) {
-                throw new RuntimeException("Failed to close channel pool.", exception);
-            }
+            CompletableFuture.runAsync(() -> {
+                 try {
+                     if (!closeCompleteFuture.await(10, TimeUnit.SECONDS)) {
+                         throw new RuntimeException("Event loop didn't close after 10 seconds.");
+                     }
+                 } catch (InterruptedException e) {
+                     throw new CompletionException(e);
+                 }
+            }, executor)
+            .thenRun(() -> {
+                 // To notify customers if the resources failed to be released
+                 Throwable exception = closeCompleteFuture.cause();
+                 if (exception != null) {
+                     throw new RuntimeException("Failed to close channel pool.", exception);
+                 }
+            });
         }
     }
 
