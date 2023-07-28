@@ -19,10 +19,13 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
@@ -52,6 +55,13 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
         return copyObjectHelper.copyObject(copyObjectRequest);
+    }
+
+    @Override
+    public <ReturnT> CompletableFuture<ReturnT> getObject(
+        GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
+        throw new UnsupportedOperationException(
+            "Multipart download is not yet supported. Instead use the CRT based S3 client for multipart download.");
     }
 
     @Override
