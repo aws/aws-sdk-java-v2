@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.config.customization;
 
-import software.amazon.awssdk.utils.ToString;
-
 public class ServiceConfig {
     /**
      * Specifies the name of the client configuration class to use if a service
@@ -113,19 +111,5 @@ public class ServiceConfig {
 
     public void setHasAccelerateModeEnabledProperty(boolean hasAccelerateModeEnabledProperty) {
         this.hasAccelerateModeEnabledProperty = hasAccelerateModeEnabledProperty;
-    }
-
-    @Override
-    public String toString() {
-        return ToString.builder("ServiceConfig")
-                       .add("className", className)
-                       .add("hasDualstackProperty", hasDualstackProperty)
-                       .add("hasFipsProperty", hasFipsProperty)
-                       .add("hasUseArnRegionProperty", hasUseArnRegionProperty)
-                       .add("hasMultiRegionEnabledProperty", hasMultiRegionEnabledProperty)
-                       .add("hasPathStyleAccessEnabledProperty", hasPathStyleAccessEnabledProperty)
-                       .add("hasAccelerateModeEnabledProperty", hasAccelerateModeEnabledProperty)
-                       .add("hasCrossRegionAccessEnabledProperty", hasCrossRegionAccessEnabledProperty)
-                       .build();
     }
 }

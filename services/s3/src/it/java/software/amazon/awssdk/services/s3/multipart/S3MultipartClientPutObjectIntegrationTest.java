@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
@@ -27,10 +26,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -43,10 +39,8 @@ import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
-import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
-import software.amazon.awssdk.testutils.RandomTempFile;
 
 @Timeout(value = 30, unit = SECONDS)
 public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTestBase {

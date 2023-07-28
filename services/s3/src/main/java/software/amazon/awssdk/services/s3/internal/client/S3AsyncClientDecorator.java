@@ -49,7 +49,7 @@ public class S3AsyncClientDecorator {
             isMultipartEnable(clientContextParams),
             client -> {
                 MultipartConfiguration multipartConfiguration = clientContextParams.get(MULTIPART_CONFIGURATION_KEY);
-                return new MultipartS3AsyncClient(client, multipartConfiguration);
+                return MultipartS3AsyncClient.create(client, multipartConfiguration);
             }));
         return ConditionalDecorator.decorate(base, decorators);
     }

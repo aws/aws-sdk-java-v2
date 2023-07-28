@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ApiName;
@@ -32,7 +33,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 
-public class MultipartClientUserAgentTest {
+class MultipartClientUserAgentTest {
     private MockAsyncHttpClient mockAsyncHttpClient;
     private UserAgentInterceptor userAgentInterceptor;
     private S3AsyncClient s3Client;
@@ -45,14 +46,19 @@ public class MultipartClientUserAgentTest {
                                 .httpClient(mockAsyncHttpClient)
                                 .endpointOverride(URI.create("http://localhost"))
                                 .overrideConfiguration(c -> c.addExecutionInterceptor(userAgentInterceptor))
+                                .multipartConfiguration(c -> c.minimumPartSizeInBytes(512L).thresholdInBytes(512L))
                                 .multipartEnabled(true)
-                                .multipartConfiguration(c -> c.minimumPartSizeInBytes(1024L).thresholdInBytes(1024L))
                                 .region(Region.US_EAST_1)
                                 .build();
     }
 
+    @AfterEach
+    void reset() {
+        this.mockAsyncHttpClient.reset();
+    }
+
     @Test
-    void validateUserAgent_put_oneChunk() throws Exception {
+    void validateUserAgent_nonMultipartMethod() throws Exception {
         HttpExecuteResponse response = HttpExecuteResponse.builder()
                                                           .response(SdkHttpResponse.builder().statusCode(200).build())
                                                           .build();
@@ -60,7 +66,6 @@ public class MultipartClientUserAgentTest {
 
         s3Client.headObject(req -> req.key("mock").bucket("mock")).get();
 
-        assertThat(userAgentInterceptor.apiNames).isNotNull();
         assertThat(userAgentInterceptor.apiNames)
             .anyMatch(api -> "hll".equals(api.name()) && "s3Multipart".equals(api.version()));
     }

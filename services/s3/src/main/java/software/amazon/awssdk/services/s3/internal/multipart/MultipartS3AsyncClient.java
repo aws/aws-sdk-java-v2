@@ -36,12 +36,13 @@ import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@link S3AsyncClient} that automatically converts put, copy requests to their respective multipart call.
- * Note: get is not yet supported.
+ * An {@link S3AsyncClient} that automatically converts put, copy requests to their respective multipart call. Note: get is not
+ * yet supported.
+ *
  * @see MultipartConfiguration
  */
 @SdkInternalApi
-public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
+public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private static final ApiName USER_AGENT_API_NAME = ApiName.builder().name("hll").version("s3Multipart").build();
 
@@ -52,7 +53,7 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
 
-    public MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration) {
+    private MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration) {
         super(delegate);
         MultipartConfiguration validConfiguration = Validate.getOrDefault(multipartConfiguration,
                                                                           MultipartConfiguration.builder()::build);
@@ -61,7 +62,7 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         long threshold = Validate.getOrDefault(validConfiguration.thresholdInBytes(),
                                                () -> DEFAULT_THRESHOLD);
         long apiCallBufferSizeInBytes = Validate.getOrDefault(validConfiguration.apiCallBufferSizeInBytes(),
-                                                               () -> computeApiCallBufferSize(validConfiguration));
+                                                              () -> computeApiCallBufferSize(validConfiguration));
         mpuHelper = new UploadObjectHelper(delegate, minPartSizeInBytes, threshold, apiCallBufferSizeInBytes);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
     }
@@ -69,13 +70,6 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private long computeApiCallBufferSize(MultipartConfiguration multipartConfiguration) {
         return multipartConfiguration.minimumPartSizeInBytes() != null ? multipartConfiguration.minimumPartSizeInBytes() * 2
                                                                        : DEFAULT_API_CALL_BUFFER_SIZE;
-    }
-
-    @Override
-    protected <T extends S3Request, ReturnT> CompletableFuture<ReturnT> invokeOperation(T request, Function<T,
-        CompletableFuture<ReturnT>> operation) {
-        T requestWithUserAgent = UserAgentUtils.applyUserAgentInfo(request, c -> c.addApiName(USER_AGENT_API_NAME));
-        return operation.apply(requestWithUserAgent);
     }
 
     @Override
@@ -98,5 +92,17 @@ public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public void close() {
         delegate().close();
+    }
+
+    public static MultipartS3AsyncClient create(S3AsyncClient client, MultipartConfiguration multipartConfiguration) {
+        S3AsyncClient clientWithUserAgent = new DelegatingS3AsyncClient(client) {
+            @Override
+            protected <T extends S3Request, ReturnT> CompletableFuture<ReturnT> invokeOperation(T request, Function<T,
+                CompletableFuture<ReturnT>> operation) {
+                T requestWithUserAgent = UserAgentUtils.applyUserAgentInfo(request, c -> c.addApiName(USER_AGENT_API_NAME));
+                return operation.apply(requestWithUserAgent);
+            }
+        };
+        return new MultipartS3AsyncClient(clientWithUserAgent, multipartConfiguration);
     }
 }
