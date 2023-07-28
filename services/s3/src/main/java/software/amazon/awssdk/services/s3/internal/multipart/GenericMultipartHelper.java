@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import static software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient.USER_AGENT_API_NAME;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -27,7 +25,6 @@ import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -94,8 +91,6 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
                                                                                    .parts(parts)
                                                                                    .build())
                                           .build();
-        completeMultipartUploadRequest = UserAgentUtils.applyUserAgentInfo(completeMultipartUploadRequest,
-                                                                           c -> c.addApiName(USER_AGENT_API_NAME));
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
@@ -129,9 +124,7 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
 
     public void cleanUpParts(String uploadId, AbortMultipartUploadRequest.Builder abortMultipartUploadRequest) {
         log.debug(() -> "Aborting multipart upload: " + uploadId);
-        AbortMultipartUploadRequest request = UserAgentUtils
-            .applyUserAgentInfo(abortMultipartUploadRequest.uploadId(uploadId).build(),
-                                c -> c.addApiName(USER_AGENT_API_NAME));
+        AbortMultipartUploadRequest request = abortMultipartUploadRequest.uploadId(uploadId).build();
         s3AsyncClient.abortMultipartUpload(request)
                      .exceptionally(throwable -> {
                          log.warn(() -> String.format("Failed to abort previous multipart upload "

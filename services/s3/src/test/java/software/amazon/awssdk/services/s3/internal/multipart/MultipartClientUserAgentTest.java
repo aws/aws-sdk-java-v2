@@ -23,7 +23,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -59,7 +58,7 @@ public class MultipartClientUserAgentTest {
                                                           .build();
         mockAsyncHttpClient.stubResponses(response);
 
-        s3Client.putObject(req -> req.key("key").bucket("bucket"), AsyncRequestBody.fromString("12345678")).get();
+        s3Client.headObject(req -> req.key("mock").bucket("mock")).get();
 
         assertThat(userAgentInterceptor.apiNames).isNotNull();
         assertThat(userAgentInterceptor.apiNames)
