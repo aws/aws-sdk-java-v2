@@ -28,6 +28,9 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 @SdkPublicApi
 public interface AwsV4AuthScheme extends AuthScheme<AwsCredentialsIdentity> {
 
+    /**
+     * The scheme ID for this interface.
+     */
     String SCHEME_ID = "aws.auth#sigv4";
 
     /**
