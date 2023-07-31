@@ -29,6 +29,7 @@ public final class TransferManagerBenchmarkConfig {
     private final Long contentLengthInMb;
     private final Duration timeout;
     private final Long memoryUsageInMb;
+    private final Long connectionAcquisitionTimeoutInSec;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -48,6 +49,7 @@ public final class TransferManagerBenchmarkConfig {
         this.contentLengthInMb = builder.contentLengthInMb;
         this.timeout = builder.timeout;
         this.memoryUsageInMb = builder.memoryUsage;
+        this.connectionAcquisitionTimeoutInSec = builder.connectionAcquisitionTimeoutInSec;
     }
 
     public String filePath() {
@@ -102,6 +104,10 @@ public final class TransferManagerBenchmarkConfig {
         return this.memoryUsageInMb;
     }
 
+    public Long connectionAcquisitionTimeoutInSec() {
+        return this.connectionAcquisitionTimeoutInSec;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -133,6 +139,7 @@ public final class TransferManagerBenchmarkConfig {
         private Long partSizeInMb;
         private Long contentLengthInMb;
         private Long memoryUsage;
+        private Long connectionAcquisitionTimeoutInSec;
 
         private Integer iteration;
         private BenchmarkRunner.TransferManagerOperation operation;
@@ -202,6 +209,11 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder memoryUsageInMb(Long memoryUsage) {
             this.memoryUsage = memoryUsage;
+            return this;
+        }
+
+        public Builder connectionAcquisitionTimeoutInSec(Long connectionAcquisitionTimeoutInSec) {
+            this.connectionAcquisitionTimeoutInSec = connectionAcquisitionTimeoutInSec;
             return this;
         }
 

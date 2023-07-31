@@ -23,7 +23,9 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.utils.Logger;
@@ -52,14 +54,19 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
 
         long partSizeInMb = Validate.paramNotNull(config.partSizeInMb(), "partSize");
         long readBufferInMb = Validate.paramNotNull(config.readBufferSizeInMb(), "readBufferSizeInMb");
-        this.s3AsyncClient = S3AsyncClient
+        S3AsyncClientBuilder builder = S3AsyncClient
             .builder()
             .multipartEnabled(true)
             .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
                                           .thresholdInBytes(partSizeInMb * 2 * MB)
-                                          .apiCallBufferSizeInBytes(readBufferInMb * MB))
-
-            .build();
+                                          .apiCallBufferSizeInBytes(readBufferInMb * MB));
+        if (config.connectionAcquisitionTimeoutInSec() != null) {
+            Duration connAcqTimeout = Duration.ofSeconds(config.connectionAcquisitionTimeoutInSec());
+            builder.httpClient(NettyNioAsyncHttpClient.builder()
+                                                      .connectionAcquisitionTimeout(connAcqTimeout)
+                                                      .build());
+        }
+        this.s3AsyncClient = builder.build();
     }
 
     protected abstract void sendOneRequest(List<Double> latencies) throws Exception;
