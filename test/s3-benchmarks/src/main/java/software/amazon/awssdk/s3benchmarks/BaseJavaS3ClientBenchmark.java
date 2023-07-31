@@ -23,6 +23,7 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
@@ -60,7 +61,10 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
             .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
                                           .thresholdInBytes(partSizeInMb * 2 * MB)
                                           .apiCallBufferSizeInBytes(readBufferInMb * MB));
-        if (config.connectionAcquisitionTimeoutInSec() != null) {
+        if (config.forceCrtHttpClient()) {
+            logger.info(() -> "Using CRT HTTP client");
+            builder.httpClient(AwsCrtAsyncHttpClient.create());
+        } else if (config.connectionAcquisitionTimeoutInSec() != null) {
             Duration connAcqTimeout = Duration.ofSeconds(config.connectionAcquisitionTimeoutInSec());
             builder.httpClient(NettyNioAsyncHttpClient.builder()
                                                       .connectionAcquisitionTimeout(connAcqTimeout)
