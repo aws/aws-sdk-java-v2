@@ -19,10 +19,12 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHU
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -31,17 +33,20 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkInternalApi
 public final class ChunkBuffer {
-    private final AtomicLong remainingBytes;
+    private static final Logger log = Logger.loggerFor(ChunkBuffer.class);
+    private final AtomicLong transferredBytes;
     private final ByteBuffer currentBuffer;
-    private final int bufferSize;
+    private final int chunkSize;
+    private final long totalBytes;
 
     private ChunkBuffer(Long totalBytes, Integer bufferSize) {
         Validate.notNull(totalBytes, "The totalBytes must not be null");
 
         int chunkSize = bufferSize != null ? bufferSize : DEFAULT_ASYNC_CHUNK_SIZE;
-        this.bufferSize = chunkSize;
+        this.chunkSize = chunkSize;
         this.currentBuffer = ByteBuffer.allocate(chunkSize);
-        this.remainingBytes = new AtomicLong(totalBytes);
+        this.totalBytes = totalBytes;
+        this.transferredBytes = new AtomicLong(0);
     }
 
     public static Builder builder() {
@@ -49,52 +54,94 @@ public final class ChunkBuffer {
     }
 
 
-    // currentBuffer and bufferedList can get over written if concurrent Threads calls this method at the same time.
-    public synchronized Iterable<ByteBuffer> bufferAndCreateChunks(ByteBuffer buffer) {
-        int startPosition = 0;
-        List<ByteBuffer> bufferedList = new ArrayList<>();
-        int currentBytesRead = buffer.remaining();
-        do {
-            int bufferedBytes = currentBuffer.position();
-            int availableToRead = bufferSize - bufferedBytes;
-            int bytesToMove = Math.min(availableToRead, currentBytesRead - startPosition);
+    /**
+     * Split the input {@link ByteBuffer} into multiple smaller {@link ByteBuffer}s, each of which contains {@link #chunkSize}
+     * worth of bytes. If the last chunk of the input ByteBuffer contains less than {@link #chunkSize} data, the last chunk will
+     * be buffered.
+     */
+    public synchronized Iterable<ByteBuffer> split(ByteBuffer inputByteBuffer) {
 
-            byte[] bytes = BinaryUtils.copyAllBytesFrom(buffer);
-            if (bufferedBytes == 0) {
-                currentBuffer.put(bytes, startPosition, bytesToMove);
-            } else {
-                currentBuffer.put(bytes, 0, bytesToMove);
-            }
-
-            startPosition = startPosition + bytesToMove;
-
-            // Send the data once the buffer is full
-            if (currentBuffer.position() == bufferSize) {
-                currentBuffer.position(0);
-                ByteBuffer bufferToSend = ByteBuffer.allocate(bufferSize);
-                bufferToSend.put(currentBuffer.array(), 0, bufferSize);
-                bufferToSend.clear();
-                currentBuffer.clear();
-                bufferedList.add(bufferToSend);
-                remainingBytes.addAndGet(-bufferSize);
-            }
-        } while (startPosition < currentBytesRead);
-
-        int remainingBytesInBuffer = currentBuffer.position();
-
-        // Send the remaining buffer when
-        // 1. remainingBytes in buffer are same as the last few bytes to be read.
-        // 2. If it is a zero byte and the last byte to be read.
-        if (remainingBytes.get() == remainingBytesInBuffer &&
-            (buffer.remaining() == 0 || remainingBytesInBuffer > 0)) {
-            currentBuffer.clear();
-            ByteBuffer trimmedBuffer = ByteBuffer.allocate(remainingBytesInBuffer);
-            trimmedBuffer.put(currentBuffer.array(), 0, remainingBytesInBuffer);
-            trimmedBuffer.clear();
-            bufferedList.add(trimmedBuffer);
-            remainingBytes.addAndGet(-remainingBytesInBuffer);
+        if (!inputByteBuffer.hasRemaining()) {
+            return Collections.singletonList(inputByteBuffer);
         }
-        return bufferedList;
+
+        List<ByteBuffer> byteBuffers = new ArrayList<>();
+
+        // If current buffer is not empty, fill the buffer first.
+        if (currentBuffer.position() != 0) {
+            fillBuffer(inputByteBuffer);
+
+            if (isCurrentBufferFull()) {
+                addCurrentBufferToIterable(byteBuffers, chunkSize);
+            }
+        }
+
+        // If the input buffer is not empty, split the input buffer
+        if (inputByteBuffer.hasRemaining()) {
+            splitInputBuffer(inputByteBuffer, byteBuffers);
+        }
+
+        // If this is the last chunk, add data buffered to the iterable
+        if (isLastChunk()) {
+            int remainingBytesInBuffer = currentBuffer.position();
+            addCurrentBufferToIterable(byteBuffers, remainingBytesInBuffer);
+        }
+        return byteBuffers;
+    }
+
+    private boolean isCurrentBufferFull() {
+        return currentBuffer.position() == chunkSize;
+    }
+
+    private void splitInputBuffer(ByteBuffer buffer, List<ByteBuffer> byteBuffers) {
+        while (buffer.hasRemaining()) {
+            ByteBuffer chunkByteBuffer = buffer.asReadOnlyBuffer();
+            if (buffer.remaining() < chunkSize) {
+                currentBuffer.put(buffer);
+                break;
+            }
+
+            int newLimit = chunkByteBuffer.position() + chunkSize;
+            chunkByteBuffer.limit(newLimit);
+            buffer.position(newLimit);
+            byteBuffers.add(chunkByteBuffer);
+            transferredBytes.addAndGet(chunkSize);
+        }
+    }
+
+    private boolean isLastChunk() {
+        long remainingBytes = totalBytes - transferredBytes.get();
+        return remainingBytes != 0 && remainingBytes == currentBuffer.position();
+    }
+
+    private void addCurrentBufferToIterable(List<ByteBuffer> byteBuffers, int capacity) {
+        ByteBuffer bufferedChunk = ByteBuffer.allocate(capacity);
+        currentBuffer.flip();
+        bufferedChunk.put(currentBuffer);
+        bufferedChunk.flip();
+        byteBuffers.add(bufferedChunk);
+        transferredBytes.addAndGet(bufferedChunk.remaining());
+        currentBuffer.clear();
+    }
+
+    private void fillBuffer(ByteBuffer inputByteBuffer) {
+        while (currentBuffer.position() < chunkSize) {
+            if (!inputByteBuffer.hasRemaining()) {
+                break;
+            }
+
+            int remainingCapacity = chunkSize - currentBuffer.position();
+
+            if (inputByteBuffer.remaining() < remainingCapacity) {
+                currentBuffer.put(inputByteBuffer);
+            } else {
+                ByteBuffer remainingChunk = inputByteBuffer.asReadOnlyBuffer();
+                int newLimit = inputByteBuffer.position() + remainingCapacity;
+                remainingChunk.limit(newLimit);
+                inputByteBuffer.position(newLimit);
+                currentBuffer.put(remainingChunk);
+            }
+        }
     }
 
     public interface Builder extends SdkBuilder<Builder, ChunkBuffer> {
