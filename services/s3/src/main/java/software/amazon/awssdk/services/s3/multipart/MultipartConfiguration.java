@@ -114,6 +114,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
         /**
          * Configures the part size, in bytes, to be used in each individual part requests.
+         * Only used for putObject and copyObject operations.
          * <p>
          * When uploading large payload, the size of the payload of each individual part requests might actually be
          * bigger than
