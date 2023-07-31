@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -38,12 +39,14 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
     protected final String bucket;
     protected final String key;
     protected final Duration timeout;
+    private final ChecksumAlgorithm checksumAlgorithm;
 
     protected BaseJavaS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
         this.bucket = Validate.paramNotNull(config.bucket(), "bucket");
         this.key = Validate.paramNotNull(config.key(), "key");
         this.timeout = Validate.getOrDefault(config.timeout(), () -> DEFAULT_TIMEOUT);
         this.iteration = Validate.getOrDefault(config.iteration(), () -> BENCHMARK_ITERATIONS);
+        this.checksumAlgorithm = config.checksumAlgorithm();
 
         this.s3Client = S3Client.create();
 

@@ -48,8 +48,9 @@ public class JavaS3ClientUploadBenchmark extends BaseJavaS3ClientBenchmark {
     protected void sendOneRequest(List<Double> latencies) throws Exception {
         if (filePath != null) {
             // upload from file
-            Double latency =
-                runWithTime(s3AsyncClient.putObject(req -> req.key(key).bucket(bucket), Paths.get(filePath))::join).latency;
+            Double latency = runWithTime(
+                s3AsyncClient.putObject(req -> req.key(key).bucket(bucket).checksumAlgorithm(checksumAlgorithm),
+                                        Paths.get(filePath))::join).latency;
             latencies.add(latency);
             return;
         }
