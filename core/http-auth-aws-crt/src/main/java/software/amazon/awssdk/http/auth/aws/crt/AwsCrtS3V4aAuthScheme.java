@@ -28,11 +28,24 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 public interface AwsCrtS3V4aAuthScheme extends AuthScheme<AwsCredentialsIdentity> {
 
     /**
+     * The scheme ID for this interface.
+     */
+    String SCHEME_ID = "aws.auth#sigv4a";
+
+    /**
+     * Get a default implementation of a {@link AwsCrtS3V4aAuthScheme}
+     */
+    static AwsCrtS3V4aAuthScheme create() {
+        return new AwsCrtS3V4aAuthScheme() {
+        };
+    }
+
+    /**
      * Retrieve the scheme ID.
      */
     @Override
     default String schemeId() {
-        return "aws.auth#sigv4a";
+        return SCHEME_ID;
     }
 
     /**
@@ -49,13 +62,5 @@ public interface AwsCrtS3V4aAuthScheme extends AuthScheme<AwsCredentialsIdentity
     @Override
     default AwsCrtV4aHttpSigner signer() {
         return AwsCrtV4aHttpSigner.create();
-    }
-
-    /**
-     * Get a default implementation of a {@link AwsCrtS3V4aAuthScheme}
-     */
-    static AwsCrtS3V4aAuthScheme create() {
-        return new AwsCrtS3V4aAuthScheme() {
-        };
     }
 }
