@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeStar connections",
-    "contributor": "",
-    "description": "New integration with the Gitlab provider type."
-}
