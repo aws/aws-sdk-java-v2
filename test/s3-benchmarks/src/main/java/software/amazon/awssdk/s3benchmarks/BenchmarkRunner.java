@@ -114,7 +114,8 @@ public final class BenchmarkRunner {
                 if (operation == TransferManagerOperation.DOWNLOAD) {
                     benchmark = new CrtS3ClientDownloadBenchmark(config);
                     break;
-                } else if (operation == TransferManagerOperation.UPLOAD) {
+                }
+                if (operation == TransferManagerOperation.UPLOAD) {
                     benchmark = new CrtS3ClientUploadBenchmark(config);
                     break;
                 }
