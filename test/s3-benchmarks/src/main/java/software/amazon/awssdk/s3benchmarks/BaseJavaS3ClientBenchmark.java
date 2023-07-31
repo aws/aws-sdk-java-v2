@@ -18,6 +18,7 @@ package software.amazon.awssdk.s3benchmarks;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.DEFAULT_TIMEOUT;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -38,24 +39,28 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
     protected final String key;
     protected final Duration timeout;
 
-    public BaseJavaS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
+    protected BaseJavaS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
         this.bucket = Validate.paramNotNull(config.bucket(), "bucket");
         this.key = Validate.paramNotNull(config.key(), "key");
         this.timeout = Validate.getOrDefault(config.timeout(), () -> DEFAULT_TIMEOUT);
         this.iteration = Validate.getOrDefault(config.iteration(), () -> BENCHMARK_ITERATIONS);
+
         this.s3Client = S3Client.create();
 
-        Long partSizeInMb = Validate.paramNotNull(config.partSizeInMb(), "partSize");
+        long partSizeInMb = Validate.paramNotNull(config.partSizeInMb(), "partSize");
+        long readBufferInMb = Validate.paramNotNull(config.readBufferSizeInMb(), "readBufferSizeInMb");
         this.s3AsyncClient = S3AsyncClient
             .builder()
             .multipartEnabled(true)
-            .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * 1024 * 1024L)
-                                          .thresholdInBytes(partSizeInMb * 1024 * 1024))
+            .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
+                                          .thresholdInBytes(partSizeInMb * 2 * MB)
+                                          .apiCallBufferSizeInBytes(readBufferInMb * MB))
 
             .build();
     }
 
     protected abstract void sendOneRequest(List<Double> latencies) throws Exception;
+
     protected abstract long contentLength() throws Exception;
 
     @Override
