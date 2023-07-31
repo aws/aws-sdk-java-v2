@@ -44,8 +44,8 @@ public final class CredentialUtils {
         if (credentials instanceof AwsSessionCredentialsIdentity) {
             AwsSessionCredentialsIdentity sessionCredentials = (AwsSessionCredentialsIdentity) credentials;
             return AwsSessionCredentialsIdentity.create(accessKeyId,
-                secretKey,
-                StringUtils.trim(sessionCredentials.sessionToken()));
+                                                        secretKey,
+                                                        StringUtils.trim(sessionCredentials.sessionToken()));
         }
 
         // given credentials are anonymous, so don't create new instance

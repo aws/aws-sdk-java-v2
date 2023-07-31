@@ -32,79 +32,60 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 @SdkPublicApi
 public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
     /**
-     * The AWS region name to be used for computing the signature.
-     * This property is required.
+     * The AWS region name to be used for computing the signature. This property is required.
      */
     SignerProperty<String> REGION_NAME =
         SignerProperty.create(String.class, "RegionName");
 
     /**
-     * The name of the AWS service.
-     * This property is required.
+     * The name of the AWS service. This property is required.
      */
     SignerProperty<String> SERVICE_SIGNING_NAME =
         SignerProperty.create(String.class, "ServiceSigningName");
 
     /**
-     * A {@link Clock} to be used at the time of signing.
-     * This property defaults to the time at which signing occurs.
+     * A {@link Clock} to be used at the time of signing. This property defaults to the time at which signing occurs.
      */
     SignerProperty<Clock> SIGNING_CLOCK =
         SignerProperty.create(Clock.class, "SigningClock");
 
     /**
-     * A boolean to indicate whether to double url-encode the resource path
-     * when constructing the canonical request.
-     * This property defaults to true.
+     * A boolean to indicate whether to double url-encode the resource path when constructing the canonical request. This property
+     * defaults to true.
      */
     SignerProperty<Boolean> DOUBLE_URL_ENCODE =
         SignerProperty.create(Boolean.class, "DoubleUrlEncode");
 
     /**
-     * A boolean to indicate whether the resource path should be "normalized"
-     * according to RFC3986 when constructing the canonical request.
-     * This property defaults to true.
+     * A boolean to indicate whether the resource path should be "normalized" according to RFC3986 when constructing the canonical
+     * request. This property defaults to true.
      */
     SignerProperty<Boolean> NORMALIZE_PATH =
         SignerProperty.create(Boolean.class, "NormalizePath");
 
     /**
-     * The location where auth-related data is inserted, as a result of signing.
-     * The valid choices are "Header" and "QueryString", where "Header" indicates that request
-     * headers are added, and "QueryString" indicates query-parameters are added.
-     * This property defaults to "Header".
+     * The location where auth-related data is inserted, as a result of signing. This property defaults to HEADER.
      */
-    SignerProperty<String> AUTH_LOCATION =
-        SignerProperty.create(String.class, "AuthLocation");
+    SignerProperty<AuthLocation> AUTH_LOCATION =
+        SignerProperty.create(AuthLocation.class, "AuthLocation");
 
     /**
-     * The duration for the request to be valid.
-     * This property defaults to the max valid duration (7 days).
-     * This is only used in the case of a pre-signing implementation.
+     * The duration for the request to be valid. This property defaults to the max valid duration (7 days). This is only used in
+     * the case of a pre-signing implementation.
      */
     SignerProperty<Duration> EXPIRATION_DURATION =
         SignerProperty.create(Duration.class, "ExpirationDuration");
 
     /**
-     * Whether to handle a request as an event-streaming or not.
-     * This property defaults to false.
-     * This is only used in the case of an implementation that supports event-streams.
-     */
-    SignerProperty<Boolean> EVENT_STREAMING =
-        SignerProperty.create(Boolean.class, "EventStreaming");
-
-    /**
-     * Whether to enable chunked encoding or not.
-     * This property defaults to false.
-     * This is only used in the case of an implementation that supports chunked-encoding.
+     * Whether to enable chunked encoding or not. This property defaults to false. This is only used in the case of an
+     * implementation that supports chunked-encoding.
      */
     SignerProperty<Boolean> CHUNKED_ENCODING =
         SignerProperty.create(Boolean.class, "ChunkedEncoding");
 
     /**
-     * Whether to indicate that a payload is signed or not.
-     * This property defaults to true.
-     * This can be set false to disable payload signing.
+     * Whether to indicate that a payload is signed or not. This property defaults to true. This can be set false to disable
+     * payload signing.
      */
     SignerProperty<Boolean> PAYLOAD_SIGNING =
         SignerProperty.create(Boolean.class, "PayloadSigning");
@@ -115,5 +96,20 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      */
     static AwsV4HttpSigner create() {
         return new DefaultAwsV4HttpSigner();
+    }
+
+    /**
+     * This enum represents where auth-related data is inserted, as a result of signing.
+     */
+    enum AuthLocation {
+        /**
+         * Indicates auth-related data is inserted in HTTP headers.
+         */
+        HEADER,
+
+        /**
+         * Indicates auth-related data is inserted in HTTP query-parameters.
+         */
+        QUERY_STRING
     }
 }

@@ -15,14 +15,21 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
+import static software.amazon.awssdk.http.auth.aws.util.CredentialUtils.sanitizeCredentials;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.spi.SignerProperty.validatedProperty;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.internal.util.ClassLoaderHelper;
-import software.amazon.awssdk.http.auth.aws.signer.AwsV4Properties;
-import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
+import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
+import software.amazon.awssdk.http.auth.aws.signer.V4Properties;
+import software.amazon.awssdk.http.auth.aws.signer.V4RequestSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
@@ -32,8 +39,8 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * An implementation of a {@link AwsV4HttpSigner} that uses properties to compose
- * v4-signers in order to delegate signing of a request and payload (if applicable) accordingly.
+ * An implementation of a {@link AwsV4HttpSigner} that uses properties to compose v4-signers in order to delegate signing of a
+ * request and payload (if applicable) accordingly.
  */
 @SdkInternalApi
 public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
@@ -41,72 +48,55 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
     /**
-     * Given a request with a set of properties, determine which signer to delegate to, and call it with the request.
+     * Given a request with a set of properties and a base signer, compose an implementation with the base signer based on
+     * properties, and delegate the request to the composed signer.
      */
-    private static AwsV4HttpSigner getDelegate(
-        SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
-
-        // create the base signer
-        BaseAwsV4HttpSigner<?> v4Signer = BaseAwsV4HttpSigner.create();
-        return getDelegate(v4Signer, signRequest);
-    }
-
-    /**
-     * Given a request with a set of properties and a base signer, compose an implementation with the base
-     * signer based on properties, and delegate the request to the composed signer.
-     */
-    public static AwsV4HttpSigner getDelegate(
-        BaseAwsV4HttpSigner<?> v4Signer,
-        SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
-
-        // get the properties to decide on
-        String authLocation = validatedProperty(signRequest, AUTH_LOCATION, "Header");
+    private static AwsV4HttpSigner getDelegate(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
+        String regionName = validatedProperty(signRequest, AwsV4HttpSigner.REGION_NAME);
+        String serviceSigningName = validatedProperty(signRequest, AwsV4HttpSigner.SERVICE_SIGNING_NAME);
+        Clock signingClock = validatedProperty(signRequest, AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
+        boolean doubleUrlEncode = validatedProperty(signRequest, AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
+        boolean normalizePath = validatedProperty(signRequest, AwsV4HttpSigner.NORMALIZE_PATH, true);
+        AuthLocation authLocation = validatedProperty(signRequest, AUTH_LOCATION, AuthLocation.HEADER);
         Duration expirationDuration = validatedProperty(signRequest, EXPIRATION_DURATION, null);
         boolean isPayloadSigning = validatedProperty(signRequest, PAYLOAD_SIGNING, true);
-        boolean isEventStreaming = validatedProperty(signRequest, EVENT_STREAMING, false);
 
-        if (authLocation.equals("Header")) {
-            v4Signer = new AwsV4HeaderHttpSigner((BaseAwsV4HttpSigner<AwsV4Properties>) v4Signer);
-        } else if (authLocation.equals("QueryString")) {
-            v4Signer = new DefaultAwsV4QueryHttpSigner((BaseAwsV4HttpSigner<AwsV4Properties>) v4Signer);
+        Instant signingInstant = signingClock.instant();
+        AwsCredentialsIdentity credentials = sanitizeCredentials(signRequest.identity());
+        CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, signingInstant);
+        Checksummer checksummer = Checksummer.create();
+        Function<V4Properties, V4RequestSigner> requestSigner = properties -> V4RequestSigner.create(null);
+        V4PayloadSigner payloadSigner = V4PayloadSigner.create();
+
+        if (authLocation == AuthLocation.HEADER) {
+            requestSigner = V4RequestSigner::header;
+        } else if (authLocation == AuthLocation.QUERY_STRING) {
+            requestSigner = V4RequestSigner::query;
             if (expirationDuration != null) {
-                v4Signer = new AwsV4PresignedHttpSigner((BaseAwsV4HttpSigner<AwsV4Properties>) v4Signer);
+                if (expirationDuration.compareTo(PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
+                    throw new IllegalArgumentException(
+                        "Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
+                        " days. The expiration duration set on the current request [" + expirationDuration + "]" +
+                        " has exceeded this limit."
+                    );
+                }
+                requestSigner = properties -> V4RequestSigner.presigned(properties, expirationDuration);
             }
-        } else {
-            throw new IllegalArgumentException("Unrecognized auth-location option: " + authLocation);
-        }
-
-        if (isEventStreaming) {
-            if (!isPayloadSigning) {
-                throw new IllegalArgumentException("Payload signing must be enabled to use event-stream signer!");
-            }
-            v4Signer = loadEventStreamSigner(v4Signer);
         }
 
         if (!isPayloadSigning) {
-            v4Signer = new AwsV4UnsignedPayloadHttpSigner((BaseAwsV4HttpSigner<AwsV4Properties>) v4Signer);
+            checksummer = new PrecomputedChecksummer(() -> "UNSIGNED-PAYLOAD");
         }
 
-        return v4Signer;
-    }
+        V4Properties properties = new V4Properties(
+            credentials,
+            credentialScope,
+            signingClock,
+            doubleUrlEncode,
+            normalizePath
+        );
 
-    /**
-     * A class-loader for the event-stream signer, which throws exceptions if it can't load the class (it's likely not on the
-     * classpath, so it should be added), or if it can't instantiate the signer.
-     */
-    private static BaseAwsV4HttpSigner<?> loadEventStreamSigner(BaseAwsV4HttpSigner<?> v4Signer) {
-        String classPath = "software.amazon.awssdk.http.auth.aws.eventstream.signer.DefaultAwsV4EventStreamHttpSigner";
-        try {
-            Class<?> signerClass = ClassLoaderHelper.loadClass(classPath, false);
-            return (BaseAwsV4HttpSigner<?>) signerClass.getConstructor(BaseAwsV4HttpSigner.class).newInstance(v4Signer);
-        } catch (ClassNotFoundException e) {
-            LOG.debug(() -> "Cannot find the " + classPath + " class."
-                + " To invoke a request that requires a event-streaming.", e);
-            throw new RuntimeException("Event-stream signer not found. You must add a dependency on the " +
-                "http-auth-aws-event-stream module to enable this functionality.");
-        } catch (Exception e) {
-            throw new RuntimeException("Could not instantiate the event-stream signer: ", e);
-        }
+        return new V4HttpSigner(checksummer, requestSigner.apply(properties), payloadSigner);
     }
 
     @Override

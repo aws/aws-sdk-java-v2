@@ -40,8 +40,7 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
- * Utility methods to be used by various AWS Signer implementations.
- * This class is protected and subject to change.
+ * Utility methods to be used by various AWS Signer implementations. This class is protected and subject to change.
  */
 @SdkProtectedApi
 public final class SignerUtils {
@@ -61,22 +60,19 @@ public final class SignerUtils {
     }
 
     /**
-     * Returns a string representation of the given datetime in yyyyMMdd
-     * format. The date returned is in the UTC zone.
+     * Returns a string representation of the given datetime in yyyyMMdd format. The date returned is in the UTC zone.
      * <p>
-     * For example, given an Instant with millis-value of 1416863450581, this
-     * method returns "20141124"
+     * For example, given an Instant with millis-value of 1416863450581, this method returns "20141124"
      */
     public static String formatDate(Instant instant) {
         return DATE_FORMATTER.format(instant);
     }
 
     /**
-     * Returns a string representation of the given datetime in
-     * yyyyMMdd'T'HHmmss'Z' format. The date returned is in the UTC zone.
+     * Returns a string representation of the given datetime in yyyyMMdd'T'HHmmss'Z' format. The date returned is in the UTC
+     * zone.
      * <p>
-     * For example, given an Instant with millis-value of 1416863450581, this
-     * method returns "20141124T211050Z"
+     * For example, given an Instant with millis-value of 1416863450581, this method returns "20141124T211050Z"
      */
     public static String formatDateTime(Instant instant) {
         return TIME_FORMATTER.format(instant);
@@ -106,11 +102,11 @@ public final class SignerUtils {
         }
 
         LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
-            credentialScope.getInstant().toEpochMilli());
+                        credentialScope.getInstant().toEpochMilli());
         byte[] signingKey = newSigningKey(credentials,
-            credentialScope.getDate(),
-            credentialScope.getRegion(),
-            credentialScope.getService());
+                                          credentialScope.getDate(),
+                                          credentialScope.getRegion(),
+                                          credentialScope.getService());
         SIGNER_CACHE.add(cacheKey, new SignerKey(credentialScope.getInstant(), signingKey));
         return signingKey;
     }
@@ -162,7 +158,7 @@ public final class SignerUtils {
      */
     public static byte[] computeSignature(String stringToSign, byte[] signingKey) {
         return sign(stringToSign.getBytes(StandardCharsets.UTF_8), signingKey,
-            SigningAlgorithm.HMAC_SHA256);
+                    SigningAlgorithm.HMAC_SHA256);
     }
 
     /**
@@ -185,12 +181,6 @@ public final class SignerUtils {
      */
     public static void addDateHeader(SdkHttpRequest.Builder requestBuilder, String dateTime) {
         requestBuilder.putHeader(SignerConstant.X_AMZ_DATE, dateTime);
-    }
-
-    public static void addContentHashHeader(SdkHttpRequest.Builder requestBuilder, String contentHash) {
-        requestBuilder.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
-            .filter(h -> h.equals("required"))
-            .ifPresent(h -> requestBuilder.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, contentHash));
     }
 
     private static MessageDigest getMessageDigestInstance() {

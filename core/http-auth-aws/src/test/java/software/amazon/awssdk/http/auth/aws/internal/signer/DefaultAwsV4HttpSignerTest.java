@@ -1,28 +1,39 @@
-package software.amazon.awssdk.http.auth.aws;
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.PAYLOAD_SIGNING;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsV4HttpSigner.getDelegate;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.auth.aws.internal.signer.AwsV4HeaderHttpSigner;
-import software.amazon.awssdk.http.auth.aws.internal.signer.AwsV4PresignedHttpSigner;
-import software.amazon.awssdk.http.auth.aws.internal.signer.AwsV4UnsignedPayloadHttpSigner;
-import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsV4QueryHttpSigner;
-import software.amazon.awssdk.http.auth.aws.signer.BaseAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AuthLocation;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * Test the delegation of signing to the correct signer implementations.
+ * Test the delegation of signing to the correct implementations.
  */
-public class AwsV4HttpSignerTest {
+public class DefaultAwsV4HttpSignerTest {
 
-    BaseAwsV4HttpSigner<?> signer = BaseAwsV4HttpSigner.create();
+    DefaultAwsV4HttpSigner signer = new DefaultAwsV4HttpSigner();
 
     @Test
     public void sign_WithNoAdditonalProperties_DelegatesToHeaderSigner() {
@@ -34,9 +45,9 @@ public class AwsV4HttpSignerTest {
             }
         );
 
-        AwsV4HttpSigner delegate = getDelegate(signer, request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
-        assertThat(delegate.getClass()).isEqualTo(AwsV4HeaderHttpSigner.class);
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization")).isPresent();
     }
 
     @Test
@@ -45,12 +56,12 @@ public class AwsV4HttpSignerTest {
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> {
             },
-            signRequest -> signRequest.putProperty(AUTH_LOCATION, "QueryString")
+            signRequest -> signRequest.putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
         );
 
-        AwsV4HttpSigner delegate = getDelegate(signer, request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
-        assertThat(delegate.getClass()).isEqualTo(DefaultAwsV4QueryHttpSigner.class);
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Signature")).isPresent();
     }
 
     @Test
@@ -60,13 +71,13 @@ public class AwsV4HttpSignerTest {
             httpRequest -> {
             },
             signRequest -> signRequest
-                .putProperty(AUTH_LOCATION, "QueryString")
+                .putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
                 .putProperty(EXPIRATION_DURATION, Duration.ZERO)
         );
 
-        AwsV4HttpSigner delegate = getDelegate(signer, request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
-        assertThat(delegate.getClass()).isEqualTo(AwsV4PresignedHttpSigner.class);
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Expires")).isPresent();
     }
 
     @Test
@@ -79,8 +90,8 @@ public class AwsV4HttpSignerTest {
                 .putProperty(PAYLOAD_SIGNING, false)
         );
 
-        AwsV4HttpSigner delegate = getDelegate(signer, request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
-        assertThat(delegate.getClass()).isEqualTo(AwsV4UnsignedPayloadHttpSigner.class);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
     }
 }

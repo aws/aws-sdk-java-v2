@@ -41,7 +41,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkProtectedApi
 @Immutable
-public final class AwsV4CanonicalRequest {
+public final class V4CanonicalRequest {
     private static final List<String> HEADERS_TO_IGNORE_IN_LOWER_CASE =
         Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
 
@@ -62,10 +62,10 @@ public final class AwsV4CanonicalRequest {
      * <p>
      * Each parameter of a canonical request is set upon creation of this object.
      * <p>
-     * To get such a parameter (i.e. the canonical request string), simply call the getter
-     * for that parameter (i.e. getCanonicalRequestString())
+     * To get such a parameter (i.e. the canonical request string), simply call the getter for that parameter (i.e.
+     * getCanonicalRequestString())
      */
-    public AwsV4CanonicalRequest(SdkHttpRequest request, String contentHash, Options options) {
+    public V4CanonicalRequest(SdkHttpRequest request, String contentHash, Options options) {
         this.request = request;
         this.contentHash = contentHash;
         this.options = options;
@@ -77,7 +77,7 @@ public final class AwsV4CanonicalRequest {
         this.canonicalHeadersString = getCanonicalHeadersString(canonicalHeaders);
         this.signedHeadersString = getSignedHeadersString(canonicalHeaders);
         this.canonicalRequestString = getCanonicalRequestString(request.method().toString(), canonicalUri, canonicalParamsString,
-            canonicalHeadersString, signedHeadersString, contentHash);
+                                                                canonicalHeadersString, signedHeadersString, contentHash);
     }
 
     /**
@@ -89,11 +89,11 @@ public final class AwsV4CanonicalRequest {
                                                     String canonicalHeadersString, String signedHeadersString,
                                                     String contentHash) {
         return httpMethod + SignerConstant.LINE_SEPARATOR +
-            canonicalUri + SignerConstant.LINE_SEPARATOR +
-            canonicalParamsString + SignerConstant.LINE_SEPARATOR +
-            canonicalHeadersString + SignerConstant.LINE_SEPARATOR +
-            signedHeadersString + SignerConstant.LINE_SEPARATOR +
-            contentHash;
+               canonicalUri + SignerConstant.LINE_SEPARATOR +
+               canonicalParamsString + SignerConstant.LINE_SEPARATOR +
+               canonicalHeadersString + SignerConstant.LINE_SEPARATOR +
+               signedHeadersString + SignerConstant.LINE_SEPARATOR +
+               contentHash;
     }
 
     /**
@@ -103,7 +103,7 @@ public final class AwsV4CanonicalRequest {
      */
     private static String getCanonicalUri(SdkHttpRequest request, Options options) {
         String path = options.normalizePath ? request.getUri().normalize().getRawPath()
-            : request.encodedPath();
+                                            : request.encodedPath();
 
         if (StringUtils.isEmpty(path)) {
             return "/";
@@ -121,9 +121,9 @@ public final class AwsV4CanonicalRequest {
         // even if the input path doesn't end with one. Example input: /foo/bar/.
         // Remove the trailing slash if the input path doesn't end with one.
         boolean trimTrailingSlash = options.normalizePath &&
-            path.length() > 1 &&
-            !request.getUri().getPath().endsWith("/") &&
-            path.charAt(path.length() - 1) == '/';
+                                    path.length() > 1 &&
+                                    !request.getUri().getPath().endsWith("/") &&
+                                    path.charAt(path.length() - 1) == '/';
 
         if (trimTrailingSlash) {
             path = path.substring(0, path.length() - 1);
@@ -165,11 +165,10 @@ public final class AwsV4CanonicalRequest {
     }
 
     /**
-     * Get the string representing query string parameters.
-     * Parameters are URL-encoded and separated by an ampersand.
+     * Get the string representing query string parameters. Parameters are URL-encoded and separated by an ampersand.
      * <p>
-     * Reserved characters are percent-encoded, names and values are encoded separately
-     * and empty parameters have an equals-sign appended before encoding.
+     * Reserved characters are percent-encoded, names and values are encoded separately and empty parameters have an equals-sign
+     * appended before encoding.
      * <p>
      * After encoding, parameters are sorted alphanetically by key name.
      * <p>
@@ -185,8 +184,8 @@ public final class AwsV4CanonicalRequest {
     /**
      * Get the list of headers that are to be signed.
      * <p>
-     * If calling from a site with the request object handy, this method should be used instead
-     * of passing the headers themselves, as doing so creates a redundant copy.
+     * If calling from a site with the request object handy, this method should be used instead of passing the headers themselves,
+     * as doing so creates a redundant copy.
      */
     public static List<Pair<String, List<String>>> getCanonicalHeaders(SdkHttpRequest request) {
         List<Pair<String, List<String>>> result = new ArrayList<>(request.numHeaders());
@@ -205,8 +204,7 @@ public final class AwsV4CanonicalRequest {
     }
 
     /**
-     * Get the list of headers that are to be signed. The supplied map of headers is expected to be
-     * sorted case-insensitively.
+     * Get the list of headers that are to be signed. The supplied map of headers is expected to be sorted case-insensitively.
      */
     public static List<Pair<String, List<String>>> getCanonicalHeaders(Map<String, List<String>> headers) {
         List<Pair<String, List<String>>> result = new ArrayList<>(headers.size());
@@ -224,13 +222,13 @@ public final class AwsV4CanonicalRequest {
     }
 
     /**
-     * Get the string representing the headers that will be signed and their values. The input list
-     * is expected to be sorted case-insensitively.
+     * Get the string representing the headers that will be signed and their values. The input list is expected to be sorted
+     * case-insensitively.
      * <p>
      * The output string will have header names as lower-case, sorted in alphabetical order, and followed by a colon.
      * <p>
-     * Values are trimmed of any leading/trailing spaces, sequential spaces are converted to single
-     * space, and multiple values are comma separated.
+     * Values are trimmed of any leading/trailing spaces, sequential spaces are converted to single space, and multiple values are
+     * comma separated.
      * <p>
      * Each header-value pair is separated by a newline.
      */
@@ -250,8 +248,7 @@ public final class AwsV4CanonicalRequest {
     }
 
     /**
-     * Get the string representing which headers are part of the signing process.
-     * Header names are separated by a semicolon.
+     * Get the string representing which headers are part of the signing process. Header names are separated by a semicolon.
      */
     public static String getSignedHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
         String signedHeadersString;
@@ -263,7 +260,7 @@ public final class AwsV4CanonicalRequest {
         signedHeadersString = headersString.toString();
 
         boolean trimTrailingSemicolon = signedHeadersString.length() > 1 &&
-            signedHeadersString.endsWith(";");
+                                        signedHeadersString.endsWith(";");
 
         if (trimTrailingSemicolon) {
             signedHeadersString = signedHeadersString.substring(0, signedHeadersString.length() - 1);
@@ -276,8 +273,8 @@ public final class AwsV4CanonicalRequest {
     }
 
     /**
-     * "The addAndTrim function removes excess white space before and after values,
-     * and converts sequential spaces to a single space."
+     * "The addAndTrim function removes excess white space before and after values, and converts sequential spaces to a single
+     * space."
      * <p>
      * https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
      * <p>
@@ -285,8 +282,8 @@ public final class AwsV4CanonicalRequest {
      * <pre>
      *     value.replaceAll("\\s+", " ")
      * </pre>
-     * but does not create a Pattern object that needs to compile the match
-     * string; it also prevents us from having to make a Matcher object as well.
+     * but does not create a Pattern object that needs to compile the match string; it also prevents us from having to make a
+     * Matcher object as well.
      */
     private static void addAndTrim(StringBuilder result, String value) {
         int lengthBefore = result.length();
@@ -332,7 +329,7 @@ public final class AwsV4CanonicalRequest {
     }
 
     /**
-     * A class for representing options used when creating a {@link AwsV4CanonicalRequest}
+     * A class for representing options used when creating a {@link V4CanonicalRequest}
      */
     public static class Options {
         final boolean doubleUrlEncode;
