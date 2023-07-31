@@ -23,7 +23,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -32,17 +31,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * {@link S3AsyncClientBuilder#multipartConfiguration(MultipartConfiguration)} will enable automatic conversion of
  * {@link S3AsyncClient#putObject(Consumer, AsyncRequestBody)}, {@link S3AsyncClient#copyObject(CopyObjectRequest)} to their
  * respective multipart operation.
- * <p></p>
+ * <p>
  * <em>Note</em>: The multipart operation for {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)} is
  * temporarily disabled and will result in throwing a {@link UnsupportedOperationException} if called when configured for
  * multipart operation.
  */
 @SdkPublicApi
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {
-    public static final AttributeMap.Key<MultipartConfiguration> MULTIPART_CONFIGURATION_KEY =
-        new AttributeMap.Key<MultipartConfiguration>(MultipartConfiguration.class){};
-    public static final AttributeMap.Key<Boolean> MULTIPART_ENABLED_KEY =
-        new AttributeMap.Key<Boolean>(Boolean.class){};
 
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;

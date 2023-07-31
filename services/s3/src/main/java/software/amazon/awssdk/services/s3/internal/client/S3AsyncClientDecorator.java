@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.client;
 
-import static software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.MULTIPART_CONFIGURATION_KEY;
-import static software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.MULTIPART_ENABLED_KEY;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -33,6 +30,10 @@ import software.amazon.awssdk.utils.ConditionalDecorator;
 
 @SdkInternalApi
 public class S3AsyncClientDecorator {
+    public static final AttributeMap.Key<MultipartConfiguration> MULTIPART_CONFIGURATION_KEY =
+        new AttributeMap.Key<MultipartConfiguration>(MultipartConfiguration.class){};
+    public static final AttributeMap.Key<Boolean> MULTIPART_ENABLED_KEY =
+        new AttributeMap.Key<Boolean>(Boolean.class){};
 
     public S3AsyncClientDecorator() {
     }

@@ -19,6 +19,8 @@ public class MultipartCustomization {
     private String multipartConfigurationClass;
     private String multipartConfigMethodDoc;
     private String multipartEnableMethodDoc;
+    private String contextParamEnabledKey;
+    private String contextParamConfigKey;
 
     public String getMultipartConfigurationClass() {
         return multipartConfigurationClass;
@@ -42,5 +44,21 @@ public class MultipartCustomization {
 
     public void setMultipartEnableMethodDoc(String multipartEnableMethodDoc) {
         this.multipartEnableMethodDoc = multipartEnableMethodDoc;
+    }
+
+    public String getContextParamEnabledKey() {
+        return contextParamEnabledKey;
+    }
+
+    public void setContextParamEnabledKey(String contextParamEnabledKey) {
+        this.contextParamEnabledKey = contextParamEnabledKey;
+    }
+
+    public String getContextParamConfigKey() {
+        return contextParamConfigKey;
+    }
+
+    public void setContextParamConfigKey(String contextParamConfigKey) {
+        this.contextParamConfigKey = contextParamConfigKey;
     }
 }
