@@ -22,6 +22,8 @@ import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.create
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChunk;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
@@ -150,9 +152,25 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             sdkChecksum.reset();
         }
 
-        SynchronousChunkBuffer synchronousChunkBuffer = new SynchronousChunkBuffer(totalBytes);
-        wrapped.flatMapIterable(synchronousChunkBuffer::buffer)
+        wrapped.flatMapIterable(this::splitByteBuffer)
                .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
+    }
+
+    /**
+     * Splits the ByteBuffer to smaller ByteBuffers, each of which contains at most
+     * {@code DEFAULT_ASYNC_CHUNK_SIZE} worth of bytes.
+     */
+    private Iterable<ByteBuffer> splitByteBuffer(ByteBuffer buffer) {
+        List<ByteBuffer> byteBuffers = new ArrayList<>();
+        while (buffer.hasRemaining()) {
+            ByteBuffer chunkByteBuffer = buffer.asReadOnlyBuffer();
+            int bytesToTransfer = Math.min(DEFAULT_ASYNC_CHUNK_SIZE, buffer.remaining());
+            int newLimit = chunkByteBuffer.position() + bytesToTransfer;
+            chunkByteBuffer.limit(newLimit);
+            buffer.position(newLimit);
+            byteBuffers.add(chunkByteBuffer);
+        }
+        return byteBuffers;
     }
 
     private static final class ChecksumCalculatingSubscriber implements Subscriber<ByteBuffer> {
@@ -230,17 +248,4 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             wrapped.onComplete();
         }
     }
-
-    private static final class SynchronousChunkBuffer {
-        private final ChunkBuffer chunkBuffer;
-
-        SynchronousChunkBuffer(long totalBytes) {
-            this.chunkBuffer = ChunkBuffer.builder().bufferSize(DEFAULT_ASYNC_CHUNK_SIZE).totalBytes(totalBytes).build();
-        }
-
-        private Iterable<ByteBuffer> buffer(ByteBuffer bytes) {
-            return chunkBuffer.bufferAndCreateChunks(bytes);
-        }
-    }
-
 }

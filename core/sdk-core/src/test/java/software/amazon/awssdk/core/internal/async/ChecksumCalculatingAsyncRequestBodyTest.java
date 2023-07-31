@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,11 +53,26 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
             "x-amz-checksum-crc32:i9aeUg==\r\n\r\n";
     private final static Path path;
 
+    private final static ByteBuffer positionNonZeroBytebuffer;
+
+    private final static ByteBuffer positionZeroBytebuffer;
+
     static {
+        byte[] content = testString.getBytes();
+        byte[] randomContent = RandomStringUtils.randomAscii(1024).getBytes(StandardCharsets.UTF_8);
+        positionNonZeroBytebuffer = ByteBuffer.allocate(content.length + randomContent.length);
+        positionNonZeroBytebuffer.put(randomContent)
+                                 .put(content);
+        positionNonZeroBytebuffer.position(randomContent.length);
+
+        positionZeroBytebuffer = ByteBuffer.allocate(content.length);
+        positionZeroBytebuffer.put(content);
+        positionZeroBytebuffer.flip();
+
         FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
         path = fs.getPath("./test");
         try {
-            Files.write(path, testString.getBytes());
+            Files.write(path, content);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -80,6 +96,15 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
                         .asyncRequestBody(AsyncRequestBody.fromFile(path))
                         .algorithm(Algorithm.CRC32)
                         .trailerHeader("x-amz-checksum-crc32").build(),
+
+                ChecksumCalculatingAsyncRequestBody.builder()
+                                                   .asyncRequestBody(AsyncRequestBody.fromRemainingByteBuffer(positionZeroBytebuffer))
+                                                   .algorithm(Algorithm.CRC32)
+                                                   .trailerHeader("x-amz-checksum-crc32").build(),
+                ChecksumCalculatingAsyncRequestBody.builder()
+                                                   .asyncRequestBody(AsyncRequestBody.fromRemainingByteBuffersUnsafe(positionNonZeroBytebuffer))
+                                                   .algorithm(Algorithm.CRC32)
+                                                   .trailerHeader("x-amz-checksum-crc32").build(),
         };
         return asyncRequestBodies;
     }
