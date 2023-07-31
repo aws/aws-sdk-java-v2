@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lookout for Equipment",
+    "contributor": "",
+    "description": "This release includes new import resource, model versioning and resource policy features."
+}
