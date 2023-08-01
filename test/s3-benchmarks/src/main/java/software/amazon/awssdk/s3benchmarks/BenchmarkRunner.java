@@ -99,7 +99,8 @@ public final class BenchmarkRunner {
                                                + "times out and is cancelled. Optional, defaults to 10 minutes if no specified");
         options.addOption(null, CONN_ACQ_TIMEOUT_IN_SEC, true, "Timeout for acquiring an already-established"
                                                                + " connection from a connection pool to a remote service.");
-        options.addOption(null, FORCE_CRT_HTTP_CLIENT, false, "force the CRT http client to be used in JavaBased benchmarks");
+        options.addOption(null, FORCE_CRT_HTTP_CLIENT, true,
+                          "force the CRT http client to be used in JavaBased benchmarks");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
@@ -179,7 +180,8 @@ public final class BenchmarkRunner {
         Long connAcqTimeoutInSec = cmd.getOptionValue(CONN_ACQ_TIMEOUT_IN_SEC) == null ? null :
                                    Long.parseLong(cmd.getOptionValue(CONN_ACQ_TIMEOUT_IN_SEC));
 
-        Boolean forceCrtHttpClient = cmd.getOptionValue(FORCE_CRT_HTTP_CLIENT) != null;
+        Boolean forceCrtHttpClient = cmd.getOptionValue(FORCE_CRT_HTTP_CLIENT) != null
+                                     && Boolean.parseBoolean(cmd.getOptionValue(FORCE_CRT_HTTP_CLIENT));
 
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)

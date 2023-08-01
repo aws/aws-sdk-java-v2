@@ -18,8 +18,10 @@ package software.amazon.awssdk.s3benchmarks;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.COPY_SUFFIX;
 
 import java.util.List;
+import software.amazon.awssdk.utils.Logger;
 
 public class JavaS3ClientCopyBenchmark extends BaseJavaS3ClientBenchmark {
+    private static final Logger log = Logger.loggerFor(JavaS3ClientCopyBenchmark.class);
 
     public JavaS3ClientCopyBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
@@ -27,6 +29,7 @@ public class JavaS3ClientCopyBenchmark extends BaseJavaS3ClientBenchmark {
 
     @Override
     protected void sendOneRequest(List<Double> latencies) throws Exception {
+        log.info(() -> "Starting copy");
         Double latency = runWithTime(s3AsyncClient.copyObject(
             req -> req.sourceKey(key).sourceBucket(bucket)
                       .destinationBucket(bucket).destinationKey(key + COPY_SUFFIX)
