@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "contributor": "",
+    "description": "This release adds support for price capacity optimized allocation strategy for Spot Instances."
+}
