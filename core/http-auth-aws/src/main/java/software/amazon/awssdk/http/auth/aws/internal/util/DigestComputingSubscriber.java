@@ -36,7 +36,7 @@ public final class DigestComputingSubscriber implements Subscriber<ByteBuffer> {
 
         digestBytes.whenComplete((r, t) -> {
             if (t instanceof CancellationException) {
-                synchronized (DigestComputingSubscriber.this) {
+                synchronized (this) {
                     canceled = true;
                     if (subscription != null) {
                         subscription.cancel();

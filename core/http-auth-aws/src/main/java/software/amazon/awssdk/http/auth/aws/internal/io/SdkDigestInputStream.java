@@ -36,29 +36,25 @@ public final class SdkDigestInputStream extends DigestInputStream implements Rel
     // https://github.com/aws/aws-sdk-java/issues/232
 
     /**
-     * Skips over and discards <code>n</code> bytes of data from this input
-     * stream, while taking the skipped bytes into account for digest
-     * calculation. The <code>skip</code> method may, for a variety of reasons,
-     * end up skipping over some smaller number of bytes, possibly
-     * <code>0</code>. This may result from any of a number of conditions;
-     * reaching end of file before <code>n</code> bytes have been skipped is
-     * only one possibility. The actual number of bytes skipped is returned. If
-     * <code>n</code> is negative, no bytes are skipped.
+     * Skips over and discards {@code n} bytes of data from this input stream, while taking the skipped bytes into account
+     * for digest calculation. The {@code skip} method may, for a variety of reasons, end up skipping over some smaller
+     * number of bytes, possibly
+     * {@code 0}. This may result from any of a number of conditions;
+     * reaching end of file before {@code n} bytes have been skipped is only one possibility. The actual number of bytes
+     * skipped is returned. If
+     * {@code n} is negative, no bytes are skipped.
      *
      * <p>
-     * The <code>skip</code> method of this class creates a byte array and then
-     * repeatedly reads into it until <code>n</code> bytes have been read or the
-     * end of the stream has been reached. Subclasses are encouraged to provide
-     * a more efficient implementation of this method. For instance, the
-     * implementation may depend on the ability to seek.
+     * The {@code skip} method of this class creates a byte array and then repeatedly reads into it until <code>n</code>
+     * bytes have been read or the end of the stream has been reached. Subclasses are encouraged to provide a more efficient
+     * implementation of this method. For instance, the implementation may depend on the ability to seek.
      *
      * @param n the number of bytes to be skipped.
      * @return the actual number of bytes skipped.
-     * @throws IOException if the stream does not support seek, or if some other I/O
-     *                     error occurs.
+     * @throws IOException if the stream does not support seek, or if some other I/O error occurs.
      */
     @Override
-    public long skip(final long n) throws IOException {
+    public long skip(long n) throws IOException {
         if (n <= 0) {
             return n;
         }
@@ -71,7 +67,7 @@ public final class SdkDigestInputStream extends DigestInputStream implements Rel
             }
             m -= len;
         }
-        assert (m == 0);
+        assert m == 0;
         return n;
     }
 

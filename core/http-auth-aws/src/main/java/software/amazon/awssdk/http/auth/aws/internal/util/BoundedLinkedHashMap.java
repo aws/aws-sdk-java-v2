@@ -20,8 +20,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * A bounded linked hash map that would remove the eldest entry when the map
- * size exceeds a configurable maximum.
+ * A bounded linked hash map that would remove the eldest entry when the map size exceeds a configurable maximum.
  */
 @SdkInternalApi
 final class BoundedLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
@@ -43,8 +42,7 @@ final class BoundedLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     }
 
     /**
-     * Returns the maximum size of this map beyond which the eldest entry
-     * will get removed.
+     * Returns the maximum size of this map beyond which the eldest entry will get removed.
      */
     int getMaxSize() {
         return maxSize;

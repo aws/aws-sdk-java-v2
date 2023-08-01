@@ -21,8 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.DateUtils;
 
 /**
- * Holds the signing key and the number of days since epoch for the date for
- * which the signing key was generated.
+ * Holds the signing key and the number of days since epoch for the date for which the signing key was generated.
  */
 @Immutable
 @SdkInternalApi

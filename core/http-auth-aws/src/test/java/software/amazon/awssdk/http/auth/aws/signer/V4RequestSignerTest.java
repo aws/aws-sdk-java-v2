@@ -93,9 +93,9 @@ public class V4RequestSignerTest {
         assertEquals("19700101T000000Z", ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Date").get(0));
         assertEquals("x-amz-archive-description;x-amz-content-sha256",
                      ctx.getSignedRequest().rawQueryParameters().get("X-Amz-SignedHeaders").get(0));
-        assertEquals("access/19700101/us-east-1/demo/aws4_request", ctx.getSignedRequest().rawQueryParameters().get("X-Amz"
-                                                                                                                    +
-                                                                                                                    "-Credential").get(0));
+        assertEquals(
+            "access/19700101/us-east-1/demo/aws4_request",
+            ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Credential").get(0));
         assertEquals("f8a7d5ed62c2095240dd847ea48ebb1f1471b3fccb8d8165f8c5dbd8c5a670da",
                      ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Signature").get(0));
         assertEquals("token", ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Security-Token").get(0));
