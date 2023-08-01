@@ -61,6 +61,8 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
             .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
                                           .thresholdInBytes(partSizeInMb * 2 * MB)
                                           .apiCallBufferSizeInBytes(readBufferInMb * MB));
+        Validate.mutuallyExclusive("cannot use forceCrtHttpClient and connectionAcquisitionTimeoutInSec",
+                                   config.forceCrtHttpClient(), config.connectionAcquisitionTimeoutInSec());
         if (config.forceCrtHttpClient()) {
             logger.info(() -> "Using CRT HTTP client");
             builder.httpClient(AwsCrtAsyncHttpClient.create());
