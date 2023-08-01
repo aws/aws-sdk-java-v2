@@ -62,7 +62,6 @@ public class SigningStage implements RequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
-        // TODO: Add unit tests for SRA signing logic.
         if (shouldUseSelectedAuthScheme(context)) {
             return sraSignRequest(request,
                                   context,

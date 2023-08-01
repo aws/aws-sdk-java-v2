@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -59,7 +61,6 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     @Override
     public CompletableFuture<SdkHttpFullRequest> execute(SdkHttpFullRequest request, RequestExecutionContext context)
             throws Exception {
-        // TODO: Add unit tests for SRA signing logic.
         if (shouldUseSelectedAuthScheme(context)) {
             return sraSignRequest(request,
                                   context,
@@ -128,8 +129,17 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     }
 
     private static void updateAsyncRequestBodyInContexts(RequestExecutionContext context, AsyncSignedRequest signedRequest) {
-        AsyncRequestBody newAsyncRequestBody = signedRequest.payload().isPresent() ?
-                                               AsyncRequestBody.fromPublisher(signedRequest.payload().get()) : null;
+        AsyncRequestBody newAsyncRequestBody;
+        if (signedRequest.payload().isPresent()) {
+            Publisher<ByteBuffer> signedPayload = signedRequest.payload().get();
+            if (signedPayload instanceof AsyncRequestBody) {
+                newAsyncRequestBody = (AsyncRequestBody) signedPayload;
+            } else {
+                newAsyncRequestBody = AsyncRequestBody.fromPublisher(signedPayload);
+            }
+        } else {
+            newAsyncRequestBody = null;
+        }
 
         context.requestProvider(newAsyncRequestBody);
 
@@ -145,18 +155,23 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
+        SdkHttpRequest request = signedRequest.request();
+        if (request instanceof SdkHttpFullRequest) {
+            return (SdkHttpFullRequest) request;
+        }
         return toSdkHttpFullRequestBuilder(signedRequest).contentStreamProvider(signedRequest.payload().orElse(null)).build();
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(AsyncSignedRequest signedRequest) {
+        SdkHttpRequest request = signedRequest.request();
+        if (request instanceof SdkHttpFullRequest) {
+            return (SdkHttpFullRequest) request;
+        }
         return toSdkHttpFullRequestBuilder(signedRequest).build();
     }
 
     private SdkHttpFullRequest.Builder toSdkHttpFullRequestBuilder(SignedRequest<?> signedRequest) {
         SdkHttpRequest request = signedRequest.request();
-        if (request instanceof SdkHttpFullRequest) {
-            return ((SdkHttpFullRequest) request).toBuilder();
-        }
         return SdkHttpFullRequest.builder()
                                  .protocol(request.protocol())
                                  .method(request.method())
