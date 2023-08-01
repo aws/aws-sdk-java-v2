@@ -24,8 +24,6 @@ import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.UploadPartCopyRequestIterable;
-import software.amazon.awssdk.services.s3.internal.multipart.GenericMultipartHelper;
-import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
@@ -130,6 +128,10 @@ public final class CopyObjectHelper {
         long optimalPartSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
 
         int partCount = genericMultipartHelper.determinePartCount(contentLength, optimalPartSize);
+        if (optimalPartSize > partSizeInBytes) {
+            log.debug(() -> String.format("Configured partSize is %d, but using %d to prevent reaching maximum number of parts "
+                                         + "allowed", partSizeInBytes, optimalPartSize));
+        }
 
         log.debug(() -> String.format("Starting multipart copy with partCount: %s, optimalPartSize: %s",
                                       partCount, optimalPartSize));
@@ -170,7 +172,6 @@ public final class CopyObjectHelper {
                                                                                    .parts(parts)
                                                                                    .build())
                                           .build();
-
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
@@ -201,7 +202,8 @@ public final class CopyObjectHelper {
         log.debug(() -> "Sending uploadPartCopyRequest with range: " + uploadPartCopyRequest.copySourceRange() + " uploadId: "
                         + uploadId);
 
-        CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture = s3AsyncClient.uploadPartCopy(uploadPartCopyRequest);
+        CompletableFuture<UploadPartCopyResponse> uploadPartCopyFuture =
+            s3AsyncClient.uploadPartCopy(uploadPartCopyRequest);
 
         CompletableFuture<CompletedPart> convertFuture =
             uploadPartCopyFuture.thenApply(uploadPartCopyResponse ->

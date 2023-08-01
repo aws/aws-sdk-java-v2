@@ -36,8 +36,8 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
 /**
- * A base class contains common logic used by {@link UploadWithUnknownContentLengthHelper}
- * and {@link UploadWithKnownContentLengthHelper}.
+ * A base class contains common logic used by {@link UploadWithUnknownContentLengthHelper} and
+ * {@link UploadWithKnownContentLengthHelper}.
  */
 @SdkInternalApi
 public final class MultipartUploadHelper {

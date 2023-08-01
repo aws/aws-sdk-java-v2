@@ -91,7 +91,6 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
                                                                                    .parts(parts)
                                                                                    .build())
                                           .build();
-
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
@@ -125,7 +124,8 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
 
     public void cleanUpParts(String uploadId, AbortMultipartUploadRequest.Builder abortMultipartUploadRequest) {
         log.debug(() -> "Aborting multipart upload: " + uploadId);
-        s3AsyncClient.abortMultipartUpload(abortMultipartUploadRequest.uploadId(uploadId).build())
+        AbortMultipartUploadRequest request = abortMultipartUploadRequest.uploadId(uploadId).build();
+        s3AsyncClient.abortMultipartUpload(request)
                      .exceptionally(throwable -> {
                          log.warn(() -> String.format("Failed to abort previous multipart upload "
                                                       + "(id: %s)"
