@@ -22,18 +22,30 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 
 /**
- * The <a href="https://smithy.io/2.0/aws/aws-auth.html#aws-auth-sigv4-trait">aws.auth#sigv4</a>
- * auth scheme, which uses a {@link AwsCredentialsIdentity} and {@link AwsCrtV4aHttpSigner}.
+ * The aws.auth#sigv4a auth scheme, which uses a {@link AwsCredentialsIdentity} and {@link AwsCrtV4aHttpSigner}.
  */
 @SdkPublicApi
 public interface AwsCrtV4aAuthScheme extends AuthScheme<AwsCredentialsIdentity> {
+
+    /**
+     * The scheme ID for this interface.
+     */
+    String SCHEME_ID = "aws.auth#sigv4a";
+
+    /**
+     * Get a default implementation of a {@link AwsCrtV4aAuthScheme}
+     */
+    static AwsCrtV4aAuthScheme create() {
+        return new AwsCrtV4aAuthScheme() {
+        };
+    }
 
     /**
      * Retrieve the scheme ID.
      */
     @Override
     default String schemeId() {
-        return "aws.auth#sigv4";
+        return SCHEME_ID;
     }
 
     /**
@@ -50,13 +62,5 @@ public interface AwsCrtV4aAuthScheme extends AuthScheme<AwsCredentialsIdentity> 
     @Override
     default AwsCrtV4aHttpSigner signer() {
         return AwsCrtV4aHttpSigner.create();
-    }
-
-    /**
-     * Get a default implementation of a {@link AwsCrtV4aAuthScheme}
-     */
-    static AwsCrtV4aAuthScheme create() {
-        return new AwsCrtV4aAuthScheme() {
-        };
     }
 }
