@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "Adding new API describe-engine-versions which provides information about the lifecycle of a replication instance's version."
+}
