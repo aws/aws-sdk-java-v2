@@ -143,7 +143,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * Configures the maximum amount of memory, in bytes, the SDK will use to buffer content of requests in memory.
          * Increasing this value may lead to better performance at the cost of using more memory.
          * <p>
-         * Default value: If not specified, the SDK will use the equivalent of two parts worth of memory, so 16 Mib by default.
+         * Default value: If not specified, the SDK will use the equivalent of four parts worth of memory, so 32 Mib by default.
          *
          * @param apiCallBufferSizeInBytes the value of the maximum memory usage.
          * @return an instance of this builder.
