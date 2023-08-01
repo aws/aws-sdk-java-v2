@@ -55,10 +55,8 @@ public final class ClassLoaderHelper {
     }
 
     /**
-     * Loads the class via the optionally specified classes in the order of
-     * their specification, and if not found, via the context class loader of
-     * the current thread, and if not found, from the caller class loader as the
-     * last resort.
+     * Loads the class via the optionally specified classes in the order of their specification, and if not found, via the context
+     * class loader of the current thread, and if not found, from the caller class loader as the last resort.
      *
      * @param fqcn    fully qualified class name of the target class to be loaded
      * @param classes class loader providers
@@ -71,21 +69,17 @@ public final class ClassLoaderHelper {
     }
 
     /**
-     * If classesFirst is false, loads the class via the context class
-     * loader of the current thread, and if not found, via the class loaders of
-     * the optionally specified classes in the order of their specification, and
-     * if not found, from the caller class loader as the
-     * last resort.
+     * If classesFirst is false, loads the class via the context class loader of the current thread, and if not found, via the
+     * class loaders of the optionally specified classes in the order of their specification, and if not found, from the caller
+     * class loader as the last resort.
      * <p>
-     * If classesFirst is true, loads the class via the optionally
-     * specified classes in the order of their specification, and if not found,
-     * via the context class loader of the current thread, and if not found,
-     * from the caller class loader as the last resort.
+     * If classesFirst is true, loads the class via the optionally specified classes in the order of their specification, and if
+     * not found, via the context class loader of the current thread, and if not found, from the caller class loader as the last
+     * resort.
      *
      * @param fqcn         fully qualified class name of the target class to be loaded
-     * @param classesFirst true if the class loaders of the optionally specified classes
-     *                     take precedence over the context class loader of the current
-     *                     thread; false if the opposite is true.
+     * @param classesFirst true if the class loaders of the optionally specified classes take precedence over the context class
+     *                     loader of the current thread; false if the opposite is true.
      * @param classes      class loader providers
      * @return the class loaded; never null
      * @throws ClassNotFoundException if failed to load the class

@@ -36,10 +36,10 @@ public final class FifoCache<T> {
     /**
      * @param maxSize the maximum number of entries of the cache
      */
-    public FifoCache(final int maxSize) {
+    public FifoCache(int maxSize) {
         if (maxSize < 1) {
             throw new IllegalArgumentException("maxSize " + maxSize
-                + " must be at least 1");
+                                               + " must be at least 1");
         }
         map = new BoundedLinkedHashMap<>(maxSize);
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
