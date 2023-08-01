@@ -95,8 +95,8 @@ public final class V4HttpSigner implements AwsV4HttpSigner {
         Publisher<ByteBuffer> payload = payloadSigner.sign(request.payload().orElse(null), futureV4Context);
 
         return futureV4Context.thenApply(v4Context -> AsyncSignedRequest.builder()
-                                                                    .request(v4Context.getSignedRequest().build())
-                                                                    .payload(payload)
-                                                                    .build());
+                                                                        .request(v4Context.getSignedRequest().build())
+                                                                        .payload(payload)
+                                                                        .build());
     }
 }

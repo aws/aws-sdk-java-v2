@@ -20,8 +20,8 @@ import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * An {@link HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}),
- * specifically for query.
+ * An {@link HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}), specifically for
+ * query.
  * <p>
  * The process for signing requests to AWS services is documented
  * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html">here</a>.
