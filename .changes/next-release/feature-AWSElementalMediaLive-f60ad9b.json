@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "AWS Elemental Link devices now report their Availability Zone. Link devices now support the ability to change their Availability Zone."
-}

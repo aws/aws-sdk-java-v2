@@ -1,3 +1,36 @@
+# __2.20.117__ __2023-08-01__
+## __AWS Batch__
+  - ### Features
+    - This release adds support for price capacity optimized allocation strategy for Spot Instances.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Adding new API describe-engine-versions which provides information about the lifecycle of a replication instance's version.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental Link devices now report their Availability Zone. Link devices now support the ability to change their Availability Zone.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds a new feature for Amazon CloudWatch Internet Monitor that enables customers to set custom thresholds, for performance and availability drops, for impact limited to a single city-network to trigger creation of a health event.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new French Belgian voice - Isabelle. Isabelle is available as Neural voice only.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Added support for deleted clusters PiTR.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add Stairs TrafficPattern and FlatInvocations to RecommendationJobStoppingConditions
+
 # __2.20.116__ __2023-07-31__
 ## __AWS Amplify UI Builder__
   - ### Features
