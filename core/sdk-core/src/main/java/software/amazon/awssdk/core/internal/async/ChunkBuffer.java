@@ -68,7 +68,7 @@ public final class ChunkBuffer {
 
         // If current buffer is not empty, fill the buffer first.
         if (currentBuffer.position() != 0) {
-            fillBuffer(inputByteBuffer);
+            fillCurrentBuffer(inputByteBuffer);
 
             if (isCurrentBufferFull()) {
                 addCurrentBufferToIterable(byteBuffers, chunkSize);
@@ -77,7 +77,7 @@ public final class ChunkBuffer {
 
         // If the input buffer is not empty, split the input buffer
         if (inputByteBuffer.hasRemaining()) {
-            splitInputBuffer(inputByteBuffer, byteBuffers);
+            splitRemainingInputByteBuffer(inputByteBuffer, byteBuffers);
         }
 
         // If this is the last chunk, add data buffered to the iterable
@@ -92,18 +92,18 @@ public final class ChunkBuffer {
         return currentBuffer.position() == chunkSize;
     }
 
-    private void splitInputBuffer(ByteBuffer buffer, List<ByteBuffer> byteBuffers) {
-        while (buffer.hasRemaining()) {
-            ByteBuffer chunkByteBuffer = buffer.asReadOnlyBuffer();
-            if (buffer.remaining() < chunkSize) {
-                currentBuffer.put(buffer);
+    private void splitRemainingInputByteBuffer(ByteBuffer inputByteBuffer, List<ByteBuffer> byteBuffers) {
+        while (inputByteBuffer.hasRemaining()) {
+            ByteBuffer inputByteBufferCopy = inputByteBuffer.asReadOnlyBuffer();
+            if (inputByteBuffer.remaining() < chunkSize) {
+                currentBuffer.put(inputByteBuffer);
                 break;
             }
 
-            int newLimit = chunkByteBuffer.position() + chunkSize;
-            chunkByteBuffer.limit(newLimit);
-            buffer.position(newLimit);
-            byteBuffers.add(chunkByteBuffer);
+            int newLimit = inputByteBufferCopy.position() + chunkSize;
+            inputByteBufferCopy.limit(newLimit);
+            inputByteBuffer.position(newLimit);
+            byteBuffers.add(inputByteBufferCopy);
             transferredBytes.addAndGet(chunkSize);
         }
     }
@@ -123,7 +123,7 @@ public final class ChunkBuffer {
         currentBuffer.clear();
     }
 
-    private void fillBuffer(ByteBuffer inputByteBuffer) {
+    private void fillCurrentBuffer(ByteBuffer inputByteBuffer) {
         while (currentBuffer.position() < chunkSize) {
             if (!inputByteBuffer.hasRemaining()) {
                 break;
