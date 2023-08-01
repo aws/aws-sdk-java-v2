@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.crt.AwsCrtV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
@@ -35,7 +36,7 @@ public class DefaultAwsCrtV4aHttpSigner implements AwsCrtV4aHttpSigner {
     }
 
     @Override
-    public AsyncSignedRequest signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
         throw new UnsupportedOperationException();
     }
 }

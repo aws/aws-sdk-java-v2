@@ -85,7 +85,7 @@ class BearerHttpSignerTest {
         BearerHttpSigner tokenSigner = BearerHttpSigner.create();
 
         AsyncSignedRequest signedRequest =
-            tokenSigner.signAsync(generateBasicAsyncRequest(tokenValue));
+            tokenSigner.signAsync(generateBasicAsyncRequest(tokenValue)).join();
 
 
         String expectedHeader = createExpectedHeader(tokenValue);

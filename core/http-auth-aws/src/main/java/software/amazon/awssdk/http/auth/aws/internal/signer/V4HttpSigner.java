@@ -32,7 +32,6 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * An implementation of a {@link AwsV4HttpSigner}.
@@ -51,7 +50,6 @@ public final class V4HttpSigner implements AwsV4HttpSigner {
 
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(request.identity())) {
             return SyncSignedRequest.builder()
                                     .request(request.request())
@@ -75,12 +73,14 @@ public final class V4HttpSigner implements AwsV4HttpSigner {
     }
 
     @Override
-    public AsyncSignedRequest signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
         if (CredentialUtils.isAnonymous(request.identity())) {
-            return AsyncSignedRequest.builder()
-                                     .request(request.request())
-                                     .payload(request.payload().orElse(null))
-                                     .build();
+            return CompletableFuture.completedFuture(
+                AsyncSignedRequest.builder()
+                                  .request(request.request())
+                                  .payload(request.payload().orElse(null))
+                                  .build()
+            );
         }
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
@@ -94,9 +94,9 @@ public final class V4HttpSigner implements AwsV4HttpSigner {
 
         Publisher<ByteBuffer> payload = payloadSigner.sign(request.payload().orElse(null), futureV4Context);
 
-        return AsyncSignedRequest.builder()
-                                 .request(CompletableFutureUtils.joinLikeSync(futureV4Context).getSignedRequest().build())
-                                 .payload(payload)
-                                 .build();
+        return futureV4Context.thenApply(v4Context -> AsyncSignedRequest.builder()
+                                                                    .request(v4Context.getSignedRequest().build())
+                                                                    .payload(payload)
+                                                                    .build());
     }
 }

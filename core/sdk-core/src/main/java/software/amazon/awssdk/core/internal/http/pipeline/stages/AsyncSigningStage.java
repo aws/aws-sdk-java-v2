@@ -119,7 +119,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
             .payload(context.requestProvider());
         authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
-        CompletableFuture<AsyncSignedRequest> signedRequestFuture = signAsync(signer, signRequestBuilder.build());
+        CompletableFuture<AsyncSignedRequest> signedRequestFuture = signer.signAsync(signRequestBuilder.build());
         return signedRequestFuture.thenCompose(signedRequest -> {
             SdkHttpFullRequest result = toSdkHttpFullRequest(signedRequest);
             updateAsyncRequestBodyInContexts(context, signedRequest);
@@ -136,12 +136,6 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         ExecutionContext executionContext = context.executionContext();
         executionContext.interceptorContext(executionContext.interceptorContext()
                                                             .copy(b -> b.asyncRequestBody(newAsyncRequestBody)));
-    }
-
-    // TODO: temporary method since signer.signAsync is not returning CompletableFuture yet
-    private <T extends Identity> CompletableFuture<AsyncSignedRequest> signAsync(HttpSigner<T> signer,
-                                                                                 AsyncSignRequest<T> asyncSignRequest) {
-        return CompletableFuture.completedFuture(signer.signAsync(asyncSignRequest));
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
