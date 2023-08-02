@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.poet.builder;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
-import static software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata.fromAuthType;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -31,11 +30,9 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -50,7 +47,6 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
@@ -676,24 +672,17 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .returns(returns);
 
         List<String> schemesMapPopulate = new ArrayList<>();
-        // S3 has more than one authType that maps to the same AuthScheme class, we use this set to avoid duplicating the
-        // mappings here.
-        Set<Class<?>> authSchemesAdded = new HashSet<>();
-        for (AuthType authType : authSchemeSpecUtils.allServiceAuthTypes()) {
-            AuthSchemeCodegenMetadata metadata = fromAuthType(authType);
-            Class<?> concreteAuthScheme = metadata.authSchemeClass();
-            if (concreteAuthScheme != null && !authSchemesAdded.contains(concreteAuthScheme)) {
-                String instanceVariable = CodegenNamingUtils.lowercaseFirstChar(concreteAuthScheme.getSimpleName());
-                builder.addStatement("$1T $2L = $1T.create()", concreteAuthScheme, instanceVariable);
-                schemesMapPopulate.add(String.format("%1$s.schemeId(), %1$s", instanceVariable));
-                authSchemesAdded.add(concreteAuthScheme);
-            }
+        for (Class<?> concreteAuthScheme : authSchemeSpecUtils.allServiceConcreteAuthSchemeClasses()) {
+            String instanceVariable = CodegenNamingUtils.lowercaseFirstChar(concreteAuthScheme.getSimpleName());
+            builder.addStatement("$1T $2L = $1T.create()", concreteAuthScheme, instanceVariable);
+            schemesMapPopulate.add(String.format("%1$s.schemeId(), %1$s", instanceVariable));
         }
         if (schemesMapPopulate.isEmpty()) {
             builder.addStatement("return $T.emptyMap()", Collections.class);
+        } else {
+            // This might fail at compile time if we pass more than 6 key value pairs or id -> authScheme.
+            builder.addStatement("return $T.of($L)", MapUtils.class, String.join(", ", schemesMapPopulate));
         }
-
-        builder.addStatement("return $T.of($L)", MapUtils.class, String.join(", ", schemesMapPopulate));
         return builder.build();
     }
 
