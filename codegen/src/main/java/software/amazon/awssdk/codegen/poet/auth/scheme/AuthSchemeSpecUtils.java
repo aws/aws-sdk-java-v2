@@ -195,7 +195,7 @@ public final class AuthSchemeSpecUtils {
                   .filter(Objects::nonNull)
                   .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Class::getSimpleName))));
 
-        if (generateEndpointBasedParams()) {
+        if (useEndpointBasedAuthProvider()) {
             // sigv4a is not modeled but needed for the endpoints based auth-scheme cases.
             result.add(AwsV4aAuthScheme.class);
         }
