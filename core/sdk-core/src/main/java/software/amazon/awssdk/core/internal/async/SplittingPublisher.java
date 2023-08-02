@@ -291,8 +291,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
                     s.onSubscribe(new NoopSubscription(s));
                     s.onError(NonRetryableException.create(
                         "A retry was attempted, but AsyncRequestBody.split does not "
-                        + "support retries. Consider using AsyncRequestBody.fromInputStream with an "
-                        + "input stream that supports mark/reset to get retry support."));
+                        + "support retries."));
                 }
             }
 
