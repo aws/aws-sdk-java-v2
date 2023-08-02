@@ -113,8 +113,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("$1T $2N = ($1T) executionAttributes.getAttribute($3T.ENDPOINT_PROVIDER)",
                        endpointRulesSpecUtils.providerInterfaceName(), providerVar, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("try");
-        b.addStatement("$T result = $N.resolveEndpoint(ruleParams(context, executionAttributes)).join()", Endpoint.class,
-                       providerVar);
+        b.addStatement("$T result = $N.resolveEndpoint(ruleParams(context.request(), executionAttributes)).join()",
+                       Endpoint.class, providerVar);
         b.beginControlFlow("if (!$T.disableHostPrefixInjection(executionAttributes))",
                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
         b.addStatement("$T hostPrefix = hostPrefix(executionAttributes.getAttribute($T.OPERATION_NAME), context.request())",
@@ -141,9 +141,9 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
     private MethodSpec ruleParams() {
         MethodSpec.Builder b = MethodSpec.methodBuilder("ruleParams")
-                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                                          .returns(endpointRulesSpecUtils.parametersClassName())
-                                         .addParameter(Context.ModifyRequest.class, "context")
+                                         .addParameter(SdkRequest.class, "request")
                                          .addParameter(ExecutionAttributes.class, "executionAttributes");
 
         b.addStatement("$T builder = $T.builder()", paramsBuilderClass(), endpointRulesSpecUtils.parametersClassName());
@@ -194,7 +194,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         if (hasClientContextParams()) {
             b.addStatement("setClientContextParams(builder, executionAttributes)");
         }
-        b.addStatement("setContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME), context.request())",
+        b.addStatement("setContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME), request)",
                        AwsExecutionAttribute.class);
         b.addStatement("setStaticContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME))",
                        AwsExecutionAttribute.class);

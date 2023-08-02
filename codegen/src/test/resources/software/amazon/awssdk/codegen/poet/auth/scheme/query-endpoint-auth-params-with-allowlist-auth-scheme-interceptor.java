@@ -23,7 +23,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -38,9 +37,10 @@ import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
+import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
+import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -96,9 +96,18 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
     }
 
     private QueryAuthSchemeParams authSchemeParams(SdkRequest request, ExecutionAttributes executionAttributes) {
+        QueryEndpointParams endpointParams = QueryResolveEndpointInterceptor.ruleParams(request, executionAttributes);
+        QueryAuthSchemeParams.Builder builder = QueryAuthSchemeParams.builder();
+        builder.region(endpointParams.region());
+        builder.defaultTrueParam(endpointParams.defaultTrueParam());
+        builder.defaultStringParam(endpointParams.defaultStringParam());
+        builder.deprecatedParam(endpointParams.deprecatedParam());
+        builder.booleanContextParam(endpointParams.booleanContextParam());
+        builder.stringContextParam(endpointParams.stringContextParam());
+        builder.operationContextParam(endpointParams.operationContextParam());
         String operation = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
-        Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
-        return QueryAuthSchemeParams.builder().operation(operation).region(region).build();
+        builder.operation(operation);
+        return builder.build();
     }
 
     private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,

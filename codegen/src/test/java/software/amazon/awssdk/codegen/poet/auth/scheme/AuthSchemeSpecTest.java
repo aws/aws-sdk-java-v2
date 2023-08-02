@@ -169,10 +169,25 @@ public class AuthSchemeSpecTest {
                     .outputFileSuffix("default-provider")
                     .build(),
             // Interceptors
+            // - Normal case
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModels)
                     .classSpecProvider(AuthSchemeInterceptorSpec::new)
                     .caseName("query")
+                    .outputFileSuffix("interceptor")
+                    .build(),
+            // - Endpoints based params with allow list
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
+                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
+                    .caseName("query-endpoint-auth-params-with-allowlist")
+                    .outputFileSuffix("interceptor")
+                    .build(),
+            // - Endpoints based params without allow list
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithoutAllowList)
+                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
+                    .caseName("query-endpoint-auth-params-without-allowlist")
                     .outputFileSuffix("interceptor")
                     .build()
         );
