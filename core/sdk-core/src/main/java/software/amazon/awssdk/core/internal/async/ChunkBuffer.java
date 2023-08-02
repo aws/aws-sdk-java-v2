@@ -92,6 +92,9 @@ public final class ChunkBuffer {
         return currentBuffer.position() == chunkSize;
     }
 
+    /**
+     * Splits the input ByteBuffer to multiple chunks and add them to the iterable.
+     */
     private void splitRemainingInputByteBuffer(ByteBuffer inputByteBuffer, List<ByteBuffer> byteBuffers) {
         while (inputByteBuffer.hasRemaining()) {
             ByteBuffer inputByteBufferCopy = inputByteBuffer.asReadOnlyBuffer();
