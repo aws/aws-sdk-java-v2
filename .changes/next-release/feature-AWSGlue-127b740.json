@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "This release includes additional Glue Streaming KAKFA SASL property types."
+}
