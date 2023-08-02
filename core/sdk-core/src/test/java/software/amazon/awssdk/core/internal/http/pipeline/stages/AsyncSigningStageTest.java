@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -45,6 +46,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
+import software.amazon.awssdk.core.signer.AsyncSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -135,30 +138,6 @@ public class AsyncSigningStageTest {
     }
 
     @Test
-    public void execute_sraSelectsNoAuthAuthScheme_skipsSigning() throws Exception {
-        // Set up a scheme with smithy.api#noAuth
-        SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
-            CompletableFuture.completedFuture(identity),
-            signer,
-            AuthSchemeOption.builder()
-                            .schemeId("smithy.api#noAuth")
-                            .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
-
-        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
-        SdkHttpFullRequest result = stage.execute(request, context).join();
-
-        assertThat(result).isSameAs(request);
-        // assert that interceptor context is updated with result, which is same as request.
-        // To ensure this asserts the logic in the SigningStage to update the InterceptorContext before the signing logic,
-        // the request is not set in the InterceptorContext in createContext()
-        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(request);
-
-        verifyNoInteractions(signer);
-        verifyNoInteractions(metricCollector);
-    }
-
-    @Test
     public void execute_sraSelectsAuthScheme_asyncRequestBody_signsAsync() throws Exception {
         AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
 
@@ -204,6 +183,30 @@ public class AsyncSigningStageTest {
     }
 
     @Test
+    public void execute_sraSelectsNoAuthAuthScheme_skipsSigning() throws Exception {
+        // Set up a scheme with smithy.api#noAuth
+        SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(identity),
+            signer,
+            AuthSchemeOption.builder()
+                            .schemeId("smithy.api#noAuth")
+                            .build());
+        RequestExecutionContext context = createContext(selectedAuthScheme);
+
+        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
+        SdkHttpFullRequest result = stage.execute(request, context).join();
+
+        assertThat(result).isSameAs(request);
+        // assert that interceptor context is updated with result, which is same as request.
+        // To ensure this asserts the logic in the SigningStage to update the InterceptorContext before the signing logic,
+        // the request is not set in the InterceptorContext in createContext()
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(request);
+
+        verifyNoInteractions(signer);
+        verifyNoInteractions(metricCollector);
+    }
+
+    @Test
     public void execute_preSra_signer_signs() throws Exception {
         RequestExecutionContext context = createContext(null, oldSigner);
 
@@ -218,6 +221,76 @@ public class AsyncSigningStageTest {
         assertThat(result).isSameAs(signedRequest);
         // assert that interceptor context is updated with result
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
+
+        // assert that metrics are collected
+        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
+
+        verifyNoInteractions(signer);
+    }
+
+    @Test
+    public void execute_preSra_AsyncRequestBodySigner_signsAsyncRequestBody() throws Exception {
+        AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
+        AsyncRequestBody signedPayload = AsyncRequestBody.fromString("signed async request body");
+
+        TestAsyncRequestBodySigner asyncRequestBodySigner = mock(TestAsyncRequestBodySigner.class);
+        RequestExecutionContext context = createContext(null, asyncPayload, asyncRequestBodySigner);
+
+        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
+
+        SdkHttpFullRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        // Creating a copy because original executionAttributes may be directly mutated by SigningStage, e.g., timeOffset
+        when(asyncRequestBodySigner.sign(request, context.executionAttributes().copy().putAttribute(TIME_OFFSET, 0))).thenReturn(signedRequest);
+        when(asyncRequestBodySigner.signAsyncRequestBody(signedRequest,
+                                                         asyncPayload,
+                                                         context.executionAttributes().copy().putAttribute(TIME_OFFSET, 0)))
+            .thenReturn(signedPayload);
+
+        SdkHttpFullRequest result = stage.execute(request, context).join();
+
+        assertThat(result).isSameAs(signedRequest);
+        // assert that contexts are updated with result
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
+        // Note: pre SRA code did not set this, so commenting it out, as compared to the SRA test.
+        // assertThat(context.executionContext().interceptorContext().asyncRequestBody().get()).isSameAs(signedPayload);
+        assertThat(context.requestProvider()).isSameAs(signedPayload);
+
+        // assert that metrics are collected
+        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
+
+        verifyNoInteractions(signer);
+    }
+
+    @Test
+    public void execute_preSra_AsyncSigner_signsAsync() throws Exception {
+        AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
+
+        TestAsyncSigner asyncSigner = mock(TestAsyncSigner.class);
+        RequestExecutionContext context = createContext(null, asyncPayload, asyncSigner);
+
+        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
+
+        SdkHttpFullRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        // Creating a copy because original executionAttributes may be directly mutated by SigningStage, e.g., timeOffset
+        when(asyncSigner.sign(request,
+                              asyncPayload,
+                              context.executionAttributes().copy().putAttribute(TIME_OFFSET, 0)))
+            .thenReturn(CompletableFuture.completedFuture(signedRequest));
+
+        SdkHttpFullRequest result = stage.execute(request, context).join();
+
+        assertThat(result).isSameAs(signedRequest);
+        // assert that contexts are updated with result
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
+        // Note: compared to SRA code, AsyncSigner use case did not set asyncPayload on the context or the
+        // interceptorContext.
+
+        // So commenting the interceptorContext assertion, as compared to the SRA test.
+        // assertThat(context.executionContext().interceptorContext().asyncRequestBody().get()).isSameAs(asyncPayload);
+
+        // And the context.requestProvider is the input asyncPayload itself, there is no different signedPayload as compared to
+        // the SRA test.
+        assertThat(context.requestProvider()).isSameAs(asyncPayload);
 
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
@@ -311,5 +384,11 @@ public class AsyncSigningStageTest {
                                                                  .build();
         context.attemptMetricCollector(metricCollector);
         return context;
+    }
+
+    private interface TestAsyncRequestBodySigner extends Signer, AsyncRequestBodySigner {
+    }
+
+    private interface TestAsyncSigner extends Signer, AsyncSigner {
     }
 }
