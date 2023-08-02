@@ -30,9 +30,11 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -67,7 +69,6 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
@@ -671,18 +672,19 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addModifiers(PRIVATE)
                                                .returns(returns);
 
-        List<String> schemesMapPopulate = new ArrayList<>();
-        for (Class<?> concreteAuthScheme : authSchemeSpecUtils.allServiceConcreteAuthSchemeClasses()) {
+        Set<Class<?>> concreteAuthSchemeClasses = authSchemeSpecUtils.allServiceConcreteAuthSchemeClasses();
+        if (concreteAuthSchemeClasses.isEmpty()) {
+            builder.addStatement("return $T.emptyMap()", Collections.class);
+            return builder.build();
+        }
+
+        builder.addStatement("$T schemes = new $T<>($L)", returns, HashMap.class, concreteAuthSchemeClasses.size());
+        for (Class<?> concreteAuthScheme : concreteAuthSchemeClasses) {
             String instanceVariable = CodegenNamingUtils.lowercaseFirstChar(concreteAuthScheme.getSimpleName());
             builder.addStatement("$1T $2L = $1T.create()", concreteAuthScheme, instanceVariable);
-            schemesMapPopulate.add(String.format("%1$s.schemeId(), %1$s", instanceVariable));
+            builder.addStatement("schemes.put($1N.schemeId(), $1N)", instanceVariable);
         }
-        if (schemesMapPopulate.isEmpty()) {
-            builder.addStatement("return $T.emptyMap()", Collections.class);
-        } else {
-            // This might fail at compile time if we pass more than 6 key value pairs or id -> authScheme.
-            builder.addStatement("return $T.of($L)", MapUtils.class, String.join(", ", schemesMapPopulate));
-        }
+        builder.addStatement("return $T.unmodifiableMap(schemes)", Collections.class);
         return builder.build();
     }
 

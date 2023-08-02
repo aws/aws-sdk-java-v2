@@ -1,6 +1,8 @@
 package software.amazon.awssdk.services.json;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
@@ -27,7 +29,6 @@ import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthS
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -108,8 +109,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     private Map<String, AuthScheme<?>> defaultAuthSchemes() {
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(1);
         BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
-        return MapUtils.of(bearerAuthScheme.schemeId(), bearerAuthScheme);
+        schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
+        return Collections.unmodifiableMap(schemes);
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

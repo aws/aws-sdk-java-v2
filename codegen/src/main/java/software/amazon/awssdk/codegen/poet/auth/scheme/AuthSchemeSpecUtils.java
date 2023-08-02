@@ -182,19 +182,6 @@ public final class AuthSchemeSpecUtils {
         return Collections.singletonList(intermediateModel.getMetadata().getAuthType());
     }
 
-    public List<AuthType> allServiceAuthTypes() {
-        Set<AuthType> result =
-            intermediateModel.getOperations()
-                             .values()
-                             .stream()
-                             .map(OperationModel::getAuth)
-                             .flatMap(List::stream)
-                             .collect(Collectors.toSet());
-        List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
-        result.addAll(modeled);
-        return result.stream().sorted().collect(Collectors.toList());
-    }
-
     public Set<Class<?>> allServiceConcreteAuthSchemeClasses() {
         Set<Class<?>> result =
             Stream.concat(intermediateModel.getOperations()
@@ -209,7 +196,7 @@ public final class AuthSchemeSpecUtils {
                   .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Class::getSimpleName))));
 
         if (generateEndpointBasedParams()) {
-            // sigv4a is modeled but needed for the endpoints based auth-scheme cases.
+            // sigv4a is not modeled but needed for the endpoints based auth-scheme cases.
             result.add(AwsV4aAuthScheme.class);
         }
         return result;

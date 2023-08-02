@@ -1,4 +1,4 @@
-package software.amazon.awssdk.services.json;
+package software.amazon.awssdk.services.minis3;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,40 +7,39 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
-import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeInterceptor;
-import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
-import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
-import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
+import software.amazon.awssdk.services.minis3.auth.scheme.MiniS3AuthSchemeProvider;
+import software.amazon.awssdk.services.minis3.auth.scheme.internal.MiniS3AuthSchemeInterceptor;
+import software.amazon.awssdk.services.minis3.endpoints.MiniS3EndpointProvider;
+import software.amazon.awssdk.services.minis3.endpoints.internal.MiniS3EndpointAuthSchemeInterceptor;
+import software.amazon.awssdk.services.minis3.endpoints.internal.MiniS3RequestSetEndpointInterceptor;
+import software.amazon.awssdk.services.minis3.endpoints.internal.MiniS3ResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Internal base class for {@link DefaultJsonClientBuilder} and {@link DefaultJsonAsyncClientBuilder}.
+ * Internal base class for {@link DefaultMiniS3ClientBuilder} and {@link DefaultMiniS3AsyncClientBuilder}.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
+abstract class DefaultMiniS3BaseClientBuilder<B extends MiniS3BaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
     @Override
     protected final String serviceEndpointPrefix() {
-        return "json-service-endpoint";
+        return "mini-s3-service-endpoint";
     }
 
     @Override
     protected final String serviceName() {
-        return "Json";
+        return "MiniS3";
     }
 
     @Override
@@ -53,23 +52,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     @Override
-    protected final SdkClientConfiguration mergeInternalDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> {
-            c.option(SdkClientOption.INTERNAL_USER_AGENT, "md/foobar");
-            c.option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD);
-        });
-    }
-
-    @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
-        endpointInterceptors.add(new JsonAuthSchemeInterceptor());
-        endpointInterceptors.add(new JsonResolveEndpointInterceptor());
-        endpointInterceptors.add(new JsonEndpointAuthSchemeInterceptor());
-        endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
+        endpointInterceptors.add(new MiniS3AuthSchemeInterceptor());
+        endpointInterceptors.add(new MiniS3ResolveEndpointInterceptor());
+        endpointInterceptors.add(new MiniS3EndpointAuthSchemeInterceptor());
+        endpointInterceptors.add(new MiniS3RequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+                .getInterceptors("software/amazon/awssdk/services/minis3/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -80,25 +71,25 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     private Signer defaultSigner() {
-        return Aws4Signer.create();
+        return AwsS3V4Signer.create();
     }
 
     @Override
     protected final String signingName() {
-        return "json-service";
+        return "mini-s3-service";
     }
 
-    private JsonEndpointProvider defaultEndpointProvider() {
-        return JsonEndpointProvider.defaultProvider();
+    private MiniS3EndpointProvider defaultEndpointProvider() {
+        return MiniS3EndpointProvider.defaultProvider();
     }
 
-    public B authSchemeProvider(JsonAuthSchemeProvider authSchemeProvider) {
+    public B authSchemeProvider(MiniS3AuthSchemeProvider authSchemeProvider) {
         clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
         return thisBuilder();
     }
 
-    private JsonAuthSchemeProvider defaultAuthSchemeProvider() {
-        return JsonAuthSchemeProvider.defaultProvider();
+    private MiniS3AuthSchemeProvider defaultAuthSchemeProvider() {
+        return MiniS3AuthSchemeProvider.defaultProvider();
     }
 
     private Map<String, AuthScheme<?>> defaultAuthSchemes() {
