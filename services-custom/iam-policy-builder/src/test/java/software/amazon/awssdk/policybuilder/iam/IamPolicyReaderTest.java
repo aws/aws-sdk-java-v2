@@ -23,12 +23,18 @@ import static software.amazon.awssdk.policybuilder.iam.IamEffect.ALLOW;
 import org.junit.jupiter.api.Test;
 
 class IamPolicyReaderTest {
-    private static final IamPrincipal PRINCIPAL_1 = IamPrincipal.ALL;
-    private static final IamPrincipal PRINCIPAL_2 = IamPrincipal.create("2", "*");
-    private static final IamResource RESOURCE_1 = IamResource.create("1");
-    private static final IamResource RESOURCE_2 = IamResource.create("2");
-    private static final IamAction ACTION_1 = IamAction.create("1");
-    private static final IamAction ACTION_2 = IamAction.create("2");
+    private static final IamPrincipal PRINCIPAL_1 = IamPrincipal.create("P1", "*");
+    private static final IamPrincipal PRINCIPAL_2 = IamPrincipal.create("P2", "*");
+    private static final IamPrincipal NOT_PRINCIPAL_1 = IamPrincipal.create("NP1", "*");
+    private static final IamPrincipal NOT_PRINCIPAL_2 = IamPrincipal.create("NP2", "*");
+    private static final IamResource RESOURCE_1 = IamResource.create("R1");
+    private static final IamResource RESOURCE_2 = IamResource.create("R2");
+    private static final IamResource NOT_RESOURCE_1 = IamResource.create("NR1");
+    private static final IamResource NOT_RESOURCE_2 = IamResource.create("NR2");
+    private static final IamAction ACTION_1 = IamAction.create("A1");
+    private static final IamAction ACTION_2 = IamAction.create("A2");
+    private static final IamAction NOT_ACTION_1 = IamAction.create("NA1");
+    private static final IamAction NOT_ACTION_2 = IamAction.create("NA2");
     private static final IamCondition CONDITION_1 = IamCondition.create("1", "K1", "V1");
     private static final IamCondition CONDITION_2 = IamCondition.create("1", "K2", "V1");
     private static final IamCondition CONDITION_3 = IamCondition.create("1", "K2", "V2");
@@ -39,11 +45,11 @@ class IamPolicyReaderTest {
                     .effect(ALLOW)
                     .sid("Sid")
                     .principals(asList(PRINCIPAL_1, PRINCIPAL_2))
-                    .notPrincipals(asList(PRINCIPAL_1, PRINCIPAL_2))
+                    .notPrincipals(asList(NOT_PRINCIPAL_1, NOT_PRINCIPAL_2))
                     .resources(asList(RESOURCE_1, RESOURCE_2))
-                    .notResources(asList(RESOURCE_1, RESOURCE_2))
+                    .notResources(asList(NOT_RESOURCE_1, NOT_RESOURCE_2))
                     .actions(asList(ACTION_1, ACTION_2))
-                    .notActions(asList(ACTION_1, ACTION_2))
+                    .notActions(asList(NOT_ACTION_1, NOT_ACTION_2))
                     .conditions(asList(CONDITION_1, CONDITION_2, CONDITION_3, CONDITION_4))
                     .build();
 
@@ -66,12 +72,12 @@ class IamPolicyReaderTest {
         IamStatement.builder()
                     .effect(ALLOW)
                     .sid("Sid")
-                    .principals(singletonList(PRINCIPAL_1))
-                    .notPrincipals(singletonList(PRINCIPAL_1))
+                    .principals(singletonList(IamPrincipal.ALL))
+                    .notPrincipals(singletonList(IamPrincipal.ALL))
                     .resources(singletonList(RESOURCE_1))
-                    .notResources(singletonList(RESOURCE_1))
+                    .notResources(singletonList(NOT_RESOURCE_1))
                     .actions(singletonList(ACTION_1))
-                    .notActions(singletonList(ACTION_1))
+                    .notActions(singletonList(NOT_ACTION_1))
                     .conditions(singletonList(CONDITION_1))
                     .build();
 
@@ -85,17 +91,6 @@ class IamPolicyReaderTest {
 
     @Test
     public void readFullPolicyWorks() {
-        assertThat(READER.read("{\"Version\":\"Version\","
-                               + "\"Id\":\"Id\","
-                               + "\"Statement\":["
-                               + "{\"Sid\":\"Sid\",\"Effect\":\"Allow\",\"Principal\":{\"*\":\"*\",\"2\":\"*\"},\"NotPrincipal\":{\"*\":\"*\",\"2\":\"*\"},\"Action\":[\"1\",\"2\"],\"NotAction\":[\"1\",\"2\"],\"Resource\":[\"1\",\"2\"],\"NotResource\":[\"1\",\"2\"],\"Condition\":{\"1\":{\"K1\":\"V1\",\"K2\":[\"V1\",\"V2\"]},\"2\":{\"K1\":\"V1\"}}},"
-                               + "{\"Sid\":\"Sid\",\"Effect\":\"Allow\",\"Principal\":{\"*\":\"*\",\"2\":\"*\"},\"NotPrincipal\":{\"*\":\"*\",\"2\":\"*\"},\"Action\":[\"1\",\"2\"],\"NotAction\":[\"1\",\"2\"],\"Resource\":[\"1\",\"2\"],\"NotResource\":[\"1\",\"2\"],\"Condition\":{\"1\":{\"K1\":\"V1\",\"K2\":[\"V1\",\"V2\"]},\"2\":{\"K1\":\"V1\"}}}"
-                               + "]}"))
-            .isEqualTo(FULL_POLICY);
-    }
-
-    @Test
-    public void prettyWriteFullPolicyWorks() {
         assertThat(READER.read("{\n"
                                + "  \"Version\" : \"Version\",\n"
                                + "  \"Id\" : \"Id\",\n"
@@ -103,17 +98,17 @@ class IamPolicyReaderTest {
                                + "    \"Sid\" : \"Sid\",\n"
                                + "    \"Effect\" : \"Allow\",\n"
                                + "    \"Principal\" : {\n"
-                               + "      \"*\" : \"*\",\n"
-                               + "      \"2\" : \"*\"\n"
+                               + "      \"P1\" : \"*\",\n"
+                               + "      \"P2\" : \"*\"\n"
                                + "    },\n"
                                + "    \"NotPrincipal\" : {\n"
-                               + "      \"*\" : \"*\",\n"
-                               + "      \"2\" : \"*\"\n"
+                               + "      \"NP1\" : \"*\",\n"
+                               + "      \"NP2\" : \"*\"\n"
                                + "    },\n"
-                               + "    \"Action\" : [ \"1\", \"2\" ],\n"
-                               + "    \"NotAction\" : [ \"1\", \"2\" ],\n"
-                               + "    \"Resource\" : [ \"1\", \"2\" ],\n"
-                               + "    \"NotResource\" : [ \"1\", \"2\" ],\n"
+                               + "    \"Action\" : [ \"A1\", \"A2\" ],\n"
+                               + "    \"NotAction\" : [ \"NA1\", \"NA2\" ],\n"
+                               + "    \"Resource\" : [ \"R1\", \"R2\" ],\n"
+                               + "    \"NotResource\" : [ \"NR1\", \"NR2\" ],\n"
                                + "    \"Condition\" : {\n"
                                + "      \"1\" : {\n"
                                + "        \"K1\" : \"V1\",\n"
@@ -127,17 +122,17 @@ class IamPolicyReaderTest {
                                + "    \"Sid\" : \"Sid\",\n"
                                + "    \"Effect\" : \"Allow\",\n"
                                + "    \"Principal\" : {\n"
-                               + "      \"*\" : \"*\",\n"
-                               + "      \"2\" : \"*\"\n"
+                               + "      \"P1\" : \"*\",\n"
+                               + "      \"P2\" : \"*\"\n"
                                + "    },\n"
                                + "    \"NotPrincipal\" : {\n"
-                               + "      \"*\" : \"*\",\n"
-                               + "      \"2\" : \"*\"\n"
+                               + "      \"NP1\" : \"*\",\n"
+                               + "      \"NP2\" : \"*\"\n"
                                + "    },\n"
-                               + "    \"Action\" : [ \"1\", \"2\" ],\n"
-                               + "    \"NotAction\" : [ \"1\", \"2\" ],\n"
-                               + "    \"Resource\" : [ \"1\", \"2\" ],\n"
-                               + "    \"NotResource\" : [ \"1\", \"2\" ],\n"
+                               + "    \"Action\" : [ \"A1\", \"A2\" ],\n"
+                               + "    \"NotAction\" : [ \"NA1\", \"NA2\" ],\n"
+                               + "    \"Resource\" : [ \"R1\", \"R2\" ],\n"
+                               + "    \"NotResource\" : [ \"NR1\", \"NR2\" ],\n"
                                + "    \"Condition\" : {\n"
                                + "      \"1\" : {\n"
                                + "        \"K1\" : \"V1\",\n"
@@ -153,7 +148,7 @@ class IamPolicyReaderTest {
     }
 
     @Test
-    public void writeMinimalPolicyWorks() {
+    public void readMinimalPolicyWorks() {
         assertThat(READER.read("{\n"
                                + "  \"Version\" : \"Version\",\n"
                                + "  \"Statement\" : {\n"
@@ -164,7 +159,7 @@ class IamPolicyReaderTest {
     }
 
     @Test
-    public void singleElementListsAreWrittenAsNonArrays() {
+    public void singleElementListsAreSupported() {
         assertThat(READER.read("{\n"
                                + "  \"Version\" : \"Version\",\n"
                                + "  \"Statement\" : {\n"
@@ -172,10 +167,10 @@ class IamPolicyReaderTest {
                                + "    \"Effect\" : \"Allow\",\n"
                                + "    \"Principal\" : \"*\",\n"
                                + "    \"NotPrincipal\" : \"*\",\n"
-                               + "    \"Action\" : \"1\",\n"
-                               + "    \"NotAction\" : \"1\",\n"
-                               + "    \"Resource\" : \"1\",\n"
-                               + "    \"NotResource\" : \"1\",\n"
+                               + "    \"Action\" : \"A1\",\n"
+                               + "    \"NotAction\" : \"NA1\",\n"
+                               + "    \"Resource\" : \"R1\",\n"
+                               + "    \"NotResource\" : \"NR1\",\n"
                                + "    \"Condition\" : {\n"
                                + "      \"1\" : {\n"
                                + "        \"K1\" : \"V1\"\n"
