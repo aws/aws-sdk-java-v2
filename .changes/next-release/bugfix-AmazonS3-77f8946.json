@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "Amazon S3",
     "contributor": "",
-    "description": "Add `Expect: 100-continue` heaer for `UploadPartRequest` so that a request can fail faster if there is a server error."
+    "description": "Add `Expect: 100-continue` header for `UploadPartRequest` so that a upload part request can fail faster if there is a server error."
 }
