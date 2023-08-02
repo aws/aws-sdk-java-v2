@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "contributor": "",
-    "description": "New feature that logs Cognito user pool error messages to CloudWatch logs."
-}

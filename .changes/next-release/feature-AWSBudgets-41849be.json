@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Budgets",
-    "contributor": "",
-    "description": "As part of CAE tagging integration we need to update our budget names regex filter to prevent customers from using \"/action/\" in their budget names."
-}
