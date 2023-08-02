@@ -60,7 +60,7 @@ public class BuilderClassTest {
 
     @Test
     public void baseClientBuilderClassWithEndpointsAuthParams() {
-        assertThat(new BaseClientBuilderClass(ClientTestModels.serviceMiniS3()), generatesTo("test-client-builder-endpoints-auth-params.java"));
+        assertThat(new BaseClientBuilderClass(ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList()), generatesTo("test-client-builder-endpoints-auth-params.java"));
     }
 
     @Test
