@@ -1,3 +1,28 @@
+# __2.20.118__ __2023-08-02__
+## __AWS Budgets__
+  - ### Features
+    - As part of CAE tagging integration we need to update our budget names regex filter to prevent customers from using "/action/" in their budget names.
+
+## __AWS Glue__
+  - ### Features
+    - This release includes additional Glue Streaming KAKFA SASL property types.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Drift Detection capability added when applications policy has moved from a meet to breach state. Customers will be able to exclude operational recommendations and receive credit in their resilience score. Customers can now add ARH permissions to an existing or new role.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - New feature that logs Cognito user pool error messages to CloudWatch logs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender introduces a new API GetScalingConfigurationRecommendation to recommend auto scaling policies based on completed Inference Recommender jobs.
+
 # __2.20.117__ __2023-08-01__
 ## __AWS Batch__
   - ### Features
@@ -973,7 +998,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
