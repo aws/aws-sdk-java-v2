@@ -154,6 +154,11 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         HttpURLConnection connection = connectionFactory.createConnection(sdkHttpRequest.getUri());
         sdkHttpRequest.forEachHeader((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
 
+        // connection.setRequestProperty("Transfer-Encoding", "chunked") does not work, i.e., property does not get set
+        if (sdkHttpRequest.matchingHeaders("Transfer-Encoding").contains("chunked")) {
+            connection.setChunkedStreamingMode(-1);
+        }
+
         if (!sdkHttpRequest.firstMatchingHeader(ACCEPT).isPresent()) {
             // Override Accept header because the default one in JDK does not comply with RFC 7231
             // See: https://bugs.openjdk.org/browse/JDK-8163921

@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -51,10 +53,11 @@ public abstract class S3DecoratorRedirectTestBase {
     protected static final S3ServiceClientConfiguration CONFIGURED_ENDPOINT_PROVIDER =
         S3ServiceClientConfiguration.builder().endpointProvider(S3EndpointProvider.defaultProvider()).build();
 
-    @Test
-    void decoratorAttemptsToRetryWithRegionNameInErrorResponse() throws Throwable {
+    @ParameterizedTest
+    @ValueSource(ints = {301, 307})
+    void decoratorAttemptsToRetryWithRegionNameInErrorResponse(Integer redirect) throws Throwable {
         stubServiceClientConfiguration();
-        stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse();
+        stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse(redirect);
         // Assert retrieved listObject
         ListObjectsResponse listObjectsResponse = apiCallToService();
         assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
@@ -68,10 +71,11 @@ public abstract class S3DecoratorRedirectTestBase {
         verifyHeadBucketServiceCall(0);
     }
 
-    @Test
-    void decoratorUsesCache_when_CrossRegionAlreadyPresent() throws Throwable {
+    @ParameterizedTest
+    @ValueSource(ints = {301, 307})
+    void decoratorUsesCache_when_CrossRegionAlreadyPresent(Integer redirect) throws Throwable {
         stubServiceClientConfiguration();
-        stubRedirectSuccessSuccess();
+        stubRedirectSuccessSuccess(redirect);
 
         ListObjectsResponse listObjectsResponse = apiCallToService();
         assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
@@ -93,20 +97,22 @@ public abstract class S3DecoratorRedirectTestBase {
      * The redirected call fails because of incorrect parameters passed
      * This exception should be reported correctly
      */
-    @Test
-    void apiCallFailure_when_CallFailsAfterRedirection() {
+    @ParameterizedTest
+    @ValueSource(ints = {301, 307})
+    void apiCallFailure_when_CallFailsAfterRedirection(Integer redirectError) {
         stubServiceClientConfiguration();
-        stubRedirectThenError();
+        stubRedirectThenError(redirectError);
         assertThatExceptionOfType(S3Exception.class)
             .isThrownBy(() -> apiCallToService())
             .withMessageContaining("Invalid id (Service: S3, Status Code: 400, Request ID: 1, Extended Request ID: A1)");
         verifyHeadBucketServiceCall(0);
     }
 
-    @Test
-    void headBucketCalled_when_RedirectDoesNotHasRegionName() throws Throwable {
+    @ParameterizedTest
+    @ValueSource(ints = {301, 307})
+    void headBucketCalled_when_RedirectDoesNotHasRegionName(Integer redirect) throws Throwable {
         stubServiceClientConfiguration();
-        stubRedirectWithNoRegionAndThenSuccess();
+        stubRedirectWithNoRegionAndThenSuccess(redirect);
         stubHeadBucketRedirect();
         ListObjectsResponse listObjectsResponse = apiCallToService();
         assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
@@ -119,10 +125,11 @@ public abstract class S3DecoratorRedirectTestBase {
         verifyHeadBucketServiceCall(1);
     }
 
-    @Test
-    void headBucketCalledAndCached__when_RedirectDoesNotHasRegionName() throws Throwable {
+    @ParameterizedTest
+    @ValueSource(ints = {301, 307})
+    void headBucketCalledAndCached__when_RedirectDoesNotHasRegionName(Integer redirect) throws Throwable {
         stubServiceClientConfiguration();
-        stubRedirectWithNoRegionAndThenSuccess();
+        stubRedirectWithNoRegionAndThenSuccess(redirect);
         stubHeadBucketRedirect();
         ListObjectsResponse listObjectsResponse = apiCallToService();
         assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
@@ -165,11 +172,11 @@ public abstract class S3DecoratorRedirectTestBase {
 
     protected abstract void stubHeadBucketRedirect();
 
-    protected abstract void stubRedirectWithNoRegionAndThenSuccess();
+    protected abstract void stubRedirectWithNoRegionAndThenSuccess(Integer redirect);
 
-    protected abstract void stubRedirectThenError();
+    protected abstract void stubRedirectThenError(Integer redirect);
 
-    protected abstract void stubRedirectSuccessSuccess();
+    protected abstract void stubRedirectSuccessSuccess(Integer redirect);
 
     protected AwsServiceException redirectException(int statusCode, String region, String errorCode, String errorMessage) {
         SdkHttpFullResponse.Builder sdkHttpFullResponseBuilder = SdkHttpFullResponse.builder();
@@ -210,5 +217,5 @@ public abstract class S3DecoratorRedirectTestBase {
 
     protected abstract void stubServiceClientConfiguration();
 
-    protected abstract void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse();
+    protected abstract void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse(Integer redirect);
 }

@@ -78,23 +78,23 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTest
     }
 
     @Override
-    protected void stubRedirectWithNoRegionAndThenSuccess() {
+    protected void stubRedirectWithNoRegionAndThenSuccess(Integer redirect) {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(301, null, null, null))
+            .thenThrow(redirectException(redirect, null, null, null))
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
     }
 
     @Override
-    protected void stubRedirectThenError() {
+    protected void stubRedirectThenError(Integer redirect) {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(301, CROSS_REGION.id(), null, null))
+            .thenThrow(redirectException(redirect, CROSS_REGION.id(), null, null))
             .thenThrow(redirectException(400, null, "InvalidArgument", "Invalid id"));
     }
 
     @Override
-    protected void stubRedirectSuccessSuccess() {
+    protected void stubRedirectSuccessSuccess(Integer redirect) {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(301, CROSS_REGION.id(), null, null))
+            .thenThrow(redirectException(redirect, CROSS_REGION.id(), null, null))
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build())
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
     }
@@ -120,7 +120,7 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTest
     }
 
     @Override
-    protected void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse() {
+    protected void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse(Integer redirect) {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
             .thenThrow(redirectException(301, CROSS_REGION.id(), null, null))
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
