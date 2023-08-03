@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -130,8 +131,9 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
 
     private static void updateAsyncRequestBodyInContexts(RequestExecutionContext context, AsyncSignedRequest signedRequest) {
         AsyncRequestBody newAsyncRequestBody;
-        if (signedRequest.payload().isPresent()) {
-            Publisher<ByteBuffer> signedPayload = signedRequest.payload().get();
+        Optional<Publisher<ByteBuffer>> optionalPayload = signedRequest.payload();
+        if (optionalPayload.isPresent()) {
+            Publisher<ByteBuffer> signedPayload = optionalPayload.get();
             if (signedPayload instanceof AsyncRequestBody) {
                 newAsyncRequestBody = (AsyncRequestBody) signedPayload;
             } else {
