@@ -18,6 +18,8 @@ package software.amazon.awssdk.core.async;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -29,8 +31,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.internal.async.ChunkBuffer;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 class ChunkBufferTest {
@@ -40,42 +46,38 @@ class ChunkBufferTest {
         assertThatThrownBy(() -> ChunkBuffer.builder().build()).isInstanceOf(NullPointerException.class);
     }
 
-    @Test
-    void numberOfChunkMultipleOfTotalBytes() {
-        String inputString = StringUtils.repeat("*", 25);
-
-        ChunkBuffer chunkBuffer =
-            ChunkBuffer.builder().bufferSize(5).totalBytes(inputString.getBytes(StandardCharsets.UTF_8).length).build();
-        Iterable<ByteBuffer> byteBuffers =
-            chunkBuffer.bufferAndCreateChunks(ByteBuffer.wrap(inputString.getBytes(StandardCharsets.UTF_8)));
-
-        AtomicInteger iteratedCounts = new AtomicInteger();
-        byteBuffers.forEach(r -> {
-            iteratedCounts.getAndIncrement();
-            assertThat(r.array()).isEqualTo(StringUtils.repeat("*", 5).getBytes(StandardCharsets.UTF_8));
-        });
-        assertThat(iteratedCounts.get()).isEqualTo(5);
-    }
-
-    @Test
-    void numberOfChunk_Not_MultipleOfTotalBytes() {
-        int totalBytes = 23;
+    @ParameterizedTest
+    @ValueSource(ints = {1, 6, 10, 23, 25})
+    void numberOfChunk_Not_MultipleOfTotalBytes(int totalBytes) {
         int bufferSize = 5;
 
-        String inputString = StringUtils.repeat("*", totalBytes);
+        String inputString = RandomStringUtils.randomAscii(totalBytes);
         ChunkBuffer chunkBuffer =
             ChunkBuffer.builder().bufferSize(bufferSize).totalBytes(inputString.getBytes(StandardCharsets.UTF_8).length).build();
         Iterable<ByteBuffer> byteBuffers =
-            chunkBuffer.bufferAndCreateChunks(ByteBuffer.wrap(inputString.getBytes(StandardCharsets.UTF_8)));
+            chunkBuffer.split(ByteBuffer.wrap(inputString.getBytes(StandardCharsets.UTF_8)));
 
-        AtomicInteger iteratedCounts = new AtomicInteger();
+        AtomicInteger index = new AtomicInteger(0);
+        int count = (int) Math.ceil(totalBytes / (double) bufferSize);
+        int remainder = totalBytes % bufferSize;
+
         byteBuffers.forEach(r -> {
-            iteratedCounts.getAndIncrement();
-            if (iteratedCounts.get() * bufferSize < totalBytes) {
-                assertThat(r.array()).isEqualTo(StringUtils.repeat("*", bufferSize).getBytes(StandardCharsets.UTF_8));
-            } else {
-                assertThat(r.array()).isEqualTo(StringUtils.repeat("*", 3).getBytes(StandardCharsets.UTF_8));
+            int i = index.get();
 
+            try (ByteArrayInputStream inputStream = new ByteArrayInputStream(inputString.getBytes(StandardCharsets.UTF_8))) {
+                byte[] expected;
+                if (i == count - 1 && remainder != 0) {
+                    expected = new byte[remainder];
+                } else {
+                    expected = new byte[bufferSize];
+                }
+                inputStream.skip(i * bufferSize);
+                inputStream.read(expected);
+                byte[] actualBytes = BinaryUtils.copyBytesFrom(r);
+                assertThat(actualBytes).isEqualTo(expected);
+                index.incrementAndGet();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         });
     }
@@ -86,7 +88,7 @@ class ChunkBufferTest {
         ChunkBuffer chunkBuffer =
             ChunkBuffer.builder().bufferSize(5).totalBytes(zeroByte.length).build();
         Iterable<ByteBuffer> byteBuffers =
-            chunkBuffer.bufferAndCreateChunks(ByteBuffer.wrap(zeroByte));
+            chunkBuffer.split(ByteBuffer.wrap(zeroByte));
 
         AtomicInteger iteratedCounts = new AtomicInteger();
         byteBuffers.forEach(r -> {
@@ -104,16 +106,16 @@ class ChunkBufferTest {
         ChunkBuffer chunkBuffer =
             ChunkBuffer.builder().bufferSize(bufferSize).totalBytes(wrap.remaining()).build();
         Iterable<ByteBuffer> byteBuffers =
-            chunkBuffer.bufferAndCreateChunks(wrap);
+            chunkBuffer.split(wrap);
 
         AtomicInteger iteratedCounts = new AtomicInteger();
         byteBuffers.forEach(r -> {
             iteratedCounts.getAndIncrement();
             if (iteratedCounts.get() * bufferSize < totalBytes) {
                 // array of empty bytes
-                assertThat(r.array()).isEqualTo(ByteBuffer.allocate(bufferSize).array());
+                assertThat(BinaryUtils.copyBytesFrom(r)).isEqualTo(ByteBuffer.allocate(bufferSize).array());
             } else {
-                assertThat(r.array()).isEqualTo(ByteBuffer.allocate(totalBytes % bufferSize).array());
+                assertThat(BinaryUtils.copyBytesFrom(r)).isEqualTo(ByteBuffer.allocate(totalBytes % bufferSize).array());
             }
         });
         assertThat(iteratedCounts.get()).isEqualTo(4);
@@ -167,7 +169,7 @@ class ChunkBufferTest {
 
         futures = IntStream.range(0, threads).<Future<Iterable>>mapToObj(t -> service.submit(() -> {
             String inputString = StringUtils.repeat(Integer.toString(counter.incrementAndGet()), totalBytes);
-            return chunkBuffer.bufferAndCreateChunks(ByteBuffer.wrap(inputString.getBytes(StandardCharsets.UTF_8)));
+            return chunkBuffer.split(ByteBuffer.wrap(inputString.getBytes(StandardCharsets.UTF_8)));
         })).collect(Collectors.toCollection(() -> new ArrayList<>(threads)));
 
         AtomicInteger filledBuffers = new AtomicInteger(0);

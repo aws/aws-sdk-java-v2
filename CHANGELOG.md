@@ -1,3 +1,28 @@
+# __2.20.119__ __2023-08-03__
+## __AWS Cloud9__
+  - ### Features
+    - Updated the deprecation date for Amazon Linux. Doc only update.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - The release makes public API for DMS Schema Conversion feature.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds new parameter isPrimaryIPv6 to allow assigning an IPv6 address as a primary IPv6 address to a network interface which cannot be changed to give equivalent functionality available for network interfaces with primary IPv4 address.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Add `Expect: 100-continue` header for `UploadPartRequest` so that a upload part request can fail faster if there is a server error.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports running training jobs on p5.48xlarge instance types.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation changes related to Amazon EC2 Auto Scaling APIs.
+
 # __2.20.118__ __2023-08-02__
 ## __AWS Budgets__
   - ### Features
@@ -998,7 +1023,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
