@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,10 +48,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
-import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Md5Utils;
-
 class CopyObjectHelperTest {
 
     private static final String SOURCE_BUCKET = "source";
@@ -66,7 +62,7 @@ class CopyObjectHelperTest {
     private CopyObjectHelper copyHelper;
 
     private static final long PART_SIZE = 1024L;
-    private static final long UPLOAD_THRESHOLD = 2048L;
+    private static final long UPLOAD_THRESHOLD = PART_SIZE * 2;
 
     @BeforeEach
     public void setUp() {
@@ -284,6 +280,7 @@ class CopyObjectHelperTest {
         }
     }
 
+
     @Test
     public void multiPartCopy_sseCHeadersSetInOriginalRequest_includedInCompleteMultipart() {
         String customerAlgorithm = "algorithm";
@@ -294,7 +291,7 @@ class CopyObjectHelperTest {
                                                                        .sseCustomerKey(customerKey)
                                                                        .sseCustomerKeyMD5(customerKeyMd5));
 
-        stubSuccessfulHeadObjectCall(2 * PART_SIZE_BYTES);
+        stubSuccessfulHeadObjectCall(3 * PART_SIZE_BYTES);
         stubSuccessfulCreateMulipartCall();
         stubSuccessfulUploadPartCopyCalls();
         stubSuccessfulCompleteMultipartCall();
