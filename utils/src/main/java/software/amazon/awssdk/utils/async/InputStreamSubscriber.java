@@ -102,6 +102,9 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
 
     @Override
     public int read(byte[] bytes, int off, int len) {
+        if (len == 0) {
+            return 0;
+        }
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes, off, len);
         TransferResult transferResult = delegate.blockingTransferTo(byteBuffer);
         int dataTransferred = byteBuffer.position() - off;
