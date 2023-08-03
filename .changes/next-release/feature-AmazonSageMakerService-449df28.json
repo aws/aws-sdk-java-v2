@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Amazon SageMaker now supports running training jobs on p5.48xlarge instance types."
+}
