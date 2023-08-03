@@ -25,6 +25,8 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.NonRetryableException;
+import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -48,8 +50,8 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
     private final long bufferSizeInBytes;
 
     private SplittingPublisher(Builder builder) {
-        this.upstreamPublisher =  Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
-        this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE :  builder.chunkSizeInBytes;
+        this.upstreamPublisher = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
+        this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
         this.bufferSizeInBytes = builder.bufferSizeInBytes == null ? DEFAULT_BUFFER_SIZE : builder.bufferSizeInBytes;
         this.splittingSubscriber = new SplittingSubscriber(upstreamPublisher.contentLength().orElse(null));
 
@@ -241,6 +243,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             private final Long totalLength;
             private final SimplePublisher<ByteBuffer> delegate = new SimplePublisher<>();
             private final int chunkNumber;
+            private final AtomicBoolean subscribeCalled = new AtomicBoolean(false);
             private volatile long transferredLength = 0;
 
             private DownstreamBody(boolean contentLengthKnown, long maxLength, int chunkNumber) {
@@ -282,7 +285,14 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
 
             @Override
             public void subscribe(Subscriber<? super ByteBuffer> s) {
-                delegate.subscribe(s);
+                if (subscribeCalled.compareAndSet(false, true)) {
+                    delegate.subscribe(s);
+                } else {
+                    s.onSubscribe(new NoopSubscription(s));
+                    s.onError(NonRetryableException.create(
+                        "A retry was attempted, but AsyncRequestBody.split does not "
+                        + "support retries."));
+                }
             }
 
             private void addDataBuffered(int length) {
@@ -293,7 +303,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             }
         }
     }
-    
+
     public static final class Builder {
         private AsyncRequestBody asyncRequestBody;
         private Long chunkSizeInBytes;

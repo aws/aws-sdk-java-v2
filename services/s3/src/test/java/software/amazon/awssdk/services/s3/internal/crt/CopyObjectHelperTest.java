@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,12 +57,11 @@ class CopyObjectHelperTest {
     private static final String DESTINATION_BUCKET = "destination";
     private static final String DESTINATION_KEY = "destinationKey";
     private static final String MULTIPART_ID = "multipartId";
-
+    private static final long UPLOAD_THRESHOLD = 2048L;
     private static final Long PART_SIZE_BYTES = 1024L;
+
     private S3AsyncClient s3AsyncClient;
     private CopyObjectHelper copyHelper;
-
-    private static final long UPLOAD_THRESHOLD = 2048L;
 
     @BeforeEach
     public void setUp() {
@@ -281,6 +279,7 @@ class CopyObjectHelperTest {
         }
     }
 
+
     @Test
     public void multiPartCopy_sseCHeadersSetInOriginalRequest_includedInCompleteMultipart() {
         String customerAlgorithm = "algorithm";
@@ -291,7 +290,7 @@ class CopyObjectHelperTest {
                                                                        .sseCustomerKey(customerKey)
                                                                        .sseCustomerKeyMD5(customerKeyMd5));
 
-        stubSuccessfulHeadObjectCall(2 * PART_SIZE_BYTES);
+        stubSuccessfulHeadObjectCall(3 * PART_SIZE_BYTES);
         stubSuccessfulCreateMulipartCall();
         stubSuccessfulUploadPartCopyCalls();
         stubSuccessfulCompleteMultipartCall();
