@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "The release makes public API for DMS Schema Conversion feature."
-}
