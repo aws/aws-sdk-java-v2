@@ -174,11 +174,13 @@ public final class UploadWithUnknownContentLengthHelper {
                         subscription.cancel();
                     } else {
                         uploadId = createMultipartUploadResponse.uploadId();
-                        uploadIdFuture.complete(uploadId);
                         log.debug(() -> "Initiated a new multipart upload, uploadId: " + uploadId);
 
                         sendUploadPartRequest(uploadId, firstRequestBody);
                         sendUploadPartRequest(uploadId, asyncRequestBody);
+
+                        // We need to complete the uploadIdFuture *after* the first two requests have been sent
+                        uploadIdFuture.complete(uploadId);
                     }
                 });
                 CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
