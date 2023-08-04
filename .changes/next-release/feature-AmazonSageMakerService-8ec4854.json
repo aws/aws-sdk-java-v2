@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Including DataCaptureConfig key in the Amazon Sagemaker Search's transform job object"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Added a new API UpdateRoutingProfileAgentAvailabilityTimer to update agent availability timer of a routing profile."
-}

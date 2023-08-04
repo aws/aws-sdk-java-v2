@@ -1,3 +1,28 @@
+# __2.20.120__ __2023-08-04__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Documentation correction for AWS Private CA
+
+## __AWS DataSync__
+  - ### Features
+    - Display cloud storage used capacity at a cluster level.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added a new API UpdateRoutingProfileAgentAvailabilityTimer to update agent availability timer of a routing profile.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation update to address various tickets.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Including DataCaptureConfig key in the Amazon Sagemaker Search's transform job object
+
 # __2.20.119__ __2023-08-03__
 ## __AWS Cloud9__
   - ### Features
