@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "contributor": "",
+    "description": "Display cloud storage used capacity at a cluster level."
+}
