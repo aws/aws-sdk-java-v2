@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -31,6 +30,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.SignerOverrideUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.AsyncSigner;
@@ -236,21 +236,8 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
      * Returns true if we should use SRA signing logic.
      */
     private boolean shouldDoSraSigning(RequestExecutionContext context) {
-        return !isSignerOverridden(context)
+        return !SignerOverrideUtils.isSignerOverridden(context)
                && context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
-    }
-
-    // This is (mostly!) copied from SignerOverrideUtils.isSignerOverridden, but that is in aws-core, and this is in sdk-core.
-    // Just this method could be moved to sdk-core somewhere, but the other methods in SignerOverrideUtils depend on AwsRequest
-    // and AwsRequestOverrideConfiguration which are in aws-core. Just duplicating the logic here seemed ok.
-    private static boolean isSignerOverridden(RequestExecutionContext context) {
-        boolean isClientSignerOverridden =
-            Boolean.TRUE.equals(context.executionAttributes().getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
-
-        Optional<Signer> requestSigner = context.originalRequest()
-                                                .overrideConfiguration()
-                                                .flatMap(RequestOverrideConfiguration::signer);
-        return isClientSignerOverridden || requestSigner.isPresent();
     }
 
     /**
