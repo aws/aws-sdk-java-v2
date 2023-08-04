@@ -59,9 +59,9 @@ public class AsyncSignerOverrideTest {
         verify(mockSigner).sign(any(SdkHttpFullRequest.class), any(ExecutionAttributes.class));
     }
 
-    // TODO(sra-identity-and-auth): Does adding a test with SRA way of overriding signer here makes sense? Probably useful as a
-    //  general test of SRAs support of provider your own signer, though not specific to the overriding of of AsyncAws4Signer.
-    //  Maybe still makes sense, by asserting that signAsync is called for streaming input operation (may belong to a different
-    //  test class)?
+    // TODO(sra-identity-and-auth): Add test for SRA way of overriding signer to assert that overridden signer is used.
+    //  To do this, need ability to inject AuthScheme which uses mock HttpSigner. This is pending https://i.amazon.com/SMITHY-1450
+    //  At that point, rename this class to SignerOverrideTest, not specific to AsyncSignerOverride (which was for operation
+    //  level codegen changes).
 
 }
