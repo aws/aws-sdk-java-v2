@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.client;
 
-import static software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.MULTIPART_CONFIGURATION_KEY;
-import static software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.MULTIPART_ENABLED_KEY;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
