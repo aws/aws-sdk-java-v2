@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.services.minis3.auth.scheme.MiniS3AuthSchemeParams;
 import software.amazon.awssdk.services.minis3.auth.scheme.MiniS3AuthSchemeProvider;

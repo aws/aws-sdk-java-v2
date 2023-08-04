@@ -30,7 +30,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
-            Endpoint result = provider.resolveEndpoint(ruleParams(context, executionAttributes)).join();
+            Endpoint result = provider.resolveEndpoint(ruleParams(context.request(), executionAttributes)).join();
             if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
                 Optional<String> hostPrefix = hostPrefix(executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME),
                                                          context.request());
@@ -50,13 +50,13 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         }
     }
 
-    private static QueryEndpointParams ruleParams(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
+    public static QueryEndpointParams ruleParams(SdkRequest request, ExecutionAttributes executionAttributes) {
         QueryEndpointParams.Builder builder = QueryEndpointParams.builder();
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
         builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
         builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
         setClientContextParams(builder, executionAttributes);
-        setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), context.request());
+        setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
         return builder.build();
     }

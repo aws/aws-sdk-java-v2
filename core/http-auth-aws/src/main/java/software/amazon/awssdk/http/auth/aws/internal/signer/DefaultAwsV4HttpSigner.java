@@ -17,7 +17,6 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
-import static software.amazon.awssdk.http.auth.spi.SignerProperty.validatedProperty;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -53,14 +52,14 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
      * properties, and delegate the request to the composed signer.
      */
     private static AwsV4HttpSigner getDelegate(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
-        String regionName = validatedProperty(signRequest, AwsV4HttpSigner.REGION_NAME);
-        String serviceSigningName = validatedProperty(signRequest, AwsV4HttpSigner.SERVICE_SIGNING_NAME);
-        Clock signingClock = validatedProperty(signRequest, AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
-        boolean doubleUrlEncode = validatedProperty(signRequest, AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
-        boolean normalizePath = validatedProperty(signRequest, AwsV4HttpSigner.NORMALIZE_PATH, true);
-        AuthLocation authLocation = validatedProperty(signRequest, AUTH_LOCATION, AuthLocation.HEADER);
-        Duration expirationDuration = validatedProperty(signRequest, EXPIRATION_DURATION, null);
-        boolean isPayloadSigning = validatedProperty(signRequest, PAYLOAD_SIGNING, true);
+        String regionName = signRequest.requireProperty(AwsV4HttpSigner.REGION_NAME);
+        String serviceSigningName = signRequest.requireProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME);
+        Clock signingClock = signRequest.requireProperty(AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
+        boolean doubleUrlEncode = signRequest.requireProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
+        boolean normalizePath = signRequest.requireProperty(AwsV4HttpSigner.NORMALIZE_PATH, true);
+        AuthLocation authLocation = signRequest.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
+        Duration expirationDuration = signRequest.requireProperty(EXPIRATION_DURATION, null);
+        boolean isPayloadSigning = signRequest.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
 
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(signRequest.identity());

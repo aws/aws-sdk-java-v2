@@ -18,7 +18,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.EXPIRATION_DURATION;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.PAYLOAD_SIGNING;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
 
 import java.time.Duration;
@@ -87,7 +87,7 @@ public class DefaultAwsV4HttpSignerTest {
             httpRequest -> {
             },
             signRequest -> signRequest
-                .putProperty(PAYLOAD_SIGNING, false)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);

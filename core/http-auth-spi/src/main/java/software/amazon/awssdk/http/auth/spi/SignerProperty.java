@@ -48,24 +48,6 @@ public final class SignerProperty<T> {
         return new SignerProperty<>(clazz, name);
     }
 
-    /**
-     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
-     * <p>
-     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
-     */
-    public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property) {
-        return Validate.notNull(request.property(property), property.toString() + " must not be null!");
-    }
-
-    /**
-     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
-     * <p>
-     * The value, {@link T}, is return when present, and the default is returned otherwise.
-     */
-    public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property, T defaultValue) {
-        return Validate.getOrDefault(request.property(property), () -> defaultValue);
-    }
-
     @Override
     public String toString() {
         return ToString.builder("SignerProperty")
