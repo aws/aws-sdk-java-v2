@@ -48,6 +48,7 @@ public final class BenchmarkRunner {
     private static final String CONN_ACQ_TIMEOUT_IN_SEC = "connAcqTimeoutInSec";
 
     private static final String FORCE_CRT_HTTP_CLIENT = "crtHttp";
+    private static final String MAX_CONCURRENCY = "maxConcurrency";
 
     private static final Map<TransferManagerOperation, Function<TransferManagerBenchmarkConfig, TransferManagerBenchmark>>
         OPERATION_TO_BENCHMARK_V1 = new EnumMap<>(TransferManagerOperation.class);
@@ -100,7 +101,9 @@ public final class BenchmarkRunner {
         options.addOption(null, CONN_ACQ_TIMEOUT_IN_SEC, true, "Timeout for acquiring an already-established"
                                                                + " connection from a connection pool to a remote service.");
         options.addOption(null, FORCE_CRT_HTTP_CLIENT, true,
-                          "force the CRT http client to be used in JavaBased benchmarks");
+                          "Force the CRT http client to be used in JavaBased benchmarks");
+        options.addOption(null, MAX_CONCURRENCY, true,
+                          "The Maximum number of allowed concurrent requests. For HTTP/1.1 this is the same as max connections.");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
@@ -183,6 +186,9 @@ public final class BenchmarkRunner {
         Boolean forceCrtHttpClient = cmd.getOptionValue(FORCE_CRT_HTTP_CLIENT) != null
                                      && Boolean.parseBoolean(cmd.getOptionValue(FORCE_CRT_HTTP_CLIENT));
 
+        Integer maxConcurrency = cmd.getOptionValue(MAX_CONCURRENCY) == null ? null :
+                                 Integer.parseInt(cmd.getOptionValue(MAX_CONCURRENCY));
+
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
                                              .bucket(bucket)
@@ -198,6 +204,7 @@ public final class BenchmarkRunner {
                                              .timeout(timeout)
                                              .connectionAcquisitionTimeoutInSec(connAcqTimeoutInSec)
                                              .forceCrtHttpClient(forceCrtHttpClient)
+                                             .maxConcurrency(maxConcurrency)
                                              .build();
     }
 

@@ -23,6 +23,7 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -55,24 +56,35 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
 
         long partSizeInMb = Validate.paramNotNull(config.partSizeInMb(), "partSize");
         long readBufferInMb = Validate.paramNotNull(config.readBufferSizeInMb(), "readBufferSizeInMb");
-        S3AsyncClientBuilder builder = S3AsyncClient
-            .builder()
-            .multipartEnabled(true)
-            .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
-                                          .thresholdInBytes(partSizeInMb * 2 * MB)
-                                          .apiCallBufferSizeInBytes(readBufferInMb * MB));
         Validate.mutuallyExclusive("cannot use forceCrtHttpClient and connectionAcquisitionTimeoutInSec",
                                    config.forceCrtHttpClient(), config.connectionAcquisitionTimeoutInSec());
+        this.s3AsyncClient = S3AsyncClient.builder()
+                                          .multipartEnabled(true)
+                                          .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
+                                                                        .thresholdInBytes(partSizeInMb * 2 * MB)
+                                                                        .apiCallBufferSizeInBytes(readBufferInMb * MB))
+                                          .httpClient(httpClient(config))
+                                          .build();
+    }
+
+    private SdkAsyncHttpClient httpClient(TransferManagerBenchmarkConfig config) {
         if (config.forceCrtHttpClient()) {
             logger.info(() -> "Using CRT HTTP client");
-            builder.httpClient(AwsCrtAsyncHttpClient.create());
-        } else if (config.connectionAcquisitionTimeoutInSec() != null) {
-            Duration connAcqTimeout = Duration.ofSeconds(config.connectionAcquisitionTimeoutInSec());
-            builder.httpClient(NettyNioAsyncHttpClient.builder()
-                                                      .connectionAcquisitionTimeout(connAcqTimeout)
-                                                      .build());
+            AwsCrtAsyncHttpClient.Builder builder = AwsCrtAsyncHttpClient.builder();
+            if (config.readBufferSizeInMb() != null) {
+                builder.readBufferSizeInBytes(config.readBufferSizeInMb());
+            }
+            if (config.maxConcurrency() != null) {
+                builder.maxConcurrency(config.maxConcurrency());
+            }
+            return builder.build();
         }
-        this.s3AsyncClient = builder.build();
+        NettyNioAsyncHttpClient.Builder builder = NettyNioAsyncHttpClient.builder();
+        if (config.connectionAcquisitionTimeoutInSec() != null) {
+            Duration connAcqTimeout = Duration.ofSeconds(config.connectionAcquisitionTimeoutInSec());
+            builder.connectionAcquisitionTimeout(connAcqTimeout);
+        }
+        return builder.build();
     }
 
     protected abstract void sendOneRequest(List<Double> latencies) throws Exception;
