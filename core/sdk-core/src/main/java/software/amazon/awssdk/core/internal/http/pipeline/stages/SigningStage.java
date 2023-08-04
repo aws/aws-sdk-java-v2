@@ -185,16 +185,17 @@ public class SigningStage implements RequestToRequestPipeline {
                && context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
     }
 
-    // This is copied from SignerOverrideUtils.isSignerOverridden, but that is in aws-core, and this is in sdk-core.
+    // This is (mostly!) copied from SignerOverrideUtils.isSignerOverridden, but that is in aws-core, and this is in sdk-core.
     // Just this method could be moved to sdk-core somewhere, but the other methods in SignerOverrideUtils depend on AwsRequest
     // and AwsRequestOverrideConfiguration which are in aws-core. Just duplicating the logic here seemed ok.
     private static boolean isSignerOverridden(RequestExecutionContext context) {
-        Optional<Boolean> isClientSignerOverridden = Optional.ofNullable(
-            context.executionAttributes().getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
+        boolean isClientSignerOverridden =
+            Boolean.TRUE.equals(context.executionAttributes().getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
+
         Optional<Signer> requestSigner = context.originalRequest()
                                                 .overrideConfiguration()
                                                 .flatMap(RequestOverrideConfiguration::signer);
-        return isClientSignerOverridden.isPresent() || requestSigner.isPresent();
+        return isClientSignerOverridden || requestSigner.isPresent();
     }
 
     /**

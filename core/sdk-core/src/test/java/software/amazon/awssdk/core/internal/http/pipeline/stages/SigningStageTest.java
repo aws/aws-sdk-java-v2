@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SIGNER_OVERRIDDEN;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.TIME_OFFSET;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 import static software.amazon.awssdk.core.metrics.CoreMetric.SIGNING_DURATION;
@@ -35,9 +36,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
@@ -89,7 +92,7 @@ public class SigningStageTest {
     }
 
     @Test
-    public void execute_sraSelectsAuthScheme_signs() throws Exception {
+    public void execute_selectedAuthScheme_doesSraSign() throws Exception {
         // Set up a scheme with a signer property
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
@@ -127,7 +130,7 @@ public class SigningStageTest {
     }
 
     @Test
-    public void execute_sraSelectsNoAuthAuthScheme_skipsSigning() throws Exception {
+    public void execute_selectedNoAuthAuthScheme_skipsSigning() throws Exception {
         // Set up a scheme with smithy.api#noAuth
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
@@ -151,7 +154,7 @@ public class SigningStageTest {
     }
 
     @Test
-    public void execute_preSra_signer_signs() throws Exception {
+    public void execute_noSelectedAuthScheme_doesPreSraSign() throws Exception {
         RequestExecutionContext context = createContext(null, oldSigner);
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
@@ -173,7 +176,7 @@ public class SigningStageTest {
     }
 
     @Test
-    public void execute_preSra_nullSigner_skipsSigning() throws Exception {
+    public void execute_noSelectedAuthScheme_nullSigner_skipsSigning() throws Exception {
         Signer oldSigner = null;
         RequestExecutionContext context = createContext(null, oldSigner);
 
@@ -192,7 +195,7 @@ public class SigningStageTest {
     }
 
     @Test
-    public void execute_preSra_signerWithTimeOffset_usesOffset() throws Exception {
+    public void execute_noSelectedAuthScheme_signerUsesTimeOffset() throws Exception {
         httpClientDependencies.updateTimeOffset(100);
 
         RequestExecutionContext context = createContext(null, oldSigner);
@@ -215,13 +218,85 @@ public class SigningStageTest {
         verifyNoInteractions(signer);
     }
 
+    @Test
+    public void execute_selectedAuthScheme_OldSignerOverridden_doesPreSraSign() throws Exception {
+        // Set up a scheme
+        SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(identity),
+            signer,
+            AuthSchemeOption.builder().schemeId("my.auth#myAuth").build());
+
+        RequestExecutionContext context = createContext(selectedAuthScheme, oldSigner, true);
+
+        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
+
+        SdkHttpFullRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        // Creating a copy because original executionAttributes may be directly mutated by SigningStage, e.g., timeOffset
+        when(oldSigner.sign(request, context.executionAttributes().copy().putAttribute(TIME_OFFSET, 0))).thenReturn(signedRequest);
+
+        SdkHttpFullRequest result = stage.execute(request, context);
+
+        assertThat(result).isSameAs(signedRequest);
+        // assert that interceptor context is updated with result
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
+
+        // assert that metrics are collected
+        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
+
+        verifyNoInteractions(signer);
+    }
+
+    @Test
+    public void execute_selectedAuthScheme_OldSignerRequestOverridden_doesPreSraSign() throws Exception {
+        // Set up a scheme
+        SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(identity),
+            signer,
+            AuthSchemeOption.builder().schemeId("my.auth#myAuth").build());
+
+        SdkRequest sdkRequest =
+            NoopTestRequest.builder()
+                           .overrideConfiguration(SdkRequestOverrideConfiguration.builder().signer(oldSigner).build())
+                           .build();
+
+        RequestExecutionContext context = createContext(selectedAuthScheme, oldSigner, false, sdkRequest);
+
+        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
+
+        SdkHttpFullRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        // Creating a copy because original executionAttributes may be directly mutated by SigningStage, e.g., timeOffset
+        when(oldSigner.sign(request, context.executionAttributes().copy().putAttribute(TIME_OFFSET, 0))).thenReturn(signedRequest);
+
+        SdkHttpFullRequest result = stage.execute(request, context);
+
+        assertThat(result).isSameAs(signedRequest);
+        // assert that interceptor context is updated with result
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
+
+        // assert that metrics are collected
+        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
+
+        verifyNoInteractions(signer);
+    }
 
     private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme) {
         return createContext(selectedAuthScheme, oldSigner);
     }
 
     private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme, Signer oldSigner) {
-        SdkRequest sdkRequest = ValidSdkObjects.sdkRequest();
+        return createContext(selectedAuthScheme, oldSigner, false);
+    }
+
+    private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme,
+                                                  Signer oldSigner,
+                                                  boolean isSignerOverridden) {
+        return createContext(selectedAuthScheme, oldSigner, isSignerOverridden, ValidSdkObjects.sdkRequest());
+    }
+
+    private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme,
+                                                  Signer oldSigner,
+                                                  boolean isSignerOverridden,
+                                                  SdkRequest sdkRequest) {
         InterceptorContext interceptorContext =
             InterceptorContext.builder()
                               .request(sdkRequest)
@@ -232,6 +307,7 @@ public class SigningStageTest {
 
         ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
                                                                      .put(SELECTED_AUTH_SCHEME, selectedAuthScheme)
+                                                                     .put(SIGNER_OVERRIDDEN, isSignerOverridden)
                                                                      .build();
 
         ExecutionContext executionContext = ExecutionContext.builder()
