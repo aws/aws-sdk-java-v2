@@ -22,13 +22,25 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultChecksummer;
 
+/**
+ * An interface for defining how a checksum is formed from a payload synchronously and asynchronously.
+ */
 @SdkProtectedApi
 public interface Checksummer {
+    /**
+     * Get a default implementation of a checksummer.
+     */
     static Checksummer create() {
         return new DefaultChecksummer();
     }
 
+    /**
+     * Given a payload, calculate a checksum and return it as a string.
+     */
     String checksum(ContentStreamProvider payload);
 
+    /**
+     * Given a payload, asynchronously calculate a checksum and return a future containing it as a string.
+     */
     CompletableFuture<String> checksum(Publisher<ByteBuffer> payload);
 }
