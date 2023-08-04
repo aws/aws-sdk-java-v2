@@ -18,6 +18,7 @@ package software.amazon.awssdk.services;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -36,13 +37,12 @@ import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOper
  * Test to ensure that operations that use the {@link software.amazon.awssdk.auth.signer.AsyncAws4Signer} don't apply
  * the override when the signer is overridden by the customer.
  */
-//@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class AsyncSignerOverrideTest {
     @Mock
     public Signer mockSigner;
 
-    // TODO(sra-identity-and-auth): This test no longer works, we will fix this in the signing stage and re-enable when fixed.
-    //@Test
+    @Test
     public void test_signerOverriddenForStreamingInput_takesPrecedence() {
         ProtocolRestJsonAsyncClient asyncClient = ProtocolRestJsonAsyncClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
@@ -58,4 +58,10 @@ public class AsyncSignerOverrideTest {
 
         verify(mockSigner).sign(any(SdkHttpFullRequest.class), any(ExecutionAttributes.class));
     }
+
+    // TODO(sra-identity-and-auth): Does adding a test with SRA way of overriding signer here makes sense? Probably useful as a
+    //  general test of SRAs support of provider your own signer, though not specific to the overriding of of AsyncAws4Signer.
+    //  Maybe still makes sense, by asserting that signAsync is called for streaming input operation (may belong to a different
+    //  test class)?
+
 }
