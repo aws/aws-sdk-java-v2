@@ -83,7 +83,7 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
                      .orFailAfter(Duration.ofMinutes(3));
     }
 
-    protected AsyncRequestBody customAsyncRequestBodyWithoutContentLength() {
+    protected AsyncRequestBody customAsyncRequestBodyWithoutContentLength(byte[] body) {
         return new AsyncRequestBody() {
             @Override
             public Optional<Long> contentLength() {
@@ -92,7 +92,7 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
 
             @Override
             public void subscribe(Subscriber<? super ByteBuffer> s) {
-                Flowable.fromPublisher(AsyncRequestBody.fromBytes("Random text".getBytes()))
+                Flowable.fromPublisher(AsyncRequestBody.fromBytes(body))
                         .subscribe(s);
             }
         };

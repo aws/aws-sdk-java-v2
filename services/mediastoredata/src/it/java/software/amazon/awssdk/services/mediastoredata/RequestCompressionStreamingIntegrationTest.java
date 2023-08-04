@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.RequestCompressionConfiguration;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -83,7 +84,7 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
 
         asyncClient = MediaStoreDataAsyncClient.builder()
                                                .endpointOverride(uri)
-                                               .credentialsProvider(getCredentialsProvider())
+                                               .credentialsProvider(credentialsProvider)
                                                .httpClient(NettyNioAsyncHttpClient.create())
                                                .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureTransferEncodingHeaderInterceptor())
                                                                             .addExecutionInterceptor(new CaptureContentEncodingHeaderInterceptor())
@@ -108,11 +109,13 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
     }
 
     @AfterAll
-    public static void tearDown() {
+    public static void tearDown() throws InterruptedException {
         syncClient.deleteObject(deleteObjectRequest);
         Waiter.run(() -> syncClient.describeObject(r -> r.path("/foo")))
               .untilException(ObjectNotFoundException.class)
               .orFailAfter(Duration.ofMinutes(1));
+        Thread.sleep(500);
+        mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
     }
 
     @AfterEach
@@ -121,7 +124,7 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
     }
 
     @Test
-    public void putObject_withRequestCompressionSyncStreaming_compressesPayloadAndSendsCorrectly() throws IOException {
+    public void putObject_withSyncStreamingRequestCompression_compressesPayloadAndSendsCorrectly() throws IOException {
         TestContentProvider provider = new TestContentProvider(UNCOMPRESSED_BODY.getBytes(StandardCharsets.UTF_8));
         syncClient.putObject(putObjectRequest, RequestBody.fromContentProvider(provider, "binary/octet-stream"));
 
@@ -129,29 +132,26 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
         assertThat(CaptureContentEncodingHeaderInterceptor.isGzip).isTrue();
 
         ResponseInputStream<GetObjectResponse> response = syncClient.getObject(getObjectRequest);
-        byte[] buffer = new byte[UNCOMPRESSED_BODY.getBytes(StandardCharsets.UTF_8).length];
+        byte[] buffer = new byte[UNCOMPRESSED_BODY.getBytes().length];
         response.read(buffer);
         String retrievedContent = new String(buffer);
-        assertThat(UNCOMPRESSED_BODY).isEqualTo(retrievedContent);
+        assertThat(retrievedContent).isEqualTo(UNCOMPRESSED_BODY);
     }
 
-    // TODO : uncomment once async streaming compression is implemented
-    /*@Test
-    public void nettyClientPutObject_withoutContentLength_sendsSuccessfully() throws IOException {
-        AsyncRequestBody asyncRequestBody = customAsyncRequestBodyWithoutContentLength();
+    @Test
+    public void putObject_withAsyncStreamingRequestCompression_compressesPayloadAndSendsCorrectly() throws IOException {
+        AsyncRequestBody asyncRequestBody = customAsyncRequestBodyWithoutContentLength(UNCOMPRESSED_BODY.getBytes());
         asyncClient.putObject(putObjectRequest, asyncRequestBody).join();
 
         assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
         assertThat(CaptureContentEncodingHeaderInterceptor.isGzip).isTrue();
 
-        // verify stored content is correct
         ResponseInputStream<GetObjectResponse> response = syncClient.getObject(getObjectRequest);
-        byte[] buffer = new byte[UNCOMPRESSED_BODY.getBytes(StandardCharsets.UTF_8).length];
+        byte[] buffer = new byte[UNCOMPRESSED_BODY.getBytes().length];
         response.read(buffer);
         String retrievedContent = new String(buffer);
-        assertThat(UNCOMPRESSED_BODY).isEqualTo(retrievedContent);
-        assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
-    }*/
+        assertThat(retrievedContent).isEqualTo(UNCOMPRESSED_BODY);
+    }
 
     private static class CaptureContentEncodingHeaderInterceptor implements ExecutionInterceptor {
         public static boolean isGzip;

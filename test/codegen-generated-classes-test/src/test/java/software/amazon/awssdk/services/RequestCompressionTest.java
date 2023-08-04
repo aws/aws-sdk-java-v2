@@ -18,19 +18,24 @@ package software.amazon.awssdk.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
+import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.compression.Compressor;
 import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -77,7 +82,7 @@ public class RequestCompressionTest {
         byte[] compressedBodyBytes = compressor.compress(SdkBytes.fromUtf8String(UNCOMPRESSED_BODY)).asByteArray();
         compressedLen = compressedBodyBytes.length;
         compressedBody = new String(compressedBodyBytes);
-        TestContentProvider provider = new TestContentProvider(UNCOMPRESSED_BODY.getBytes(StandardCharsets.UTF_8));
+        TestContentProvider provider = new TestContentProvider(UNCOMPRESSED_BODY.getBytes());
         requestBody = RequestBody.fromContentProvider(provider, "binary/octet-stream");
     }
 
@@ -151,6 +156,21 @@ public class RequestCompressionTest {
     }
 
     @Test
+    public void async_streaming_compression_hasCorrectHeaders() {
+        mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
+
+        PutOperationWithStreamingRequestCompressionRequest request =
+            PutOperationWithStreamingRequestCompressionRequest.builder().build();
+        asyncClient.putOperationWithStreamingRequestCompression(request, customAsyncRequestBodyWithoutContentLength(),
+                                                                AsyncResponseTransformer.toBytes()).join();
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
+        assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
+        assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();
+        assertThat(loggedRequest.firstMatchingHeader("Transfer-Encoding").get()).isEqualTo("chunked");
+    }
+
+    @Test
     public void sync_nonStreaming_compression_withRetry_compressesCorrectly() {
         mockHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
         mockHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
@@ -216,6 +236,22 @@ public class RequestCompressionTest {
         assertThat(loggedRequest.firstMatchingHeader("Transfer-Encoding").get()).isEqualTo("chunked");
     }
 
+    @Test
+    public void async_streaming_compression_withRetry_hasCorrectHeaders() {
+        mockAsyncHttpClient.stubNextResponse(mockErrorResponse(), Duration.ofMillis(500));
+        mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
+
+        PutOperationWithStreamingRequestCompressionRequest request =
+            PutOperationWithStreamingRequestCompressionRequest.builder().build();
+        asyncClient.putOperationWithStreamingRequestCompression(request, customAsyncRequestBodyWithoutContentLength(),
+                                                                AsyncResponseTransformer.toBytes()).join();
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
+        assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
+        assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();
+        assertThat(loggedRequest.firstMatchingHeader("Transfer-Encoding").get()).isEqualTo("chunked");
+    }
+
     private HttpExecuteResponse mockResponse() {
         return HttpExecuteResponse.builder()
                                   .response(SdkHttpResponse.builder().statusCode(200).build())
@@ -226,6 +262,21 @@ public class RequestCompressionTest {
         return HttpExecuteResponse.builder()
                                   .response(SdkHttpResponse.builder().statusCode(500).build())
                                   .build();
+    }
+
+    protected AsyncRequestBody customAsyncRequestBodyWithoutContentLength() {
+        return new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.empty();
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                Flowable.fromPublisher(AsyncRequestBody.fromBytes(UNCOMPRESSED_BODY.getBytes()))
+                        .subscribe(s);
+            }
+        };
     }
 
     private static final class TestContentProvider implements ContentStreamProvider {

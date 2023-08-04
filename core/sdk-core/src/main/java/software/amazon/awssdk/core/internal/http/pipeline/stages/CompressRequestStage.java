@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.async.CompressionAsyncRequestBody;
 import software.amazon.awssdk.core.internal.compression.Compressor;
 import software.amazon.awssdk.core.internal.compression.CompressorType;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
@@ -78,9 +79,13 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         if (context.requestProvider() == null) {
             // sync streaming
             input.contentStreamProvider(new CompressionContentStreamProvider(input.contentStreamProvider(), compressor));
+        } else {
+            // async streaming
+            context.requestProvider(CompressionAsyncRequestBody.builder()
+                                                               .asyncRequestBody(context.requestProvider())
+                                                               .compressor(compressor)
+                                                               .build());
         }
-
-        // TODO : streaming - async
 
         updateContentEncodingHeader(input, compressor);
         return input;
