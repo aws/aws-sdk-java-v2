@@ -77,18 +77,11 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
         SignerProperty.create(Duration.class, "ExpirationDuration");
 
     /**
-     * Whether to enable chunked encoding or not. This property defaults to false. This is only used in the case of an
-     * implementation that supports chunked-encoding.
-     */
-    SignerProperty<Boolean> CHUNKED_ENCODING =
-        SignerProperty.create(Boolean.class, "ChunkedEncoding");
-
-    /**
      * Whether to indicate that a payload is signed or not. This property defaults to true. This can be set false to disable
      * payload signing.
      */
-    SignerProperty<Boolean> PAYLOAD_SIGNING =
-        SignerProperty.create(Boolean.class, "PayloadSigning");
+    SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
+        SignerProperty.create(Boolean.class, "PayloadSigningEnabled");
 
 
     /**
