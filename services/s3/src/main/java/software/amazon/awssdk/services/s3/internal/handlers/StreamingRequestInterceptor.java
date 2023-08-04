@@ -21,17 +21,18 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 /**
  * Interceptor to add an 'Expect: 100-continue' header to the HTTP Request if it represents a PUT Object request.
  */
 @SdkInternalApi
 //TODO: This should be generalized for all streaming requests
-public final class PutObjectInterceptor implements ExecutionInterceptor {
+public final class StreamingRequestInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
-        if (context.request() instanceof PutObjectRequest) {
+        if (context.request() instanceof PutObjectRequest || context.request() instanceof UploadPartRequest) {
             return context.httpRequest().toBuilder().putHeader("Expect", "100-continue").build();
         }
         return context.httpRequest();

@@ -25,6 +25,8 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.NonRetryableException;
+import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -39,17 +41,25 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 @SdkInternalApi
 public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
     private static final Logger log = Logger.loggerFor(SplittingPublisher.class);
+    private static final long DEFAULT_CHUNK_SIZE = 2 * 1024 * 1024L;
+    private static final long DEFAULT_BUFFER_SIZE = DEFAULT_CHUNK_SIZE * 4;
     private final AsyncRequestBody upstreamPublisher;
     private final SplittingSubscriber splittingSubscriber;
     private final SimplePublisher<AsyncRequestBody> downstreamPublisher = new SimplePublisher<>();
     private final long chunkSizeInBytes;
-    private final long maxMemoryUsageInBytes;
+    private final long bufferSizeInBytes;
 
     private SplittingPublisher(Builder builder) {
-        this.upstreamPublisher =  Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
-        this.chunkSizeInBytes = Validate.isPositive(builder.chunkSizeInBytes, "chunkSizeInBytes");
+        this.upstreamPublisher = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
+        this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
+        this.bufferSizeInBytes = builder.bufferSizeInBytes == null ? DEFAULT_BUFFER_SIZE : builder.bufferSizeInBytes;
         this.splittingSubscriber = new SplittingSubscriber(upstreamPublisher.contentLength().orElse(null));
-        this.maxMemoryUsageInBytes = Validate.isPositive(builder.maxMemoryUsageInBytes, "maxMemoryUsageInBytes");
+
+        if (!upstreamPublisher.contentLength().isPresent()) {
+            Validate.isTrue(bufferSizeInBytes >= chunkSizeInBytes,
+                            "bufferSizeInBytes must be larger than or equal to " +
+                            "chunkSizeInBytes if the content length is unknown");
+        }
     }
 
     public static Builder builder() {
@@ -213,7 +223,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         }
 
         private boolean shouldRequestMoreData(long buffered) {
-            return buffered == 0 || buffered + byteBufferSizeHint <= maxMemoryUsageInBytes;
+            return buffered == 0 || buffered + byteBufferSizeHint <= bufferSizeInBytes;
         }
 
         private Long totalDataRemaining() {
@@ -226,13 +236,14 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         private final class DownstreamBody implements AsyncRequestBody {
 
             /**
-             * The maximum length of the content this AsyncRequestBody can hold.
-             * If the upstream content length is known, this is the same as totalLength
+             * The maximum length of the content this AsyncRequestBody can hold. If the upstream content length is known, this is
+             * the same as totalLength
              */
             private final long maxLength;
             private final Long totalLength;
             private final SimplePublisher<ByteBuffer> delegate = new SimplePublisher<>();
             private final int chunkNumber;
+            private final AtomicBoolean subscribeCalled = new AtomicBoolean(false);
             private volatile long transferredLength = 0;
 
             private DownstreamBody(boolean contentLengthKnown, long maxLength, int chunkNumber) {
@@ -274,7 +285,14 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
 
             @Override
             public void subscribe(Subscriber<? super ByteBuffer> s) {
-                delegate.subscribe(s);
+                if (subscribeCalled.compareAndSet(false, true)) {
+                    delegate.subscribe(s);
+                } else {
+                    s.onSubscribe(new NoopSubscription(s));
+                    s.onError(NonRetryableException.create(
+                        "A retry was attempted, but AsyncRequestBody.split does not "
+                        + "support retries."));
+                }
             }
 
             private void addDataBuffered(int length) {
@@ -285,46 +303,24 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
             }
         }
     }
-    
+
     public static final class Builder {
         private AsyncRequestBody asyncRequestBody;
         private Long chunkSizeInBytes;
-        private Long maxMemoryUsageInBytes;
+        private Long bufferSizeInBytes;
 
-        /**
-         * Configures the asyncRequestBody to split
-         *
-         * @param asyncRequestBody The new asyncRequestBody value.
-         * @return This object for method chaining.
-         */
         public Builder asyncRequestBody(AsyncRequestBody asyncRequestBody) {
             this.asyncRequestBody = asyncRequestBody;
             return this;
         }
 
-        /**
-         * Configures the size of the chunk for each {@link AsyncRequestBody} to publish
-         *
-         * @param chunkSizeInBytes The new chunkSizeInBytes value.
-         * @return This object for method chaining.
-         */
-        public Builder chunkSizeInBytes(long chunkSizeInBytes) {
+        public Builder chunkSizeInBytes(Long chunkSizeInBytes) {
             this.chunkSizeInBytes = chunkSizeInBytes;
             return this;
         }
 
-        /**
-         * Sets the maximum memory usage in bytes.
-         *
-         * @param maxMemoryUsageInBytes The new maxMemoryUsageInBytes value.
-         * @return This object for method chaining.
-         */
-        // TODO: max memory usage might not be the best name, since we may technically go a little above this limit when we add
-        //  on a new byte buffer. But we don't know for sure what the size of a buffer we request will be (we do use the size
-        //  for the last byte buffer as a hint), so I don't think we can have a truly accurate max. Maybe we call it minimum
-        //  buffer size instead?
-        public Builder maxMemoryUsageInBytes(long maxMemoryUsageInBytes) {
-            this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
+        public Builder bufferSizeInBytes(Long bufferSizeInBytes) {
+            this.bufferSizeInBytes = bufferSizeInBytes;
             return this;
         }
 

@@ -33,6 +33,10 @@ import software.amazon.awssdk.utils.ConditionalDecorator;
 
 @SdkInternalApi
 public class S3AsyncClientDecorator {
+    public static final AttributeMap.Key<MultipartConfiguration> MULTIPART_CONFIGURATION_KEY =
+        new AttributeMap.Key<MultipartConfiguration>(MultipartConfiguration.class){};
+    public static final AttributeMap.Key<Boolean> MULTIPART_ENABLED_KEY =
+        new AttributeMap.Key<Boolean>(Boolean.class){};
 
     public S3AsyncClientDecorator() {
     }

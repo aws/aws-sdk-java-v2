@@ -49,7 +49,6 @@ import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-
 class CopyObjectHelperTest {
 
     private static final String SOURCE_BUCKET = "source";
@@ -57,11 +56,13 @@ class CopyObjectHelperTest {
     private static final String DESTINATION_BUCKET = "destination";
     private static final String DESTINATION_KEY = "destinationKey";
     private static final String MULTIPART_ID = "multipartId";
+
+    private static final Long PART_SIZE_BYTES = 1024L;
     private S3AsyncClient s3AsyncClient;
     private CopyObjectHelper copyHelper;
 
     private static final long PART_SIZE = 1024L;
-    private static final long UPLOAD_THRESHOLD = 2048L;
+    private static final long UPLOAD_THRESHOLD = PART_SIZE * 2;
 
     @BeforeEach
     public void setUp() {
@@ -277,6 +278,36 @@ class CopyObjectHelperTest {
             assertThat(actualUploadPartCopyRequests.get(i).copySourceRange()).isEqualTo(
                 String.format("bytes=%d-%d", rangeStart, rangeEnd));
         }
+    }
+
+
+    @Test
+    public void multiPartCopy_sseCHeadersSetInOriginalRequest_includedInCompleteMultipart() {
+        String customerAlgorithm = "algorithm";
+        String customerKey = "key";
+        String customerKeyMd5 = "keyMd5";
+
+        CopyObjectRequest copyRequest = copyObjectRequest().copy(r -> r.sseCustomerAlgorithm(customerAlgorithm)
+                                                                       .sseCustomerKey(customerKey)
+                                                                       .sseCustomerKeyMD5(customerKeyMd5));
+
+        stubSuccessfulHeadObjectCall(3 * PART_SIZE_BYTES);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyRequest).join();
+
+        ArgumentCaptor<CompleteMultipartUploadRequest> completeMultipartCaptor =
+            ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
+
+        verify(s3AsyncClient).completeMultipartUpload(completeMultipartCaptor.capture());
+
+        CompleteMultipartUploadRequest completeRequest = completeMultipartCaptor.getValue();
+
+        assertThat(completeRequest.sseCustomerAlgorithm()).isEqualTo(customerAlgorithm);
+        assertThat(completeRequest.sseCustomerKey()).isEqualTo(customerKey);
+        assertThat(completeRequest.sseCustomerKeyMD5()).isEqualTo(customerKeyMd5);
     }
 
     @Test

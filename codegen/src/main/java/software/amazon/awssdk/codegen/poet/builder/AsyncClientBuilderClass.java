@@ -165,17 +165,15 @@ public class AsyncClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec multipartEnabledMethod(MultipartCustomization multipartCustomization) {
-        ClassName mulitpartConfigClassName =
-            PoetUtils.classNameFromFqcn(multipartCustomization.getMultipartConfigurationClass());
         return MethodSpec.methodBuilder("multipartEnabled")
-                                    .addAnnotation(Override.class)
-                                    .addModifiers(Modifier.PUBLIC)
-                                    .returns(builderInterfaceName)
-                                    .addParameter(Boolean.class, "enabled")
-                                    .addStatement("clientContextParams.put($T.MULTIPART_ENABLED_KEY, enabled)",
-                                                  mulitpartConfigClassName)
-                                    .addStatement("return this")
-                                    .build();
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(builderInterfaceName)
+                         .addParameter(Boolean.class, "enabled")
+                         .addStatement("clientContextParams.put($N, enabled)",
+                                       multipartCustomization.getContextParamEnabledKey())
+                         .addStatement("return this")
+                         .build();
     }
 
     private MethodSpec multipartConfigMethods(MultipartCustomization multipartCustomization) {
@@ -186,8 +184,8 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfig").build())
                          .returns(builderInterfaceName)
-                         .addStatement("clientContextParams.put($T.MULTIPART_CONFIGURATION_KEY, multipartConfig)",
-                                       mulitpartConfigClassName)
+                         .addStatement("clientContextParams.put($N, multipartConfig)",
+                                       multipartCustomization.getContextParamConfigKey())
                          .addStatement("return this")
                          .build();
     }

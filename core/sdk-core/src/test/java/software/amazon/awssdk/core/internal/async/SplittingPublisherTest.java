@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -64,6 +66,18 @@ public class SplittingPublisherTest {
     @AfterAll
     public static void afterAll() throws Exception {
         testFile.delete();
+    }
+
+    @Test
+    public void split_contentUnknownMaxMemorySmallerThanChunkSize_shouldThrowException() {
+        AsyncRequestBody body = AsyncRequestBody.fromPublisher(s -> {
+        });
+        assertThatThrownBy(() -> SplittingPublisher.builder()
+                                                   .asyncRequestBody(body)
+                                                   .chunkSizeInBytes(10L)
+                                                   .bufferSizeInBytes(5L)
+                                                   .build())
+            .hasMessageContaining("must be larger than or equal");
     }
 
     @ParameterizedTest
@@ -94,8 +108,8 @@ public class SplittingPublisherTest {
         };
         SplittingPublisher splittingPublisher = SplittingPublisher.builder()
                                                                   .asyncRequestBody(asyncRequestBody)
-                                                                  .chunkSizeInBytes(CHUNK_SIZE)
-                                                                  .maxMemoryUsageInBytes(10L)
+                                                                  .chunkSizeInBytes((long) CHUNK_SIZE)
+                                                                  .bufferSizeInBytes(10L)
                                                                   .build();
 
 
@@ -136,8 +150,8 @@ public class SplittingPublisherTest {
     private static void verifySplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
         SplittingPublisher splittingPublisher = SplittingPublisher.builder()
                                                                   .asyncRequestBody(asyncRequestBody)
-                                                                  .chunkSizeInBytes(chunkSize)
-                                                                  .maxMemoryUsageInBytes((long) chunkSize * 4)
+                                                                  .chunkSizeInBytes((long) chunkSize)
+                                                                  .bufferSizeInBytes((long) chunkSize * 4)
                                                                   .build();
 
         List<CompletableFuture<byte[]>> futures = new ArrayList<>();

@@ -48,7 +48,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private static final long DEFAULT_MIN_PART_SIZE = 8L * 1024 * 1024;
     private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;
-    private static final long DEFAULT_API_CALL_BUFFER_SIZE = DEFAULT_MIN_PART_SIZE * 2;
+    private static final long DEFAULT_API_CALL_BUFFER_SIZE = DEFAULT_MIN_PART_SIZE * 4;
 
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
@@ -68,7 +68,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     }
 
     private long computeApiCallBufferSize(MultipartConfiguration multipartConfiguration) {
-        return multipartConfiguration.minimumPartSizeInBytes() != null ? multipartConfiguration.minimumPartSizeInBytes() * 2
+        return multipartConfiguration.minimumPartSizeInBytes() != null ? multipartConfiguration.minimumPartSizeInBytes() * 4
                                                                        : DEFAULT_API_CALL_BUFFER_SIZE;
     }
 

@@ -23,14 +23,25 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
-public class PutObjectInterceptorTest {
-    private final PutObjectInterceptor interceptor = new PutObjectInterceptor();
+public class StreamingRequestInterceptorTest {
+    private final StreamingRequestInterceptor interceptor = new StreamingRequestInterceptor();
 
     @Test
     public void modifyHttpRequest_setsExpect100Continue_whenSdkRequestIsPutObject() {
 
         final SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext(PutObjectRequest.builder().build()),
+                                                                             new ExecutionAttributes());
+
+        assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
+    }
+
+    @Test
+    public void modifyHttpRequest_setsExpect100Continue_whenSdkRequestIsUploadPart() {
+
+        final SdkHttpRequest modifiedRequest =
+            interceptor.modifyHttpRequest(modifyHttpRequestContext(UploadPartRequest.builder().build()),
                                                                              new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");

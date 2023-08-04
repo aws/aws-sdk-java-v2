@@ -123,7 +123,8 @@ public final class UploadWithKnownContentLengthHelper {
         MpuRequestContext mpuRequestContext = new MpuRequestContext(request, contentLength, optimalPartSize, uploadId);
 
         request.right()
-               .split(mpuRequestContext.partSize, maxMemoryUsageInBytes)
+               .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize)
+                            .bufferSizeInBytes(maxMemoryUsageInBytes))
                .subscribe(new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext,
                                                                            returnFuture));
     }

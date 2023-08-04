@@ -23,7 +23,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -32,17 +31,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * {@link S3AsyncClientBuilder#multipartConfiguration(MultipartConfiguration)} will enable automatic conversion of
  * {@link S3AsyncClient#putObject(Consumer, AsyncRequestBody)}, {@link S3AsyncClient#copyObject(CopyObjectRequest)} to their
  * respective multipart operation.
- * <p></p>
+ * <p>
  * <em>Note</em>: The multipart operation for {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)} is
  * temporarily disabled and will result in throwing a {@link UnsupportedOperationException} if called when configured for
  * multipart operation.
  */
 @SdkPublicApi
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {
-    public static final AttributeMap.Key<MultipartConfiguration> MULTIPART_CONFIGURATION_KEY =
-        new AttributeMap.Key<MultipartConfiguration>(MultipartConfiguration.class){};
-    public static final AttributeMap.Key<Boolean> MULTIPART_ENABLED_KEY =
-        new AttributeMap.Key<Boolean>(Boolean.class){};
 
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
@@ -68,8 +63,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
     /**
      * Indicates the value of the configured threshold, in bytes. Any request whose size is less than the configured value will
-     * not
-     * use multipart operation
+     * not use multipart operation
      * @return the value of the configured threshold.
      */
     public Long thresholdInBytes() {
@@ -78,9 +72,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
     /**
      * Indicated the size, in bytes, of each individual part of the part requests. The actual part size used might be bigger to
-     * conforms to
-     * the maximum
-     * number of parts allowed per multipart requests.
+     * conforms to the maximum number of parts allowed per multipart requests.
      * @return the value of the configured part size.
      */
     public Long minimumPartSizeInBytes() {
@@ -105,7 +97,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * multipart equivalent. Only taken into account when converting {@code putObject} and {@code copyObject} requests.
          * Any request whose size is less than the  configured value will not use multipart operation,
          * even if multipart is enabled via {@link S3AsyncClientBuilder#multipartEnabled(Boolean)}.
-         * <p></p>
+         * <p>
          *
          * Default value: 8 Mib
          *
@@ -122,17 +114,18 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
         /**
          * Configures the part size, in bytes, to be used in each individual part requests.
-         * <p></p>
+         * Only used for putObject and copyObject operations.
+         * <p>
          * When uploading large payload, the size of the payload of each individual part requests might actually be
          * bigger than
          * the configured value since there is a limit to the maximum number of parts possible per multipart request. If the
          * configured part size would lead to a number of parts higher than the maximum allowed, a larger part size will be
          * calculated instead to allow fewer part to be uploaded, to avoid the limit imposed on the maximum number of parts.
-         * <p></p>
+         * <p>
          * In the case where the {@code minimumPartSizeInBytes} is set to a value higher than the {@code thresholdInBytes}, when
          * the client receive a request with a size smaller than a single part multipart operation will <em>NOT</em> be performed
          * even if the size of the request is larger than the threshold.
-         * <p></p>
+         * <p>
          * Default value: 8 Mib
          *
          * @param minimumPartSizeInBytes the value of the part size to set
@@ -149,8 +142,8 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         /**
          * Configures the maximum amount of memory, in bytes, the SDK will use to buffer content of requests in memory.
          * Increasing this value may lead to better performance at the cost of using more memory.
-         * <p></p>
-         * Default value: If not specified, the SDK will use the equivalent of two parts worth of memory, so 16 Mib by default.
+         * <p>
+         * Default value: If not specified, the SDK will use the equivalent of four parts worth of memory, so 32 Mib by default.
          *
          * @param apiCallBufferSizeInBytes the value of the maximum memory usage.
          * @return an instance of this builder.
