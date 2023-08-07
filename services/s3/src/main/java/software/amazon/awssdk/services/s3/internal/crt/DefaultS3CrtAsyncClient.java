@@ -53,6 +53,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
+import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -69,7 +70,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         super(initializeS3AsyncClient(builder));
         long partSizeInBytes = builder.minimalPartSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
                                builder.minimalPartSizeInBytes;
-        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),  partSizeInBytes);
+        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),
+                                                     partSizeInBytes,
+                                                     partSizeInBytes);
     }
 
     @Override
