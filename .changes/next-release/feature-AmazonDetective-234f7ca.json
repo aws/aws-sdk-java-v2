@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Detective",
+    "contributor": "",
+    "description": "Updated the email validation regex to be in line with the TLD name specifications."
+}
