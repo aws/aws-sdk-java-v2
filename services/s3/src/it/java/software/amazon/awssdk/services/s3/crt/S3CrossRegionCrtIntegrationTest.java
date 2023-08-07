@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.s3.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.services.s3.crt.S3CrtClientCopyIntegrationTest.randomBytes;
+import static software.amazon.awssdk.services.s3.multipart.S3ClientMultiPartCopyIntegrationTest.randomBytes;
 import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.computeCheckSum;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
