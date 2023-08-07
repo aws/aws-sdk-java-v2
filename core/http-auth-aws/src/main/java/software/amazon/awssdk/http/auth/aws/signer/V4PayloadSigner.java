@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.aws.signer;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -40,7 +39,7 @@ public interface V4PayloadSigner {
     ContentStreamProvider sign(ContentStreamProvider payload, V4Context v4Context);
 
     /**
-     * Given a payload and a future containing a v4-context, sign the payload via the SigV4 process.
+     * Given a payload and v4-context, sign the payload via the SigV4 process.
      */
-    Publisher<ByteBuffer> sign(Publisher<ByteBuffer> payload, CompletableFuture<V4Context> futureV4Context);
+    Publisher<ByteBuffer> sign(Publisher<ByteBuffer> payload, V4Context v4Context);
 }

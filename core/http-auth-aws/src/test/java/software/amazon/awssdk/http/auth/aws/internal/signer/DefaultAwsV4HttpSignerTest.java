@@ -127,4 +127,17 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
     }
+
+    @Test
+    public void sign_WithEventStreamContentTypeWithoutHttpAuthAwsEventStream_throws() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
+            signRequest -> {
+            }
+        );
+
+        assertThrows(RuntimeException.class, () -> signer.sign(request));
+    }
 }
