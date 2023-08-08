@@ -19,6 +19,7 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
@@ -131,9 +132,11 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     }
 
     private Map<String, AuthScheme<?>> defaultAuthSchemes() {
-        Map<String, AuthScheme<?>> schemes = new HashMap<>(2);
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(3);
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
         schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
+        AwsV4aAuthScheme awsV4aAuthScheme = AwsV4aAuthScheme.create();
+        schemes.put(awsV4aAuthScheme.schemeId(), awsV4aAuthScheme);
         BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
         schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
         return Collections.unmodifiableMap(schemes);

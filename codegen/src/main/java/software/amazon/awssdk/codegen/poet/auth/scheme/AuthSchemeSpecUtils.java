@@ -25,13 +25,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.http.auth.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 
 public final class AuthSchemeSpecUtils {
@@ -178,17 +182,24 @@ public final class AuthSchemeSpecUtils {
         return Collections.singletonList(intermediateModel.getMetadata().getAuthType());
     }
 
-    public List<AuthType> allServiceAuthTypes() {
-        Set<AuthType> result =
-            intermediateModel.getOperations()
-                             .values()
-                             .stream()
-                             .map(OperationModel::getAuth)
-                             .flatMap(List::stream)
-                             .collect(Collectors.toSet());
-        List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
-        result.addAll(modeled);
-        return result.stream().sorted().collect(Collectors.toList());
+    public Set<Class<?>> allServiceConcreteAuthSchemeClasses() {
+        Set<Class<?>> result =
+            Stream.concat(intermediateModel.getOperations()
+                                           .values()
+                                           .stream()
+                                           .map(OperationModel::getAuth)
+                                           .flatMap(List::stream),
+                          intermediateModel.getMetadata().getAuth().stream())
+                  .map(AuthSchemeCodegenMetadata::fromAuthType)
+                  .map(AuthSchemeCodegenMetadata::authSchemeClass)
+                  .filter(Objects::nonNull)
+                  .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Class::getSimpleName))));
+
+        if (useEndpointBasedAuthProvider()) {
+            // sigv4a is not modeled but needed for the endpoints based auth-scheme cases.
+            result.add(AwsV4aAuthScheme.class);
+        }
+        return result;
     }
 
     private static Set<String> setOf(String v1, String v2) {

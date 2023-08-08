@@ -59,6 +59,11 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void baseClientBuilderClassWithEndpointsAuthParams() {
+        assertThat(new BaseClientBuilderClass(ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList()), generatesTo("test-client-builder-endpoints-auth-params.java"));
+    }
+
+    @Test
     public void syncClientBuilderInterface() throws Exception {
         validateGeneration(SyncClientBuilderInterface::new, "test-sync-client-builder-interface.java");
     }
