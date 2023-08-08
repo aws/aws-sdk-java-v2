@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.UNSIGNED_PAYLOAD;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -58,7 +59,9 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean doubleUrlEncode = signRequest.requireProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
         boolean normalizePath = signRequest.requireProperty(AwsV4HttpSigner.NORMALIZE_PATH, true);
         AuthLocation authLocation = signRequest.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
-        Duration expirationDuration = signRequest.requireProperty(EXPIRATION_DURATION, null);
+        Duration expirationDuration = validateExpirationDuration(
+            signRequest.requireProperty(EXPIRATION_DURATION, PRESIGN_URL_MAX_EXPIRATION_DURATION)
+        );
         boolean isPayloadSigning = signRequest.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
 
         Instant signingInstant = signingClock.instant();
@@ -70,22 +73,20 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         if (authLocation == AuthLocation.HEADER) {
             requestSigner = V4RequestSigner::header;
+            if (signRequest.hasProperty(EXPIRATION_DURATION)) {
+                throw new UnsupportedOperationException(
+                    EXPIRATION_DURATION + " is not supported for " + AuthLocation.HEADER + "."
+                );
+            }
         } else if (authLocation == AuthLocation.QUERY_STRING) {
             requestSigner = V4RequestSigner::query;
-            if (expirationDuration != null) {
-                if (expirationDuration.compareTo(PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
-                    throw new IllegalArgumentException(
-                        "Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
-                        " days. The expiration duration set on the current request [" + expirationDuration + "]" +
-                        " has exceeded this limit."
-                    );
-                }
+            if (signRequest.hasProperty(EXPIRATION_DURATION)) {
                 requestSigner = properties -> V4RequestSigner.presigned(properties, expirationDuration);
             }
         }
 
         if (!isPayloadSigning) {
-            checksummer = new PrecomputedChecksummer(() -> "UNSIGNED-PAYLOAD");
+            checksummer = new PrecomputedChecksummer(() -> UNSIGNED_PAYLOAD);
         }
 
         V4Properties properties = new V4Properties(
@@ -98,6 +99,18 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         return new V4HttpSigner(checksummer, requestSigner.apply(properties), payloadSigner);
     }
+
+    private static Duration validateExpirationDuration(Duration expirationDuration) {
+        if (expirationDuration.compareTo(PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
+            throw new IllegalArgumentException(
+                "Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
+                " days. The expiration duration set on the current request [" + expirationDuration + "]" +
+                " has exceeded this limit."
+            );
+        }
+        return expirationDuration;
+    }
+
 
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {

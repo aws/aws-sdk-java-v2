@@ -32,9 +32,16 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
- * An implementation of a {@link AwsV4HttpSigner}.
+ * An implementation of a {@link AwsV4HttpSigner}, and signs a request according to the SigV4 process as defined here:
+ * https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html
+ * <p>
+ * Of note, this functionality can be extended by providing implementations of the underlying interfaces: {@link Checksummer},
+ * {@link V4RequestSigner}, and {@link V4PayloadSigner}.
+ * For example, header-based V4-authorization can be implemented by constructing a V4HttpSigner with an implementation of
+ * a {@link V4RequestSigner} that takes the signature and adds it to an Authorization header.
  */
 @SdkInternalApi
 public final class V4HttpSigner implements AwsV4HttpSigner {

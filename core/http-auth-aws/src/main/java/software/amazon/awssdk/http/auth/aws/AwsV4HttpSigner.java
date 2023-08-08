@@ -70,8 +70,8 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
         SignerProperty.create(AuthLocation.class, "AuthLocation");
 
     /**
-     * The duration for the request to be valid. This property defaults to the max valid duration (7 days). This is only used in
-     * the case of a pre-signing implementation.
+     * The duration for the request to be valid. This property defaults to null. This can be set to presign the request for
+     * later use. The maximum allowed value for this property is 7 days. This is only supported when AuthLocation=QUERY.
      */
     SignerProperty<Duration> EXPIRATION_DURATION =
         SignerProperty.create(Duration.class, "ExpirationDuration");

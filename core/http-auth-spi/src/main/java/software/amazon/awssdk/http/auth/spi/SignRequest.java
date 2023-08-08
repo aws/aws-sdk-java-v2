@@ -59,6 +59,15 @@ public interface SignRequest<PayloadT, IdentityT extends Identity> {
      * <p>
      * The value, {@link T}, is return when present, and an exception is thrown otherwise.
      */
+    default <T> boolean hasProperty(SignerProperty<T> property) {
+        return property(property) != null;
+    }
+
+    /**
+     * Ensure that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
+     */
     default <T> T requireProperty(SignerProperty<T> property) {
         return Validate.notNull(property(property), property.toString() + " must not be null!");
     }

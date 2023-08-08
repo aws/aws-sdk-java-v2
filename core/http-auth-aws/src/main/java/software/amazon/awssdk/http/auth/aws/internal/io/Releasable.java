@@ -29,21 +29,23 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * method must not be called while the execution is made in other stack frames.
  * <p>
  * In such case, as other stack frames may inadvertently or indirectly call the close method of the stream, the creator of the
- * stream would need to explicitly disable the accidental closing via {@code ResettableInputStream#disableClose()}, so that the
- * release method becomes the only way to truly close the opened file.
+ * stream would need to explicitly disable the accidental closing via
+ * {@code ResettableInputStream#disableClose()}, so that the release method
+ * becomes the only way to truly close the opened file.
  */
 @SdkInternalApi
 public interface Releasable {
     /**
      * Releases the given {@link Closeable} especially if it was an instance of {@link Releasable}.
      * <p>
-     * For example, the creation of a {@code ResettableInputStream} would entail physically opening a file. If the opened file is
-     * meant to be closed only (in a finally block) by the very same code block that created it, then it is necessary that the
-     * release method must not be called while the execution is made in other stack frames.
+     * For example, the creation of a {@code ResettableInputStream} would entail physically opening a file. If the opened
+     * file is meant to be closed only (in a finally block) by the very same code block that created it, then it is necessary that
+     * the release method must not be called while the execution is made in other stack frames.
      * <p>
      * In such case, as other stack frames may inadvertently or indirectly call the close method of the stream, the creator of the
-     * stream would need to explicitly disable the accidental closing via {@code ResettableInputStream#disableClose()}, so that
-     * the release method becomes the only way to truly close the opened file.
+     * stream would need to explicitly disable the accidental closing via
+     * {@code ResettableInputStream#disableClose()}, so that the release method
+     * becomes the only way to truly close the opened file.
      */
     static void release(Closeable is, Logger log) {
         closeQuietly(is, log);
@@ -58,13 +60,14 @@ public interface Releasable {
      * very top of the call stack. This allows, typically, a {@link Closeable} resource to be not unintentionally released owing
      * to the calling of the {@link Closeable#close()} methods by implementation deep down in the call stack.
      * <p>
-     * For example, the creation of a {@code ResettableInputStream} would entail physically opening a file. If the opened file is
-     * meant to be closed only (in a finally block) by the very same code block that created it, then it is necessary that the
-     * release method must not be called while the execution is made in other stack frames.
+     * For example, the creation of a {@code ResettableInputStream} would entail physically opening a file. If the opened
+     * file is meant to be closed only (in a finally block) by the very same code block that created it, then it is necessary that
+     * the release method must not be called while the execution is made in other stack frames.
      * <p>
      * In such case, as other stack frames may inadvertently or indirectly call the close method of the stream, the creator of the
-     * stream would need to explicitly disable the accidental closing via {@code ResettableInputStream#disableClose()}, so that
-     * the release method becomes the only way to truly close the opened file.
+     * stream would need to explicitly disable the accidental closing via
+     * {@code ResettableInputStream#disableClose()}, so that the release method
+     * becomes the only way to truly close the opened file.
      */
     void release();
 }

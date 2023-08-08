@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
@@ -62,6 +63,20 @@ public class DefaultAwsV4HttpSignerTest {
         SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Signature")).isPresent();
+    }
+
+    @Test
+    public void sign_WithHeaderAuthLocationAndExpirationDuration_Throws() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(AUTH_LOCATION, AuthLocation.HEADER)
+                .putProperty(EXPIRATION_DURATION, Duration.ZERO)
+        );
+
+        assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
     }
 
     @Test
