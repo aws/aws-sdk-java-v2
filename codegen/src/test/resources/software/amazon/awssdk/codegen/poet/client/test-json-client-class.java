@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner;
-import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -24,7 +22,6 @@ import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.util.VersionInfo;
@@ -229,7 +226,6 @@ final class DefaultJsonClient implements JsonClient {
     @Override
     public BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
         throws AwsServiceException, SdkClientException, JsonException {
-        bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                                                                        .isPayloadJson(true).build();
 
@@ -850,8 +846,6 @@ final class DefaultJsonClient implements JsonClient {
         StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, RequestBody requestBody,
         ResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
                                                                                                         SdkClientException, JsonException {
-        streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
-                                                                   Aws4UnsignedPayloadSigner.create());
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
                                                                        .isPayloadJson(false).build();
 
@@ -955,17 +949,6 @@ final class DefaultJsonClient implements JsonClient {
         AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
                                                                        .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
                                                                        .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
-    }
-
-    private <T extends JsonRequest> T applySignerOverride(T request, Signer signer) {
-        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
-            return request;
-        }
-        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
