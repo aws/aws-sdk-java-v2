@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Global Accelerator",
+    "contributor": "",
+    "description": "Documentation update for dualstack EC2 endpoint support"
+}
