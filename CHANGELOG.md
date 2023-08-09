@@ -1,3 +1,32 @@
+# __2.20.123__ __2023-08-09__
+## __AWS Global Accelerator__
+  - ### Features
+    - Documentation update for dualstack EC2 endpoint support
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Updating CreatePhoneNumberOrder, UpdatePhoneNumber and BatchUpdatePhoneNumbers APIs, adding phone number name
+
+## __Amazon FSx__
+  - ### Features
+    - For FSx for Lustre, add new data repository task type, RELEASE_DATA_FROM_FILESYSTEM, to release files that have been archived to S3. For FSx for Windows, enable support for configuring and updating SSD IOPS, and for updating storage type. For FSx for OpenZFS, add new deployment type, MULTI_AZ_1.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added autoEnable ALL to UpdateOrganizationConfiguration and DescribeOrganizationConfiguration APIs.
+
+## __Amazon S3__
+  - ### Features
+    - Allow users to configure upload threshold size for AWS CRT-based S3 client via `S3CrtAsyncClientBuilder#thresholdInBytes`.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for cross account access for SageMaker Model Cards through AWS RAM.
+
 # __2.20.122__ __2023-08-08__
 ## __AWS Backup__
   - ### Features
@@ -1090,7 +1119,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
