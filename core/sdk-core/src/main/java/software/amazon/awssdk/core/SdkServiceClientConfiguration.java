@@ -97,27 +97,39 @@ public abstract class SdkServiceClientConfiguration {
         /**
          * Return the client override configuration
          */
-        ClientOverrideConfiguration overrideConfiguration();
+        default ClientOverrideConfiguration overrideConfiguration() {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Return the endpoint override
          */
-        URI endpointOverride();
+        default URI endpointOverride() {
+            throw new UnsupportedOperationException();
+        }
 
-        EndpointProvider endpointProvider();
+        default EndpointProvider endpointProvider() {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Configure the client override configuration
          */
-        Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
+        default Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Configure the endpoint override
          */
-        Builder endpointOverride(URI endpointOverride);
+        default Builder endpointOverride(URI endpointOverride) {
+            throw new UnsupportedOperationException();
+        }
 
 
-        Builder endpointProvider(EndpointProvider endpointProvider);
+        default Builder endpointProvider(EndpointProvider endpointProvider) {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Build the service client configuration using the configuration on this builder
