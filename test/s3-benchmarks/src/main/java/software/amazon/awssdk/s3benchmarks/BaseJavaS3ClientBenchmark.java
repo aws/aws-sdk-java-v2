@@ -84,6 +84,9 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
             Duration connAcqTimeout = Duration.ofSeconds(config.connectionAcquisitionTimeoutInSec());
             builder.connectionAcquisitionTimeout(connAcqTimeout);
         }
+        if (config.maxConcurrency() != null) {
+            builder.maxConcurrency(config.maxConcurrency());
+        }
         return builder.build();
     }
 
