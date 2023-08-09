@@ -316,9 +316,10 @@ public class S3CrtAsyncHttpClientTest {
             S3NativeClientConfiguration.builder()
                                        .maxConcurrency(100)
                                        .signingRegion("us-west-2")
-                .standardRetryOptions(
-                    new StandardRetryOptions()
-                        .withBackoffRetryOptions(new ExponentialBackoffRetryOptions().withMaxRetries(7)))
+                                       .thresholdInBytes(1024L)
+                                       .standardRetryOptions(
+                                           new StandardRetryOptions()
+                                               .withBackoffRetryOptions(new ExponentialBackoffRetryOptions().withMaxRetries(7)))
                                        .httpConfiguration(S3CrtHttpConfiguration.builder()
                                                                                 .connectionTimeout(Duration.ofSeconds(1))
                                                                                 .connectionHealthConfiguration(c -> c.minimumThroughputInBps(1024L)
@@ -330,6 +331,7 @@ public class S3CrtAsyncHttpClientTest {
             (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
         S3ClientOptions clientOptions = client.s3ClientOptions();
         assertThat(clientOptions.getConnectTimeoutMs()).isEqualTo(1000);
+        assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(1024);
         assertThat(clientOptions.getStandardRetryOptions().getBackoffRetryOptions().getMaxRetries()).isEqualTo(7);
         assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
         assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
@@ -345,6 +347,20 @@ public class S3CrtAsyncHttpClientTest {
             assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
         });
         assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
+    }
+
+    @Test
+    void build_partSizeConfigured_shouldApplyToThreshold() {
+        long partSizeInBytes = 10L;
+        S3NativeClientConfiguration configuration =
+            S3NativeClientConfiguration.builder()
+                                       .partSizeInBytes(partSizeInBytes)
+                                       .build();
+        S3CrtAsyncHttpClient client =
+            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
+        S3ClientOptions clientOptions = client.s3ClientOptions();
+        assertThat(clientOptions.getPartSize()).isEqualTo(partSizeInBytes);
+        assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(clientOptions.getPartSize());
     }
 
     @Test
