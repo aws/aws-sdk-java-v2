@@ -25,6 +25,7 @@ import software.amazon.awssdk.utils.Pair;
  * <p>
  * Trailers are optionally included in the final chunk of a chunk-encoded stream.
  */
+@FunctionalInterface
 @SdkProtectedApi
 public interface Trailer {
     Pair<byte[], byte[]> get(byte[] chunk);

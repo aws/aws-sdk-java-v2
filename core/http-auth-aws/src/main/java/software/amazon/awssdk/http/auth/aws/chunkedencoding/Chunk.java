@@ -17,37 +17,32 @@ package software.amazon.awssdk.http.auth.aws.chunkedencoding;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.aws.internal.io.ChunkInputStream;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * An interface which defines a "chunk" of data.
  */
 @SdkProtectedApi
-public interface Chunk {
+public interface Chunk extends SdkAutoCloseable {
     /**
      * Get a default implementation of a chunk, which wraps a stream with a fixed size;
      */
-    static Chunk create(InputStream data, int size) {
-        return new ChunkImpl(new ChunkInputStream(data, size));
+    static Chunk create(InputStream data, int sizeInBytes) {
+        return new ChunkImpl(new ChunkInputStream(data, sizeInBytes));
     }
 
     /**
      * Get the underlying stream of data for a chunk.
      */
-    InputStream stream() throws IOException;
+    InputStream stream();
 
     /**
      * Whether the logical end of a chunk has been reached.
      */
-    boolean ended();
-
-    /**
-     * Close the underlying stream of data for a chunk.
-     */
-    void close();
+    boolean hasEnded();
 
     /**
      * An implementation of a chunk, backed by a {@link ChunkInputStream}. This allows it to have awareness of its length and
@@ -61,7 +56,7 @@ public interface Chunk {
         }
 
         @Override
-        public boolean ended() {
+        public boolean hasEnded() {
             return data.remaining() <= 0;
         }
 

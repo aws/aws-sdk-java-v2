@@ -23,6 +23,7 @@ import software.amazon.awssdk.utils.Pair;
  * <p>
  * The extension usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to.
  */
+@FunctionalInterface
 @SdkProtectedApi
 public interface ChunkExtension {
     Pair<byte[], byte[]> get(byte[] chunk);

@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * <p>
  * The header usually depends on the chunk-data itself (hex-size), but is not required to.
  */
+@FunctionalInterface
 @SdkProtectedApi
 public interface ChunkHeader {
     byte[] get(byte[] chunk);
