@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.function.Function;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.core.SelectedAuthScheme;
-import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.BearerAuthScheme;
+import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.utils.Validate;
 
 public final class AuthSchemeCodegenMetadata {

@@ -29,6 +29,14 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 public interface AwsS3V4AuthScheme extends AuthScheme<AwsCredentialsIdentity> {
 
     /**
+     * Get a default implementation of a {@link AwsS3V4AuthScheme}
+     */
+    static AwsS3V4AuthScheme create() {
+        return new AwsS3V4AuthScheme() {
+        };
+    }
+
+    /**
      * Retrieve the scheme ID.
      */
     @Override
@@ -50,13 +58,5 @@ public interface AwsS3V4AuthScheme extends AuthScheme<AwsCredentialsIdentity> {
     @Override
     default AwsS3V4HttpSigner signer() {
         return AwsS3V4HttpSigner.create();
-    }
-
-    /**
-     * Get a default implementation of a {@link AwsS3V4AuthScheme}
-     */
-    static AwsS3V4AuthScheme create() {
-        return new AwsS3V4AuthScheme() {
-        };
     }
 }
