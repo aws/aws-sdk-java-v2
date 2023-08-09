@@ -15,24 +15,64 @@
 
 package software.amazon.awssdk.auth.credentials.internal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 
 public class AwsSessionCredentialsTest {
 
+    private static final String ACCESS_KEY_ID = "accessKeyId";
+    private static final String SECRET_ACCESS_KEY = "secretAccessKey";
+    private static final String SESSION_TOKEN = "sessionToken";
 
-    @Test
-    public void equalsHashCode() {
-        AwsSessionCredentials credentials =
-            AwsSessionCredentials.create("test", "key", "sessionToken");
-
-        AwsSessionCredentials anotherCredentials =
-            AwsSessionCredentials.create("test", "key", "sessionToken");
-        assertThat(credentials).isEqualTo(anotherCredentials);
-        assertThat(credentials.hashCode()).isEqualTo(anotherCredentials.hashCode());
+    public void equalsHashcode() {
+        EqualsVerifier.forClass(AwsSessionCredentials.class)
+                      .verify();
     }
 
+    @Test
+    public void emptyBuilder_ThrowsException() {
+        assertThrows(NullPointerException.class, () -> AwsSessionCredentials.builder().build());
+    }
+
+    @Test
+    public void builderMissingSessionToken_ThrowsException() {
+        assertThrows(NullPointerException.class, () -> AwsSessionCredentials.builder()
+                                                                            .accessKeyId(ACCESS_KEY_ID)
+                                                                            .secretAccessKey(SECRET_ACCESS_KEY)
+                                                                            .build());
+    }
+
+    @Test
+    public void builderMissingAccessKeyId_ThrowsException() {
+        assertThrows(NullPointerException.class, () -> AwsSessionCredentials.builder()
+                                                                            .secretAccessKey(SECRET_ACCESS_KEY)
+                                                                            .sessionToken(SESSION_TOKEN)
+                                                                            .build());
+    }
+
+    @Test
+    public void create_isSuccessful() {
+        AwsSessionCredentials identity = AwsSessionCredentials.create(ACCESS_KEY_ID,
+                                                                      SECRET_ACCESS_KEY,
+                                                                      SESSION_TOKEN);
+        assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
+        assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
+        assertEquals(SESSION_TOKEN, identity.sessionToken());
+    }
+
+    @Test
+    public void build_isSuccessful() {
+        AwsSessionCredentials identity = AwsSessionCredentials.builder()
+                                                              .accessKeyId(ACCESS_KEY_ID)
+                                                              .secretAccessKey(SECRET_ACCESS_KEY)
+                                                              .sessionToken(SESSION_TOKEN)
+                                                              .build();
+        assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
+        assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
+        assertEquals(SESSION_TOKEN, identity.sessionToken());
+    }
 }

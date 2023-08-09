@@ -20,6 +20,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
@@ -31,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.s3.ChecksumConfig;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
@@ -117,6 +120,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         HttpChecksum httpChecksum = asyncRequest.httpExecutionAttributes().getAttribute(HTTP_CHECKSUM);
         ResumeToken resumeToken = asyncRequest.httpExecutionAttributes().getAttribute(CRT_PAUSE_RESUME_TOKEN);
+        Region signingRegion = asyncRequest.httpExecutionAttributes().getAttribute(SIGNING_REGION);
 
         ChecksumConfig checksumConfig =
             checksumConfig(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
@@ -129,6 +133,13 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withEndpoint(endpoint)
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken);
+
+        // Create a new SigningConfig object only if the signing region has changed from the previously configured region.
+        if (signingRegion != null && !s3ClientOptions.getRegion().equals(signingRegion.id())) {
+            requestOptions.withSigningConfig(
+                AwsSigningConfig.getDefaultS3SigningConfig(signingRegion.id(),
+                                                           s3ClientOptions.getCredentialsProvider()));
+        }
 
         S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
         S3MetaRequestPauseObservable observable =
@@ -143,6 +154,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         return executeFuture;
     }
+
 
     private static URI getEndpoint(URI uri) {
         return invokeSafely(() -> new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), null, null, null));

@@ -611,7 +611,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Creates a copy of an object that is already stored in S3 in the same region.
+     * Creates a copy of an object that is already stored in S3.
      * <p>
      * Depending on the underlying S3Client, {@link S3TransferManager} may intelligently use plain {@link CopyObjectRequest}s
      * for smaller objects, and multiple parallel {@link UploadPartCopyRequest}s for larger objects. If multipart copy is
@@ -625,10 +625,22 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * the way the {@link CopyObjectRequest} API behaves. When copying an object, S3 performs the byte copying on your behalf
      * while keeping the connection alive. The progress of the copy is not known until it fully completes and S3 sends a response
      * describing the outcome.
+     *
+     * <p>
+     * If you are copying an object to a bucket in a different region, you need to enable cross region access
+     * on the {@link S3AsyncClient}.
+     *
      * <p>
      * <b>Usage Example:</b>
      * {@snippet :
-     *         S3TransferManager transferManager = S3TransferManager.create();
+     *         S3AsyncClient s3AsyncClient =
+     *            S3AsyncClient.crtBuilder()
+     *                         // enable cross-region access, only required if you are making cross-region copy
+     *                         .crossRegionAccessEnabled(true)
+     *                         .build();
+     *         S3TransferManager transferManager = S3TransferManager.builder()
+     *                                                              .s3Client(s3AsyncClient)
+     *                                                              .build();
      *         CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
      *                                                                .sourceBucket("source_bucket")
      *                                                                .sourceKey("source_key")
@@ -647,6 +659,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * @param copyRequest the copy request, containing a {@link CopyObjectRequest}
      * @return A {@link Copy} that can be used to track the ongoing transfer
      * @see #copy(Consumer)
+     * @see S3AsyncClient#copyObject(CopyObjectRequest)
      */
     default Copy copy(CopyRequest copyRequest) {
         throw new UnsupportedOperationException();

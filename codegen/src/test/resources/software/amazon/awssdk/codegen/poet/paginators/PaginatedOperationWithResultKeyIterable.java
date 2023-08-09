@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.core.pagination.sync.SyncPageFetcher;
 import software.amazon.awssdk.core.util.PaginatorUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsClient;
+import software.amazon.awssdk.services.jsonprotocoltests.internal.UserAgentUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct;
@@ -83,7 +84,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
     public PaginatedOperationWithResultKeyIterable(JsonProtocolTestsClient client,
                                                    PaginatedOperationWithResultKeyRequest firstRequest) {
         this.client = client;
-        this.firstRequest = firstRequest;
+        this.firstRequest = UserAgentUtils.applyPaginatorUserAgent(firstRequest);
         this.nextPageFetcher = new PaginatedOperationWithResultKeyResponseFetcher();
     }
 

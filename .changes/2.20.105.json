@@ -1,0 +1,60 @@
+{
+    "version": "2.20.105",
+    "date": "2023-07-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSMainframeModernization",
+            "contributor": "",
+            "description": "Allows UpdateEnvironment to update the environment to 0 host capacity. New GetSignedBluinsightsUrl API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added support for IamPolicy in new module software.amazon.awssdk:iam-policy-builder, a class to simplify the use of AWS policies."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Security",
+            "contributor": "",
+            "description": "Documentation updates for CodeGuru Security."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "GetMetricDataV2 API: Update to include Contact Lens Conversational Analytics Metrics"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Regex Validation on the ElasticSearch Engine Version attribute"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "contributor": "",
+            "description": "Adds support for RACK_5U_C. This is the first AWS Snow Family device designed to meet U.S. Military Ruggedization Standards (MIL-STD-810H) with 208 vCPU device in a portable, compact 5U, half-rack width form-factor."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "This release adds support for Lex Developers to view analytics for their bots."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Translate",
+            "contributor": "",
+            "description": "Added DOCX word document support to TranslateDocument API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
