@@ -56,10 +56,13 @@ public class HttpSignerTest {
     @Test
     public void signAsync_usingConsumerBuilder_works() {
         Publisher<ByteBuffer> payload = subscriber -> {};
-        CompletableFuture<AsyncSignedRequest> signedRequest = signer.signAsync(r -> r.request(mock(SdkHttpRequest.class))
-                                                                                     .payload(payload)
-                                                                                     .identity(IDENTITY)
-                                                                                     .putProperty(KEY, VALUE));
+        AsyncSignedRequest signedRequest = signer.signAsync(
+            r -> r.request(mock(SdkHttpRequest.class))
+                  .payload(payload)
+                  .identity(IDENTITY)
+                  .putProperty(KEY, VALUE)
+        ).join();
+
         assertNotNull(signedRequest);
     }
 
