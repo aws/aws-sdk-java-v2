@@ -227,6 +227,17 @@ public class BinaryUtilsTest {
     }
 
     @Test
+    public void immutableCopyOf_retainsOriginalLimit() {
+        ByteBuffer sourceBuffer = ByteBuffer.allocate(10);
+        byte[] bytes = {1, 2, 3, 4};
+        sourceBuffer.put(bytes);
+        sourceBuffer.rewind();
+        sourceBuffer.limit(bytes.length);
+        ByteBuffer copy = BinaryUtils.immutableCopyOf(sourceBuffer);
+        assertThat(copy.limit()).isEqualTo(sourceBuffer.limit());
+    }
+
+    @Test
     public void testImmutableCopyOfByteBuffer_nullBuffer() {
         assertNull(BinaryUtils.immutableCopyOf(null));
     }
