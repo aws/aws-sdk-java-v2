@@ -26,6 +26,9 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
  * Trait which defines if a given request needs to be authenticated.
  * A request is not authenticated only if it has "auththpe" trait  explicitly marked as "none"
  */
+// TODO(sra-identity-and-auth): I think this class can be deleted. Old clients will still have the writer for this generated
+//  and we have to leave the reader of this attribute around for them (in AwsExecutionContextBuilder), but the writer in new
+//  clients can be deleted.
 @SdkInternalApi
 public class NoneAuthTypeRequestTrait {
 
