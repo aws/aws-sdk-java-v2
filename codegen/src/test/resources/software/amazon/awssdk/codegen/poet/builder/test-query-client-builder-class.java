@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.query;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
@@ -32,7 +33,6 @@ import software.amazon.awssdk.services.query.endpoints.internal.QueryEndpointAut
 import software.amazon.awssdk.services.query.endpoints.internal.QueryRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -131,9 +131,12 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     }
 
     private Map<String, AuthScheme<?>> defaultAuthSchemes() {
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(2);
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
+        schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
         BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
-        return MapUtils.of(awsV4AuthScheme.schemeId(), awsV4AuthScheme, bearerAuthScheme.schemeId(), bearerAuthScheme);
+        schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
+        return Collections.unmodifiableMap(schemes);
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

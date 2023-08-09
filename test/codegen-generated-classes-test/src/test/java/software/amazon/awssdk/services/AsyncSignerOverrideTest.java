@@ -18,6 +18,7 @@ package software.amazon.awssdk.services;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -36,13 +37,12 @@ import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOper
  * Test to ensure that operations that use the {@link software.amazon.awssdk.auth.signer.AsyncAws4Signer} don't apply
  * the override when the signer is overridden by the customer.
  */
-//@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class AsyncSignerOverrideTest {
     @Mock
     public Signer mockSigner;
 
-    // TODO(sra-identity-and-auth): This test no longer works, we will fix this in the signing stage and re-enable when fixed.
-    //@Test
+    @Test
     public void test_signerOverriddenForStreamingInput_takesPrecedence() {
         ProtocolRestJsonAsyncClient asyncClient = ProtocolRestJsonAsyncClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
@@ -58,4 +58,10 @@ public class AsyncSignerOverrideTest {
 
         verify(mockSigner).sign(any(SdkHttpFullRequest.class), any(ExecutionAttributes.class));
     }
+
+    // TODO(sra-identity-and-auth): Add test for SRA way of overriding signer to assert that overridden signer is used.
+    //  To do this, need ability to inject AuthScheme which uses mock HttpSigner. This is pending https://i.amazon.com/SMITHY-1450
+    //  At that point, rename this class to SignerOverrideTest, not specific to AsyncSignerOverride (which was for operation
+    //  level codegen changes).
+
 }

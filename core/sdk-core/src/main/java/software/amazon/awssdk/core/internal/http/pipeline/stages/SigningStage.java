@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.SignerOverrideUtils;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
@@ -62,8 +63,7 @@ public class SigningStage implements RequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
-        // TODO: Add unit tests for SRA signing logic.
-        if (shouldUseSelectedAuthScheme(context)) {
+        if (shouldDoSraSigning(context)) {
             return sraSignRequest(request,
                                   context,
                                   context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
@@ -177,10 +177,11 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     /**
-     * Returns true if we should use the selected out scheme attribute for signing.
+     * Returns true if we should use SRA signing logic.
      */
-    private boolean shouldUseSelectedAuthScheme(RequestExecutionContext context) {
-        return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
+    private boolean shouldDoSraSigning(RequestExecutionContext context) {
+        return !SignerOverrideUtils.isSignerOverridden(context)
+               && context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
     }
 
     /**

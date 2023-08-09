@@ -38,9 +38,9 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html
  * <p>
  * Of note, this functionality can be extended by providing implementations of the underlying interfaces: {@link Checksummer},
- * {@link V4RequestSigner}, and {@link V4PayloadSigner}. For example, header-based V4-authorization can be implemented by
- * constructing a V4HttpSigner with an implementation of a {@link V4RequestSigner} that takes the signature and adds it to an
- * Authorization header.
+ * {@link V4RequestSigner}, and {@link V4PayloadSigner}.
+ * For example, header-based V4-authorization can be implemented by constructing a V4HttpSigner with an implementation of
+ * a {@link V4RequestSigner} that takes the signature and adds it to an Authorization header.
  */
 @SdkInternalApi
 public final class V4HttpSigner implements AwsV4HttpSigner {
