@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -55,17 +56,20 @@ public class HttpSignerTest {
     @Test
     public void signAsync_usingConsumerBuilder_works() {
         Publisher<ByteBuffer> payload = subscriber -> {};
-        AsyncSignedRequest signedRequest = signer.signAsync(r -> r.request(mock(SdkHttpRequest.class))
-                                                                      .payload(payload)
-                                                                      .identity(IDENTITY)
-                                                                      .putProperty(KEY, VALUE));
+        AsyncSignedRequest signedRequest = signer.signAsync(
+            r -> r.request(mock(SdkHttpRequest.class))
+                  .payload(payload)
+                  .identity(IDENTITY)
+                  .putProperty(KEY, VALUE)
+        ).join();
+
         assertNotNull(signedRequest);
     }
 
     @Test
     public void signAsync_usingRequest_works() {
         Publisher<ByteBuffer> payload = subscriber -> {};
-        AsyncSignedRequest signedRequest =
+        CompletableFuture<AsyncSignedRequest> signedRequest =
             signer.signAsync(AsyncSignRequest.builder(IDENTITY)
                                                  .request(mock(SdkHttpRequest.class))
                                                  .payload(payload)
@@ -93,14 +97,16 @@ public class HttpSignerTest {
         }
 
         @Override
-        public AsyncSignedRequest signAsync(AsyncSignRequest<? extends TokenIdentity> request) {
+        public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends TokenIdentity> request) {
             assertEquals(VALUE, request.property(KEY));
             assertEquals(IDENTITY, request.identity());
 
-            return AsyncSignedRequest.builder()
-                                         .request(addTokenHeader(request))
-                                         .payload(request.payload().orElse(null))
-                                         .build();
+            return CompletableFuture.completedFuture(
+                AsyncSignedRequest.builder()
+                                  .request(addTokenHeader(request))
+                                  .payload(request.payload().orElse(null))
+                                  .build()
+            );
         }
 
         private SdkHttpRequest addTokenHeader(SignRequest<?, ? extends TokenIdentity> input) {

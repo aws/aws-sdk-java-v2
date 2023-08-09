@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.eventstream.internal;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.eventstream.AwsV4EventStreamHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
@@ -35,7 +36,7 @@ public class DefaultAwsV4EventStreamHttpSigner implements AwsV4EventStreamHttpSi
     }
 
     @Override
-    public AsyncSignedRequest signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
         throw new UnsupportedOperationException();
     }
 }

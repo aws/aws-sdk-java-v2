@@ -40,29 +40,29 @@ class BearerHttpSignerTest {
     private static SyncSignRequest<? extends TokenIdentity> generateBasicRequest(String token) {
 
         return SyncSignRequest.builder(TokenIdentity.create(token))
-            .request(SdkHttpRequest.builder()
-                .method(SdkHttpMethod.POST)
-                .putHeader("Host", "demo.us-east-1.amazonaws.com")
-                .putHeader("x-amz-archive-description", "test  test")
-                .encodedPath("/")
-                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
-                .build())
-            .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-            .build();
+                              .request(SdkHttpRequest.builder()
+                                                     .method(SdkHttpMethod.POST)
+                                                     .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                     .putHeader("x-amz-archive-description", "test  test")
+                                                     .encodedPath("/")
+                                                     .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                                                     .build())
+                              .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                              .build();
     }
 
     private static AsyncSignRequest<? extends TokenIdentity> generateBasicAsyncRequest(String token) {
 
         return AsyncSignRequest.builder(TokenIdentity.create(token))
-            .request(SdkHttpRequest.builder()
-                .method(SdkHttpMethod.POST)
-                .putHeader("Host", "demo.us-east-1.amazonaws.com")
-                .putHeader("x-amz-archive-description", "test  test")
-                .encodedPath("/")
-                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
-                .build())
-            .payload(new SimplePublisher<>())
-            .build();
+                               .request(SdkHttpRequest.builder()
+                                                      .method(SdkHttpMethod.POST)
+                                                      .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                      .putHeader("x-amz-archive-description", "test  test")
+                                                      .encodedPath("/")
+                                                      .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                                                      .build())
+                               .payload(new SimplePublisher<>())
+                               .build();
     }
 
     @Test
@@ -85,7 +85,7 @@ class BearerHttpSignerTest {
         BearerHttpSigner tokenSigner = BearerHttpSigner.create();
 
         AsyncSignedRequest signedRequest =
-            tokenSigner.signAsync(generateBasicAsyncRequest(tokenValue));
+            tokenSigner.signAsync(generateBasicAsyncRequest(tokenValue)).join();
 
 
         String expectedHeader = createExpectedHeader(tokenValue);

@@ -22,8 +22,8 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
- * The <a href="https://smithy.io/2.0/spec/authentication-traits.html#httpbearerauth-trait">smithy.api#httpBearerAuth</a>
- * auth scheme, which uses a {@link TokenIdentity} and {@link BearerHttpSigner}.
+ * The <a href="https://smithy.io/2.0/spec/authentication-traits.html#httpbearerauth-trait">smithy.api#httpBearerAuth</a> auth
+ * scheme, which uses a {@link TokenIdentity} and {@link BearerHttpSigner}.
  */
 @SdkPublicApi
 public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {

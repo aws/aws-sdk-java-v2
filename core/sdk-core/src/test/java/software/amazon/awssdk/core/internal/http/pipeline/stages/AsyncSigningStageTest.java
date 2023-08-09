@@ -157,10 +157,11 @@ public class AsyncSigningStageTest {
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");
         when(signer.signAsync(Mockito.<AsyncSignRequest<? extends Identity>>any()))
-            .thenReturn(AsyncSignedRequest.builder()
+            .thenReturn(
+                CompletableFuture.completedFuture(AsyncSignedRequest.builder()
                                           .request(signedRequest)
                                           .payload(signedPayload)
-                                          .build());
+                                          .build()));
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();

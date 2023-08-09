@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.internal;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.BearerHttpSigner;
@@ -40,11 +41,13 @@ public final class DefaultBearerHttpSigner implements BearerHttpSigner {
     }
 
     @Override
-    public AsyncSignedRequest signAsync(AsyncSignRequest<? extends TokenIdentity> request) {
-        return AsyncSignedRequest.builder()
-                                 .request(doSign(request))
-                                 .payload(request.payload().orElse(null))
-                                 .build();
+    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends TokenIdentity> request) {
+        return CompletableFuture.completedFuture(
+            AsyncSignedRequest.builder()
+                              .request(doSign(request))
+                              .payload(request.payload().orElse(null))
+                              .build()
+        );
     }
 
     /**

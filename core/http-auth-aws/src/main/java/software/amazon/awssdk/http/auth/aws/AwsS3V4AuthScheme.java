@@ -22,8 +22,8 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 
 /**
- * The <a href="https://smithy.io/2.0/aws/aws-auth.html#aws-auth-sigv4-trait">aws.auth#sigv4</a>
- * auth scheme, which uses a {@link AwsCredentialsIdentity} and {@link AwsS3V4HttpSigner}.
+ * The <a href="https://smithy.io/2.0/aws/aws-auth.html#aws-auth-sigv4-trait">aws.auth#sigv4</a> auth scheme, which uses a
+ * {@link AwsCredentialsIdentity} and {@link AwsS3V4HttpSigner}.
  */
 @SdkPublicApi
 public interface AwsS3V4AuthScheme extends AuthScheme<AwsCredentialsIdentity> {
