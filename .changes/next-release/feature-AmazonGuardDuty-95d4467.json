@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Added autoEnable ALL to UpdateOrganizationConfiguration and DescribeOrganizationConfiguration APIs."
-}

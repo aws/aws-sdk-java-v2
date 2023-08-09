@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Allow users to configure upload threshold size for AWS CRT-based S3 client via `S3CrtAsyncClientBuilder#thresholdInBytes`."
-}
