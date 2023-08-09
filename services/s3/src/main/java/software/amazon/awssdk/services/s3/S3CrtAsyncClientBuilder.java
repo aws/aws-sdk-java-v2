@@ -234,6 +234,26 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder crossRegionAccessEnabled(Boolean crossRegionAccessEnabled);
 
+    /**
+     * Configure the size threshold, in bytes, for when to use multipart upload. Uploads/copies over this size will automatically
+     * use a multipart upload strategy, while uploads/copies smaller than this threshold will use a single connection to
+     * upload/copy the whole object.
+     *
+     * <p>
+     * Multipart uploads are easier to recover from and also potentially faster than single part uploads, especially when the
+     * upload parts can be uploaded in parallel. Because there are additional network API calls, small objects are still
+     * recommended to use a single connection for the upload. See
+     * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html">Uploading and copying objects using
+     * multipart upload</a>.
+     *
+     * <p>
+     * By default, it is the same as {@link #minimumPartSizeInBytes(Long)}.
+     *
+     * @param thresholdInBytes the value of the threshold to set.
+     * @return an instance of this builder.
+     */
+    S3CrtAsyncClientBuilder thresholdInBytes(Long thresholdInBytes);
+
     @Override
     S3AsyncClient build();
 }
