@@ -113,6 +113,18 @@
                 }
             ],
             "documentation": "<p>Performs a get row operation no output</p>"
+        },
+        "WriteRowResponse": {
+            "name": "DeleteRow",
+            "http": {
+                "method": "POST",
+                "requestUri": "/write-row-response/"
+            },
+            "authtype":"v4-unsigned-body",
+            "input": {
+                "shape": "WriteRowResponseRequest"
+            },
+            "documentation": "<p>Operation similar to S3#WriteGetObjectResponse with v4-unsigned-body auth type.</p>"
         }
     },
     "shapes": {
@@ -180,6 +192,15 @@
             }
         },
         "DeleteRowResponse": {
+            "type": "structure",
+            "members": {
+                "StringMember": {
+                    "shape": "String",
+                    "documentation": "<p>A string Memer</p>"
+                }
+            }
+        },
+        "WriteRowResponseRequest": {
             "type": "structure",
             "members": {
                 "StringMember": {

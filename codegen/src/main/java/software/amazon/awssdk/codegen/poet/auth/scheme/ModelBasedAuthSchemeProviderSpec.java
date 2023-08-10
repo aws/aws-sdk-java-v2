@@ -136,17 +136,10 @@ public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.addCode("options.add($T.builder().schemeId($S)",
                      AuthSchemeOption.class, metadata.schemeId());
         for (SignerPropertyValueProvider property : metadata.properties()) {
-            spec.addCode(".putSignerProperty($T.$N", property.containingClass(), property.fieldName());
-            switch (property.valueType()) {
-                case STRING:
-                    spec.addCode(", $S)", property.valueProvider().apply(authSchemeSpecUtils));
-                    break;
-                case EXPRESSION:
-                    spec.addCode(", $N)", property.valueProvider().apply(authSchemeSpecUtils));
-                    break;
-                default:
-                    throw new IllegalStateException("unknown type: " + property.valueType());
-            }
+            spec.addCode(".putSignerProperty($T.$N, ", property.containingClass(), property.fieldName());
+            property.emitValue(spec, authSchemeSpecUtils);
+            spec.addCode(")");
+
         }
         spec.addCode(".build());\n");
     }

@@ -56,6 +56,12 @@ public final class DefaultDatabaseAuthSchemeProvider implements DatabaseAuthSche
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
                     .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
             break;
+        case "WriteRowResponse":
+            options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
+                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
+                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id())
+                    .putSignerProperty(AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED, false).build());
+            break;
         default:
             options.add(AuthSchemeOption.builder().schemeId("smithy.api#httpBearerAuth").build());
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")

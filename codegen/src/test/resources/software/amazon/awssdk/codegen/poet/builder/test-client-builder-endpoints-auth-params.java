@@ -7,17 +7,14 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
-import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
@@ -57,10 +54,8 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
                 .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
                 .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
-                .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                 .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-                .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
     }
 
     @Override
@@ -89,10 +84,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.CLIENT_CONTEXT_PARAMS,
                 clientContextParams.build());
         return builder.build();
-    }
-
-    private Signer defaultSigner() {
-        return Aws4Signer.create();
     }
 
     @Override
@@ -127,10 +118,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return DefaultAwsTokenProvider.create();
     }
 
-    private Signer defaultTokenSigner() {
-        return BearerTokenSigner.create();
-    }
-
     private Map<String, AuthScheme<?>> defaultAuthSchemes() {
         Map<String, AuthScheme<?>> schemes = new HashMap<>(3);
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
@@ -143,10 +130,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
-        Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
-                "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
-        Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
-                "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
                 "The 'tokenProvider' must be configured in the client builder.");
     }
