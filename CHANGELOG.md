@@ -1,3 +1,39 @@
+# __2.20.124__ __2023-08-10__
+## __AWS CloudTrail__
+  - ### Features
+    - Documentation updates for CloudTrail.
+
+## __AWS DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix for Issue [#4156](https://github.com/aws/aws-sdk-java-v2/issues/4156) : Single quotes in toJson conversions for EnhancedDocuments are no longer being escaped.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed bug where limit was not copied over when cloning ByteBuffer using immutableCopyOf()
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Add additional InvalidRequestException to list of possible exceptions for ListSecret.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AW Transfer Family
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds APIs to provision agents that are global / available in multiple AWS regions and distribute them across these regions by percentage.
+
+## __Amazon Omics__
+  - ### Features
+    - This release adds instanceType to GetRunTask & ListRunTasks responses.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables configuring security groups for Network Load Balancers
+
 # __2.20.123__ __2023-08-09__
 ## __AWS Global Accelerator__
   - ### Features
