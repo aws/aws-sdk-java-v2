@@ -27,7 +27,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.utils.Logger;
@@ -37,13 +36,13 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
     private static final Logger logger = Logger.loggerFor(BaseJavaS3ClientBenchmark.class);
 
     protected final S3Client s3Client;
-    private final int iteration;
 
     protected final S3AsyncClient s3AsyncClient;
     protected final String bucket;
     protected final String key;
     protected final Duration timeout;
     private final ChecksumAlgorithm checksumAlgorithm;
+    private final int iteration;
 
     protected BaseJavaS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
         this.bucket = Validate.paramNotNull(config.bucket(), "bucket");
