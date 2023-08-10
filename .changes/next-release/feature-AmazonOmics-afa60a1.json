@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Omics",
+    "contributor": "",
+    "description": "This release adds instanceType to GetRunTask & ListRunTasks responses."
+}
