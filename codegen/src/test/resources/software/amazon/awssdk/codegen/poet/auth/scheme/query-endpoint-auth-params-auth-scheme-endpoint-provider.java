@@ -83,7 +83,7 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                 if (signingRegionSet.size() == 0) {
                     throw SdkClientException.create("Signing region set is empty");
                 }
-                if (signingRegionSet.size() > 0) {
+                if (signingRegionSet.size() > 1) {
                     throw SdkClientException.create("Don't know how to set scope of > 1 region");
                 }
                 options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4a")
