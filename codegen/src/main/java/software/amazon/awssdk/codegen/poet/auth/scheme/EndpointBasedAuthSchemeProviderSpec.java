@@ -176,7 +176,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
             .addStatement("throw $T.create($S)", SdkClientException.class, "Signing region set is empty")
             .endControlFlow();
 
-        spec.beginControlFlow("if (signingRegionSet.size() > 0)")
+        spec.beginControlFlow("if (signingRegionSet.size() > 1)")
             .addStatement("throw $T.create($S)", SdkClientException.class, "Don't know how to set scope of > 1 region")
             .endControlFlow();
 
