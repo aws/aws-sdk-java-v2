@@ -1,3 +1,124 @@
+# __2.20.123__ __2023-08-09__
+## __AWS Global Accelerator__
+  - ### Features
+    - Documentation update for dualstack EC2 endpoint support
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Updating CreatePhoneNumberOrder, UpdatePhoneNumber and BatchUpdatePhoneNumbers APIs, adding phone number name
+
+## __Amazon FSx__
+  - ### Features
+    - For FSx for Lustre, add new data repository task type, RELEASE_DATA_FROM_FILESYSTEM, to release files that have been archived to S3. For FSx for Windows, enable support for configuring and updating SSD IOPS, and for updating storage type. For FSx for OpenZFS, add new deployment type, MULTI_AZ_1.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added autoEnable ALL to UpdateOrganizationConfiguration and DescribeOrganizationConfiguration APIs.
+
+## __Amazon S3__
+  - ### Features
+    - Allow users to configure upload threshold size for AWS CRT-based S3 client via `S3CrtAsyncClientBuilder#thresholdInBytes`.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for cross account access for SageMaker Model Cards through AWS RAM.
+
+# __2.20.122__ __2023-08-08__
+## __AWS Backup__
+  - ### Features
+    - This release introduces a new logically air-gapped vault (Preview) in AWS Backup that stores immutable backup copies, which are locked by default and isolated with encryption using AWS owned keys. Logically air-gapped vault (Preview) allows secure recovery of application data across accounts.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Introduce support for HashiCorp Terraform Cloud in Service Catalog by addying TERRAFORM_CLOUD product type in CreateProduct and CreateProvisioningArtifact API.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added support for cluster mode in online migration and test migration API
+
+# __2.20.121__ __2023-08-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Detective__
+  - ### Features
+    - Updated the email validation regex to be in line with the TLD name specifications.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Add QUOTA_EXCEEDED and PUBLISHER_NOT_FOUND to EventErrorCode for stage health events.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - This release enables minimum of Images SamplingInterval to be as low as 200 milliseconds in Kinesis Video Stream Image feature.
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - This release enables minimum of Images SamplingInterval to be as low as 200 milliseconds in Kinesis Video Stream Image feature.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds code snippets for Amazon Rekognition Custom Labels.
+
+# __2.20.120__ __2023-08-04__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Documentation correction for AWS Private CA
+
+## __AWS DataSync__
+  - ### Features
+    - Display cloud storage used capacity at a cluster level.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added a new API UpdateRoutingProfileAgentAvailabilityTimer to update agent availability timer of a routing profile.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation update to address various tickets.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Including DataCaptureConfig key in the Amazon Sagemaker Search's transform job object
+
+# __2.20.119__ __2023-08-03__
+## __AWS Cloud9__
+  - ### Features
+    - Updated the deprecation date for Amazon Linux. Doc only update.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - The release makes public API for DMS Schema Conversion feature.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds new parameter isPrimaryIPv6 to allow assigning an IPv6 address as a primary IPv6 address to a network interface which cannot be changed to give equivalent functionality available for network interfaces with primary IPv4 address.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Add `Expect: 100-continue` header for `UploadPartRequest` so that a upload part request can fail faster if there is a server error.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports running training jobs on p5.48xlarge instance types.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation changes related to Amazon EC2 Auto Scaling APIs.
+
 # __2.20.118__ __2023-08-02__
 ## __AWS Budgets__
   - ### Features
