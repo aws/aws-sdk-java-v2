@@ -15,10 +15,11 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
+import com.squareup.javapoet.MethodSpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.http.auth.BearerAuthScheme;
@@ -33,44 +34,38 @@ public final class AuthSchemeCodegenMetadata {
         .addProperty(SignerPropertyValueProvider.builder()
                                                 .containingClass(AwsV4HttpSigner.class)
                                                 .fieldName("SERVICE_SIGNING_NAME")
-                                                .valueProvider(AuthSchemeSpecUtils::signingName)
-                                                .valueType(ValueType.STRING)
+                                                .valueEmitter((spec, utils) -> spec.addCode("$S", utils.signingName()))
                                                 .build())
         .addProperty(SignerPropertyValueProvider.builder()
                                                 .containingClass(AwsV4HttpSigner.class)
                                                 .fieldName("REGION_NAME")
-                                                .valueProvider(utils -> "params.region().id()")
-                                                .valueType(ValueType.EXPRESSION)
+                                                .valueEmitter((spec, utils) -> spec.addCode("$L", "params.region().id()"))
                                                 .build())
         .build();
 
-    static final AuthSchemeCodegenMetadata S3 = builder()
-        .schemeId(AwsV4AuthScheme.SCHEME_ID)
-        .addProperty(SignerPropertyValueProvider.builder()
-                                                .containingClass(AwsV4HttpSigner.class)
-                                                .fieldName("SERVICE_SIGNING_NAME")
-                                                .valueProvider(AuthSchemeSpecUtils::signingName)
-                                                .valueType(ValueType.STRING)
-                                                .build())
-        .addProperty(SignerPropertyValueProvider.builder()
-                                                .containingClass(AwsV4HttpSigner.class)
-                                                .fieldName("REGION_NAME")
-                                                .valueProvider(utils -> "params.region().id()")
-                                                .valueType(ValueType.EXPRESSION)
-                                                .build())
-        .addProperty(SignerPropertyValueProvider.builder()
-                                                .containingClass(AwsV4HttpSigner.class)
-                                                .fieldName("DOUBLE_URL_ENCODE")
-                                                .valueProvider(utils -> "false")
-                                                .valueType(ValueType.EXPRESSION)
-                                                .build())
-        .addProperty(SignerPropertyValueProvider.builder()
-                                                .containingClass(AwsV4HttpSigner.class)
-                                                .fieldName("NORMALIZE_PATH")
-                                                .valueProvider(utils -> "false")
-                                                .valueType(ValueType.EXPRESSION)
-                                                .build())
-        .build();
+    static final AuthSchemeCodegenMetadata SIGV4_UNSIGNED_BODY =
+        SIGV4.toBuilder()
+             .addProperty(SignerPropertyValueProvider.builder()
+                                                     .containingClass(AwsV4HttpSigner.class)
+                                                     .fieldName(
+                                                         "PAYLOAD_SIGNING_ENABLED")
+                                                     .valueEmitter((spec, utils) -> spec.addCode("$L", false))
+                                                     .build())
+             .build();
+
+    static final AuthSchemeCodegenMetadata S3 =
+        SIGV4.toBuilder()
+             .addProperty(SignerPropertyValueProvider.builder()
+                                                     .containingClass(AwsV4HttpSigner.class)
+                                                     .fieldName("DOUBLE_URL_ENCODE")
+                                                     .valueEmitter((spec, utils) -> spec.addCode("$L", "false"))
+                                                     .build())
+             .addProperty(SignerPropertyValueProvider.builder()
+                                                     .containingClass(AwsV4HttpSigner.class)
+                                                     .fieldName("NORMALIZE_PATH")
+                                                     .valueEmitter((spec, utils) -> spec.addCode("$L", "false"))
+                                                     .build())
+             .build();
 
     static final AuthSchemeCodegenMetadata BEARER = builder()
         .schemeId(BearerAuthScheme.SCHEME_ID)
@@ -109,6 +104,10 @@ public final class AuthSchemeCodegenMetadata {
         return properties;
     }
 
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     private static Builder builder() {
         return new Builder();
     }
@@ -120,8 +119,9 @@ public final class AuthSchemeCodegenMetadata {
             case NONE:
                 return NO_AUTH;
             case V4:
-            case V4_UNSIGNED_BODY:
                 return SIGV4;
+            case V4_UNSIGNED_BODY:
+                return SIGV4_UNSIGNED_BODY;
             case S3:
             case S3V4:
                 return S3;
@@ -133,6 +133,14 @@ public final class AuthSchemeCodegenMetadata {
     private static class Builder {
         private String schemeId;
         private List<SignerPropertyValueProvider> properties = new ArrayList<>();
+
+        Builder() {
+        }
+
+        Builder(AuthSchemeCodegenMetadata other) {
+            this.schemeId = other.schemeId;
+            this.properties.addAll(other.properties);
+        }
 
         public Builder schemeId(String schemeId) {
             this.schemeId = schemeId;
@@ -149,21 +157,15 @@ public final class AuthSchemeCodegenMetadata {
         }
     }
 
-    enum ValueType {
-        STRING, EXPRESSION
-    }
-
     static class SignerPropertyValueProvider {
         private final Class<?> containingClass;
         private final String fieldName;
-        private final Function<AuthSchemeSpecUtils, String> valueProvider;
-        private final ValueType valueType;
+        private final BiConsumer<MethodSpec.Builder, AuthSchemeSpecUtils> valueEmitter;
 
         SignerPropertyValueProvider(Builder builder) {
             this.containingClass = Validate.paramNotNull(builder.containingClass, "containingClass");
-            this.valueProvider = Validate.paramNotNull(builder.valueProvider, "valueProvider");
+            this.valueEmitter = Validate.paramNotNull(builder.valueEmitter, "valueEmitter");
             this.fieldName = Validate.paramNotNull(builder.fieldName, "fieldName");
-            this.valueType = Validate.paramNotNull(builder.valueType, "valueType");
         }
 
         public Class<?> containingClass() {
@@ -174,12 +176,8 @@ public final class AuthSchemeCodegenMetadata {
             return fieldName;
         }
 
-        public Function<AuthSchemeSpecUtils, String> valueProvider() {
-            return valueProvider;
-        }
-
-        public ValueType valueType() {
-            return valueType;
+        public void emitValue(MethodSpec.Builder spec, AuthSchemeSpecUtils utils) {
+            valueEmitter.accept(spec, utils);
         }
 
         private static Builder builder() {
@@ -189,8 +187,7 @@ public final class AuthSchemeCodegenMetadata {
         static class Builder {
             private Class<?> containingClass;
             private String fieldName;
-            private Function<AuthSchemeSpecUtils, String> valueProvider;
-            private ValueType valueType;
+            private BiConsumer<MethodSpec.Builder, AuthSchemeSpecUtils> valueEmitter;
 
             public Builder containingClass(Class<?> containingClass) {
                 this.containingClass = containingClass;
@@ -202,13 +199,8 @@ public final class AuthSchemeCodegenMetadata {
                 return this;
             }
 
-            public Builder valueProvider(Function<AuthSchemeSpecUtils, String> valueProvider) {
-                this.valueProvider = valueProvider;
-                return this;
-            }
-
-            public Builder valueType(ValueType valueType) {
-                this.valueType = valueType;
+            public Builder valueEmitter(BiConsumer<MethodSpec.Builder, AuthSchemeSpecUtils> valueEmitter) {
+                this.valueEmitter = valueEmitter;
                 return this;
             }
 
