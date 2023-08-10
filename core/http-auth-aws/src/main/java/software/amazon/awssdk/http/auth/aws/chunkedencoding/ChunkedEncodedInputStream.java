@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.Chunk;
-import software.amazon.awssdk.http.auth.aws.internal.io.SdkInputStream;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
@@ -50,7 +49,7 @@ import software.amazon.awssdk.utils.Validate;
  * </pre>
  */
 @SdkProtectedApi
-public final class ChunkedEncodedInputStream extends SdkInputStream {
+public final class ChunkedEncodedInputStream extends InputStream {
     private static final Logger LOG = Logger.loggerFor(ChunkedEncodedInputStream.class);
     private static final byte[] CRLF = {'\r', '\n'};
     private static final byte[] END = {};
@@ -71,11 +70,6 @@ public final class ChunkedEncodedInputStream extends SdkInputStream {
         this.header = Validate.notNull(builder.header, "Header cannot be null!");
         this.extensions.addAll(Validate.notNull(builder.extensions, "Extensions cannot be null!"));
         this.trailers.addAll(Validate.notNull(builder.trailers, "Trailers cannot be null!"));
-    }
-
-    @Override
-    protected InputStream getWrappedInputStream() {
-        return inputStream;
     }
 
     @Override
