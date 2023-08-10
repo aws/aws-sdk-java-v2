@@ -104,7 +104,8 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
                 /**
                  * Calculate rolling signature
                  */
-                byte[] payload = byteBuffer.array();
+                byte[] payload = new byte[byteBuffer.remaining()];
+                byteBuffer.get(payload);
                 byte[] signatureBytes = signEvent(priorSignature, signingKey, updatedCredentialScope, eventHeaders, payload);
                 priorSignature = BinaryUtils.toHex(signatureBytes);
 
