@@ -76,11 +76,20 @@ public interface TransferManagerBenchmark {
     }
 
     final class TimedResult<T> {
-        public final Double latency;
-        public final T result;
+        private final Double latency;
+        private final T result;
         public TimedResult(T result, Double latency) {
             this.result = result;
             this.latency = latency;
         }
+
+        public Double latency() {
+            return latency;
+        }
+
+        public T result() {
+            return result;
+        }
+
     }
 }

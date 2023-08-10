@@ -53,7 +53,7 @@ public class JavaS3ClientUploadBenchmark extends BaseJavaS3ClientBenchmark {
         }
         Double latency = runWithTime(
             s3AsyncClient.putObject(req -> req.key(key).bucket(bucket).checksumAlgorithm(checksumAlgorithm),
-                                    Paths.get(filePath))::join).latency;
+                                    Paths.get(filePath))::join).latency();
         latencies.add(latency);
     }
 

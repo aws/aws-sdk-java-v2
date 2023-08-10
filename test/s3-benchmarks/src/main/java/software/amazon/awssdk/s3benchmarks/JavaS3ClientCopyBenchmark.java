@@ -33,7 +33,7 @@ public class JavaS3ClientCopyBenchmark extends BaseJavaS3ClientBenchmark {
         Double latency = runWithTime(s3AsyncClient.copyObject(
             req -> req.sourceKey(key).sourceBucket(bucket)
                       .destinationBucket(bucket).destinationKey(key + COPY_SUFFIX)
-        )::join).latency;
+        )::join).latency();
         latencies.add(latency);
     }
 
