@@ -23,8 +23,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
@@ -69,13 +72,27 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                 SigV4AuthScheme sigv4AuthScheme = Validate.isInstanceOf(SigV4AuthScheme.class, authScheme,
                         "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s", authScheme.getClass()
                                 .getName());
-                options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
+                options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4a")
                         .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, sigv4AuthScheme.signingName())
                         .putSignerProperty(AwsV4HttpSigner.REGION_NAME, sigv4AuthScheme.signingRegion())
                         .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding()).build());
                 break;
             case "sigv4a":
-                throw new UnsupportedOperationException("SigV4a is not yet supported.");
+                SigV4aAuthScheme sigv4aAuthScheme = Validate.isInstanceOf(SigV4aAuthScheme.class, authScheme,
+                        "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s", authScheme.getClass()
+                                .getName());
+                List<String> signingRegionSet = sigv4aAuthScheme.signingRegionSet();
+                if (signingRegionSet.size() == 0) {
+                    throw SdkClientException.create("Signing region set is empty");
+                }
+                if (signingRegionSet.size() > 0) {
+                    throw SdkClientException.create("Don't know how to set scope of > 1 region");
+                }
+                options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4a")
+                        .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())
+                        .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, signingRegionSet.get(0))
+                        .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !sigv4aAuthScheme.disableDoubleEncoding()).build());
+                break;
             default:
                 throw new IllegalArgumentException("Unknown auth scheme: " + name);
             }
