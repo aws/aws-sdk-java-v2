@@ -21,9 +21,14 @@ import software.amazon.awssdk.utils.Pair;
 /**
  * A functional interface for defining a trailer, where the trailer is a key-value pair.
  * <p>
- * The trailer usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to.
- * <p>
- * Trailers are optionally included in the final chunk of a chunk-encoded stream.
+ * A trailer usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to.
+ * Per <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1.2">RFC-7230</a>, the chunked trailer
+ * section is defined as:
+ * <pre>
+ *     trailer-part   = *( header-field CRLF )
+ * </pre>
+ * An implementation of this interface is specifically an element of the {@code trailer-part}. Therefore, all occurrences of
+ * {@code Trailer}'s make up the {@code trailer-part}.
  */
 @FunctionalInterface
 @SdkProtectedApi

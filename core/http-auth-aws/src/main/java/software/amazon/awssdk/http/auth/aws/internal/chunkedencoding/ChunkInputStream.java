@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.io;
+package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.internal.io.SdkLengthAwareInputStream;
 
 /**
  * A wrapped stream to represent a "chunk" of data

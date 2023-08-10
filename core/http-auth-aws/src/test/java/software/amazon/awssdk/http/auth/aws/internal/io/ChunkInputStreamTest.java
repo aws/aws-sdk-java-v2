@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChunkInputStream;
 
 public class ChunkInputStreamTest {
 

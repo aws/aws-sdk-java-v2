@@ -13,25 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.chunkedencoding;
-
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
 import java.io.InputStream;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.http.auth.aws.internal.io.ChunkInputStream;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * An interface which defines a "chunk" of data.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public interface Chunk extends SdkAutoCloseable {
     /**
      * Get a default implementation of a chunk, which wraps a stream with a fixed size;
      */
     static Chunk create(InputStream data, int sizeInBytes) {
-        return new ChunkImpl(new ChunkInputStream(data, sizeInBytes));
+        return new DefaultChunk(new ChunkInputStream(data, sizeInBytes));
     }
 
     /**
@@ -42,32 +39,6 @@ public interface Chunk extends SdkAutoCloseable {
     /**
      * Whether the logical end of a chunk has been reached.
      */
-    boolean hasEnded();
+    boolean hasRemaining();
 
-    /**
-     * An implementation of a chunk, backed by a {@link ChunkInputStream}. This allows it to have awareness of its length and
-     * determine the endedness of the chunk.
-     */
-    final class ChunkImpl implements Chunk {
-        private final ChunkInputStream data;
-
-        public ChunkImpl(ChunkInputStream data) {
-            this.data = data;
-        }
-
-        @Override
-        public boolean hasEnded() {
-            return data.remaining() <= 0;
-        }
-
-        @Override
-        public ChunkInputStream stream() {
-            return data;
-        }
-
-        @Override
-        public void close() {
-            invokeSafely(data::close);
-        }
-    }
 }
