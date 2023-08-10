@@ -65,7 +65,6 @@ public final class PoetMatchers {
             protected boolean matchesSafely(ClassSpec spec) {
                 String expectedClass = getExpectedClass(spec, expectedTestFile, false);
                 String actualClass = generateClass(spec);
-                System.out.printf("=============================\n%s\n", actualClass);
                 try {
                     assertThat(actualClass, equalToIgnoringWhiteSpace(expectedClass));
                 } catch (AssertionError e) {
