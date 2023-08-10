@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.Chunk;
 import software.amazon.awssdk.http.auth.aws.internal.io.SdkInputStream;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
@@ -31,8 +32,22 @@ import software.amazon.awssdk.utils.Validate;
 
 
 /**
- * An implementation of chunked transfer encoding, which wraps an @{link InputStream}.
+ * An implementation of chunk-transfer encoding, but by wrapping an {@link InputStream}.
  * This implementation supports chunk-headers, chunk-extensions, and trailers.
+ * <p>
+ * Per <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1">RFC-7230</a>, a chunk-transfer encoded message
+ * is defined as:
+ * <pre>
+ *     chunked-body   = *chunk
+ *                      last-chunk
+ *                      trailer-part
+ *                      CRLF
+ *     chunk          = chunk-size [ chunk-ext ] CRLF
+ *                      chunk-data CRLF
+ *     chunk-size     = 1*HEXDIG
+ *     last-chunk     = 1*("0") [ chunk-ext ] CRLF
+ *     chunk-data     = 1*OCTET ; a sequence of chunk-size octets
+ * </pre>
  */
 @SdkProtectedApi
 public final class ChunkedEncodedInputStream extends SdkInputStream {
@@ -65,7 +80,7 @@ public final class ChunkedEncodedInputStream extends SdkInputStream {
 
     @Override
     public int read() throws IOException {
-        if (currentChunk == null || currentChunk.hasEnded() && !isFinished) {
+        if (currentChunk == null || !currentChunk.hasRemaining() && !isFinished) {
             currentChunk = getChunk(inputStream);
         }
 
@@ -103,15 +118,16 @@ public final class ChunkedEncodedInputStream extends SdkInputStream {
      * {@code read(byte b[], int off, int len)}
      */
     private int read(InputStream inputStream, byte[] buf, int maxBytesToRead) throws IOException {
-        int read = 0;
+        int read;
         int offset = 0;
-        while (read >= 0 && offset < maxBytesToRead) {
-            read = inputStream.read();
-            if (read >= 0) {
-                buf[offset] = (byte) read;
-                offset += 1;
+        do {
+            read = inputStream.read(buf, offset, maxBytesToRead - offset);
+            assert read != 0;
+            if (read > 0) {
+                offset += read;
             }
-        }
+        } while (read > 0 && offset < maxBytesToRead);
+
         return offset;
     }
 
