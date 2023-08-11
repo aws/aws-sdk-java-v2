@@ -133,12 +133,12 @@ public final class BinaryUtils {
         if (bb == null) {
             return null;
         }
-        int sourceBufferPosition = bb.position();
         ByteBuffer readOnlyCopy = bb.asReadOnlyBuffer();
         readOnlyCopy.rewind();
         ByteBuffer cloned = ByteBuffer.allocate(readOnlyCopy.capacity())
                                       .put(readOnlyCopy);
-        cloned.position(sourceBufferPosition);
+        cloned.position(bb.position());
+        cloned.limit(bb.limit());
         return cloned.asReadOnlyBuffer();
     }
 

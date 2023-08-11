@@ -47,7 +47,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String TEST_BUCKET = temporaryBucketName(S3CrtClientPutObjectIntegrationTest.class);
     private static final String TEST_KEY = "8mib_file.dat";
-    private static final int OBJ_SIZE = 8 * 1024 * 1024;
+    private static final int OBJ_SIZE = 10 * 1024 * 1024;
 
     private static RandomTempFile testFile;
     private static S3AsyncClient s3Crt;

@@ -108,7 +108,7 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
                                              .bufferSize(COMPRESSION_CHUNK_SIZE)
                                              .build();
 
-        wrapped.flatMapIterable(chunkBuffer::bufferAndCreateChunks)
+        wrapped.flatMapIterable(chunkBuffer::splitWithUnknownLength)
                .subscribe(new CompressionSubscriber(s, compressor));
     }
 

@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +33,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
@@ -48,10 +48,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
-import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Md5Utils;
-
 class CopyObjectHelperTest {
 
     private static final String SOURCE_BUCKET = "source";
@@ -64,10 +61,13 @@ class CopyObjectHelperTest {
     private S3AsyncClient s3AsyncClient;
     private CopyObjectHelper copyHelper;
 
+    private static final long PART_SIZE = 1024L;
+    private static final long UPLOAD_THRESHOLD = PART_SIZE * 2;
+
     @BeforeEach
     public void setUp() {
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        copyHelper = new CopyObjectHelper(s3AsyncClient, PART_SIZE_BYTES);
+        copyHelper = new CopyObjectHelper(s3AsyncClient, PART_SIZE, UPLOAD_THRESHOLD);
     }
 
     @Test
@@ -106,6 +106,25 @@ class CopyObjectHelperTest {
         CopyObjectRequest copyObjectRequest = copyObjectRequest();
 
         stubSuccessfulHeadObjectCall(512L);
+
+        CopyObjectResponse expectedResponse = CopyObjectResponse.builder().build();
+        CompletableFuture<CopyObjectResponse> copyFuture =
+            CompletableFuture.completedFuture(expectedResponse);
+
+        when(s3AsyncClient.copyObject(copyObjectRequest)).thenReturn(copyFuture);
+
+        CompletableFuture<CopyObjectResponse> future =
+            copyHelper.copyObject(copyObjectRequest);
+
+        assertThat(future.join()).isEqualTo(expectedResponse);
+    }
+
+    @Test
+    void copy_doesNotExceedThreshold_shouldUseSingleObjectCopy() {
+
+        CopyObjectRequest copyObjectRequest = copyObjectRequest();
+
+        stubSuccessfulHeadObjectCall(2000L);
 
         CopyObjectResponse expectedResponse = CopyObjectResponse.builder().build();
         CompletableFuture<CopyObjectResponse> copyFuture =
@@ -180,7 +199,7 @@ class CopyObjectHelperTest {
 
         CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
 
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart copy requests").hasRootCause(exception);
+        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart requests").hasRootCause(exception);
 
         verify(s3AsyncClient, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
 
@@ -218,7 +237,7 @@ class CopyObjectHelperTest {
         CompletableFuture<CopyObjectResponse> future =
             copyHelper.copyObject(copyObjectRequest);
 
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart copy requests").hasRootCause(exception);
+        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart requests").hasRootCause(exception);
 
         ArgumentCaptor<AbortMultipartUploadRequest> argumentCaptor = ArgumentCaptor.forClass(AbortMultipartUploadRequest.class);
         verify(s3AsyncClient).abortMultipartUpload(argumentCaptor.capture());
@@ -261,6 +280,7 @@ class CopyObjectHelperTest {
         }
     }
 
+
     @Test
     public void multiPartCopy_sseCHeadersSetInOriginalRequest_includedInCompleteMultipart() {
         String customerAlgorithm = "algorithm";
@@ -271,7 +291,7 @@ class CopyObjectHelperTest {
                                                                        .sseCustomerKey(customerKey)
                                                                        .sseCustomerKeyMD5(customerKeyMd5));
 
-        stubSuccessfulHeadObjectCall(2 * PART_SIZE_BYTES);
+        stubSuccessfulHeadObjectCall(3 * PART_SIZE_BYTES);
         stubSuccessfulCreateMulipartCall();
         stubSuccessfulUploadPartCopyCalls();
         stubSuccessfulCompleteMultipartCall();
