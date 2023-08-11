@@ -65,6 +65,26 @@ public final class AuthSchemeCodegenMetadata {
                                                      .fieldName("NORMALIZE_PATH")
                                                      .valueEmitter((spec, utils) -> spec.addCode("$L", "false"))
                                                      .build())
+             .addProperty(SignerPropertyValueProvider.builder()
+                                                     .containingClass(AwsV4HttpSigner.class)
+                                                     .fieldName(
+                                                         "PAYLOAD_SIGNING_ENABLED")
+                                                     .valueEmitter((spec, utils) -> spec.addCode("$L", false))
+                                                     .build())
+             .build();
+
+    static final AuthSchemeCodegenMetadata S3V4 =
+        SIGV4.toBuilder()
+             .addProperty(SignerPropertyValueProvider.builder()
+                                                     .containingClass(AwsV4HttpSigner.class)
+                                                     .fieldName("DOUBLE_URL_ENCODE")
+                                                     .valueEmitter((spec, utils) -> spec.addCode("$L", "false"))
+                                                     .build())
+             .addProperty(SignerPropertyValueProvider.builder()
+                                                     .containingClass(AwsV4HttpSigner.class)
+                                                     .fieldName("NORMALIZE_PATH")
+                                                     .valueEmitter((spec, utils) -> spec.addCode("$L", "false"))
+                                                     .build())
              .build();
 
     static final AuthSchemeCodegenMetadata BEARER = builder()
@@ -123,8 +143,9 @@ public final class AuthSchemeCodegenMetadata {
             case V4_UNSIGNED_BODY:
                 return SIGV4_UNSIGNED_BODY;
             case S3:
-            case S3V4:
                 return S3;
+            case S3V4:
+                return S3V4;
             default:
                 throw new IllegalArgumentException("Unknown auth type: " + type);
         }

@@ -43,7 +43,8 @@ public final class DefaultMiniS3AuthSchemeProvider implements MiniS3AuthSchemePr
                 .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "mini-s3-service")
                 .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id())
                 .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, false)
-                .putSignerProperty(AwsV4HttpSigner.NORMALIZE_PATH, false).build());
+                .putSignerProperty(AwsV4HttpSigner.NORMALIZE_PATH, false)
+                .putSignerProperty(AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED, false).build());
         return Collections.unmodifiableList(options);
     }
 }
