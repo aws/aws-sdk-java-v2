@@ -256,11 +256,6 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             super(subscriber);
         }
 
-        @Override //needed?
-        public void onSubscribe(Subscription subscription) {
-            super.onSubscribe(subscription);
-        }
-
         @Override
         public void onNext(ByteBuffer t) {
             if (!onNextInvoked) {
