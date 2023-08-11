@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -31,26 +30,34 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkInternalApi
 public final class ChunkBuffer {
-    private final AtomicLong remainingBytes;
+    private AtomicLong remainingBytes;
     private final ByteBuffer currentBuffer;
-    private final int bufferSize;
+    private int bufferSize;
 
     private ChunkBuffer(Long totalBytes, Integer bufferSize) {
-        Validate.notNull(totalBytes, "The totalBytes must not be null");
-
         int chunkSize = bufferSize != null ? bufferSize : DEFAULT_ASYNC_CHUNK_SIZE;
         this.bufferSize = chunkSize;
         this.currentBuffer = ByteBuffer.allocate(chunkSize);
-        this.remainingBytes = new AtomicLong(totalBytes);
+
+        if (totalBytes != null) {
+            this.remainingBytes = new AtomicLong(totalBytes);
+        }
     }
 
     public static Builder builder() {
         return new DefaultBuilder();
     }
 
+    public synchronized Iterable<ByteBuffer> bufferAndCreateChunks(ByteBuffer buffer) {
+        if (remainingBytes == null) {
+            return bufferAndCreateChunksWithUnknownLength(buffer);
+        } else {
+            return bufferAndCreateChunksWithKnownLength(buffer);
+        }
+    }
 
     // currentBuffer and bufferedList can get over written if concurrent Threads calls this method at the same time.
-    public synchronized Iterable<ByteBuffer> bufferAndCreateChunks(ByteBuffer buffer) {
+    private synchronized Iterable<ByteBuffer> bufferAndCreateChunksWithKnownLength(ByteBuffer buffer) {
         int startPosition = 0;
         List<ByteBuffer> bufferedList = new ArrayList<>();
         int currentBytesRead = buffer.remaining();
@@ -93,6 +100,26 @@ public final class ChunkBuffer {
             trimmedBuffer.clear();
             bufferedList.add(trimmedBuffer);
             remainingBytes.addAndGet(-remainingBytesInBuffer);
+        }
+        return bufferedList;
+    }
+
+    private synchronized Iterable<ByteBuffer> bufferAndCreateChunksWithUnknownLength(ByteBuffer buffer) {
+        List<ByteBuffer> bufferedList = new ArrayList<>();
+        while (buffer.hasRemaining()) {
+            int bytesToCopy = Math.min(buffer.remaining(), currentBuffer.remaining());
+            byte[] bytes = new byte[bytesToCopy];
+            buffer.get(bytes);
+            currentBuffer.put(bytes);
+
+            if (!currentBuffer.hasRemaining() || !buffer.hasRemaining()) {
+                currentBuffer.flip();
+                ByteBuffer bufferToSend = ByteBuffer.allocate(currentBuffer.limit());
+                bufferToSend.put(currentBuffer);
+                bufferToSend.flip();
+                bufferedList.add(bufferToSend);
+                currentBuffer.clear();
+            }
         }
         return bufferedList;
     }

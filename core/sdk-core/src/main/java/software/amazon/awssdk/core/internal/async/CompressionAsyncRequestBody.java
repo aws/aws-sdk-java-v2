@@ -104,9 +104,9 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
     public void subscribe(Subscriber<? super ByteBuffer> s) {
         Validate.notNull(s, "Subscription MUST NOT be null.");
 
-        ChunkBufferWithUnknownLength chunkBuffer = ChunkBufferWithUnknownLength.builder()
-                                                                               .bufferSize(COMPRESSION_CHUNK_SIZE)
-                                                                               .build();
+        ChunkBuffer chunkBuffer = ChunkBuffer.builder()
+                                             .bufferSize(COMPRESSION_CHUNK_SIZE)
+                                             .build();
 
         wrapped.flatMapIterable(chunkBuffer::bufferAndCreateChunks)
                .subscribe(new CompressionSubscriber(s, compressor));

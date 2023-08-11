@@ -36,11 +36,6 @@ import software.amazon.awssdk.utils.StringUtils;
 class ChunkBufferTest {
 
     @Test
-    void builderWithNoTotalSize() {
-        assertThatThrownBy(() -> ChunkBuffer.builder().build()).isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
     void numberOfChunkMultipleOfTotalBytes() {
         String inputString = StringUtils.repeat("*", 25);
 
