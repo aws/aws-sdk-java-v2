@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.crt;
+package software.amazon.awssdk.services.s3.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
@@ -24,13 +24,17 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import javax.crypto.KeyGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -42,8 +46,9 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.utils.Md5Utils;
 
-public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
-    private static final String BUCKET = temporaryBucketName(S3CrtClientCopyIntegrationTest.class);
+@Timeout(value = 3, unit = TimeUnit.MINUTES)
+public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase {
+    private static final String BUCKET = temporaryBucketName(S3ClientMultiPartCopyIntegrationTest.class);
     private static final String ORIGINAL_OBJ = "test_file.dat";
     private static final String COPIED_OBJ = "test_file_copy.dat";
     private static final String ORIGINAL_OBJ_SPECIAL_CHARACTER = "original-special-chars-@$%";
@@ -51,6 +56,8 @@ public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
     private static final long OBJ_SIZE = ThreadLocalRandom.current().nextLong(8 * 1024 * 1024, 16 * 1024 * 1024 + 1);
     private static final long SMALL_OBJ_SIZE = 1024 * 1024;
     private static S3AsyncClient s3CrtAsyncClient;
+    private static S3AsyncClient s3MpuClient;
+
     @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
@@ -59,40 +66,56 @@ public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .region(DEFAULT_REGION)
                                            .build();
+        s3MpuClient = S3AsyncClient.builder()
+                                   .region(DEFAULT_REGION)
+                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                   .overrideConfiguration(o -> o.addExecutionInterceptor(
+                                       new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)))
+                                   .multipartEnabled(true)
+                                   .build();
     }
 
     @AfterAll
     public static void teardown() throws Exception {
         s3CrtAsyncClient.close();
+        s3MpuClient.close();
         deleteBucketAndAllContents(BUCKET);
     }
 
-    @Test
-    void copy_singlePart_hasSameContent() {
+    public static Stream<S3AsyncClient> s3AsyncClient() {
+        return Stream.of(s3MpuClient, s3CrtAsyncClient);
+    }
+
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("s3AsyncClient")
+    void copy_singlePart_hasSameContent(S3AsyncClient s3AsyncClient) {
         byte[] originalContent = randomBytes(SMALL_OBJ_SIZE);
         createOriginalObject(originalContent, ORIGINAL_OBJ);
-        copyObject(ORIGINAL_OBJ, COPIED_OBJ);
+        copyObject(ORIGINAL_OBJ, COPIED_OBJ, s3AsyncClient);
         validateCopiedObject(originalContent, ORIGINAL_OBJ);
     }
 
-    @Test
-    void copy_copiedObject_hasSameContent() {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("s3AsyncClient")
+    void copy_copiedObject_hasSameContent(S3AsyncClient s3AsyncClient) {
         byte[] originalContent = randomBytes(OBJ_SIZE);
         createOriginalObject(originalContent, ORIGINAL_OBJ);
-        copyObject(ORIGINAL_OBJ, COPIED_OBJ);
+        copyObject(ORIGINAL_OBJ, COPIED_OBJ, s3AsyncClient);
         validateCopiedObject(originalContent, ORIGINAL_OBJ);
     }
 
-    @Test
-    void copy_specialCharacters_hasSameContent() {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("s3AsyncClient")
+    void copy_specialCharacters_hasSameContent(S3AsyncClient s3AsyncClient) {
         byte[] originalContent = randomBytes(OBJ_SIZE);
         createOriginalObject(originalContent, ORIGINAL_OBJ_SPECIAL_CHARACTER);
-        copyObject(ORIGINAL_OBJ_SPECIAL_CHARACTER, COPIED_OBJ_SPECIAL_CHARACTER);
+        copyObject(ORIGINAL_OBJ_SPECIAL_CHARACTER, COPIED_OBJ_SPECIAL_CHARACTER, s3AsyncClient);
         validateCopiedObject(originalContent, COPIED_OBJ_SPECIAL_CHARACTER);
     }
 
-    @Test
-    void copy_ssecServerSideEncryption_shouldSucceed() {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("s3AsyncClient")
+    void copy_ssecServerSideEncryption_shouldSucceed(S3AsyncClient s3AsyncClient) {
         byte[] originalContent = randomBytes(OBJ_SIZE);
         byte[] secretKey = generateSecretKey();
         String b64Key = Base64.getEncoder().encodeToString(secretKey);
@@ -102,16 +125,14 @@ public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
         String newB64Key = Base64.getEncoder().encodeToString(newSecretKey);
         String newB64KeyMd5 = Md5Utils.md5AsBase64(newSecretKey);
 
-        // Java S3 client is used because CRT S3 client putObject fails with SSE-C
-        // TODO: change back to S3CrtClient once the issue is fixed in CRT
-        s3Async.putObject(r -> r.bucket(BUCKET)
-                                         .key(ORIGINAL_OBJ)
-                                         .sseCustomerKey(b64Key)
-                                         .sseCustomerAlgorithm(AES256.name())
-                                         .sseCustomerKeyMD5(b64KeyMd5),
-                                   AsyncRequestBody.fromBytes(originalContent)).join();
+        s3AsyncClient.putObject(r -> r.bucket(BUCKET)
+                                      .key(ORIGINAL_OBJ)
+                                      .sseCustomerKey(b64Key)
+                                      .sseCustomerAlgorithm(AES256.name())
+                                      .sseCustomerKeyMD5(b64KeyMd5),
+                                AsyncRequestBody.fromBytes(originalContent)).join();
 
-        CompletableFuture<CopyObjectResponse> future = s3CrtAsyncClient.copyObject(c -> c
+        CompletableFuture<CopyObjectResponse> future = s3AsyncClient.copyObject(c -> c
             .sourceBucket(BUCKET)
             .sourceKey(ORIGINAL_OBJ)
             .metadataDirective(MetadataDirective.REPLACE)
@@ -143,12 +164,12 @@ public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
 
     private void createOriginalObject(byte[] originalContent, String originalKey) {
         s3CrtAsyncClient.putObject(r -> r.bucket(BUCKET)
-                           .key(originalKey),
+                                         .key(originalKey),
                                    AsyncRequestBody.fromBytes(originalContent)).join();
     }
 
-    private void copyObject(String original, String destination) {
-        CompletableFuture<CopyObjectResponse> future = s3CrtAsyncClient.copyObject(c -> c
+    private void copyObject(String original, String destination, S3AsyncClient s3AsyncClient) {
+        CompletableFuture<CopyObjectResponse> future = s3AsyncClient.copyObject(c -> c
             .sourceBucket(BUCKET)
             .sourceKey(original)
             .destinationBucket(BUCKET)
