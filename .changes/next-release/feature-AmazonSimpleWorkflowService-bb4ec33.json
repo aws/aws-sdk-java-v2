@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Workflow Service",
+    "contributor": "",
+    "description": "This release adds new API parameters to override workflow task list for workflow executions."
+}
