@@ -27,7 +27,7 @@ import software.amazon.awssdk.policybuilder.iam.internal.DefaultIamPolicyReader;
  * <b>Log the number of statements in a policy downloaded from IAM.</b>
  * {@snippet :
  * // IamClient requires a dependency on software.amazon.awssdk:iam
- * try (IamClient iam = IamClient.create()) {
+ * try (IamClient iam = IamClient.builder().region(Region.AWS_GLOBAL).build()) {
  *     String policyArn = "arn:aws:iam::123456789012:policy/AllowWriteBookMetadata";
  *     GetPolicyResponse getPolicyResponse = iam.getPolicy(r -> r.policyArn(policyArn));
  *

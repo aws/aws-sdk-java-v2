@@ -23,6 +23,8 @@ import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvide
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData.testDataInstance;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -55,11 +57,20 @@ class EnhancedDocumentTest {
         return Stream.of(
             Arguments.of(String.valueOf(c), "{\"key\":\"\\n\"}")
             , Arguments.of("", "{\"key\":\"\"}")
+            , Arguments.of("\"", "{\"key\":\"\\\"\"}")
+            , Arguments.of("\\", "{\"key\":\"\\\\\"}")
             , Arguments.of(" ", "{\"key\":\" \"}")
             , Arguments.of("\t", "{\"key\":\"\\t\"}")
             , Arguments.of("\n", "{\"key\":\"\\n\"}")
             , Arguments.of("\r", "{\"key\":\"\\r\"}")
             , Arguments.of("\f", "{\"key\":\"\\f\"}")
+        );
+    }
+
+    private static Stream<Arguments> unEscapeDocumentStrings() {
+        return Stream.of(
+            Arguments.of("'", "{\"key\":\"'\"}"),
+            Arguments.of("'single quote'", "{\"key\":\"'single quote'\"}")
         );
     }
 
@@ -337,13 +348,27 @@ class EnhancedDocumentTest {
 
     @ParameterizedTest
     @MethodSource("escapeDocumentStrings")
-    void escapingTheValues(String escapingString, String expectedJson) {
+    void escapingTheValues(String escapingString, String expectedJson) throws JsonProcessingException {
 
         EnhancedDocument document = EnhancedDocument.builder()
                                                     .attributeConverterProviders(defaultProvider())
                                                     .putString("key", escapingString)
                                                     .build();
         assertThat(document.toJson()).isEqualTo(expectedJson);
+        assertThat(new ObjectMapper().readTree(document.toJson())).isNotNull();
+    }
+
+    @ParameterizedTest
+    @MethodSource("unEscapeDocumentStrings")
+    void unEscapingTheValues(String escapingString, String expectedJson) throws JsonProcessingException {
+
+        EnhancedDocument document = EnhancedDocument.builder()
+                                                    .attributeConverterProviders(defaultProvider())
+                                                    .putString("key", escapingString)
+                                                    .build();
+        assertThat(document.toJson()).isEqualTo(expectedJson);
+        assertThat(new ObjectMapper().readTree(document.toJson())).isNotNull();
+
     }
 
     @Test

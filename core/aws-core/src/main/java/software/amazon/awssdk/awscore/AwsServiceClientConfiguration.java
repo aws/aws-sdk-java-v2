@@ -69,21 +69,31 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         /**
          * Return the region
          */
-        Region region();
+        default Region region() {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Configure the region
          */
-        Builder region(Region region);
+        default Builder region(Region region) {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
-        Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
+        default Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration)  {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
-        Builder endpointOverride(URI endpointOverride);
+        default Builder endpointOverride(URI endpointOverride)  {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
-        Builder endpointProvider(EndpointProvider endpointProvider);
+        default Builder endpointProvider(EndpointProvider endpointProvider)  {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
         AwsServiceClientConfiguration build();

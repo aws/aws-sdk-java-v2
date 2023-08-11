@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,11 +53,26 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
             "x-amz-checksum-crc32:i9aeUg==\r\n\r\n";
     private final static Path path;
 
+    private final static ByteBuffer positionNonZeroBytebuffer;
+
+    private final static ByteBuffer positionZeroBytebuffer;
+
     static {
+        byte[] content = testString.getBytes();
+        byte[] randomContent = RandomStringUtils.randomAscii(1024).getBytes(StandardCharsets.UTF_8);
+        positionNonZeroBytebuffer = ByteBuffer.allocate(content.length + randomContent.length);
+        positionNonZeroBytebuffer.put(randomContent)
+                                 .put(content);
+        positionNonZeroBytebuffer.position(randomContent.length);
+
+        positionZeroBytebuffer = ByteBuffer.allocate(content.length);
+        positionZeroBytebuffer.put(content);
+        positionZeroBytebuffer.flip();
+
         FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
         path = fs.getPath("./test");
         try {
-            Files.write(path, testString.getBytes());
+            Files.write(path, content);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -71,16 +87,25 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
     @Parameterized.Parameters
     public static AsyncRequestBody[] data() {
         AsyncRequestBody[] asyncRequestBodies = {
-                ChecksumCalculatingAsyncRequestBody.builder()
-                        .asyncRequestBody(AsyncRequestBody.fromString(testString))
-                        .algorithm(Algorithm.CRC32)
-                        .trailerHeader("x-amz-checksum-crc32").build(),
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .asyncRequestBody(AsyncRequestBody.fromString(testString))
+                                               .algorithm(Algorithm.CRC32)
+                                               .trailerHeader("x-amz-checksum-crc32").build(),
 
-                ChecksumCalculatingAsyncRequestBody.builder()
-                        .asyncRequestBody(AsyncRequestBody.fromFile(path))
-                        .algorithm(Algorithm.CRC32)
-                        .trailerHeader("x-amz-checksum-crc32").build(),
-        };
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .asyncRequestBody(AsyncRequestBody.fromFile(path))
+                                               .algorithm(Algorithm.CRC32)
+                                               .trailerHeader("x-amz-checksum-crc32").build(),
+
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .asyncRequestBody(AsyncRequestBody.fromRemainingByteBuffer(positionZeroBytebuffer))
+                                               .algorithm(Algorithm.CRC32)
+                                               .trailerHeader("x-amz-checksum-crc32").build(),
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .asyncRequestBody(AsyncRequestBody.fromRemainingByteBuffersUnsafe(positionNonZeroBytebuffer))
+                                               .algorithm(Algorithm.CRC32)
+                                               .trailerHeader("x-amz-checksum-crc32").build(),
+            };
         return asyncRequestBodies;
     }
 
@@ -120,30 +145,30 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
     @Test
     public void stringConstructorHasCorrectContentType() {
         AsyncRequestBody requestBody = ChecksumCalculatingAsyncRequestBody.builder()
-                .asyncRequestBody(AsyncRequestBody.fromString("Hello world"))
-                .algorithm(Algorithm.CRC32)
-                .trailerHeader("x-amz-checksum-crc32")
-                .build();
+                                                                          .asyncRequestBody(AsyncRequestBody.fromString("Hello world"))
+                                                                          .algorithm(Algorithm.CRC32)
+                                                                          .trailerHeader("x-amz-checksum-crc32")
+                                                                          .build();
         assertThat(requestBody.contentType()).startsWith(Mimetype.MIMETYPE_TEXT_PLAIN);
     }
 
     @Test
     public void fileConstructorHasCorrectContentType() {
         AsyncRequestBody requestBody = ChecksumCalculatingAsyncRequestBody.builder()
-                .asyncRequestBody(AsyncRequestBody.fromFile(path))
-                .algorithm(Algorithm.CRC32)
-                .trailerHeader("x-amz-checksum-crc32")
-                .build();
+                                                                          .asyncRequestBody(AsyncRequestBody.fromFile(path))
+                                                                          .algorithm(Algorithm.CRC32)
+                                                                          .trailerHeader("x-amz-checksum-crc32")
+                                                                          .build();
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
     public void bytesArrayConstructorHasCorrectContentType() {
         AsyncRequestBody requestBody = ChecksumCalculatingAsyncRequestBody.builder()
-                .asyncRequestBody(AsyncRequestBody.fromBytes("hello world".getBytes()))
-                .algorithm(Algorithm.CRC32)
-                .trailerHeader("x-amz-checksum-crc32")
-                .build();
+                                                                          .asyncRequestBody(AsyncRequestBody.fromBytes("hello world".getBytes()))
+                                                                          .algorithm(Algorithm.CRC32)
+                                                                          .trailerHeader("x-amz-checksum-crc32")
+                                                                          .build();
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
@@ -151,20 +176,20 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
     public void bytesBufferConstructorHasCorrectContentType() {
         ByteBuffer byteBuffer = ByteBuffer.wrap("hello world".getBytes());
         AsyncRequestBody requestBody = ChecksumCalculatingAsyncRequestBody.builder()
-                .asyncRequestBody(AsyncRequestBody.fromByteBuffer(byteBuffer))
-                .algorithm(Algorithm.CRC32)
-                .trailerHeader("x-amz-checksum-crc32")
-                .build();
+                                                                          .asyncRequestBody(AsyncRequestBody.fromByteBuffer(byteBuffer))
+                                                                          .algorithm(Algorithm.CRC32)
+                                                                          .trailerHeader("x-amz-checksum-crc32")
+                                                                          .build();
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
     public void emptyBytesConstructorHasCorrectContentType() {
         AsyncRequestBody requestBody = ChecksumCalculatingAsyncRequestBody.builder()
-                .asyncRequestBody(AsyncRequestBody.empty())
-                .algorithm(Algorithm.CRC32)
-                .trailerHeader("x-amz-checksum-crc32")
-                .build();
+                                                                          .asyncRequestBody(AsyncRequestBody.empty())
+                                                                          .algorithm(Algorithm.CRC32)
+                                                                          .trailerHeader("x-amz-checksum-crc32")
+                                                                          .build();
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
@@ -172,8 +197,8 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
     public void publisherConstructorThrowsExceptionIfNoContentLength() {
         List<String> requestBodyStrings = Lists.newArrayList("A", "B", "C");
         List<ByteBuffer> bodyBytes = requestBodyStrings.stream()
-                .map(s -> ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8)))
-                .collect(Collectors.toList());
+                                                       .map(s -> ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8)))
+                                                       .collect(Collectors.toList());
         Publisher<ByteBuffer> bodyPublisher = Flowable.fromIterable(bodyBytes);
 
         ChecksumCalculatingAsyncRequestBody.Builder builder = ChecksumCalculatingAsyncRequestBody.builder()
@@ -208,16 +233,16 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
         byte[] original = {1, 2, 3, 4};
         // Checksum data in byte format.
         byte[] expected = {52, 13, 10,
-                1, 2, 3, 4, 13, 10,
-                48, 13, 10, 120, 45, 97, 109, 122, 110, 45, 99, 104, 101, 99, 107, 115,
-                117, 109, 45, 99, 114, 99, 51, 50, 58, 116, 106, 122, 55, 122, 81, 61, 61, 13, 10, 13, 10};
+                           1, 2, 3, 4, 13, 10,
+                           48, 13, 10, 120, 45, 97, 109, 122, 110, 45, 99, 104, 101, 99, 107, 115,
+                           117, 109, 45, 99, 114, 99, 51, 50, 58, 116, 106, 122, 55, 122, 81, 61, 61, 13, 10, 13, 10};
         byte[] toModify = new byte[original.length];
         System.arraycopy(original, 0, toModify, 0, original.length);
         AsyncRequestBody body = ChecksumCalculatingAsyncRequestBody.builder()
-                .asyncRequestBody(AsyncRequestBody.fromBytes(toModify))
-                .algorithm(Algorithm.CRC32)
-                .trailerHeader("x-amzn-checksum-crc32")
-                .build();
+                                                                   .asyncRequestBody(AsyncRequestBody.fromBytes(toModify))
+                                                                   .algorithm(Algorithm.CRC32)
+                                                                   .trailerHeader("x-amzn-checksum-crc32")
+                                                                   .build();
         for (int i = 0; i < toModify.length; ++i) {
             toModify[i]++;
         }
