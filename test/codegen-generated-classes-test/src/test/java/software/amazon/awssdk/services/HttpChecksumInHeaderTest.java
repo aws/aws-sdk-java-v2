@@ -17,7 +17,6 @@ package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_VALUE;
 
 import io.reactivex.Flowable;
 import java.io.IOException;
@@ -28,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,9 +36,6 @@ import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.core.checksums.Algorithm;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -103,11 +98,6 @@ public class HttpChecksumInHeaderTest {
         });
     }
 
-    @After
-    public void clear() {
-        CaptureChecksumValueInterceptor.reset();
-    }
-
     @Test
     public void sync_json_nonStreaming_unsignedPayload_with_Sha1_in_header() {
         //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
@@ -118,9 +108,6 @@ public class HttpChecksumInHeaderTest {
         assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("M68rRwFal7o7B3KEMt3m0w39TaA=");
         // Assertion to make sure signer was not executed
         assertThat(getSyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
-
-        assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isEqualTo("M68rRwFal7o7B3KEMt3m0w39TaA=");
-
     }
 
     @Test
@@ -133,9 +120,6 @@ public class HttpChecksumInHeaderTest {
         assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("M68rRwFal7o7B3KEMt3m0w39TaA=");
         // Assertion to make sure signer was not executed
         assertThat(getAsyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
-        assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isEqualTo("M68rRwFal7o7B3KEMt3m0w39TaA=");
-
-
     }
 
     @Test
@@ -148,9 +132,6 @@ public class HttpChecksumInHeaderTest {
         assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
         // Assertion to make sure signer was not executed
         assertThat(getSyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
-
-        assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isEqualTo("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
-
     }
 
     @Test
@@ -169,9 +150,6 @@ public class HttpChecksumInHeaderTest {
 
         // Assertion to make sure signer was not executed
         assertThat(getSyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
-
-        assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isNull();
-
     }
 
     @Test
@@ -185,8 +163,6 @@ public class HttpChecksumInHeaderTest {
         assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
         // Assertion to make sure signer was not executed
         assertThat(getAsyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
-        assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isEqualTo("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
-
     }
 
     @Test
@@ -206,8 +182,6 @@ public class HttpChecksumInHeaderTest {
         assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).isNotPresent();
         // Assertion to make sure signer was not executed
         assertThat(getAsyncRequest().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
-        assertThat(CaptureChecksumValueInterceptor.interceptorComputedChecksum).isNull();
-
     }
 
     private SdkHttpRequest getSyncRequest() {
@@ -224,32 +198,15 @@ public class HttpChecksumInHeaderTest {
 
 
     private <T extends AwsSyncClientBuilder<T, ?> & AwsClientBuilder<T, ?>> T initializeSync(T syncClientBuilder) {
-        return initialize(syncClientBuilder.httpClient(httpClient)
-                                           .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureChecksumValueInterceptor())));
+        return initialize(syncClientBuilder.httpClient(httpClient));
     }
 
     private <T extends AwsAsyncClientBuilder<T, ?> & AwsClientBuilder<T, ?>> T initializeAsync(T asyncClientBuilder) {
-        return initialize(asyncClientBuilder.httpClient(httpAsyncClient)
-                                            .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureChecksumValueInterceptor())));
+        return initialize(asyncClientBuilder.httpClient(httpAsyncClient));
     }
 
     private <T extends AwsClientBuilder<T, ?>> T initialize(T clientBuilder) {
         return clientBuilder.credentialsProvider(AnonymousCredentialsProvider.create())
                             .region(Region.US_WEST_2);
-    }
-
-
-    private static class CaptureChecksumValueInterceptor implements ExecutionInterceptor {
-        private static String interceptorComputedChecksum;
-
-        private static void reset() {
-            interceptorComputedChecksum = null;
-        }
-
-        @Override
-        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
-            interceptorComputedChecksum = executionAttributes.getAttribute(HTTP_CHECKSUM_VALUE);
-
-        }
     }
 }

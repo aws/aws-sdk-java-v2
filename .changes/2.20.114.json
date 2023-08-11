@@ -1,0 +1,12 @@
+{
+    "version": "2.20.114",
+    "date": "2023-07-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Documentation changes related to SQS APIs."
+        }
+    ]
+}

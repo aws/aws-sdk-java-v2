@@ -394,27 +394,6 @@ public interface JsonClient extends AwsClient {
     /**
      * Some paginated operation with result_key in paginators.json file
      *
-     * @return Result of the PaginatedOperationWithResultKey operation returned by the service.
-     * @throws SdkException
-     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
-     *         catch all scenarios.
-     * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
-     * @throws JsonException
-     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
-     * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see #paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest)
-     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
-     *      target="_top">AWS API Documentation</a>
-     */
-    default PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey() throws AwsServiceException,
-                                                                                             SdkClientException, JsonException {
-        return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder().build());
-    }
-
-    /**
-     * Some paginated operation with result_key in paginators.json file
-     *
      * @param paginatedOperationWithResultKeyRequest
      * @return Result of the PaginatedOperationWithResultKey operation returned by the service.
      * @throws SdkException
@@ -461,6 +440,27 @@ public interface JsonClient extends AwsClient {
         throws AwsServiceException, SdkClientException, JsonException {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
                                                                                      .applyMutation(paginatedOperationWithResultKeyRequest).build());
+    }
+
+    /**
+     * Some paginated operation with result_key in paginators.json file
+     *
+     * @return Result of the PaginatedOperationWithResultKey operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PaginatedOperationWithResultKey
+     * @see #paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest)
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey() throws AwsServiceException,
+                                                                                             SdkClientException, JsonException {
+        return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder().build());
     }
 
     /**
@@ -613,7 +613,7 @@ public interface JsonClient extends AwsClient {
     default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws AwsServiceException,
                                                                                               SdkClientException, JsonException {
-        throw new UnsupportedOperationException();
+        return new PaginatedOperationWithResultKeyIterable(this, paginatedOperationWithResultKeyRequest);
     }
 
     /**
@@ -825,7 +825,7 @@ public interface JsonClient extends AwsClient {
     default PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws AwsServiceException,
                                                                                                     SdkClientException, JsonException {
-        throw new UnsupportedOperationException();
+        return new PaginatedOperationWithoutResultKeyIterable(this, paginatedOperationWithoutResultKeyRequest);
     }
 
     /**

@@ -33,11 +33,14 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
 @Immutable
 @SdkInternalApi
 final class DefaultRdsUtilities implements RdsUtilities {
+    private static final Logger log = Logger.loggerFor(RdsUtilities.class);
+
     // The time the IAM token is good for. https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html
     private static final Duration EXPIRATION_DURATION = Duration.ofMinutes(15);
 
@@ -80,6 +83,7 @@ final class DefaultRdsUtilities implements RdsUtilities {
                                             .build();
 
         Instant expirationTime = Instant.now(clock).plus(EXPIRATION_DURATION);
+
         Aws4PresignerParams presignRequest = Aws4PresignerParams.builder()
                                                 .signingClockOverride(clock)
                                                 .expirationTime(expirationTime)
@@ -93,7 +97,9 @@ final class DefaultRdsUtilities implements RdsUtilities {
 
         // Format should be: <hostname>>:<port>>/?Action=connect&DBUser=<username>>&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expi...
         // Note: This must be the real RDS hostname, not proxy or tunnels
-        return StringUtils.replacePrefixIgnoreCase(signedUrl, "https://", "");
+        String result = StringUtils.replacePrefixIgnoreCase(signedUrl, "https://", "");
+        log.debug(() -> "Generated RDS authentication token with expiration of " + expirationTime);
+        return result;
     }
 
     private Region resolveRegion(GenerateAuthenticationTokenRequest request) {

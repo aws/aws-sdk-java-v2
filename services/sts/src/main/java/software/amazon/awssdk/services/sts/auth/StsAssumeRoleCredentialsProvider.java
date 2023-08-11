@@ -75,9 +75,7 @@ public final class StsAssumeRoleCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("StsAssumeRoleCredentialsProvider")
-                       .add("refreshRequest", assumeRoleRequestSupplier)
-                       .build();
+        return ToString.create("StsAssumeRoleCredentialsProvider");
     }
 
     @Override

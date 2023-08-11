@@ -27,6 +27,7 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
 import software.amazon.awssdk.core.HttpChecksumConstant;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -42,6 +43,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
@@ -96,7 +98,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
             .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfig.option(SdkClientOption.ENDPOINT))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
-            .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER))
+            .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER,
+                          resolveEndpointProvider(originalRequest, clientConfig))
             .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS,
                           clientConfig.option(SdkClientOption.CLIENT_CONTEXT_PARAMS))
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
@@ -234,5 +237,19 @@ public final class AwsExecutionContextBuilder {
     private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
         return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
     }
+
+
+    /**
+     * Resolves the endpoint provider, with the request override configuration taking precedence over the
+     * provided default client clientConfig.
+     * @return The endpoint provider that will be used by the SDK to resolve endpoints.
+     */
+    private static EndpointProvider resolveEndpointProvider(SdkRequest request,
+                                                           SdkClientConfiguration clientConfig) {
+        return request.overrideConfiguration()
+                      .flatMap(RequestOverrideConfiguration::endpointProvider)
+                      .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
+    }
+
 
 }

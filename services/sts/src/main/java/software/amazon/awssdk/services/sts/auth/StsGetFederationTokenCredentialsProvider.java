@@ -72,9 +72,7 @@ public class StsGetFederationTokenCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("StsGetFederationTokenCredentialsProvider")
-                       .add("refreshRequest", getFederationTokenRequest)
-                       .build();
+        return ToString.create("StsGetFederationTokenCredentialsProvider");
     }
 
     @Override

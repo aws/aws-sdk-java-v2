@@ -24,7 +24,6 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -154,10 +153,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod());
 
-        if (model.hasPaginators()) {
-            type.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
-        }
-
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
     }
 
@@ -190,9 +185,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private Stream<MethodSpec> operations(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(traditionalMethod(opModel));
-        if (opModel.isPaginated()) {
-            methods.add(paginatedTraditionalMethod(opModel));
-        }
         return methods.stream();
     }
 
@@ -413,14 +405,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .endControlFlow();
 
         return builder;
-    }
-
-    @Override
-    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
-        return builder.addModifiers(PUBLIC)
-                      .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
-                                    poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName()),
-                                    opModel.getInput().getVariableName());
     }
 
     @Override

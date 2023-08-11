@@ -21,7 +21,6 @@ import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -35,10 +34,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -51,7 +50,6 @@ import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
-import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -116,10 +114,6 @@ public class SyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-
-        if (model.hasPaginators()) {
-            type.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
-        }
 
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
@@ -209,14 +203,17 @@ public class SyncClientClass extends SyncClientInterface {
         return model.getOperations().values().stream()
                     .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
-                    .map(this::operationMethodSpecs)
-                    .flatMap(List::stream)
+                    .flatMap(this::operations)
                     .collect(Collectors.toList());
     }
 
-    private List<MethodSpec> operationMethodSpecs(OperationModel opModel) {
+    private Stream<MethodSpec> operations(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
+        methods.add(traditionalMethod(opModel));
+        return methods.stream();
+    }
 
+    private MethodSpec traditionalMethod(OperationModel opModel) {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
                                                        .addAnnotation(Override.class)
                                                        .addCode(protocolSpec.responseHandler(model, opModel));
@@ -303,34 +300,7 @@ public class SyncClientClass extends SyncClientInterface {
               .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
               .endControlFlow();
 
-        methods.add(method.build());
-
-        methods.addAll(paginatedMethods(opModel));
-
-        return methods;
-    }
-
-    @Override
-    protected List<MethodSpec> paginatedMethods(OperationModel opModel) {
-        List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
-
-        if (opModel.isPaginated()) {
-            paginatedMethodSpecs.add(SyncClientInterface.operationMethodSignature(model,
-                                                                                  opModel,
-                                                                                  SimpleMethodOverload.PAGINATED,
-                                                                                  PaginatorUtils.getPaginatedMethodName(
-                                                                                      opModel.getMethodName()))
-                                                        .addAnnotation(Override.class)
-                                                        .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
-                                                            opModel.getOperationName()))
-                                                        .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
-                                                                      poetExtensions.getResponseClassForPaginatedSyncOperation(
-                                                                          opModel.getOperationName()),
-                                                                      opModel.getInput().getVariableName())
-                                                        .build());
-        }
-
-        return paginatedMethodSpecs;
+        return method.build();
     }
 
     @Override

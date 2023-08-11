@@ -90,6 +90,12 @@ public class BaseClientBuilderInterface implements ClassSpec {
             });
         }
 
+        if (hasSdkClientContextParams()) {
+            model.getCustomizationConfig().getCustomClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
+        }
+
         if (generateTokenProviderMethod()) {
             builder.addMethod(tokenProviderMethod());
             builder.addMethod(tokenIdentityProviderMethod());
@@ -237,5 +243,11 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private boolean hasClientContextParams() {
         return model.getClientContextParams() != null && !model.getClientContextParams().isEmpty();
+    }
+
+    private boolean hasSdkClientContextParams() {
+        return model.getCustomizationConfig() != null
+               && model.getCustomizationConfig().getCustomClientContextParams() != null
+               && !model.getCustomizationConfig().getCustomClientContextParams().isEmpty();
     }
 }

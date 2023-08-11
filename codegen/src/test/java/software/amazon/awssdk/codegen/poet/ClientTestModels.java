@@ -282,6 +282,19 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel composedClientJsonServiceModels() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/composedclient/customization.config").getFile());
+        CustomizationConfig customizationConfig = getCustomizationConfig(customizationModel);
+        C2jModels models = C2jModels.builder()
+                                    .serviceModel(getServiceModel(serviceModel))
+                                    .customizationConfig(customizationConfig)
+                                    .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel internalConfigModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/internalconfig/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/internalconfig/customization.config").getFile());

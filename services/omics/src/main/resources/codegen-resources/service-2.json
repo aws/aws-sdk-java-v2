@@ -2625,6 +2625,13 @@
       "type":"timestamp",
       "timestampFormat":"iso8601"
     },
+    "CreationType":{
+      "type":"string",
+      "enum":[
+        "IMPORT",
+        "UPLOAD"
+      ]
+    },
     "DeleteAnnotationStoreRequest":{
       "type":"structure",
       "required":["name"],
@@ -3420,6 +3427,10 @@
         "statusMessage":{
           "shape":"ReadSetStatusMessage",
           "documentation":"<p> The status message for a read set. It provides more detail as to why the read set has a status. </p>"
+        },
+        "creationType":{
+          "shape":"CreationType",
+          "documentation":"<p> The creation type of the read set. </p>"
         }
       }
     },
@@ -3990,6 +4001,10 @@
         "gpus":{
           "shape":"GetRunTaskResponseGpusInteger",
           "documentation":"<p> The number of Graphics Processing Units (GPU) specified in the task. </p>"
+        },
+        "instanceType":{
+          "shape":"TaskInstanceType",
+          "documentation":"<p> The instance type for a task. </p>"
         }
       }
     },
@@ -4597,7 +4612,7 @@
         },
         "nextToken":{
           "shape":"ListAnnotationImportJobsRequestNextTokenString",
-          "documentation":"<p>Specify the pagination token from a previous request to retrieve the next page of results.</p>",
+          "documentation":"<p>Specifies the pagination token from a previous request to retrieve the next page of results.</p>",
           "location":"querystring",
           "locationName":"nextToken"
         },
@@ -4633,7 +4648,7 @@
         },
         "nextToken":{
           "shape":"String",
-          "documentation":"<p>A pagination token that's included if more results are available.</p>"
+          "documentation":"<p>Specifies the pagination token from a previous request to retrieve the next page of results.</p>"
         }
       }
     },
@@ -5824,6 +5839,10 @@
         "generatedFrom":{
           "shape":"GeneratedFrom",
           "documentation":"<p> Where the source originated. </p>"
+        },
+        "creationType":{
+          "shape":"CreationType",
+          "documentation":"<p> The creation type of the read set. </p>"
         }
       },
       "documentation":"<p>A filter for read sets.</p>"
@@ -5924,6 +5943,10 @@
         "statusMessage":{
           "shape":"ReadSetStatusMessage",
           "documentation":"<p> The status for a read set. It provides more detail as to why the read set has a status. </p>"
+        },
+        "creationType":{
+          "shape":"CreationType",
+          "documentation":"<p> The creation type of the read set. </p>"
         }
       },
       "documentation":"<p>A read set.</p>"
@@ -7441,6 +7464,10 @@
       "min":1,
       "pattern":"[0-9]+"
     },
+    "TaskInstanceType":{
+      "type":"string",
+      "pattern":"[\\p{L}||\\p{M}||\\p{Z}||\\p{S}||\\p{N}||\\p{P}]+"
+    },
     "TaskList":{
       "type":"list",
       "member":{"shape":"TaskListItem"}
@@ -7483,6 +7510,10 @@
         "gpus":{
           "shape":"TaskListItemGpusInteger",
           "documentation":"<p> The number of Graphics Processing Units (GPU) specified for the task. </p>"
+        },
+        "instanceType":{
+          "shape":"TaskInstanceType",
+          "documentation":"<p> The instance type for a task. </p>"
         }
       },
       "documentation":"<p>A workflow run task.</p>"
@@ -8098,7 +8129,8 @@
       "type":"string",
       "enum":[
         "WDL",
-        "NEXTFLOW"
+        "NEXTFLOW",
+        "CWL"
       ],
       "max":64,
       "min":1
@@ -8266,5 +8298,5 @@
       "min":1
     }
   },
-  "documentation":"<p>This is the <i>Amazon Omics API Reference</i>. For an introduction to the service, see <a href=\"https://docs.aws.amazon.com/omics/latest/dev/\">What is Amazon Omics?</a> in the <i>Amazon Omics User Guide</i>.</p>"
+  "documentation":"<p>This is the <i>AWS HealthOmics API Reference</i>. For an introduction to the service, see <a href=\"https://docs.aws.amazon.com/omics/latest/dev/\">What is AWS HealthOmics?</a> in the <i>AWS HealthOmics User Guide</i>.</p>"
 }
