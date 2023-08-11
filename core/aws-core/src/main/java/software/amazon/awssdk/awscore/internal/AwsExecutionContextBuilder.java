@@ -26,10 +26,12 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
+import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -124,13 +126,40 @@ public final class AwsExecutionContextBuilder {
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
         Signer signer = null;
-        if (isAuthenticatedRequest(executionAttributes)) {
-            AuthorizationStrategyFactory authorizationStrategyFactory =
-                new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
-            AuthorizationStrategy authorizationStrategy =
-                authorizationStrategyFactory.strategyFor(executionParams.credentialType());
-            authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
-            signer = authorizationStrategy.resolveSigner();
+
+        // Note, not setting IS_NONE_AUTH_TYPE_REQUEST in newly generated clients, makes earlier logic not sufficient, as
+        // NoneAuthTypeRequestTest fails.
+        // It is easiest to keep NoneAuthTypeRequest passing by continuing to set IS_NONE_AUTH_TYPE_REQUEST in newly generated
+        // clients. This might become odd in the future, when authType=none is deprecated (authType itself will be less favored
+        // in lieu of authList, to support multiple auth schemes). But we can cross that bridge as part of those changes?
+
+        SelectedAuthScheme<?> selectedAuthScheme =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (selectedAuthScheme == null) {
+            // this implies old (pre SRA) client, keeping the logic as before intact for that case.
+            if (isAuthenticatedRequest(executionAttributes)) {
+                AuthorizationStrategyFactory authorizationStrategyFactory =
+                    new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
+                AuthorizationStrategy authorizationStrategy =
+                    authorizationStrategyFactory.strategyFor(executionParams.credentialType());
+                authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
+                signer = authorizationStrategy.resolveSigner();
+            }
+        } else {
+            // With SRA, i.e., for newly generated clients:
+            // If old Signer is still provided via overrides (existing customer code), we want to continue using that signer.
+            // However, we don't want to use that overridden signer if the operation was going to have no auth (authType=none
+            // in the model or auth scheme resolver selects the smithy.api#noAuth scheme (abstracted as
+            // selectedAuthScheme.supportsSigning), in which case we want Signer to end up as `null`.
+            if (selectedAuthScheme.supportsSigning() && SignerOverrideUtils.isSignerOverridden(interceptorContext.request(),
+                                                                                               executionAttributes)) {
+                AuthorizationStrategyFactory authorizationStrategyFactory =
+                    new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
+                AuthorizationStrategy authorizationStrategy =
+                    authorizationStrategyFactory.strategyFor(executionParams.credentialType());
+                authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
+                signer = authorizationStrategy.resolveSigner();
+            }
         }
 
         executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
@@ -234,6 +263,9 @@ public final class AwsExecutionContextBuilder {
         return metricCollector;
     }
 
+    // There used to be codegen logic that used to set this attribute when authType=none. With SRA, this attribute is not
+    // needed (so not set) in newly generated clients, but leaving this logic for old clients that might use new aws-core version.
+    // For newly generated clients, this will always return false.
     private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
         return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
     }
