@@ -67,7 +67,8 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
                                                           .minimumPartSizeInBytes(partSizeInMb)
                                                           .initialReadBufferSizeInBytes(readBufferSizeInMb)
                                                           .targetThroughputInGbps(config.targetThroughput() == null ?
-                                                     Double.valueOf(100.0) : config.targetThroughput());
+                                                                                  Double.valueOf(100.0) :
+                                                                                  config.targetThroughput());
         if (config.maxConcurrency() != null) {
             builder.maxConcurrency(config.maxConcurrency());
         }

@@ -62,21 +62,21 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
                                           .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
                                                                         .thresholdInBytes(partSizeInMb * 2 * MB)
                                                                         .apiCallBufferSizeInBytes(readBufferInMb * MB))
-                                          .httpClient(httpClient(config))
+                                          .httpClientBuilder(httpClient(config))
                                           .build();
     }
 
-    private SdkAsyncHttpClient httpClient(TransferManagerBenchmarkConfig config) {
+    private SdkAsyncHttpClient.Builder httpClient(TransferManagerBenchmarkConfig config) {
         if (config.forceCrtHttpClient()) {
             logger.info(() -> "Using CRT HTTP client");
             AwsCrtAsyncHttpClient.Builder builder = AwsCrtAsyncHttpClient.builder();
             if (config.readBufferSizeInMb() != null) {
-                builder.readBufferSizeInBytes(config.readBufferSizeInMb());
+                builder.readBufferSizeInBytes(config.readBufferSizeInMb() * MB);
             }
             if (config.maxConcurrency() != null) {
                 builder.maxConcurrency(config.maxConcurrency());
             }
-            return builder.build();
+            return builder;
         }
         NettyNioAsyncHttpClient.Builder builder = NettyNioAsyncHttpClient.builder();
         if (config.connectionAcquisitionTimeoutInSec() != null) {
@@ -86,7 +86,7 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
         if (config.maxConcurrency() != null) {
             builder.maxConcurrency(config.maxConcurrency());
         }
-        return builder.build();
+        return builder;
     }
 
     protected abstract void sendOneRequest(List<Double> latencies) throws Exception;
