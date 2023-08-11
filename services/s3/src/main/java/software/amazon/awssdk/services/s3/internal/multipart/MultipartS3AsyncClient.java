@@ -56,8 +56,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(validConfiguration);
         long minPartSizeInBytes = resolver.minimalPartSizeInBytes();
         long threshold = resolver.thresholdInBytes();
-        long apiCallBufferSizeInBytes = resolver.apiCallBufferSize();
-        mpuHelper = new UploadObjectHelper(delegate, minPartSizeInBytes, threshold, apiCallBufferSizeInBytes);
+        mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
     }
 

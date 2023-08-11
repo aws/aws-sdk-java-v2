@@ -26,17 +26,17 @@ import software.amazon.awssdk.utils.Validate;
 public final class MultipartConfigurationResolver {
 
     private static final long DEFAULT_MIN_PART_SIZE = 8L * 1024 * 1024;
-    private final MultipartConfiguration configuration;
     private final long minimalPartSizeInBytes;
     private final long apiCallBufferSize;
     private final long thresholdInBytes;
 
     public MultipartConfigurationResolver(MultipartConfiguration multipartConfiguration) {
-        this.configuration = multipartConfiguration;
-        this.minimalPartSizeInBytes = Validate.getOrDefault(configuration.minimumPartSizeInBytes(), () -> DEFAULT_MIN_PART_SIZE);
-        this.apiCallBufferSize = Validate.getOrDefault(configuration.apiCallBufferSizeInBytes(),
+        Validate.notNull(multipartConfiguration, "multipartConfiguration");
+        this.minimalPartSizeInBytes = Validate.getOrDefault(multipartConfiguration.minimumPartSizeInBytes(),
+                                                            () -> DEFAULT_MIN_PART_SIZE);
+        this.apiCallBufferSize = Validate.getOrDefault(multipartConfiguration.apiCallBufferSizeInBytes(),
                                                        () -> minimalPartSizeInBytes * 4);
-        this.thresholdInBytes = Validate.getOrDefault(configuration.thresholdInBytes(), () -> minimalPartSizeInBytes);
+        this.thresholdInBytes = Validate.getOrDefault(multipartConfiguration.thresholdInBytes(), () -> minimalPartSizeInBytes);
     }
 
     public long minimalPartSizeInBytes() {
