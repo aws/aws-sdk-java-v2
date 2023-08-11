@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.internal.compression.CompressorType;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
+import software.amazon.awssdk.core.internal.sync.CompressionContentStreamProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.IoUtils;
@@ -67,10 +68,21 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
             compressEntirePayload(input, compressor);
             updateContentEncodingHeader(input, compressor);
             updateContentLengthHeader(input);
+            return input;
         }
 
-        // TODO : streaming - sync & async
+        if (!isTransferEncodingChunked(input)) {
+            return input;
+        }
 
+        if (context.requestProvider() == null) {
+            // sync streaming
+            input.contentStreamProvider(new CompressionContentStreamProvider(input.contentStreamProvider(), compressor));
+        }
+
+        // TODO : streaming - async
+
+        updateContentEncodingHeader(input, compressor);
         return input;
     }
 
@@ -121,6 +133,12 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private boolean isTransferEncodingChunked(SdkHttpFullRequest.Builder input) {
+        return input.firstMatchingHeader("Transfer-Encoding")
+                    .map(headerValue -> headerValue.equals("chunked"))
+                    .orElse(false);
     }
 
     private Compressor resolveCompressorType(ExecutionAttributes executionAttributes) {
