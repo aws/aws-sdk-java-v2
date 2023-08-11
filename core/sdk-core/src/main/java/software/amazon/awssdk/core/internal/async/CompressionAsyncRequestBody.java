@@ -114,33 +114,33 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
 
     private static final class CompressionSubscriber implements Subscriber<ByteBuffer> {
 
-        private final Subscriber<? super ByteBuffer> wrapped;
+        private final Subscriber<? super ByteBuffer> subscriber;
         private final Compressor compressor;
 
-        CompressionSubscriber(Subscriber<? super ByteBuffer> wrapped, Compressor compressor) {
-            this.wrapped = wrapped;
+        CompressionSubscriber(Subscriber<? super ByteBuffer> subscriber, Compressor compressor) {
+            this.subscriber = subscriber;
             this.compressor = compressor;
         }
 
         @Override
         public void onSubscribe(Subscription subscription) {
-            wrapped.onSubscribe(subscription);
+            subscriber.onSubscribe(subscription);
         }
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
             ByteBuffer compressedBuffer = compressor.compress(byteBuffer);
-            wrapped.onNext(compressedBuffer);
+            subscriber.onNext(compressedBuffer);
         }
 
         @Override
         public void onError(Throwable t) {
-            wrapped.onError(t);
+            subscriber.onError(t);
         }
 
         @Override
         public void onComplete() {
-            wrapped.onComplete();
+            subscriber.onComplete();
         }
     }
 }
