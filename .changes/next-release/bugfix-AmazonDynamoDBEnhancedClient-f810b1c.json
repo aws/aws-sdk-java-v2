@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "swar8080",
+    "description": "Provides a clearer exception message when building a ReadBatch or WriteBatch without setting the mappedTableResource (table)"
+}
