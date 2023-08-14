@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Fix for Issue [#4156](https://github.com/aws/aws-sdk-java-v2/issues/4156) : Single quotes in toJson conversions for EnhancedDocuments are no longer being escaped."
-}
