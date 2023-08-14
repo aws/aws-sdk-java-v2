@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaPackage",
+    "contributor": "",
+    "description": "Fix SDK logging of certain fields."
+}
