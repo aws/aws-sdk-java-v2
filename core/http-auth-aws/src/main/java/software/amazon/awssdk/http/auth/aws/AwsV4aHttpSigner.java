@@ -32,6 +32,8 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public interface AwsV4aHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
     /**
      * The AWS region name to be used for computing the signature. This property is required.
+     *
+     * TODO(sra-identity-and-auth): Should this be a list or rename to SIGNING_SCOPE?
      */
     SignerProperty<String> REGION_NAME =
         SignerProperty.create(String.class, "RegionName");

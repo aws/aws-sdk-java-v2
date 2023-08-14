@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -148,4 +149,15 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
      * <p>If the setting is not found in any of the locations above, 'false' will be used.
      */
     BuilderT fipsEnabled(Boolean fipsEndpointEnabled);
+
+    /**
+     * Configure this client with an additional auth scheme, or replace one already on the client.
+     *
+     * <p>By default, the SDK will only know about default auth schemes that ship with the service. If you want to modify those
+     * existing auth schemes or add a custom one (you select with a custom auth scheme resolver), you can add that new auth
+     * scheme with this method.
+     */
+    default BuilderT putAuthScheme(AuthScheme<?> authScheme) {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -69,6 +69,9 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class BaseClientBuilderClass implements ClassSpec {
+    private static final ParameterizedTypeName GENERIC_AUTH_SCHEME_TYPE =
+        ParameterizedTypeName.get(ClassName.get(AuthScheme.class), WildcardTypeName.subtypeOf(Object.class));
+
     private final IntermediateModel model;
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
@@ -107,6 +110,14 @@ public class BaseClientBuilderClass implements ClassSpec {
                                       .build());
         }
 
+        builder.addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                                     ClassName.get(String.class),
+                                                                     GENERIC_AUTH_SCHEME_TYPE),
+                                           "additionalAuthSchemes")
+                                  .addModifiers(PRIVATE, FINAL)
+                                  .initializer("new $T<>()", HashMap.class)
+                                  .build());
+
         builder.addMethod(serviceEndpointPrefixMethod());
         builder.addMethod(serviceNameMethod());
         builder.addMethod(mergeServiceDefaultsMethod());
@@ -119,6 +130,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addMethod(authSchemeProviderMethod());
         builder.addMethod(defaultAuthSchemeProviderMethod());
+        builder.addMethod(putAuthSchemeMethod());
 
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
@@ -140,7 +152,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         if (AuthUtils.usesBearerAuth(model)) {
             builder.addMethod(defaultBearerTokenProviderMethod());
         }
-        builder.addMethod(defaultAuthSchemesMethod());
+        builder.addMethod(authSchemesMethod());
 
         addServiceHttpConfigIfNeeded(builder, model);
 
@@ -195,7 +207,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
         builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
-        builder.addCode(".option($T.AUTH_SCHEMES, defaultAuthSchemes())", SdkClientOption.class);
+        builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
 
         builder.addCode(".option($T.CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)\n",
                         SdkClientOption.class, crc32FromCompressedDataEnabled);
@@ -259,14 +271,8 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         List<ClassName> builtInInterceptors = new ArrayList<>();
 
-        // TODO(sra-identity-and-auth): Skip S3 for now as there are several tests failing that need to be fixed somewhere else.
-        boolean isS3 = "S3".equals(model.getMetadata().getServiceName())
-            || "S3Control".equals(model.getMetadata().getServiceName());
-        if (!isS3) {
-            builtInInterceptors.add(authSchemeSpecUtils.authSchemeInterceptor());
-        }
+        builtInInterceptors.add(authSchemeSpecUtils.authSchemeInterceptor());
         builtInInterceptors.add(endpointRulesSpecUtils.resolverInterceptorName());
-        builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
         builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
 
         for (String interceptor : model.getCustomizationConfig().getInterceptors()) {
@@ -592,6 +598,17 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec putAuthSchemeMethod() {
+        return MethodSpec.methodBuilder("putAuthScheme")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(GENERIC_AUTH_SCHEME_TYPE, "authScheme")
+                         .addStatement("additionalAuthSchemes.put(authScheme.schemeId(), authScheme)")
+                         .addStatement("return thisBuilder()")
+                         .build();
+    }
+
     private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
         String setterName = endpointRulesSpecUtils.paramMethodName(name);
         String keyName = model.getNamingStrategy().getEnumValueName(name);
@@ -616,12 +633,12 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec defaultAuthSchemesMethod() {
+    private MethodSpec authSchemesMethod() {
         TypeName returns = ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class),
                                                      ParameterizedTypeName.get(ClassName.get(AuthScheme.class),
                                                                                WildcardTypeName.subtypeOf(Object.class)));
 
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("defaultAuthSchemes")
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("authSchemes")
                                                .addModifiers(PRIVATE)
                                                .returns(returns);
 
@@ -637,6 +654,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addStatement("$1T $2L = $1T.create()", concreteAuthScheme, instanceVariable);
             builder.addStatement("schemes.put($1N.schemeId(), $1N)", instanceVariable);
         }
+        builder.addStatement("schemes.putAll(this.additionalAuthSchemes)");
         builder.addStatement("return $T.unmodifiableMap(schemes)", Collections.class);
         return builder.build();
     }

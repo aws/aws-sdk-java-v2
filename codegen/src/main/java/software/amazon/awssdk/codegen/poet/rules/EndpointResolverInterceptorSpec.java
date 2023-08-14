@@ -23,12 +23,15 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
@@ -41,6 +44,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -48,6 +52,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
@@ -71,6 +76,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                       .addSuperinterface(ExecutionInterceptor.class);
 
         b.addMethod(modifyRequestMethod());
+        b.addMethod(modifyHttpRequestMethod());
         b.addMethod(ruleParams());
 
         b.addMethod(setContextParams());
@@ -104,28 +110,50 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         String providerVar = "provider";
 
+        b.addStatement("$T result = context.request()", SdkRequest.class);
         // We skip resolution if the source of the endpoint is the endpoint discovery call
         b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
-        b.addStatement("return context.request()");
+        b.addStatement("return result");
         b.endControlFlow();
 
         b.addStatement("$1T $2N = ($1T) executionAttributes.getAttribute($3T.ENDPOINT_PROVIDER)",
                        endpointRulesSpecUtils.providerInterfaceName(), providerVar, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("try");
-        b.addStatement("$T result = $N.resolveEndpoint(ruleParams(context.request(), executionAttributes)).join()",
+        b.addStatement("$T endpoint = $N.resolveEndpoint(ruleParams(result, executionAttributes)).join()",
                        Endpoint.class, providerVar);
         b.beginControlFlow("if (!$T.disableHostPrefixInjection(executionAttributes))",
                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
-        b.addStatement("$T hostPrefix = hostPrefix(executionAttributes.getAttribute($T.OPERATION_NAME), context.request())",
+        b.addStatement("$T hostPrefix = hostPrefix(executionAttributes.getAttribute($T.OPERATION_NAME), result)",
                        ParameterizedTypeName.get(Optional.class, String.class), SdkExecutionAttribute.class);
         b.beginControlFlow("if (hostPrefix.isPresent())");
-        b.addStatement("result = $T.addHostPrefix(result, hostPrefix.get())",
+        b.addStatement("endpoint = $T.addHostPrefix(endpoint, hostPrefix.get())",
                        endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
         b.endControlFlow();
         b.endControlFlow();
-        b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, result)");
-        b.addStatement("return context.request()");
+
+
+        // If the endpoint resolver returns auth settings, use them as signer properties
+        b.addStatement("$T<$T> authSchemes = endpoint.attribute($T.AUTH_SCHEMES)",
+                       List.class, EndpointAuthScheme.class, AwsEndpointAttribute.class);
+        b.addStatement("$T<?> selectedAuthScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
+                       SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
+        b.beginControlFlow("if (authSchemes != null && selectedAuthScheme != null)");
+        b.addStatement("selectedAuthScheme = $T.mergeIntoResolvedAuthScheme(authSchemes, selectedAuthScheme)",
+                       endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
+        b.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
+                       SdkInternalExecutionAttribute.class);
+        b.endControlFlow();
+
+
+        // Backwards-compatibility with old signers.
+        b.beginControlFlow("if (selectedAuthScheme != null)");
+        b.addStatement("$T.setSigningParams(executionAttributes, selectedAuthScheme.authSchemeOption())",
+                       endpointRulesSpecUtils.rulesRuntimeClassName("AuthSchemeUtils"));
+        b.endControlFlow();
+
+        b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint)");
+        b.addStatement("return result");
         b.endControlFlow();
         b.beginControlFlow("catch ($T e)", CompletionException.class);
         b.addStatement("$T cause = e.getCause()", Throwable.class);
@@ -136,6 +164,29 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("throw $T.create($S, cause)", SdkClientException.class, "Endpoint resolution failed");
         b.endControlFlow();
         b.endControlFlow();
+        return b.build();
+    }
+
+    private MethodSpec modifyHttpRequestMethod() {
+        MethodSpec.Builder b = MethodSpec.methodBuilder("modifyHttpRequest")
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .addAnnotation(Override.class)
+                                         .returns(SdkHttpRequest.class)
+                                         .addParameter(Context.ModifyHttpRequest.class, "context")
+                                         .addParameter(ExecutionAttributes.class, "executionAttributes");
+
+        b.addStatement("$T resolvedEndpoint = executionAttributes.getAttribute($T.RESOLVED_ENDPOINT)",
+                       Endpoint.class, SdkInternalExecutionAttribute.class);
+        b.beginControlFlow("if (resolvedEndpoint.headers().isEmpty())");
+        b.addStatement("return context.httpRequest()");
+        b.endControlFlow();
+
+        b.addStatement("$T httpRequestBuilder = context.httpRequest().toBuilder()", SdkHttpRequest.Builder.class);
+        b.addCode("resolvedEndpoint.headers().forEach((name, values) -> {");
+        b.addStatement("values.forEach(v -> httpRequestBuilder.appendHeader(name, v))");
+        b.addCode("});");
+        b.addStatement("return httpRequestBuilder.build()");
+
         return b.build();
     }
 
