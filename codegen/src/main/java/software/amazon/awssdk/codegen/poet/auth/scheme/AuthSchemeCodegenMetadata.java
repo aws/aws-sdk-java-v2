@@ -47,8 +47,7 @@ public final class AuthSchemeCodegenMetadata {
         SIGV4.toBuilder()
              .addProperty(SignerPropertyValueProvider.builder()
                                                      .containingClass(AwsV4HttpSigner.class)
-                                                     .fieldName(
-                                                         "PAYLOAD_SIGNING_ENABLED")
+                                                     .fieldName("PAYLOAD_SIGNING_ENABLED")
                                                      .valueEmitter((spec, utils) -> spec.addCode("$L", false))
                                                      .build())
              .build();
@@ -67,8 +66,7 @@ public final class AuthSchemeCodegenMetadata {
                                                      .build())
              .addProperty(SignerPropertyValueProvider.builder()
                                                      .containingClass(AwsV4HttpSigner.class)
-                                                     .fieldName(
-                                                         "PAYLOAD_SIGNING_ENABLED")
+                                                     .fieldName("PAYLOAD_SIGNING_ENABLED")
                                                      .valueEmitter((spec, utils) -> spec.addCode("$L", false))
                                                      .build())
              .build();
