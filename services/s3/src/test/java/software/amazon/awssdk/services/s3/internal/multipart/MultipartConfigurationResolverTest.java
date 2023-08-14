@@ -71,4 +71,13 @@ public class MultipartConfigurationResolverTest {
         assertThat(resolver.thresholdInBytes()).isEqualTo(8L);
         assertThat(resolver.apiCallBufferSize()).isEqualTo(3L);
     }
+
+    @Test
+    void noValueProvided_shouldUseDefault() {
+        MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(MultipartConfiguration.builder()
+                                                                                                           .build());
+        assertThat(resolver.minimalPartSizeInBytes()).isEqualTo(8L * 1024 * 1024);
+        assertThat(resolver.thresholdInBytes()).isEqualTo(8L * 1024 * 1024);
+        assertThat(resolver.apiCallBufferSize()).isEqualTo(8L * 1024 * 1024 * 4);
+    }
 }
