@@ -53,6 +53,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
+import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -69,7 +70,10 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         super(initializeS3AsyncClient(builder));
         long partSizeInBytes = builder.minimalPartSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
                                builder.minimalPartSizeInBytes;
-        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),  partSizeInBytes);
+        long thresholdInBytes = builder.thresholdInBytes == null ? partSizeInBytes : builder.thresholdInBytes;
+        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),
+                                                     partSizeInBytes,
+                                                     thresholdInBytes);
     }
 
     @Override
@@ -114,6 +118,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         Validate.isPositiveOrNull(builder.maxConcurrency, "maxConcurrency");
         Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
         Validate.isPositiveOrNull(builder.minimalPartSizeInBytes, "minimalPartSizeInBytes");
+        Validate.isPositiveOrNull(builder.thresholdInBytes, "thresholdInBytes");
 
         S3NativeClientConfiguration.Builder nativeClientBuilder =
             S3NativeClientConfiguration.builder()
@@ -125,7 +130,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
-                                       .httpConfiguration(builder.httpConfiguration);
+                                       .httpConfiguration(builder.httpConfiguration)
+                                       .thresholdInBytes(builder.thresholdInBytes);
 
         if (builder.retryConfiguration != null) {
             nativeClientBuilder.standardRetryOptions(
@@ -153,6 +159,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private List<ExecutionInterceptor> executionInterceptors;
         private S3CrtRetryConfiguration retryConfiguration;
         private boolean crossRegionAccessEnabled;
+        private Long thresholdInBytes;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -268,8 +275,14 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
-        public S3CrtAsyncClientBuilder crossRegionAccessEnabled(boolean crossRegionAccessEnabled) {
+        public S3CrtAsyncClientBuilder crossRegionAccessEnabled(Boolean crossRegionAccessEnabled) {
             this.crossRegionAccessEnabled = crossRegionAccessEnabled;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder thresholdInBytes(Long thresholdInBytes) {
+            this.thresholdInBytes = thresholdInBytes;
             return this;
         }
 

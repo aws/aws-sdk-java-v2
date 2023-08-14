@@ -1,0 +1,42 @@
+{
+    "version": "2.20.118",
+    "date": "2023-08-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "As part of CAE tagging integration we need to update our budget names regex filter to prevent customers from using \"/action/\" in their budget names."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This release includes additional Glue Streaming KAKFA SASL property types."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "Drift Detection capability added when applications policy has moved from a meet to breach state. Customers will be able to exclude operational recommendations and receive credit in their resilience score. Customers can now add ARH permissions to an existing or new role."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "New feature that logs Cognito user pool error messages to CloudWatch logs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "SageMaker Inference Recommender introduces a new API GetScalingConfigurationRecommendation to recommend auto scaling policies based on completed Inference Recommender jobs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
