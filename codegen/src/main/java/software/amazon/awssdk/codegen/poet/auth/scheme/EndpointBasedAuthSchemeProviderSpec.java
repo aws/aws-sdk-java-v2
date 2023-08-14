@@ -30,13 +30,17 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.utils.Validate;
 
@@ -138,28 +142,56 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
     private void addAuthSchemeSwitch(MethodSpec.Builder spec) {
         spec.addStatement("$T name = authScheme.name()", String.class);
         spec.beginControlFlow("switch(name)");
+        addAuthSchemeSwitchSigV4Case(spec);
+        addAuthSchemeSwitchSigV4aCase(spec);
+        addAuthSchemeSwitchDefaultCase(spec);
+        spec.endControlFlow();
+    }
 
+    private void addAuthSchemeSwitchSigV4Case(MethodSpec.Builder spec) {
         spec.addCode("case $S:", "sigv4");
         spec.addStatement("$T sigv4AuthScheme = $T.isInstanceOf($T.class, authScheme, $S, authScheme.getClass().getName())",
                           SigV4AuthScheme.class, Validate.class, SigV4AuthScheme.class,
                           "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s");
 
-        spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, "aws.auth#sigv4")
+        spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4aAuthScheme.SCHEME_ID)
             .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4AuthScheme.signingName())", AwsV4HttpSigner.class)
             .addCode(".putSignerProperty($T.REGION_NAME, sigv4AuthScheme.signingRegion())", AwsV4HttpSigner.class)
             .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding())",
                      AwsV4HttpSigner.class)
             .addCode(".build());");
         spec.addStatement("break");
+    }
 
-        // SigV4a -- Not yet implemented, we throw UnsupportedOperationException for now.
+    private void addAuthSchemeSwitchSigV4aCase(MethodSpec.Builder spec) {
         spec.addCode("case $S:", "sigv4a");
-        spec.addStatement("throw new $T($S)", UnsupportedOperationException.class, "SigV4a is not yet supported.");
 
+        spec.addStatement("$T sigv4aAuthScheme = $T.isInstanceOf($T.class, authScheme, $S, authScheme.getClass().getName())",
+                          SigV4aAuthScheme.class, Validate.class, SigV4aAuthScheme.class,
+                          "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s");
 
-        spec.addCode("default:")
-            .addStatement("throw new $T($S + name)", IllegalArgumentException.class, "Unknown auth scheme: ");
-        spec.endControlFlow();
+        spec.addStatement("$T signingRegionSet = sigv4aAuthScheme.signingRegionSet()", ParameterizedTypeName.get(List.class,
+                                                                                                                 String.class));
+        spec.beginControlFlow("if (signingRegionSet.size() == 0)")
+            .addStatement("throw $T.create($S)", SdkClientException.class, "Signing region set is empty")
+            .endControlFlow();
+
+        spec.beginControlFlow("if (signingRegionSet.size() > 1)")
+            .addStatement("throw $T.create($S)", SdkClientException.class, "Don't know how to set scope of > 1 region")
+            .endControlFlow();
+
+        spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4aAuthScheme.SCHEME_ID)
+            .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())", AwsV4aHttpSigner.class)
+            .addCode(".putSignerProperty($T.REGION_NAME, signingRegionSet.get(0))", AwsV4aHttpSigner.class)
+            .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4aAuthScheme.disableDoubleEncoding())",
+                     AwsV4aHttpSigner.class)
+            .addCode(".build());");
+        spec.addStatement("break");
+    }
+
+    private void addAuthSchemeSwitchDefaultCase(MethodSpec.Builder spec) {
+        spec.addCode("default:");
+        spec.addStatement("throw new $T($S + name)", IllegalArgumentException.class, "Unknown auth scheme: ");
     }
 
     private Map<String, ParameterModel> parameters() {
