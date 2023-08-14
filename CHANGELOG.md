@@ -1,3 +1,114 @@
+# __2.20.126__ __2023-08-14__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Fix SDK logging of certain fields.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __Amazon Omics__
+  - ### Features
+    - This release provides support for annotation store versioning and cross account sharing for Omics Analytics
+
+# __2.20.125__ __2023-08-11__
+## __AWS Config__
+  - ### Features
+    - Updated ResourceType enum with new resource types onboarded by AWS Config in July 2023.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 P5 instances, powered by the latest NVIDIA H100 Tensor Core GPUs, deliver the highest performance in EC2 for deep learning (DL) and HPC applications. M7i-flex and M7i instances are next-generation general purpose instances powered by custom 4th Generation Intel Xeon Scalable processors.
+
+## __Amazon QuickSight__
+  - ### Features
+    - New Authentication method for Account subscription - IAM Identity Center. Hierarchy layout support, default column width support and related style properties for pivot table visuals. Non-additive topic field aggregations for Topic API
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Doc only updates to include: 1) Clarified which part of an email address where it's okay to have Punycode when it contains non-ASCII characters for the SendRawEmail action and other actions where this is applicable. 2) Updated S3Action description with new MB max bucket size from 30 to 40.
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - This release adds new API parameters to override workflow task list for workflow executions.
+
+## __AmplifyBackend__
+  - ### Features
+    - Adds sensitive trait to required input shapes.
+
+# __2.20.124__ __2023-08-10__
+## __AWS CloudTrail__
+  - ### Features
+    - Documentation updates for CloudTrail.
+
+## __AWS DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix for Issue [#4156](https://github.com/aws/aws-sdk-java-v2/issues/4156) : Single quotes in toJson conversions for EnhancedDocuments are no longer being escaped.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed bug where limit was not copied over when cloning ByteBuffer using immutableCopyOf()
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Add additional InvalidRequestException to list of possible exceptions for ListSecret.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AW Transfer Family
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds APIs to provision agents that are global / available in multiple AWS regions and distribute them across these regions by percentage.
+
+## __Amazon Omics__
+  - ### Features
+    - This release adds instanceType to GetRunTask & ListRunTasks responses.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables configuring security groups for Network Load Balancers
+
+# __2.20.123__ __2023-08-09__
+## __AWS Global Accelerator__
+  - ### Features
+    - Documentation update for dualstack EC2 endpoint support
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Updating CreatePhoneNumberOrder, UpdatePhoneNumber and BatchUpdatePhoneNumbers APIs, adding phone number name
+
+## __Amazon FSx__
+  - ### Features
+    - For FSx for Lustre, add new data repository task type, RELEASE_DATA_FROM_FILESYSTEM, to release files that have been archived to S3. For FSx for Windows, enable support for configuring and updating SSD IOPS, and for updating storage type. For FSx for OpenZFS, add new deployment type, MULTI_AZ_1.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added autoEnable ALL to UpdateOrganizationConfiguration and DescribeOrganizationConfiguration APIs.
+
+## __Amazon S3__
+  - ### Features
+    - Allow users to configure upload threshold size for AWS CRT-based S3 client via `S3CrtAsyncClientBuilder#thresholdInBytes`.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for cross account access for SageMaker Model Cards through AWS RAM.
+
 # __2.20.122__ __2023-08-08__
 ## __AWS Backup__
   - ### Features
@@ -1090,7 +1201,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
