@@ -1,3 +1,20 @@
+# __2.20.126__ __2023-08-14__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Fix SDK logging of certain fields.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __Amazon Omics__
+  - ### Features
+    - This release provides support for annotation store versioning and cross account sharing for Omics Analytics
+
 # __2.20.125__ __2023-08-11__
 ## __AWS Config__
   - ### Features
@@ -1184,7 +1201,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
