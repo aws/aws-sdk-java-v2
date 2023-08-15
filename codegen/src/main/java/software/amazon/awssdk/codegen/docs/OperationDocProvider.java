@@ -172,15 +172,9 @@ abstract class OperationDocProvider {
         String parameterDocs = stripHtmlTags(opModel.getInput().getDocumentation());
 
         if (config.isConsumerBuilder()) {
-
-            String inputShapeName = opModel.getInputShape().getC2jName();
-            if (inputShapeName.endsWith("Input")) {
-                inputShapeName = inputShapeName.replaceAll("Input$", "Request");
-            }
-
             docBuilder.param(opModel.getInput().getVariableName(),
                              "A {@link Consumer} that will call methods on {@link %s.Builder} to create a request. %s",
-                             inputShapeName,
+                             opModel.getInputShape().getShapeName(),
                              parameterDocs);
         } else {
             docBuilder.param(opModel.getInput().getVariableName(), parameterDocs);
