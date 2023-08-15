@@ -405,12 +405,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>http-auth</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>http-auth-aws</artifactId>
+            <artifactId>identity-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

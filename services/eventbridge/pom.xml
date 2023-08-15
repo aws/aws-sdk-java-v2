@@ -56,6 +56,11 @@
             <artifactId>aws-json-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
         <!-- Test Dependencies -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -68,6 +73,11 @@
             <artifactId>route53</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
 </project>
