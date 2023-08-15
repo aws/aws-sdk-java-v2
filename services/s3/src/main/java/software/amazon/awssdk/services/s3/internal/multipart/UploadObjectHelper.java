@@ -34,30 +34,28 @@ public final class UploadObjectHelper {
     private final long partSizeInBytes;
     private final GenericMultipartHelper<PutObjectRequest, PutObjectResponse> genericMultipartHelper;
 
-    private final long maxMemoryUsageInBytes;
+    private final long apiCallBufferSize;
     private final long multipartUploadThresholdInBytes;
     private final UploadWithKnownContentLengthHelper uploadWithKnownContentLength;
     private final UploadWithUnknownContentLengthHelper uploadWithUnknownContentLength;
 
     public UploadObjectHelper(S3AsyncClient s3AsyncClient,
-                              long partSizeInBytes,
-                              long multipartUploadThresholdInBytes,
-                              long maxMemoryUsageInBytes) {
+                              MultipartConfigurationResolver resolver) {
         this.s3AsyncClient = s3AsyncClient;
-        this.partSizeInBytes = partSizeInBytes;
+        this.partSizeInBytes = resolver.minimalPartSizeInBytes();
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
                                                                    SdkPojoConversionUtils::toAbortMultipartUploadRequest,
                                                                    SdkPojoConversionUtils::toPutObjectResponse);
-        this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
-        this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
+        this.apiCallBufferSize = resolver.apiCallBufferSize();
+        this.multipartUploadThresholdInBytes = resolver.thresholdInBytes();
         this.uploadWithKnownContentLength = new UploadWithKnownContentLengthHelper(s3AsyncClient,
                                                                                    partSizeInBytes,
                                                                                    multipartUploadThresholdInBytes,
-                                                                                   maxMemoryUsageInBytes);
+                                                                                   apiCallBufferSize);
         this.uploadWithUnknownContentLength = new UploadWithUnknownContentLengthHelper(s3AsyncClient,
                                                                                        partSizeInBytes,
                                                                                        multipartUploadThresholdInBytes,
-                                                                                       maxMemoryUsageInBytes);
+                                                                                       apiCallBufferSize);
     }
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
