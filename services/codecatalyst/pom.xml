@@ -58,6 +58,11 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>ssooidc</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>

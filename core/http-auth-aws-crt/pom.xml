@@ -44,6 +44,11 @@
             <artifactId>http-auth-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>identity-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
