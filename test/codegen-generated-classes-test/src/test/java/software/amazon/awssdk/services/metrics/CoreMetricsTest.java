@@ -198,7 +198,7 @@ public class CoreMetricsTest {
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(0);
         assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT).get(0)).isEqualTo(URI.create(
-            "https://customresponsemetadata.us-west-2.amazonaws.com"));
+            "https://protocolrestjson.amazonaws.com"));
 
         assertThat(capturedCollection.children()).hasSize(1);
         MetricCollection attemptCollection = capturedCollection.children().get(0);
