@@ -45,8 +45,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMuta
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ServiceEndpointAttemptMetricCollectionStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ServiceEndpointMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
@@ -187,13 +185,10 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .wrappedWith(ApiCallAttemptTimeoutTrackingStage::new)
                                          .wrappedWith(TimeoutExceptionHandlingStage::new)
                                          .wrappedWith((deps, wrapped) -> new ApiCallAttemptMetricCollectionStage<>(wrapped))
-                                         .wrappedWith((deps, wrapped) ->
-                                                          new ServiceEndpointAttemptMetricCollectionStage<>(wrapped))
                                          .wrappedWith(RetryableStage::new)::build)
                                .wrappedWith(StreamManagingStage::new)
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
                                .wrappedWith((deps, wrapped) -> new ApiCallMetricCollectionStage<>(wrapped))
-                               .wrappedWith((deps, wrapped) -> new ServiceEndpointMetricCollectionStage<>(wrapped))
                     .then(() -> new UnwrapResponseContainer<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
                     .wrappedWith(ExecutionFailureExceptionReportingStage::new)
