@@ -33,6 +33,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FR
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
@@ -72,11 +73,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
-import software.amazon.awssdk.core.internal.interceptor.AsyncRequestBodyHttpChecksumTrailerInterceptor;
-import software.amazon.awssdk.core.internal.interceptor.HttpChecksumInHeaderInterceptor;
-import software.amazon.awssdk.core.internal.interceptor.HttpChecksumRequiredInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
-import software.amazon.awssdk.core.internal.interceptor.SyncHttpChecksumInTrailerInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SdkUserAgent;
@@ -85,6 +82,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
@@ -277,7 +275,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                          .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
                                          .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
                                          .option(USER_AGENT_SUFFIX, "")
-                                         .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                                         .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                         .option(IDENTITY_PROVIDER_CONFIGURATION,
+                                                 IdentityProviderConfiguration.builder().build()));
     }
 
     /**
@@ -441,11 +441,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private List<ExecutionInterceptor> sdkInterceptors() {
         return Collections.unmodifiableList(Arrays.asList(
-            new HttpChecksumRequiredInterceptor(),
-            new SyncHttpChecksumInTrailerInterceptor(),
-            new HttpChecksumValidationInterceptor(),
-            new AsyncRequestBodyHttpChecksumTrailerInterceptor(),
-            new HttpChecksumInHeaderInterceptor()
+            new HttpChecksumValidationInterceptor()
         ));
     }
 

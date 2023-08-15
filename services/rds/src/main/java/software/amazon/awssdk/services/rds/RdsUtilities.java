@@ -76,7 +76,6 @@ public interface RdsUtilities {
      * @throws IllegalArgumentException if the required parameters are not valid
      */
     default String generateAuthenticationToken(GenerateAuthenticationTokenRequest request) {
-        RdsUtilities.builder().region(Region.US_WEST_2).build();
         throw new UnsupportedOperationException();
     }
 

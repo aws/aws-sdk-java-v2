@@ -15,57 +15,56 @@
 
 package software.amazon.awssdk.http.auth.internal;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.BearerHttpSigner;
-import software.amazon.awssdk.http.auth.spi.AsyncHttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncSignedHttpRequest;
-import software.amazon.awssdk.http.auth.spi.HttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
  * A default implementation of {@link BearerHttpSigner}.
  */
 @SdkInternalApi
-public class DefaultBearerHttpSigner implements BearerHttpSigner {
-
-    private static final String AUTHZ_HEADER = "Authorization";
-    private static final String BEARER_LABEL = "Bearer";
+public final class DefaultBearerHttpSigner implements BearerHttpSigner {
 
     @Override
-    public SyncSignedHttpRequest sign(SyncHttpSignRequest<? extends TokenIdentity> request) {
-        return SyncSignedHttpRequest.builder()
-                .request(doSign(request))
-                .payload(request.payload().orElse(null))
-                .build();
+    public SyncSignedRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
+        return SyncSignedRequest.builder()
+                                .request(doSign(request))
+                                .payload(request.payload().orElse(null))
+                                .build();
     }
 
     @Override
-    public AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<? extends TokenIdentity> request) {
-        return AsyncSignedHttpRequest.builder()
-                .request(doSign(request))
-                .payload(request.payload().orElse(null))
-                .build();
+    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends TokenIdentity> request) {
+        return CompletableFuture.completedFuture(
+            AsyncSignedRequest.builder()
+                              .request(doSign(request))
+                              .payload(request.payload().orElse(null))
+                              .build()
+        );
     }
 
     /**
-     * Using {@link HttpSignRequest}, sign the request with
-     * a {@link HttpSignRequest} and re-build it.
+     * Using {@link SignRequest}, sign the request with a {@link SignRequest} and re-build it.
      */
-    private SdkHttpRequest doSign(HttpSignRequest<?, ? extends TokenIdentity> request) {
+    private SdkHttpRequest doSign(SignRequest<?, ? extends TokenIdentity> request) {
         return request.request().toBuilder()
-                .putHeader(
-                        AUTHZ_HEADER,
-                        buildAuthorizationHeader(request.identity()))
-                .build();
+                      .putHeader(
+                          "Authorization",
+                          buildAuthorizationHeader(request.identity()))
+                      .build();
     }
 
     /**
      * Use a {@link TokenIdentity} to build an authorization header.
      */
     private String buildAuthorizationHeader(TokenIdentity tokenIdentity) {
-        return BEARER_LABEL + " " + tokenIdentity.token();
+        return "Bearer " + tokenIdentity.token();
     }
 }

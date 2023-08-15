@@ -18,13 +18,16 @@ package software.amazon.awssdk.awscore.internal;
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
 import software.amazon.awssdk.core.HttpChecksumConstant;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -40,6 +43,10 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
@@ -91,7 +98,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
             .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfig.option(SdkClientOption.ENDPOINT))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
-            .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER))
+            .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER,
+                          resolveEndpointProvider(originalRequest, clientConfig))
             .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS,
                           clientConfig.option(SdkClientOption.CLIENT_CONTEXT_PARAMS))
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
@@ -100,6 +108,10 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT,
                           clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
             .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes));
+
+
+        // Auth Scheme resolution related attributes
+        putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
@@ -133,6 +145,58 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
+                                                          SdkClientConfiguration clientConfig,
+                                                          SdkRequest originalRequest) {
+
+        // TODO: When request-level auth scheme resovler is added, use the request-level auth scheme resolver if the customer
+        //  specified an override, otherwise fall back to the one on the client.
+        AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
+
+        // Use auth schemes that the user specified at the request level with
+        // preference over those on the client.
+        // TODO: The request level schemes should be "merged" with client level, with request preferred over client
+
+        // TODO: this may have to be setup at operation level, as some operations may use different signer for same schemeId,
+        // e.g., EventStreamV4AuthScheme
+
+        // TODO: If request level override is specified, should each operation check that overridden scheme is the
+        //  appropriate type (uses the appropriate Signer) for streaming, etc.
+        Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
+
+        IdentityProviderConfiguration identityProviders = resolveIdentityProviderConfiguration(originalRequest, clientConfig);
+
+        executionAttributes
+            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
+            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes)
+            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION, identityProviders);
+    }
+
+    // TODO: This is hard coding the logic for the credentialsIdentityProvider from AwsRequestOverrideConfiguration.
+    //       Currently, AwsRequestOverrideConfiguration does not support overriding the tokenIdentityProvider. When adding that
+    //       support this method will need to be updated.
+    private static IdentityProviderConfiguration resolveIdentityProviderConfiguration(SdkRequest originalRequest,
+                                                                                      SdkClientConfiguration clientConfig) {
+        IdentityProviderConfiguration identityProviderConfiguration =
+            clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
+
+        // identityProviderConfiguration can be null, for new core with old client. In this case, even if
+        // AwsRequestOverrideConfiguration has credentialsIdentityProvider set (because it is in new core), it is ok to not setup
+        // IDENTITY_PROVIDER_CONFIGURATION, as old client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also
+        // needed for SRA logic.
+        if (identityProviderConfiguration == null) {
+            return null;
+        }
+
+        return originalRequest.overrideConfiguration()
+                              .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+                              .map(c -> (AwsRequestOverrideConfiguration) c)
+                              .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                              .map(identityProvider ->
+                                       identityProviderConfiguration.copy(b -> b.putIdentityProvider(identityProvider)))
+                              .orElse(identityProviderConfiguration);
     }
 
     /**
@@ -173,5 +237,19 @@ public final class AwsExecutionContextBuilder {
     private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
         return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
     }
+
+
+    /**
+     * Resolves the endpoint provider, with the request override configuration taking precedence over the
+     * provided default client clientConfig.
+     * @return The endpoint provider that will be used by the SDK to resolve endpoints.
+     */
+    private static EndpointProvider resolveEndpointProvider(SdkRequest request,
+                                                           SdkClientConfiguration clientConfig) {
+        return request.overrideConfiguration()
+                      .flatMap(RequestOverrideConfiguration::endpointProvider)
+                      .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
+    }
+
 
 }

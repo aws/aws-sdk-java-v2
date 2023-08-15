@@ -3,13 +3,15 @@ package software.amazon.awssdk.services.query.endpoints;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * The parameters object used to resolve an endpoint for the Query service.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public final class QueryEndpointParams {
+public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpointParams.Builder, QueryEndpointParams> {
     private final Region region;
 
     private final Boolean useDualStackEndpoint;
@@ -95,7 +97,11 @@ public final class QueryEndpointParams {
         return operationContextParam;
     }
 
-    public interface Builder {
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
+    public interface Builder extends CopyableBuilder<Builder, QueryEndpointParams> {
         Builder region(Region region);
 
         Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
@@ -144,6 +150,22 @@ public final class QueryEndpointParams {
         private String stringContextParam;
 
         private String operationContextParam;
+
+        private BuilderImpl() {
+        }
+
+        private BuilderImpl(QueryEndpointParams builder) {
+            this.region = builder.region;
+            this.useDualStackEndpoint = builder.useDualStackEndpoint;
+            this.useFIPSEndpoint = builder.useFIPSEndpoint;
+            this.endpointId = builder.endpointId;
+            this.defaultTrueParam = builder.defaultTrueParam;
+            this.defaultStringParam = builder.defaultStringParam;
+            this.deprecatedParam = builder.deprecatedParam;
+            this.booleanContextParam = builder.booleanContextParam;
+            this.stringContextParam = builder.stringContextParam;
+            this.operationContextParam = builder.operationContextParam;
+        }
 
         @Override
         public Builder region(Region region) {

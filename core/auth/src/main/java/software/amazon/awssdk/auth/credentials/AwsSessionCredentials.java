@@ -36,17 +36,21 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
+
     private final String accountId;
-    private final Instant expiration;
+    private final Instant expirationTime;
 
     private AwsSessionCredentials(Builder builder) {
         this.accessKeyId = Validate.paramNotNull(builder.accessKeyId, "accessKey");
         this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretKey");
         this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
+        this.expirationTime = builder.expirationTime;
         this.accountId = builder.accountId;
-        this.expiration = builder.expiration;
     }
 
+    /**
+     * Returns a builder for this object.
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -63,17 +67,34 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         return builder().accessKeyId(accessKey).secretAccessKey(secretKey).sessionToken(sessionToken).build();
     }
 
+    /**
+     * Retrieve the AWS access key, used to identify the user interacting with AWS.
+     */
     @Override
     public String accessKeyId() {
         return accessKeyId;
     }
 
+    /**
+     * Retrieve the AWS secret access key, used to authenticate the user interacting with AWS.
+     */
     @Override
     public String secretAccessKey() {
         return secretAccessKey;
     }
 
+    /**
+     * Retrieve the expiration time of these credentials, if it exists.
+     */
     @Override
+    public Optional<Instant> expirationTime() {
+        return Optional.ofNullable(expirationTime);
+    }
+
+    /**
+     * Retrieve the AWS session token. This token is retrieved from an AWS token service, and is used for authenticating that this
+     * user has received temporary permission to access some resource.
+     */
     public String sessionToken() {
         return sessionToken;
     }
@@ -81,10 +102,6 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     @Override
     public Optional<String> accountId() {
         return Optional.ofNullable(accountId);
-    }
-
-    public Optional<Instant> expiration() {
-        return Optional.ofNullable(expiration);
     }
 
     @Override
@@ -108,8 +125,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         return Objects.equals(accessKeyId, that.accessKeyId) &&
                Objects.equals(secretAccessKey, that.secretAccessKey) &&
                Objects.equals(sessionToken, that.sessionToken) &&
-               Objects.equals(accountId, that.accountId().orElse(null)) &&
-               Objects.equals(expiration, that.expiration().orElse(null));
+               Objects.equals(expirationTime, that.expirationTime().orElse(null)) &&
+               Objects.equals(accountId, that.accountId().orElse(null));
     }
 
     @Override
@@ -118,40 +135,62 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         hashCode = 31 * hashCode + Objects.hashCode(accessKeyId());
         hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey());
         hashCode = 31 * hashCode + Objects.hashCode(sessionToken());
+        hashCode = 31 * hashCode + Objects.hashCode(expirationTime);
         hashCode = 31 * hashCode + Objects.hashCode(accountId);
-        hashCode = 31 * hashCode + Objects.hashCode(expiration);
         return hashCode;
     }
 
+    /**
+     * A builder for creating an instance of {@link AwsSessionCredentials}. This can be created with the static
+     * {@link #builder()} method.
+     */
     public static final class Builder {
         private String accessKeyId;
         private String secretAccessKey;
         private String sessionToken;
+        private Instant expirationTime;
         private String accountId;
-        private Instant expiration;
 
+        /**
+         * The AWS access key, used to identify the user interacting with services. Required.
+         */
         public Builder accessKeyId(String accessKeyId) {
             this.accessKeyId = accessKeyId;
             return this;
         }
 
+        /**
+         * The AWS secret access key, used to authenticate the user interacting with services. Required
+         */
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
             return this;
         }
 
+        /**
+         * The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
+         * received temporary permission to access some resource. Required
+         */
         public Builder sessionToken(String sessionToken) {
             this.sessionToken = sessionToken;
             return this;
         }
 
-        public Builder accountId(String accountId) {
-            this.accountId = accountId;
+        /**
+         * The time after which this identity will no longer be valid. If this is empty,
+         * an expiration time is not known (but the identity may still expire at some
+         * time in the future).
+         */
+        public Builder expirationTime(Instant expirationTime) {
+            this.expirationTime = expirationTime;
             return this;
         }
 
-        public Builder expiration(Instant expiration) {
-            this.expiration = expiration;
+        /**
+         * The account id associated with these credentials.
+         */
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
             return this;
         }
 

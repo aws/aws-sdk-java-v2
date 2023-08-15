@@ -18,6 +18,7 @@ package software.amazon.awssdk.services;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -57,4 +58,10 @@ public class AsyncSignerOverrideTest {
 
         verify(mockSigner).sign(any(SdkHttpFullRequest.class), any(ExecutionAttributes.class));
     }
+
+    // TODO(sra-identity-and-auth): Add test for SRA way of overriding signer to assert that overridden signer is used.
+    //  To do this, need ability to inject AuthScheme which uses mock HttpSigner. This is pending https://i.amazon.com/SMITHY-1450
+    //  At that point, rename this class to SignerOverrideTest, not specific to AsyncSignerOverride (which was for operation
+    //  level codegen changes).
+
 }

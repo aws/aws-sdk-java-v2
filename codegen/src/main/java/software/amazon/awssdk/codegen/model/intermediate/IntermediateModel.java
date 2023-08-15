@@ -235,6 +235,21 @@ public final class IntermediateModel {
         }
     }
 
+    public Optional<String> syncClientDecoratorClassName() {
+        if (customizationConfig.getSyncClientDecorator() != null) {
+            return Optional.of(customizationConfig.getSyncClientDecorator());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<String> asyncClientDecoratorClassName() {
+        String asyncClientDecorator = customizationConfig.getAsyncClientDecorator();
+        if (customizationConfig.getAsyncClientDecorator() != null) {
+            return Optional.of(asyncClientDecorator);
+        }
+        return Optional.empty();
+    }
+
     public String getFileHeader() {
         return FILE_HEADER;
     }
@@ -279,15 +294,5 @@ public final class IntermediateModel {
 
     public boolean hasWaiters() {
         return waiters.size() > 0;
-    }
-
-    public boolean containsRequestSigners() {
-        return getShapes().values().stream()
-                          .anyMatch(ShapeModel::isRequestSignerAware);
-    }
-
-    public boolean containsRequestEventStreams() {
-        return getOperations().values().stream()
-                              .anyMatch(OperationModel::hasEventStreamInput);
     }
 }

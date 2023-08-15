@@ -43,4 +43,40 @@ public class ResolveIdentityRequestTest {
                                                                .build();
         assertEquals("value", request.property(property));
     }
+
+    @Test
+    public void putProperty_sameProperty_isReplaced() {
+        IdentityProperty<String> property = IdentityProperty.create(String.class, "key");
+        ResolveIdentityRequest request = ResolveIdentityRequest.builder()
+                                                               .putProperty(property, "value")
+                                                               .putProperty(property, "value2")
+                                                               .build();
+        assertEquals("value2", request.property(property));
+    }
+
+    @Test
+    public void copyBuilder_addProperty_retains() {
+        IdentityProperty<String> property1 = IdentityProperty.create(String.class, "key1");
+        ResolveIdentityRequest request = ResolveIdentityRequest.builder()
+                                                               .putProperty(property1, "key1value1")
+                                                               .build();
+
+        IdentityProperty<String> property2 = IdentityProperty.create(String.class, "key2");
+        request = request.copy(builder -> builder.putProperty(property2, "key2value1"));
+        assertEquals("key1value1", request.property(property1));
+        assertEquals("key2value1", request.property(property2));
+    }
+
+    @Test
+    public void copyBuilder_updateAddProperty_works() {
+        IdentityProperty<String> property1 = IdentityProperty.create(String.class, "key1");
+        ResolveIdentityRequest request = ResolveIdentityRequest.builder()
+                                                               .putProperty(property1, "key1value1")
+                                                               .build();
+
+        IdentityProperty<String> property2 = IdentityProperty.create(String.class, "key2");
+        request = request.copy(builder -> builder.putProperty(property1, "key1value2").putProperty(property2, "key2value1"));
+        assertEquals("key1value2", request.property(property1));
+        assertEquals("key2value1", request.property(property2));
+    }
 }

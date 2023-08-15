@@ -59,6 +59,11 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void baseClientBuilderClassWithEndpointsAuthParams() {
+        assertThat(new BaseClientBuilderClass(ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList()), generatesTo("test-client-builder-endpoints-auth-params.java"));
+    }
+
+    @Test
     public void syncClientBuilderInterface() throws Exception {
         validateGeneration(SyncClientBuilderInterface::new, "test-sync-client-builder-interface.java");
     }
@@ -67,6 +72,22 @@ public class BuilderClassTest {
     public void syncClientBuilderClass() throws Exception {
         validateGeneration(SyncClientBuilderClass::new, "test-sync-client-builder-class.java");
     }
+
+    @Test
+    public void syncComposedClientBuilderClass() throws Exception {
+        validateComposedClientGeneration(SyncClientBuilderClass::new, "test-composed-sync-client-builder-class.java");
+    }
+
+    @Test
+    public void syncComposedDefaultClientBuilderClass() throws Exception {
+        validateComposedClientGeneration(BaseClientBuilderClass::new, "test-composed-sync-default-client-builder.java");
+    }
+
+    @Test
+    public void syncHasCrossRegionAccessEnabledPropertyBuilderClass() throws Exception {
+        validateComposedClientGeneration(BaseClientBuilderInterface::new, "test-customcontextparams-sync-client-builder-class.java");
+    }
+
 
     @Test
     public void asyncClientBuilderInterface() throws Exception {
@@ -78,8 +99,18 @@ public class BuilderClassTest {
         validateGeneration(AsyncClientBuilderClass::new, "test-async-client-builder-class.java");
     }
 
+    @Test
+    public void asyncComposedClientBuilderClass() throws Exception {
+        validateComposedClientGeneration(AsyncClientBuilderClass::new, "test-composed-async-client-builder-class.java");
+    }
+
     private void validateGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
         assertThat(generatorConstructor.apply(ClientTestModels.restJsonServiceModels()), generatesTo(expectedClassName));
+    }
+
+    private void validateComposedClientGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
+                                                  String expectedClassName) {
+        assertThat(generatorConstructor.apply(ClientTestModels.composedClientJsonServiceModels()), generatesTo(expectedClassName));
     }
 
     private void validateBearerAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,

@@ -30,36 +30,35 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
-import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
@@ -67,6 +66,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class BaseClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -114,7 +114,6 @@ public class BaseClientBuilderClass implements ClassSpec {
         mergeInternalDefaultsMethod().ifPresent(builder::addMethod);
 
         builder.addMethod(finalizeServiceConfigurationMethod());
-        defaultAwsAuthSignerMethod().ifPresent(builder::addMethod);
         builder.addMethod(signingNameMethod());
         builder.addMethod(defaultEndpointProviderMethod());
 
@@ -127,6 +126,12 @@ public class BaseClientBuilderClass implements ClassSpec {
             });
         }
 
+        if (hasSdkClientContextParams()) {
+            model.getCustomizationConfig().getCustomClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
+        }
+
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(setServiceConfigurationMethod())
                    .addMethod(beanStyleSetServiceConfigurationMethod());
@@ -134,8 +139,8 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (AuthUtils.usesBearerAuth(model)) {
             builder.addMethod(defaultBearerTokenProviderMethod());
-            builder.addMethod(defaultTokenAuthSignerMethod());
         }
+        builder.addMethod(defaultAuthSchemesMethod());
 
         addServiceHttpConfigIfNeeded(builder, model);
 
@@ -158,15 +163,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .returns(String.class)
                          .addCode("return $S;", model.getMetadata().getSigningName())
                          .build();
-    }
-
-    private Optional<MethodSpec> defaultAwsAuthSignerMethod() {
-        return awsAuthSignerDefinitionMethodBody().map(body -> MethodSpec.methodBuilder("defaultSigner")
-                                                                         .returns(Signer.class)
-                                                                         .addModifiers(PRIVATE)
-                                                                         .addCode(body)
-                                                                         .build());
-
     }
 
     private MethodSpec serviceEndpointPrefixMethod() {
@@ -199,10 +195,8 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
         builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
+        builder.addCode(".option($T.AUTH_SCHEMES, defaultAuthSchemes())", SdkClientOption.class);
 
-        if (defaultAwsAuthSignerMethod().isPresent()) {
-            builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
-        }
         builder.addCode(".option($T.CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)\n",
                         SdkClientOption.class, crc32FromCompressedDataEnabled);
 
@@ -214,7 +208,6 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (AuthUtils.usesBearerAuth(model)) {
             builder.addCode(".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
-            builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
         }
 
         builder.addCode(");");
@@ -266,6 +259,12 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         List<ClassName> builtInInterceptors = new ArrayList<>();
 
+        // TODO(sra-identity-and-auth): Skip S3 for now as there are several tests failing that need to be fixed somewhere else.
+        boolean isS3 = "S3".equals(model.getMetadata().getServiceName())
+            || "S3Control".equals(model.getMetadata().getServiceName());
+        if (!isS3) {
+            builtInInterceptors.add(authSchemeSpecUtils.authSchemeInterceptor());
+        }
         builtInInterceptors.add(endpointRulesSpecUtils.resolverInterceptorName());
         builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
         builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
@@ -325,8 +324,22 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         // Update configuration
+        builder.addStatement("$T builder = config.toBuilder()", SdkClientConfiguration.Builder.class);
+        if (AuthUtils.usesBearerAuth(model)) {
+            builder.addStatement("$T<? extends $T> identityProvider = config.option($T.TOKEN_IDENTITY_PROVIDER)",
+                                 IdentityProvider.class, TokenIdentity.class, AwsClientOption.class);
+            builder.beginControlFlow("if (identityProvider != null)");
+            builder.addStatement("$T identityProviderConfig = config.option($T.IDENTITY_PROVIDER_CONFIGURATION)",
+                                 IdentityProviderConfiguration.class, SdkClientOption.class);
 
-        builder.addCode("return config.toBuilder()\n");
+            builder.addStatement("builder.option($T.IDENTITY_PROVIDER_CONFIGURATION, "
+                                 + "identityProviderConfig.toBuilder()"
+                                 + ".putIdentityProvider(identityProvider).build())", SdkClientOption.class);
+
+            builder.endControlFlow();
+        }
+
+        builder.addCode("builder.option($1T.EXECUTION_INTERCEPTORS, interceptors)", SdkClientOption.class);
 
         if (model.getCustomizationConfig().getServiceConfig().hasDualstackProperty()) {
             builder.addCode(".option($T.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())",
@@ -342,7 +355,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                             SdkClientOption.class);
         }
 
-        builder.addCode(".option($1T.EXECUTION_INTERCEPTORS, interceptors)", SdkClientOption.class);
 
         if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
             builder.addCode(".option($1T.RETRY_POLICY, $2T.resolveRetryPolicy(config))",
@@ -363,8 +375,8 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addCode(".option($T.CLIENT_CONTEXT_PARAMS, clientContextParams.build())", SdkClientOption.class);
         }
 
-        builder.addCode(".build();");
-
+        builder.addCode(";\n");
+        builder.addStatement("return builder.build()");
         return builder.build();
     }
 
@@ -531,7 +543,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2) {
-        CodeBlock.Builder builder =  CodeBlock.builder();
+        CodeBlock.Builder builder = CodeBlock.builder();
 
         if (serviceDefaultFqcn != null) {
             builder.addStatement("$T result = $T.defaultHttpConfig()",
@@ -551,31 +563,6 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         return builder.build();
-    }
-
-    private Optional<CodeBlock> awsAuthSignerDefinitionMethodBody() {
-        AuthType authType = model.getMetadata().getAuthType();
-        switch (authType) {
-            case V4:
-                return Optional.of(v4SignerDefinitionMethodBody());
-            case S3:
-            case S3V4:
-                return Optional.of(s3SignerDefinitionMethodBody());
-            case BEARER:
-                return Optional.empty();
-            default:
-                throw new UnsupportedOperationException("Unsupported signer type: " + authType);
-        }
-    }
-
-    private CodeBlock v4SignerDefinitionMethodBody() {
-        return CodeBlock.of("return $T.create();", Aws4Signer.class);
-    }
-
-
-    private CodeBlock s3SignerDefinitionMethodBody() {
-        return CodeBlock.of("return $T.create();\n",
-                            ClassName.get("software.amazon.awssdk.auth.signer", "AwsS3V4Signer"));
     }
 
     private MethodSpec defaultEndpointProviderMethod() {
@@ -629,12 +616,29 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec defaultTokenAuthSignerMethod() {
-        return MethodSpec.methodBuilder("defaultTokenSigner")
-                         .returns(Signer.class)
-                         .addModifiers(PRIVATE)
-                         .addStatement("return $T.create()", BearerTokenSigner.class)
-                         .build();
+    private MethodSpec defaultAuthSchemesMethod() {
+        TypeName returns = ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class),
+                                                     ParameterizedTypeName.get(ClassName.get(AuthScheme.class),
+                                                                               WildcardTypeName.subtypeOf(Object.class)));
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("defaultAuthSchemes")
+                                               .addModifiers(PRIVATE)
+                                               .returns(returns);
+
+        Set<Class<?>> concreteAuthSchemeClasses = authSchemeSpecUtils.allServiceConcreteAuthSchemeClasses();
+        if (concreteAuthSchemeClasses.isEmpty()) {
+            builder.addStatement("return $T.emptyMap()", Collections.class);
+            return builder.build();
+        }
+
+        builder.addStatement("$T schemes = new $T<>($L)", returns, HashMap.class, concreteAuthSchemeClasses.size());
+        for (Class<?> concreteAuthScheme : concreteAuthSchemeClasses) {
+            String instanceVariable = CodegenNamingUtils.lowercaseFirstChar(concreteAuthScheme.getSimpleName());
+            builder.addStatement("$1T $2L = $1T.create()", concreteAuthScheme, instanceVariable);
+            builder.addStatement("schemes.put($1N.schemeId(), $1N)", instanceVariable);
+        }
+        builder.addStatement("return $T.unmodifiableMap(schemes)", Collections.class);
+        return builder.build();
     }
 
     @Override
@@ -647,25 +651,19 @@ public class BaseClientBuilderClass implements ClassSpec {
         return clientContextParams != null && !clientContextParams.isEmpty();
     }
 
+    private boolean hasSdkClientContextParams() {
+        return model.getCustomizationConfig() != null
+               && model.getCustomizationConfig().getCustomClientContextParams() != null
+               && !model.getCustomizationConfig().getCustomClientContextParams().isEmpty();
+    }
+
     private MethodSpec validateClientOptionsMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("validateClientOptions")
                                                .addModifiers(PROTECTED, Modifier.STATIC)
                                                .addParameter(SdkClientConfiguration.class, "c")
                                                .returns(void.class);
 
-        if (AuthUtils.usesAwsAuth(model)) {
-            builder.addStatement("$T.notNull(c.option($T.SIGNER), $S)",
-                                 Validate.class,
-                                 SdkAdvancedClientOption.class,
-                                 "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
-        }
-
         if (AuthUtils.usesBearerAuth(model)) {
-            builder.addStatement("$T.notNull(c.option($T.TOKEN_SIGNER), $S)",
-                                 Validate.class,
-                                 SdkAdvancedClientOption.class,
-                                 "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' "
-                                 + "must be configured in the client builder.");
             builder.addStatement("$T.notNull(c.option($T.TOKEN_IDENTITY_PROVIDER), $S)",
                                  Validate.class,
                                  AwsClientOption.class,

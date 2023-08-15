@@ -20,10 +20,13 @@ import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeInterceptorSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeParamsSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeProviderSpec;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.DefaultAuthSchemeParamsSpec;
-import software.amazon.awssdk.codegen.poet.auth.scheme.DefaultAuthSchemeProviderSpec;
+import software.amazon.awssdk.codegen.poet.auth.scheme.EndpointBasedAuthSchemeProviderSpec;
+import software.amazon.awssdk.codegen.poet.auth.scheme.ModelBasedAuthSchemeProviderSpec;
 
 public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -34,12 +37,17 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
     }
 
     @Override
-    protected List<GeneratorTask> createTasks() throws Exception {
+    protected List<GeneratorTask> createTasks() {
+        AuthSchemeSpecUtils authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
         List<GeneratorTask> tasks = new ArrayList<>();
         tasks.add(generateParamsInterface());
         tasks.add(generateProviderInterface());
         tasks.add(generateDefaultParamsImpl());
-        tasks.add(generateDefaultProviderImpl());
+        tasks.add(generateModelBasedProvider());
+        tasks.add(generateAuthSchemeInterceptor());
+        if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+            tasks.add(generateEndpointBasedProvider());
+        }
         return tasks;
     }
 
@@ -55,8 +63,17 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
         return new PoetGeneratorTask(authSchemeDir(), model.getFileHeader(), new AuthSchemeProviderSpec(model));
     }
 
-    private GeneratorTask generateDefaultProviderImpl() {
-        return new PoetGeneratorTask(authSchemeInternalDir(), model.getFileHeader(), new DefaultAuthSchemeProviderSpec(model));
+    private GeneratorTask generateModelBasedProvider() {
+        return new PoetGeneratorTask(authSchemeInternalDir(), model.getFileHeader(), new ModelBasedAuthSchemeProviderSpec(model));
+    }
+
+    private GeneratorTask generateEndpointBasedProvider() {
+        return new PoetGeneratorTask(authSchemeInternalDir(), model.getFileHeader(),
+                                     new EndpointBasedAuthSchemeProviderSpec(model));
+    }
+
+    private GeneratorTask generateAuthSchemeInterceptor() {
+        return new PoetGeneratorTask(authSchemeInternalDir(), model.getFileHeader(), new AuthSchemeInterceptorSpec(model));
     }
 
     private String authSchemeDir() {

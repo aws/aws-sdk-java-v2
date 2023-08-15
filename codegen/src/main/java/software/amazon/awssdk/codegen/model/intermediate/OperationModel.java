@@ -51,6 +51,8 @@ public class OperationModel extends DocumentationModel {
 
     private AuthType authType;
 
+    private List<AuthType> auth;
+
     private boolean isPaginated;
 
     private boolean endpointOperation;
@@ -134,6 +136,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setAuthType(AuthType authType) {
         this.authType = authType;
+    }
+
+    public List<AuthType> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<AuthType> auth) {
+        this.auth = auth;
     }
 
     public ShapeModel getInputShape() {

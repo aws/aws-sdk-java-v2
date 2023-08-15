@@ -23,32 +23,22 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeVariableName;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.arns.Arn;
-import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
-import software.amazon.awssdk.codegen.poet.PoetExtension;
-import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 final class ClientClassUtils {
-    private static final String PAGINATOR_USER_AGENT = "PAGINATED";
 
     private ClientClassUtils() {
     }
@@ -83,94 +73,6 @@ final class ClientClassUtils {
         result.addStatement(methodBody.toString(), spec.name, firstParameterClass, firstParameter.name);
 
         return result.build();
-    }
-
-    static MethodSpec applyPaginatorUserAgentMethod(PoetExtension poetExtensions, IntermediateModel model) {
-
-        TypeVariableName typeVariableName =
-            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
-
-        ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
-            .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
-
-        CodeBlock codeBlock = CodeBlock.builder()
-                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().version"
-                                                     + "($T.SDK_VERSION).name($S).build())",
-                                                     parameterizedTypeName, ApiName.class,
-                                                     VersionInfo.class,
-                                                     PAGINATOR_USER_AGENT)
-                                       .addStatement("$T overrideConfiguration =\n"
-                                                     + "            request.overrideConfiguration().map(c -> c.toBuilder()"
-                                                     + ".applyMutation"
-                                                     + "(userAgentApplier).build())\n"
-                                                     + "            .orElse((AwsRequestOverrideConfiguration.builder()"
-                                                     + ".applyMutation"
-                                                     + "(userAgentApplier).build()))", AwsRequestOverrideConfiguration.class)
-                                       .addStatement("return (T) request.toBuilder().overrideConfiguration"
-                                                     + "(overrideConfiguration).build()")
-                                       .build();
-
-        return MethodSpec.methodBuilder("applyPaginatorUserAgent")
-                         .addModifiers(Modifier.PRIVATE)
-                         .addParameter(typeVariableName, "request")
-                         .addTypeVariable(typeVariableName)
-                         .addCode(codeBlock)
-                         .returns(typeVariableName)
-                         .build();
-    }
-
-    static MethodSpec applySignerOverrideMethod(PoetExtension poetExtensions, IntermediateModel model) {
-        String signerOverrideVariable = "signerOverride";
-
-        TypeVariableName typeVariableName =
-            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
-
-        ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
-            .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
-
-        CodeBlock codeBlock = CodeBlock.builder()
-                                       .beginControlFlow("if (request.overrideConfiguration().flatMap(c -> c.signer())"
-                                                         + ".isPresent())")
-                                       .addStatement("return request")
-                                       .endControlFlow()
-                                       .addStatement("$T $L = b -> b.signer(signer).build()",
-                                                     parameterizedTypeName,
-                                                     signerOverrideVariable)
-                                       .addStatement("$1T overrideConfiguration =\n"
-                                                     + "            request.overrideConfiguration().map(c -> c.toBuilder()"
-                                                     + ".applyMutation($2L).build())\n"
-                                                     + "            .orElse((AwsRequestOverrideConfiguration.builder()"
-                                                     + ".applyMutation($2L).build()))",
-                                                     AwsRequestOverrideConfiguration.class,
-                                                     signerOverrideVariable)
-                                       .addStatement("return (T) request.toBuilder().overrideConfiguration"
-                                                     + "(overrideConfiguration).build()")
-                                       .build();
-
-        return MethodSpec.methodBuilder("applySignerOverride")
-                         .addModifiers(Modifier.PRIVATE)
-                         .addParameter(typeVariableName, "request")
-                         .addParameter(Signer.class, "signer")
-                         .addTypeVariable(typeVariableName)
-                         .addCode(codeBlock)
-                         .returns(typeVariableName)
-                         .build();
-    }
-
-    static CodeBlock callApplySignerOverrideMethod(OperationModel opModel) {
-        CodeBlock.Builder code = CodeBlock.builder();
-        ShapeModel inputShape = opModel.getInputShape();
-
-        if (inputShape.getRequestSignerClassFqcn() != null) {
-            code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
-                              opModel.getInput().getVariableName(),
-                              PoetUtils.classNameFromFqcn(inputShape.getRequestSignerClassFqcn()));
-        } else if (opModel.hasEventStreamInput()) {
-            code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
-                              opModel.getInput().getVariableName(), EventStreamAws4Signer.class);
-        }
-
-        return code.build();
     }
 
     static CodeBlock addEndpointTraitCode(OperationModel opModel) {

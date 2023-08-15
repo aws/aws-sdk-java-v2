@@ -118,7 +118,7 @@ public class AwaitCloseChannelPoolMapTest {
         channelPoolMap = new AwaitCloseChannelPoolMap(builder, null, bootstrapProvider);
         channelPoolMap.get(targetUri);
 
-        verify(bootstrapProvider).createBootstrap("some-awesome-service-1234.amazonaws.com", 8080);
+        verify(bootstrapProvider).createBootstrap("some-awesome-service-1234.amazonaws.com", 8080, null);
     }
 
     @Test
@@ -151,7 +151,7 @@ public class AwaitCloseChannelPoolMapTest {
         channelPoolMap = new AwaitCloseChannelPoolMap(builder, shouldProxyCache, bootstrapProvider);
         channelPoolMap.get(targetUri);
 
-        verify(bootstrapProvider).createBootstrap("localhost", mockProxy.port());
+        verify(bootstrapProvider).createBootstrap("localhost", mockProxy.port(), null);
     }
 
     @Test

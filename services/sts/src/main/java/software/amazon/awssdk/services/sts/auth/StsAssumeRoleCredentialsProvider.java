@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.sts.auth;
 
 import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.accountIdFromArn;
-import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.toAwsSessionCredentials;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -73,14 +73,12 @@ public final class StsAssumeRoleCredentialsProvider
         AssumeRoleRequest assumeRoleRequest = assumeRoleRequestSupplier.get();
         Validate.notNull(assumeRoleRequest, "Assume role request must not be null.");
         AssumeRoleResponse assumeRoleResponse = stsClient.assumeRole(assumeRoleRequest);
-        return fromStsCredentials(assumeRoleResponse.credentials(), accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
+        return toAwsSessionCredentials(assumeRoleResponse.credentials(), accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
     }
 
     @Override
     public String toString() {
-        return ToString.builder("StsAssumeRoleCredentialsProvider")
-                       .add("refreshRequest", assumeRoleRequestSupplier)
-                       .build();
+        return ToString.create("StsAssumeRoleCredentialsProvider");
     }
 
     @Override

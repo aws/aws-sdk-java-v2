@@ -16,21 +16,43 @@
 package software.amazon.awssdk.http.auth.spi;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultIdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * The identity providers configured in the SDK.
  * <p>
- * Used by the {@link HttpAuthScheme} implementation to load any @{@link IdentityProvider}s it needs from the set that are
+ * Used by the {@link AuthScheme} implementation to load any @{@link IdentityProvider}s it needs from the set that are
  * configured on the SDK.
  */
 @SdkPublicApi
-@FunctionalInterface
-public interface IdentityProviderConfiguration {
+public interface IdentityProviderConfiguration extends ToCopyableBuilder<IdentityProviderConfiguration.Builder,
+    IdentityProviderConfiguration> {
 
     /**
      * Retrieve an identity provider for the provided identity type.
      */
     <T extends Identity> IdentityProvider<T> identityProvider(Class<T> identityType);
+
+    /**
+     * Get a new builder for creating a {@link IdentityProviderConfiguration}.
+     */
+    static Builder builder() {
+        return DefaultIdentityProviderConfiguration.builder();
+    }
+
+    /**
+     * A builder for a {@link IdentityProviderConfiguration}.
+     */
+    interface Builder extends CopyableBuilder<Builder, IdentityProviderConfiguration> {
+
+        /**
+         * Add the {@link IdentityProvider} for a given type. If a provider of that type, as determined by {@link
+         * IdentityProvider#identityType()} is already added, it will be replaced.
+         */
+        <T extends Identity> Builder putIdentityProvider(IdentityProvider<T> identityProvider);
+    }
 }

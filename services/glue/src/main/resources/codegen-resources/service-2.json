@@ -3668,7 +3668,7 @@
         },
         "Data":{
           "shape":"AmazonRedshiftNodeData",
-          "documentation":"<p>Specifies the data of the Amazon Reshift target node.</p>"
+          "documentation":"<p>Specifies the data of the Amazon Redshift target node.</p>"
         },
         "Inputs":{
           "shape":"OneInput",
@@ -5377,6 +5377,18 @@
         "EvaluateDataQualityMultiFrame":{
           "shape":"EvaluateDataQualityMultiFrame",
           "documentation":"<p>Specifies your data quality evaluation criteria. Allows multiple input data and returns a collection of Dynamic Frames.</p>"
+        },
+        "Recipe":{
+          "shape":"Recipe",
+          "documentation":"<p>Specifies a Glue DataBrew recipe node.</p>"
+        },
+        "SnowflakeSource":{
+          "shape":"SnowflakeSource",
+          "documentation":"<p>Specifies a Snowflake data source.</p>"
+        },
+        "SnowflakeTarget":{
+          "shape":"SnowflakeTarget",
+          "documentation":"<p>Specifies a target that writes to a Snowflake data source.</p>"
         }
       },
       "documentation":"<p> <code>CodeGenConfigurationNode</code> enumerates all valid Node types. One and only one of its member variables can be populated.</p>"
@@ -5831,7 +5843,7 @@
         },
         "ConnectionProperties":{
           "shape":"ConnectionProperties",
-          "documentation":"<p>These key-value pairs define parameters for the connection:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code>, <code>\"GSSAPI\"</code>, or <code>\"AWS_MSK_IAM\"</code>. These are the supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> </ul>"
+          "documentation":"<p>These key-value pairs define parameters for the connection:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code>, <code>\"GSSAPI\"</code>, or <code>\"AWS_MSK_IAM\"</code>. These are the supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_SECRETS_ARN</code> - The Amazon Resource Name of a secret in Amazon Web Services Secrets Manager.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> </ul>"
         },
         "PhysicalConnectionRequirements":{
           "shape":"PhysicalConnectionRequirements",
@@ -5946,7 +5958,16 @@
         "SECRET_ID",
         "CONNECTOR_URL",
         "CONNECTOR_TYPE",
-        "CONNECTOR_CLASS_NAME"
+        "CONNECTOR_CLASS_NAME",
+        "KAFKA_SASL_MECHANISM",
+        "KAFKA_SASL_SCRAM_USERNAME",
+        "KAFKA_SASL_SCRAM_PASSWORD",
+        "KAFKA_SASL_SCRAM_SECRETS_ARN",
+        "ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD",
+        "KAFKA_SASL_GSSAPI_KEYTAB",
+        "KAFKA_SASL_GSSAPI_KRB5_CONF",
+        "KAFKA_SASL_GSSAPI_SERVICE",
+        "KAFKA_SASL_GSSAPI_PRINCIPAL"
       ]
     },
     "ConnectionType":{
@@ -6310,6 +6331,14 @@
         "DeltaTargets":{
           "shape":"DeltaTargetList",
           "documentation":"<p>Specifies Delta data store targets.</p>"
+        },
+        "IcebergTargets":{
+          "shape":"IcebergTargetList",
+          "documentation":"<p>Specifies Apache Iceberg data store targets.</p>"
+        },
+        "HudiTargets":{
+          "shape":"HudiTargetList",
+          "documentation":"<p>Specifies Apache Hudi data store targets.</p>"
         }
       },
       "documentation":"<p>Specifies data stores to crawl.</p>"
@@ -6897,7 +6926,7 @@
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPU, 64 GB of m emory, 128 GB disk), and provides up to 8 Ray workers based on the autoscaler.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of G.1X, G.2X, G.4X, G.8X or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPUs, 16 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPUs, 32 GB of memory) with 128GB disk (approximately 77GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.4X</code> worker type, each worker maps to 4 DPU (16 vCPUs, 64 GB of memory) with 256GB disk (approximately 235GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs in the following Amazon Web Services Regions: US East (Ohio), US East (N. Virginia), US West (Oregon), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), and Europe (Stockholm).</p> </li> <li> <p>For the <code>G.8X</code> worker type, each worker maps to 8 DPU (32 vCPUs, 128 GB of memory) with 512GB disk (approximately 487GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs, in the same Amazon Web Services Regions as supported for the <code>G.4X</code> worker type.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPUs, 4 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPUs, 64 GB of memory) with 128 GB disk (approximately 120GB free), and provides up to 8 Ray workers based on the autoscaler.</p> </li> </ul>"
         },
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
@@ -7321,7 +7350,7 @@
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated to use for the session. Accepts a value of Standard, G.1X, G.2X, or G.025X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of G.1X, G.2X, G.4X, or G.8X for Spark jobs. Accepts the value Z.2X for Ray notebooks.</p> <ul> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPUs, 16 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPUs, 32 GB of memory) with 128GB disk (approximately 77GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.4X</code> worker type, each worker maps to 4 DPU (16 vCPUs, 64 GB of memory) with 256GB disk (approximately 235GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs in the following Amazon Web Services Regions: US East (Ohio), US East (N. Virginia), US West (Oregon), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), and Europe (Stockholm).</p> </li> <li> <p>For the <code>G.8X</code> worker type, each worker maps to 8 DPU (32 vCPUs, 128 GB of memory) with 512GB disk (approximately 487GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs, in the same Amazon Web Services Regions as supported for the <code>G.4X</code> worker type.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPUs, 64 GB of memory) with 128 GB disk (approximately 120GB free), and provides up to 8 Ray workers based on the autoscaler.</p> </li> </ul>"
         },
         "SecurityConfiguration":{
           "shape":"NameString",
@@ -7377,6 +7406,10 @@
         "TransactionId":{
           "shape":"TransactionIdString",
           "documentation":"<p>The ID of the transaction.</p>"
+        },
+        "OpenTableFormatInput":{
+          "shape":"OpenTableFormatInput",
+          "documentation":"<p>Specifies an <code>OpenTableFormatInput</code> structure when creating an open format table.</p>"
         }
       }
     },
@@ -8223,6 +8256,10 @@
         "DatabaseName":{
           "shape":"NameString",
           "documentation":"<p>The name of the catalog database.</p>"
+        },
+        "Region":{
+          "shape":"NameString",
+          "documentation":"<p>Region of the target database.</p>"
         }
       },
       "documentation":"<p>A structure that describes a target database for resource linking.</p>"
@@ -12642,6 +12679,28 @@
       "min":1,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
     },
+    "HudiTarget":{
+      "type":"structure",
+      "members":{
+        "Paths":{
+          "shape":"PathList",
+          "documentation":"<p>An array of Amazon S3 location strings for Hudi, each indicating the root folder with which the metadata files for a Hudi table resides. The Hudi folder may be located in a child folder of the root folder.</p> <p>The crawler will scan all folders underneath a path for a Hudi folder.</p>"
+        },
+        "ConnectionName":{
+          "shape":"ConnectionName",
+          "documentation":"<p>The name of the connection to use to connect to the Hudi target. If your Hudi files are stored in buckets that require VPC authorization, you can set their connection properties here.</p>"
+        },
+        "Exclusions":{
+          "shape":"PathList",
+          "documentation":"<p>A list of glob patterns used to exclude from the crawl. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html\">Catalog Tables with a Crawler</a>.</p>"
+        },
+        "MaximumTraversalDepth":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The maximum depth of Amazon S3 paths that the crawler can traverse to discover the Hudi metadata folder in your Amazon S3 path. Used to limit the crawler run time.</p>"
+        }
+      },
+      "documentation":"<p>Specifies an Apache Hudi data source.</p>"
+    },
     "HudiTargetCompressionType":{
       "type":"string",
       "enum":[
@@ -12650,6 +12709,51 @@
         "uncompressed",
         "snappy"
       ]
+    },
+    "HudiTargetList":{
+      "type":"list",
+      "member":{"shape":"HudiTarget"}
+    },
+    "IcebergInput":{
+      "type":"structure",
+      "required":["MetadataOperation"],
+      "members":{
+        "MetadataOperation":{
+          "shape":"MetadataOperation",
+          "documentation":"<p>A required metadata operation. Can only be set to <code>CREATE</code>.</p>"
+        },
+        "Version":{
+          "shape":"VersionString",
+          "documentation":"<p>The table version for the Iceberg table. Defaults to 2.</p>"
+        }
+      },
+      "documentation":"<p>A structure that defines an Apache Iceberg metadata table to create in the catalog.</p>"
+    },
+    "IcebergTarget":{
+      "type":"structure",
+      "members":{
+        "Paths":{
+          "shape":"PathList",
+          "documentation":"<p>One or more Amazon S3 paths that contains Iceberg metadata folders as <code>s3://bucket/prefix</code>.</p>"
+        },
+        "ConnectionName":{
+          "shape":"ConnectionName",
+          "documentation":"<p>The name of the connection to use to connect to the Iceberg target.</p>"
+        },
+        "Exclusions":{
+          "shape":"PathList",
+          "documentation":"<p>A list of glob patterns used to exclude from the crawl. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html\">Catalog Tables with a Crawler</a>.</p>"
+        },
+        "MaximumTraversalDepth":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The maximum depth of Amazon S3 paths that the crawler can traverse to discover the Iceberg metadata folder in your Amazon S3 path. Used to limit the crawler run time.</p>"
+        }
+      },
+      "documentation":"<p>Specifies an Apache Iceberg data source where Iceberg tables are stored in Amazon S3.</p>"
+    },
+    "IcebergTargetList":{
+      "type":"list",
+      "member":{"shape":"IcebergTarget"}
     },
     "IdString":{
       "type":"string",
@@ -12775,6 +12879,10 @@
       "exception":true
     },
     "IsVersionValid":{"type":"boolean"},
+    "Iso8601DateTime":{
+      "type":"timestamp",
+      "timestampFormat":"iso8601"
+    },
     "JDBCConnectionType":{
       "type":"string",
       "enum":[
@@ -13062,7 +13170,7 @@
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, G.4X, G.8X, or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.4X</code> worker type, each worker maps to 4 DPU (16 vCPU, 64 GB of memory, 256 GB disk), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs in the following Amazon Web Services Regions: US East (Ohio), US East (N. Virginia), US West (Oregon), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), and Europe (Stockholm).</p> </li> <li> <p>For the <code>G.8X</code> worker type, each worker maps to 8 DPU (32 vCPU, 128 GB of memory, 512 GB disk), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs, in the same Amazon Web Services Regions as supported for the <code>G.4X</code> worker type.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPU, 64 GB of m emory, 128 GB disk), and provides a default of 8 Ray workers (1 per vCPU).</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of G.1X, G.2X, G.4X, G.8X or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPUs, 16 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPUs, 32 GB of memory) with 128GB disk (approximately 77GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.4X</code> worker type, each worker maps to 4 DPU (16 vCPUs, 64 GB of memory) with 256GB disk (approximately 235GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs in the following Amazon Web Services Regions: US East (Ohio), US East (N. Virginia), US West (Oregon), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), and Europe (Stockholm).</p> </li> <li> <p>For the <code>G.8X</code> worker type, each worker maps to 8 DPU (32 vCPUs, 128 GB of memory) with 512GB disk (approximately 487GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs, in the same Amazon Web Services Regions as supported for the <code>G.4X</code> worker type.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPUs, 4 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPUs, 64 GB of memory) with 128 GB disk (approximately 120GB free), and provides up to 8 Ray workers based on the autoscaler.</p> </li> </ul>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
@@ -13262,7 +13370,7 @@
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPU, 64 GB of m emory, 128 GB disk), and provides up to 8 Ray workers (one per vCPU) based on the autoscaler.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of G.1X, G.2X, G.4X, G.8X or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPUs, 16 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPUs, 32 GB of memory) with 128GB disk (approximately 77GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.4X</code> worker type, each worker maps to 4 DPU (16 vCPUs, 64 GB of memory) with 256GB disk (approximately 235GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs in the following Amazon Web Services Regions: US East (Ohio), US East (N. Virginia), US West (Oregon), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), and Europe (Stockholm).</p> </li> <li> <p>For the <code>G.8X</code> worker type, each worker maps to 8 DPU (32 vCPUs, 128 GB of memory) with 512GB disk (approximately 487GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs, in the same Amazon Web Services Regions as supported for the <code>G.4X</code> worker type.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPUs, 4 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPUs, 64 GB of memory) with 128 GB disk (approximately 120GB free), and provides up to 8 Ray workers based on the autoscaler.</p> </li> </ul>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
@@ -13368,7 +13476,7 @@
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPU, 64 GB of m emory, 128 GB disk), and provides up to 8 Ray workers based on the autoscaler.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of G.1X, G.2X, G.4X, G.8X or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPUs, 16 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPUs, 32 GB of memory) with 128GB disk (approximately 77GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.4X</code> worker type, each worker maps to 4 DPU (16 vCPUs, 64 GB of memory) with 256GB disk (approximately 235GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs in the following Amazon Web Services Regions: US East (Ohio), US East (N. Virginia), US West (Oregon), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), and Europe (Stockholm).</p> </li> <li> <p>For the <code>G.8X</code> worker type, each worker maps to 8 DPU (32 vCPUs, 128 GB of memory) with 512GB disk (approximately 487GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs, in the same Amazon Web Services Regions as supported for the <code>G.4X</code> worker type.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPUs, 4 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPUs, 64 GB of memory) with 128 GB disk (approximately 120GB free), and provides up to 8 Ray workers based on the autoscaler.</p> </li> </ul>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
@@ -13570,6 +13678,10 @@
         "EmitConsumerLagMetrics":{
           "shape":"EnclosedInStringProperty",
           "documentation":"<p>When this option is set to 'true', for each batch, it will emit the metrics for the duration between the oldest record received by the topic and the time it arrives in Glue to CloudWatch. The metric's name is \"glue.driver.streaming.maxConsumerLagInMs\". The default value is 'false'. This option is supported in Glue version 4.0 or later.</p>"
+        },
+        "StartingTimestamp":{
+          "shape":"Iso8601DateTime",
+          "documentation":"<p>The timestamp of the record in the Kafka topic to start reading data from. The possible values are a timestamp string in UTC format of the pattern <code>yyyy-mm-ddTHH:MM:SSZ</code> (where Z represents a UTC timezone offset with a +/-. For example: \"2023-04-04T08:00:00+08:00\"). </p> <p>Only one of <code>StartingTimestamp</code> or <code>StartingOffsets</code> must be set.</p>"
         }
       },
       "documentation":"<p>Additional options for streaming.</p>"
@@ -13629,7 +13741,7 @@
         },
         "StartingPosition":{
           "shape":"StartingPosition",
-          "documentation":"<p>The starting position in the Kinesis data stream to read data from. The possible values are <code>\"latest\"</code>, <code>\"trim_horizon\"</code>, or <code>\"earliest\"</code>. The default value is <code>\"latest\"</code>.</p>"
+          "documentation":"<p>The starting position in the Kinesis data stream to read data from. The possible values are <code>\"latest\"</code>, <code>\"trim_horizon\"</code>, <code>\"earliest\"</code>, or a timestamp string in UTC format in the pattern <code>yyyy-mm-ddTHH:MM:SSZ</code> (where <code>Z</code> represents a UTC timezone offset with a +/-. For example: \"2023-04-04T08:00:00-04:00\"). The default value is <code>\"latest\"</code>.</p> <p>Note: Using a value that is a timestamp string in UTC format for \"startingPosition\" is supported only for Glue version 4.0 or later.</p>"
         },
         "MaxFetchTimeInMs":{
           "shape":"BoxedNonNegativeLong",
@@ -13690,6 +13802,10 @@
         "EmitConsumerLagMetrics":{
           "shape":"EnclosedInStringProperty",
           "documentation":"<p>When this option is set to 'true', for each batch, it will emit the metrics for the duration between the oldest record received by the stream and the time it arrives in Glue to CloudWatch. The metric's name is \"glue.driver.streaming.maxConsumerLagInMs\". The default value is 'false'. This option is supported in Glue version 4.0 or later.</p>"
+        },
+        "StartingTimestamp":{
+          "shape":"Iso8601DateTime",
+          "documentation":"<p>The timestamp of the record in the Kinesis data stream to start reading data from. The possible values are a timestamp string in UTC format of the pattern <code>yyyy-mm-ddTHH:MM:SSZ</code> (where Z represents a UTC timezone offset with a +/-. For example: \"2023-04-04T08:00:00+08:00\"). </p>"
         }
       },
       "documentation":"<p>Additional options for the Amazon Kinesis streaming data source.</p>"
@@ -14758,6 +14874,10 @@
       "type":"list",
       "member":{"shape":"MetadataKeyValuePair"}
     },
+    "MetadataOperation":{
+      "type":"string",
+      "enum":["CREATE"]
+    },
     "MetadataValueString":{
       "type":"string",
       "max":256,
@@ -15054,6 +15174,16 @@
       "member":{"shape":"NodeId"},
       "max":1,
       "min":1
+    },
+    "OpenTableFormatInput":{
+      "type":"structure",
+      "members":{
+        "IcebergInput":{
+          "shape":"IcebergInput",
+          "documentation":"<p>Specifies an <code>IcebergInput</code> structure that defines an Apache Iceberg metadata table.</p>"
+        }
+      },
+      "documentation":"<p>A structure representing an open format table.</p>"
     },
     "OperationTimeoutException":{
       "type":"structure",
@@ -15507,7 +15637,9 @@
       "type":"string",
       "enum":[
         "COLUMN_PERMISSION",
-        "CELL_FILTER_PERMISSION"
+        "CELL_FILTER_PERMISSION",
+        "NESTED_PERMISSION",
+        "NESTED_CELL_PERMISSION"
       ]
     },
     "PermissionTypeList":{
@@ -15916,6 +16048,52 @@
         "single_quote",
         "disabled"
       ]
+    },
+    "Recipe":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Inputs",
+        "RecipeReference"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the Glue Studio node.</p>"
+        },
+        "Inputs":{
+          "shape":"OneInput",
+          "documentation":"<p>The nodes that are inputs to the recipe node, identified by id.</p>"
+        },
+        "RecipeReference":{
+          "shape":"RecipeReference",
+          "documentation":"<p>A reference to the DataBrew recipe used by the node.</p>"
+        }
+      },
+      "documentation":"<p>A Glue Studio node that uses a Glue DataBrew recipe in Glue jobs.</p>"
+    },
+    "RecipeReference":{
+      "type":"structure",
+      "required":[
+        "RecipeArn",
+        "RecipeVersion"
+      ],
+      "members":{
+        "RecipeArn":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The ARN of the DataBrew recipe.</p>"
+        },
+        "RecipeVersion":{
+          "shape":"RecipeVersion",
+          "documentation":"<p>The RecipeVersion of the DataBrew recipe.</p>"
+        }
+      },
+      "documentation":"<p>A reference to a Glue DataBrew recipe.</p>"
+    },
+    "RecipeVersion":{
+      "type":"string",
+      "max":16,
+      "min":1
     },
     "RecordsCount":{
       "type":"long",
@@ -17672,6 +17850,140 @@
       },
       "documentation":"<p>Specifies skewed values in a table. Skewed values are those that occur with very high frequency.</p>"
     },
+    "SnowflakeNodeData":{
+      "type":"structure",
+      "members":{
+        "SourceType":{
+          "shape":"GenericLimitedString",
+          "documentation":"<p>Specifies how retrieved data is specified. Valid values: <code>\"table\"</code>, <code> \"query\"</code>.</p>"
+        },
+        "Connection":{
+          "shape":"Option",
+          "documentation":"<p>Specifies a Glue Data Catalog Connection to a Snowflake endpoint.</p>"
+        },
+        "Schema":{
+          "shape":"GenericString",
+          "documentation":"<p>Specifies a Snowflake database schema for your node to use.</p>"
+        },
+        "Table":{
+          "shape":"GenericString",
+          "documentation":"<p>Specifies a Snowflake table for your node to use.</p>"
+        },
+        "Database":{
+          "shape":"GenericString",
+          "documentation":"<p>Specifies a Snowflake database for your node to use.</p>"
+        },
+        "TempDir":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Not currently used.</p>"
+        },
+        "IamRole":{
+          "shape":"Option",
+          "documentation":"<p>Not currently used.</p>"
+        },
+        "AdditionalOptions":{
+          "shape":"AdditionalOptions",
+          "documentation":"<p>Specifies additional options passed to the Snowflake connector. If options are specified elsewhere in this node, this will take precedence.</p>"
+        },
+        "SampleQuery":{
+          "shape":"GenericString",
+          "documentation":"<p>A SQL string used to retrieve data with the <code>query</code> sourcetype.</p>"
+        },
+        "PreAction":{
+          "shape":"GenericString",
+          "documentation":"<p>A SQL string run before the Snowflake connector performs its standard actions.</p>"
+        },
+        "PostAction":{
+          "shape":"GenericString",
+          "documentation":"<p>A SQL string run after the Snowflake connector performs its standard actions.</p>"
+        },
+        "Action":{
+          "shape":"GenericString",
+          "documentation":"<p>Specifies what action to take when writing to a table with preexisting data. Valid values: <code> append</code>, <code>merge</code>, <code>truncate</code>, <code>drop</code>.</p>"
+        },
+        "Upsert":{
+          "shape":"BooleanValue",
+          "documentation":"<p>Used when Action is <code>append</code>. Specifies the resolution behavior when a row already exists. If true, preexisting rows will be updated. If false, those rows will be inserted.</p>"
+        },
+        "MergeAction":{
+          "shape":"GenericLimitedString",
+          "documentation":"<p>Specifies a merge action. Valid values: <code>simple</code>, <code>custom</code>. If simple, merge behavior is defined by <code>MergeWhenMatched</code> and <code> MergeWhenNotMatched</code>. If custom, defined by <code>MergeClause</code>.</p>"
+        },
+        "MergeWhenMatched":{
+          "shape":"GenericLimitedString",
+          "documentation":"<p>Specifies how to resolve records that match preexisting data when merging. Valid values: <code> update</code>, <code>delete</code>.</p>"
+        },
+        "MergeWhenNotMatched":{
+          "shape":"GenericLimitedString",
+          "documentation":"<p>Specifies how to process records that do not match preexisting data when merging. Valid values: <code>insert</code>, <code>none</code>.</p>"
+        },
+        "MergeClause":{
+          "shape":"GenericString",
+          "documentation":"<p>A SQL statement that specifies a custom merge behavior.</p>"
+        },
+        "StagingTable":{
+          "shape":"GenericString",
+          "documentation":"<p>The name of a staging table used when performing <code>merge</code> or upsert <code>append</code> actions. Data is written to this table, then moved to <code>table</code> by a generated postaction.</p>"
+        },
+        "SelectedColumns":{
+          "shape":"OptionList",
+          "documentation":"<p>Specifies the columns combined to identify a record when detecting matches for merges and upserts. A list of structures with <code>value</code>, <code>label</code> and <code> description</code> keys. Each structure describes a column.</p>"
+        },
+        "AutoPushdown":{
+          "shape":"BooleanValue",
+          "documentation":"<p>Specifies whether automatic query pushdown is enabled. If pushdown is enabled, then when a query is run on Spark, if part of the query can be \"pushed down\" to the Snowflake server, it is pushed down. This improves performance of some queries.</p>"
+        },
+        "TableSchema":{
+          "shape":"OptionList",
+          "documentation":"<p>Manually defines the target schema for the node. A list of structures with <code>value</code> , <code>label</code> and <code>description</code> keys. Each structure defines a column.</p>"
+        }
+      },
+      "documentation":"<p>Specifies configuration for Snowflake nodes in Glue Studio.</p>"
+    },
+    "SnowflakeSource":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Data"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the Snowflake data source.</p>"
+        },
+        "Data":{
+          "shape":"SnowflakeNodeData",
+          "documentation":"<p>Configuration for the Snowflake data source.</p>"
+        },
+        "OutputSchemas":{
+          "shape":"GlueSchemas",
+          "documentation":"<p>Specifies user-defined schemas for your output data.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a Snowflake data source.</p>"
+    },
+    "SnowflakeTarget":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Data"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the Snowflake target.</p>"
+        },
+        "Data":{
+          "shape":"SnowflakeNodeData",
+          "documentation":"<p>Specifies the data of the Snowflake target node.</p>"
+        },
+        "Inputs":{
+          "shape":"OneInput",
+          "documentation":"<p>The nodes that are inputs to the data target.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a Snowflake target.</p>"
+    },
     "Sort":{
       "type":"string",
       "enum":[
@@ -18196,7 +18508,7 @@
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 DPU (8vCPU, 64 GB of m emory, 128 GB disk), and provides up to 8 Ray workers (one per vCPU) based on the autoscaler.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of G.1X, G.2X, G.4X, G.8X or G.025X for Spark jobs. Accepts the value Z.2X for Ray jobs.</p> <ul> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPUs, 16 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPUs, 32 GB of memory) with 128GB disk (approximately 77GB free), and provides 1 executor per worker. We recommend this worker type for workloads such as data transforms, joins, and queries, to offers a scalable and cost effective way to run most jobs.</p> </li> <li> <p>For the <code>G.4X</code> worker type, each worker maps to 4 DPU (16 vCPUs, 64 GB of memory) with 256GB disk (approximately 235GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs in the following Amazon Web Services Regions: US East (Ohio), US East (N. Virginia), US West (Oregon), Asia Pacific (Singapore), Asia Pacific (Sydney), Asia Pacific (Tokyo), Canada (Central), Europe (Frankfurt), Europe (Ireland), and Europe (Stockholm).</p> </li> <li> <p>For the <code>G.8X</code> worker type, each worker maps to 8 DPU (32 vCPUs, 128 GB of memory) with 512GB disk (approximately 487GB free), and provides 1 executor per worker. We recommend this worker type for jobs whose workloads contain your most demanding transforms, aggregations, joins, and queries. This worker type is available only for Glue version 3.0 or later Spark ETL jobs, in the same Amazon Web Services Regions as supported for the <code>G.4X</code> worker type.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPUs, 4 GB of memory) with 84GB disk (approximately 34GB free), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> <li> <p>For the <code>Z.2X</code> worker type, each worker maps to 2 M-DPU (8vCPUs, 64 GB of memory) with 128 GB disk (approximately 120GB free), and provides up to 8 Ray workers based on the autoscaler.</p> </li> </ul>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
@@ -18323,7 +18635,8 @@
       "enum":[
         "latest",
         "trim_horizon",
-        "earliest"
+        "earliest",
+        "timestamp"
       ]
     },
     "Statement":{
@@ -18740,6 +19053,10 @@
         "Name":{
           "shape":"NameString",
           "documentation":"<p>The name of the target table.</p>"
+        },
+        "Region":{
+          "shape":"NameString",
+          "documentation":"<p>Region of the target table.</p>"
         }
       },
       "documentation":"<p>A structure that describes a target table for resource linking.</p>"

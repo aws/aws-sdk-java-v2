@@ -16,9 +16,11 @@
 package software.amazon.awssdk.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.ByteBuffer;
@@ -32,13 +34,11 @@ public class BinaryUtilsTest {
     public void testHex() {
         {
             String hex = BinaryUtils.toHex(new byte[] {0});
-            System.out.println(hex);
             String hex2 = Base16Lower.encodeAsString(new byte[] {0});
             assertEquals(hex, hex2);
         }
         {
             String hex = BinaryUtils.toHex(new byte[] {-1});
-            System.out.println(hex);
             String hex2 = Base16Lower.encodeAsString(new byte[] {-1});
             assertEquals(hex, hex2);
         }
@@ -169,7 +169,7 @@ public class BinaryUtilsTest {
     @Test
     public void testCopyRemainingBytesFrom_noRemainingBytes() {
         ByteBuffer bb = ByteBuffer.allocate(1);
-        bb.put(new byte[]{1});
+        bb.put(new byte[] {1});
         bb.flip();
 
         bb.get();
@@ -180,7 +180,7 @@ public class BinaryUtilsTest {
     @Test
     public void testCopyRemainingBytesFrom_fullBuffer() {
         ByteBuffer bb = ByteBuffer.allocate(4);
-        bb.put(new byte[]{1, 2, 3, 4});
+        bb.put(new byte[] {1, 2, 3, 4});
         bb.flip();
 
         byte[] copy = BinaryUtils.copyRemainingBytesFrom(bb);
@@ -191,7 +191,7 @@ public class BinaryUtilsTest {
     @Test
     public void testCopyRemainingBytesFrom_partiallyReadBuffer() {
         ByteBuffer bb = ByteBuffer.allocate(4);
-        bb.put(new byte[]{1, 2, 3, 4});
+        bb.put(new byte[] {1, 2, 3, 4});
         bb.flip();
 
         bb.get();
@@ -201,4 +201,148 @@ public class BinaryUtilsTest {
         assertThat(bb).isEqualTo(ByteBuffer.wrap(copy));
         assertThat(copy).hasSize(2);
     }
+
+    @Test
+    public void testImmutableCopyOfByteBuffer() {
+        ByteBuffer sourceBuffer = ByteBuffer.allocate(4);
+        byte[] originalBytesInSource = {1, 2, 3, 4};
+        sourceBuffer.put(originalBytesInSource);
+        sourceBuffer.flip();
+
+        ByteBuffer immutableCopy = BinaryUtils.immutableCopyOf(sourceBuffer);
+
+        byte[] bytesInSourceAfterCopy = {-1, -2, -3, -4};
+        sourceBuffer.put(bytesInSourceAfterCopy);
+        sourceBuffer.flip();
+
+        assertTrue(immutableCopy.isReadOnly());
+        byte[] fromImmutableCopy = new byte[originalBytesInSource.length];
+        immutableCopy.get(fromImmutableCopy);
+        assertArrayEquals(originalBytesInSource, fromImmutableCopy);
+
+        assertEquals(0, sourceBuffer.position());
+        byte[] fromSource = new byte[bytesInSourceAfterCopy.length];
+        sourceBuffer.get(fromSource);
+        assertArrayEquals(bytesInSourceAfterCopy, fromSource);
+    }
+
+    @Test
+    public void immutableCopyOf_retainsOriginalLimit() {
+        ByteBuffer sourceBuffer = ByteBuffer.allocate(10);
+        byte[] bytes = {1, 2, 3, 4};
+        sourceBuffer.put(bytes);
+        sourceBuffer.rewind();
+        sourceBuffer.limit(bytes.length);
+        ByteBuffer copy = BinaryUtils.immutableCopyOf(sourceBuffer);
+        assertThat(copy.limit()).isEqualTo(sourceBuffer.limit());
+    }
+
+    @Test
+    public void testImmutableCopyOfByteBuffer_nullBuffer() {
+        assertNull(BinaryUtils.immutableCopyOf(null));
+    }
+
+    @Test
+    public void testImmutableCopyOfByteBuffer_partiallyReadBuffer() {
+        ByteBuffer sourceBuffer = ByteBuffer.allocate(4);
+        byte[] bytes = {1, 2, 3, 4};
+        sourceBuffer.put(bytes);
+        sourceBuffer.position(2);
+
+        ByteBuffer immutableCopy = BinaryUtils.immutableCopyOf(sourceBuffer);
+
+        assertEquals(sourceBuffer.position(), immutableCopy.position());
+        immutableCopy.rewind();
+        byte[] fromImmutableCopy = new byte[bytes.length];
+        immutableCopy.get(fromImmutableCopy);
+        assertArrayEquals(bytes, fromImmutableCopy);
+    }
+
+    @Test
+    public void testImmutableCopyOfRemainingByteBuffer() {
+        ByteBuffer sourceBuffer = ByteBuffer.allocate(4);
+        byte[] originalBytesInSource = {1, 2, 3, 4};
+        sourceBuffer.put(originalBytesInSource);
+        sourceBuffer.flip();
+
+        ByteBuffer immutableCopy = BinaryUtils.immutableCopyOfRemaining(sourceBuffer);
+
+        byte[] bytesInSourceAfterCopy = {-1, -2, -3, -4};
+        sourceBuffer.put(bytesInSourceAfterCopy);
+        sourceBuffer.flip();
+
+        assertTrue(immutableCopy.isReadOnly());
+        byte[] fromImmutableCopy = new byte[originalBytesInSource.length];
+        immutableCopy.get(fromImmutableCopy);
+        assertArrayEquals(originalBytesInSource, fromImmutableCopy);
+
+        assertEquals(0, sourceBuffer.position());
+        byte[] fromSource = new byte[bytesInSourceAfterCopy.length];
+        sourceBuffer.get(fromSource);
+        assertArrayEquals(bytesInSourceAfterCopy, fromSource);
+    }
+
+    @Test
+    public void testImmutableCopyOfByteBufferRemaining_nullBuffer() {
+        assertNull(BinaryUtils.immutableCopyOfRemaining(null));
+    }
+
+    @Test
+    public void testImmutableCopyOfByteBufferRemaining_partiallyReadBuffer() {
+        ByteBuffer sourceBuffer = ByteBuffer.allocate(4);
+        byte[] bytes = {1, 2, 3, 4};
+        sourceBuffer.put(bytes);
+        sourceBuffer.position(2);
+
+        ByteBuffer immutableCopy = BinaryUtils.immutableCopyOfRemaining(sourceBuffer);
+
+        assertEquals(2, immutableCopy.capacity());
+        assertEquals(2, immutableCopy.remaining());
+        assertEquals(0, immutableCopy.position());
+        assertEquals((byte) 3, immutableCopy.get());
+        assertEquals((byte) 4, immutableCopy.get());
+    }
+
+    @Test
+    public void testToNonDirectBuffer() {
+        ByteBuffer bb = ByteBuffer.allocateDirect(4);
+        byte[] expected = {1, 2, 3, 4};
+        bb.put(expected);
+        bb.flip();
+
+        ByteBuffer nonDirectBuffer = BinaryUtils.toNonDirectBuffer(bb);
+
+        assertFalse(nonDirectBuffer.isDirect());
+        byte[] bytes = new byte[expected.length];
+        nonDirectBuffer.get(bytes);
+        assertArrayEquals(expected, bytes);
+    }
+
+    @Test
+    public void testToNonDirectBuffer_nullBuffer() {
+        assertNull(BinaryUtils.toNonDirectBuffer(null));
+    }
+
+    @Test
+    public void testToNonDirectBuffer_partiallyReadBuffer() {
+        ByteBuffer sourceBuffer = ByteBuffer.allocateDirect(4);
+        byte[] bytes = {1, 2, 3, 4};
+        sourceBuffer.put(bytes);
+        sourceBuffer.position(2);
+
+        ByteBuffer nonDirectBuffer = BinaryUtils.toNonDirectBuffer(sourceBuffer);
+
+        assertEquals(sourceBuffer.position(), nonDirectBuffer.position());
+        nonDirectBuffer.rewind();
+        byte[] fromNonDirectBuffer = new byte[bytes.length];
+        nonDirectBuffer.get(fromNonDirectBuffer);
+        assertArrayEquals(bytes, fromNonDirectBuffer);
+    }
+
+    @Test
+    public void testToNonDirectBuffer_nonDirectBuffer() {
+        ByteBuffer nonDirectBuffer = ByteBuffer.allocate(0);
+        assertThrows(IllegalArgumentException.class, () -> BinaryUtils.toNonDirectBuffer(nonDirectBuffer));
+    }
+
 }

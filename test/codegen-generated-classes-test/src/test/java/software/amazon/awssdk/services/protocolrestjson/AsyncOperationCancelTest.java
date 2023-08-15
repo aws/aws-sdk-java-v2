@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.services.protocolrestjson;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,12 +39,6 @@ import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperati
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
-
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * Test to ensure that cancelling the future returned for an async operation will cancel the future returned by the async HTTP client.
@@ -91,6 +90,9 @@ public class AsyncOperationCancelTest {
         assertThat(executeFuture.isCancelled()).isTrue();
     }
 
+    // TODO(sra-identity-and-auth): This test passes now (8/4/2023) because current client codegen uses signer override for
+    //  event stream operation. But with subsequent codegen changes for SRA, event stream won't have a signer override. And we may
+    //  need to check that this test still works.
     @Test
     public void testEventStreamingOperation() {
         CompletableFuture<Void> responseFuture = client.eventStreamOperation(r -> {

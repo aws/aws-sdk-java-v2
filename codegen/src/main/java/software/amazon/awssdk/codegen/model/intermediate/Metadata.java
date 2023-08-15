@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.codegen.model.service.AuthType;
@@ -92,10 +93,6 @@ public class Metadata {
 
     private String signingName;
 
-    private boolean requiresIamSigners;
-
-    private boolean requiresApiKey;
-
     private String uid;
 
     private AuthType authType;
@@ -108,6 +105,20 @@ public class Metadata {
 
     private String serviceId;
 
+    private List<AuthType> auth;
+
+    public List<AuthType> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<AuthType> auth) {
+        this.auth = auth;
+    }
+
+    public Metadata withAuth(List<AuthType> auth) {
+        this.auth = auth;
+        return this;
+    }
 
     public String getApiVersion() {
         return apiVersion;
@@ -590,23 +601,6 @@ public class Metadata {
 
     public String getContentType() {
         return contentType;
-    }
-
-    public boolean isRequiresIamSigners() {
-        return requiresIamSigners;
-    }
-
-    public void setRequiresIamSigners(boolean requiresIamSigners) {
-        this.requiresIamSigners = requiresIamSigners;
-    }
-
-    public boolean isRequiresApiKey() {
-        return requiresApiKey;
-    }
-
-    public Metadata withRequiresApiKey(boolean requiresApiKey) {
-        this.requiresApiKey = requiresApiKey;
-        return this;
     }
 
     public String getUid() {

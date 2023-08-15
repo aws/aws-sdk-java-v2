@@ -52,6 +52,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
     private final CredentialsProvider credentialsProvider;
     private final long partSizeInBytes;
+    private final long thresholdInBytes;
     private final double targetThroughputInGbps;
     private final int maxConcurrency;
     private final URI endpointOverride;
@@ -87,6 +88,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         this.partSizeInBytes = builder.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
                                builder.partSizeInBytes;
+        this.thresholdInBytes = builder.thresholdInBytes == null ? this.partSizeInBytes :
+                                builder.thresholdInBytes;
         this.targetThroughputInGbps = builder.targetThroughputInGbps == null ?
                                       DEFAULT_TARGET_THROUGHPUT_IN_GBPS : builder.targetThroughputInGbps;
 
@@ -145,6 +148,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return partSizeInBytes;
     }
 
+    public long thresholdInBytes() {
+        return thresholdInBytes;
+    }
+
     public double targetThroughputInGbps() {
         return targetThroughputInGbps;
     }
@@ -188,6 +195,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         private S3CrtHttpConfiguration httpConfiguration;
         private StandardRetryOptions standardRetryOptions;
+        private Long thresholdInBytes;
 
         private Builder() {
         }
@@ -246,6 +254,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder standardRetryOptions(StandardRetryOptions standardRetryOptions) {
             this.standardRetryOptions = standardRetryOptions;
+            return this;
+        }
+
+        public Builder thresholdInBytes(Long thresholdInBytes) {
+            this.thresholdInBytes = thresholdInBytes;
             return this;
         }
     }

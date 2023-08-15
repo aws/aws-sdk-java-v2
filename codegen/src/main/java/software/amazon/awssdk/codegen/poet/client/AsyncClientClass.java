@@ -24,8 +24,6 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -51,7 +49,6 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
@@ -63,7 +60,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
@@ -157,15 +153,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod());
 
-        if (model.hasPaginators()) {
-            type.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
-        }
-
-        if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
-            type.addMethod(applySignerOverrideMethod(poetExtensions, model));
-            type.addMethod(isSignerOverriddenOnClientMethod());
-        }
-
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
     }
 
@@ -198,9 +185,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private Stream<MethodSpec> operations(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(traditionalMethod(opModel));
-        if (opModel.isPaginated()) {
-            methods.add(paginatedTraditionalMethod(opModel));
-        }
         return methods.stream();
     }
 
@@ -335,12 +319,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "endOfStreamFuture",
                                  "pair");
         }
-        
-        if (shouldUseAsyncWithBodySigner(opModel)) {
-            builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
-        } else {
-            builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
-        }
 
         builder.addCode(protocolSpec.responseHandler(model, opModel));
         protocolSpec.errorResponseHandler(opModel).ifPresent(builder::addCode);
@@ -427,14 +405,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .endControlFlow();
 
         return builder;
-    }
-
-    @Override
-    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
-        return builder.addModifiers(PUBLIC)
-                      .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
-                                    poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName()),
-                                    opModel.getInput().getVariableName());
     }
 
     @Override
@@ -546,43 +516,4 @@ public final class AsyncClientClass extends AsyncClientInterface {
         return methodBuilder.build();
     }
 
-    private boolean shouldUseAsyncWithBodySigner(OperationModel opModel) {
-        if (opModel.getInputShape().getRequestSignerClassFqcn() != null) {
-            return false;
-        }
-
-        AuthType authTypeForOperation = opModel.getAuthType();
-
-        if (authTypeForOperation == null) {
-            authTypeForOperation = model.getMetadata().getAuthType();
-        }
-
-        return authTypeForOperation == AuthType.V4 && opModel.hasStreamingInput();
-    }
-
-    private CodeBlock applyAsyncWithBodyV4SignerOverride(OperationModel opModel) {
-        return CodeBlock.builder()
-                .beginControlFlow("if (!isSignerOverridden($N))", "clientConfiguration")
-                .addStatement("$1L = applySignerOverride($1L, $2T.create())",
-                        opModel.getInput().getVariableName(), AsyncAws4Signer.class)
-                .endControlFlow()
-                .build();
-    }
-
-    private MethodSpec isSignerOverriddenOnClientMethod() {
-        String clientConfigurationName = "clientConfiguration";
-
-        return MethodSpec.methodBuilder("isSignerOverridden")
-                .returns(boolean.class)
-                .addModifiers(PRIVATE, STATIC)
-                .addParameter(SdkClientConfiguration.class, clientConfigurationName)
-                .addStatement("return $T.TRUE.equals($N.option($T.$N))", Boolean.class, clientConfigurationName,
-                        SdkClientOption.class, "SIGNER_OVERRIDDEN")
-                .build();
-    }
-
-    private boolean hasStreamingV4AuthOperations() {
-        return model.getOperations().values().stream()
-                .anyMatch(this::shouldUseAsyncWithBodySigner);
-    }
 }

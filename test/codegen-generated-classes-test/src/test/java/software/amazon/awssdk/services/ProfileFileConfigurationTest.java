@@ -40,6 +40,7 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class ProfileFileConfigurationTest {
+
     @Test
     public void profileIsHonoredForCredentialsAndRegion() {
         EnvironmentVariableHelper.run(env -> {
@@ -101,4 +102,8 @@ public class ProfileFileConfigurationTest {
                           .type(ProfileFile.Type.CONFIGURATION)
                           .build();
     }
+
+    // TODO(sra-identity-and-auth): Should add test for the same using SRA way, to assert the identity in SignRequest and
+    //  region SignerProperty are per profile.
+    //  To do this, need ability to inject AuthScheme which uses mock HttpSigner. This is pending https://i.amazon.com/SMITHY-1450
 }

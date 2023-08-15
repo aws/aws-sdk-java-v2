@@ -42,15 +42,13 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyPublisher;
+import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 /**
  * Core metrics test for async non-streaming API
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
-
-    @Mock
-    private IdentityProvider<AwsCredentialsIdentity> mockCredentialsProvider;
 
     @Mock
     private MetricPublisher mockPublisher;
@@ -65,19 +63,10 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
     public void setup() throws IOException {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_2)
-                                            .credentialsProvider(mockCredentialsProvider)
+                                            .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                                             .build();
-
-        when(mockCredentialsProvider.resolveIdentity()).thenAnswer(invocation -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
-            return CompletableFuture.completedFuture(AwsBasicCredentials.create("foo", "bar"));
-        });
     }
 
     @After
@@ -109,7 +98,7 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
         stubSuccessfulResponse();
         ProtocolRestJsonAsyncClient noPublisher = ProtocolRestJsonAsyncClient.builder()
                                                                              .region(Region.US_WEST_2)
-                                                                             .credentialsProvider(mockCredentialsProvider)
+                                                                             .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                                                              .build();
 

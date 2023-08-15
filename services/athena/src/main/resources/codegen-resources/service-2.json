@@ -66,7 +66,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Cancels the capacity reservation with the specified name.</p>",
+      "documentation":"<p>Cancels the capacity reservation with the specified name. Cancelled reservations remain in your account and will be deleted 45 days after cancellation. During the 45 days, you cannot re-purpose or reuse a reservation that has been cancelled, but you can refer to its tags and view it for historical reference. </p>",
       "idempotent":true
     },
     "CreateCapacityReservation":{
@@ -170,6 +170,21 @@
         {"shape":"InvalidRequestException"}
       ],
       "documentation":"<p>Creates a workgroup with the specified name. A workgroup can be an Apache Spark enabled workgroup or an Athena SQL workgroup.</p>"
+    },
+    "DeleteCapacityReservation":{
+      "name":"DeleteCapacityReservation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteCapacityReservationInput"},
+      "output":{"shape":"DeleteCapacityReservationOutput"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Deletes a cancelled capacity reservation. A reservation must be cancelled before it can be deleted. A deleted reservation is immediately removed from your account and can no longer be referenced, including by its ARN. A deleted reservation cannot be called by <code>GetCapacityReservation</code>, and deleted reservations do not appear in the output of <code>ListCapacityReservations</code>.</p>",
+      "idempotent":true
     },
     "DeleteDataCatalog":{
       "name":"DeleteDataCatalog",
@@ -1756,7 +1771,7 @@
           "documentation":"<p>The KMS key that is used to encrypt the user's data stores in Athena.</p>"
         }
       },
-      "documentation":"<p>Specifies the KMS key that is used to encrypt the user's data stores in Athena.</p>"
+      "documentation":"<p>Specifies the KMS key that is used to encrypt the user's data stores in Athena. This setting does not apply to Athena SQL workgroups.</p>"
     },
     "DataCatalog":{
       "type":"structure",
@@ -1854,6 +1869,21 @@
       "box":true,
       "max":1,
       "min":1
+    },
+    "DeleteCapacityReservationInput":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"CapacityReservationName",
+          "documentation":"<p>The name of the capacity reservation to delete.</p>"
+        }
+      }
+    },
+    "DeleteCapacityReservationOutput":{
+      "type":"structure",
+      "members":{
+      }
     },
     "DeleteDataCatalogInput":{
       "type":"structure",
@@ -1989,6 +2019,10 @@
         "AdditionalConfigs":{
           "shape":"ParametersMap",
           "documentation":"<p>Contains additional notebook engine <code>MAP&lt;string, string&gt;</code> parameter mappings in the form of key-value pairs. To specify an Athena notebook that the Jupyter server will download and serve, specify a value for the <a>StartSessionRequest$NotebookVersion</a> field, and then add a key named <code>NotebookId</code> to <code>AdditionalConfigs</code> that has the value of the Athena notebook ID.</p>"
+        },
+        "SparkProperties":{
+          "shape":"ParametersMap",
+          "documentation":"<p>Specifies custom jar files and Spark properties for use cases like cluster encryption, table formats, and general Spark tuning.</p>"
         }
       },
       "documentation":"<p>Contains data processing unit (DPU) configuration settings and parameter mappings for a notebook engine.</p>"
@@ -3524,7 +3558,7 @@
         },
         "ExecutionParameters":{
           "shape":"ExecutionParameters",
-          "documentation":"<p>A list of values for the parameters in a query. The values are applied sequentially to the parameters in the query in the order in which the parameters occur.</p>"
+          "documentation":"<p>A list of values for the parameters in a query. The values are applied sequentially to the parameters in the query in the order in which the parameters occur. The list of parameters is not returned in the response.</p>"
         },
         "SubstatementType":{
           "shape":"String",
@@ -4753,7 +4787,7 @@
         },
         "CustomerContentEncryptionConfiguration":{
           "shape":"CustomerContentEncryptionConfiguration",
-          "documentation":"<p>Specifies the KMS key that is used to encrypt the user's data stores in Athena.</p>"
+          "documentation":"<p>Specifies the KMS key that is used to encrypt the user's data stores in Athena. This setting does not apply to Athena SQL workgroups.</p>"
         },
         "EnableMinimumEncryptionConfiguration":{
           "shape":"BoxedBoolean",
@@ -4795,7 +4829,7 @@
         },
         "RemoveCustomerContentEncryptionConfiguration":{
           "shape":"BoxedBoolean",
-          "documentation":"<p>Removes content encryption configuration for a workgroup.</p>"
+          "documentation":"<p>Removes content encryption configuration from an Apache Spark-enabled Athena workgroup.</p>"
         },
         "AdditionalConfiguration":{
           "shape":"NameString",

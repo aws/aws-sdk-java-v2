@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
+import java.util.List;
 import java.util.Map;
 
 public class ServiceMetadata {
@@ -46,6 +47,8 @@ public class ServiceMetadata {
     private String targetPrefix;
 
     private String uid;
+
+    private List<String> auth;
 
     private Map<String, String> protocolSettings;
 
@@ -154,6 +157,14 @@ public class ServiceMetadata {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public List<String> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<String> auth) {
+        this.auth = auth;
     }
 
     public Map<String, String> getProtocolSettings() {

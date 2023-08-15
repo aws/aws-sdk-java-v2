@@ -1,0 +1,42 @@
+{
+    "version": "2.20.87",
+    "date": "2023-06-16",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB",
+            "contributor": "martinKindall",
+            "description": "Created static method EnumAttributeConverter::createWithNameAsKeys which creates a converter based on the Enum::name method to identify enums, rather than Enum::toString. This is preferable because Enum::name is final and cannot be overwritten, as opposed to Enum::toString. EnumAttributeConverter::create is kept as it is, for backward compatibility."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Account",
+            "contributor": "",
+            "description": "Improve pagination support for ListRegions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "Add Amazon EC2 instance recommendations export"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Documentation updates for AWS Identity and Access Management (IAM)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Updates the *InstanceStorageConfig APIs to support a new ResourceType: SCREEN_RECORDINGS to enable screen recording and specify the storage configurations for publishing the recordings. Also updates DescribeInstance and ListInstances APIs to include InstanceAccessUrl attribute in the API response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "This release adds SDK support for request-payer request header and request-charged response header in the \"GetBucketAccelerateConfiguration\", \"ListMultipartUploads\", \"ListObjects\", \"ListObjectsV2\" and \"ListObjectVersions\" S3 APIs."
+        }
+    ]
+}

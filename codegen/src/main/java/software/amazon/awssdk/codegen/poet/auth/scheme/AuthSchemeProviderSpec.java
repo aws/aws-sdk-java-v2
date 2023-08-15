@@ -27,8 +27,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
 
 public class AuthSchemeProviderSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -89,7 +89,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(className())
             .addJavadoc("Get the default auth scheme provider.")
-            .addStatement("return $T.create()", authSchemeSpecUtils.providerDefaultImplName())
+            .addStatement("return $T.create()", authSchemeSpecUtils.defaultAuthSchemeProviderName())
             .build();
     }
 
@@ -100,7 +100,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
               + "resolves a list of {@link $T} based on the given parameters.",
               intermediateModel.getMetadata().getServiceName(),
               authSchemeSpecUtils.parametersInterfaceName(),
-              HttpAuthOption.class);
+              AuthSchemeOption.class);
 
         return b.build();
     }

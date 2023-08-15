@@ -73,6 +73,10 @@ public class PoetExtension {
                                            + model.getMetadata().getServiceName() + "ServiceClientConfiguration");
     }
 
+    public ClassName getUserAgentClass() {
+        return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "UserAgentUtils");
+    }
+
     /**
      * @param operationName Name of the operation
      * @return A Poet {@link ClassName} for the response type of a paginated operation in the base service package.

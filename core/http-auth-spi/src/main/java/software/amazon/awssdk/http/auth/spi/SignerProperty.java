@@ -41,6 +41,9 @@ public final class SignerProperty<T> {
         this.name = name;
     }
 
+    /**
+     * Create an instance of a property with a given type and name.
+     */
     public static <T> SignerProperty<T> create(Class<T> clazz, String name) {
         return new SignerProperty<>(clazz, name);
     }
