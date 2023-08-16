@@ -414,6 +414,7 @@ public class SimplePublisherTest {
             AtomicLong messageSendCount = new AtomicLong(0);
             AtomicLong messageReceiveCount = new AtomicLong(0);
 
+            CountDownLatch producersDone = new CountDownLatch(producerCount);
             Semaphore productionLimiter = new Semaphore(101);
             Semaphore requestLimiter = new Semaphore(57);
             ExecutorService executor = Executors.newFixedThreadPool(2 + producerCount);
@@ -431,6 +432,10 @@ public class SimplePublisherTest {
                         productionLimiter.acquire();
                         publisher.send(messageSendCount.getAndIncrement());
                     }
+
+                    // Complete once all producers are done
+                    producersDone.countDown();
+                    producersDone.await();
                     publisher.complete().thenRun(() -> completed.complete(null)); // All but one producer sending this will fail.
                     return null;
                 }));

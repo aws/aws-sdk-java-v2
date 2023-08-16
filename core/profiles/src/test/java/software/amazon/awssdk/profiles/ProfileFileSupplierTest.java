@@ -433,8 +433,9 @@ class ProfileFileSupplierTest {
     }
 
     @Test
-    void aggregate_duplicateOptionsGivenReloadingProfileFirst_preservesPrecedence() {
-        AdjustableClock clock = new AdjustableClock();
+    void aggregate_duplicateOptionsGivenReloadingProfileFirst_preservesPrecedence() throws IOException {
+        Instant startTime = Instant.now();
+        AdjustableClock clock = new AdjustableClock(startTime);
 
         ProfileFile configFile1 = configFile("profile default", Pair.of("aws_access_key_id", "config-key"));
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
@@ -452,7 +453,14 @@ class ProfileFileSupplierTest {
 
         generateTestCredentialsFile("defaultAccessKey2", "defaultSecretAccessKey2");
 
-        clock.tickForward(Duration.ofMillis(1_000));
+        Duration tick = Duration.ofMillis(1_000);
+
+        // The refresh logic uses the last modified attribute of the profile file to determine if it's changed and should be
+        // reloaded; unfortunately that means that if things happen quickly enough, the last modified time of the first version
+        // of the file, and the new version will be the same. Ensure that there is a change in the last modified time for the
+        // test file.
+        Files.setLastModifiedTime(getTestCredentialsFilePath(), FileTime.from(startTime.plus(tick)));
+        clock.tickForward(tick);
 
         profileFile = supplier.get();
         accessKeyId = profileFile.profile("default").get().property("aws_access_key_id").get();
@@ -505,10 +513,10 @@ class ProfileFileSupplierTest {
         assertThat(blockCount.get()).isEqualTo(actualProfilesCount);
     }
 
-    private Path generateTestFile(String contents, String filename) {
+    private Path writeTestFile(String contents, Path path) {
         try {
             Files.createDirectories(testDirectory);
-            return Files.write(testDirectory.resolve(filename), contents.getBytes(StandardCharsets.UTF_8));
+            return Files.write(path, contents.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -517,7 +525,11 @@ class ProfileFileSupplierTest {
     private Path generateTestCredentialsFile(String accessKeyId, String secretAccessKey) {
         String contents = String.format("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
                                         accessKeyId, secretAccessKey);
-        return generateTestFile(contents, "credentials.txt");
+        return writeTestFile(contents, getTestCredentialsFilePath());
+    }
+
+    private Path getTestCredentialsFilePath() {
+        return testDirectory.resolve("credentials.txt");
     }
 
     private Path generateTestConfigFile(Pair<Object, Object>... pairs) {
@@ -526,7 +538,7 @@ class ProfileFileSupplierTest {
                               .collect(Collectors.joining(System.lineSeparator()));
         String contents = String.format("[default]\n%s", values);
 
-        return generateTestFile(contents, "config.txt");
+        return writeTestFile(contents, testDirectory.resolve("config.txt"));
     }
 
     private void updateModificationTime(Path path, Instant instant) {
@@ -595,6 +607,10 @@ class ProfileFileSupplierTest {
 
         private AdjustableClock() {
             this.time = Instant.now();
+        }
+
+        private AdjustableClock(Instant time) {
+            this.time = time;
         }
 
         @Override

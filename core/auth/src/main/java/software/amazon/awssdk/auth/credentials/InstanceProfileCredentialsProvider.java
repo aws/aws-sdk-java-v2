@@ -105,12 +105,14 @@ public final class InstanceProfileCredentialsProvider
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
+                                                  .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
                                                   .staleValueBehavior(ALLOW)
                                                   .clock(clock)
                                                   .build();
         } else {
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
+                                                  .cachedValueName(toString())
                                                   .staleValueBehavior(ALLOW)
                                                   .clock(clock)
                                                   .build();

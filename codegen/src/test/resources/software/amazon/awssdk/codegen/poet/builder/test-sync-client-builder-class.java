@@ -7,6 +7,7 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
@@ -32,14 +33,20 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
     protected final JsonClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
+        JsonServiceClientConfiguration serviceClientConfiguration = initializeServiceClientConfig(clientConfiguration);
+        JsonClient client = new DefaultJsonClient(serviceClientConfiguration, clientConfiguration);
+        return client;
+    }
+
+    private JsonServiceClientConfiguration initializeServiceClientConfig(SdkClientConfiguration clientConfig) {
         URI endpointOverride = null;
-        if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
-            && Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
-            endpointOverride = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        EndpointProvider endpointProvider = clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER);
+        if (clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
+            && Boolean.TRUE.equals(clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
+            endpointOverride = clientConfig.option(SdkClientOption.ENDPOINT);
         }
-        JsonServiceClientConfiguration serviceClientConfiguration = JsonServiceClientConfiguration.builder()
-                                                                                                  .overrideConfiguration(overrideConfiguration()).region(clientConfiguration.option(AwsClientOption.AWS_REGION))
-                                                                                                  .endpointOverride(endpointOverride).build();
-        return new DefaultJsonClient(serviceClientConfiguration, clientConfiguration);
+        return JsonServiceClientConfiguration.builder().overrideConfiguration(overrideConfiguration())
+                                             .region(clientConfig.option(AwsClientOption.AWS_REGION)).endpointOverride(endpointOverride)
+                                             .endpointProvider(endpointProvider).build();
     }
 }

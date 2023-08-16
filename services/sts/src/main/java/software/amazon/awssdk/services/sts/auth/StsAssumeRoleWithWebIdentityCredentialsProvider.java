@@ -76,9 +76,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("StsAssumeRoleWithWebIdentityCredentialsProvider")
-                       .add("refreshRequest", assumeRoleWithWebIdentityRequest)
-                       .build();
+        return ToString.create("StsAssumeRoleWithWebIdentityCredentialsProvider");
     }
 
     @Override

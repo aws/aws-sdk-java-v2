@@ -235,6 +235,21 @@ public final class IntermediateModel {
         }
     }
 
+    public Optional<String> syncClientDecoratorClassName() {
+        if (customizationConfig.getSyncClientDecorator() != null) {
+            return Optional.of(customizationConfig.getSyncClientDecorator());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<String> asyncClientDecoratorClassName() {
+        String asyncClientDecorator = customizationConfig.getAsyncClientDecorator();
+        if (customizationConfig.getAsyncClientDecorator() != null) {
+            return Optional.of(asyncClientDecorator);
+        }
+        return Optional.empty();
+    }
+
     public String getFileHeader() {
         return FILE_HEADER;
     }

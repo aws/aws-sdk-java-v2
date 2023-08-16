@@ -25,14 +25,17 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
+import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Interface to allow non-blocking streaming of request content. This follows the reactive streams pattern where this interface is
@@ -398,5 +401,41 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      */
     static AsyncRequestBody empty() {
         return fromBytes(new byte[0]);
+    }
+
+
+    /**
+     * Converts this {@link AsyncRequestBody} to a publisher of {@link AsyncRequestBody}s, each of which publishes a specific
+     * portion of the original data, based on the provided {@link AsyncRequestBodySplitConfiguration}. The default chunk size
+     * is 2MB and the default buffer size is 8MB.
+     *
+     * <p>
+     * If content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is delivered to the
+     * subscriber right after it's initialized.
+     * <p>
+     * If content length is null, it is sent after the entire content for that chunk is buffered.
+     * In this case, the configured {@code maxMemoryUsageInBytes} must be larger than or equal to {@code chunkSizeInBytes}.
+     *
+     * @see AsyncRequestBodySplitConfiguration
+     */
+    default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+
+        return SplittingPublisher.builder()
+                                 .asyncRequestBody(this)
+                                 .chunkSizeInBytes(splitConfiguration.chunkSizeInBytes())
+                                 .bufferSizeInBytes(splitConfiguration.bufferSizeInBytes())
+                                 .build();
+    }
+
+    /**
+     * This is a convenience method that passes an instance of the {@link AsyncRequestBodySplitConfiguration} builder,
+     * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
+     *
+     * @see #split(AsyncRequestBodySplitConfiguration)
+     */
+    default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
     }
 }
