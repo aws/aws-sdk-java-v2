@@ -61,6 +61,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
+import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -97,7 +98,12 @@ public class UploadObjectHelperTest {
     @BeforeEach
     public void beforeEach() {
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        uploadHelper = new UploadObjectHelper(s3AsyncClient, PART_SIZE, THRESHOLD, PART_SIZE * 2);
+        uploadHelper = new UploadObjectHelper(s3AsyncClient,
+                                              new MultipartConfigurationResolver(MultipartConfiguration.builder()
+                                                                                                       .minimumPartSizeInBytes(PART_SIZE)
+                                                                                                       .thresholdInBytes(THRESHOLD)
+                                                                                                       .thresholdInBytes(PART_SIZE * 2)
+                                                                                                       .build()));
     }
 
     @ParameterizedTest
