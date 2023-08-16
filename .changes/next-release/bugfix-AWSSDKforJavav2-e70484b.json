@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Sends final checksum chunk and trailer when only onComplete() is called by upstream (empty content)"
+}
