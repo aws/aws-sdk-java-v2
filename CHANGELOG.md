@@ -1,3 +1,16 @@
+# __2.20.128__ __2023-08-16__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add support for the `SERVICE_ENDPOINT` metric. This metric represents the endpoint (scheme and authority) that the request was sent to.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Doc-only update to incorporate several doc bug fixes
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release updates the Custom Vocabulary Weight field to support a value of 0.
+
 # __2.20.127__ __2023-08-15__
 ## __AWS Glue__
   - ### Features
@@ -1230,7 +1243,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
