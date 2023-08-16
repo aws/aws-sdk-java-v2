@@ -53,6 +53,21 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
  *                  --service-module-name service-module-name
  *                  --service-protocol json"
  * </pre>
+ *
+ * <p>By default the service new pom will include a dependency to the http-auth-aws module, this is only needed if the service
+ * has one or more operations signed by any of the aws algorithms, e.g., sigv4 or sigv4a, but not needed if the service uses,
+ * say, bearer auth (e.g., codecatalyst at the moment). Excluding this can be done by adding the
+ * {@code --exclude-internal-dependency http-auth-aws} switch. For example
+ * <pre>
+ * mvn exec:java -pl :release-scripts \
+ *     -Dexec.mainClass="software.amazon.awssdk.release.CreateNewServiceModuleMain" \
+ *     -Dexec.args="--maven-project-root /path/to/root
+ *                  --maven-project-version 2.1.4-SNAPSHOT
+ *                  --service-id 'Service Id'
+ *                  --service-module-name service-module-name
+ *                  --service-protocol json
+ *                  --exclude-internal-dependency http-auth-aws"
+ * </pre>
  */
 public class CreateNewServiceModuleMain extends Cli {
 
