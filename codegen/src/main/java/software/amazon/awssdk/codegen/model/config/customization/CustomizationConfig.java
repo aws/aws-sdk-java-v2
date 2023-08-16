@@ -106,7 +106,7 @@ public class CustomizationConfig {
 
     /**
      * APIs that have no required arguments in their model but can't be called via a simple method.
-     * Superseded by {@link #excludedSimpleMethods}
+     * @deprecated Superseded by {@link #excludedSimpleMethods}
      */
     @Deprecated
     private List<String> blacklistedSimpleMethods = new ArrayList<>();
@@ -364,7 +364,7 @@ public class CustomizationConfig {
     }
 
     /**
-     * Use {@link #getExcludedSimpleMethods()}
+     * @deprecated Use {@link #getExcludedSimpleMethods()}
      */
     @Deprecated
     public List<String> getBlacklistedSimpleMethods() {
@@ -372,7 +372,7 @@ public class CustomizationConfig {
     }
 
     /**
-     * Use {@link #setExcludedSimpleMethods(List)}
+     * @deprecated Use {@link #setExcludedSimpleMethods(List)}
      */
     @Deprecated
     public void setBlacklistedSimpleMethods(List<String> blackListedSimpleMethods) {
