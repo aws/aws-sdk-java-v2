@@ -103,6 +103,13 @@ public class CustomizationConfig {
     /**
      * APIs that have no required arguments in their model but can't be called via a simple method
      */
+    private List<String> excludedSimpleMethods = new ArrayList<>();
+
+    /**
+     * APIs that have no required arguments in their model but can't be called via a simple method.
+     * Superseded by {@link #excludedSimpleMethods}
+     */
+    @Deprecated
     private List<String> blacklistedSimpleMethods = new ArrayList<>();
 
     /**
@@ -373,10 +380,26 @@ public class CustomizationConfig {
         this.serviceSpecificHttpConfig = serviceSpecificHttpConfig;
     }
 
+    public List<String> getExcludedSimpleMethods() {
+        return excludedSimpleMethods;
+    }
+
+    public void setExcludedSimpleMethods(List<String> excludedSimpleMethods) {
+        this.excludedSimpleMethods = excludedSimpleMethods;
+    }
+
+    /**
+     * Use {@link #getExcludedSimpleMethods()}
+     */
+    @Deprecated
     public List<String> getBlacklistedSimpleMethods() {
         return blacklistedSimpleMethods;
     }
 
+    /**
+     * Use {@link #setExcludedSimpleMethods(List)}
+     */
+    @Deprecated
     public void setBlacklistedSimpleMethods(List<String> blackListedSimpleMethods) {
         this.blacklistedSimpleMethods = blackListedSimpleMethods;
     }
