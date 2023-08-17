@@ -16,11 +16,14 @@
 package software.amazon.awssdk.services.ec2.transform.internal;
 
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
 import java.net.URI;
 import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
@@ -34,11 +37,14 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
 import software.amazon.awssdk.services.ec2.transform.CopySnapshotRequestMarshaller;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * ExecutionInterceptor that generates a pre-signed URL for copying encrypted snapshots
@@ -133,9 +139,22 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
         return Aws4PresignerParams.builder()
                                   .signingRegion(Region.of(signingRegion))
                                   .signingName(signingName)
-                                  .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
+                                  .awsCredentials(resolveCredentials(attributes))
                                   .signingClockOverride(testClock)
                                   .build();
+    }
+
+    // TODO(sra-identity-and-auth): add test case for SELECTED_AUTH_SCHEME case
+    private AwsCredentials resolveCredentials(ExecutionAttributes attributes) {
+        return attributes.getOptionalAttribute(SELECTED_AUTH_SCHEME)
+                         .map(selectedAuthScheme -> {
+                             Identity identity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
+                             // TODO(sra-identity-and-auth): assert the type is correct.
+                             // TODO(sra-identity-and-auth): What happens if SRA selects different auth scheme than sigv4
+                             // What about sigv4a? Just checking Identity type is ok?
+                             AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
+                             return CredentialUtils.toCredentials(awsCredentialsIdentity);
+                         }).orElse(attributes.getAttribute(AWS_CREDENTIALS));
     }
 
     /**
