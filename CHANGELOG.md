@@ -1,3 +1,19 @@
+# __2.20.129__ __2023-08-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Sends final checksum chunk and trailer when only onComplete() is called by upstream (empty content)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for SubnetConfigurations to allow users to select their own IPv4 and IPv6 addresses for Interface VPC endpoints
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift updates its instance types support.
+
 # __2.20.128__ __2023-08-16__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
@@ -1243,7 +1259,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
