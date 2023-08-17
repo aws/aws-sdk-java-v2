@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -65,16 +66,21 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
      * Size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
      */
     private final int chunkSizeInBytes;
+    private final long position;
+    private final long numBytesToRead;
 
     private FileAsyncRequestBody(DefaultBuilder builder) {
         this.path = builder.path;
         this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
         this.fileLength = invokeSafely(() -> Files.size(path));
+        this.position = builder.position == null ? 0 : Validate.isNotNegative(builder.position, "position");
+        this.numBytesToRead = builder.numBytesToRead == null ? fileLength - this.position :
+                              Validate.isNotNegative(builder.numBytesToRead, "numBytesToRead");
     }
 
     @Override
     public Optional<Long> contentLength() {
-        return Optional.of(fileLength);
+        return Optional.of(numBytesToRead);
     }
 
     @Override
@@ -91,7 +97,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             // We need to synchronize here because the subscriber could call
             // request() from within onSubscribe which would potentially
             // trigger onNext before onSubscribe is finished.
-            Subscription subscription = new FileSubscription(path, channel, s, chunkSizeInBytes);
+            Subscription subscription = new FileSubscription(path, channel, s, chunkSizeInBytes, position, numBytesToRead);
 
             synchronized (subscription) {
                 s.onSubscribe(subscription);
@@ -128,7 +134,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         Builder path(Path path);
 
         /**
-         * Sets the size of chunks read from the file. Increasing this will cause more data to be buffered into memory but
+         * Sets the size of chunks to read from the file. Increasing this will cause more data to be buffered into memory but
          * may yield better latencies. Decreasing this will reduce memory usage but may cause reduced latency. Setting this value
          * is very dependent on upload speed and requires some performance testing to tune.
          *
@@ -139,12 +145,33 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
          */
         Builder chunkSizeInBytes(Integer chunkSize);
 
+        /**
+         * Sets the file position at which the request body begins.
+         *
+         * <p>By default, it's 0, i.e., reading from the beginning.
+         *
+         * @param position the position of the file
+         * @return The builder for method chaining.
+         */
+        Builder position(Long position);
+
+        /**
+         * Sets the number of bytes to read from this file.
+         * 
+         * <p>By default, it's same as the file length.
+         *
+         * @param numBytesToRead number of bytes to read
+         * @return The builder for method chaining.
+         */
+        Builder numBytesToRead(Long numBytesToRead);
     }
 
     private static final class DefaultBuilder implements Builder {
 
+        private Long position;
         private Path path;
         private Integer chunkSizeInBytes;
+        private Long numBytesToRead;
 
         @Override
         public Builder path(Path path) {
@@ -159,6 +186,18 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         @Override
         public Builder chunkSizeInBytes(Integer chunkSizeInBytes) {
             this.chunkSizeInBytes = chunkSizeInBytes;
+            return this;
+        }
+
+        @Override
+        public Builder position(Long position) {
+            this.position = position;
+            return this;
+        }
+
+        @Override
+        public Builder numBytesToRead(Long numBytesToRead) {
+            this.numBytesToRead = numBytesToRead;
             return this;
         }
 
@@ -181,8 +220,8 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private final Subscriber<? super ByteBuffer> subscriber;
         private final int chunkSize;
 
-        private final AtomicLong position = new AtomicLong(0);
-        private final AtomicLong remainingBytes = new AtomicLong(0);
+        private final AtomicLong position;
+        private final AtomicLong remainingBytes;
         private final long sizeAtStart;
         private final FileTime modifiedTimeAtStart;
         private long outstandingDemand = 0;
@@ -193,14 +232,17 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private FileSubscription(Path path,
                                  AsynchronousFileChannel inputChannel,
                                  Subscriber<? super ByteBuffer> subscriber,
-                                 int chunkSize) throws IOException {
+                                 int chunkSize,
+                                 long position,
+                                 long numBytesToRead) throws IOException {
             this.path = path;
             this.inputChannel = inputChannel;
             this.subscriber = subscriber;
             this.chunkSize = chunkSize;
             this.sizeAtStart = inputChannel.size();
             this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
-            this.remainingBytes.set(Validate.isNotNegative(sizeAtStart, "size"));
+            this.remainingBytes = new AtomicLong(numBytesToRead);
+            this.position = new AtomicLong(position);
         }
 
         @Override
@@ -255,7 +297,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                 return;
             }
 
-            ByteBuffer buffer = ByteBuffer.allocate(chunkSize);
+            ByteBuffer buffer = ByteBuffer.allocate(Math.min(chunkSize, NumericUtils.saturatedCast(remainingBytes.get())));
             inputChannel.read(buffer, position.get(), buffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {

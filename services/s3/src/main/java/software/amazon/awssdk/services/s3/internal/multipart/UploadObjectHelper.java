@@ -15,12 +15,17 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -58,14 +63,24 @@ public final class UploadObjectHelper {
                                                                                        apiCallBufferSize);
     }
 
-    public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
-                                                             AsyncRequestBody asyncRequestBody) {
+    public CompletableFuture<PutObjectResponse> uploadWithAsyncRequestBody(PutObjectRequest putObjectRequest,
+                                                                           AsyncRequestBody asyncRequestBody) {
         Long contentLength = asyncRequestBody.contentLength().orElseGet(putObjectRequest::contentLength);
 
         if (contentLength == null) {
             return uploadWithUnknownContentLength.uploadObject(putObjectRequest, asyncRequestBody);
         } else {
-            return uploadWithKnownContentLength.uploadObject(putObjectRequest, asyncRequestBody, contentLength.longValue());
+            return uploadWithKnownContentLength.uploadObject(putObjectRequest,
+                                                             Either.left(asyncRequestBody),
+                                                             contentLength.longValue());
         }
+    }
+
+    public CompletableFuture<PutObjectResponse> uploadWithFile(PutObjectRequest putObjectRequest,
+                                                               Path path) {
+        long contentLength = invokeSafely(() -> Files.size(path));
+        return uploadWithKnownContentLength.uploadObject(putObjectRequest,
+                                                         Either.right(path),
+                                                         contentLength);
     }
 }

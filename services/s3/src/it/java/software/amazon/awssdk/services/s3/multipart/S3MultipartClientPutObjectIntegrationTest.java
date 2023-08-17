@@ -93,6 +93,19 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     }
 
     @Test
+    void putObject_withPath_objectSentCorrectly() throws Exception {
+        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), testFile.toPath()).get(10, SECONDS);
+
+        ResponseInputStream<GetObjectResponse> objContent =
+            S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                               ResponseTransformer.toInputStream());
+
+        assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
+        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+    }
+
+    @Test
     void putObject_byteAsyncRequestBody_objectSentCorrectly() throws Exception {
         byte[] bytes = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
         AsyncRequestBody body = AsyncRequestBody.fromBytes(bytes);

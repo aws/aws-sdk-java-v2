@@ -15,13 +15,17 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import io.reactivex.Flowable;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -38,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -45,10 +50,12 @@ public class FileAsyncRequestBodyTest {
     private static final long MiB = 1024 * 1024;
     private static final long TEST_FILE_SIZE = 10 * MiB;
     private static Path testFile;
+    private static Path smallFile;
 
     @BeforeEach
     public void setup() throws IOException {
         testFile = new RandomTempFile(TEST_FILE_SIZE).toPath();
+        smallFile = new RandomTempFile(100).toPath();
     }
 
     @AfterEach
@@ -224,6 +231,84 @@ public class FileAsyncRequestBodyTest {
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
             .hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    public void positionNotZero_shouldReadFromPosition() throws Exception {
+        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        long position = 20L;
+        AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
+                                                                .path(smallFile)
+                                                                .position(position)
+                                                                .chunkSizeInBytes(10)
+                                                                .build();
+
+        ByteArrayAsyncResponseTransformer.BaosSubscriber baosSubscriber =
+            new ByteArrayAsyncResponseTransformer.BaosSubscriber(future);
+        asyncRequestBody.subscribe(baosSubscriber);
+        assertThat(asyncRequestBody.contentLength()).contains(80L);
+
+        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+
+        byte[] expected = new byte[80];
+        try(FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {
+            inputStream.skip(position);
+            inputStream.read(expected, 0, 80);
+        }
+
+        assertThat(bytes).isEqualTo(expected);
+    }
+
+    @Test
+    public void bothPositionAndNumBytesToReadConfigured_shouldHonor() throws Exception {
+        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        long position = 20L;
+        long numBytesToRead = 5L;
+        AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
+                                                                .path(smallFile)
+                                                                .position(position)
+                                                                .numBytesToRead(numBytesToRead)
+                                                                .chunkSizeInBytes(10)
+                                                                .build();
+
+        ByteArrayAsyncResponseTransformer.BaosSubscriber baosSubscriber =
+            new ByteArrayAsyncResponseTransformer.BaosSubscriber(future);
+        asyncRequestBody.subscribe(baosSubscriber);
+        assertThat(asyncRequestBody.contentLength()).contains(numBytesToRead);
+
+        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+
+        byte[] expected = new byte[5];
+        try (FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {
+            inputStream.skip(position);
+            inputStream.read(expected, 0, 5);
+        }
+
+        assertThat(bytes).isEqualTo(expected);
+    }
+
+    @Test
+    public void numBytesToReadConfigured_shouldHonor() throws Exception {
+        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
+                                                                .path(smallFile)
+                                                                .numBytesToRead(5L)
+                                                                .chunkSizeInBytes(10)
+                                                                .build();
+
+        ByteArrayAsyncResponseTransformer.BaosSubscriber baosSubscriber =
+            new ByteArrayAsyncResponseTransformer.BaosSubscriber(future);
+        asyncRequestBody.subscribe(baosSubscriber);
+        assertThat(asyncRequestBody.contentLength()).contains(5L);
+
+        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+
+        byte[] expected = new byte[5];
+        try (FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {
+            inputStream.read(expected, 0, 5);
+        }
+
+        assertThat(bytes).isEqualTo(expected);
     }
 
     private static class ControllableSubscriber implements Subscriber<ByteBuffer> {
