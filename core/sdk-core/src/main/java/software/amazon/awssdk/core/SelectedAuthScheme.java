@@ -29,19 +29,32 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkProtectedApi
 public final class SelectedAuthScheme<T extends Identity> {
+    private final CompletableFuture<? extends T> identity;
+    private final HttpSigner<T> signer;
+    private final AuthSchemeOption authSchemeOption;
+    private final boolean supportsSigning;
 
-    public static final String SMITHY_NO_AUTH = "smithy.api#noAuth";
-
-    private CompletableFuture<? extends T> identity;
-    private HttpSigner<T> signer;
-    private AuthSchemeOption authSchemeOption;
+    public SelectedAuthScheme(CompletableFuture<? extends T> identity,
+                              HttpSigner<T> signer,
+                              AuthSchemeOption authSchemeOption,
+                              boolean supportsSigning) {
+        if (supportsSigning) {
+            this.identity = Validate.paramNotNull(identity, "identity");
+            this.signer = Validate.paramNotNull(signer, "signer");
+            this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
+            this.supportsSigning = true;
+        } else {
+            this.identity = identity;
+            this.signer = signer;
+            this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
+            this.supportsSigning = false;
+        }
+    }
 
     public SelectedAuthScheme(CompletableFuture<? extends T> identity,
                               HttpSigner<T> signer,
                               AuthSchemeOption authSchemeOption) {
-        this.identity = identity;
-        this.signer = signer;
-        this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
+        this(identity, signer, authSchemeOption, true);
     }
 
     public CompletableFuture<? extends T> identity() {
@@ -57,6 +70,6 @@ public final class SelectedAuthScheme<T extends Identity> {
     }
 
     public boolean supportsSigning() {
-        return !authSchemeOption.schemeId().equals(SMITHY_NO_AUTH);
+        return supportsSigning;
     }
 }

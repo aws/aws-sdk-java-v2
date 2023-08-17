@@ -137,7 +137,8 @@ public class SigningStageTest {
             signer,
             AuthSchemeOption.builder()
                             .schemeId("smithy.api#noAuth")
-                            .build());
+                            .build(),
+            false);
         RequestExecutionContext context = createContext(selectedAuthScheme);
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();

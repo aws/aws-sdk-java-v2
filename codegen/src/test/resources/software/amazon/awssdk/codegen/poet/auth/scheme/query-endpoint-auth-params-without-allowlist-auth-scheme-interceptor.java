@@ -71,13 +71,6 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                 .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
         List<Supplier<String>> discardedReasons = new ArrayList<>();
         for (AuthSchemeOption authOption : authOptions) {
-            if (authOption.schemeId().equals("smithy.api#noAuth")) {
-                if (!discardedReasons.isEmpty()) {
-                    LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
-                            discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))));
-                }
-                return new SelectedAuthScheme<>(null, null, authOption);
-            }
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
             SelectedAuthScheme<? extends Identity> selectedAuthScheme = trySelectAuthScheme(authOption, authScheme,
                     identityResolvers, discardedReasons);
@@ -120,6 +113,9 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
             discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
             return null;
         }
+        if (!authScheme.supportsSigning()) {
+            return new SelectedAuthScheme<T>(null, null, authOption, false);
+        }
         IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
         if (identityProvider == null) {
             discardedReasons
@@ -129,6 +125,6 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
         authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
         CompletableFuture<? extends T> identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
-        return new SelectedAuthScheme<>(identity, authScheme.signer(), authOption);
+        return new SelectedAuthScheme<>(identity, authScheme.signer(), authOption, true);
     }
 }
