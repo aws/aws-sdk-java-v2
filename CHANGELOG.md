@@ -1,3 +1,16 @@
+# __2.20.130__ __2023-08-18__
+## __AWS CodeCommit__
+  - ### Features
+    - Add new ListFileCommitHistory operation to retrieve commits which introduced changes to a specific file.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added Inspector Lambda code Vulnerability section to ASFF, including GeneratorDetails, EpssScore, ExploitAvailable, and CodeVulnerabilities.
+
 # __2.20.129__ __2023-08-17__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -1259,7 +1272,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
