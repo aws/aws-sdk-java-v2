@@ -187,28 +187,48 @@ public class AsyncSigningStageTest {
     }
 
     @Test
-    public void execute_selectedNoAuthAuthScheme_skipsSigning() throws Exception {
+    public void execute_selectedNoAuthAuthScheme_doesSraSignAsync() throws Exception {
+        AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
         // Set up a scheme with smithy.api#noAuth
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
             signer,
             AuthSchemeOption.builder()
                             .schemeId("smithy.api#noAuth")
-                            .build(),
-            false);
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+                            .putSignerProperty(SIGNER_PROPERTY, "value")
+                            .build());
+        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload);
+
+        SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");
+        when(signer.signAsync(Mockito.<AsyncSignRequest<? extends Identity>>any()))
+            .thenReturn(
+                CompletableFuture.completedFuture(AsyncSignedRequest.builder()
+                                                                    .request(signedRequest)
+                                                                    .payload(signedPayload)
+                                                                    .build()));
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
 
-        assertThat(result).isSameAs(request);
-        // assert that interceptor context is updated with result, which is same as request.
-        // To ensure this asserts the logic in the SigningStage to update the InterceptorContext before the signing logic,
-        // the request is not set in the InterceptorContext in createContext()
-        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(request);
+        assertThat(result).isSameAs(signedRequest);
+        // assert that contexts are updated with result
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
+        assertThat(context.executionContext().interceptorContext().asyncRequestBody().get()).isSameAs(signedPayload);
+        assertThat(context.requestProvider()).isSameAs(signedPayload);
 
-        verifyNoInteractions(signer);
-        verifyNoInteractions(metricCollector);
+        // assert that the input to the signer is as expected, including that signer properties are set
+        verify(signer).signAsync(asyncSignRequestCaptor.capture());
+        AsyncSignRequest<? extends Identity> signRequest = asyncSignRequestCaptor.getValue();
+        assertThat(signRequest.identity()).isSameAs(identity);
+        assertThat(signRequest.request()).isSameAs(request);
+        assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
+        assertThat(signRequest.payload().get()).isSameAs(asyncPayload);
+
+        // assert that metrics are collected
+        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
+
+        verifyNoInteractions(oldSigner);
     }
 
     @Test

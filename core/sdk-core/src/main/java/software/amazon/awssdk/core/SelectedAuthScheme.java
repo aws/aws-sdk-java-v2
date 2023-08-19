@@ -32,29 +32,13 @@ public final class SelectedAuthScheme<T extends Identity> {
     private final CompletableFuture<? extends T> identity;
     private final HttpSigner<T> signer;
     private final AuthSchemeOption authSchemeOption;
-    private final boolean supportsSigning;
-
-    public SelectedAuthScheme(CompletableFuture<? extends T> identity,
-                              HttpSigner<T> signer,
-                              AuthSchemeOption authSchemeOption,
-                              boolean supportsSigning) {
-        if (supportsSigning) {
-            this.identity = Validate.paramNotNull(identity, "identity");
-            this.signer = Validate.paramNotNull(signer, "signer");
-            this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
-            this.supportsSigning = true;
-        } else {
-            this.identity = identity;
-            this.signer = signer;
-            this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
-            this.supportsSigning = false;
-        }
-    }
 
     public SelectedAuthScheme(CompletableFuture<? extends T> identity,
                               HttpSigner<T> signer,
                               AuthSchemeOption authSchemeOption) {
-        this(identity, signer, authSchemeOption, true);
+        this.identity = Validate.paramNotNull(identity, "identity");
+        this.signer = Validate.paramNotNull(signer, "signer");
+        this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
     }
 
     public CompletableFuture<? extends T> identity() {
@@ -67,9 +51,5 @@ public final class SelectedAuthScheme<T extends Identity> {
 
     public AuthSchemeOption authSchemeOption() {
         return authSchemeOption;
-    }
-
-    public boolean supportsSigning() {
-        return supportsSigning;
     }
 }

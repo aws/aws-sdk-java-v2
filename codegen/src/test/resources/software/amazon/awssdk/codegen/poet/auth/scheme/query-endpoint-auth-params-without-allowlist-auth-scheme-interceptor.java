@@ -113,9 +113,6 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
             discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
             return null;
         }
-        if (!authScheme.supportsSigning()) {
-            return new SelectedAuthScheme<T>(null, null, authOption, false);
-        }
         IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
         if (identityProvider == null) {
             discardedReasons
@@ -125,6 +122,6 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
         authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
         CompletableFuture<? extends T> identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
-        return new SelectedAuthScheme<>(identity, authScheme.signer(), authOption, true);
+        return new SelectedAuthScheme<>(identity, authScheme.signer(), authOption);
     }
 }

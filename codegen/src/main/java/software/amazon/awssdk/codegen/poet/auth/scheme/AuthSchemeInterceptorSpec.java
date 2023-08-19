@@ -240,10 +240,6 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                    .addStatement("return null")
                    .endControlFlow();
         }
-        builder.beginControlFlow("if (!authScheme.supportsSigning())");
-        builder.addStatement("return new $T<T>(null, null, authOption, false)", SelectedAuthScheme.class);
-        builder.endControlFlow();
-
         builder.addStatement("$T identityProvider = authScheme.identityProvider(identityProviders)",
                              namedIdentityProvider());
 
@@ -262,7 +258,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         builder.addStatement("$T identity = identityProvider.resolveIdentity(identityRequestBuilder.build())",
                              namedIdentityFuture());
 
-        builder.addStatement("return new $T<>(identity, authScheme.signer(), authOption, true)", SelectedAuthScheme.class);
+        builder.addStatement("return new $T<>(identity, authScheme.signer(), authOption)", SelectedAuthScheme.class);
         return builder.build();
     }
 

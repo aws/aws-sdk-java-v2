@@ -58,12 +58,4 @@ public interface AuthScheme<T extends Identity> {
      * by the identity provider in this authentication scheme.
      */
     HttpSigner<T> signer();
-
-    /**
-     * Returns true if the auth-scheme supports signing. If this method returns false then the call to
-     * {@link #identityProvider(IdentityProviderConfiguration)} and {@link #signer()} is not well-defined.
-     */
-    default boolean supportsSigning() {
-        return true;
-    }
 }

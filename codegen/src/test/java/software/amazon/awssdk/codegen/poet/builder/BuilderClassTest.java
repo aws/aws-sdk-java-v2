@@ -127,6 +127,7 @@ public class BuilderClassTest {
                                               String expectedClassName) {
         assertThat(generatorConstructor.apply(ClientTestModels.serviceWithNoAuth()), generatesTo(expectedClassName));
     }
+
     private void validateQueryGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
         assertThat(generatorConstructor.apply(ClientTestModels.queryServiceModels()), generatesTo(expectedClassName));
     }

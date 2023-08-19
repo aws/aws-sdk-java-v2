@@ -16,40 +16,26 @@
 package software.amazon.awssdk.http.auth.spi;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultNoAuthAuthScheme;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 
 /**
  * An auth scheme that represents no authentication.
  */
 @SdkPublicApi
-public interface NoAuthAuthScheme extends AuthScheme<Identity> {
+public interface NoAuthAuthScheme extends AuthScheme<NoAuthAuthScheme.AnonymousIdentity> {
     /**
      * The scheme ID for the no-auth auth scheme.
      */
     String SCHEME_ID = "smithy.api#noAuth";
 
     static NoAuthAuthScheme create() {
-        return new NoAuthAuthScheme() {
-            @Override
-            public String schemeId() {
-                return SCHEME_ID;
-            }
+        return DefaultNoAuthAuthScheme.create();
+    }
 
-            @Override
-            public IdentityProvider<Identity> identityProvider(IdentityProviderConfiguration providers) {
-                throw new UnsupportedOperationException(SCHEME_ID + " does not support getting a signer");
-            }
-
-            @Override
-            public HttpSigner<Identity> signer() {
-                throw new UnsupportedOperationException(SCHEME_ID + " does not support getting a signer");
-            }
-
-            @Override
-            public boolean supportsSigning() {
-                return false;
-            }
-        };
+    /**
+     * An anonymous identity used by the no-auth auth scheme.
+     */
+    interface AnonymousIdentity extends Identity {
     }
 }
