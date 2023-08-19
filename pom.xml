@@ -169,7 +169,7 @@
         <httpcomponents.httpcore.version>4.4.13</httpcomponents.httpcore.version>
 
         <!-- Reactive Streams version -->
-        <reactive-streams.version>1.0.3</reactive-streams.version>
+        <reactive-streams.version>1.0.4</reactive-streams.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
