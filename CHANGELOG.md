@@ -1,3 +1,120 @@
+# __2.20.130__ __2023-08-18__
+## __AWS CodeCommit__
+  - ### Features
+    - Add new ListFileCommitHistory operation to retrieve commits which introduced changes to a specific file.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added Inspector Lambda code Vulnerability section to ASFF, including GeneratorDetails, EpssScore, ExploitAvailable, and CodeVulnerabilities.
+
+# __2.20.129__ __2023-08-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Sends final checksum chunk and trailer when only onComplete() is called by upstream (empty content)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for SubnetConfigurations to allow users to select their own IPv4 and IPv6 addresses for Interface VPC endpoints
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift updates its instance types support.
+
+# __2.20.128__ __2023-08-16__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add support for the `SERVICE_ENDPOINT` metric. This metric represents the endpoint (scheme and authority) that the request was sent to.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Doc-only update to incorporate several doc bug fixes
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release updates the Custom Vocabulary Weight field to support a value of 0.
+
+# __2.20.127__ __2023-08-15__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Crawlers can now accept SerDe overrides from a custom csv classifier. The two SerDe options are LazySimpleSerDe and OpenCSVSerDe. In case, the user wants crawler to do the selection, "None" can be selected for this purpose.
+
+## __AWS Performance Insights__
+  - ### Features
+    - AWS Performance Insights for Amazon RDS is launching Performance Analysis On Demand, a new feature that allows you to analyze database performance metrics and find out the performance issues. You can now use SDK to create, list, get, delete, and manage tags of performance analysis reports.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Updated API documentation to include additional exceptions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Provide explanation if CheckDomainTransferability return false. Provide requestId if a request is already submitted. Add sensitive protection for customer information
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now provides SupportedResponseMIMETypes from DescribeInferenceRecommendationsJob response
+
+# __2.20.126__ __2023-08-14__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Fix SDK logging of certain fields.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __Amazon Omics__
+  - ### Features
+    - This release provides support for annotation store versioning and cross account sharing for Omics Analytics
+
+# __2.20.125__ __2023-08-11__
+## __AWS Config__
+  - ### Features
+    - Updated ResourceType enum with new resource types onboarded by AWS Config in July 2023.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 P5 instances, powered by the latest NVIDIA H100 Tensor Core GPUs, deliver the highest performance in EC2 for deep learning (DL) and HPC applications. M7i-flex and M7i instances are next-generation general purpose instances powered by custom 4th Generation Intel Xeon Scalable processors.
+
+## __Amazon QuickSight__
+  - ### Features
+    - New Authentication method for Account subscription - IAM Identity Center. Hierarchy layout support, default column width support and related style properties for pivot table visuals. Non-additive topic field aggregations for Topic API
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Doc only updates to include: 1) Clarified which part of an email address where it's okay to have Punycode when it contains non-ASCII characters for the SendRawEmail action and other actions where this is applicable. 2) Updated S3Action description with new MB max bucket size from 30 to 40.
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - This release adds new API parameters to override workflow task list for workflow executions.
+
+## __AmplifyBackend__
+  - ### Features
+    - Adds sensitive trait to required input shapes.
+
 # __2.20.124__ __2023-08-10__
 ## __AWS CloudTrail__
   - ### Features

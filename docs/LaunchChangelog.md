@@ -827,3 +827,4 @@ The following libraries are available in 2.0:
 | Waiters | [Waiters](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/waiters.html) | 2.15.0 |
 | CloudFrontUrlSigner, CloudFrontCookieSigner | [CloudFrontUtilities](https://aws.amazon.com/blogs/developer/amazon-cloudfront-signed-urls-and-cookies-are-now-supported-in-aws-sdk-for-java-2-x/) | 2.18.33 |
 | TransferManager | [S3TransferManager](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/transfer-manager.html) | 2.19.0 |
+| IAM Policy Builder | [IAM Policy Builder](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/feature-iam-policy-builder.html) | 2.20.126

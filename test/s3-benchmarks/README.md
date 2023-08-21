@@ -1,7 +1,6 @@
 # S3 Benchmark Harness
 
-
-This module contains performance tests for `S3AsyncClient` and 
+This module contains performance tests for `S3AsyncClient` and
 `S3TransferManager`
 
 ## How to run
@@ -16,6 +15,31 @@ java -jar s3-benchmarks.jar --bucket=bucket --key=key -file=/path/to/destionfile
 # upload
 java -jar s3-benchmarks.jar --bucket=bucket --key=key -file=/path/to/sourcefile/ --operation=upload --partSizeInMB=20 --maxThroughput=100.0
 ```
+
+## Command line arguments
+
+### Benchmark version
+
+The `--version` command line option is used to determine which component is under test:
+
+- `--version=crt` : Indicate to run the benchmark for the CRT's S3Client
+- `--version=java` : Indicate to run the benchmark for the java based S3 Async Client (`MultipartS3AsyncClient` class)
+- `--version=v2`: SDK v2 transfer manager (using `S3CrtAsyncClient` to delegate requests)
+- `--version=v1`: SDK v1 transfer manager (using `AmazonS3Client` to delegate requests)
+
+### Operation
+
+The `--operation` command line argument determine which transfer operation is used
+
+|operation|supported version|
+|---|-------|
+|download | v1 v2 java crt |
+|upload | v1 v2 java crt |
+|download_directory | v1 v2 |
+|upload_directory | v1 v2 |
+|copy | v1 v2 java |
+
+> All command line argument can be found in the `BenchmarkRunner` class.
 
 # Benchmark scripts Automation
 From the `.script` folder, use one of the `benchamrk` scripts to run a test suite.
