@@ -52,7 +52,7 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
 
     private final Publisher<ByteBuffer> sigv4Publisher;
 
-    public SigV4DataFramePublisher(Publisher<ByteBuffer> publisher,
+    private SigV4DataFramePublisher(Publisher<ByteBuffer> publisher,
                                    AwsCredentialsIdentity credentials,
                                    CredentialScope credentialScope,
                                    String signature,
@@ -63,11 +63,12 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
 
         // Map publisher with signing function
         this.sigv4Publisher = subscriber -> {
-            Subscriber<ByteBuffer> adaptedSubscriber = MappingSubscriber.create(subscriber, getDataFrameSigner(credentials,
-                                                                                                               credentialScope,
-                                                                                                               signature,
-                                                                                                               signingClock
-                                                                                )
+            Subscriber<ByteBuffer> adaptedSubscriber =
+                MappingSubscriber.create(subscriber, getDataFrameSigner(credentials,
+                                                                        credentialScope,
+                                                                        signature,
+                                                                        signingClock
+                )
             );
             trailingPublisher.subscribe(adaptedSubscriber);
         };
@@ -230,5 +231,67 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
         sigv4Publisher.subscribe(subscriber);
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
+    public interface Builder {
+        Builder publisher(Publisher<ByteBuffer> publisher);
+
+        Builder credentials(AwsCredentialsIdentity credentials);
+
+        Builder credentialScope(CredentialScope credentialScope);
+
+        Builder signature(String signature);
+
+        Builder signingClock(Clock signingClock);
+
+        SigV4DataFramePublisher build();
+    }
+
+    private static class BuilderImpl implements Builder {
+        private Publisher<ByteBuffer> publisher;
+        private AwsCredentialsIdentity credentials;
+        private CredentialScope credentialScope;
+        private String signature;
+        private Clock signingClock;
+
+        @Override
+        public Builder publisher(Publisher<ByteBuffer> publisher) {
+            this.publisher = publisher;
+            return this;
+        }
+
+        @Override
+        public Builder credentials(AwsCredentialsIdentity credentials) {
+            this.credentials = credentials;
+            return this;
+        }
+
+        @Override
+        public Builder credentialScope(CredentialScope credentialScope) {
+            this.credentialScope = credentialScope;
+            return this;
+        }
+
+        @Override
+        public Builder signature(String signature) {
+            this.signature = signature;
+            return this;
+        }
+
+        @Override
+        public Builder signingClock(Clock signingClock) {
+            this.signingClock = signingClock;
+            return this;
+        }
+
+        @Override
+        public SigV4DataFramePublisher build() {
+            return new SigV4DataFramePublisher(publisher, credentials, credentialScope, signature, signingClock);
+        }
+
     }
 }

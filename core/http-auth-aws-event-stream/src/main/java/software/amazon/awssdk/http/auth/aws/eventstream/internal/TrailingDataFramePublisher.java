@@ -60,7 +60,7 @@ public final class TrailingDataFramePublisher implements Publisher<ByteBuffer> {
                 @Override
                 public void request(long n) {
                     if (n <= 0) {
-                        throw new IllegalArgumentException("n > 0 required but it was " + n);
+                        onError(new IllegalArgumentException("n > 0 required but it was " + n));
                     }
 
                     downstreamDemand.getAndAdd(n);
