@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "The DeleteKeyPair API has been updated to return the keyPairId when an existing key pair is deleted."
-}
