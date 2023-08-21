@@ -29,6 +29,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  */
 @SdkProtectedApi
 @Immutable
+// TODO: change to builder pattern
 public final class V4Properties {
     private final AwsCredentialsIdentity credentials;
     private final CredentialScope credentialScope;
