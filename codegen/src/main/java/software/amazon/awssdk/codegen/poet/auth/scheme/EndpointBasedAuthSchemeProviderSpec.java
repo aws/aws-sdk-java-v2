@@ -38,6 +38,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
@@ -154,7 +155,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                           SigV4AuthScheme.class, Validate.class, SigV4AuthScheme.class,
                           "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s");
 
-        spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4aAuthScheme.SCHEME_ID)
+        spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4AuthScheme.SCHEME_ID)
             .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4AuthScheme.signingName())", AwsV4HttpSigner.class)
             .addCode(".putSignerProperty($T.REGION_NAME, sigv4AuthScheme.signingRegion())", AwsV4HttpSigner.class)
             .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding())",
