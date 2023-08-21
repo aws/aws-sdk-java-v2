@@ -192,7 +192,6 @@ public final class AuthSchemeSpecUtils {
                           intermediateModel.getMetadata().getAuth().stream())
                   .map(AuthSchemeCodegenMetadata::fromAuthType)
                   .map(AuthSchemeCodegenMetadata::authSchemeClass)
-                  .filter(Objects::nonNull)
                   .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Class::getSimpleName))));
 
         if (useEndpointBasedAuthProvider()) {

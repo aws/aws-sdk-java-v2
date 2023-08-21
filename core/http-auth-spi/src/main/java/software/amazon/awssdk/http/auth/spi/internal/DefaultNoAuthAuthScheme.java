@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.spi.internal;
 
 import java.nio.ByteBuffer;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
@@ -125,10 +124,6 @@ public class DefaultNoAuthAuthScheme implements NoAuthAuthScheme {
 
     private static AnonymousIdentity anonymousIdentity() {
         return new AnonymousIdentity() {
-            @Override
-            public Optional<Instant> expirationTime() {
-                return Optional.empty();
-            }
         };
     }
 }
