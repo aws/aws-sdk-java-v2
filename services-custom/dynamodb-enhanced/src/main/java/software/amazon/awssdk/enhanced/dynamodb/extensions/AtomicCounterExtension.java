@@ -44,8 +44,7 @@ import software.amazon.awssdk.utils.Logger;
 /**
  * This extension enables atomic counter attributes to be changed in DynamoDb by creating instructions for modifying
  * an existing value or setting a start value. The extension is loaded by default when you instantiate a
- * {@link DynamoDbEnhancedClient} and only needs to be added to the client if you
- * are adding custom extensions to the client.
+ * {@link DynamoDbEnhancedClient} and only needs to be added to the client if you are adding custom extensions to the client.
  * <p>
  * To utilize atomic counters, first create a field in your model that will be used to store the counter.
  * This class field should of type {@link Long} and you need to tag it as an atomic counter:
@@ -91,7 +90,8 @@ import software.amazon.awssdk.utils.Logger;
  * <b>NOTES: </b>
  * <ul>
  *     <li>When using putItem, the counter will be reset to its start value.</li>
- *     <li>The extension will remove any existing occurrences of the atomic counter attributes.</li>
+ *     <li>The extension will remove any existing occurrences of the atomic counter attributes from the record during an
+ *     <i>updateItem</i> operation. Manually editing attributes marked as atomic counters will have <b>NO EFFECT</b>.</li>
  * </ul>
  */
 @SdkPublicApi

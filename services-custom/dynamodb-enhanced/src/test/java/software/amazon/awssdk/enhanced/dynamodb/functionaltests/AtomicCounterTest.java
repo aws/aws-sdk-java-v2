@@ -136,7 +136,11 @@ public class AtomicCounterTest extends LocalDynamoDbSyncTestBase {
         AtomicCounterRecord retrievedRecord = mappedTable.getItem(record);
         retrievedRecord.setAttribute1("ChangingThisAttribute");
 
-        assertThat(mappedTable.updateItem(retrievedRecord)).isNotNull();
+        retrievedRecord = mappedTable.updateItem(retrievedRecord);
+        assertThat(retrievedRecord).isNotNull();
+        assertThat(retrievedRecord.getDefaultCounter()).isEqualTo(1L);
+        assertThat(retrievedRecord.getCustomCounter()).isEqualTo(15L);
+        assertThat(retrievedRecord.getDecreasingCounter()).isEqualTo(-21L);
     }
 
     @Test
