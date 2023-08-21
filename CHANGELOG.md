@@ -1,3 +1,28 @@
+# __2.20.131__ __2023-08-21__
+## __AWS Cloud9__
+  - ### Features
+    - Doc only update to add Ubuntu 22.04 as an Image ID option for Cloud9
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The DeleteKeyPair API has been updated to return the keyPairId when an existing key pair is deleted.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS Aurora Global Database Unplanned Failover
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Fixed typos in description fields
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Allow customers to manage outbound traffic from their Kx Environment when attaching a transit gateway by providing network acl entries. Allow the customer to choose how they want to update the databases on a cluster allowing updates to possibly be faster than usual.
+
 # __2.20.130__ __2023-08-18__
 ## __AWS CodeCommit__
   - ### Features
