@@ -33,6 +33,7 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * An implementation which handles signing by calling CRT. Payloads can also be signed by passing a payload-signer for the class
@@ -73,20 +74,13 @@ public class CrtV4aHttpSigner implements AwsCrtV4aHttpSigner {
     }
 
     private V4aContext sign(SdkHttpRequest request, HttpRequest crtRequest, AwsSigningConfig signingConfig) {
-        CompletableFuture<AwsSigningResult> future = AwsSigner.sign(crtRequest, signingConfig);
-        try {
-            AwsSigningResult signingResult = future.get();
-            return new V4aContext(
-                toRequest(request, signingResult.getSignedRequest()),
-                signingResult.getSignedRequest(),
-                signingResult.getSignature(),
-                signingConfig);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("The thread got interrupted while attempting to sign request: ", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to sign request: ", e);
-        }
+        AwsSigningResult signingResult = CompletableFutureUtils.joinLikeSync(AwsSigner.sign(crtRequest, signingConfig));
+        return new V4aContext(
+            toRequest(request, signingResult.getSignedRequest()),
+            signingResult.getSignedRequest(),
+            signingResult.getSignature(),
+            signingConfig
+        );
     }
 
     @Override

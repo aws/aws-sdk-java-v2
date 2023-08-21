@@ -15,6 +15,15 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal;
 
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.AUTHORIZATION;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.HOST;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CREDENTIAL;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_DATE;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_EXPIRES;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_SIGNATURE;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_SIGNED_HEADERS;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.TreeSet;
@@ -30,23 +39,14 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class CrtUtils {
     private static final String BODY_HASH_NAME = "x-amz-content-sha256";
-    private static final String DATE_NAME = "X-Amz-Date";
-    private static final String AUTHORIZATION_NAME = "Authorization";
     private static final String REGION_SET_NAME = "X-amz-region-set";
 
-    private static final String SIGNATURE_NAME = "X-Amz-Signature";
-    private static final String CREDENTIAL_NAME = "X-Amz-Credential";
-    private static final String ALGORITHM_NAME = "X-Amz-Algorithm";
-    private static final String SIGNED_HEADERS_NAME = "X-Amz-SignedHeaders";
-    private static final String EXPIRES_NAME = "X-Amz-Expires";
-
-    private static final String HOST_HEADER = "Host";
-
     private static final Set<String> FORBIDDEN_HEADERS =
-        Stream.of(BODY_HASH_NAME, DATE_NAME, AUTHORIZATION_NAME, REGION_SET_NAME)
+        Stream.of(BODY_HASH_NAME, X_AMZ_DATE, AUTHORIZATION, REGION_SET_NAME)
               .collect(Collectors.toCollection(() -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER)));
     private static final Set<String> FORBIDDEN_PARAMS =
-        Stream.of(SIGNATURE_NAME, DATE_NAME, CREDENTIAL_NAME, ALGORITHM_NAME, SIGNED_HEADERS_NAME, REGION_SET_NAME, EXPIRES_NAME)
+        Stream.of(X_AMZ_SIGNATURE, X_AMZ_DATE, X_AMZ_CREDENTIAL, X_AMZ_ALGORITHM, X_AMZ_SIGNED_HEADERS, REGION_SET_NAME,
+                  X_AMZ_EXPIRES)
               .collect(Collectors.toCollection(() -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER)));
 
     private CrtUtils() {
@@ -81,7 +81,7 @@ public final class CrtUtils {
         String hostHeader = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
                             ? request.host()
                             : request.host() + ":" + request.port();
-        builder.putHeader(HOST_HEADER, hostHeader);
+        builder.putHeader(HOST, hostHeader);
 
         builder.clearQueryParameters();
 
@@ -105,7 +105,6 @@ public final class CrtUtils {
             return null;
         }
 
-        // identity-spi defines 2 known types - AwsCredentialsIdentity and a sub-type AwsSessionCredentialsIdentity
         if (credentialsIdentity instanceof AwsSessionCredentialsIdentity) {
             sessionToken = ((AwsSessionCredentialsIdentity) credentialsIdentity)
                 .sessionToken()

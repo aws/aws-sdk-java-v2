@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.utils.FunctionalUtils;
 
 @SdkInternalApi
 public final class CrtInputStream implements HttpRequestBodyStream {
@@ -39,19 +40,15 @@ public final class CrtInputStream implements HttpRequestBodyStream {
     public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
         int read;
 
-        try {
-            if (providerStream == null) {
-                createNewStream();
-            }
+        if (providerStream == null) {
+            FunctionalUtils.invokeSafely(this::createNewStream);
+        }
 
-            int toRead = Math.min(bufSize, bodyBytesOut.remaining());
-            read = providerStream.read(readBuffer, 0, toRead);
+        int toRead = Math.min(bufSize, bodyBytesOut.remaining());
+        read = FunctionalUtils.invokeSafely(() -> providerStream.read(readBuffer, 0, toRead));
 
-            if (read > 0) {
-                bodyBytesOut.put(readBuffer, 0, read);
-            }
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+        if (read > 0) {
+            bodyBytesOut.put(readBuffer, 0, read);
         }
 
         return read < 0;
@@ -62,11 +59,8 @@ public final class CrtInputStream implements HttpRequestBodyStream {
         if (provider == null) {
             throw new IllegalStateException("Cannot reset position while provider is null");
         }
-        try {
-            createNewStream();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
+
+        FunctionalUtils.invokeSafely(this::createNewStream);
 
         return true;
     }

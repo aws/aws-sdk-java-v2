@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal;
 
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.HOST;
+
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -31,8 +34,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class CrtHttpRequestConverter {
 
-    private static final String SLASH = "/";
-    private static final String HOST_HEADER = "Host";
     private static final int READ_BUFFER_SIZE = 4096;
 
     private CrtHttpRequestConverter() {
@@ -116,8 +117,8 @@ public final class CrtHttpRequestConverter {
         List<HttpHeader> crtHeaderList = new ArrayList<>(request.numHeaders() + 2);
 
         // Set Host Header if needed
-        if (!request.firstMatchingHeader(HOST_HEADER).isPresent()) {
-            crtHeaderList.add(new HttpHeader(HOST_HEADER, request.host()));
+        if (!request.firstMatchingHeader(HOST).isPresent()) {
+            crtHeaderList.add(new HttpHeader(HOST, request.host()));
         }
 
         // Add the rest of the Headers
@@ -139,13 +140,13 @@ public final class CrtHttpRequestConverter {
     }
 
     private static String encodedPathFromCrtFormat(String sdkEncodedPath, String crtEncodedPath) {
-        if (SLASH.equals(crtEncodedPath) && StringUtils.isEmpty(sdkEncodedPath)) {
+        if ("/".equals(crtEncodedPath) && StringUtils.isEmpty(sdkEncodedPath)) {
             return "";
         }
         return crtEncodedPath;
     }
 
     public static HttpRequestBodyStream toCrtStream(byte[] data) {
-        return new CrtByteArrayInputStream(data, READ_BUFFER_SIZE);
+        return new CrtInputStream(() -> new ByteArrayInputStream(data), READ_BUFFER_SIZE);
     }
 }
