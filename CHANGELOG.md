@@ -1,3 +1,57 @@
+# __2.20.131__ __2023-08-21__
+## __AWS Cloud9__
+  - ### Features
+    - Doc only update to add Ubuntu 22.04 as an Image ID option for Cloud9
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The DeleteKeyPair API has been updated to return the keyPairId when an existing key pair is deleted.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS Aurora Global Database Unplanned Failover
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Fixed typos in description fields
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Allow customers to manage outbound traffic from their Kx Environment when attaching a transit gateway by providing network acl entries. Allow the customer to choose how they want to update the databases on a cluster allowing updates to possibly be faster than usual.
+
+# __2.20.130__ __2023-08-18__
+## __AWS CodeCommit__
+  - ### Features
+    - Add new ListFileCommitHistory operation to retrieve commits which introduced changes to a specific file.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added Inspector Lambda code Vulnerability section to ASFF, including GeneratorDetails, EpssScore, ExploitAvailable, and CodeVulnerabilities.
+
+# __2.20.129__ __2023-08-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Sends final checksum chunk and trailer when only onComplete() is called by upstream (empty content)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for SubnetConfigurations to allow users to select their own IPv4 and IPv6 addresses for Interface VPC endpoints
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift updates its instance types support.
+
 # __2.20.128__ __2023-08-16__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
