@@ -25,6 +25,7 @@ import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.signer.V4Context;
 import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An implementation which supports async signing of event-stream payloads.
@@ -37,9 +38,9 @@ public class EventStreamV4PayloadSigner implements V4PayloadSigner {
     private final Clock signingClock;
 
     public EventStreamV4PayloadSigner(AwsCredentialsIdentity credentials, CredentialScope credentialScope, Clock signingClock) {
-        this.credentials = credentials;
-        this.credentialScope = credentialScope;
-        this.signingClock = signingClock;
+        this.credentials = Validate.notNull(credentials, "Credentials cannot be null!");
+        this.credentialScope = Validate.notNull(credentialScope, "Scope cannot be null!");
+        this.signingClock = Validate.notNull(signingClock, "Clock cannot be null!");
     }
 
     @Override
@@ -49,12 +50,12 @@ public class EventStreamV4PayloadSigner implements V4PayloadSigner {
 
     @Override
     public Publisher<ByteBuffer> sign(Publisher<ByteBuffer> payload, V4Context v4Context) {
-        return new SigV4DataFramePublisher(
-            payload,
-            credentials,
-            credentialScope,
-            v4Context.getSignature(),
-            signingClock
-        );
+        return SigV4DataFramePublisher.builder()
+                                      .publisher(payload)
+                                      .credentials(credentials)
+                                      .credentialScope(credentialScope)
+                                      .signature(v4Context.getSignature())
+                                      .signingClock(signingClock)
+                                      .build();
     }
 }

@@ -60,10 +60,10 @@ public class SigV4DataFramePublisherTest {
 
             @Override
             public Instant instant() {
-                int idx;
+                int idx = timeIndex.getAndIncrement();
                 // Note: we use an atomic because Clock must be threadsafe,
                 // though probably not necessary for our tests
-                if ((idx = timeIndex.getAndIncrement()) >= SIGNING_INSTANTS.size()) {
+                if (idx >= SIGNING_INSTANTS.size()) {
                     throw new IllegalStateException("Clock ran out of Instants to return! " + idx);
                 }
                 return SIGNING_INSTANTS.get(idx);
@@ -92,13 +92,13 @@ public class SigV4DataFramePublisherTest {
         AwsCredentialsIdentity credentials = AwsCredentialsIdentity.create("access", "secret");
         CredentialScope credentialScope = new CredentialScope("us-east-1", "demo", initialInstant);
 
-        Publisher<ByteBuffer> sigV4Publisher = new SigV4DataFramePublisher(
-            testVector.payload(),
-            credentials,
-            credentialScope,
-            testVector.signature(),
-            signingClock
-        );
+        Publisher<ByteBuffer> sigV4Publisher = SigV4DataFramePublisher.builder()
+                                                                      .publisher(testVector.payload())
+                                                                      .credentials(credentials)
+                                                                      .credentialScope(credentialScope)
+                                                                      .signature(testVector.signature())
+                                                                      .signingClock(signingClock)
+                                                                      .build();
 
         TestSubscriber testSubscriber = TestSubscriber.create();
 
@@ -108,7 +108,7 @@ public class SigV4DataFramePublisherTest {
                 final MessageDecoder decoder = new MessageDecoder(message -> messages.offer(message));
 
                 @Override
-                public Publisher<?> apply(ByteBuffer byteBuffer) throws Exception {
+                public Publisher<?> apply(ByteBuffer byteBuffer) {
                     decoder.feed(byteBuffer.array());
                     List<Message> messageList = new ArrayList<>();
                     while (!messages.isEmpty()) {
@@ -136,13 +136,13 @@ public class SigV4DataFramePublisherTest {
         AwsCredentialsIdentity credentials = AwsCredentialsIdentity.create("access", "secret");
         CredentialScope credentialScope = new CredentialScope("us-east-1", "demo", initialInstant);
 
-        Publisher<ByteBuffer> sigV4Publisher = new SigV4DataFramePublisher(
-            testVector.payload(),
-            credentials,
-            credentialScope,
-            testVector.signature(),
-            signingClock
-        );
+        Publisher<ByteBuffer> sigV4Publisher = SigV4DataFramePublisher.builder()
+                                                                      .publisher(testVector.payload())
+                                                                      .credentials(credentials)
+                                                                      .credentialScope(credentialScope)
+                                                                      .signature(testVector.signature())
+                                                                      .signingClock(signingClock)
+                                                                      .build();
 
         Subscriber<Object> subscriber = Mockito.spy(new Subscriber<Object>() {
 
@@ -233,10 +233,11 @@ public class SigV4DataFramePublisherTest {
                         private int idx = 1;
 
                         @Override
-                        public Message apply(String sig, String payload) throws Exception {
+                        public Message apply(String sig, String payload) {
                             Map<String, HeaderValue> headers = new HashMap<>();
-                            headers.put(":date", HeaderValue.fromTimestamp(SIGNING_INSTANTS.get(idx++)));
+                            headers.put(":date", HeaderValue.fromTimestamp(SIGNING_INSTANTS.get(idx)));
                             headers.put(":chunk-signature", HeaderValue.fromByteArray(BinaryUtils.fromHex(sig)));
+                            idx += 1;
                             return new Message(headers, payload.getBytes(StandardCharsets.UTF_8));
                         }
                     }
