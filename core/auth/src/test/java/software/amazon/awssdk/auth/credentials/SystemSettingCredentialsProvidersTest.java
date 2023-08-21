@@ -78,7 +78,7 @@ class SystemSettingCredentialsProvidersTest {
                                                       List<Pair<SdkSystemSetting, String>> systemSettings,
                                                       Consumer<AwsCredentials> expected) {
         configureSystemProperties(systemSettings);
-        EnvironmentVariableCredentialsProvider provider = EnvironmentVariableCredentialsProvider.create();
+        SystemPropertyCredentialsProvider provider = SystemPropertyCredentialsProvider.create();
         if (expected != null) {
             assertThat(provider.resolveCredentials()).satisfies(expected);
         } else {
