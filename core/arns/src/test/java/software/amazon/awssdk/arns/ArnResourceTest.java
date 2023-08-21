@@ -15,12 +15,16 @@
 
 package software.amazon.awssdk.arns;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class ArnResourceTest {
 
@@ -63,5 +67,35 @@ public class ArnResourceTest {
         ArnResource anotherResource = arnResource.toBuilder().build();
         assertThat(arnResource.equals(anotherResource)).isTrue();
         assertThat(arnResource.hashCode()).isEqualTo(anotherResource.hashCode());
+    }
+
+    @ParameterizedTest
+    @MethodSource("resources")
+    void arnResource_ParsesCorrectly(String resource, ArnResource expected) {
+        ArnResource arnResource = ArnResource.fromString(resource);
+
+        assertThat(arnResource.resourceType()).isEqualTo(expected.resourceType());
+        assertThat(arnResource.resource()).isEqualTo(expected.resource());
+        assertThat(arnResource.qualifier()).isEqualTo(expected.qualifier());
+    }
+
+    private static List<Arguments> resources() {
+        return Arrays.asList(
+            Arguments.of("myresource", ArnResource.builder().resource("myresource").build()),
+            Arguments.of("alias/foo/bar", ArnResource.builder().resourceType("alias").resource("foo/bar").build()),
+            Arguments.of("alias//", ArnResource.builder().resourceType("alias").resource("/").build()),
+            Arguments.of("alias//a", ArnResource.builder().resourceType("alias").resource("/a").build()),
+            Arguments.of("alias///a", ArnResource.builder().resourceType("alias").resource("//a").build()),
+            Arguments.of("alias///a/b", ArnResource.builder().resourceType("alias").resource("//a/b").build()),
+            Arguments.of("alias/foo", ArnResource.builder().resourceType("alias").resource("foo").build()),
+            Arguments.of("alias/foo:quali", ArnResource.builder().resourceType("alias").resource("foo").qualifier("quali").build()),
+            Arguments.of("alias/foo:bar:quali", ArnResource.builder().resourceType("alias").resource("foo:bar").qualifier("quali").build()),
+            Arguments.of("alias:foo", ArnResource.builder().resourceType("alias").resource("foo").build()),
+            Arguments.of("alias:foo.bar", ArnResource.builder().resourceType("alias").resource("foo.bar").build()),
+            Arguments.of("alias:foo/bar", ArnResource.builder().resourceType("alias").resource("foo/bar").build()),
+            Arguments.of("alias:foo/bar/baz", ArnResource.builder().resourceType("alias").resource("foo/bar/baz").build()),
+            Arguments.of("alias:foo:quali", ArnResource.builder().resourceType("alias").resource("foo").qualifier("quali").build()),
+            Arguments.of("alias:foo:bar:quali", ArnResource.builder().resourceType("alias").resource("foo:bar").qualifier("quali").build())
+        );
     }
 }
