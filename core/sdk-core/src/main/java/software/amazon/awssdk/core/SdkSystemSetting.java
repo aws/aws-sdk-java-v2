@@ -46,6 +46,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_SESSION_TOKEN("aws.sessionToken", null),
 
     /**
+     * Configure the AWS account id associated with credentials supplied through system properties.
+     */
+    AWS_ACCOUNT_ID("aws.accountId", null),
+
+    /**
      * Configure the AWS web identity token file path.
      */
     AWS_WEB_IDENTITY_TOKEN_FILE("aws.webIdentityTokenFile", null),
