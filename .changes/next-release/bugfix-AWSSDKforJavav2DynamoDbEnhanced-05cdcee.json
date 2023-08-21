@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2 - DynamoDb Enhanced",
+    "contributor": "",
+    "description": "Changes the default behavior of the DynamoDb Enhanced atomic counter extension to automatically filter out any counter attributes in the item to be updated. This allows users to read and update items without DynamoDb collision errors."
+}
