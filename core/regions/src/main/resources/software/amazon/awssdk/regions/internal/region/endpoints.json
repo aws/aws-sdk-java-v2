@@ -23179,12 +23179,12 @@
           "us-gov-east-1" : {
             "variants" : [ {
               "hostname" : "servicediscovery-fips.us-gov-east-1.amazonaws.com",
-              "tags" : [ "dualstack", "fips" ]
-            }, {
-              "hostname" : "servicediscovery-fips.us-gov-east-1.amazonaws.com",
               "tags" : [ "fips" ]
             }, {
-              "hostname" : "servicediscovery.us-gov-east-1.amazonaws.com",
+              "hostname" : "servicediscovery-fips.us-gov-east-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "servicediscovery.us-gov-east-1.api.aws",
               "tags" : [ "dualstack" ]
             } ]
           },
@@ -23198,12 +23198,12 @@
           "us-gov-west-1" : {
             "variants" : [ {
               "hostname" : "servicediscovery-fips.us-gov-west-1.amazonaws.com",
-              "tags" : [ "dualstack", "fips" ]
-            }, {
-              "hostname" : "servicediscovery-fips.us-gov-west-1.amazonaws.com",
               "tags" : [ "fips" ]
             }, {
-              "hostname" : "servicediscovery.us-gov-west-1.amazonaws.com",
+              "hostname" : "servicediscovery-fips.us-gov-west-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "servicediscovery.us-gov-west-1.api.aws",
               "tags" : [ "dualstack" ]
             } ]
           },
@@ -24168,7 +24168,8 @@
           "protocols" : [ "http", "https" ]
         },
         "endpoints" : {
-          "us-iso-east-1" : { }
+          "us-iso-east-1" : { },
+          "us-iso-west-1" : { }
         }
       },
       "elasticache" : {
@@ -24401,6 +24402,12 @@
         }
       },
       "redshift" : {
+        "endpoints" : {
+          "us-iso-east-1" : { },
+          "us-iso-west-1" : { }
+        }
+      },
+      "resource-groups" : {
         "endpoints" : {
           "us-iso-east-1" : { },
           "us-iso-west-1" : { }
@@ -24846,6 +24853,11 @@
         }
       },
       "monitoring" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
+      "outposts" : {
         "endpoints" : {
           "us-isob-east-1" : { }
         }

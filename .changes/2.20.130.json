@@ -1,0 +1,24 @@
+{
+    "version": "2.20.130",
+    "date": "2023-08-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeCommit",
+            "contributor": "",
+            "description": "Add new ListFileCommitHistory operation to retrieve commits which introduced changes to a specific file."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Added Inspector Lambda code Vulnerability section to ASFF, including GeneratorDetails, EpssScore, ExploitAvailable, and CodeVulnerabilities."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
