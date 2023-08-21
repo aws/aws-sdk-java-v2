@@ -26,10 +26,11 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.compression.Compressor;
@@ -37,39 +38,37 @@ import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 
-@RunWith(Parameterized.class)
 public final class CompressionAsyncRequestBodyTest {
     private static final Compressor compressor = new GzipCompressor();
-    private final String testString;
-    private final AsyncRequestBody provider;
 
-    public CompressionAsyncRequestBodyTest(String testString) {
-        this.testString = testString;
-        this.provider = CompressionAsyncRequestBody.builder()
-                                                   .compressor(compressor)
-                                                   .asyncRequestBody(customAsyncRequestBodyWithoutContentLength(testString.getBytes()))
-                                                   .build();
-    }
+    @ParameterizedTest
+    @ValueSource(ints = {80, 1000})
+    public void hasCorrectContent(int bodySize) throws Exception {
+        String testString = createCompressibleStringOfGivenSize(bodySize);
+        byte[] testBytes = testString.getBytes();
+        int chunkSize = 133;
+        AsyncRequestBody provider = CompressionAsyncRequestBody.builder()
+                                                               .compressor(compressor)
+                                                               .asyncRequestBody(customAsyncRequestBodyWithoutContentLength(testBytes))
+                                                               .chunkSize(chunkSize)
+                                                               .build();
 
-    @Parameterized.Parameters
-    public static String[] data() {
-        String[] testStrings = {
-            createCompressibleStringOfGivenSize(1000),
-            // chunk size = 128 * 1024
-            createCompressibleStringOfGivenSize(130 * 1024),
-            };
-        return testStrings;
-    }
-
-    @Test
-    public void hasCorrectContent() throws Exception {
         ByteBuffer byteBuffer = ByteBuffer.allocate(testString.length());
         CountDownLatch done = new CountDownLatch(1);
+        AtomicInteger pos = new AtomicInteger();
 
         Subscriber<ByteBuffer> subscriber = new SimpleSubscriber(buffer -> {
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
             byteBuffer.put(bytes);
+
+            // verify each chunk
+            byte[] chunkToVerify = new byte[chunkSize];
+            System.arraycopy(testBytes, pos.get(), chunkToVerify, 0, chunkSize);
+            chunkToVerify = compressor.compress(chunkToVerify);
+
+            assertThat(bytes).isEqualTo(chunkToVerify);
+            pos.addAndGet(chunkSize);
         }) {
             @Override
             public void onError(Throwable t) {
@@ -99,13 +98,13 @@ public final class CompressionAsyncRequestBodyTest {
                                                                   .asyncRequestBody(AsyncRequestBody.empty())
                                                                   .build();
 
-        StringBuilder sb = new StringBuilder();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(0);
         CountDownLatch done = new CountDownLatch(1);
 
         Subscriber<ByteBuffer> subscriber = new SimpleSubscriber(buffer -> {
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
-            sb.append(new String(bytes));
+            byteBuffer.put(bytes);
         }) {
             @Override
             public void onError(Throwable t) {
@@ -122,7 +121,8 @@ public final class CompressionAsyncRequestBodyTest {
 
         requestBody.subscribe(subscriber);
         done.await(10, TimeUnit.SECONDS);
-        assertThat(sb).hasToString("");
+        assertThat(byteBuffer.array()).isEmpty();
+        assertThat(byteBuffer.array()).isEqualTo(new byte[0]);
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 

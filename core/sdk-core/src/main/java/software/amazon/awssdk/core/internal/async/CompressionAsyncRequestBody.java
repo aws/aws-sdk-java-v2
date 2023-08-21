@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.async;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.compression.Compressor;
@@ -35,12 +34,12 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
     private static final int COMPRESSION_CHUNK_SIZE = 128 * 1024;
     private final AsyncRequestBody wrapped;
     private final Compressor compressor;
+    private final int chunkSize;
 
     private CompressionAsyncRequestBody(DefaultBuilder builder) {
-        Validate.notNull(builder.asyncRequestBody, "wrapped AsyncRequestBody cannot be null");
-        Validate.notNull(builder.compressor, "compressor cannot be null");
-        this.wrapped = builder.asyncRequestBody;
-        this.compressor = builder.compressor;
+        this.wrapped = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
+        this.compressor = Validate.paramNotNull(builder.compressor, "compressor");
+        this.chunkSize = builder.chunkSize != null ? builder.chunkSize : COMPRESSION_CHUNK_SIZE;
     }
 
     /**
@@ -65,12 +64,20 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
          * @return This builder for method chaining.
          */
         Builder compressor(Compressor compressor);
+
+        /**
+         * Sets the chunk size. Default size is 128 * 1024.
+         * @param chunkSize
+         * @return This builder for method chaining.
+         */
+        Builder chunkSize(Integer chunkSize);
     }
 
     private static final class DefaultBuilder implements Builder {
 
         private AsyncRequestBody asyncRequestBody;
         private Compressor compressor;
+        private Integer chunkSize;
 
         @Override
         public CompressionAsyncRequestBody build() {
@@ -88,11 +95,17 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
             this.compressor = compressor;
             return this;
         }
+
+        @Override
+        public Builder chunkSize(Integer chunkSize) {
+            this.chunkSize = chunkSize;
+            return this;
+        }
     }
 
     @Override
     public Optional<Long> contentLength() {
-        return Optional.empty();
+        return wrapped.contentLength();
     }
 
     @Override
@@ -105,42 +118,10 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
         Validate.notNull(s, "Subscription MUST NOT be null.");
 
         ChunkBuffer chunkBuffer = ChunkBuffer.builder()
-                                             .bufferSize(COMPRESSION_CHUNK_SIZE)
+                                             .bufferSize(chunkSize)
                                              .build();
 
-        wrapped.flatMapIterable(chunkBuffer::splitWithUnknownLength)
-               .subscribe(new CompressionSubscriber(s, compressor));
-    }
-
-    private static final class CompressionSubscriber implements Subscriber<ByteBuffer> {
-
-        private final Subscriber<? super ByteBuffer> subscriber;
-        private final Compressor compressor;
-
-        CompressionSubscriber(Subscriber<? super ByteBuffer> subscriber, Compressor compressor) {
-            this.subscriber = subscriber;
-            this.compressor = compressor;
-        }
-
-        @Override
-        public void onSubscribe(Subscription subscription) {
-            subscriber.onSubscribe(subscription);
-        }
-
-        @Override
-        public void onNext(ByteBuffer byteBuffer) {
-            ByteBuffer compressedBuffer = compressor.compress(byteBuffer);
-            subscriber.onNext(compressedBuffer);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            subscriber.onError(t);
-        }
-
-        @Override
-        public void onComplete() {
-            subscriber.onComplete();
-        }
+        wrapped.flatMapIterable(chunkBuffer::split)
+               .map(compressor::compress).subscribe(s);
     }
 }

@@ -35,7 +35,7 @@ public final class ChunkBuffer {
     private AtomicLong transferredBytes;
     private final ByteBuffer currentBuffer;
     private final int chunkSize;
-    private long totalBytes;
+    private Long totalBytes;
 
     private ChunkBuffer(Long totalBytes, Integer bufferSize) {
         int chunkSize = bufferSize != null ? bufferSize : DEFAULT_ASYNC_CHUNK_SIZE;
@@ -57,11 +57,18 @@ public final class ChunkBuffer {
      * be buffered.
      */
     public synchronized Iterable<ByteBuffer> split(ByteBuffer inputByteBuffer) {
-
         if (!inputByteBuffer.hasRemaining()) {
             return Collections.singletonList(inputByteBuffer);
         }
 
+        if (totalBytes != null) {
+            return splitWithKnownLength(inputByteBuffer);
+        } else {
+            return splitWithUnknownLength(inputByteBuffer);
+        }
+    }
+
+    private synchronized Iterable<ByteBuffer> splitWithKnownLength(ByteBuffer inputByteBuffer) {
         List<ByteBuffer> byteBuffers = new ArrayList<>();
 
         // If current buffer is not empty, fill the buffer first.
@@ -86,19 +93,17 @@ public final class ChunkBuffer {
         return byteBuffers;
     }
 
-    /**
-     * Split the input {@link ByteBuffer} into multiple smaller {@link ByteBuffer}s, each of which contains {@link #chunkSize}
-     * worth of bytes, when the total length is unknown.
-     */
-    public synchronized Iterable<ByteBuffer> splitWithUnknownLength(ByteBuffer buffer) {
+    private synchronized Iterable<ByteBuffer> splitWithUnknownLength(ByteBuffer inputByteBuffer) {
+        boolean isLastChunk = inputByteBuffer.remaining() != chunkSize;
         List<ByteBuffer> bufferedList = new ArrayList<>();
-        while (buffer.hasRemaining()) {
-            int bytesToCopy = Math.min(buffer.remaining(), currentBuffer.remaining());
+
+        while (inputByteBuffer.hasRemaining()) {
+            int bytesToCopy = Math.min(inputByteBuffer.remaining(), currentBuffer.remaining());
             byte[] bytes = new byte[bytesToCopy];
-            buffer.get(bytes);
+            inputByteBuffer.get(bytes);
             currentBuffer.put(bytes);
 
-            if (!currentBuffer.hasRemaining() || !buffer.hasRemaining()) {
+            if (!currentBuffer.hasRemaining()) {
                 currentBuffer.flip();
                 ByteBuffer bufferToSend = ByteBuffer.allocate(currentBuffer.limit());
                 bufferToSend.put(currentBuffer);
@@ -107,6 +112,11 @@ public final class ChunkBuffer {
                 currentBuffer.clear();
             }
         }
+
+        if (isLastChunk && currentBuffer.position() != 0) {
+            bufferedList.add((ByteBuffer) currentBuffer.flip());
+        }
+
         return bufferedList;
     }
 
@@ -173,8 +183,6 @@ public final class ChunkBuffer {
         Builder bufferSize(int bufferSize);
 
         Builder totalBytes(long totalBytes);
-
-
     }
 
     private static final class DefaultBuilder implements Builder {
