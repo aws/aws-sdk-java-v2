@@ -48,6 +48,7 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
         String accessKey = trim(loadSetting(SdkSystemSetting.AWS_ACCESS_KEY_ID).orElse(null));
         String secretKey = trim(loadSetting(SdkSystemSetting.AWS_SECRET_ACCESS_KEY).orElse(null));
         String sessionToken = trim(loadSetting(SdkSystemSetting.AWS_SESSION_TOKEN).orElse(null));
+        String accountId = trim(loadSetting(SdkSystemSetting.AWS_ACCOUNT_ID).orElse(null));
 
         if (StringUtils.isBlank(accessKey)) {
             throw SdkClientException.builder()
@@ -67,8 +68,18 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
                                     .build();
         }
 
-        return StringUtils.isBlank(sessionToken) ? AwsBasicCredentials.create(accessKey, secretKey)
-                                                 : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
+        return StringUtils.isBlank(sessionToken) ?
+               AwsBasicCredentials.builder()
+                                  .accessKeyId(accessKey)
+                                  .secretAccessKey(secretKey)
+                                  .accountId(accountId)
+                                  .build() :
+               AwsSessionCredentials.builder()
+                                    .accessKeyId(accessKey)
+                                    .secretAccessKey(secretKey)
+                                    .sessionToken(sessionToken)
+                                    .accountId(accountId)
+                                    .build();
     }
 
     /**
