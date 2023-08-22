@@ -33,7 +33,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 /**
  * Test the delegation of signing to the correct implementations.
  */
-//TODO: missing tests for async code path
+// TODO(sra-identity-and-auth): missing tests for async code path
 public class DefaultAwsV4HttpSignerTest {
 
     DefaultAwsV4HttpSigner signer = new DefaultAwsV4HttpSigner();
