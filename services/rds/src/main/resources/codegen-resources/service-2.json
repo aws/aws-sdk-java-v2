@@ -3680,7 +3680,15 @@
           "shape":"CustomDBEngineVersionManifest",
           "documentation":"<p>The CEV manifest, which is a JSON document that describes the installation .zip files stored in Amazon S3. Specify the name/value pairs in a file or a quoted string. RDS Custom applies the patches in the order in which they are listed.</p> <p>The following JSON fields are valid:</p> <dl> <dt>MediaImportTemplateVersion</dt> <dd> <p>Version of the CEV manifest. The date is in the format <code>YYYY-MM-DD</code>.</p> </dd> <dt>databaseInstallationFileNames</dt> <dd> <p>Ordered list of installation files for the CEV.</p> </dd> <dt>opatchFileNames</dt> <dd> <p>Ordered list of OPatch installers used for the Oracle DB engine.</p> </dd> <dt>psuRuPatchFileNames</dt> <dd> <p>The PSU and RU patches for this CEV.</p> </dd> <dt>OtherPatchFileNames</dt> <dd> <p>The patches that are not in the list of PSU and RU patches. Amazon RDS applies these patches after applying the PSU and RU patches.</p> </dd> </dl> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-cev.html#custom-cev.preparing.manifest\"> Creating the CEV manifest</a> in the <i>Amazon RDS User Guide</i>.</p>"
         },
-        "Tags":{"shape":"TagList"}
+        "Tags":{"shape":"TagList"},
+        "SourceCustomDbEngineVersionIdentifier":{
+          "shape":"String255",
+          "documentation":"<p>Reserved for future use.</p>"
+        },
+        "UseAwsProvidedLatestImage":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Reserved for future use.</p>"
+        }
       }
     },
     "CreateDBClusterEndpointMessage":{
