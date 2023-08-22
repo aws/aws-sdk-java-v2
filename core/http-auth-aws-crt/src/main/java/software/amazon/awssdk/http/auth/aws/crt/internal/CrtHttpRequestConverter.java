@@ -76,7 +76,7 @@ public final class CrtHttpRequestConverter {
             String fullUriString = builder.protocol() + "://" + builder.host() + portString + encodedPath;
             fullUri = new URI(fullUriString);
         } catch (URISyntaxException e) {
-            return null;
+            throw new RuntimeException("Full URI could not be formed.", e);
         }
 
         builder.encodedPath(fullUri.getRawPath());

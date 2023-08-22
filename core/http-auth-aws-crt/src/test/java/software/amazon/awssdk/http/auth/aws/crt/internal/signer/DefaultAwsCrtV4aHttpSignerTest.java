@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.AuthLocation;
@@ -27,6 +28,7 @@ import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtUtils.toCrede
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.http.auth.aws.crt.TestUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
@@ -173,10 +175,23 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
+    public void sign_withAnonymousCredentials_shouldNotSign() {
+        AwsCredentialsIdentity credentials = new TestUtils.AnonymousCredentialsIdentity();
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            credentials,
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        assertNull(signedRequest.request().headers().get("Authorization"));
+    }
+
+    @Test
     public void signAsync_throwsUnsupportedOperationException() {
-
-        CrtV4aHttpSigner signer = new CrtV4aHttpSigner(null, null);
-
         assertThrows(UnsupportedOperationException.class, () -> signer.signAsync((AsyncSignRequest) null));
     }
 }

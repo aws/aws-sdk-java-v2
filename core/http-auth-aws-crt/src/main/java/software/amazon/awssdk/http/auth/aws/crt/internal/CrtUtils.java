@@ -101,7 +101,10 @@ public final class CrtUtils {
     public static Credentials toCredentials(AwsCredentialsIdentity credentialsIdentity) {
         byte[] sessionToken = null;
 
-        if (credentialsIdentity == null) {
+        if (credentialsIdentity == null ||
+            credentialsIdentity.accessKeyId() == null ||
+            credentialsIdentity.secretAccessKey() == null
+        ) {
             return null;
         }
 
