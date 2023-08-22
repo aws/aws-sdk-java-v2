@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Global Accelerator",
+    "contributor": "",
+    "description": "Global Accelerator now supports Client Ip Preservation for Network Load Balancer endpoints."
+}
