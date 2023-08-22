@@ -103,9 +103,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
         boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
         AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
-        Duration expirationDuration = validateExpirationDuration(
-            request.requireProperty(EXPIRATION_DURATION, PRESIGN_URL_MAX_EXPIRATION_DURATION)
-        );
+        Duration expirationDuration = request.property(EXPIRATION_DURATION);
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
 
         AwsSigningConfig signingConfig = new AwsSigningConfig();
@@ -117,13 +115,23 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         signingConfig.setUseDoubleUriEncode(doubleUrlEncode);
         signingConfig.setShouldNormalizeUriPath(normalizePath);
 
-        if (authLocation == AuthLocation.HEADER) {
-            signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
-        } else {
-            signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
-            if (request.hasProperty(EXPIRATION_DURATION)) {
-                signingConfig.setExpirationInSeconds(expirationDuration.getSeconds());
-            }
+        switch (authLocation) {
+            case HEADER:
+                signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
+                if (request.hasProperty(EXPIRATION_DURATION)) {
+                    throw new UnsupportedOperationException(
+                        String.format("%s is not supported for %s.", EXPIRATION_DURATION, AuthLocation.HEADER)
+                    );
+                }
+                break;
+            case QUERY_STRING:
+                signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
+                if (request.hasProperty(EXPIRATION_DURATION)) {
+                    signingConfig.setExpirationInSeconds(validateExpirationDuration(expirationDuration).getSeconds());
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown auth-location: " + authLocation);
         }
 
         if (!isPayloadSigning) {
