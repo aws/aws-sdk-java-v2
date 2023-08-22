@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Adding parameters to CreateCustomDbEngineVersion reserved for future use."
-}
