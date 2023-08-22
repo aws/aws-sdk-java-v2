@@ -441,22 +441,18 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * is 2MB and the default buffer size is 8MB.
      *
      * <p>
-     * If content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is delivered to the
-     * subscriber right after it's initialized.
-     * <p>
-     * If content length is null, it is sent after the entire content for that chunk is buffered.
-     * In this case, the configured {@code maxMemoryUsageInBytes} must be larger than or equal to {@code chunkSizeInBytes}.
+     * By default, if content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is
+     * delivered to the subscriber right after it's initialized. On the other hand, if content length is null, it is sent after
+     * the entire content for that chunk is buffered. In this case, the configured {@code maxMemoryUsageInBytes} must be larger
+     * than or equal to {@code chunkSizeInBytes}. Note that this behavior may be different if a specific implementation of this
+     * interface overrides this method.
      *
      * @see AsyncRequestBodySplitConfiguration
      */
     default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
 
-        return SplittingPublisher.builder()
-                                 .asyncRequestBody(this)
-                                 .chunkSizeInBytes(splitConfiguration.chunkSizeInBytes())
-                                 .bufferSizeInBytes(splitConfiguration.bufferSizeInBytes())
-                                 .build();
+        return new SplittingPublisher(this, splitConfiguration);
     }
 
     /**

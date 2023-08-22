@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -63,14 +62,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
-        return mpuHelper.uploadWithAsyncRequestBody(putObjectRequest, requestBody);
-    }
-
-    // TODO: TM currently doesn't call this method because it relies on wrapping of the async request body to report progress
-    //  and we should fix it
-    @Override
-    public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, Path sourcePath) {
-        return mpuHelper.uploadWithFile(putObjectRequest, sourcePath);
+        return mpuHelper.uploadObject(putObjectRequest, requestBody);
     }
 
     @Override

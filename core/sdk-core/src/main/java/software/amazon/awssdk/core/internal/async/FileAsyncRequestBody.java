@@ -33,6 +33,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
@@ -79,6 +81,32 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
+    public SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return new FileAsyncRequestBodySplitHelper(this, splitConfiguration).split();
+    }
+
+    public Path path() {
+        return path;
+    }
+
+    public long fileLength() {
+        return fileLength;
+    }
+
+    public int chunkSizeInBytes() {
+        return chunkSizeInBytes;
+    }
+
+    public long position() {
+        return position;
+    }
+
+    public long numBytesToRead() {
+        return numBytesToRead;
+    }
+
+    @Override
     public Optional<Long> contentLength() {
         return Optional.of(numBytesToRead);
     }
@@ -97,7 +125,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             // We need to synchronize here because the subscriber could call
             // request() from within onSubscribe which would potentially
             // trigger onNext before onSubscribe is finished.
-            Subscription subscription = new FileSubscription(path, channel, s, chunkSizeInBytes, position, numBytesToRead);
+            Subscription subscription = new FileSubscription(channel, s);
 
             synchronized (subscription) {
                 s.onSubscribe(subscription);
@@ -214,13 +242,11 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     /**
      * Reads the file for one subscriber.
      */
-    private static final class FileSubscription implements Subscription {
-        private final Path path;
+    private final class FileSubscription implements Subscription {
         private final AsynchronousFileChannel inputChannel;
         private final Subscriber<? super ByteBuffer> subscriber;
-        private final int chunkSize;
 
-        private final AtomicLong position;
+        private final AtomicLong currentPosition;
         private final AtomicLong remainingBytes;
         private final long sizeAtStart;
         private final FileTime modifiedTimeAtStart;
@@ -229,20 +255,14 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private volatile boolean done = false;
         private final Object lock = new Object();
 
-        private FileSubscription(Path path,
-                                 AsynchronousFileChannel inputChannel,
-                                 Subscriber<? super ByteBuffer> subscriber,
-                                 int chunkSize,
-                                 long position,
-                                 long numBytesToRead) throws IOException {
-            this.path = path;
+        private FileSubscription(AsynchronousFileChannel inputChannel,
+                                 Subscriber<? super ByteBuffer> subscriber) throws IOException {
             this.inputChannel = inputChannel;
             this.subscriber = subscriber;
-            this.chunkSize = chunkSize;
             this.sizeAtStart = inputChannel.size();
             this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
             this.remainingBytes = new AtomicLong(numBytesToRead);
-            this.position = new AtomicLong(position);
+            this.currentPosition = new AtomicLong(position);
         }
 
         @Override
@@ -297,8 +317,8 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                 return;
             }
 
-            ByteBuffer buffer = ByteBuffer.allocate(Math.min(chunkSize, NumericUtils.saturatedCast(remainingBytes.get())));
-            inputChannel.read(buffer, position.get(), buffer, new CompletionHandler<Integer, ByteBuffer>() {
+            ByteBuffer buffer = ByteBuffer.allocate(Math.min(chunkSizeInBytes, NumericUtils.saturatedCast(remainingBytes.get())));
+            inputChannel.read(buffer, currentPosition.get(), buffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {
                     try {
@@ -306,7 +326,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                             attachment.flip();
 
                             int readBytes = attachment.remaining();
-                            position.addAndGet(readBytes);
+                            currentPosition.addAndGet(readBytes);
                             remainingBytes.addAndGet(-readBytes);
 
                             signalOnNext(attachment);

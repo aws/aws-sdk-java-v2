@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -35,10 +34,8 @@ import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
-import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
  * An internal helper class that automatically uses multipart upload based on the size of the object.
@@ -71,20 +68,17 @@ public final class UploadWithKnownContentLengthHelper {
     }
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
-                                                             Either<AsyncRequestBody, Path> requestBodyOrPath,
+                                                             AsyncRequestBody asyncRequestBody,
                                                              long contentLength) {
         CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
 
         try {
             if (contentLength > multipartUploadThresholdInBytes && contentLength > partSizeInBytes) {
                 log.debug(() -> "Starting the upload as multipart upload request");
-                uploadInParts(putObjectRequest, contentLength, requestBodyOrPath, returnFuture);
+                uploadInParts(putObjectRequest, contentLength, asyncRequestBody, returnFuture);
             } else {
                 log.debug(() -> "Starting the upload as a single upload part request");
-                requestBodyOrPath.apply(
-                    requestBody -> multipartUploadHelper.uploadInOneChunk(putObjectRequest, requestBody, returnFuture),
-                    path -> multipartUploadHelper.uploadInOneChunk(putObjectRequest, AsyncRequestBody.fromFile(path),
-                                                                   returnFuture));
+                multipartUploadHelper.uploadInOneChunk(putObjectRequest, asyncRequestBody, returnFuture);
             }
 
         } catch (Throwable throwable) {
@@ -94,9 +88,7 @@ public final class UploadWithKnownContentLengthHelper {
         return returnFuture;
     }
 
-    private void uploadInParts(PutObjectRequest putObjectRequest,
-                               long contentLength,
-                               Either<AsyncRequestBody, Path> requestBodyOrPath,
+    private void uploadInParts(PutObjectRequest putObjectRequest, long contentLength, AsyncRequestBody asyncRequestBody,
                                CompletableFuture<PutObjectResponse> returnFuture) {
 
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
@@ -107,13 +99,13 @@ public final class UploadWithKnownContentLengthHelper {
                 genericMultipartHelper.handleException(returnFuture, () -> "Failed to initiate multipart upload", throwable);
             } else {
                 log.debug(() -> "Initiated a new multipart upload, uploadId: " + createMultipartUploadResponse.uploadId());
-                doUploadInParts(Pair.of(putObjectRequest, requestBodyOrPath), contentLength, returnFuture,
+                doUploadInParts(Pair.of(putObjectRequest, asyncRequestBody), contentLength, returnFuture,
                                 createMultipartUploadResponse.uploadId());
             }
         });
     }
 
-    private void doUploadInParts(Pair<PutObjectRequest, Either<AsyncRequestBody, Path>> request,
+    private void doUploadInParts(Pair<PutObjectRequest, AsyncRequestBody> request,
                                  long contentLength,
                                  CompletableFuture<PutObjectResponse> returnFuture,
                                  String uploadId) {
@@ -128,68 +120,23 @@ public final class UploadWithKnownContentLengthHelper {
         log.debug(() -> String.format("Starting multipart upload with partCount: %d, optimalPartSize: %d", partCount,
                                       optimalPartSize));
 
-        MpuRequestContext mpuRequestContext = new MpuRequestContext(request.left(), contentLength, optimalPartSize, uploadId);
+        MpuRequestContext mpuRequestContext = new MpuRequestContext(request, contentLength, optimalPartSize, uploadId);
 
-        Either<AsyncRequestBody, Path> requestBodyOrPath = request.right();
-
-        Consumer<AsyncRequestBody> splitAsyncRequestBodyAndSendRequests =
-            splitAsyncRequestBodyAndSendRequests(returnFuture, mpuRequestContext);
-        Consumer<Path> splitFileAndSendRequests =
-            splitFileAndSendRequests(returnFuture, mpuRequestContext, partCount, optimalPartSize);
-
-        requestBodyOrPath.apply(splitAsyncRequestBodyAndSendRequests, splitFileAndSendRequests);
-    }
-
-    private Consumer<Path> splitFileAndSendRequests(CompletableFuture<PutObjectResponse> returnFuture,
-                                                    MpuRequestContext mpuRequestContext,
-                                                    int partCount,
-                                                    long optimalPartSize) {
-        return path -> {
-            SimplePublisher<AsyncRequestBody> simplePublisher = new SimplePublisher<>();
-            simplePublisher.subscribe(new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext,
-                                                                                       returnFuture));
-
-            try {
-                for (int i = 0; i < partCount; i++) {
-                    long numBytesToRead;
-                    long position = optimalPartSize * i;
-                    if (i == partCount - 1) {
-                        numBytesToRead = mpuRequestContext.contentLength - position;
-                    } else {
-                        numBytesToRead = optimalPartSize;
-                    }
-                    simplePublisher.send(AsyncRequestBody.fromFile(
-                        config -> config.path(path)
-                                        .chunkSizeInBytes(1024 * 1024) // TODO: perf test this
-                                        .numBytesToRead(numBytesToRead)
-                                        .position(position)));
-                }
-
-            } catch (Throwable throwable) {
-                simplePublisher.error(throwable);
-            }
-            simplePublisher.complete();
-        };
-    }
-
-    private Consumer<AsyncRequestBody> splitAsyncRequestBodyAndSendRequests(CompletableFuture<PutObjectResponse> returnFuture,
-                                                                            MpuRequestContext mpuRequestContext) {
-        return requestBody -> {
-            requestBody.split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize)
-                                    .bufferSizeInBytes(maxMemoryUsageInBytes))
-                       .subscribe(new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext,
-                                                                                   returnFuture));
-        };
+        request.right()
+               .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize)
+                            .bufferSizeInBytes(maxMemoryUsageInBytes))
+               .subscribe(new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext,
+                                                                           returnFuture));
     }
 
     private static final class MpuRequestContext {
-        private final PutObjectRequest request;
+        private final Pair<PutObjectRequest, AsyncRequestBody> request;
         private final long contentLength;
         private final long partSize;
 
         private final String uploadId;
 
-        private MpuRequestContext(PutObjectRequest request,
+        private MpuRequestContext(Pair<PutObjectRequest, AsyncRequestBody> request,
                                   long contentLength,
                                   long partSize,
                                   String uploadId) {
@@ -231,7 +178,7 @@ public final class UploadWithKnownContentLengthHelper {
             long optimalPartSize = genericMultipartHelper.calculateOptimalPartSizeFor(mpuRequestContext.contentLength,
                                                                                       partSizeInBytes);
             int partCount = genericMultipartHelper.determinePartCount(mpuRequestContext.contentLength, optimalPartSize);
-            this.putObjectRequest = mpuRequestContext.request;
+            this.putObjectRequest = mpuRequestContext.request.left();
             this.returnFuture = returnFuture;
             this.completedParts = new AtomicReferenceArray<>(partCount);
             this.uploadId = mpuRequestContext.uploadId;
@@ -249,7 +196,9 @@ public final class UploadWithKnownContentLengthHelper {
             returnFuture.whenComplete((r, t) -> {
                 if (t != null) {
                     s.cancel();
-                    multipartUploadHelper.cancelingOtherOngoingRequests(futures, t);
+                    if (failureActionInitiated.compareAndSet(false, true)) {
+                        multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
+                    }
                 }
             });
         }
