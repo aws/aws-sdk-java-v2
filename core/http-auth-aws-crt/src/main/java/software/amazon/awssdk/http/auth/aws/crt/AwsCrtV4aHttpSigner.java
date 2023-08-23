@@ -16,16 +16,16 @@
 package software.amazon.awssdk.http.auth.aws.crt;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.aws.crt.internal.DefaultAwsCrtV4aHttpSigner;
-import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * An {@link HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}),
- * specifically for CRT.
+ * An {@link AwsV4aHttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}), specifically
+ * using CRT.
+ * TODO: Remove this once we can remove the auth-scheme.
  */
 @SdkPublicApi
-public interface AwsCrtV4aHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
+public interface AwsCrtV4aHttpSigner extends AwsV4aHttpSigner {
 
     /**
      * Get a default implementation of a {@link AwsCrtV4aHttpSigner}
@@ -33,6 +33,6 @@ public interface AwsCrtV4aHttpSigner extends HttpSigner<AwsCredentialsIdentity> 
      * @return AwsCrtV4aHttpSigner
      */
     static AwsCrtV4aHttpSigner create() {
-        return new DefaultAwsCrtV4aHttpSigner();
+        return null;
     }
 }
