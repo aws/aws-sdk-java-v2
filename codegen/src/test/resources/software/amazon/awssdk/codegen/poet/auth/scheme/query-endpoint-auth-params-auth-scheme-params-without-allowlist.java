@@ -49,6 +49,8 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
 
     Boolean useFipsEndpoint();
 
+    String awsAccountId();
+
     String endpointId();
 
     /**
@@ -89,6 +91,8 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
         Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
 
         Builder useFipsEndpoint(Boolean useFIPSEndpoint);
+
+        Builder awsAccountId(String awsAccountId);
 
         Builder endpointId(String endpointId);
 
