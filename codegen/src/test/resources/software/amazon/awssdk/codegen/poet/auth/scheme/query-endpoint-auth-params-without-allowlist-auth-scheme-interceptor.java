@@ -90,6 +90,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         builder.region(endpointParams.region());
         builder.useDualStackEndpoint(endpointParams.useDualStackEndpoint());
         builder.useFipsEndpoint(endpointParams.useFipsEndpoint());
+        builder.awsAccountId(endpointParams.awsAccountId());
         builder.endpointId(endpointParams.endpointId());
         builder.defaultTrueParam(endpointParams.defaultTrueParam());
         builder.defaultStringParam(endpointParams.defaultStringParam());

@@ -176,6 +176,7 @@ public final class ProcessCredentialsProvider
         String accessKeyId = getText(credentialsJson, "AccessKeyId");
         String secretAccessKey = getText(credentialsJson, "SecretAccessKey");
         String sessionToken = getText(credentialsJson, "SessionToken");
+        String accountId = getText(credentialsJson, "AccountId");
 
         Validate.notEmpty(accessKeyId, "AccessKeyId cannot be empty.");
         Validate.notEmpty(secretAccessKey, "SecretAccessKey cannot be empty.");
@@ -185,11 +186,14 @@ public final class ProcessCredentialsProvider
                                     .accessKeyId(accessKeyId)
                                     .secretAccessKey(secretAccessKey)
                                     .sessionToken(sessionToken)
+                                    .expirationTime(credentialExpirationTime(credentialsJson))
+                                    .accountId(accountId)
                                     .providerName(PROVIDER_NAME)
                                     .build() :
                AwsBasicCredentials.builder()
                                   .accessKeyId(accessKeyId)
                                   .secretAccessKey(secretAccessKey)
+                                  .accountId(accountId)
                                   .providerName(PROVIDER_NAME)
                                   .build();
     }

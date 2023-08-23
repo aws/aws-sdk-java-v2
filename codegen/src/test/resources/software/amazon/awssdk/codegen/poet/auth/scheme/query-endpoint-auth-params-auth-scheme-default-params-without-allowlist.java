@@ -33,6 +33,9 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
     private final Boolean useFIPSEndpoint;
 
+
+    private final String awsAccountId;
+
     private final String endpointId;
 
     private final Boolean defaultTrueParam;
@@ -54,6 +57,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
+        this.awsAccountId = builder.awsAccountId;
         this.endpointId = builder.endpointId;
         this.defaultTrueParam = Validate.paramNotNull(builder.defaultTrueParam, "defaultTrueParam");
         this.defaultStringParam = Validate.paramNotNull(builder.defaultStringParam, "defaultStringParam");
@@ -86,6 +90,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     @Override
     public Boolean useFipsEndpoint() {
         return useFIPSEndpoint;
+    }
+
+    @Override
+    public String awsAccountId() {
+        return awsAccountId;
     }
 
     @Override
@@ -143,6 +152,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
         private Boolean useFIPSEndpoint;
 
+        private String awsAccountId;
+
         private String endpointId;
 
         private Boolean defaultTrueParam = true;
@@ -167,6 +178,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
             this.region = params.region;
             this.useDualStackEndpoint = params.useDualStackEndpoint;
             this.useFIPSEndpoint = params.useFIPSEndpoint;
+            this.awsAccountId = params.awsAccountId;
             this.endpointId = params.endpointId;
             this.defaultTrueParam = params.defaultTrueParam;
             this.defaultStringParam = params.defaultStringParam;
@@ -198,6 +210,12 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         @Override
         public Builder useFipsEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
+            return this;
+        }
+
+        @Override
+        public Builder awsAccountId(String awsAccountId) {
+            this.awsAccountId = awsAccountId;
             return this;
         }
 
