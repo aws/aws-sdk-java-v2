@@ -30145,7 +30145,7 @@
           "locationName":"instanceId"
         },
         "PasswordData":{
-          "shape":"String",
+          "shape":"PasswordData",
           "documentation":"<p>The password of the instance. Returns an empty string if the password is not available.</p>",
           "locationName":"passwordData"
         },
@@ -44082,6 +44082,10 @@
         "monthly"
       ]
     },
+    "PasswordData":{
+      "type":"string",
+      "sensitive":true
+    },
     "PathComponent":{
       "type":"structure",
       "members":{
@@ -49422,12 +49426,20 @@
           "locationName":"uploadPolicy"
         },
         "UploadPolicySignature":{
-          "shape":"String",
+          "shape":"S3StorageUploadPolicySignature",
           "documentation":"<p>The signature of the JSON document.</p>",
           "locationName":"uploadPolicySignature"
         }
       },
       "documentation":"<p>Describes the storage parameters for Amazon S3 and Amazon S3 buckets for an instance store-backed AMI.</p>"
+    },
+    "S3StorageUploadPolicy":{
+      "type":"string",
+      "sensitive":true
+    },
+    "S3StorageUploadPolicySignature":{
+      "type":"string",
+      "sensitive":true
     },
     "SSEType":{
       "type":"string",
