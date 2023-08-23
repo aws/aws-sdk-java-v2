@@ -26,10 +26,12 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
+import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -47,6 +49,7 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
@@ -124,7 +127,7 @@ public final class AwsExecutionContextBuilder {
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
         Signer signer = null;
-        if (isAuthenticatedRequest(executionAttributes)) {
+        if (useOldSigner(executionAttributes, interceptorContext)) {
             AuthorizationStrategyFactory authorizationStrategyFactory =
                 new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
             AuthorizationStrategy authorizationStrategy =
@@ -145,6 +148,39 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    private static boolean useOldSigner(ExecutionAttributes executionAttributes, InterceptorContext interceptorContext) {
+        SelectedAuthScheme<?> selectedAuthScheme =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        boolean useOldSigner = isAuthenticatedWithoutAuthScheme(selectedAuthScheme, executionAttributes)
+                               || hasOverriddenSignerWithAuthScheme(selectedAuthScheme, executionAttributes, interceptorContext);
+        return useOldSigner;
+    }
+
+    // SelectedAuthScheme being null, implies old (pre SRA) generated client
+    private static boolean isAuthenticatedWithoutAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
+                                                            ExecutionAttributes executionAttributes) {
+        return selectedAuthScheme == null && isAuthenticatedRequest(executionAttributes);
+    }
+
+    // There used to be codegen logic (pre SRA) that used to set this attribute when authType=none.
+    // With SRA, this attribute is not needed (so not set) in newly (post SRA) generated clients. For newly generated clients,
+    // this method would always return false.
+    private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
+    }
+
+    // SelectedAuthScheme being non-null implies new (post SRA) generated client.
+    // If old Signer is still provided via overrides (existing customer code), we want to continue using that signer.
+    // However, we don't want to use that overridden signer if the selected auth scheme is `smithy.api#noAuth` (would
+    // happen when operation has authType=none).
+    private static boolean hasOverriddenSignerWithAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
+                                                             ExecutionAttributes executionAttributes,
+                                                             InterceptorContext interceptorContext) {
+        return SignerOverrideUtils.isSignerOverridden(interceptorContext.request(), executionAttributes)
+               && selectedAuthScheme != null
+               && !NoAuthAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId());
     }
 
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
@@ -227,10 +263,6 @@ public final class AwsExecutionContextBuilder {
             metricCollector = MetricCollector.create("ApiCall");
         }
         return metricCollector;
-    }
-
-    private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
     }
 
 
