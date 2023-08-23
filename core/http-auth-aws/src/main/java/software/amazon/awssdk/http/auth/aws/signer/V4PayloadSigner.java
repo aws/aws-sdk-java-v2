@@ -41,5 +41,5 @@ public interface V4PayloadSigner {
     /**
      * Given a payload and v4-context, sign the payload via the SigV4 process.
      */
-    Publisher<ByteBuffer> sign(Publisher<ByteBuffer> payload, V4Context v4Context);
+    Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4Context v4Context);
 }

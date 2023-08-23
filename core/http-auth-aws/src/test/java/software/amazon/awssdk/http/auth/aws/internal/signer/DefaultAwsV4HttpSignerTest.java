@@ -129,7 +129,7 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    public void sign_WithEventStreamContentTypeWithoutHttpAuthAwsEventStream_throws() {
+    public void sign_WithEventStreamContentTypeWithoutHttpAuthAwsEventStreamModule_throws() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest

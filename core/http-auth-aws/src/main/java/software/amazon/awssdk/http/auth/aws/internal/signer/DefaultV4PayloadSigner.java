@@ -33,7 +33,7 @@ public class DefaultV4PayloadSigner implements V4PayloadSigner {
     }
 
     @Override
-    public Publisher<ByteBuffer> sign(Publisher<ByteBuffer> payload, V4Context v4Context) {
+    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4Context v4Context) {
         return payload;
     }
 }

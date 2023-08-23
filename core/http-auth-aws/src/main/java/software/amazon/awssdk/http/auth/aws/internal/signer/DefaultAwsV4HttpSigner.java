@@ -17,15 +17,14 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_EVENTS_PAYLOAD;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.UNSIGNED_PAYLOAD;
 
-import java.nio.ByteBuffer;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -43,6 +42,8 @@ import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.ClassLoaderHelper;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An implementation of a {@link AwsV4HttpSigner} that uses properties to compose v4-signers in order to delegate signing of a
@@ -51,27 +52,9 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 @SdkInternalApi
 public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
-    @Override
-    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request);
-        V4Properties v4Properties = v4Properties(request);
-        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
-        V4PayloadSigner payloadSigner = V4PayloadSigner.create();
+    private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
-        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
-    }
-
-    @Override
-    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request);
-        V4Properties v4Properties = v4Properties(request);
-        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
-        V4PayloadSigner payloadSigner = V4PayloadSigner.create();
-
-        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
-    }
-
-    private V4Properties v4Properties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
+    private static V4Properties v4Properties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
         Clock signingClock = request.requireProperty(AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
@@ -116,9 +99,35 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return requestSigner.apply(v4Properties);
     }
 
-    private Checksummer checksummer(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
+    private static Checksummer checksummer(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isEventStreaming = isEventStreaming(request.request());
+
+        if (isEventStreaming) {
+            return new PrecomputedChecksummer(() -> STREAMING_EVENTS_PAYLOAD);
+        }
         return isPayloadSigning ? Checksummer.create() : new PrecomputedChecksummer(() -> UNSIGNED_PAYLOAD);
+    }
+
+    private static V4PayloadSigner v4PayloadSigner(
+        SignRequest<?, ? extends AwsCredentialsIdentity> request,
+        V4Properties properties) {
+
+        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isEventStreaming = isEventStreaming(request.request());
+
+        if (isEventStreaming) {
+            if (isPayloadSigning) {
+                return loadEventStreamSigner(
+                    properties.getCredentials(),
+                    properties.getCredentialScope(),
+                    properties.getSigningClock()
+                );
+            }
+            throw new UnsupportedOperationException("Unsigned payload is not supported with event-streaming.");
+        }
+
+        return V4PayloadSigner.create();
     }
 
     private static SyncSignedRequest doSign(SyncSignRequest<? extends AwsCredentialsIdentity> request,
@@ -169,12 +178,12 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                     return requestSigner.sign(requestBuilder);
                 });
 
-        Publisher<ByteBuffer> payload = payloadSigner.sign(request.payload().orElse(null), futureV4Context);
-
-        return futureV4Context.thenApply(v4Context -> AsyncSignedRequest.builder()
-                                                                        .request(v4Context.getSignedRequest().build())
-                                                                        .payload(payload)
-                                                                        .build());
+        return futureV4Context.thenApply(
+            v4Context -> AsyncSignedRequest.builder()
+                                           .request(v4Context.getSignedRequest().build())
+                                           .payload(payloadSigner.signAsync(request.payload().orElse(null), v4Context))
+                                           .build()
+        );
     }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
@@ -186,5 +195,55 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             );
         }
         return expirationDuration;
+    }
+
+    private static boolean isEventStreaming(SdkHttpRequest request) {
+        return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader("Content-Type").orElse(""));
+    }
+
+    /**
+     * A class-loader for the event-stream signer, which throws exceptions if it can't load the class (it's likely not on the
+     * classpath, so it should be added), or if it can't instantiate the signer.
+     */
+    private static V4PayloadSigner loadEventStreamSigner(
+        AwsCredentialsIdentity credentials,
+        CredentialScope credentialScope,
+        Clock signingClock
+    ) {
+        String classPath = "software.amazon.awssdk.http.auth.aws.eventstream.signer.EventStreamV4PayloadSigner";
+        try {
+            Class<?> signerClass = ClassLoaderHelper.loadClass(classPath, false);
+            return (V4PayloadSigner) signerClass.getConstructor(
+                AwsCredentialsIdentity.class,
+                CredentialScope.class,
+                Clock.class
+            ).newInstance(credentials, credentialScope, signingClock);
+        } catch (ClassNotFoundException e) {
+            LOG.debug(() -> "Cannot find the " + classPath + " class: ", e);
+            throw new RuntimeException("Event-stream signer not found. You must add a dependency on the " +
+                                       "http-auth-aws-event-stream module to enable this functionality: ", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not instantiate the event-stream signer: ", e);
+        }
+    }
+
+    @Override
+    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+        Checksummer checksummer = checksummer(request);
+        V4Properties v4Properties = v4Properties(request);
+        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
+        V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
+
+        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
+    }
+
+    @Override
+    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+        Checksummer checksummer = checksummer(request);
+        V4Properties v4Properties = v4Properties(request);
+        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
+        V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
+
+        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
     }
 }
