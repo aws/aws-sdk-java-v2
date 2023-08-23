@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.nio.ByteBuffer;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.HttpSignerCommon;
 import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
@@ -103,6 +105,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         if (context.requestProvider() == null) {
             SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
                 .builder(identity)
+                .putProperty(HttpSignerCommon.SIGNING_CLOCK, signingClock())
                 .request(request)
                 .payload(request.contentStreamProvider().orElse(null));
             authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
@@ -113,6 +116,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
 
         AsyncSignRequest.Builder<T> signRequestBuilder = AsyncSignRequest
             .builder(identity)
+            .putProperty(HttpSignerCommon.SIGNING_CLOCK, signingClock())
             .request(request)
             .payload(context.requestProvider());
         authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
@@ -227,6 +231,14 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     private boolean shouldDoSraSigning(RequestExecutionContext context) {
         return !SignerOverrideUtils.isSignerOverridden(context)
                && context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
+    }
+
+    /**
+     * Returns the {@link Clock} used for signing that already accounts for clock skew when detected by the retryable stage.
+     */
+    private Clock signingClock() {
+        int offsetInSeconds = dependencies.timeOffset();
+        return Clock.offset(Clock.systemUTC(), Duration.ofSeconds(-offsetInSeconds));
     }
 
     /**
