@@ -13,8 +13,6 @@
  * permissions and limitations under the License.
  */
 
-// TODO: Figure out the right module/package for this. auth? http-auth?
-
 package software.amazon.awssdk.core;
 
 import java.util.concurrent.CompletableFuture;

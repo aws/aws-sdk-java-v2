@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -114,7 +115,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                   .returns(Region.class)
                                   .addJavadoc("Returns the region. The region parameter may be used with the $S auth scheme.",
-                                              "aws.auth#sigv4")
+                                              AwsV4AuthScheme.SCHEME_ID)
                                   .build());
 
         }
@@ -156,7 +157,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .addParameter(ParameterSpec.builder(Region.class, "region").build())
                                   .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                                   .addJavadoc("Set the region. The region parameter may be used with the $S auth scheme.",
-                                              "aws.auth#sigv4") // TODO: Reference the SigV4 AuthScheme when implemented
+                                              AwsV4AuthScheme.SCHEME_ID)
                                   .build());
 
         }
