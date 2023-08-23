@@ -126,40 +126,13 @@ public final class AwsExecutionContextBuilder {
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
         Signer signer = null;
-
-        // Note, not setting IS_NONE_AUTH_TYPE_REQUEST in newly generated clients, makes earlier logic not sufficient, as
-        // NoneAuthTypeRequestTest fails.
-        // It is easiest to keep NoneAuthTypeRequest passing by continuing to set IS_NONE_AUTH_TYPE_REQUEST in newly generated
-        // clients. This might become odd in the future, when authType=none is deprecated (authType itself will be less favored
-        // in lieu of authList, to support multiple auth schemes). But we can cross that bridge as part of those changes?
-
-        SelectedAuthScheme<?> selectedAuthScheme =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-        if (selectedAuthScheme == null) {
-            // this implies old (pre SRA) client, keeping the logic as before intact for that case.
-            if (isAuthenticatedRequest(executionAttributes)) {
-                AuthorizationStrategyFactory authorizationStrategyFactory =
-                    new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
-                AuthorizationStrategy authorizationStrategy =
-                    authorizationStrategyFactory.strategyFor(executionParams.credentialType());
-                authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
-                signer = authorizationStrategy.resolveSigner();
-            }
-        } else {
-            // With SRA, i.e., for newly generated clients:
-            // If old Signer is still provided via overrides (existing customer code), we want to continue using that signer.
-            // However, we don't want to use that overridden signer if the operation was going to have no auth (authType=none
-            // in the model or auth scheme resolver selects the smithy.api#noAuth scheme (abstracted as
-            // selectedAuthScheme.supportsSigning), in which case we want Signer to end up as `null`.
-            if (selectedAuthScheme.supportsSigning() && SignerOverrideUtils.isSignerOverridden(interceptorContext.request(),
-                                                                                               executionAttributes)) {
-                AuthorizationStrategyFactory authorizationStrategyFactory =
-                    new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
-                AuthorizationStrategy authorizationStrategy =
-                    authorizationStrategyFactory.strategyFor(executionParams.credentialType());
-                authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
-                signer = authorizationStrategy.resolveSigner();
-            }
+        if (useOldSigner(executionAttributes, interceptorContext)) {
+            AuthorizationStrategyFactory authorizationStrategyFactory =
+                new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
+            AuthorizationStrategy authorizationStrategy =
+                authorizationStrategyFactory.strategyFor(executionParams.credentialType());
+            authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
+            signer = authorizationStrategy.resolveSigner();
         }
 
         executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
@@ -174,6 +147,38 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    private static boolean useOldSigner(ExecutionAttributes executionAttributes, InterceptorContext interceptorContext) {
+        SelectedAuthScheme<?> selectedAuthScheme =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        boolean useOldSigner = authenticatedWithoutAuthScheme(selectedAuthScheme, executionAttributes)
+                               || usesOverriddenSignerWithAuthScheme(selectedAuthScheme, executionAttributes, interceptorContext);
+        return useOldSigner;
+    }
+
+    // SelectedAuthScheme being null, implies old (pre SRA) generated client
+    private static boolean authenticatedWithoutAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
+                                                          ExecutionAttributes executionAttributes) {
+        return selectedAuthScheme == null && isAuthenticatedRequest(executionAttributes);
+    }
+
+    // There used to be codegen logic (pre SRA) that used to set this attribute when authType=none.
+    // With SRA, this attribute is not needed (so not set) in newly (post SRA) generated clients. For newly generated clients,
+    // this method would always return false.
+    private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
+    }
+
+    // SelectedAuthScheme being non-null implies new (post SRA) generated client.
+    // If old Signer is still provided via overrides (existing customer code), we want to continue using that signer.
+    // However, we don't want to use that overridden signer if the selected auth scheme is `smithy.api#noAuth` (would
+    // happen when operation has authType=none).
+    private static boolean usesOverriddenSignerWithAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
+                                                              ExecutionAttributes executionAttributes,
+                                                              InterceptorContext interceptorContext) {
+        return SignerOverrideUtils.isSignerOverridden(interceptorContext.request(), executionAttributes)
+               && selectedAuthScheme != null && selectedAuthScheme.supportsSigning();
     }
 
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
@@ -261,13 +266,6 @@ public final class AwsExecutionContextBuilder {
             metricCollector = MetricCollector.create("ApiCall");
         }
         return metricCollector;
-    }
-
-    // There used to be codegen logic that used to set this attribute when authType=none. With SRA, this attribute is not
-    // needed (so not set) in newly generated clients, but leaving this logic for old clients that might use new aws-core version.
-    // For newly generated clients, this will always return false.
-    private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
     }
 
 
