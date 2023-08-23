@@ -169,6 +169,11 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
+                <artifactId>auth-crt</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>iam-policy-builder</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
