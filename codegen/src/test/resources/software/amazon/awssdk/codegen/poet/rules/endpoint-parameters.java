@@ -158,6 +158,7 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.region = builder.region;
             this.useDualStackEndpoint = builder.useDualStackEndpoint;
             this.useFIPSEndpoint = builder.useFIPSEndpoint;
+            this.awsAccountId = builder.awsAccountId;
             this.endpointId = builder.endpointId;
             this.defaultTrueParam = builder.defaultTrueParam;
             this.defaultStringParam = builder.defaultStringParam;
