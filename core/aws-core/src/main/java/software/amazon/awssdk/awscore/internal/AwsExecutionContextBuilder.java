@@ -179,7 +179,8 @@ public final class AwsExecutionContextBuilder {
                                                              ExecutionAttributes executionAttributes,
                                                              InterceptorContext interceptorContext) {
         return SignerOverrideUtils.isSignerOverridden(interceptorContext.request(), executionAttributes)
-               && selectedAuthScheme != null && !NoAuthAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId());
+               && selectedAuthScheme != null
+               && !NoAuthAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId());
     }
 
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
