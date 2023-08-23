@@ -49,6 +49,7 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
@@ -178,7 +179,7 @@ public final class AwsExecutionContextBuilder {
                                                               ExecutionAttributes executionAttributes,
                                                               InterceptorContext interceptorContext) {
         return SignerOverrideUtils.isSignerOverridden(interceptorContext.request(), executionAttributes)
-               && selectedAuthScheme != null && selectedAuthScheme.supportsSigning();
+               && selectedAuthScheme != null && !NoAuthAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId());
     }
 
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
