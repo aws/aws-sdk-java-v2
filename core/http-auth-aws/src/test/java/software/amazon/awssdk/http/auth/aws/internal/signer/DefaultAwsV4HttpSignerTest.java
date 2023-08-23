@@ -25,6 +25,7 @@ import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicReques
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AuthLocation;
+import software.amazon.awssdk.http.auth.aws.TestUtils;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 /**
  * Test the delegation of signing to the correct implementations.
  */
+// TODO(sra-identity-and-auth): missing tests for async code path
 public class DefaultAwsV4HttpSignerTest {
 
     DefaultAwsV4HttpSigner signer = new DefaultAwsV4HttpSigner();
@@ -77,6 +79,22 @@ public class DefaultAwsV4HttpSignerTest {
         );
 
         assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
+    }
+
+    @Test
+    public void sign_withAnonymousCreds_shouldNotSign() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            new TestUtils.AnonymousCredentialsIdentity(),
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Signature"))
+            .isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
     }
 
     @Test
