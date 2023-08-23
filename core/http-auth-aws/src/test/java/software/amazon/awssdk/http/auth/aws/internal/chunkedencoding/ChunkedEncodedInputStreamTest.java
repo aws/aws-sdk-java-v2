@@ -1,4 +1,19 @@
-package software.amazon.awssdk.http.auth.aws.chunkedencoding;
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
 import static java.util.Arrays.copyOf;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -63,7 +78,7 @@ public class ChunkedEncodedInputStreamTest {
         InputStream payload = new ByteArrayInputStream(data);
         int chunkSize = 3;
 
-        ChunkExtension helloWorldExt = chunk -> Pair.of(
+        ChunkExtensionProvider helloWorldExt = chunk -> Pair.of(
             "hello".getBytes(StandardCharsets.UTF_8),
             "world!".getBytes(StandardCharsets.UTF_8)
         );
@@ -101,7 +116,7 @@ public class ChunkedEncodedInputStreamTest {
         InputStream payload = new ByteArrayInputStream(data);
         int chunkSize = 3;
 
-        Trailer helloWorldTrailer = chunk -> Pair.of(
+        TrailerProvider helloWorldTrailer = chunk -> Pair.of(
             "hello".getBytes(StandardCharsets.UTF_8),
             "world!".getBytes(StandardCharsets.UTF_8)
         );
@@ -138,11 +153,13 @@ public class ChunkedEncodedInputStreamTest {
         InputStream payload = new ByteArrayInputStream(data);
         int chunkSize = 3;
 
-        ChunkExtension aExt = chunk -> Pair.of("a".getBytes(StandardCharsets.UTF_8), "1".getBytes(StandardCharsets.UTF_8));
-        ChunkExtension bExt = chunk -> Pair.of("b".getBytes(StandardCharsets.UTF_8), "2".getBytes(StandardCharsets.UTF_8));
+        ChunkExtensionProvider aExt = chunk -> Pair.of("a".getBytes(StandardCharsets.UTF_8),
+                                                       "1".getBytes(StandardCharsets.UTF_8));
+        ChunkExtensionProvider bExt = chunk -> Pair.of("b".getBytes(StandardCharsets.UTF_8),
+                                                       "2".getBytes(StandardCharsets.UTF_8));
 
-        Trailer aTrailer = chunk -> Pair.of("a".getBytes(StandardCharsets.UTF_8), "1".getBytes(StandardCharsets.UTF_8));
-        Trailer bTrailer = chunk -> Pair.of("b".getBytes(StandardCharsets.UTF_8), "2".getBytes(StandardCharsets.UTF_8));
+        TrailerProvider aTrailer = chunk -> Pair.of("a".getBytes(StandardCharsets.UTF_8), "1".getBytes(StandardCharsets.UTF_8));
+        TrailerProvider bTrailer = chunk -> Pair.of("b".getBytes(StandardCharsets.UTF_8), "2".getBytes(StandardCharsets.UTF_8));
 
         ChunkedEncodedInputStream inputStream = ChunkedEncodedInputStream
             .builder()
@@ -188,7 +205,7 @@ public class ChunkedEncodedInputStreamTest {
 
         RollingSigner signer = new RollingSigner(signingKey, seedSignature);
 
-        ChunkExtension ext = chunk -> Pair.of(
+        ChunkExtensionProvider ext = chunk -> Pair.of(
             "chunk-signature".getBytes(StandardCharsets.UTF_8),
             signer.sign(previousSignature ->
                             "AWS4-HMAC-SHA256-PAYLOAD" + SignerConstant.LINE_SEPARATOR +
@@ -200,12 +217,12 @@ public class ChunkedEncodedInputStreamTest {
                   .getBytes(StandardCharsets.UTF_8)
         );
 
-        Trailer checksumTrailer = chunk -> Pair.of(
+        TrailerProvider checksumTrailer = chunk -> Pair.of(
             "x-amz-checksum-crc32c".getBytes(StandardCharsets.UTF_8),
             "wdBDMA==".getBytes(StandardCharsets.UTF_8)
         );
 
-        Trailer signatureTrailer = chunk -> Pair.of(
+        TrailerProvider signatureTrailer = chunk -> Pair.of(
             "x-amz-trailer-signature".getBytes(StandardCharsets.UTF_8),
             signer.sign(previousSignature ->
                             "AWS4-HMAC-SHA256-TRAILER" + SignerConstant.LINE_SEPARATOR +
@@ -272,7 +289,7 @@ public class ChunkedEncodedInputStreamTest {
         int numChunks = size / chunkSize;
 
         // 0\r\n<data>\r\n
-        expectedBytesRead += (numChunks * (5 + chunkSize));
+        expectedBytesRead += numChunks * (5 + chunkSize);
 
         if (size % chunkSize != 0) {
             // 0\r\n\<left-over>\r\n

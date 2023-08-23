@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.chunkedencoding;
+package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,8 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.Chunk;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
@@ -48,7 +47,7 @@ import software.amazon.awssdk.utils.Validate;
  *     chunk-data     = 1*OCTET ; a sequence of chunk-size octets
  * </pre>
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class ChunkedEncodedInputStream extends InputStream {
     private static final Logger LOG = Logger.loggerFor(ChunkedEncodedInputStream.class);
     private static final byte[] CRLF = {'\r', '\n'};
@@ -57,9 +56,9 @@ public final class ChunkedEncodedInputStream extends InputStream {
     private final InputStream inputStream;
     private final int chunkSize;
 
-    private final ChunkHeader header;
-    private final List<ChunkExtension> extensions = new ArrayList<>();
-    private final List<Trailer> trailers = new ArrayList<>();
+    private final ChunkHeaderProvider header;
+    private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
+    private final List<TrailerProvider> trailers = new ArrayList<>();
 
     private Chunk currentChunk;
     private boolean isFinished = false;
@@ -90,6 +89,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
             currentChunk.close();
         }
         // we *have* to read from the backing stream in order to figure out if it's the end or not
+        // TODO: We can likely optimize this by not copying the entire chunk of data into memory
         byte[] chunkData = new byte[chunkSize];
         int read = read(stream, chunkData, chunkSize);
 
@@ -164,8 +164,8 @@ public final class ChunkedEncodedInputStream extends InputStream {
     }
 
     private void writeExtensions(byte[] chunk, ByteArrayOutputStream outputStream) throws IOException {
-        for (ChunkExtension chunkExtension : extensions) {
-            Pair<byte[], byte[]> ext = chunkExtension.get(chunk);
+        for (ChunkExtensionProvider chunkExtensionProvider : extensions) {
+            Pair<byte[], byte[]> ext = chunkExtensionProvider.get(chunk);
             outputStream.write((byte) ';');
             outputStream.write(ext.left());
             outputStream.write((byte) '=');
@@ -174,7 +174,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
     }
 
     private void writeTrailers(byte[] chunk, ByteArrayOutputStream outputStream) throws IOException {
-        for (Trailer trailer : trailers) {
+        for (TrailerProvider trailer : trailers) {
             Pair<byte[], byte[]> tlr = trailer.get(chunk);
             outputStream.write(tlr.left());
             outputStream.write((byte) ':');
@@ -185,13 +185,13 @@ public final class ChunkedEncodedInputStream extends InputStream {
 
     @Override
     public synchronized void mark(int readlimit) {
-        // TODO: Implement this
+        // TODO: Implement this, likely needed for retries
         throw new UnsupportedOperationException();
     }
 
     @Override
     public synchronized void reset() {
-        // TODO: Implement this
+        // TODO: Implement this, likely needed for retries
         throw new UnsupportedOperationException();
     }
 
@@ -216,29 +216,29 @@ public final class ChunkedEncodedInputStream extends InputStream {
          * Set the header to be used when creating an encoded chunk.
          * This header will be the first part of an encoded chunk.
          */
-        Builder header(ChunkHeader header);
+        Builder header(ChunkHeaderProvider header);
 
         /**
          * Set the chunk-extensions to be used when creating an encoded chunk.
          * These extensions will immediately follow the header.
          */
-        Builder extensions(List<ChunkExtension> extensions);
+        Builder extensions(List<ChunkExtensionProvider> extensions);
 
         /**
          * Add a chunk-extension.
          */
-        Builder addExtension(ChunkExtension extension);
+        Builder addExtension(ChunkExtensionProvider extension);
 
         /**
          * Set the trailers to be used when creating the final chunk.
          * These trailers will immediately follow the final encoded chunk.
          */
-        Builder trailers(List<Trailer> trailers);
+        Builder trailers(List<TrailerProvider> trailers);
 
         /**
          * Add a trailer.
          */
-        Builder addTrailer(Trailer trailer);
+        Builder addTrailer(TrailerProvider trailer);
 
         ChunkedEncodedInputStream build();
     }
@@ -246,9 +246,9 @@ public final class ChunkedEncodedInputStream extends InputStream {
     private static class BuilderImpl implements Builder {
         private InputStream inputStream;
         private int chunkSize;
-        private ChunkHeader header = chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8);
-        private final List<ChunkExtension> extensions = new ArrayList<>();
-        private final List<Trailer> trailers = new ArrayList<>();
+        private ChunkHeaderProvider header = chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8);
+        private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
+        private final List<TrailerProvider> trailers = new ArrayList<>();
 
         @Override
         public Builder inputStream(InputStream inputStream) {
@@ -263,34 +263,34 @@ public final class ChunkedEncodedInputStream extends InputStream {
         }
 
         @Override
-        public Builder header(ChunkHeader header) {
+        public Builder header(ChunkHeaderProvider header) {
             this.header = header;
             return this;
         }
 
         @Override
-        public Builder extensions(List<ChunkExtension> extensions) {
+        public Builder extensions(List<ChunkExtensionProvider> extensions) {
             this.extensions.clear();
             extensions.forEach(this::addExtension);
             return this;
         }
 
         @Override
-        public Builder addExtension(ChunkExtension extension) {
-            this.extensions.add(Validate.notNull(extension, "Extension cannot be null!"));
+        public Builder addExtension(ChunkExtensionProvider extension) {
+            this.extensions.add(Validate.notNull(extension, "ExtensionProvider cannot be null!"));
             return this;
         }
 
         @Override
-        public Builder trailers(List<Trailer> trailers) {
+        public Builder trailers(List<TrailerProvider> trailers) {
             this.trailers.clear();
             trailers.forEach(this::addTrailer);
             return this;
         }
 
         @Override
-        public Builder addTrailer(Trailer trailer) {
-            this.trailers.add(Validate.notNull(trailer, "Trailer cannot be null!"));
+        public Builder addTrailer(TrailerProvider trailer) {
+            this.trailers.add(Validate.notNull(trailer, "TrailerProvider cannot be null!"));
             return this;
         }
 

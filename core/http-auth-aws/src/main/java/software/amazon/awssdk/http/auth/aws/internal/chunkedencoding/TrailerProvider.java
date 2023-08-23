@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.chunkedencoding;
+package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -28,10 +28,10 @@ import software.amazon.awssdk.utils.Pair;
  *     trailer-part   = *( header-field CRLF )
  * </pre>
  * An implementation of this interface is specifically an element of the {@code trailer-part}. Therefore, all occurrences of
- * {@code Trailer}'s make up the {@code trailer-part}.
+ * {@code TrailerProvider}'s make up the {@code trailer-part}.
  */
 @FunctionalInterface
-@SdkProtectedApi
-public interface Trailer {
+@SdkInternalApi
+public interface TrailerProvider {
     Pair<byte[], byte[]> get(byte[] chunk);
 }

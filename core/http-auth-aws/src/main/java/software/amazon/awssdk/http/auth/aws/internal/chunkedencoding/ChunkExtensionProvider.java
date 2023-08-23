@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.chunkedencoding;
+package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.Pair;
  * </pre>
  */
 @FunctionalInterface
-@SdkProtectedApi
-public interface ChunkExtension {
+@SdkInternalApi
+public interface ChunkExtensionProvider {
     Pair<byte[], byte[]> get(byte[] chunk);
 }

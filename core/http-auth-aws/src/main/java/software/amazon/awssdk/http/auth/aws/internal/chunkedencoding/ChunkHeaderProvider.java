@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.chunkedencoding;
+package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * A functional interface for defining a header of a chunk.
@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * the {@code chunk-size}, but this interface can give us greater flexibility.
  */
 @FunctionalInterface
-@SdkProtectedApi
-public interface ChunkHeader {
+@SdkInternalApi
+public interface ChunkHeaderProvider {
     byte[] get(byte[] chunk);
 }
