@@ -75,11 +75,6 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
                                                                                       RequestExecutionContext context,
                                                                                       SelectedAuthScheme<T> selectedAuthScheme) {
         updateHttpRequestInInterceptorContext(request, context.executionContext());
-
-        if (!selectedAuthScheme.supportsSigning()) {
-            return CompletableFuture.completedFuture(request);
-        }
-
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         return identityFuture.thenCompose(identity -> {
             long signingStart = System.nanoTime();

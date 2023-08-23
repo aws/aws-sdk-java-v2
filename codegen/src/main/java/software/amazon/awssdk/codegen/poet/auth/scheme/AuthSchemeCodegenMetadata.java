@@ -21,16 +21,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import software.amazon.awssdk.codegen.model.service.AuthType;
-import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
 import software.amazon.awssdk.utils.Validate;
 
 public final class AuthSchemeCodegenMetadata {
 
     static final AuthSchemeCodegenMetadata SIGV4 = builder()
         .schemeId(AwsV4AuthScheme.SCHEME_ID)
+        .authSchemeClass(AwsV4AuthScheme.class)
         .addProperty(SignerPropertyValueProvider.builder()
                                                 .containingClass(AwsV4HttpSigner.class)
                                                 .fieldName("SERVICE_SIGNING_NAME")
@@ -87,18 +88,22 @@ public final class AuthSchemeCodegenMetadata {
 
     static final AuthSchemeCodegenMetadata BEARER = builder()
         .schemeId(BearerAuthScheme.SCHEME_ID)
+        .authSchemeClass(BearerAuthScheme.class)
         .build();
 
     static final AuthSchemeCodegenMetadata NO_AUTH = builder()
-        .schemeId(SelectedAuthScheme.SMITHY_NO_AUTH)
+        .schemeId(NoAuthAuthScheme.SCHEME_ID)
+        .authSchemeClass(NoAuthAuthScheme.class)
         .build();
 
     private final String schemeId;
     private final List<SignerPropertyValueProvider> properties;
+    private final Class<?> authSchemeClass;
 
     private AuthSchemeCodegenMetadata(Builder builder) {
         this.schemeId = Validate.paramNotNull(builder.schemeId, "schemeId");
         this.properties = Collections.unmodifiableList(Validate.paramNotNull(builder.properties, "properties"));
+        this.authSchemeClass = Validate.paramNotNull(builder.authSchemeClass, "authSchemeClass");
     }
 
     public String schemeId() {
@@ -106,16 +111,7 @@ public final class AuthSchemeCodegenMetadata {
     }
 
     public Class<?> authSchemeClass() {
-        switch (schemeId) {
-            case AwsV4AuthScheme.SCHEME_ID:
-                return AwsV4AuthScheme.class;
-            case BearerAuthScheme.SCHEME_ID:
-                return BearerAuthScheme.class;
-            case SelectedAuthScheme.SMITHY_NO_AUTH:
-                return null;
-            default:
-                throw new IllegalArgumentException("Auth scheme class for schemeId: " + schemeId + " not configured.");
-        }
+        return authSchemeClass;
     }
 
     public List<SignerPropertyValueProvider> properties() {
@@ -152,6 +148,7 @@ public final class AuthSchemeCodegenMetadata {
     private static class Builder {
         private String schemeId;
         private List<SignerPropertyValueProvider> properties = new ArrayList<>();
+        private Class<?> authSchemeClass;
 
         Builder() {
         }
@@ -159,6 +156,7 @@ public final class AuthSchemeCodegenMetadata {
         Builder(AuthSchemeCodegenMetadata other) {
             this.schemeId = other.schemeId;
             this.properties.addAll(other.properties);
+            this.authSchemeClass = other.authSchemeClass;
         }
 
         public Builder schemeId(String schemeId) {
@@ -168,6 +166,11 @@ public final class AuthSchemeCodegenMetadata {
 
         public Builder addProperty(SignerPropertyValueProvider property) {
             this.properties.add(property);
+            return this;
+        }
+
+        public Builder authSchemeClass(Class<?> authSchemeClass) {
+            this.authSchemeClass = authSchemeClass;
             return this;
         }
 

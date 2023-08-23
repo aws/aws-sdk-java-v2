@@ -44,6 +44,11 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void baseClientBuilderInterfaceWithNoAuthClass() throws Exception {
+        validateNoAuthAuthGeneration(BaseClientBuilderClass::new, "test-no-auth-auth-client-builder-class.java");
+    }
+
+    @Test
     public void baseClientBuilderWithBearerAuthClass() throws Exception {
         validateBearerAuthGeneration(BaseClientBuilderClass::new, "test-bearer-auth-client-builder-class.java");
     }
@@ -116,6 +121,11 @@ public class BuilderClassTest {
     private void validateBearerAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
                                            String expectedClassName) {
         assertThat(generatorConstructor.apply(ClientTestModels.bearerAuthServiceModels()), generatesTo(expectedClassName));
+    }
+
+    private void validateNoAuthAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
+                                              String expectedClassName) {
+        assertThat(generatorConstructor.apply(ClientTestModels.serviceWithNoAuth()), generatesTo(expectedClassName));
     }
 
     private void validateQueryGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {

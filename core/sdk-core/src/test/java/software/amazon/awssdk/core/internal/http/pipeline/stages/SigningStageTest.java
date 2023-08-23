@@ -130,7 +130,7 @@ public class SigningStageTest {
     }
 
     @Test
-    public void execute_selectedNoAuthAuthScheme_skipsSigning() throws Exception {
+    public void execute_selectedNoAuthAuthScheme_doesSraSign() throws Exception {
         // Set up a scheme with smithy.api#noAuth
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
@@ -140,17 +140,30 @@ public class SigningStageTest {
                             .build());
         RequestExecutionContext context = createContext(selectedAuthScheme);
 
+        SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
+            .thenReturn(SyncSignedRequest.builder()
+                                         .request(signedRequest)
+                                         .build());
+
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context);
 
-        assertThat(result).isSameAs(request);
-        // assert that interceptor context is updated with result, which is same as request.
-        // To ensure this asserts the logic in the SigningStage to update the InterceptorContext before the signing logic,
-        // the request is not set in the InterceptorContext in createContext()
-        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(request);
+        assertThat(result).isSameAs(signedRequest);
+        // assert that interceptor context is updated with result
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
-        verifyNoInteractions(signer);
-        verifyNoInteractions(metricCollector);
+        // assert that the input to the signer is as expected, including that signer properties are set
+        verify(signer).sign(signRequestCaptor.capture());
+        SyncSignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
+        assertThat(signRequest.identity()).isSameAs(identity);
+        assertThat(signRequest.request()).isSameAs(request);
+        assertThat(signRequest.property(SIGNER_PROPERTY)).isNull();
+
+        // assert that metrics are collected
+        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
+
+        verifyNoInteractions(oldSigner);
     }
 
     @Test

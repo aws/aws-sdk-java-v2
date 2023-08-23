@@ -196,12 +196,6 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
 
         builder.beginControlFlow("for ($T authOption : authOptions)", AuthSchemeOption.class);
         {
-            builder.beginControlFlow("if (authOption.schemeId().equals($S))", SelectedAuthScheme.SMITHY_NO_AUTH);
-            {
-                addLogDebugDiscardedOptions(builder);
-                builder.addStatement("return new $T<>(null, null, authOption)", SelectedAuthScheme.class)
-                       .endControlFlow();
-            }
             builder.addStatement("$T authScheme = authSchemes.get(authOption.schemeId())", wildcardAuthScheme())
                    .addStatement("$T selectedAuthScheme = "
                                  + "trySelectAuthScheme(authOption, authScheme, identityResolvers, discardedReasons)",
