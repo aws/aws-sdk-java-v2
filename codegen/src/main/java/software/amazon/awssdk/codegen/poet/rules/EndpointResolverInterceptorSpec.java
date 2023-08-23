@@ -19,19 +19,26 @@ import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletionException;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
@@ -43,6 +50,7 @@ import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -53,6 +61,14 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
@@ -61,11 +77,18 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final IntermediateModel model;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final PoetExtension poetExtension;
+    private final boolean dependsOnHttpAuthAws;
 
     public EndpointResolverInterceptorSpec(IntermediateModel model) {
         this.model = model;
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.poetExtension = new PoetExtension(model);
+
+        // We need to know whether the service has a dependency on the http-auth-aws module. Because we can't check that
+        // directly, assume that if they're using AwsV4AuthScheme or AwsV4aAuthScheme that it's available.
+        Set<Class<?>> supportedAuthSchemes = new AuthSchemeSpecUtils(model).allServiceConcreteAuthSchemeClasses();
+        this.dependsOnHttpAuthAws = supportedAuthSchemes.contains(AwsV4AuthScheme.class) ||
+                                    supportedAuthSchemes.contains(AwsV4aAuthScheme.class);
     }
 
     @Override
@@ -84,6 +107,9 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         b.addMethod(setStaticContextParamsMethod());
         addStaticContextParamMethods(b);
+
+        b.addMethod(copyEndpointSignerPropertiesToAuthMethod());
+        b.addMethod(copySignerPropertiesToAttributesMethod());
 
         if (hasClientContextParams()) {
             b.addMethod(setClientContextParamsMethod());
@@ -134,13 +160,13 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
 
         // If the endpoint resolver returns auth settings, use them as signer properties
-        b.addStatement("$T<$T> authSchemes = endpoint.attribute($T.AUTH_SCHEMES)",
+        b.addStatement("$T<$T> endpointAuthSchemes = endpoint.attribute($T.AUTH_SCHEMES)",
                        List.class, EndpointAuthScheme.class, AwsEndpointAttribute.class);
         b.addStatement("$T<?> selectedAuthScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
                        SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
-        b.beginControlFlow("if (authSchemes != null && selectedAuthScheme != null)");
-        b.addStatement("selectedAuthScheme = $T.mergeIntoResolvedAuthScheme(authSchemes, selectedAuthScheme)",
-                       endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
+        b.beginControlFlow("if (endpointAuthSchemes != null && selectedAuthScheme != null)");
+        b.addStatement("selectedAuthScheme = copyEndpointSignerPropertiesToAuth(endpointAuthSchemes, selectedAuthScheme)");
+
         b.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
                        SdkInternalExecutionAttribute.class);
         b.endControlFlow();
@@ -148,8 +174,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         // Backwards-compatibility with old signers.
         b.beginControlFlow("if (selectedAuthScheme != null)");
-        b.addStatement("$T.setSigningParams(executionAttributes, selectedAuthScheme.authSchemeOption())",
-                       endpointRulesSpecUtils.rulesRuntimeClassName("AuthSchemeUtils"));
+        b.addStatement("copySignerPropertiesToAttributes(selectedAuthScheme.authSchemeOption(), executionAttributes)");
         b.endControlFlow();
 
         b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint)");
@@ -502,5 +527,167 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         }
 
         return endpointTrait.getHostPrefix();
+    }
+
+    private MethodSpec copyEndpointSignerPropertiesToAuthMethod() {
+        TypeVariableName tExtendsIdentity = TypeVariableName.get("T", Identity.class);
+        TypeName selectedAuthSchemeOfT = ParameterizedTypeName.get(ClassName.get(SelectedAuthScheme.class),
+                                                                   TypeVariableName.get("T"));
+        TypeName listOfEndpointAuthScheme = ParameterizedTypeName.get(List.class, EndpointAuthScheme.class);
+
+        MethodSpec.Builder method =
+            MethodSpec.methodBuilder("copyEndpointSignerPropertiesToAuth")
+                      .addModifiers(Modifier.PRIVATE)
+                      .addTypeVariable(tExtendsIdentity)
+                      .returns(selectedAuthSchemeOfT)
+                      .addParameter(listOfEndpointAuthScheme, "endpointAuthSchemes")
+                      .addParameter(selectedAuthSchemeOfT, "selectedAuthScheme");
+
+        method.beginControlFlow("for ($T endpointAuthScheme : endpointAuthSchemes)", EndpointAuthScheme.class);
+
+        // Don't include signer properties for auth options that don't match our selected auth scheme
+        method.beginControlFlow("if (!endpointAuthScheme.schemeId().equals(selectedAuthScheme.authSchemeOption().schemeId()))");
+        method.addStatement("continue");
+        method.endControlFlow();
+
+        method.addStatement("$T option = selectedAuthScheme.authSchemeOption().toBuilder()", AuthSchemeOption.Builder.class);
+
+        if (dependsOnHttpAuthAws) {
+            method.addCode(copyV4EndpointSignerPropertiesToAuth());
+            method.addCode(copyV4aEndpointSignerPropertiesToAuth());
+        }
+
+        method.addStatement("throw new $T(\"Endpoint auth scheme '\" + endpointAuthScheme.name() + \"' cannot be mapped to the "
+                            + "SDK auth scheme. Was it declared in the service's model?\")",
+                            IllegalArgumentException.class);
+
+        method.endControlFlow();
+
+        method.addStatement("return selectedAuthScheme");
+
+        return method.build();
+    }
+
+    private static CodeBlock copyV4EndpointSignerPropertiesToAuth() {
+        CodeBlock.Builder code = CodeBlock.builder();
+        code.beginControlFlow("if (endpointAuthScheme instanceof $T)", SigV4AuthScheme.class);
+        code.addStatement("$1T v4AuthScheme = ($1T) endpointAuthScheme", SigV4AuthScheme.class);
+
+        code.beginControlFlow("if (v4AuthScheme.isDisableDoubleEncodingSet())");
+        code.addStatement("option.putSignerProperty($T.DOUBLE_URL_ENCODE, !v4AuthScheme.disableDoubleEncoding())",
+                          AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (v4AuthScheme.signingRegion() != null)");
+        code.addStatement("option.putSignerProperty($T.REGION_NAME, v4AuthScheme.signingRegion())",
+                          AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (v4AuthScheme.signingName() != null)");
+        code.addStatement("option.putSignerProperty($T.SERVICE_SIGNING_NAME, v4AuthScheme.signingName())",
+                          AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.addStatement("return new $T<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build())",
+                          SelectedAuthScheme.class);
+        code.endControlFlow();
+        return code.build();
+    }
+
+    private static CodeBlock copyV4aEndpointSignerPropertiesToAuth() {
+        CodeBlock.Builder code = CodeBlock.builder();
+
+        code.beginControlFlow("if (endpointAuthScheme instanceof $T)", SigV4aAuthScheme.class);
+        code.addStatement("$1T v4aAuthScheme = ($1T) endpointAuthScheme", SigV4aAuthScheme.class);
+
+        code.beginControlFlow("if (v4aAuthScheme.isDisableDoubleEncodingSet())");
+        code.addStatement("option.putSignerProperty($T.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding())",
+                          AwsV4aHttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (v4aAuthScheme.signingRegionSet() != null)");
+        code.addStatement("option.putSignerProperty($T.REGION_NAME, $T.join(\",\", v4aAuthScheme.signingRegionSet()))",
+                          AwsV4aHttpSigner.class, String.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (v4aAuthScheme.signingName() != null)");
+        code.addStatement("option.putSignerProperty($T.SERVICE_SIGNING_NAME, v4aAuthScheme.signingName())",
+                          AwsV4aHttpSigner.class);
+        code.endControlFlow();
+
+        code.addStatement("return new $T<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build())",
+                          SelectedAuthScheme.class);
+        code.endControlFlow();
+        return code.build();
+    }
+
+    private MethodSpec copySignerPropertiesToAttributesMethod() {
+        MethodSpec.Builder method =
+            MethodSpec.methodBuilder("copySignerPropertiesToAttributes")
+                      .addModifiers(Modifier.PRIVATE)
+                      .addParameter(AuthSchemeOption.class, "authOption")
+                      .addParameter(ExecutionAttributes.class, "executionAttributes");
+
+        // TODO(sra-identity-and-auth): What about bearer auth properties?
+        if (dependsOnHttpAuthAws) {
+            method.addCode(copyV4SignerPropertiesToAttributes());
+            method.addCode(copyV4aSignerPropertiesToAttributes());
+        }
+
+        return method.build();
+    }
+
+    private static CodeBlock copyV4SignerPropertiesToAttributes() {
+        CodeBlock.Builder code = CodeBlock.builder();
+        code.beginControlFlow("if (authOption.schemeId().equals($T.SCHEME_ID))", AwsV4AuthScheme.class);
+
+        code.beginControlFlow("if (authOption.signerProperty($T.DOUBLE_URL_ENCODE) != null)", AwsV4HttpSigner.class);
+        code.addStatement("executionAttributes.putAttribute($T.SIGNER_DOUBLE_URL_ENCODE, authOption.signerProperty($T"
+                            + ".DOUBLE_URL_ENCODE))",
+                            AwsSignerExecutionAttribute.class, AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (authOption.signerProperty($T.SERVICE_SIGNING_NAME) != null)", AwsV4HttpSigner.class);
+        code.addStatement("executionAttributes.putAttribute($T.SERVICE_SIGNING_NAME, authOption.signerProperty($T"
+                            + ".SERVICE_SIGNING_NAME))",
+                            AwsSignerExecutionAttribute.class, AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (authOption.signerProperty($T.REGION_NAME) != null)", AwsV4HttpSigner.class);
+        code.addStatement("executionAttributes.putAttribute($T.SIGNING_REGION, $T.of(authOption.signerProperty($T"
+                            + ".REGION_NAME)))",
+                          AwsSignerExecutionAttribute.class, Region.class, AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.addStatement("return");
+        code.endControlFlow();
+        return code.build();
+    }
+
+    private static CodeBlock copyV4aSignerPropertiesToAttributes() {
+        CodeBlock.Builder code = CodeBlock.builder();
+        code.beginControlFlow("if (authOption.schemeId().equals($T.SCHEME_ID))", AwsV4aAuthScheme.class);
+
+        code.beginControlFlow("if (authOption.signerProperty($T.DOUBLE_URL_ENCODE) != null)", AwsV4aHttpSigner.class);
+        code.addStatement("executionAttributes.putAttribute($T.SIGNER_DOUBLE_URL_ENCODE, authOption.signerProperty($T"
+                          + ".DOUBLE_URL_ENCODE))",
+                          AwsSignerExecutionAttribute.class, AwsV4aHttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (authOption.signerProperty($T.SERVICE_SIGNING_NAME) != null)", AwsV4aHttpSigner.class);
+        code.addStatement("executionAttributes.putAttribute($T.SERVICE_SIGNING_NAME, authOption.signerProperty($T"
+                          + ".SERVICE_SIGNING_NAME))",
+                          AwsSignerExecutionAttribute.class, AwsV4aHttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (authOption.signerProperty($T.REGION_NAME) != null)", AwsV4aHttpSigner.class);
+        code.addStatement("executionAttributes.putAttribute($T.SIGNING_REGION_SCOPE, $T.create(authOption.signerProperty($T"
+                          + ".REGION_NAME)))",
+                          AwsSignerExecutionAttribute.class, RegionScope.class, AwsV4aHttpSigner.class);
+        code.endControlFlow();
+
+        code.addStatement("return");
+        code.endControlFlow();
+        return code.build();
     }
 }
