@@ -41,7 +41,6 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
@@ -158,11 +157,10 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
 
     private AwsCredentials resolveCredentials(ExecutionAttributes attributes) {
         return attributes.getOptionalAttribute(SELECTED_AUTH_SCHEME)
-                         .map(selectedAuthScheme -> {
-                             Identity identity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
-                             // TODO(sra-identity-and-auth): assert the type is correct.
-                             // TODO(sra-identity-and-auth): What happens if SRA selects different auth scheme than sigv4
-                             // What about sigv4a? Just checking Identity type is ok?
+                         .map(selectedAuthScheme -> selectedAuthScheme.identity())
+                         .map(identityFuture -> CompletableFutureUtils.joinLikeSync(identityFuture))
+                         .filter(identity -> identity instanceof AwsCredentialsIdentity)
+                         .map(identity -> {
                              AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
                              return CredentialUtils.toCredentials(awsCredentialsIdentity);
                          }).orElse(attributes.getAttribute(AWS_CREDENTIALS));

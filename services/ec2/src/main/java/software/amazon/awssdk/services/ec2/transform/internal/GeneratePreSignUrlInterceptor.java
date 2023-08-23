@@ -147,11 +147,10 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
     // TODO(sra-identity-and-auth): add test case for SELECTED_AUTH_SCHEME case
     private AwsCredentials resolveCredentials(ExecutionAttributes attributes) {
         return attributes.getOptionalAttribute(SELECTED_AUTH_SCHEME)
-                         .map(selectedAuthScheme -> {
-                             Identity identity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
-                             // TODO(sra-identity-and-auth): assert the type is correct.
-                             // TODO(sra-identity-and-auth): What happens if SRA selects different auth scheme than sigv4
-                             // What about sigv4a? Just checking Identity type is ok?
+                         .map(selectedAuthScheme -> selectedAuthScheme.identity())
+                         .map(identityFuture -> CompletableFutureUtils.joinLikeSync(identityFuture))
+                         .filter(identity -> identity instanceof AwsCredentialsIdentity)
+                         .map(identity -> {
                              AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
                              return CredentialUtils.toCredentials(awsCredentialsIdentity);
                          }).orElse(attributes.getAttribute(AWS_CREDENTIALS));
