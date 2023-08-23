@@ -151,19 +151,14 @@ public final class AwsExecutionContextBuilder {
                                                           SdkClientConfiguration clientConfig,
                                                           SdkRequest originalRequest) {
 
-        // TODO: When request-level auth scheme resovler is added, use the request-level auth scheme resolver if the customer
-        //  specified an override, otherwise fall back to the one on the client.
+        // TODO(sra-identity-and-auth): When request-level auth scheme provider is added, use the request-level auth scheme
+        //  provider if the customer specified an override, otherwise fall back to the one on the client.
         AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
 
         // Use auth schemes that the user specified at the request level with
         // preference over those on the client.
-        // TODO: The request level schemes should be "merged" with client level, with request preferred over client
-
-        // TODO: this may have to be setup at operation level, as some operations may use different signer for same schemeId,
-        // e.g., EventStreamV4AuthScheme
-
-        // TODO: If request level override is specified, should each operation check that overridden scheme is the
-        //  appropriate type (uses the appropriate Signer) for streaming, etc.
+        // TODO(sra-identity-and-auth): The request level schemes should be "merged" with client level, with request preferred
+        //  over client.
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
         IdentityProviderConfiguration identityProviders = resolveIdentityProviderConfiguration(originalRequest, clientConfig);
@@ -174,9 +169,9 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION, identityProviders);
     }
 
-    // TODO: This is hard coding the logic for the credentialsIdentityProvider from AwsRequestOverrideConfiguration.
-    //       Currently, AwsRequestOverrideConfiguration does not support overriding the tokenIdentityProvider. When adding that
-    //       support this method will need to be updated.
+    // TODO(sra-identity-and-auth): This is hard coding the logic for the credentialsIdentityProvider from
+    //  AwsRequestOverrideConfiguration. Currently, AwsRequestOverrideConfiguration does not support overriding the
+    //  tokenIdentityProvider. When adding that support this method will need to be updated.
     private static IdentityProviderConfiguration resolveIdentityProviderConfiguration(SdkRequest originalRequest,
                                                                                       SdkClientConfiguration clientConfig) {
         IdentityProviderConfiguration identityProviderConfiguration =
