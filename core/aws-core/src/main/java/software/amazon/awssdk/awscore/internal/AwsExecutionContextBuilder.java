@@ -153,14 +153,14 @@ public final class AwsExecutionContextBuilder {
     private static boolean useOldSigner(ExecutionAttributes executionAttributes, InterceptorContext interceptorContext) {
         SelectedAuthScheme<?> selectedAuthScheme =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-        boolean useOldSigner = authenticatedWithoutAuthScheme(selectedAuthScheme, executionAttributes)
-                               || usesOverriddenSignerWithAuthScheme(selectedAuthScheme, executionAttributes, interceptorContext);
+        boolean useOldSigner = isAuthenticatedWithoutAuthScheme(selectedAuthScheme, executionAttributes)
+                               || hasOverriddenSignerWithAuthScheme(selectedAuthScheme, executionAttributes, interceptorContext);
         return useOldSigner;
     }
 
     // SelectedAuthScheme being null, implies old (pre SRA) generated client
-    private static boolean authenticatedWithoutAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
-                                                          ExecutionAttributes executionAttributes) {
+    private static boolean isAuthenticatedWithoutAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
+                                                            ExecutionAttributes executionAttributes) {
         return selectedAuthScheme == null && isAuthenticatedRequest(executionAttributes);
     }
 
@@ -175,9 +175,9 @@ public final class AwsExecutionContextBuilder {
     // If old Signer is still provided via overrides (existing customer code), we want to continue using that signer.
     // However, we don't want to use that overridden signer if the selected auth scheme is `smithy.api#noAuth` (would
     // happen when operation has authType=none).
-    private static boolean usesOverriddenSignerWithAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
-                                                              ExecutionAttributes executionAttributes,
-                                                              InterceptorContext interceptorContext) {
+    private static boolean hasOverriddenSignerWithAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
+                                                             ExecutionAttributes executionAttributes,
+                                                             InterceptorContext interceptorContext) {
         return SignerOverrideUtils.isSignerOverridden(interceptorContext.request(), executionAttributes)
                && selectedAuthScheme != null && !NoAuthAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId());
     }
