@@ -107,7 +107,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     private Map<String, AuthScheme<?>> authSchemes() {
-        Map<String, AuthScheme<?>> schemes = new HashMap<>(1);
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(1 + this.additionalAuthSchemes.size());
         BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
         schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
         schemes.putAll(this.additionalAuthSchemes);

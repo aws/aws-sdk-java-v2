@@ -648,7 +648,8 @@ public class BaseClientBuilderClass implements ClassSpec {
             return builder.build();
         }
 
-        builder.addStatement("$T schemes = new $T<>($L)", returns, HashMap.class, concreteAuthSchemeClasses.size());
+        builder.addStatement("$T schemes = new $T<>($L + this.additionalAuthSchemes.size())",
+                             returns, HashMap.class, concreteAuthSchemeClasses.size());
         for (Class<?> concreteAuthScheme : concreteAuthSchemeClasses) {
             String instanceVariable = CodegenNamingUtils.lowercaseFirstChar(concreteAuthScheme.getSimpleName());
             builder.addStatement("$1T $2L = $1T.create()", concreteAuthScheme, instanceVariable);
