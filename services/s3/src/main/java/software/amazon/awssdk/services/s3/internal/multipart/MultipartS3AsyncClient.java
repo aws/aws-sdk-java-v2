@@ -46,10 +46,6 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private static final ApiName USER_AGENT_API_NAME = ApiName.builder().name("hll").version("s3Multipart").build();
 
-    private static final long DEFAULT_MIN_PART_SIZE = 8L * 1024 * 1024;
-    private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;
-    private static final long DEFAULT_API_CALL_BUFFER_SIZE = DEFAULT_MIN_PART_SIZE * 4;
-
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
 
@@ -57,19 +53,11 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         super(delegate);
         MultipartConfiguration validConfiguration = Validate.getOrDefault(multipartConfiguration,
                                                                           MultipartConfiguration.builder()::build);
-        long minPartSizeInBytes = Validate.getOrDefault(validConfiguration.minimumPartSizeInBytes(),
-                                                        () -> DEFAULT_MIN_PART_SIZE);
-        long threshold = Validate.getOrDefault(validConfiguration.thresholdInBytes(),
-                                               () -> DEFAULT_THRESHOLD);
-        long apiCallBufferSizeInBytes = Validate.getOrDefault(validConfiguration.apiCallBufferSizeInBytes(),
-                                                              () -> computeApiCallBufferSize(validConfiguration));
-        mpuHelper = new UploadObjectHelper(delegate, minPartSizeInBytes, threshold, apiCallBufferSizeInBytes);
+        MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(validConfiguration);
+        long minPartSizeInBytes = resolver.minimalPartSizeInBytes();
+        long threshold = resolver.thresholdInBytes();
+        mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
-    }
-
-    private long computeApiCallBufferSize(MultipartConfiguration multipartConfiguration) {
-        return multipartConfiguration.minimumPartSizeInBytes() != null ? multipartConfiguration.minimumPartSizeInBytes() * 4
-                                                                       : DEFAULT_API_CALL_BUFFER_SIZE;
     }
 
     @Override

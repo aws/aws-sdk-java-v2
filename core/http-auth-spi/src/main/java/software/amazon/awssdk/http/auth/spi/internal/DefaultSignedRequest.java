@@ -27,7 +27,7 @@ abstract class DefaultSignedRequest<PayloadT> implements SignedRequest<PayloadT>
     protected final SdkHttpRequest request;
     protected final PayloadT payload;
 
-    protected DefaultSignedRequest(BuilderImpl<?, PayloadT>  builder) {
+    protected DefaultSignedRequest(BuilderImpl<?, PayloadT> builder) {
         this.request = Validate.paramNotNull(builder.request, "request");
         this.payload = builder.payload;
     }

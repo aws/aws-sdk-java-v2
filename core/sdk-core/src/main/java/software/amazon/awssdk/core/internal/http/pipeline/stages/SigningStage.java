@@ -64,9 +64,12 @@ public class SigningStage implements RequestToRequestPipeline {
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
         if (shouldDoSraSigning(context)) {
+            SelectedAuthScheme<?> selectedAuthScheme = context
+                .executionAttributes()
+                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             return sraSignRequest(request,
                                   context,
-                                  context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+                                  selectedAuthScheme);
         }
         return signRequest(request, context);
     }
@@ -75,11 +78,6 @@ public class SigningStage implements RequestToRequestPipeline {
                                                                    RequestExecutionContext context,
                                                                    SelectedAuthScheme<T> selectedAuthScheme) {
         updateHttpRequestInInterceptorContext(request, context.executionContext());
-
-        if (!selectedAuthScheme.supportsSigning()) {
-            return request;
-        }
-
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
 
@@ -136,8 +134,8 @@ public class SigningStage implements RequestToRequestPipeline {
         if (shouldSign(signer)) {
             adjustForClockSkew(context.executionAttributes());
 
-            Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(() ->
-                    signer.sign(request, context.executionAttributes()));
+            Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
+                () -> signer.sign(request, context.executionAttributes()));
 
             metricCollector.reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
 

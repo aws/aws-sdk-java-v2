@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import java.util.function.Supplier;
+
 /**
  * Factory to create the benchmark
  */
@@ -66,4 +68,29 @@ public interface TransferManagerBenchmark {
         return new V1TransferManagerCopyBenchmark(config);
     }
 
+    default <T> TimedResult<T> runWithTime(Supplier<T> toRun) {
+        long start = System.currentTimeMillis();
+        T result = toRun.get();
+        long end = System.currentTimeMillis();
+        return new TimedResult<>(result, (end - start) / 1000.0);
+    }
+
+    final class TimedResult<T> {
+        private final Double latency;
+        private final T result;
+
+        public TimedResult(T result, Double latency) {
+            this.result = result;
+            this.latency = latency;
+        }
+
+        public Double latency() {
+            return latency;
+        }
+
+        public T result() {
+            return result;
+        }
+
+    }
 }
