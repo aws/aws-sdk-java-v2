@@ -18,11 +18,14 @@ package software.amazon.awssdk.services.s3.presigner.model;
 import java.time.Duration;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -42,7 +45,7 @@ public final class DeleteObjectPresignRequest extends PresignRequest
 
     protected DeleteObjectPresignRequest(DefaultBuilder builder) {
         super(builder);
-        this.deleteObjectRequest = builder.deleteObjectRequest;
+        this.deleteObjectRequest = Validate.notNull(builder.deleteObjectRequest, "deleteObjectRequest");
     }
 
     /**
@@ -66,6 +69,32 @@ public final class DeleteObjectPresignRequest extends PresignRequest
         return new DefaultBuilder();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DeleteObjectPresignRequest that = (DeleteObjectPresignRequest) o;
+
+        return deleteObjectRequest.equals(that.deleteObjectRequest);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + deleteObjectRequest.hashCode();
+        return result;
+    }
+
+    @SdkPublicApi
+    @NotThreadSafe
     public interface Builder extends PresignRequest.Builder,
                                      CopyableBuilder<DeleteObjectPresignRequest.Builder, DeleteObjectPresignRequest> {
         Builder deleteObjectRequest(DeleteObjectRequest deleteObjectRequest);
@@ -83,6 +112,7 @@ public final class DeleteObjectPresignRequest extends PresignRequest
         DeleteObjectPresignRequest build();
     }
 
+    @SdkInternalApi
     private static final class DefaultBuilder extends PresignRequest.DefaultBuilder<DefaultBuilder> implements Builder {
         private DeleteObjectRequest deleteObjectRequest;
 

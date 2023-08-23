@@ -18,9 +18,11 @@ package software.amazon.awssdk.services.s3.presigner.model;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -36,6 +38,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3Presigner#presignDeleteObject(DeleteObjectPresignRequest)
  * @see #builder()
  */
+@SdkPublicApi
+@Immutable
+@ThreadSafe
 public class PresignedDeleteObjectRequest extends PresignedRequest
     implements ToCopyableBuilder<PresignedDeleteObjectRequest.Builder, PresignedDeleteObjectRequest> {
 
