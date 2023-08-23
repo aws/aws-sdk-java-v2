@@ -1,3 +1,20 @@
+# __2.20.133__ __2023-08-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon API Gateway__
+  - ### Features
+    - This release adds RootResourceId to GetRestApi response.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Marking fields as sensitive on BundleTask and GetPasswordData
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds 1 new voice - Zayd (ar-AE)
+
 # __2.20.132__ __2023-08-22__
 ## __AWS Cost Explorer Service__
   - ### Features
@@ -1322,7 +1339,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
