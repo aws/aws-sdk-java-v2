@@ -48,7 +48,7 @@ class ChunkBufferTest {
         String inputString = RandomStringUtils.randomAscii(totalBytes);
         ChunkBuffer chunkBuffer = ChunkBuffer.builder()
                                              .bufferSize(bufferSize)
-                                             .totalBytes(inputString.getBytes(StandardCharsets.UTF_8).length)
+                                             .totalBytes(Long.valueOf(inputString.getBytes(StandardCharsets.UTF_8).length))
                                              .build();
         Iterable<ByteBuffer> byteBuffers =
             chunkBuffer.split(ByteBuffer.wrap(inputString.getBytes(StandardCharsets.UTF_8)));
@@ -120,7 +120,7 @@ class ChunkBufferTest {
         byte[] zeroByte = new byte[0];
         ChunkBuffer chunkBuffer = ChunkBuffer.builder()
                                              .bufferSize(5)
-                                             .totalBytes(zeroByte.length)
+                                             .totalBytes(Long.valueOf(0))
                                              .build();
         Iterable<ByteBuffer> byteBuffers =
             chunkBuffer.split(ByteBuffer.wrap(zeroByte));
@@ -155,7 +155,7 @@ class ChunkBufferTest {
         ByteBuffer wrap = ByteBuffer.allocate(totalBytes);
         ChunkBuffer chunkBuffer = ChunkBuffer.builder()
                                              .bufferSize(bufferSize)
-                                             .totalBytes(wrap.remaining())
+                                             .totalBytes(Long.valueOf(wrap.remaining()))
                                              .build();
         Iterable<ByteBuffer> byteBuffers =
             chunkBuffer.split(wrap);
@@ -236,7 +236,7 @@ class ChunkBufferTest {
         ByteBuffer wrap = ByteBuffer.allocate(totalBytes);
         ChunkBuffer chunkBuffer = ChunkBuffer.builder()
                                              .bufferSize(bufferSize)
-                                             .totalBytes(wrap.remaining() * threads)
+                                             .totalBytes(Long.valueOf(wrap.remaining() * threads))
                                              .build();
 
         ExecutorService service = Executors.newFixedThreadPool(threads);

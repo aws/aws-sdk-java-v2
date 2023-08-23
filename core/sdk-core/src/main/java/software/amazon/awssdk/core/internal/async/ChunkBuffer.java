@@ -61,14 +61,6 @@ public final class ChunkBuffer {
             return Collections.singletonList(inputByteBuffer);
         }
 
-        if (totalBytes != null) {
-            return splitWithKnownLength(inputByteBuffer);
-        } else {
-            return splitWithUnknownLength(inputByteBuffer);
-        }
-    }
-
-    private synchronized Iterable<ByteBuffer> splitWithKnownLength(ByteBuffer inputByteBuffer) {
         List<ByteBuffer> byteBuffers = new ArrayList<>();
 
         // If current buffer is not empty, fill the buffer first.
@@ -76,7 +68,7 @@ public final class ChunkBuffer {
             fillCurrentBuffer(inputByteBuffer);
 
             if (isCurrentBufferFull()) {
-                addCurrentBufferToIterable(byteBuffers, chunkSize);
+                addCurrentBufferToIterable(byteBuffers);
             }
         }
 
@@ -87,37 +79,21 @@ public final class ChunkBuffer {
 
         // If this is the last chunk, add data buffered to the iterable
         if (isLastChunk()) {
-            int remainingBytesInBuffer = currentBuffer.position();
-            addCurrentBufferToIterable(byteBuffers, remainingBytesInBuffer);
+            addCurrentBufferToIterable(byteBuffers);
         }
         return byteBuffers;
     }
 
-    private synchronized Iterable<ByteBuffer> splitWithUnknownLength(ByteBuffer inputByteBuffer) {
-        boolean isLastChunk = inputByteBuffer.remaining() != chunkSize;
-        List<ByteBuffer> bufferedList = new ArrayList<>();
-
-        while (inputByteBuffer.hasRemaining()) {
-            int bytesToCopy = Math.min(inputByteBuffer.remaining(), currentBuffer.remaining());
-            byte[] bytes = new byte[bytesToCopy];
-            inputByteBuffer.get(bytes);
-            currentBuffer.put(bytes);
-
-            if (!currentBuffer.hasRemaining()) {
-                currentBuffer.flip();
-                ByteBuffer bufferToSend = ByteBuffer.allocate(currentBuffer.limit());
-                bufferToSend.put(currentBuffer);
-                bufferToSend.flip();
-                bufferedList.add(bufferToSend);
-                currentBuffer.clear();
-            }
-        }
-
-        if (isLastChunk && currentBuffer.position() != 0) {
-            bufferedList.add((ByteBuffer) currentBuffer.flip());
-        }
-
-        return bufferedList;
+    /**
+     * Retrieve the current buffered data.
+     */
+    public ByteBuffer getBufferedData() {
+        int remainingBytesInBuffer = currentBuffer.position();
+        ByteBuffer bufferedChunk = ByteBuffer.allocate(remainingBytesInBuffer);
+        currentBuffer.flip();
+        bufferedChunk.put(currentBuffer);
+        bufferedChunk.flip();
+        return bufferedChunk;
     }
 
     private boolean isCurrentBufferFull() {
@@ -144,15 +120,15 @@ public final class ChunkBuffer {
     }
 
     private boolean isLastChunk() {
+        if (totalBytes == null) {
+            return false;
+        }
         long remainingBytes = totalBytes - transferredBytes.get();
         return remainingBytes != 0 && remainingBytes == currentBuffer.position();
     }
 
-    private void addCurrentBufferToIterable(List<ByteBuffer> byteBuffers, int capacity) {
-        ByteBuffer bufferedChunk = ByteBuffer.allocate(capacity);
-        currentBuffer.flip();
-        bufferedChunk.put(currentBuffer);
-        bufferedChunk.flip();
+    private void addCurrentBufferToIterable(List<ByteBuffer> byteBuffers) {
+        ByteBuffer bufferedChunk = getBufferedData();
         byteBuffers.add(bufferedChunk);
         transferredBytes.addAndGet(bufferedChunk.remaining());
         currentBuffer.clear();
@@ -182,7 +158,7 @@ public final class ChunkBuffer {
 
         Builder bufferSize(int bufferSize);
 
-        Builder totalBytes(long totalBytes);
+        Builder totalBytes(Long totalBytes);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -202,7 +178,7 @@ public final class ChunkBuffer {
         }
 
         @Override
-        public Builder totalBytes(long totalBytes) {
+        public Builder totalBytes(Long totalBytes) {
             this.totalBytes = totalBytes;
             return this;
         }
