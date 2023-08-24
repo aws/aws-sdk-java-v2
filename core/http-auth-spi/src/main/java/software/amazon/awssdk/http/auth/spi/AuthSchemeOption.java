@@ -85,7 +85,9 @@ public interface AuthSchemeOption extends ToCopyableBuilder<AuthSchemeOption.Bui
         Builder schemeId(String schemeId);
 
         <T> Builder putIdentityProperty(IdentityProperty<T> key, T value);
+        <T> Builder putIdentityPropertyIfAbsent(IdentityProperty<T> key, T value);
 
         <T> Builder putSignerProperty(SignerProperty<T> key, T value);
+        <T> Builder putSignerPropertyIfAbsent(SignerProperty<T> key, T value);
     }
 }

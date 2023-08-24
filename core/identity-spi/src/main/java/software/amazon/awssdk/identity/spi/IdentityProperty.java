@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.identity.spi;
 
-import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -30,6 +31,8 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @ThreadSafe
 public final class IdentityProperty<T> {
+    private static final ConcurrentMap<String, IdentityProperty<?>> NAME_HISTORY = new ConcurrentHashMap<>();
+
     private final Class<T> clazz;
     private final String name;
 
@@ -39,10 +42,24 @@ public final class IdentityProperty<T> {
 
         this.clazz = clazz;
         this.name = name;
+        ensureUnique();
     }
 
     public static <T> IdentityProperty<T> create(Class<T> clazz, String name) {
         return new IdentityProperty<>(clazz, name);
+    }
+
+    private void ensureUnique() {
+        IdentityProperty<?> prev = NAME_HISTORY.putIfAbsent(name, this);
+        if (prev != null) {
+            throw new IllegalArgumentException(String.format("No duplicate IdentityProperty names allowed but both "
+                                                             + "IdentityProperty %s and %s have the same name: %s. "
+                                                             + "IdentityProperty should be referenced from a shared static "
+                                                             + "constant to protect against erroneous or unexpected collisions.",
+                                                             Integer.toHexString(System.identityHashCode(prev)),
+                                                             Integer.toHexString(System.identityHashCode(this)),
+                                                             name));
+        }
     }
 
     @Override
@@ -64,15 +81,16 @@ public final class IdentityProperty<T> {
 
         IdentityProperty<?> that = (IdentityProperty<?>) o;
 
-        return Objects.equals(clazz, that.clazz) &&
-               Objects.equals(name, that.name);
+        if (!clazz.equals(that.clazz)) {
+            return false;
+        }
+        return name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        int hashCode = 1;
-        hashCode = 31 * hashCode + Objects.hashCode(clazz);
-        hashCode = 31 * hashCode + Objects.hashCode(name);
-        return hashCode;
+        int result = clazz.hashCode();
+        result = 31 * result + name.hashCode();
+        return result;
     }
 }

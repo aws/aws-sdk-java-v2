@@ -7,7 +7,12 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkProtectedApi
@@ -50,56 +55,71 @@ public final class AuthSchemeUtils {
 
             String authSchemeName = scheme.get(Identifier.of("name")).expectString();
             switch (authSchemeName) {
-                case SIGV4A_NAME: {
-                    SigV4aAuthScheme.Builder schemeBuilder = SigV4aAuthScheme.builder();
+            case SIGV4A_NAME: {
+                SigV4aAuthScheme.Builder schemeBuilder = SigV4aAuthScheme.builder();
 
-                    Value signingName = scheme.get(Identifier.of("signingName"));
-                    if (signingName != null) {
-                        schemeBuilder.signingName(signingName.expectString());
-                    }
-
-                    Value signingRegionSet = scheme.get(Identifier.of("signingRegionSet"));
-                    if (signingRegionSet != null) {
-                        Value.Array signingRegionSetArray = signingRegionSet.expectArray();
-                        for (int j = 0; j < signingRegionSetArray.size(); ++j) {
-                            schemeBuilder.addSigningRegion(signingRegionSetArray.get(j).expectString());
-                        }
-                    }
-
-                    Value disableDoubleEncoding = scheme.get(Identifier.of("disableDoubleEncoding"));
-                    if (disableDoubleEncoding != null) {
-                        schemeBuilder.disableDoubleEncoding(disableDoubleEncoding.expectBool());
-                    }
-
-                    authSchemes.add(schemeBuilder.build());
+                Value signingName = scheme.get(Identifier.of("signingName"));
+                if (signingName != null) {
+                    schemeBuilder.signingName(signingName.expectString());
                 }
-                break;
-                case SIGV4_NAME: {
-                    SigV4AuthScheme.Builder schemeBuilder = SigV4AuthScheme.builder();
 
-                    Value signingName = scheme.get(Identifier.of("signingName"));
-                    if (signingName != null) {
-                        schemeBuilder.signingName(signingName.expectString());
+                Value signingRegionSet = scheme.get(Identifier.of("signingRegionSet"));
+                if (signingRegionSet != null) {
+                    Value.Array signingRegionSetArray = signingRegionSet.expectArray();
+                    for (int j = 0; j < signingRegionSetArray.size(); ++j) {
+                        schemeBuilder.addSigningRegion(signingRegionSetArray.get(j).expectString());
                     }
-
-                    Value signingRegion = scheme.get(Identifier.of("signingRegion"));
-                    if (signingRegion != null) {
-                        schemeBuilder.signingRegion(signingRegion.expectString());
-                    }
-
-                    Value disableDoubleEncoding = scheme.get(Identifier.of("disableDoubleEncoding"));
-                    if (disableDoubleEncoding != null) {
-                        schemeBuilder.disableDoubleEncoding(disableDoubleEncoding.expectBool());
-                    }
-
-                    authSchemes.add(schemeBuilder.build());
                 }
+
+                Value disableDoubleEncoding = scheme.get(Identifier.of("disableDoubleEncoding"));
+                if (disableDoubleEncoding != null) {
+                    schemeBuilder.disableDoubleEncoding(disableDoubleEncoding.expectBool());
+                }
+
+                authSchemes.add(schemeBuilder.build());
+            }
                 break;
-                default:
-                    LOG.debug(() -> "Ignoring unknown auth scheme: " + authSchemeName);
-                    break;
+            case SIGV4_NAME: {
+                SigV4AuthScheme.Builder schemeBuilder = SigV4AuthScheme.builder();
+
+                Value signingName = scheme.get(Identifier.of("signingName"));
+                if (signingName != null) {
+                    schemeBuilder.signingName(signingName.expectString());
+                }
+
+                Value signingRegion = scheme.get(Identifier.of("signingRegion"));
+                if (signingRegion != null) {
+                    schemeBuilder.signingRegion(signingRegion.expectString());
+                }
+
+                Value disableDoubleEncoding = scheme.get(Identifier.of("disableDoubleEncoding"));
+                if (disableDoubleEncoding != null) {
+                    schemeBuilder.disableDoubleEncoding(disableDoubleEncoding.expectBool());
+                }
+
+                authSchemes.add(schemeBuilder.build());
+            }
+                break;
+            default:
+                LOG.debug(() -> "Ignoring unknown auth scheme: " + authSchemeName);
+                break;
             }
         }
         return authSchemes;
+    }
+
+    public static <T extends Identity> void putSelectedAuthScheme(ExecutionAttributes attributes,
+                                                                  SelectedAuthScheme<T> selectedAuthScheme) {
+        SelectedAuthScheme<?> existingAuthScheme = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (existingAuthScheme != null) {
+            AuthSchemeOption.Builder selectedOption = selectedAuthScheme.authSchemeOption().toBuilder();
+            existingAuthScheme.authSchemeOption().forEachIdentityProperty(selectedOption::putIdentityPropertyIfAbsent);
+            existingAuthScheme.authSchemeOption().forEachSignerProperty(selectedOption::putSignerPropertyIfAbsent);
+            selectedAuthScheme = new SelectedAuthScheme<>(selectedAuthScheme.identity(),
+                                                          selectedAuthScheme.signer(),
+                                                          selectedOption.build());
+        }
+
+        attributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
     }
 }

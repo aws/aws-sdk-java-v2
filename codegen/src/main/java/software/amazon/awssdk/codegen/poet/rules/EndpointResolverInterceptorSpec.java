@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.concurrent.CompletionException;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
@@ -67,8 +66,6 @@ import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
@@ -109,7 +106,6 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         addStaticContextParamMethods(b);
 
         b.addMethod(authSchemeWithEndpointSignerPropertiesMethod());
-        b.addMethod(copySignerPropertiesToAttributesMethod());
 
         if (hasClientContextParams()) {
             b.addMethod(setClientContextParamsMethod());
@@ -169,12 +165,6 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         b.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
                        SdkInternalExecutionAttribute.class);
-        b.endControlFlow();
-
-
-        // Backwards-compatibility with old signers.
-        b.beginControlFlow("if (selectedAuthScheme != null)");
-        b.addStatement("copySignerPropertiesToAttributes(selectedAuthScheme.authSchemeOption(), executionAttributes)");
         b.endControlFlow();
 
         b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint)");
@@ -617,75 +607,6 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         code.addStatement("return new $T<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build())",
                           SelectedAuthScheme.class);
-        code.endControlFlow();
-        return code.build();
-    }
-
-    private MethodSpec copySignerPropertiesToAttributesMethod() {
-        MethodSpec.Builder method =
-            MethodSpec.methodBuilder("copySignerPropertiesToAttributes")
-                      .addModifiers(Modifier.PRIVATE)
-                      .addParameter(AuthSchemeOption.class, "authOption")
-                      .addParameter(ExecutionAttributes.class, "executionAttributes");
-
-        if (dependsOnHttpAuthAws) {
-            method.addCode(copyV4SignerPropertiesToAttributes());
-            method.addCode(copyV4aSignerPropertiesToAttributes());
-        }
-
-        return method.build();
-    }
-
-    private static CodeBlock copyV4SignerPropertiesToAttributes() {
-        CodeBlock.Builder code = CodeBlock.builder();
-        code.beginControlFlow("if (authOption.schemeId().equals($T.SCHEME_ID))", AwsV4AuthScheme.class);
-
-        code.beginControlFlow("if (authOption.signerProperty($T.DOUBLE_URL_ENCODE) != null)", AwsV4HttpSigner.class);
-        code.addStatement("executionAttributes.putAttribute($T.SIGNER_DOUBLE_URL_ENCODE, authOption.signerProperty($T"
-                            + ".DOUBLE_URL_ENCODE))",
-                            AwsSignerExecutionAttribute.class, AwsV4HttpSigner.class);
-        code.endControlFlow();
-
-        code.beginControlFlow("if (authOption.signerProperty($T.SERVICE_SIGNING_NAME) != null)", AwsV4HttpSigner.class);
-        code.addStatement("executionAttributes.putAttribute($T.SERVICE_SIGNING_NAME, authOption.signerProperty($T"
-                            + ".SERVICE_SIGNING_NAME))",
-                            AwsSignerExecutionAttribute.class, AwsV4HttpSigner.class);
-        code.endControlFlow();
-
-        code.beginControlFlow("if (authOption.signerProperty($T.REGION_NAME) != null)", AwsV4HttpSigner.class);
-        code.addStatement("executionAttributes.putAttribute($T.SIGNING_REGION, $T.of(authOption.signerProperty($T"
-                            + ".REGION_NAME)))",
-                          AwsSignerExecutionAttribute.class, Region.class, AwsV4HttpSigner.class);
-        code.endControlFlow();
-
-        code.addStatement("return");
-        code.endControlFlow();
-        return code.build();
-    }
-
-    private static CodeBlock copyV4aSignerPropertiesToAttributes() {
-        CodeBlock.Builder code = CodeBlock.builder();
-        code.beginControlFlow("if (authOption.schemeId().equals($T.SCHEME_ID))", AwsV4aAuthScheme.class);
-
-        code.beginControlFlow("if (authOption.signerProperty($T.DOUBLE_URL_ENCODE) != null)", AwsV4aHttpSigner.class);
-        code.addStatement("executionAttributes.putAttribute($T.SIGNER_DOUBLE_URL_ENCODE, authOption.signerProperty($T"
-                          + ".DOUBLE_URL_ENCODE))",
-                          AwsSignerExecutionAttribute.class, AwsV4aHttpSigner.class);
-        code.endControlFlow();
-
-        code.beginControlFlow("if (authOption.signerProperty($T.SERVICE_SIGNING_NAME) != null)", AwsV4aHttpSigner.class);
-        code.addStatement("executionAttributes.putAttribute($T.SERVICE_SIGNING_NAME, authOption.signerProperty($T"
-                          + ".SERVICE_SIGNING_NAME))",
-                          AwsSignerExecutionAttribute.class, AwsV4aHttpSigner.class);
-        code.endControlFlow();
-
-        code.beginControlFlow("if (authOption.signerProperty($T.REGION_NAME) != null)", AwsV4aHttpSigner.class);
-        code.addStatement("executionAttributes.putAttribute($T.SIGNING_REGION_SCOPE, $T.create(authOption.signerProperty($T"
-                          + ".REGION_NAME)))",
-                          AwsSignerExecutionAttribute.class, RegionScope.class, AwsV4aHttpSigner.class);
-        code.endControlFlow();
-
-        code.addStatement("return");
         code.endControlFlow();
         return code.build();
     }

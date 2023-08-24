@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
@@ -21,14 +20,10 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
@@ -61,9 +56,6 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
-            }
-            if (selectedAuthScheme != null) {
-                copySignerPropertiesToAttributes(selectedAuthScheme.authSchemeOption(), executionAttributes);
             }
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint);
             return result;
@@ -166,39 +158,6 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                                                + "' cannot be mapped to the SDK auth scheme. Was it declared in the service's model?");
         }
         return selectedAuthScheme;
-    }
-
-    private void copySignerPropertiesToAttributes(AuthSchemeOption authOption, ExecutionAttributes executionAttributes) {
-        if (authOption.schemeId().equals(AwsV4AuthScheme.SCHEME_ID)) {
-            if (authOption.signerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE) != null) {
-                executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE,
-                                                 authOption.signerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE));
-            }
-            if (authOption.signerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME) != null) {
-                executionAttributes.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
-                                                 authOption.signerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME));
-            }
-            if (authOption.signerProperty(AwsV4HttpSigner.REGION_NAME) != null) {
-                executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION,
-                                                 Region.of(authOption.signerProperty(AwsV4HttpSigner.REGION_NAME)));
-            }
-            return;
-        }
-        if (authOption.schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)) {
-            if (authOption.signerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE) != null) {
-                executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE,
-                                                 authOption.signerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE));
-            }
-            if (authOption.signerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME) != null) {
-                executionAttributes.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
-                                                 authOption.signerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME));
-            }
-            if (authOption.signerProperty(AwsV4aHttpSigner.REGION_NAME) != null) {
-                executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE,
-                                                 RegionScope.create(authOption.signerProperty(AwsV4aHttpSigner.REGION_NAME)));
-            }
-            return;
-        }
     }
 
     private static void setClientContextParams(QueryEndpointParams.Builder params, ExecutionAttributes executionAttributes) {

@@ -18,7 +18,8 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
+import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
@@ -43,10 +44,9 @@ public class TestUtils {
                                                      .build()
                                                      .copy(requestOverrides))
                               .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-                              .putProperty(SignerProperty.create(String.class, "RegionName"), "aws-global")
-                              .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "demo")
-                              .putProperty(SignerProperty.create(Clock.class, "SigningClock"),
-                                           new TickingClock(Instant.ofEpochMilli(1596476903000L)))
+                              .putProperty(AwsV4aHttpSigner.REGION_NAME, "aws-global")
+                              .putProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, "demo")
+                              .putProperty(HttpSigner.SIGNING_CLOCK, new TickingClock(Instant.ofEpochMilli(1596476903000L)))
                               .build()
                               .copy(signRequestOverrides);
     }
