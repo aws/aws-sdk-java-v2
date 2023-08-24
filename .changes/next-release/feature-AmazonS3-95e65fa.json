@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Add support for presigned `DeleteObject` in `S3Presigner`."
-}

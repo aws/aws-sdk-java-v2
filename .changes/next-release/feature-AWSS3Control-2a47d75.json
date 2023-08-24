@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Updates to endpoint ruleset tests to address Smithy validation issues and standardize the capitalization of DualStack."
-}
