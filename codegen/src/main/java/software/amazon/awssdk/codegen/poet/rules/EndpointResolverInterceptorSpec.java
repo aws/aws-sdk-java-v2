@@ -108,7 +108,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addMethod(setStaticContextParamsMethod());
         addStaticContextParamMethods(b);
 
-        b.addMethod(copyEndpointSignerPropertiesToAuthMethod());
+        b.addMethod(authSchemeWithEndpointSignerPropertiesMethod());
         b.addMethod(copySignerPropertiesToAttributesMethod());
 
         if (hasClientContextParams()) {
@@ -165,7 +165,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("$T<?> selectedAuthScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
                        SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("if (endpointAuthSchemes != null && selectedAuthScheme != null)");
-        b.addStatement("selectedAuthScheme = copyEndpointSignerPropertiesToAuth(endpointAuthSchemes, selectedAuthScheme)");
+        b.addStatement("selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme)");
 
         b.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
                        SdkInternalExecutionAttribute.class);
@@ -529,14 +529,14 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         return endpointTrait.getHostPrefix();
     }
 
-    private MethodSpec copyEndpointSignerPropertiesToAuthMethod() {
+    private MethodSpec authSchemeWithEndpointSignerPropertiesMethod() {
         TypeVariableName tExtendsIdentity = TypeVariableName.get("T", Identity.class);
         TypeName selectedAuthSchemeOfT = ParameterizedTypeName.get(ClassName.get(SelectedAuthScheme.class),
                                                                    TypeVariableName.get("T"));
         TypeName listOfEndpointAuthScheme = ParameterizedTypeName.get(List.class, EndpointAuthScheme.class);
 
         MethodSpec.Builder method =
-            MethodSpec.methodBuilder("copyEndpointSignerPropertiesToAuth")
+            MethodSpec.methodBuilder("authSchemeWithEndpointSignerProperties")
                       .addModifiers(Modifier.PRIVATE)
                       .addTypeVariable(tExtendsIdentity)
                       .returns(selectedAuthSchemeOfT)
@@ -628,7 +628,6 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                       .addParameter(AuthSchemeOption.class, "authOption")
                       .addParameter(ExecutionAttributes.class, "executionAttributes");
 
-        // TODO(sra-identity-and-auth): What about bearer auth properties?
         if (dependsOnHttpAuthAws) {
             method.addCode(copyV4SignerPropertiesToAttributes());
             method.addCode(copyV4aSignerPropertiesToAttributes());

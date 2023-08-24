@@ -59,7 +59,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
                 .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
-                selectedAuthScheme = copyEndpointSignerPropertiesToAuth(endpointAuthSchemes, selectedAuthScheme);
+                selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             if (selectedAuthScheme != null) {
@@ -129,7 +129,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         params.staticStringParam("hello");
     }
 
-    private <T extends Identity> SelectedAuthScheme<T> copyEndpointSignerPropertiesToAuth(
+    private <T extends Identity> SelectedAuthScheme<T> authSchemeWithEndpointSignerProperties(
         List<EndpointAuthScheme> endpointAuthSchemes, SelectedAuthScheme<T> selectedAuthScheme) {
         for (EndpointAuthScheme endpointAuthScheme : endpointAuthSchemes) {
             if (!endpointAuthScheme.schemeId().equals(selectedAuthScheme.authSchemeOption().schemeId())) {
