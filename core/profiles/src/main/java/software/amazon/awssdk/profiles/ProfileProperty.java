@@ -40,6 +40,11 @@ public final class ProfileProperty {
     public static final String AWS_SESSION_TOKEN = "aws_session_token";
 
     /**
+     * Property name for specifying the Amazon AWS Account ID associated with credentials
+     */
+    public static final String AWS_ACCOUNT_ID = "aws_account_id";
+
+    /**
      * Property name for specifying the IAM role to assume
      */
     public static final String ROLE_ARN = "role_arn";
