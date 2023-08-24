@@ -26,7 +26,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.chunkedencoding.ChunkedEncodedInputStream;
+import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChunkedEncodedInputStream;
 import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.signer.V4Context;
 import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
@@ -49,15 +49,22 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     }
 
     /**
-     * Get the content-length from the request, and move it in the decoded header.
+     * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If neither header is present,
+     * an exception is thrown.
      */
     private static void moveContentLength(SdkHttpRequest.Builder request) {
-        String contentLength = request
-            .firstMatchingHeader(Header.CONTENT_LENGTH)
-            .orElseThrow(() -> new IllegalArgumentException(Header.CONTENT_LENGTH + " must be specified!"));
+        if (!request.firstMatchingHeader("x-amz-decoded-content-length").isPresent()) {
+            // if the decoded length isn't present, content-length must be there
+            String contentLength = request
+                .firstMatchingHeader(Header.CONTENT_LENGTH)
+                .orElseThrow(() -> new IllegalArgumentException(Header.CONTENT_LENGTH + " must be specified!"));
 
-        request.putHeader("x-amz-decoded-content-length", contentLength)
-               .removeHeader(Header.CONTENT_LENGTH);
+            request.putHeader("x-amz-decoded-content-length", contentLength)
+                   .removeHeader(Header.CONTENT_LENGTH);
+        } else {
+            // decoded header is already there, so remove content-length just to be sure it's gone
+            request.removeHeader(Header.CONTENT_LENGTH);
+        }
     }
 
     @Override
@@ -76,26 +83,31 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
             .chunkSize(chunkSize)
             .header(chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8));
 
-
-        if ("STREAMING-AWS4-HMAC-SHA256-PAYLOAD".equals(checksum)) {
-            RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
-            setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
-        } else if ("STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(checksum)) {
-            setupChecksumTrailer(chunkedEncodedInputStreamBuilder);
-        } else if ("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER".equals(checksum)) {
-            RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
-            setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
-            setupSigTrailer(chunkedEncodedInputStreamBuilder, rollingSigner);
-            setupChecksumTrailer(chunkedEncodedInputStreamBuilder);
-        } else {
-            throw new UnsupportedOperationException();
+        switch (checksum) {
+            case "STREAMING-AWS4-HMAC-SHA256-PAYLOAD": {
+                RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
+                setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
+                break;
+            }
+            case "STREAMING-UNSIGNED-PAYLOAD-TRAILER":
+                setupChecksumTrailer(chunkedEncodedInputStreamBuilder);
+                break;
+            case "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER": {
+                RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
+                setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
+                setupSigTrailer(chunkedEncodedInputStreamBuilder, rollingSigner);
+                setupChecksumTrailer(chunkedEncodedInputStreamBuilder);
+                break;
+            }
+            default:
+                throw new UnsupportedOperationException();
         }
 
         return chunkedEncodedInputStreamBuilder::build;
     }
 
     @Override
-    public Publisher<ByteBuffer> sign(Publisher<ByteBuffer> payload, V4Context v4Context) {
+    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4Context v4Context) {
         throw new UnsupportedOperationException();
     }
 

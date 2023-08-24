@@ -23,12 +23,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -162,7 +160,7 @@ public class AwsChunkedV4HttpSignerTest {
 
     @Test
     public void sign_withPublisher_throws() {
-        assertThrows(UnsupportedOperationException.class, () -> signer.sign((Publisher<ByteBuffer>) null, v4Context));
+        assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(null, v4Context));
     }
 
     private int readAll(InputStream src, byte[] dst) throws IOException {
