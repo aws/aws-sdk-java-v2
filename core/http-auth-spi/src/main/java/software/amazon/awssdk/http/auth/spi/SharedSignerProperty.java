@@ -19,7 +19,8 @@ import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Container class for the clock signer property that is common to some signing schemes.
+ * Signer properties that are common to every possible current and future signer. See the individual signer interfaces
+ * for properties that are not universal across signers.
  */
 @SdkPublicApi
 public final class SharedSignerProperty {
