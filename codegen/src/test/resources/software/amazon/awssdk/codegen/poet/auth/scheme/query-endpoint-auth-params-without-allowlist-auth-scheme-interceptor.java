@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.query.auth.scheme.internal;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,12 +32,18 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
@@ -66,6 +73,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
 
     private SelectedAuthScheme<? extends Identity> selectAuthScheme(List<AuthSchemeOption> authOptions,
             ExecutionAttributes executionAttributes) {
+        MetricCollector metricCollector = executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
         IdentityProviderConfiguration identityResolvers = executionAttributes
                 .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
@@ -73,7 +81,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         for (AuthSchemeOption authOption : authOptions) {
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
             SelectedAuthScheme<? extends Identity> selectedAuthScheme = trySelectAuthScheme(authOption, authScheme,
-                    identityResolvers, discardedReasons);
+                    identityResolvers, discardedReasons, metricCollector);
             if (selectedAuthScheme != null) {
                 if (!discardedReasons.isEmpty()) {
                     LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
@@ -107,21 +115,40 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         return builder.build();
     }
 
-    private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,
-            IdentityProviderConfiguration identityProviders, List<Supplier<String>> discardedReasons) {
+    private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(
+            AuthSchemeOption authOption, AuthScheme<T> authScheme,
+            IdentityProviderConfiguration identityProviders, List<Supplier<String>> discardedReasons,
+            MetricCollector metricCollector) {
         if (authScheme == null) {
             discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
             return null;
         }
         IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
         if (identityProvider == null) {
-            discardedReasons
-                    .add(() -> String.format("'%s' does not have an identity provider configured.", authOption.schemeId()));
+            discardedReasons.add(() -> String.format("'%s' does not have an identity provider configured.", authOption.schemeId()));
             return null;
         }
         ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
         authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
-        CompletableFuture<? extends T> identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
+        CompletableFuture<? extends T> identity;
+        SdkMetric<Duration> metric = getIdentityMetric(identityProvider);
+        if (metric == null) {
+            identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
+        } else {
+            identity = MetricUtils.reportDuration(() -> identityProvider.resolveIdentity(identityRequestBuilder.build()),
+                                                  metricCollector, metric);
+        }
         return new SelectedAuthScheme<>(identity, authScheme.signer(), authOption);
+    }
+
+    private SdkMetric<Duration> getIdentityMetric(IdentityProvider<?> identityProvider) {
+        Class<?> identityType = identityProvider.identityType();
+        if (identityType == AwsCredentialsIdentity.class) {
+            return CoreMetric.CREDENTIALS_FETCH_DURATION;
+        }
+        if (identityType == TokenIdentity.class) {
+            return CoreMetric.TOKEN_FETCH_DURATION;
+        }
+        return null;
     }
 }
