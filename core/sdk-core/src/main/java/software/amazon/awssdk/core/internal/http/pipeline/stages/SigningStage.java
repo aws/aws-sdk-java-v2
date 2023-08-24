@@ -38,7 +38,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.ClockSignerProperty;
+import software.amazon.awssdk.http.auth.spi.SharedSignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
@@ -97,7 +97,7 @@ public class SigningStage implements RequestToRequestPipeline {
                                                               T identity) {
         SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
             .builder(identity)
-            .putProperty(ClockSignerProperty.SIGNING_CLOCK, signingClock())
+            .putProperty(SharedSignerProperty.SIGNING_CLOCK, signingClock())
             .request(request)
             .payload(request.contentStreamProvider().orElse(null));
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
