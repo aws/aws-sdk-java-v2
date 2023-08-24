@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.StringInputStream;
 /**
  * A default implementation of a payload signer that is a no-op, since payloads are most commonly unsigned.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
 
     private final CredentialScope credentialScope;
