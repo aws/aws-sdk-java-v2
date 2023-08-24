@@ -26,7 +26,6 @@ import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider
 import software.amazon.awssdk.services.query.auth.scheme.internal.QueryAuthSchemeInterceptor;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
-import software.amazon.awssdk.services.query.endpoints.internal.QueryEndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -38,6 +37,8 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
+    private final Map<String, AuthScheme<?>> additionalAuthSchemes = new HashMap<>();
+
     @Override
     protected final String serviceEndpointPrefix() {
         return "query-service";
@@ -51,10 +52,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
+                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                                  .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                  .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
     }
 
     @Override
@@ -62,11 +63,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         endpointInterceptors.add(new QueryAuthSchemeInterceptor());
         endpointInterceptors.add(new QueryResolveEndpointInterceptor());
-        endpointInterceptors.add(new QueryEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new QueryRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -78,10 +78,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         if (identityProvider != null) {
             IdentityProviderConfiguration identityProviderConfig = config.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
             builder.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION, identityProviderConfig.toBuilder()
-                    .putIdentityProvider(identityProvider).build());
+                                                                                                  .putIdentityProvider(identityProvider).build());
         }
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.CLIENT_CONTEXT_PARAMS,
-                clientContextParams.build());
+                                                                                    clientContextParams.build());
         return builder.build();
     }
 
@@ -103,6 +103,12 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return QueryAuthSchemeProvider.defaultProvider();
     }
 
+    @Override
+    public B putAuthScheme(AuthScheme<?> authScheme) {
+        additionalAuthSchemes.put(authScheme.schemeId(), authScheme);
+        return thisBuilder();
+    }
+
     public B booleanContextParam(Boolean booleanContextParam) {
         clientContextParams.put(QueryClientContextParams.BOOLEAN_CONTEXT_PARAM, booleanContextParam);
         return thisBuilder();
@@ -117,19 +123,20 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return DefaultAwsTokenProvider.create();
     }
 
-    private Map<String, AuthScheme<?>> defaultAuthSchemes() {
-        Map<String, AuthScheme<?>> schemes = new HashMap<>(3);
+    private Map<String, AuthScheme<?>> authSchemes() {
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(3 + this.additionalAuthSchemes.size());
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
         schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
         BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
         schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
         NoAuthAuthScheme noAuthAuthScheme = NoAuthAuthScheme.create();
         schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
+        schemes.putAll(this.additionalAuthSchemes);
         return Collections.unmodifiableMap(schemes);
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                "The 'tokenProvider' must be configured in the client builder.");
+                         "The 'tokenProvider' must be configured in the client builder.");
     }
 }

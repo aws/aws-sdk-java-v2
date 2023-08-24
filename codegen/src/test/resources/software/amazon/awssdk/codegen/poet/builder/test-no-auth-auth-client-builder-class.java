@@ -19,7 +19,6 @@ import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
 import software.amazon.awssdk.services.database.auth.scheme.internal.DatabaseAuthSchemeInterceptor;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
-import software.amazon.awssdk.services.database.endpoints.internal.DatabaseEndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -30,7 +29,9 @@ import software.amazon.awssdk.utils.CollectionUtils;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuilder<B, C>, C> extends
-        AwsDefaultClientBuilder<B, C> {
+                                                                                              AwsDefaultClientBuilder<B, C> {
+    private final Map<String, AuthScheme<?>> additionalAuthSchemes = new HashMap<>();
+
     @Override
     protected final String serviceEndpointPrefix() {
         return "database-service-endpoint";
@@ -44,9 +45,9 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                                  .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
@@ -54,11 +55,10 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         endpointInterceptors.add(new DatabaseAuthSchemeInterceptor());
         endpointInterceptors.add(new DatabaseResolveEndpointInterceptor());
-        endpointInterceptors.add(new DatabaseEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new DatabaseRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/database/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/database/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -86,14 +86,21 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         return DatabaseAuthSchemeProvider.defaultProvider();
     }
 
-    private Map<String, AuthScheme<?>> defaultAuthSchemes() {
-        Map<String, AuthScheme<?>> schemes = new HashMap<>(3);
+    @Override
+    public B putAuthScheme(AuthScheme<?> authScheme) {
+        additionalAuthSchemes.put(authScheme.schemeId(), authScheme);
+        return thisBuilder();
+    }
+
+    private Map<String, AuthScheme<?>> authSchemes() {
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(3 + this.additionalAuthSchemes.size());
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
         schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
         BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
         schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
         NoAuthAuthScheme noAuthAuthScheme = NoAuthAuthScheme.create();
         schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
+        schemes.putAll(this.additionalAuthSchemes);
         return Collections.unmodifiableMap(schemes);
     }
 

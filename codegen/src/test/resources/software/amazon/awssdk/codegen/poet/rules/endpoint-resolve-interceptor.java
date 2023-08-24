@@ -1,11 +1,15 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -13,6 +17,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
@@ -24,22 +29,33 @@ import software.amazon.awssdk.utils.AttributeMap;
 public final class QueryResolveEndpointInterceptor implements ExecutionInterceptor {
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
+        SdkRequest result = context.request();
         if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
-            return context.request();
+            return result;
         }
         QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
-            Endpoint result = provider.resolveEndpoint(ruleParams(context.request(), executionAttributes)).join();
+            Endpoint endpoint = provider.resolveEndpoint(ruleParams(result, executionAttributes)).join();
             if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
                 Optional<String> hostPrefix = hostPrefix(executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME),
-                                                         context.request());
+                                                         result);
                 if (hostPrefix.isPresent()) {
-                    result = AwsEndpointProviderUtils.addHostPrefix(result, hostPrefix.get());
+                    endpoint = AwsEndpointProviderUtils.addHostPrefix(endpoint, hostPrefix.get());
                 }
             }
-            executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, result);
-            return context.request();
+            List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+            SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
+                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            if (authSchemes != null && selectedAuthScheme != null) {
+                selectedAuthScheme = AwsEndpointProviderUtils.mergeIntoResolvedAuthScheme(authSchemes, selectedAuthScheme);
+                executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+            }
+            if (selectedAuthScheme != null) {
+                AuthSchemeUtils.setSigningParams(executionAttributes, selectedAuthScheme.authSchemeOption());
+            }
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint);
+            return result;
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SdkClientException) {
@@ -48,6 +64,19 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 throw SdkClientException.create("Endpoint resolution failed", cause);
             }
         }
+    }
+
+    @Override
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+        Endpoint resolvedEndpoint = executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
+        if (resolvedEndpoint.headers().isEmpty()) {
+            return context.httpRequest();
+        }
+        SdkHttpRequest.Builder httpRequestBuilder = context.httpRequest().toBuilder();
+        resolvedEndpoint.headers().forEach((name, values) -> {
+            values.forEach(v -> httpRequestBuilder.appendHeader(name, v));
+        });
+        return httpRequestBuilder.build();
     }
 
     public static QueryEndpointParams ruleParams(SdkRequest request, ExecutionAttributes executionAttributes) {
