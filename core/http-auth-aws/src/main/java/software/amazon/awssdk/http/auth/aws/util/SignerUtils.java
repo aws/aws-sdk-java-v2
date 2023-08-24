@@ -128,7 +128,10 @@ public final class SignerUtils {
         return sign(SignerConstant.AWS4_TERMINATOR, kService);
     }
 
-    private static byte[] sign(String stringData, byte[] key) {
+    /**
+     * Sign given data using a key.
+     */
+    public static byte[] sign(String stringData, byte[] key) {
         try {
             byte[] data = stringData.getBytes(StandardCharsets.UTF_8);
             return sign(data, key, SigningAlgorithm.HMAC_SHA256);
@@ -140,7 +143,7 @@ public final class SignerUtils {
     /**
      * Sign given data using a key and a specific algorithm
      */
-    private static byte[] sign(byte[] data, byte[] key, SigningAlgorithm algorithm) {
+    public static byte[] sign(byte[] data, byte[] key, SigningAlgorithm algorithm) {
         try {
             Mac mac = algorithm.getMac();
             mac.init(new SecretKeySpec(key, algorithm.toString()));
