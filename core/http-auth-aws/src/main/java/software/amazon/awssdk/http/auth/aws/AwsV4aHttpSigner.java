@@ -19,7 +19,7 @@ import java.time.Clock;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.HttpSignerCommon;
+import software.amazon.awssdk.http.auth.spi.ClockSignerProperty;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
@@ -46,7 +46,7 @@ public interface AwsV4aHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
     /**
      * A {@link Clock} to be used at the time of signing. This property defaults to the time at which signing occurs.
      */
-    SignerProperty<Clock> SIGNING_CLOCK = HttpSignerCommon.SIGNING_CLOCK;
+    SignerProperty<Clock> SIGNING_CLOCK = ClockSignerProperty.SIGNING_CLOCK;
 
     /**
      * A boolean to indicate whether to double url-encode the resource path when constructing the canonical request. This property

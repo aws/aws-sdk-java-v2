@@ -19,15 +19,15 @@ import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Keeps common signing properties used by different signers.
+ * Container class for the clock signer property that is common to some signing schemes.
  */
 @SdkPublicApi
-public final class HttpSignerCommon {
+public final class ClockSignerProperty {
     /**
      * A {@link Clock} to be used at the time of signing. This property defaults to the time at which signing occurs.
      */
     public static final SignerProperty<Clock> SIGNING_CLOCK = SignerProperty.create(Clock.class, "SigningClock");
 
-    private HttpSignerCommon() {
+    private ClockSignerProperty() {
     }
 }

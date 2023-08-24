@@ -53,7 +53,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.HttpSignerCommon;
+import software.amazon.awssdk.http.auth.spi.ClockSignerProperty;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
@@ -127,8 +127,8 @@ public class SigningStageTest {
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
-        assertThat(signRequest.property(HttpSignerCommon.SIGNING_CLOCK)).isNotNull();
-        assertThat(signRequest.property(HttpSignerCommon.SIGNING_CLOCK).instant())
+        assertThat(signRequest.property(ClockSignerProperty.SIGNING_CLOCK)).isNotNull();
+        assertThat(signRequest.property(ClockSignerProperty.SIGNING_CLOCK).instant())
             .isCloseTo(Instant.now(), within(10, ChronoUnit.MILLIS));
 
         // assert that metrics are collected
@@ -173,8 +173,8 @@ public class SigningStageTest {
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
 
         // Assert that the signing clock is setup properly
-        assertThat(signRequest.property(HttpSignerCommon.SIGNING_CLOCK)).isNotNull();
-        assertThat(signRequest.property(HttpSignerCommon.SIGNING_CLOCK).instant())
+        assertThat(signRequest.property(ClockSignerProperty.SIGNING_CLOCK)).isNotNull();
+        assertThat(signRequest.property(ClockSignerProperty.SIGNING_CLOCK).instant())
             .isCloseTo(Instant.now().minusSeconds(17)
                 , within(10, ChronoUnit.MILLIS));
 
@@ -216,8 +216,8 @@ public class SigningStageTest {
         assertThat(signRequest.property(SIGNER_PROPERTY)).isNull();
 
         // Assert that the time offset set was zero
-        assertThat(signRequest.property(HttpSignerCommon.SIGNING_CLOCK)).isNotNull();
-        assertThat(signRequest.property(HttpSignerCommon.SIGNING_CLOCK).instant())
+        assertThat(signRequest.property(ClockSignerProperty.SIGNING_CLOCK)).isNotNull();
+        assertThat(signRequest.property(ClockSignerProperty.SIGNING_CLOCK).instant())
             .isCloseTo(Instant.now(), within(10, ChronoUnit.MILLIS));
 
         // assert that metrics are collected
