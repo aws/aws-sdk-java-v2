@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 import static java.util.Arrays.copyOf;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static software.amazon.awssdk.http.auth.aws.signer.V4CanonicalRequest.getCanonicalHeadersString;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.deriveSigningKey;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hash;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
@@ -30,6 +31,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -116,9 +119,9 @@ public class ChunkedEncodedInputStreamTest {
         InputStream payload = new ByteArrayInputStream(data);
         int chunkSize = 3;
 
-        TrailerProvider helloWorldTrailer = chunk -> Pair.of(
-            "hello".getBytes(StandardCharsets.UTF_8),
-            "world!".getBytes(StandardCharsets.UTF_8)
+        TrailerProvider helloWorldTrailer = () -> Pair.of(
+            "hello",
+            Collections.singletonList("world!")
         );
 
         ChunkedEncodedInputStream inputStream = ChunkedEncodedInputStream
@@ -158,8 +161,8 @@ public class ChunkedEncodedInputStreamTest {
         ChunkExtensionProvider bExt = chunk -> Pair.of("b".getBytes(StandardCharsets.UTF_8),
                                                        "2".getBytes(StandardCharsets.UTF_8));
 
-        TrailerProvider aTrailer = chunk -> Pair.of("a".getBytes(StandardCharsets.UTF_8), "1".getBytes(StandardCharsets.UTF_8));
-        TrailerProvider bTrailer = chunk -> Pair.of("b".getBytes(StandardCharsets.UTF_8), "2".getBytes(StandardCharsets.UTF_8));
+        TrailerProvider aTrailer = () -> Pair.of("a", Collections.singletonList("1"));
+        TrailerProvider bTrailer = () -> Pair.of("b", Collections.singletonList("2"));
 
         ChunkedEncodedInputStream inputStream = ChunkedEncodedInputStream
             .builder()
@@ -217,20 +220,23 @@ public class ChunkedEncodedInputStreamTest {
                   .getBytes(StandardCharsets.UTF_8)
         );
 
-        TrailerProvider checksumTrailer = chunk -> Pair.of(
-            "x-amz-checksum-crc32c".getBytes(StandardCharsets.UTF_8),
-            "wdBDMA==".getBytes(StandardCharsets.UTF_8)
+        TrailerProvider checksumTrailer = () -> Pair.of(
+            "x-amz-checksum-crc32c",
+            Collections.singletonList("wdBDMA==")
         );
 
-        TrailerProvider signatureTrailer = chunk -> Pair.of(
-            "x-amz-trailer-signature".getBytes(StandardCharsets.UTF_8),
-            signer.sign(previousSignature ->
-                            "AWS4-HMAC-SHA256-TRAILER" + SignerConstant.LINE_SEPARATOR +
-                            credentialScope.getDatetime() + SignerConstant.LINE_SEPARATOR +
-                            credentialScope.scope() + SignerConstant.LINE_SEPARATOR +
-                            previousSignature + SignerConstant.LINE_SEPARATOR +
-                            toHex(hash(chunk)))
-                  .getBytes(StandardCharsets.UTF_8)
+        List<Pair<String, List<String>>> trailers = Collections.singletonList(checksumTrailer.get());
+        Function<String, String> template =
+            previousSignature ->
+                "AWS4-HMAC-SHA256-TRAILER" + SignerConstant.LINE_SEPARATOR +
+                credentialScope.getDatetime() + SignerConstant.LINE_SEPARATOR +
+                credentialScope.scope() + SignerConstant.LINE_SEPARATOR +
+                previousSignature + SignerConstant.LINE_SEPARATOR +
+                toHex(hash(getCanonicalHeadersString(trailers)));
+
+        TrailerProvider signatureTrailer = () -> Pair.of(
+            "x-amz-trailer-signature",
+            Collections.singletonList(signer.sign(template))
         );
 
         ChunkedEncodedInputStream inputStream = ChunkedEncodedInputStream
@@ -263,9 +269,10 @@ public class ChunkedEncodedInputStreamTest {
                 StandardCharsets.UTF_8)
         );
         expected.write((
-                           "x-amz-checksum-crc32c:wdBDMA==\r\n" +
-                           "x-amz-trailer-signature:4473a2a8e96dc7a3dd547ee4f63fcfa4c87c15f9078c3d69927873a340c8daa8\r\n" +
-                           "\r\n").getBytes(StandardCharsets.UTF_8));
+            "x-amz-checksum-crc32c:wdBDMA==\r\n" +
+            "x-amz-trailer-signature:ce306fa4cdf73aa89071b78358f0d22ea79c43117314c8ed68017f7d6f91048e\r\n" +
+            "\r\n").getBytes(StandardCharsets.UTF_8)
+        );
 
         assertEquals(expectedBytesRead, bytesRead);
         assertArrayEquals(expected.toByteArray(), actualBytes);

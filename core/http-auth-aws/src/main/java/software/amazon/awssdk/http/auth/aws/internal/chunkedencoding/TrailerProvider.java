@@ -15,11 +15,12 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Pair;
 
 /**
- * A functional interface for defining a trailer, where the trailer is a key-value pair.
+ * A functional interface for defining a trailer, where the trailer is a header pair.
  * <p>
  * A trailer usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to.
  * Per <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1.2">RFC-7230</a>, the chunked trailer
@@ -33,5 +34,5 @@ import software.amazon.awssdk.utils.Pair;
 @FunctionalInterface
 @SdkInternalApi
 public interface TrailerProvider {
-    Pair<byte[], byte[]> get(byte[] chunk);
+    Pair<String, List<String>> get();
 }

@@ -144,7 +144,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
     private Chunk getFinalChunk() throws IOException {
         ByteArrayOutputStream chunkStream = new ByteArrayOutputStream();
         writeChunk(END, chunkStream);
-        writeTrailers(END, chunkStream);
+        writeTrailers(chunkStream);
         chunkStream.write(CRLF);
         byte[] newChunkData = chunkStream.toByteArray();
 
@@ -173,12 +173,12 @@ public final class ChunkedEncodedInputStream extends InputStream {
         }
     }
 
-    private void writeTrailers(byte[] chunk, ByteArrayOutputStream outputStream) throws IOException {
+    private void writeTrailers(ByteArrayOutputStream outputStream) throws IOException {
         for (TrailerProvider trailer : trailers) {
-            Pair<byte[], byte[]> tlr = trailer.get(chunk);
-            outputStream.write(tlr.left());
+            Pair<String, List<String>> tlr = trailer.get();
+            outputStream.write(tlr.left().getBytes(StandardCharsets.UTF_8));
             outputStream.write((byte) ':');
-            outputStream.write(tlr.right());
+            outputStream.write(String.join(", ", tlr.right()).getBytes(StandardCharsets.UTF_8));
             outputStream.write(CRLF);
         }
     }
@@ -230,6 +230,11 @@ public final class ChunkedEncodedInputStream extends InputStream {
         Builder addExtension(ChunkExtensionProvider extension);
 
         /**
+         * Get the trailers currently set for the builder.
+         */
+        List<TrailerProvider> trailers();
+
+        /**
          * Set the trailers to be used when creating the final chunk.
          * These trailers will immediately follow the final encoded chunk.
          */
@@ -279,6 +284,11 @@ public final class ChunkedEncodedInputStream extends InputStream {
         public Builder addExtension(ChunkExtensionProvider extension) {
             this.extensions.add(Validate.notNull(extension, "ExtensionProvider cannot be null!"));
             return this;
+        }
+
+        @Override
+        public List<TrailerProvider> trailers() {
+            return new ArrayList<>(trailers);
         }
 
         @Override
