@@ -18,8 +18,11 @@ package software.amazon.awssdk.services.testutil;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import java.util.concurrent.CompletableFuture;
+import org.mockito.MockSettings;
+import org.mockito.internal.creation.MockSettingsImpl;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -28,7 +31,7 @@ import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 public class MockIdentityProviderUtil {
 
     public static IdentityProvider<AwsCredentialsIdentity> mockIdentityProvider() {
-        IdentityProvider<AwsCredentialsIdentity> mockIdentityProvider = mock(IdentityProvider.class);
+        IdentityProvider<AwsCredentialsIdentity> mockIdentityProvider = mock(IdentityProvider.class, withSettings().lenient());
         setup(mockIdentityProvider);
         return mockIdentityProvider;
     }
