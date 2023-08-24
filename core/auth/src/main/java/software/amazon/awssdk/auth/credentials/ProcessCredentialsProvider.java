@@ -71,6 +71,7 @@ public final class ProcessCredentialsProvider
     private final List<String> executableCommand;
     private final Duration credentialRefreshThreshold;
     private final long processOutputLimit;
+    private final String staticAccountId;
 
     private final CachedSupplier<AwsCredentials> processCredentialCache;
 
@@ -101,6 +102,7 @@ public final class ProcessCredentialsProvider
         this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
         this.commandFromBuilder = builder.command;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
+        this.staticAccountId = builder.staticAccountId;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -170,19 +172,21 @@ public final class ProcessCredentialsProvider
         Validate.notEmpty(accessKeyId, "AccessKeyId cannot be empty.");
         Validate.notEmpty(secretAccessKey, "SecretAccessKey cannot be empty.");
 
+        String resolvedAccountId = accountId == null ? this.staticAccountId : accountId;
+
         if (sessionToken != null) {
             return AwsSessionCredentials.builder()
                                         .accessKeyId(accessKeyId)
                                         .secretAccessKey(secretAccessKey)
                                         .sessionToken(sessionToken)
                                         .expirationTime(credentialExpirationTime(credentialsJson))
-                                        .accountId(accountId)
+                                        .accountId(resolvedAccountId)
                                         .build();
         }
         return AwsBasicCredentials.builder()
                                   .accessKeyId(accessKeyId)
                                   .secretAccessKey(secretAccessKey)
-                                  .accountId(accountId)
+                                  .accountId(resolvedAccountId)
                                   .build();
     }
 
@@ -247,6 +251,7 @@ public final class ProcessCredentialsProvider
         private String command;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
+        private String staticAccountId;
 
         /**
          * @see #builder()
@@ -259,6 +264,7 @@ public final class ProcessCredentialsProvider
             this.command = provider.commandFromBuilder;
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
+            this.staticAccountId = provider.staticAccountId;
         }
 
         /**
@@ -301,6 +307,19 @@ public final class ProcessCredentialsProvider
          */
         public Builder processOutputLimit(long outputByteLimit) {
             this.processOutputLimit = outputByteLimit;
+            return this;
+        }
+
+        /**
+         * Configure a static account id for this credentials provider. Account id for ProcessCredentialsProvider is only
+         * relevant in a context where a service constructs endpoint URL containing an account id.
+         * This option should ONLY be used if the provider should return credentials with account id, and the process does not
+         * output account id. If a static account ID is configured, and the process also returns an account
+         * id, the process output value overrides the static value. If used, the static account id MUST match the credentials
+         * returned by the process.
+         */
+        public Builder staticAccountId(String staticAccountId) {
+            this.staticAccountId = staticAccountId;
             return this;
         }
 

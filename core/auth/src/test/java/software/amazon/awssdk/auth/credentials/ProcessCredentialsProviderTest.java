@@ -27,10 +27,15 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
@@ -64,36 +69,40 @@ public class ProcessCredentialsProviderTest {
             throw new IllegalStateException("Failed to delete file: " + errorScriptLocation);
         }
     }
- 
-    @Test
-    void staticCredentialsCanBeLoaded() {
-        AwsCredentials credentials =
-                ProcessCredentialsProvider.builder()
-                                          .command(String.format("%s accessKeyId secretAccessKey", scriptLocation))
-                                          .build()
-                                          .resolveCredentials();
- 
+
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("staticCredentialsValues")
+    void staticCredentialsCanBeLoaded(String description, String staticAccountId, Optional<String> expectedValue,
+                                      String cmd) {
+        ProcessCredentialsProvider.Builder providerBuilder = ProcessCredentialsProvider.builder().command(cmd);
+        if (staticAccountId != null) {
+            providerBuilder.staticAccountId(staticAccountId);
+        }
+        AwsCredentials credentials = providerBuilder.build().resolveCredentials();
+
+        verifyCredentials(credentials);
         assertThat(credentials).isNotInstanceOf(AwsSessionCredentials.class);
-        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
-        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
-        assertThat(credentials.accountId()).isNotPresent();
+
+        if (expectedValue.isPresent()) {
+            assertThat(credentials.accountId()).isPresent().hasValue(expectedValue.get());
+        } else {
+            assertThat(credentials.accountId()).isNotPresent();
+        }
     }
 
-    @Test
-    void staticCredentialsWithAccountIdCanBeLoaded() {
-        AwsCredentials credentials =
-            ProcessCredentialsProvider.builder()
-                                      .command(String.format("%s %s %s acctid=%s",
-                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, ACCOUNT_ID))
-                                      .build()
-                                      .resolveCredentials();
-
-        assertThat(credentials).isNotInstanceOf(AwsSessionCredentials.class);
-        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
-        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
-        assertThat(credentials.accountId()).isPresent().isEqualTo(Optional.of(ACCOUNT_ID));
+    private static List<Arguments> staticCredentialsValues() {
+        return Arrays.asList(
+            Arguments.of("when only containing access key id, secret", null, Optional.empty(),
+                         String.format("%s accessKeyId secretAccessKey", scriptLocation)),
+            Arguments.of("when output has account id", null, Optional.of(ACCOUNT_ID),
+                         String.format("%s %s %s acctid=%s", scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, ACCOUNT_ID)),
+            Arguments.of("when output has account id, static account id configured", "staticAccountId", Optional.of(ACCOUNT_ID),
+                         String.format("%s %s %s acctid=%s", scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, ACCOUNT_ID)),
+            Arguments.of("when only static account id is configured", "staticAccountId", Optional.of("staticAccountId"),
+                         String.format("%s %s %s", scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY))
+        );
     }
- 
+
     @Test
     void sessionCredentialsCanBeLoaded() {
         String expiration = DateUtils.formatIso8601Date(Instant.now());
@@ -122,19 +131,40 @@ public class ProcessCredentialsProviderTest {
 
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
         verifySessionCredentials(credentials, expiration);
-        assertThat(credentials.accountId()).isPresent().isEqualTo(Optional.of(ACCOUNT_ID));
+        assertThat(credentials.accountId()).isPresent().hasValue(ACCOUNT_ID);
+    }
+
+    @Test
+    void sessionCredentialsWithStaticAccountIdCanBeLoaded() {
+        String expiration = DateUtils.formatIso8601Date(Instant.now());
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(String.format("%s %s %s token=sessionToken exp=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, expiration))
+                                      .credentialRefreshThreshold(Duration.ofSeconds(1))
+                                      .staticAccountId("staticAccountId")
+                                      .build();
+
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        verifySessionCredentials(credentials, expiration);
+        assertThat(credentials.accountId()).isPresent().hasValue("staticAccountId");
     }
 
     private void verifySessionCredentials(AwsCredentials credentials, String expiration) {
+        verifyCredentials(credentials);
+
         assertThat(credentials).isInstanceOf(AwsSessionCredentials.class);
         AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentials;
-
-        assertThat(sessionCredentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
-        assertThat(sessionCredentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
         assertThat(sessionCredentials.sessionToken()).isEqualTo(SESSION_TOKEN);
-        assertThat(sessionCredentials.expirationTime()).isPresent();
-        Instant exp = sessionCredentials.expirationTime().get();
+
+        assertThat(credentials.expirationTime()).isPresent();
+        Instant exp = credentials.expirationTime().get();
         assertThat(exp).isCloseTo(expiration, within(1, ChronoUnit.MICROS));
+    }
+
+    private void verifyCredentials(AwsCredentials credentials) {
+        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
     }
 
     @Test
