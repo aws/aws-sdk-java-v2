@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -114,6 +115,24 @@ public class ProfileCredentialsProviderTest {
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
             assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
             assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+            assertThat(credentials.accountId()).isNotPresent();
+        });
+    }
+
+    @Test
+    void presentProfileWithAccountIdReturnsCredentialsWithAccountId() {
+        ProfileFile file = profileFile("[default]\n"
+                                       + "aws_access_key_id = defaultAccessKey\n"
+                                       + "aws_secret_access_key = defaultSecretAccessKey\n"
+                                       + "aws_account_id = defaultAccountId");
+
+        ProfileCredentialsProvider provider =
+            ProfileCredentialsProvider.builder().profileFile(file).profileName("default").build();
+
+        assertThat(provider.resolveCredentials()).satisfies(credentials -> {
+            assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+            assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+            assertThat(credentials.accountId()).isPresent().isEqualTo(Optional.of("defaultAccountId"));
         });
     }
 
@@ -201,13 +220,15 @@ public class ProfileCredentialsProviderTest {
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
             assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
             assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+            assertThat(credentials.accountId()).isNotPresent();
         });
     }
 
     @Test
     void resolveCredentials_presentSupplierProfileFile_returnsCredentials() {
         Supplier<ProfileFile> supplier = () -> profileFile("[default]\naws_access_key_id = defaultAccessKey\n"
-                                                           + "aws_secret_access_key = defaultSecretAccessKey\n");
+                                                           + "aws_secret_access_key = defaultSecretAccessKey\n"
+                                                           + "aws_account_id = defaultAccountId");
 
         ProfileCredentialsProvider provider =
             ProfileCredentialsProvider.builder()
@@ -218,6 +239,7 @@ public class ProfileCredentialsProviderTest {
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
             assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
             assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+            assertThat(credentials.accountId()).isPresent();
         });
     }
 
