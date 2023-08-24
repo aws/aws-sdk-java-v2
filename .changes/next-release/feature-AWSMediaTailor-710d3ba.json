@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "contributor": "",
+    "description": "Adds new source location AUTODETECT_SIGV4 access type."
+}
