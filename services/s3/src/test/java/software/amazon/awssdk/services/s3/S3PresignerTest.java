@@ -23,8 +23,6 @@ import java.net.URL;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import org.assertj.core.data.Offset;
@@ -32,32 +30,26 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
-import software.amazon.awssdk.auth.signer.internal.AbstractAws4Signer;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer;
-import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
-import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.checksums.ChecksumConstant;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-import software.amazon.awssdk.utils.DateUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class S3PresignerTest {
@@ -342,6 +334,116 @@ public class S3PresignerTest {
                                              .putObjectRequest(gor -> gor.bucket("a")
                                                                          .key("b")
                                                                          .overrideConfiguration(override)));
+
+        assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
+            assertThat(expires).containsOnlyDigits();
+            assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
+        });
+    }
+
+    @Test
+    public void deleteObject_IsNotUrlCompatible() {
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                                 .key("bar")));
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+        assertThat(presigned.signedHeaders().keySet()).containsExactlyInAnyOrder("host");
+        assertThat(presigned.signedPayload()).isEmpty();
+    }
+
+    @Test
+    public void deleteObject_EndpointOverrideIsIncludedInPresignedUrl() {
+        S3Presigner presigner = presignerBuilder().endpointOverride(URI.create("http://foo.com")).build();
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                                 .key("bar")));
+
+        assertThat(presigned.url().toString()).startsWith("http://foo34343434.foo.com/bar?");
+        assertThat(presigned.signedHeaders().get("host")).containsExactly("foo34343434.foo.com");
+        assertThat(presigned.signedPayload()).isEmpty();
+    }
+
+    @Test
+    public void deleteObject_CredentialsCanBeOverriddenAtTheRequestLevel() {
+        AwsCredentials clientCredentials = AwsBasicCredentials.create("a", "a");
+        AwsCredentials requestCredentials = AwsBasicCredentials.create("b", "b");
+
+        S3Presigner presigner = presignerBuilder().credentialsProvider(() -> clientCredentials).build();
+
+
+        AwsRequestOverrideConfiguration overrideConfiguration =
+            AwsRequestOverrideConfiguration.builder()
+                                           .credentialsProvider(() -> requestCredentials)
+                                           .build();
+
+        PresignedDeleteObjectRequest presignedWithClientCredentials =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                               .key("bar")));
+
+        PresignedDeleteObjectRequest presignedWithRequestCredentials =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                               .key("bar")
+                                                                               .overrideConfiguration(overrideConfiguration)));
+
+
+        assertThat(presignedWithClientCredentials.httpRequest().rawQueryParameters().get("X-Amz-Credential").get(0))
+            .startsWith("a");
+        assertThat(presignedWithRequestCredentials.httpRequest().rawQueryParameters().get("X-Amz-Credential").get(0))
+            .startsWith("b");
+    }
+
+    @Test
+    public void deleteObject_AdditionalHeadersAndQueryStringsCanBeAdded() {
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder()
+                                           .putHeader("X-Amz-AdditionalHeader", "foo1")
+                                           .putRawQueryParameter("additionalQueryParam", "foo2")
+                                           .build();
+
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                               .key("bar")
+                                                                               .overrideConfiguration(override)));
+
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+        assertThat(presigned.signedHeaders()).containsOnlyKeys("host", "x-amz-additionalheader");
+        assertThat(presigned.signedHeaders().get("x-amz-additionalheader")).containsExactly("foo1");
+        assertThat(presigned.httpRequest().headers()).containsKeys("x-amz-additionalheader");
+        assertThat(presigned.httpRequest().rawQueryParameters().get("additionalQueryParam").get(0)).isEqualTo("foo2");
+    }
+
+    @Test
+    public void deleteObject_NonSigV4SignersRaisesException() {
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder()
+                                           .signer(new NoOpSigner())
+                                           .build();
+
+        assertThatThrownBy(() -> presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                                     .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                                                    .key("bar")
+                                                                                                    .overrideConfiguration(override))))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("NoOpSigner");
+    }
+
+    @Test
+    public void deleteObject_Sigv4PresignerHonorsSignatureDuration() {
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder()
+                                           .signer(AwsS3V4Signer.create())
+                                           .build();
+
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofSeconds(1234))
+                                                .deleteObjectRequest(delo -> delo.bucket("a")
+                                                                               .key("b")
+                                                                               .overrideConfiguration(override)));
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();

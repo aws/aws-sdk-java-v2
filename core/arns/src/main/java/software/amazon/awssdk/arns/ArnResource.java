@@ -91,22 +91,22 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
      * @return {@link ArnResource}
      */
     public static ArnResource fromString(String resource) {
-        Character splitter = StringUtils.findFirstOccurrence(resource, ':', '/');
+        Character primarySplitter = StringUtils.findFirstOccurrence(resource, ':', '/');
 
-        if (splitter == null) {
-            return ArnResource.builder().resource(resource).build();
+        if (primarySplitter == null) {
+            return builder().resource(resource).build();
         }
 
-        int resourceTypeColonIndex = resource.indexOf(splitter);
+        int resourceTypeIndex = resource.indexOf(primarySplitter);
+        ArnResource.Builder builder = builder().resourceType(resource.substring(0, resourceTypeIndex));
 
-        ArnResource.Builder builder = ArnResource.builder().resourceType(resource.substring(0, resourceTypeColonIndex));
-        int resourceColonIndex = resource.indexOf(splitter, resourceTypeColonIndex);
-        int qualifierColonIndex = resource.indexOf(splitter, resourceColonIndex + 1);
-        if (qualifierColonIndex < 0) {
-            builder.resource(resource.substring(resourceTypeColonIndex + 1));
+        String remainingResource = resource.substring(resourceTypeIndex + 1);
+        int qualifierColonIndex = remainingResource.lastIndexOf(':');
+        if (qualifierColonIndex < 1) {
+            builder.resource(remainingResource);
         } else {
-            builder.resource(resource.substring(resourceTypeColonIndex + 1, qualifierColonIndex));
-            builder.qualifier(resource.substring(qualifierColonIndex + 1));
+            builder.resource(remainingResource.substring(0, qualifierColonIndex));
+            builder.qualifier(remainingResource.substring(qualifierColonIndex + 1));
         }
 
         return builder.build();
@@ -114,11 +114,7 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
 
     @Override
     public String toString() {
-        return this.resourceType
-               + ":"
-               + this.resource
-               + ":"
-               + this.qualifier;
+        return String.join(":", this.resourceType, this.resource, this.qualifier);
     }
 
     @Override
