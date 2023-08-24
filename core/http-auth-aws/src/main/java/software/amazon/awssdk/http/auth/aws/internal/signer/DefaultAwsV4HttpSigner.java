@@ -102,11 +102,31 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     private static Checksummer checksummer(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEventStreaming = isEventStreaming(request.request());
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+        boolean isTrailing = hasTrailer(request.request());
 
         if (isEventStreaming) {
             return new PrecomputedChecksummer(() -> STREAMING_EVENTS_PAYLOAD);
         }
-        return isPayloadSigning ? Checksummer.create() : new PrecomputedChecksummer(() -> UNSIGNED_PAYLOAD);
+
+        if (isPayloadSigning) {
+            if (isChunkEncoding) {
+                if (isTrailing) {
+                    return new PrecomputedChecksummer(() -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
+                }
+                return new PrecomputedChecksummer(() -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
+            }
+            return Checksummer.create();
+        }
+
+        if (isChunkEncoding) {
+            if (hasTrailer(request.request())) {
+                return new PrecomputedChecksummer(() -> "STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+            }
+            throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
+        }
+
+        return new PrecomputedChecksummer(() -> UNSIGNED_PAYLOAD);
     }
 
     private static V4PayloadSigner v4PayloadSigner(
@@ -115,6 +135,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEventStreaming = isEventStreaming(request.request());
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
 
         if (isEventStreaming) {
             if (isPayloadSigning) {
@@ -125,6 +146,10 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                 );
             }
             throw new UnsupportedOperationException("Unsigned payload is not supported with event-streaming.");
+        }
+
+        if (isChunkEncoding) {
+            return new AwsChunkedV4PayloadSigner(properties.getCredentialScope(), 1024 * 128);
         }
 
         return V4PayloadSigner.create();
@@ -199,6 +224,12 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static boolean isEventStreaming(SdkHttpRequest request) {
         return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader("Content-Type").orElse(""));
+    }
+
+    private static boolean hasTrailer(SdkHttpRequest request) {
+        // TODO: Trailer would be determined by being a flexible-checksum enabled request, we will need to update
+        // this once flexible checksums is enabled
+        return request.firstMatchingHeader("x-amz-trailer").isPresent();
     }
 
     /**
