@@ -197,9 +197,8 @@ public abstract class BaseAsyncCoreMetricsTest {
             .containsExactly(SERVICE_ID);
         assertThat(capturedCollection.metricValues(CoreMetric.OPERATION_NAME))
             .containsExactly(operationName());
-        // TODO(sra-identity-and-auth): Metric is currently not published. Re-enable after it is published.
-        // assertThat(capturedCollection.metricValues(CoreMetric.CREDENTIALS_FETCH_DURATION).get(0))
-        //     .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(capturedCollection.metricValues(CoreMetric.CREDENTIALS_FETCH_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.MARSHALLING_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
