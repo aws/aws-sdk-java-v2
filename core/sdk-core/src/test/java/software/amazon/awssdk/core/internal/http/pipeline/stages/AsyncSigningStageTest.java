@@ -115,7 +115,7 @@ public class AsyncSigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+        RequestExecutionContext context = createContext(selectedAuthScheme, (Signer) null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
@@ -159,7 +159,7 @@ public class AsyncSigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+        RequestExecutionContext context = createContext(selectedAuthScheme, (Signer) null);
 
         // Setup the timeoffset to test that the clock is setup properly.
         httpClientDependencies.updateTimeOffset(TEST_TIME_OFFSET);
@@ -208,7 +208,7 @@ public class AsyncSigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload);
+        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");
@@ -258,7 +258,7 @@ public class AsyncSigningStageTest {
                             .schemeId("smithy.api#noAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload);
+        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");

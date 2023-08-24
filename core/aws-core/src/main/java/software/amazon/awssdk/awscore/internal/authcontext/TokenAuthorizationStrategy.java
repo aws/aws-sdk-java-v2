@@ -35,7 +35,11 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * An authorization strategy for tokens that can resolve a compatible signer as
  * well as provide a resolved token as an execution attribute.
+ *
+ * @deprecated This is only used for compatibility with pre-SRA authorization logic. After we are comfortable that the new code
+ * paths are working, we should migrate old clients to the new code paths (where possible) and delete this code.
  */
+@Deprecated
 @SdkInternalApi
 public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
 

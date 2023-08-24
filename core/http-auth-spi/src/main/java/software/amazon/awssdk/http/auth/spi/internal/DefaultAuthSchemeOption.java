@@ -117,8 +117,20 @@ public final class DefaultAuthSchemeOption implements AuthSchemeOption {
         }
 
         @Override
+        public <T> Builder putIdentityPropertyIfAbsent(IdentityProperty<T> key, T value) {
+            this.identityProperties.putIfAbsent(key, value);
+            return this;
+        }
+
+        @Override
         public <T> Builder putSignerProperty(SignerProperty<T> key, T value) {
             this.signerProperties.put(key, value);
+            return this;
+        }
+
+        @Override
+        public <T> Builder putSignerPropertyIfAbsent(SignerProperty<T> key, T value) {
+            this.signerProperties.putIfAbsent(key, value);
             return this;
         }
 

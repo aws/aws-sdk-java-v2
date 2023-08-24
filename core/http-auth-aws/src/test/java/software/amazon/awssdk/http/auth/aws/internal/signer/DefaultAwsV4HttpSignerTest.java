@@ -28,7 +28,7 @@ import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicReques
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.Header;
-import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AuthLocation;
+import software.amazon.awssdk.http.auth.aws.AwsV4FamilyHttpSigner.AuthLocation;
 import software.amazon.awssdk.http.auth.aws.TestUtils;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
