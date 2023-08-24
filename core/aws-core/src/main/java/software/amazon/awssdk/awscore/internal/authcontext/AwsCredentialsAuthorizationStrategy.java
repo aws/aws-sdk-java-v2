@@ -103,7 +103,7 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
             MetricCollector metricCollector) {
         Validate.notNull(credentialsProvider, "No credentials provider exists to resolve credentials from.");
 
-        // TODO: Exception handling for join()?
+        // TODO(sra-identity-and-auth): Exception handling for join()?
         Pair<? extends AwsCredentialsIdentity, Duration> measured =
             MetricUtils.measureDuration(() -> credentialsProvider.resolveIdentity().join());
 
