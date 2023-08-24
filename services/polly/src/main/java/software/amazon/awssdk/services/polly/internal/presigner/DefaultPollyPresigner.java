@@ -48,12 +48,16 @@ import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.polly.auth.scheme.PollyAuthSchemeProvider;
 import software.amazon.awssdk.services.polly.internal.presigner.model.transform.SynthesizeSpeechRequestMarshaller;
 import software.amazon.awssdk.services.polly.model.PollyRequest;
 import software.amazon.awssdk.services.polly.presigner.PollyPresigner;
@@ -204,7 +208,18 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                 .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, false)
                 .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, ClientType.SYNC)
                 .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
-                .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration);
+                .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration)
+                .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, PollyAuthSchemeProvider.defaultProvider())
+                .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
+                .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION,
+                              IdentityProviderConfiguration.builder()
+                                                           .putIdentityProvider(credentialsProvider())
+                                                           .build());
+    }
+
+    private Map<String, AuthScheme<?>> authSchemes() {
+        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
+        return Collections.singletonMap(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
     }
 
     private IdentityProvider<? extends AwsCredentialsIdentity> resolveCredentialsProvider(PollyRequest request) {

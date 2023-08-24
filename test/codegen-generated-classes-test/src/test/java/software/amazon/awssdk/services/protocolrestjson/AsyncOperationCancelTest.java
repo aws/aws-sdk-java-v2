@@ -19,12 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.reactivex.Flowable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -37,6 +42,7 @@ import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStream;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.protocolrestjson.model.InputEventStream;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 
@@ -50,7 +56,7 @@ public class AsyncOperationCancelTest {
 
     private ProtocolRestJsonAsyncClient client;
 
-    private CompletableFuture executeFuture;
+    private CompletableFuture<Void> executeFuture;
 
     @Before
     public void setUp() {
@@ -61,7 +67,7 @@ public class AsyncOperationCancelTest {
                 .httpClient(mockHttpClient)
                 .build();
 
-        executeFuture = new CompletableFuture();
+        executeFuture = new CompletableFuture<>();
         when(mockHttpClient.execute(any())).thenReturn(executeFuture);
     }
 
@@ -94,10 +100,10 @@ public class AsyncOperationCancelTest {
     //  event stream operation. But with subsequent codegen changes for SRA, event stream won't have a signer override. And we may
     //  need to check that this test still works.
     @Test
-    public void testEventStreamingOperation() {
-        CompletableFuture<Void> responseFuture = client.eventStreamOperation(r -> {
-                },
-                subscriber -> {},
+    public void testEventStreamingOperation() throws InterruptedException {
+        CompletableFuture<Void> responseFuture =
+            client.eventStreamOperation(r -> {},
+                                        Flowable.just(InputEventStream.inputEventBuilder().build()),
                 new EventStreamOperationResponseHandler() {
                     @Override
                     public void responseReceived(EventStreamOperationResponse response) {

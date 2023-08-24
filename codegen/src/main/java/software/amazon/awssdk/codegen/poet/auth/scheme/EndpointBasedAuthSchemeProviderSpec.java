@@ -43,6 +43,7 @@ import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
 public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
@@ -123,7 +124,8 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
             }
         });
         spec.addStatement(".build()");
-        spec.addStatement("$T endpoint = DELEGATE.resolveEndpoint(endpointParameters).join()", Endpoint.class);
+        spec.addStatement("$T endpoint = $T.joinLikeSync(DELEGATE.resolveEndpoint(endpointParameters))",
+                          Endpoint.class, CompletableFutureUtils.class);
         spec.addStatement("$T authSchemes = endpoint.attribute($T.AUTH_SCHEMES)",
                           ParameterizedTypeName.get(List.class, EndpointAuthScheme.class), AwsEndpointAttribute.class);
         spec.beginControlFlow("if (authSchemes == null)");

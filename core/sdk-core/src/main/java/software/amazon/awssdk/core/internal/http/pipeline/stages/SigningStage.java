@@ -176,6 +176,9 @@ public class SigningStage implements RequestToRequestPipeline {
 
     /**
      * Returns true if we should use SRA signing logic.
+     * If there is a SELECTED_AUTH_SCHEME, it implies it's a newly (with SRA) generated clients.
+     * If Signer is overridden, with either old or new clients, it still means it's using pre SRA interfaces, so falls back to
+     * pre SRA signing logic.
      */
     private boolean shouldDoSraSigning(RequestExecutionContext context) {
         return !SignerOverrideUtils.isSignerOverridden(context)
