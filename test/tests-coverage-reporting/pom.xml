@@ -38,6 +38,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <artifactId>checksums</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <artifactId>utils</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
