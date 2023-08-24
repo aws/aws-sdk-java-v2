@@ -38,7 +38,7 @@ import software.amazon.awssdk.http.auth.aws.signer.V4Context;
 /**
  * Test the delegation of signing to the correct implementations.
  */
-public class AwsChunkedV4HttpSignerTest {
+public class AwsChunkedV4PayloadSignerTest {
 
     int chunkSize = 4;
 
@@ -49,10 +49,6 @@ public class AwsChunkedV4HttpSignerTest {
     ContentStreamProvider payload = () -> new ByteArrayInputStream(data);
 
     SdkHttpRequest.Builder requestBuilder;
-
-    V4CanonicalRequest canonicalRequest;
-
-    V4Context v4Context;
 
     AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize);
 
@@ -66,20 +62,6 @@ public class AwsChunkedV4HttpSignerTest {
             .putHeader(Header.CONTENT_LENGTH, Integer.toString(data.length))
             .encodedPath("/")
             .uri(URI.create("http://demo.us-east-1.amazonaws.com"));
-
-        canonicalRequest = new V4CanonicalRequest(
-            requestBuilder.build(),
-            "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
-            new V4CanonicalRequest.Options(true, true)
-        );
-
-        v4Context = new V4Context(
-            "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
-            "key".getBytes(StandardCharsets.UTF_8),
-            "sig",
-            canonicalRequest,
-            requestBuilder
-        );
     }
 
     @Test
@@ -93,6 +75,18 @@ public class AwsChunkedV4HttpSignerTest {
             "0;chunk-signature=825ad80195cae47f54984835543ff2179c2c5a53c324059cd632e50259384ee3\r\n\r\n";
 
         requestBuilder.putHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
+        V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
+            requestBuilder.build(),
+            "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
+            new V4CanonicalRequest.Options(true, true)
+        );
+        V4Context v4Context = new V4Context(
+            "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
+            "key".getBytes(StandardCharsets.UTF_8),
+            "sig",
+            canonicalRequest,
+            requestBuilder
+        );
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -107,6 +101,7 @@ public class AwsChunkedV4HttpSignerTest {
 
     @Test
     public void sign_withSignedPayloadAndTrailer_shouldChunkEncodeWithSigV4ExtAndSigV4Trailer() throws IOException {
+        // TODO: Update trailer here when flexible checksums is implemented
         String expectedContent =
             "4;chunk-signature=082f5b0e588893570e152b401a886161ee772ed066948f68c8f01aee11cca4f8\r\n{\"Ta\r\n" +
             "4;chunk-signature=777b02ec61ce7934578b1efe6fbe08c21ae4a8cdf66a709d3b4fd320dddd2839\r\nbleN\r\n" +
@@ -117,6 +112,18 @@ public class AwsChunkedV4HttpSignerTest {
             "x-amz-trailer-signature:4cf8567e47f3f5b4404edce2ff8719ce99434b092a34f8faac804d63f9700871\r\n\r\n";
 
         requestBuilder.putHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
+        V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
+            requestBuilder.build(),
+            "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
+            new V4CanonicalRequest.Options(true, true)
+        );
+        V4Context v4Context = new V4Context(
+            "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
+            "key".getBytes(StandardCharsets.UTF_8),
+            "sig",
+            canonicalRequest,
+            requestBuilder
+        );
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -131,6 +138,7 @@ public class AwsChunkedV4HttpSignerTest {
 
     @Test
     public void sign_withTrailer_shouldChunkEncodeWithTrailer() throws IOException {
+        // TODO: Update trailer here when flexible checksums is implemented
         String expectedContent =
             "4\r\n{\"Ta\r\n" +
             "4\r\nbleN\r\n" +
@@ -140,6 +148,18 @@ public class AwsChunkedV4HttpSignerTest {
             "0\r\n";
 
         requestBuilder.putHeader("x-amz-content-sha256", "STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+        V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
+            requestBuilder.build(),
+            "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
+            new V4CanonicalRequest.Options(true, true)
+        );
+        V4Context v4Context = new V4Context(
+            "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
+            "key".getBytes(StandardCharsets.UTF_8),
+            "sig",
+            canonicalRequest,
+            requestBuilder
+        );
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -154,13 +174,26 @@ public class AwsChunkedV4HttpSignerTest {
 
     @Test
     public void sign_withoutContentLength_throws() {
+        V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
+            requestBuilder.build(),
+            "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
+            new V4CanonicalRequest.Options(true, true)
+        );
+        V4Context v4Context = new V4Context(
+            "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
+            "key".getBytes(StandardCharsets.UTF_8),
+            "sig",
+            canonicalRequest,
+            requestBuilder
+        );
         v4Context.getSignedRequest().removeHeader(Header.CONTENT_LENGTH);
+
         assertThrows(IllegalArgumentException.class, () -> signer.sign(payload, v4Context));
     }
 
     @Test
-    public void sign_withPublisher_throws() {
-        assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(null, v4Context));
+    public void signAsync_throws() {
+        assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(null, null));
     }
 
     private int readAll(InputStream src, byte[] dst) throws IOException {
