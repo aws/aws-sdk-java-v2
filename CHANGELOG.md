@@ -1,3 +1,52 @@
+# __2.20.134__ __2023-08-24__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes additional audio channel tags in Quicktime outputs, support for film grain synthesis for AV1 outputs, ability to create audio-only FLAC outputs, and ability to specify Amazon S3 destination storage class.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports passthrough of KLV data to a HLS output group with a TS container. MediaLive now supports setting an attenuation mode for AC3 audio when the coding mode is 3/2 LFE. MediaLive now supports specifying whether to include filler NAL units in RTMP output group settings.
+
+## __AWS Glue__
+  - ### Features
+    - Added API attributes that help in the monitoring of sessions.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Adds new source location AUTODETECT_SIGV4 access type.
+
+## __AWS S3 Control__
+  - ### Features
+    - Updates to endpoint ruleset tests to address Smithy validation issues and standardize the capitalization of DualStack.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 M7a instances, powered by 4th generation AMD EPYC processors, deliver up to 50% higher performance compared to M6a instances. Amazon EC2 Hpc7a instances, powered by 4th Gen AMD EPYC processors, deliver up to 2.5x better performance compared to Amazon EC2 Hpc6a instances.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Excel support in Snapshot Export APIs. Removed Required trait for some insight Computations. Namespace-shared Folders support. Global Filters support. Table pin Column support.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release updates the supported versions for Percona XtraBackup in Aurora MySQL.
+
+## __Amazon S3__
+  - ### Features
+    - Add support for presigned `DeleteObject` in `S3Presigner`.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updates to endpoint ruleset tests to address Smithy validation issues.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Documentation updates for Amazon Verified Permissions.
+
 # __2.20.133__ __2023-08-23__
 ## __AWS SDK for Java v2__
   - ### Features
