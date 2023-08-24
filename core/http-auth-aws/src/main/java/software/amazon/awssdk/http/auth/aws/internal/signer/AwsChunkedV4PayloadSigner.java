@@ -15,18 +15,24 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
+import static software.amazon.awssdk.http.auth.aws.signer.V4CanonicalRequest.getCanonicalHeadersString;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hash;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChunkedEncodedInputStream;
+import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.TrailerProvider;
 import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.signer.V4Context;
 import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
@@ -129,17 +135,20 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     }
 
     private void setupSigTrailer(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
+        List<Pair<String, List<String>>> trailers =
+            builder.trailers().stream().map(TrailerProvider::get).collect(Collectors.toList());
+        Function<String, String> template =
+            previousSignature ->
+                "AWS4-HMAC-SHA256-TRAILER" + SignerConstant.LINE_SEPARATOR +
+                credentialScope.getDatetime() + SignerConstant.LINE_SEPARATOR +
+                credentialScope.scope() + SignerConstant.LINE_SEPARATOR +
+                previousSignature + SignerConstant.LINE_SEPARATOR +
+                toHex(hash(getCanonicalHeadersString(trailers)));
+
         builder.addTrailer(
-            chunk -> Pair.of(
-                "x-amz-trailer-signature".getBytes(StandardCharsets.UTF_8),
-                rollingSigner.sign(
-                    previousSignature ->
-                        "AWS4-HMAC-SHA256-TRAILER" + SignerConstant.LINE_SEPARATOR +
-                        credentialScope.getDatetime() + SignerConstant.LINE_SEPARATOR +
-                        credentialScope.scope() + SignerConstant.LINE_SEPARATOR +
-                        previousSignature + SignerConstant.LINE_SEPARATOR +
-                        toHex(hash(chunk))
-                ).getBytes(StandardCharsets.UTF_8)
+            () -> Pair.of(
+                "x-amz-trailer-signature",
+                Collections.singletonList(rollingSigner.sign(template))
             )
         );
     }
