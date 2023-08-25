@@ -19,31 +19,31 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class ChecksumAlgorithmsTest {
+public class DefaultChecksumAlgorithmTest {
 
     @Test
     public void hasCRC32C() {
-        assertEquals("CRC32C", ChecksumAlgorithms.CRC32C.algorithmId());
+        assertEquals("CRC32C", DefaultChecksumAlgorithm.CRC32C.algorithmId());
     }
 
     @Test
     public void hasCRC32() {
-        assertEquals("CRC32", ChecksumAlgorithms.CRC32.algorithmId());
+        assertEquals("CRC32", DefaultChecksumAlgorithm.CRC32.algorithmId());
     }
 
     @Test
     public void hasMD5() {
-        assertEquals("MD5", ChecksumAlgorithms.MD5.algorithmId());
+        assertEquals("MD5", DefaultChecksumAlgorithm.MD5.algorithmId());
     }
 
     @Test
     public void hasSHA256() {
-        assertEquals("SHA256", ChecksumAlgorithms.SHA256.algorithmId());
+        assertEquals("SHA256", DefaultChecksumAlgorithm.SHA256.algorithmId());
     }
 
     @Test
     public void hasSHA1() {
-        assertEquals("SHA1", ChecksumAlgorithms.SHA1.algorithmId());
+        assertEquals("SHA1", DefaultChecksumAlgorithm.SHA1.algorithmId());
     }
 }
 

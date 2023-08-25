@@ -23,14 +23,14 @@ import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
  * An enumeration of supported checksum algorithms.
  */
 @SdkProtectedApi
-public final class ChecksumAlgorithms {
+public final class DefaultChecksumAlgorithm {
     public static final ChecksumAlgorithm CRC32C = of("CRC32C");
     public static final ChecksumAlgorithm CRC32 = of("CRC32");
     public static final ChecksumAlgorithm MD5 = of("MD5");
     public static final ChecksumAlgorithm SHA256 = of("SHA256");
     public static final ChecksumAlgorithm SHA1 = of("SHA1");
 
-    private ChecksumAlgorithms() {
+    private DefaultChecksumAlgorithm() {
     }
 
     private static ChecksumAlgorithm of(String name) {
