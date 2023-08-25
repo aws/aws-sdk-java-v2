@@ -263,11 +263,10 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                              ResolveIdentityRequest.class);
         builder.addStatement("authOption.forEachIdentityProperty(identityRequestBuilder::putProperty)");
 
-        builder.addStatement("$T<? extends T> identity", CompletableFuture.class);
+        builder.addStatement("$T identity", namedIdentityFuture());
         builder.addStatement("$T metric = getIdentityMetric(identityProvider)", durationSdkMetric());
         builder.beginControlFlow("if (metric == null)")
-               .addStatement("identity = identityProvider.resolveIdentity(identityRequestBuilder.build())",
-                             namedIdentityFuture())
+               .addStatement("identity = identityProvider.resolveIdentity(identityRequestBuilder.build())")
                .nextControlFlow("else")
                .addStatement("identity = $T.reportDuration("
                              + "() -> identityProvider.resolveIdentity(identityRequestBuilder.build()), metricCollector, metric)",
@@ -317,6 +316,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         return ParameterizedTypeName.get(ClassName.get(IdentityProvider.class), WildcardTypeName.subtypeOf(Object.class));
     }
 
+    // CompletableFuture<? extends T>
     private TypeName namedIdentityFuture() {
         return ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                                          WildcardTypeName.subtypeOf(TypeVariableName.get("T")));
