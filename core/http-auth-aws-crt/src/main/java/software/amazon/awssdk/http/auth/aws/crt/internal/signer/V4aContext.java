@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
@@ -23,13 +24,25 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  */
 @SdkInternalApi
 public final class V4aContext {
-    private final SdkHttpRequest signedRequest;
+    private final SdkHttpRequest.Builder signedRequest;
+    private final byte[] signature;
+    private final AwsSigningConfig signingConfig;
 
-    public V4aContext(SdkHttpRequest signedRequest) {
+    public V4aContext(SdkHttpRequest.Builder signedRequest, byte[] signature, AwsSigningConfig signingConfig) {
         this.signedRequest = signedRequest;
+        this.signature = signature.clone();
+        this.signingConfig = signingConfig;
     }
 
-    public SdkHttpRequest getSignedRequest() {
+    public SdkHttpRequest.Builder getSignedRequest() {
         return signedRequest;
+    }
+
+    public byte[] getSignature() {
+        return signature;
+    }
+
+    public AwsSigningConfig getSigningConfig() {
+        return signingConfig;
     }
 }
