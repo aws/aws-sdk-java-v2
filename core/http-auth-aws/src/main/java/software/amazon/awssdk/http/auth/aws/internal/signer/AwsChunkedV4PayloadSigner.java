@@ -16,6 +16,11 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.signer.V4CanonicalRequest.getCanonicalHeadersString;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hash;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
@@ -41,10 +46,13 @@ import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
- * A default implementation of a payload signer that is a no-op, since payloads are most commonly unsigned.
+ * An implementation of a V4PayloadSigner which chunk-encodes a payload, optionally adding a chunk-signature chunk-extension,
+ * and/or trailers representing trailing headers with their signature at the end.
  */
 @SdkInternalApi
 public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
+
+    private static final String EMPTY_HASH = toHex(hash(""));
 
     private final CredentialScope credentialScope;
     private final int chunkSize;
@@ -59,13 +67,13 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
      * an exception is thrown.
      */
     private static void moveContentLength(SdkHttpRequest.Builder request) {
-        if (!request.firstMatchingHeader("x-amz-decoded-content-length").isPresent()) {
+        if (!request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH).isPresent()) {
             // if the decoded length isn't present, content-length must be there
             String contentLength = request
                 .firstMatchingHeader(Header.CONTENT_LENGTH)
                 .orElseThrow(() -> new IllegalArgumentException(Header.CONTENT_LENGTH + " must be specified!"));
 
-            request.putHeader("x-amz-decoded-content-length", contentLength)
+            request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, contentLength)
                    .removeHeader(Header.CONTENT_LENGTH);
         } else {
             // decoded header is already there, so remove content-length just to be sure it's gone
@@ -78,8 +86,8 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         SdkHttpRequest.Builder request = v4Context.getSignedRequest();
         moveContentLength(request);
 
-        String checksum = request.firstMatchingHeader("x-amz-content-sha256").orElseThrow(
-            () -> new IllegalArgumentException("x-amz-content-sha256 must be set!")
+        String checksum = request.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
+            () -> new IllegalArgumentException(X_AMZ_CONTENT_SHA256 + " must be set!")
         );
 
         InputStream inputStream = payload != null ? payload.newStream() : new StringInputStream("");
@@ -90,15 +98,15 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
             .header(chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8));
 
         switch (checksum) {
-            case "STREAMING-AWS4-HMAC-SHA256-PAYLOAD": {
+            case STREAMING_SIGNED_PAYLOAD: {
                 RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
                 setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
                 break;
             }
-            case "STREAMING-UNSIGNED-PAYLOAD-TRAILER":
+            case STREAMING_UNSIGNED_PAYLOAD_TRAILER:
                 setupChecksumTrailer(chunkedEncodedInputStreamBuilder);
                 break;
-            case "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER": {
+            case STREAMING_SIGNED_PAYLOAD_TRAILER: {
                 RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
                 setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
                 setupSigTrailer(chunkedEncodedInputStreamBuilder, rollingSigner);
@@ -127,7 +135,7 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
                         credentialScope.getDatetime() + SignerConstant.LINE_SEPARATOR +
                         credentialScope.scope() + SignerConstant.LINE_SEPARATOR +
                         previousSignature + SignerConstant.LINE_SEPARATOR +
-                        toHex(hash("")) + SignerConstant.LINE_SEPARATOR +
+                        EMPTY_HASH + SignerConstant.LINE_SEPARATOR +
                         toHex(hash(chunk))
                 ).getBytes(StandardCharsets.UTF_8)
             )
