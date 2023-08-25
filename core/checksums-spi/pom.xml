@@ -25,11 +25,11 @@
         <version>2.20.131-SNAPSHOT</version>
     </parent>
 
-    <artifactId>checksums</artifactId>
-    <name>AWS Java SDK :: Checksums </name>
+    <artifactId>checksums-spi</artifactId>
+    <name>AWS Java SDK :: Checksums SPI </name>
     <description>
-        The AWS SDK for Java - Checksums module contains checksums and related items that are used by other modules in
-            the library.
+        The AWS SDK for Java - Checksums SPI module contains checksum interfaces that are used by other modules
+            in the library.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
@@ -38,18 +38,6 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>annotations</artifactId>
             <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>checksums-spi</artifactId>
-            <version>2.20.131-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -61,7 +49,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.checksums</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.checksums.spi</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

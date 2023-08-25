@@ -13,18 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.checksums;
+package software.amazon.awssdk.checksums.spi;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * An enumeration of supported checksums.
+ * An interface for declaring the implementation of a checksum.
  */
 @SdkProtectedApi
-public enum Checksum {
-    CRC32C,
-    CRC32,
-    MD5,
-    SHA256,
-    SHA1,
+public interface ChecksumAlgorithm {
+    /**
+     * The ID of the checksum algorithm. This is matched against algorithm
+     * names used in smithy traits
+     * (e.g. "CRC32C" from the aws.protocols#HTTPChecksum smithy trait)
+     */
+    String algorithmId();
 }

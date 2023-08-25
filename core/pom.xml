@@ -53,6 +53,7 @@
         <module>endpoints-spi</module>
         <module>imds</module>
         <module>crt-core</module>
+        <module>checksums-spi</module>
         <module>checksums</module>
     </modules>
 
