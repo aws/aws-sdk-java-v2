@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.endpointproviders;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
@@ -49,6 +51,7 @@ import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClient;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClientBuilder;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersClient;
@@ -216,7 +219,7 @@ public class EndpointInterceptorTests {
                                                           .thenApply(e -> e.toBuilder()
                                                                            .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, endpointAuthSchemes)
                                                                            .build()))
-            .putAuthScheme(capturingAuthScheme("aws.auth#sigv4", signer))
+            .putAuthScheme(authScheme("aws.auth#sigv4", signer))
             .build();
 
         assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}))
@@ -246,7 +249,7 @@ public class EndpointInterceptorTests {
                                                           .thenApply(e -> e.toBuilder()
                                                                            .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, endpointAuthSchemes)
                                                                            .build()))
-            .putAuthScheme(capturingAuthScheme("aws.auth#sigv4", signer))
+            .putAuthScheme(authScheme("aws.auth#sigv4", signer))
             .build();
 
         assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}).join())
@@ -276,7 +279,7 @@ public class EndpointInterceptorTests {
                                                           .thenApply(e -> e.toBuilder()
                                                                            .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, endpointAuthSchemes)
                                                                            .build()))
-            .putAuthScheme(capturingAuthScheme("aws.auth#sigv4a", signer))
+            .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
             .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
                                                                    .schemeId("aws.auth#sigv4a")
                                                                    .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, "X")
@@ -312,7 +315,7 @@ public class EndpointInterceptorTests {
                                                           .thenApply(e -> e.toBuilder()
                                                                            .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, endpointAuthSchemes)
                                                                            .build()))
-            .putAuthScheme(capturingAuthScheme("aws.auth#sigv4a", signer))
+            .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
             .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
                                                                    .schemeId("aws.auth#sigv4a")
                                                                    .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, "X")
@@ -329,7 +332,135 @@ public class EndpointInterceptorTests {
         assertThat(signer.request.property(AwsV4aHttpSigner.DOUBLE_URL_ENCODE)).isEqualTo(false);
     }
 
-    private static AuthScheme<?> capturingAuthScheme(String schemeId, CapturingSigner signer) {
+    @Test
+    public void sync_endpointProviderDoesNotReturnV4SignerProperties_executionAttributesFromAuthSchemeOption() {
+        RestJsonEndpointProvidersEndpointProvider defaultEndpointProvider =
+            RestJsonEndpointProvidersEndpointProvider.defaultProvider();
+        CapturingInterceptor interceptor = new CapturingInterceptor();
+
+        RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder()
+            .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
+            .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
+                                                                   .schemeId("aws.auth#sigv4")
+                                                                   .putSignerProperty(AwsV4HttpSigner.REGION_NAME, "X")
+                                                                   .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "Y")
+                                                                   .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, true)
+                                                                   .build()))
+            .endpointProvider(r -> defaultEndpointProvider.resolveEndpoint(r)
+                                                          .thenApply(e -> e.toBuilder()
+                                                                           .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, emptyList())
+                                                                           .build()))
+            .build();
+
+        assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}).join())
+            .hasMessageContaining("stop");
+
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION)).isEqualTo(Region.of("X"));
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)).isEqualTo("Y");
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)).isEqualTo(true);
+    }
+
+    @Test
+    public void sync_endpointProviderReturnsV4SignerProperties_executionAttributesFromEndpointProvider() {
+        RestJsonEndpointProvidersEndpointProvider defaultEndpointProvider =
+            RestJsonEndpointProvidersEndpointProvider.defaultProvider();
+        CapturingInterceptor interceptor = new CapturingInterceptor();
+
+        List<EndpointAuthScheme> endpointAuthSchemes = new ArrayList<>();
+        endpointAuthSchemes.add(SigV4AuthScheme.builder()
+                                               .signingRegion("region-from-ep")
+                                               .signingName("name-from-ep")
+                                               .disableDoubleEncoding(false)
+                                               .build());
+
+        RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder()
+            .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
+            .endpointProvider(r -> defaultEndpointProvider.resolveEndpoint(r)
+                                                          .thenApply(e -> e.toBuilder()
+                                                                           .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, endpointAuthSchemes)
+                                                                           .build()))
+            .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
+                                                                   .schemeId("aws.auth#sigv4")
+                                                                   .putSignerProperty(AwsV4HttpSigner.REGION_NAME, "X")
+                                                                   .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "Y")
+                                                                   .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, false)
+                                                                   .build()))
+            .build();
+
+        assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}).join())
+            .hasMessageContaining("stop");
+
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION)).isEqualTo(Region.of("region-from-ep"));
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)).isEqualTo("name-from-ep");
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)).isEqualTo(true);
+    }
+
+    @Test
+    public void sync_endpointProviderDoesNotReturnV4aSignerProperties_executionAttributesFromAuthSchemeOption() {
+        RestJsonEndpointProvidersEndpointProvider defaultEndpointProvider =
+            RestJsonEndpointProvidersEndpointProvider.defaultProvider();
+        CapturingInterceptor interceptor = new CapturingInterceptor();
+
+        RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder()
+            .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
+            .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
+                                                                   .schemeId("aws.auth#sigv4a")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, "region-from-ap")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, "Y")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, true)
+                                                                   .build()))
+            .endpointProvider(r -> defaultEndpointProvider.resolveEndpoint(r)
+                                                          .thenApply(e -> e.toBuilder()
+                                                                           .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, emptyList())
+                                                                           .build()))
+            .putAuthScheme(authScheme("aws.auth#sigv4a", AwsV4HttpSigner.create()))
+            .build();
+
+        assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}).join())
+            .hasMessageContaining("stop");
+
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE)).isEqualTo(RegionScope.create("region-from-ap"));
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)).isEqualTo("Y");
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)).isEqualTo(true);
+    }
+
+    @Test
+    public void sync_endpointProviderReturnsV4aSignerProperties_executionAttributesFromEndpointProvider() {
+        RestJsonEndpointProvidersEndpointProvider defaultEndpointProvider =
+            RestJsonEndpointProvidersEndpointProvider.defaultProvider();
+        CapturingInterceptor interceptor = new CapturingInterceptor();
+
+        List<EndpointAuthScheme> endpointAuthSchemes = new ArrayList<>();
+        endpointAuthSchemes.add(SigV4aAuthScheme.builder()
+                                               .addSigningRegion("region-from-ep")
+                                               .signingName("name-from-ep")
+                                               .disableDoubleEncoding(false)
+                                               .build());
+
+        RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder()
+            .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
+            .endpointProvider(r -> defaultEndpointProvider.resolveEndpoint(r)
+                                                          .thenApply(e -> e.toBuilder()
+                                                                           .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, endpointAuthSchemes)
+                                                                           .build()))
+            .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
+                                                                   .schemeId("aws.auth#sigv4a")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, "X")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, "Y")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, false)
+                                                                   .build()))
+            .putAuthScheme(authScheme("aws.auth#sigv4a", AwsV4HttpSigner.create()))
+            .build();
+
+        assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}).join())
+            .hasMessageContaining("stop");
+
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE)).isEqualTo(RegionScope.create("region-from-ep"));
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)).isEqualTo("name-from-ep");
+        assertThat(interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)).isEqualTo(true);
+    }
+
+    private static AuthScheme<?> authScheme(String schemeId, HttpSigner<AwsCredentialsIdentity> signer) {
         return new AuthScheme<AwsCredentialsIdentity>() {
             @Override
             public String schemeId() {

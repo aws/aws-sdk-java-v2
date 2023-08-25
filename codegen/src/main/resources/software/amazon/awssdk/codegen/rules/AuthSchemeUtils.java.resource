@@ -2,22 +2,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
-import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkProtectedApi
@@ -111,43 +101,5 @@ public final class AuthSchemeUtils {
             }
         }
         return authSchemes;
-    }
-
-    public static void setSigningParams(ExecutionAttributes executionAttributes, AuthSchemeOption authOption) {
-        if (authOption.schemeId().equals(AwsV4AuthScheme.SCHEME_ID)) {
-            setSigV4SigningParams(executionAttributes, authOption);
-        } else if (authOption.schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)) {
-            setSigV4aAuthSigningParams(executionAttributes, authOption);
-        }
-    }
-
-    private static void setSigV4SigningParams(ExecutionAttributes executionAttributes, AuthSchemeOption authOption) {
-        if (authOption.signerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE) != null) {
-            executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE,
-                                             authOption.signerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE));
-        }
-        if (authOption.signerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME) != null) {
-            executionAttributes.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
-                                             authOption.signerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME));
-        }
-        if (authOption.signerProperty(AwsV4HttpSigner.REGION_NAME) != null) {
-            executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION,
-                                             Region.of(authOption.signerProperty(AwsV4HttpSigner.REGION_NAME)));
-        }
-    }
-
-    private static void setSigV4aAuthSigningParams(ExecutionAttributes executionAttributes, AuthSchemeOption authOption) {
-        if (authOption.signerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE) != null) {
-            executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE,
-                                             authOption.signerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE));
-        }
-        if (authOption.signerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME) != null) {
-            executionAttributes.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
-                                             authOption.signerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME));
-        }
-        if (authOption.signerProperty(AwsV4aHttpSigner.REGION_NAME) != null) {
-            executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE,
-                                             RegionScope.create(authOption.signerProperty(AwsV4aHttpSigner.REGION_NAME)));
-        }
     }
 }
