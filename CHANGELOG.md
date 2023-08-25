@@ -1,3 +1,20 @@
+# __2.20.135__ __2023-08-25__
+## __AWS CloudTrail__
+  - ### Features
+    - Add ThrottlingException with error code 429 to handle CloudTrail Delegated Admin request rate exceeded on organization resources.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Doc-only update to get doc bug fixes into the SDK docs
+
+## __Amazon Detective__
+  - ### Features
+    - Added protections to interacting with fields containing customer information.
+
 # __2.20.134__ __2023-08-24__
 ## __AWS Elemental MediaConvert__
   - ### Features
@@ -1388,7 +1405,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

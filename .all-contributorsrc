@@ -850,6 +850,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "ManishDait",
+      "name": "Manish Dait",
+      "avatar_url": "https://avatars.githubusercontent.com/u/90558243?v=4",
+      "profile": "https://github.com/ManishDait",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
