@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "deki",
+    "description": "Use latest AWS Lambda Java 17 runtime version in SAM template of archetype"
+}
