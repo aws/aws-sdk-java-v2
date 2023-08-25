@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -41,7 +42,6 @@ import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.TrailerProv
 import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.signer.V4Context;
 import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
-import software.amazon.awssdk.http.auth.aws.util.SignerConstant;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -126,18 +126,22 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     }
 
     private void setupSigExt(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
+        Function<byte[], String> extTemplate = chunk -> rollingSigner.sign(
+            previousSignature ->
+                String.join("\n",
+                            "AWS4-HMAC-SHA256-PAYLOAD",
+                            credentialScope.getDatetime(),
+                            credentialScope.scope(),
+                            previousSignature,
+                            EMPTY_HASH,
+                            toHex(hash(chunk))
+                )
+        );
+
         builder.addExtension(
             chunk -> Pair.of(
                 "chunk-signature".getBytes(StandardCharsets.UTF_8),
-                rollingSigner.sign(
-                    previousSignature ->
-                        "AWS4-HMAC-SHA256-PAYLOAD" + SignerConstant.LINE_SEPARATOR +
-                        credentialScope.getDatetime() + SignerConstant.LINE_SEPARATOR +
-                        credentialScope.scope() + SignerConstant.LINE_SEPARATOR +
-                        previousSignature + SignerConstant.LINE_SEPARATOR +
-                        EMPTY_HASH + SignerConstant.LINE_SEPARATOR +
-                        toHex(hash(chunk))
-                ).getBytes(StandardCharsets.UTF_8)
+                extTemplate.apply(chunk).getBytes(StandardCharsets.UTF_8)
             )
         );
     }
@@ -145,18 +149,22 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     private void setupSigTrailer(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
         List<Pair<String, List<String>>> trailers =
             builder.trailers().stream().map(TrailerProvider::get).collect(Collectors.toList());
-        Function<String, String> template =
+
+        Supplier<String> sigSupplier = () -> rollingSigner.sign(
             previousSignature ->
-                "AWS4-HMAC-SHA256-TRAILER" + SignerConstant.LINE_SEPARATOR +
-                credentialScope.getDatetime() + SignerConstant.LINE_SEPARATOR +
-                credentialScope.scope() + SignerConstant.LINE_SEPARATOR +
-                previousSignature + SignerConstant.LINE_SEPARATOR +
-                toHex(hash(getCanonicalHeadersString(trailers)));
+                String.join("\n",
+                            "AWS4-HMAC-SHA256-TRAILER",
+                            credentialScope.getDatetime(),
+                            credentialScope.scope(),
+                            previousSignature,
+                            toHex(hash(getCanonicalHeadersString(trailers)))
+                )
+        );
 
         builder.addTrailer(
             () -> Pair.of(
                 "x-amz-trailer-signature",
-                Collections.singletonList(rollingSigner.sign(template))
+                Collections.singletonList(sigSupplier.get())
             )
         );
     }

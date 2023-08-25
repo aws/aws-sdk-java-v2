@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.Validate;
 
 
 /**
@@ -29,7 +30,6 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  */
 @SdkProtectedApi
 @Immutable
-// TODO(sra-identity-and-auth): change to builder pattern
 public final class V4Properties {
     private final AwsCredentialsIdentity credentials;
     private final CredentialScope credentialScope;
@@ -38,13 +38,12 @@ public final class V4Properties {
     private final boolean normalizePath;
 
 
-    public V4Properties(AwsCredentialsIdentity credentials, CredentialScope credentialScope,
-                        Clock signingClock, boolean doubleUrlEncode, boolean normalizePath) {
-        this.credentials = credentials;
-        this.credentialScope = credentialScope;
-        this.signingClock = signingClock;
-        this.doubleUrlEncode = doubleUrlEncode;
-        this.normalizePath = normalizePath;
+    private V4Properties(BuilderImpl builder) {
+        this.credentials = Validate.paramNotNull(builder.credentials, "Credentials");
+        this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
+        this.signingClock = Validate.paramNotNull(builder.signingClock, "SigningClock");
+        this.doubleUrlEncode = builder.doubleUrlEncode;
+        this.normalizePath = builder.normalizePath;
     }
 
     public AwsCredentialsIdentity getCredentials() {
@@ -65,5 +64,66 @@ public final class V4Properties {
 
     public boolean shouldNormalizePath() {
         return normalizePath;
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
+    public interface Builder {
+        Builder credentials(AwsCredentialsIdentity credentials);
+
+        Builder credentialScope(CredentialScope credentialScope);
+
+        Builder signingClock(Clock signingClock);
+
+        Builder doubleUrlEncode(boolean doubleUrlEncode);
+
+        Builder normalizePath(boolean normalizePath);
+
+        V4Properties build();
+    }
+
+    private static class BuilderImpl implements Builder {
+        private AwsCredentialsIdentity credentials;
+        private CredentialScope credentialScope;
+        private Clock signingClock;
+        private boolean doubleUrlEncode;
+        private boolean normalizePath;
+
+        @Override
+        public Builder credentials(AwsCredentialsIdentity credentials) {
+            this.credentials = Validate.paramNotNull(credentials, "Credentials");
+            return this;
+        }
+
+        @Override
+        public Builder credentialScope(CredentialScope credentialScope) {
+            this.credentialScope = Validate.paramNotNull(credentialScope, "CredentialScope");
+            return this;
+        }
+
+        @Override
+        public Builder signingClock(Clock signingClock) {
+            this.signingClock = signingClock;
+            return this;
+        }
+
+        @Override
+        public Builder doubleUrlEncode(boolean doubleUrlEncode) {
+            this.doubleUrlEncode = doubleUrlEncode;
+            return this;
+        }
+
+        @Override
+        public Builder normalizePath(boolean normalizePath) {
+            this.normalizePath = normalizePath;
+            return this;
+        }
+
+        @Override
+        public V4Properties build() {
+            return new V4Properties(this);
+        }
     }
 }

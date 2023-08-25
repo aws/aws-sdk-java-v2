@@ -71,11 +71,13 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean doubleUrlEncode = request.requireProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
         boolean normalizePath = request.requireProperty(AwsV4HttpSigner.NORMALIZE_PATH, true);
 
-        return new V4Properties(credentials,
-                                credentialScope,
-                                signingClock,
-                                doubleUrlEncode,
-                                normalizePath);
+        return V4Properties.builder()
+                           .credentials(credentials)
+                           .credentialScope(credentialScope)
+                           .signingClock(signingClock)
+                           .doubleUrlEncode(doubleUrlEncode)
+                           .normalizePath(normalizePath)
+                           .build();
     }
 
     private static V4RequestSigner v4RequestSigner(
