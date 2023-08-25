@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Detective",
+    "contributor": "",
+    "description": "Added protections to interacting with fields containing customer information."
+}
