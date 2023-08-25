@@ -59,7 +59,6 @@ public class MultiRegionAccessPointSigningFunctionalTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_noSignerOverride_usesInterceptorSigner() {
         S3Client s3Client = clientBuilder().build();
         s3Client.listObjects(ListObjectsRequest.builder()
@@ -69,7 +68,6 @@ public class MultiRegionAccessPointSigningFunctionalTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException 
     public void multiRegionArn_clientSignerOverride_usesOverrideSigner() {
         S3Client s3Client = clientBuilderWithOverrideSigner(AwsS3V4Signer.create()).build();
         s3Client.listObjects(ListObjectsRequest.builder()
@@ -79,7 +77,6 @@ public class MultiRegionAccessPointSigningFunctionalTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_requestSignerOverride_usesOverrideSigner() {
         S3Client s3Client = clientBuilder().build();
         s3Client.listObjects(ListObjectsRequest.builder()
@@ -90,7 +87,6 @@ public class MultiRegionAccessPointSigningFunctionalTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_requestAndClientSignerOverride_usesRequestOverrideSigner() {
         S3Client s3Client = clientBuilderWithOverrideSigner(DefaultAwsCrtS3V4aSigner.create()).build();
         s3Client.listObjects(ListObjectsRequest.builder()

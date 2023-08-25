@@ -29,6 +29,7 @@ import org.assertj.core.data.Offset;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -530,27 +531,28 @@ public class S3PresignerTest {
             .hasMessageContaining("Invalid configuration: region from ARN `us-east-1` does not match client region `us-west-2` and UseArnRegion is `false`");
     }
 
+    /*
+    @Test
+    // TODO(sra-identity-and-auth), this test fails with Expected :"AWS4-ECDSA-P256-SHA256", Actual :"AWS4-HMAC-SHA256"
+    public void accessPointArn_multiRegion_useArnRegionTrue_correctEndpointAndSigner() {
+        String customEndpoint = "https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com";
+        String accessPointArn = "arn:aws:s3::12345678910:accesspoint:mfzwi23gnjvgw.mrap";
 
-    // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
-    // @Test
-    // public void accessPointArn_multiRegion_useArnRegionTrue_correctEndpointAndSigner() {
-    //     String customEndpoint = "https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com";
-    //     String accessPointArn = "arn:aws:s3::12345678910:accesspoint:mfzwi23gnjvgw.mrap";
-    //
-    //     S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
-    //                                                                                    .useArnRegionEnabled(true)
-    //                                                                                    .build())
-    //                                               .build();
-    //
-    //     PresignedGetObjectRequest presignedRequest =
-    //         presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
-    //                                          .getObjectRequest(go -> go.bucket(accessPointArn)
-    //                                                                    .key("bar")));
-    //
-    //     assertThat(presignedRequest.httpRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0))
-    //         .isEqualTo("AWS4-ECDSA-P256-SHA256");
-    //     assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
-    // }
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                                                                                       .useArnRegionEnabled(true)
+                                                                                       .build())
+                                                  .build();
+
+        PresignedGetObjectRequest presignedRequest =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(accessPointArn)
+                                                                       .key("bar")));
+
+        assertThat(presignedRequest.httpRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0))
+            .isEqualTo("AWS4-ECDSA-P256-SHA256");
+        assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
+    }
+     */
 
     @Test
     public void outpostArn_usWest_calculatesCorrectSignature() {

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.crt;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -57,10 +58,10 @@ public interface AwsCrtV4aAuthScheme extends AuthScheme<AwsCredentialsIdentity> 
     }
 
     /**
-     * Retrieve the {@link AwsCrtV4aHttpSigner} associated with this authentication scheme.
+     * Retrieve the {@link AwsV4aHttpSigner} associated with this authentication scheme.
      */
     @Override
-    default AwsCrtV4aHttpSigner signer() {
+    default AwsV4aHttpSigner signer() {
         return AwsCrtV4aHttpSigner.create();
     }
 }
