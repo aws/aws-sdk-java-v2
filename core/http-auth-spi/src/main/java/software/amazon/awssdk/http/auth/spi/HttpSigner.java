@@ -33,8 +33,9 @@ import software.amazon.awssdk.identity.spi.Identity;
 public interface HttpSigner<IdentityT extends Identity> {
 
     /**
-     * A {@link Clock} to be used at the time of signing which is shared among several signers. This property defaults to the time
-     * at which signing occurs.
+     * A {@link Clock} to be used to derive the signing time. This property defaults to the system clock.
+     *
+     * <p>Note, signing time may not be relevant to some signers.
      */
     SignerProperty<Clock> SIGNING_CLOCK = SignerProperty.create(Clock.class, "SigningClock");
 
