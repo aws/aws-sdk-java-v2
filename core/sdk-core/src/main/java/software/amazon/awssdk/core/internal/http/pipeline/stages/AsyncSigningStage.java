@@ -42,7 +42,6 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.SharedSignerProperty;
 import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
@@ -105,7 +104,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         if (context.requestProvider() == null) {
             SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
                 .builder(identity)
-                .putProperty(SharedSignerProperty.SIGNING_CLOCK, signingClock())
+                .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
                 .request(request)
                 .payload(request.contentStreamProvider().orElse(null));
             authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
@@ -116,7 +115,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
 
         AsyncSignRequest.Builder<T> signRequestBuilder = AsyncSignRequest
             .builder(identity)
-            .putProperty(SharedSignerProperty.SIGNING_CLOCK, signingClock())
+            .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
             .request(request)
             .payload(context.requestProvider());
         authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);

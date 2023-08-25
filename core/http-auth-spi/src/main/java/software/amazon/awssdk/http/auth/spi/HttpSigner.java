@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.spi;
 
+import java.time.Clock;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -30,6 +31,12 @@ import software.amazon.awssdk.identity.spi.Identity;
  */
 @SdkPublicApi
 public interface HttpSigner<IdentityT extends Identity> {
+
+    /**
+     * A {@link Clock} to be used at the time of signing which is shared among several signers. This property defaults to the time
+     * at which signing occurs.
+     */
+    SignerProperty<Clock> SIGNING_CLOCK = SignerProperty.create(Clock.class, "SigningClock");
 
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
