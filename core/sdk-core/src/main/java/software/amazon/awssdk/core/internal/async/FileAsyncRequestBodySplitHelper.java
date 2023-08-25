@@ -86,15 +86,17 @@ public final class FileAsyncRequestBodySplitHelper {
     }
 
     private void sendAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
-        if (!isSendingRequestBody.compareAndSet(false, true)) {
-            return;
-        }
+        do {
+            if (!isSendingRequestBody.compareAndSet(false, true)) {
+                return;
+            }
 
-        try {
-            doSendAsyncRequestBody(simplePublisher);
-        } finally {
-            isSendingRequestBody.set(false);
-        }
+            try {
+                doSendAsyncRequestBody(simplePublisher);
+            } finally {
+                isSendingRequestBody.set(false);
+            }
+        } while (shouldSendMore());
     }
 
     private void doSendAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
