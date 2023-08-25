@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -97,11 +98,7 @@ public final class FileAsyncRequestBodySplitHelper {
     }
 
     private void doSendAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
-        while (true) {
-            if (!shouldSendMore()) {
-                break;
-            }
-
+        while (shouldSendMore()) {
             AsyncRequestBody currentAsyncRequestBody = newFileAsyncRequestBody(simplePublisher);
             simplePublisher.send(currentAsyncRequestBody);
             numAsyncRequestBodiesInFlight.incrementAndGet();
@@ -115,7 +112,16 @@ public final class FileAsyncRequestBodySplitHelper {
         if (remaining == 0) {
             isDone = true;
             simplePublisher.complete();
+        } else if (remaining < 0) {
+            isDone = true;
+            simplePublisher.error(SdkClientException.create(
+                "Unexpected error occurred. Remaining data is negative: " + remaining));
         }
+    }
+
+    private void startNextRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
+        numAsyncRequestBodiesInFlight.decrementAndGet();
+        sendAsyncRequestBody(simplePublisher);
     }
 
     private AsyncRequestBody newFileAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
@@ -126,21 +132,7 @@ public final class FileAsyncRequestBodySplitHelper {
                                                                         .position(position)
                                                                         .numBytesToRead(numBytesToReadForThisChunk)
                                                                         .build();
-        return new AsyncRequestBody() {
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                fileAsyncRequestBody.doAfterOnComplete(() -> {
-                    numAsyncRequestBodiesInFlight.decrementAndGet();
-                    sendAsyncRequestBody(simplePublisher);
-                }).subscribe(s);
-            }
-
-            @Override
-            public Optional<Long> contentLength() {
-                return fileAsyncRequestBody.contentLength();
-            }
-        };
+        return new FileAsyncRequestBodyWrapper(fileAsyncRequestBody, simplePublisher);
     }
 
     /**
@@ -158,5 +150,34 @@ public final class FileAsyncRequestBodySplitHelper {
     @SdkTestInternalApi
     AtomicInteger numAsyncRequestBodiesInFlight() {
         return numAsyncRequestBodiesInFlight;
+    }
+
+    private final class FileAsyncRequestBodyWrapper implements AsyncRequestBody {
+
+        private final FileAsyncRequestBody fileAsyncRequestBody;
+        private final SimplePublisher<AsyncRequestBody> simplePublisher;
+
+        FileAsyncRequestBodyWrapper(FileAsyncRequestBody fileAsyncRequestBody,
+                                    SimplePublisher<AsyncRequestBody> simplePublisher) {
+            this.fileAsyncRequestBody = fileAsyncRequestBody;
+            this.simplePublisher = simplePublisher;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            fileAsyncRequestBody.doAfterOnComplete(() -> startNextRequestBody(simplePublisher))
+                                // The reason we still need to call startNextRequestBody when the subscription is
+                                // cancelled is that upstream could cancel the subscription even though the stream has
+                                // finished successfully before onComplete. If this happens, doAfterOnComplete callback
+                                // will never be invoked, and if the current buffer is full, the publisher will stop
+                                // sending new FileAsyncRequestBody, leading to uncompleted future.
+                                .doAfterOnCancel(() -> startNextRequestBody(simplePublisher))
+                                .subscribe(s);
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return fileAsyncRequestBody.contentLength();
+        }
     }
 }
