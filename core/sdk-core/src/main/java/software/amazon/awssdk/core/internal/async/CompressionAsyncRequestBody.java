@@ -15,13 +15,19 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.core.internal.io.AwsChunkedInputStream.DEFAULT_CHUNK_SIZE;
+
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Optional;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.compression.Compressor;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.DelegatingSubscriber;
+import software.amazon.awssdk.utils.async.FlatteningSubscriber;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -31,7 +37,6 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkInternalApi
 public class CompressionAsyncRequestBody implements AsyncRequestBody {
 
-    private static final int COMPRESSION_CHUNK_SIZE = 128 * 1024;
     private final AsyncRequestBody wrapped;
     private final Compressor compressor;
     private final int chunkSize;
@@ -39,7 +44,34 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
     private CompressionAsyncRequestBody(DefaultBuilder builder) {
         this.wrapped = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
         this.compressor = Validate.paramNotNull(builder.compressor, "compressor");
-        this.chunkSize = builder.chunkSize != null ? builder.chunkSize : COMPRESSION_CHUNK_SIZE;
+        this.chunkSize = builder.chunkSize != null ? builder.chunkSize : DEFAULT_CHUNK_SIZE;
+    }
+
+    @Override
+    public void subscribe(Subscriber<? super ByteBuffer> s) {
+        Validate.notNull(s, "Subscription MUST NOT be null.");
+
+        SdkPublisher<Iterable<ByteBuffer>> split = split(wrapped);
+        SdkPublisher<ByteBuffer> flattening = flattening(split);
+        flattening.map(compressor::compress).subscribe(s);
+    }
+
+    @Override
+    public Optional<Long> contentLength() {
+        return wrapped.contentLength();
+    }
+
+    @Override
+    public String contentType() {
+        return wrapped.contentType();
+    }
+
+    private SdkPublisher<Iterable<ByteBuffer>> split(SdkPublisher<ByteBuffer> source) {
+        return subscriber -> source.subscribe(new SplittingSubscriber(subscriber, chunkSize));
+    }
+
+    private SdkPublisher<ByteBuffer> flattening(SdkPublisher<Iterable<ByteBuffer>> source) {
+        return subscriber -> source.subscribe(new FlatteningSubscriber<>(subscriber));
     }
 
     /**
@@ -103,25 +135,27 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
         }
     }
 
-    @Override
-    public Optional<Long> contentLength() {
-        return wrapped.contentLength();
-    }
+    private static final class SplittingSubscriber extends DelegatingSubscriber<ByteBuffer, Iterable<ByteBuffer>> {
+        private final ChunkBuffer chunkBuffer;
 
-    @Override
-    public String contentType() {
-        return wrapped.contentType();
-    }
+        protected SplittingSubscriber(Subscriber<? super Iterable<ByteBuffer>> subscriber, int chunkSize) {
+            super(subscriber);
+            this.chunkBuffer = ChunkBuffer.builder()
+                                          .bufferSize(chunkSize)
+                                          .build();
+        }
 
-    @Override
-    public void subscribe(Subscriber<? super ByteBuffer> s) {
-        Validate.notNull(s, "Subscription MUST NOT be null.");
+        @Override
+        public void onNext(ByteBuffer byteBuffer) {
+            Iterable<ByteBuffer> buffers = chunkBuffer.split(byteBuffer);
+            subscriber.onNext(buffers);
+        }
 
-        ChunkBuffer chunkBuffer = ChunkBuffer.builder()
-                                             .bufferSize(chunkSize)
-                                             .build();
-
-        wrapped.flatMapIterable(chunkBuffer::split)
-               .map(compressor::compress).subscribe(s);
+        @Override
+        public void onComplete() {
+            Optional<ByteBuffer> byteBuffer = chunkBuffer.getBufferedData();
+            byteBuffer.ifPresent(buffer -> subscriber.onNext(Collections.singletonList(buffer)));
+            super.onComplete();
+        }
     }
 }
