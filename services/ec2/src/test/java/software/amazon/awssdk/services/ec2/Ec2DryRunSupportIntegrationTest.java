@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Ec2Response;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
-public class DryRunSupportIntegrationTest extends AwsIntegrationTestBase {
+public class Ec2DryRunSupportIntegrationTest extends AwsIntegrationTestBase {
 
     Ec2Client ec2Client = Ec2Client.builder()
                                    .region(Region.US_EAST_1)
