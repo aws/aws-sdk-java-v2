@@ -19,8 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.AsyncS3ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
@@ -54,7 +54,7 @@ public class S3TestRunner implements TestRunner {
                                          requestBody);
 
             s3NettyClient.getObject(b -> b.bucket(BUCKET_NAME).key(KEY),
-                               AsyncResponseTransformer.toBytes()).join();
+                               AsyncS3ResponseTransformer.toBytes()).join();
 
         } finally {
             if (bucketResponse != null) {

@@ -19,8 +19,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -202,7 +204,11 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @return AsyncResponseTransformer instance.
      */
     static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> toBytes() {
-        return new ByteArrayAsyncResponseTransformer<>();
+        return new ByteArrayAsyncResponseTransformer<>(Optional.empty());
+    }
+
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> toBytes(Function<ResponseT, Integer> f) {
+        return new ByteArrayAsyncResponseTransformer<>(Optional.of(f));
     }
 
     /**

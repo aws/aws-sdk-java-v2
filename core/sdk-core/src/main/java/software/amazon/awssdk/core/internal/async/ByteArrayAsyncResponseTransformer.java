@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.utils.BinaryUtils.copyBytes;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -41,13 +44,18 @@ import software.amazon.awssdk.utils.BinaryUtils;
 public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
         AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {
 
+    private final Optional<Function<ResponseT, Integer>> knownSize;
     private volatile CompletableFuture<byte[]> cf;
     private volatile ResponseT response;
+
+    public ByteArrayAsyncResponseTransformer(Optional<Function<ResponseT, Integer>> knownSize) {
+        this.knownSize = knownSize;
+    }
 
     @Override
     public CompletableFuture<ResponseBytes<ResponseT>> prepare() {
         cf = new CompletableFuture<>();
-        return cf.thenApply(arr -> ResponseBytes.fromByteArray(response, arr));
+        return cf.thenApply(arr -> ResponseBytes.fromByteArrayUnsafe(response, arr));
     }
 
     @Override
@@ -57,7 +65,9 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        publisher.subscribe(new BaosSubscriber(cf));
+        ByteStore byteStore =
+            knownSize.<ByteStore>map(f -> new KnownLengthStore(f.apply(response))).orElseGet(BaosStore::new);
+        publisher.subscribe(new ByteSubscriber(cf, byteStore));
     }
 
     @Override
@@ -65,15 +75,17 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
         cf.completeExceptionally(throwable);
     }
 
-    static class BaosSubscriber implements Subscriber<ByteBuffer> {
+
+    static class ByteSubscriber implements Subscriber<ByteBuffer> {
         private final CompletableFuture<byte[]> resultFuture;
 
-        private ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        private ByteStore byteStore;
 
         private Subscription subscription;
 
-        BaosSubscriber(CompletableFuture<byte[]> resultFuture) {
+        ByteSubscriber(CompletableFuture<byte[]> resultFuture, ByteStore byteStore) {
             this.resultFuture = resultFuture;
+            this.byteStore = byteStore;
         }
 
         @Override
@@ -88,19 +100,54 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            invokeSafely(() -> baos.write(BinaryUtils.copyBytesFrom(byteBuffer)));
+            byteStore.append(byteBuffer);
             subscription.request(1);
         }
 
         @Override
         public void onError(Throwable throwable) {
-            baos = null;
+            byteStore = null;
             resultFuture.completeExceptionally(throwable);
         }
 
         @Override
         public void onComplete() {
-            resultFuture.complete(baos.toByteArray());
+            resultFuture.complete(byteStore.toByteArray());
+        }
+    }
+
+    interface ByteStore {
+        void append(ByteBuffer byteBuffer);
+        
+        byte[] toByteArray();
+    }
+
+    static class BaosStore implements ByteStore {
+        private final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        public void append(ByteBuffer byteBuffer) {
+            invokeSafely(() -> baos.write(BinaryUtils.copyBytesFrom(byteBuffer)));
+        }
+
+        public byte[] toByteArray() {
+            return baos.toByteArray();
+        }
+    }
+
+    static class KnownLengthStore implements ByteStore {
+        private final byte[] byteArray;
+        private int offset = 0;
+
+        KnownLengthStore(int contentSize) {
+            this.byteArray = new byte[contentSize];
+        }
+
+        public void append(ByteBuffer byteBuffer) {
+            offset += copyBytes(byteBuffer, byteArray, offset);
+        }
+
+        public byte[] toByteArray() {
+            return byteArray;
         }
     }
 }
