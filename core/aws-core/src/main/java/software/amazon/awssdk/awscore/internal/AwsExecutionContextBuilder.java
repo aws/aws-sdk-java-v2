@@ -76,6 +76,8 @@ public final class AwsExecutionContextBuilder {
             clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES),
             originalRequest.overrideConfiguration().map(c -> c.executionAttributes()).orElse(null));
 
+        executionAttributes.putAttributeIfAbsent(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR, metricCollector);
+
         executionAttributes
             .putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG,

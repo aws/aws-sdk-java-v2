@@ -54,6 +54,12 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<String> OPERATION_NAME = new ExecutionAttribute<>("OperationName");
 
     /**
+     * The {@link MetricCollector} associated with the overall API call.
+     */
+    public static final ExecutionAttribute<MetricCollector> API_CALL_METRIC_COLLECTOR = new ExecutionAttribute<>(
+        "ApiCallMetricCollector");
+
+    /**
      * The {@link MetricCollector} associated with the current, ongoing API call attempt. This is not set until the actual
      * internal API call attempt starts.
      */

@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.SignerOverrideUtils;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.AsyncSigner;
@@ -77,14 +78,10 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         updateHttpRequestInInterceptorContext(request, context.executionContext());
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         return identityFuture.thenCompose(identity -> {
-            long signingStart = System.nanoTime();
-
-            CompletableFuture<SdkHttpFullRequest> signedRequestFuture = doSraSign(request, context, selectedAuthScheme, identity);
-
-            signedRequestFuture.whenComplete((r, t) -> {
-                context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION,
-                                                              Duration.ofNanos(System.nanoTime() - signingStart));
-            });
+            CompletableFuture<SdkHttpFullRequest> signedRequestFuture = MetricUtils.reportDuration(
+                () -> doSraSign(request, context, selectedAuthScheme, identity),
+                context.attemptMetricCollector(),
+                CoreMetric.SIGNING_DURATION);
 
             return signedRequestFuture.thenApply(r -> {
                 updateHttpRequestInInterceptorContext(r, context.executionContext());

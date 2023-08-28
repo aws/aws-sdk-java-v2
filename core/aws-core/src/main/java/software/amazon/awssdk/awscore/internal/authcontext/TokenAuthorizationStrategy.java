@@ -82,7 +82,7 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
                                               MetricCollector metricCollector) {
         Validate.notNull(tokenProvider, "No token provider exists to resolve a token from.");
 
-        // TODO: Exception handling for join()?
+        // TODO(sra-identity-and-auth): Exception handling for join()?
         Pair<TokenIdentity, Duration> measured = MetricUtils.measureDuration(() -> tokenProvider.resolveIdentity().join());
         metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, measured.right());
         TokenIdentity token = measured.left();
