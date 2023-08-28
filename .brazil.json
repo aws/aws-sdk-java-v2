@@ -32,6 +32,8 @@
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
         "imds": { "packageName": "AwsJavaSdk-Imds" },
         "crt-core": { "packageName": "AwsJavaSdk-Core-CrtCore" },
+        "checksums-spi": { "packageName": "AwsJavaSdk-Core-ChecksumsSpi" },
+        "checksums": { "packageName": "AwsJavaSdk-Core-Checksums" },
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },
