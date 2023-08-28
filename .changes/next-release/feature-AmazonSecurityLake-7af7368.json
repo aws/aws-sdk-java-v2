@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Security Lake",
+    "contributor": "",
+    "description": "Remove incorrect regex enforcement on pagination tokens."
+}
