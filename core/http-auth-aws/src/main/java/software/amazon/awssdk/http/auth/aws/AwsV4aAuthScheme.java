@@ -59,7 +59,7 @@ public interface AwsV4aAuthScheme extends AuthScheme<AwsCredentialsIdentity> {
     }
 
     /**
-     * Get a default implementation of a {@link AwsV4aAuthScheme}
+     * Retrieve the {@link AwsV4aHttpSigner} associated with this authentication scheme.
      */
     @Override
     default HttpSigner<AwsCredentialsIdentity> signer() {
