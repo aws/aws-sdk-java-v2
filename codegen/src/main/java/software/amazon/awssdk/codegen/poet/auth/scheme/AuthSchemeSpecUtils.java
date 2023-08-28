@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
 
 public final class AuthSchemeSpecUtils {
     private static final Set<String> DEFAULT_AUTH_SCHEME_PARAMS = Collections.unmodifiableSet(setOf("region", "operation"));
@@ -197,6 +198,8 @@ public final class AuthSchemeSpecUtils {
             // sigv4a is not modeled but needed for the endpoints based auth-scheme cases.
             result.add(AwsV4aAuthScheme.class);
         }
+        // Make the no-auth scheme available.
+        result.add(NoAuthAuthScheme.class);
         return result;
     }
 

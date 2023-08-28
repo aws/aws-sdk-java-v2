@@ -107,9 +107,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     private Map<String, AuthScheme<?>> authSchemes() {
-        Map<String, AuthScheme<?>> schemes = new HashMap<>(1 + this.additionalAuthSchemes.size());
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(2 + this.additionalAuthSchemes.size());
         BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
         schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
+        NoAuthAuthScheme noAuthAuthScheme = NoAuthAuthScheme.create();
+        schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
         schemes.putAll(this.additionalAuthSchemes);
         return Collections.unmodifiableMap(schemes);
     }
