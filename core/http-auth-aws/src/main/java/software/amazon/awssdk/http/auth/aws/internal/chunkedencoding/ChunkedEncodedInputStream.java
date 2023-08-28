@@ -89,7 +89,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
             currentChunk.close();
         }
         // we *have* to read from the backing stream in order to figure out if it's the end or not
-        // TODO: We can likely optimize this by not copying the entire chunk of data into memory
+        // TODO(sra-identity-and-auth): We can likely optimize this by not copying the entire chunk of data into memory
         byte[] chunkData = new byte[chunkSize];
         int read = read(stream, chunkData, chunkSize);
 
