@@ -42,8 +42,8 @@ public final class V4Properties {
         this.credentials = Validate.paramNotNull(builder.credentials, "Credentials");
         this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
         this.signingClock = Validate.paramNotNull(builder.signingClock, "SigningClock");
-        this.doubleUrlEncode = builder.doubleUrlEncode;
-        this.normalizePath = builder.normalizePath;
+        this.doubleUrlEncode = Validate.getOrDefault(builder.doubleUrlEncode, () -> true);
+        this.normalizePath = Validate.getOrDefault(builder.normalizePath, () -> true);
     }
 
     public AwsCredentialsIdentity getCredentials() {
@@ -77,9 +77,9 @@ public final class V4Properties {
 
         Builder signingClock(Clock signingClock);
 
-        Builder doubleUrlEncode(boolean doubleUrlEncode);
+        Builder doubleUrlEncode(Boolean doubleUrlEncode);
 
-        Builder normalizePath(boolean normalizePath);
+        Builder normalizePath(Boolean normalizePath);
 
         V4Properties build();
     }
@@ -88,8 +88,8 @@ public final class V4Properties {
         private AwsCredentialsIdentity credentials;
         private CredentialScope credentialScope;
         private Clock signingClock;
-        private boolean doubleUrlEncode;
-        private boolean normalizePath;
+        private Boolean doubleUrlEncode;
+        private Boolean normalizePath;
 
         @Override
         public Builder credentials(AwsCredentialsIdentity credentials) {
@@ -110,13 +110,13 @@ public final class V4Properties {
         }
 
         @Override
-        public Builder doubleUrlEncode(boolean doubleUrlEncode) {
+        public Builder doubleUrlEncode(Boolean doubleUrlEncode) {
             this.doubleUrlEncode = doubleUrlEncode;
             return this;
         }
 
         @Override
-        public Builder normalizePath(boolean normalizePath) {
+        public Builder normalizePath(Boolean normalizePath) {
             this.normalizePath = normalizePath;
             return this;
         }
