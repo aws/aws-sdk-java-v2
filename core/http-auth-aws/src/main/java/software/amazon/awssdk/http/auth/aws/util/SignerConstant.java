@@ -55,6 +55,8 @@ public final class SignerConstant {
 
     public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 
+    public static final String STREAMING_EVENTS_PAYLOAD = "STREAMING-AWS4-HMAC-SHA256-EVENTS";
+
     public static final String STREAMING_UNSIGNED_PAYLOAD_TRAILER = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
 
     /**
