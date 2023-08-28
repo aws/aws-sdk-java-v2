@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.auth.aws;
 import java.time.Clock;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.aws.internal.signer.SignerLoader;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -84,12 +85,11 @@ public interface AwsV4aHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
     SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
         SignerProperty.create(Boolean.class, "PayloadSigningEnabled");
 
-
     /**
      * Get a default implementation of a {@link AwsV4aHttpSigner}
      */
     static AwsV4aHttpSigner create() {
-        throw new UnsupportedOperationException("not yet implemented");
+        return SignerLoader.getSigV4aSigner();
     }
 
     /**

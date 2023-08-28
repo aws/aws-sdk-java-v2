@@ -41,8 +41,10 @@ import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 public class MultiRegionAccessPointEndpointResolutionTest {
 
     private final static String MULTI_REGION_ARN = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+    // TODO(sra-identity-and-auth): The forward slash of the URL below was added to account for the signer behavior that
+    // sanitizes the URI path, we need to double check that this behavior it's safe and that it won't break anything else.
     private final static URI MULTI_REGION_ENDPOINT =
-        URI.create("https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com");
+        URI.create("https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com/");
     private MockHttpClient mockHttpClient;
 
     @BeforeEach
@@ -51,7 +53,6 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_correctlyRewritesEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder().build()).build();
@@ -60,7 +61,6 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_useArnRegionEnabled_correctlyRewritesEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder()
@@ -137,7 +137,6 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_differentRegion_useArnRegionTrue() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().build();
