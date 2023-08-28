@@ -28,12 +28,22 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 public final class AsyncRequestBodySplitConfiguration implements ToCopyableBuilder<AsyncRequestBodySplitConfiguration.Builder,
     AsyncRequestBodySplitConfiguration> {
+    private static final long DEFAULT_CHUNK_SIZE = 2 * 1024 * 1024L;
+    private static final long DEFAULT_BUFFER_SIZE = DEFAULT_CHUNK_SIZE * 4;
+    private static final AsyncRequestBodySplitConfiguration DEFAULT_CONFIG = builder()
+        .bufferSizeInBytes(DEFAULT_BUFFER_SIZE)
+        .chunkSizeInBytes(DEFAULT_CHUNK_SIZE)
+        .build();
     private final Long chunkSizeInBytes;
     private final Long bufferSizeInBytes;
 
     private AsyncRequestBodySplitConfiguration(DefaultBuilder builder) {
         this.chunkSizeInBytes = Validate.isPositiveOrNull(builder.chunkSizeInBytes, "chunkSizeInBytes");
         this.bufferSizeInBytes = Validate.isPositiveOrNull(builder.bufferSizeInBytes, "bufferSizeInBytes");
+    }
+
+    public static AsyncRequestBodySplitConfiguration defaultConfiguration() {
+        return DEFAULT_CONFIG;
     }
 
     /**
