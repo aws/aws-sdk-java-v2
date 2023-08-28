@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Ec2Response;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
-public class Ec2DryRunSupportIntegrationTest extends AwsIntegrationTestBase {
+class Ec2DryRunSupportIntegrationTest extends AwsIntegrationTestBase {
 
     Ec2Client ec2Client = Ec2Client.builder()
                                    .region(Region.US_EAST_1)
@@ -34,7 +34,7 @@ public class Ec2DryRunSupportIntegrationTest extends AwsIntegrationTestBase {
 
 
     @Test
-    public void dryRunSuccessTest() {
+    void dryRunSuccessTest() {
         assertThat(isDryRunComplete(
             () -> ec2Client.describeRegions(
                 r -> r.regionNames(Region.US_EAST_1.id()).dryRun(true))))
