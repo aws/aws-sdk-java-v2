@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup",
+    "contributor": "",
+    "description": "Add support for customizing time zone for backup window in backup plan rules."
+}
