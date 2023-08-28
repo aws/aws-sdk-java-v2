@@ -1,3 +1,32 @@
+# __2.20.136__ __2023-08-28__
+## __AWS Backup__
+  - ### Features
+    - Add support for customizing time zone for backup window in backup plan rules.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate licensing optimization recommendations for sql server running on EC2 instances.
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for permissions and links.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Remove incorrect regex enforcement on pagination tokens.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - WorkSpaces Web now enables Admins to configure which cookies are synchronized from an end-user's local browser to the in-session browser. In conjunction with a browser extension, this feature enables enhanced Single-Sign On capability by reducing the number of times an end-user has to authenticate.
+
+## __Service Quotas__
+  - ### Features
+    - Service Quotas now supports viewing the applied quota value and requesting a quota increase for a specific resource in an AWS account.
+
 # __2.20.135__ __2023-08-25__
 ## __AWS CloudTrail__
   - ### Features
@@ -1405,7 +1434,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
