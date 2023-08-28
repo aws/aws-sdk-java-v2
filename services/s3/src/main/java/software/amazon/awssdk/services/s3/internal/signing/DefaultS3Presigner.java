@@ -80,6 +80,7 @@ import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointRe
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
@@ -87,10 +88,12 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.AbortMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
@@ -99,6 +102,7 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
 import software.amazon.awssdk.services.s3.transform.AbortMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.CompleteMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.CreateMultipartUploadRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.DeleteObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
@@ -124,6 +128,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final PutObjectRequestMarshaller putObjectRequestMarshaller;
     private final CreateMultipartUploadRequestMarshaller createMultipartUploadRequestMarshaller;
     private final UploadPartRequestMarshaller uploadPartRequestMarshaller;
+    private final DeleteObjectRequestMarshaller deleteObjectRequestMarshaller;
     private final CompleteMultipartUploadRequestMarshaller completeMultipartUploadRequestMarshaller;
     private final AbortMultipartUploadRequestMarshaller abortMultipartUploadRequestMarshaller;
     private final SdkClientConfiguration clientConfiguration;
@@ -177,6 +182,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         // Copied from DefaultS3Client#uploadPart
         this.uploadPartRequestMarshaller = new UploadPartRequestMarshaller(protocolFactory);
+
+        // Copied from DefaultS3Client#deleteObject
+        this.deleteObjectRequestMarshaller = new DeleteObjectRequestMarshaller(protocolFactory);
 
         // Copied from DefaultS3Client#completeMultipartUpload
         this.completeMultipartUploadRequestMarshaller = new CompleteMultipartUploadRequestMarshaller(protocolFactory);
@@ -250,6 +258,17 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                        PutObjectRequest.class,
                        putObjectRequestMarshaller::marshall,
                        "PutObject")
+            .build();
+    }
+
+    @Override
+    public PresignedDeleteObjectRequest presignDeleteObject(DeleteObjectPresignRequest request) {
+        return presign(PresignedDeleteObjectRequest.builder(),
+                       request,
+                       request.deleteObjectRequest(),
+                       DeleteObjectRequest.class,
+                       deleteObjectRequestMarshaller::marshall,
+                       "DeleteObject")
             .build();
     }
 
