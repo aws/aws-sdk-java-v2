@@ -27,6 +27,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
+import software.amazon.awssdk.core.RequestCompressionConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -64,6 +65,7 @@ public final class ClientOverrideConfiguration
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
     private final ScheduledExecutorService scheduledExecutorService;
+    private final RequestCompressionConfiguration requestCompressionConfiguration;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -80,6 +82,7 @@ public final class ClientOverrideConfiguration
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
         this.scheduledExecutorService = builder.scheduledExecutorService();
+        this.requestCompressionConfiguration = builder.requestCompressionConfiguration();
     }
 
     @Override
@@ -96,7 +99,8 @@ public final class ClientOverrideConfiguration
             .defaultProfileName(defaultProfileName)
             .executionAttributes(executionAttributes)
             .metricPublishers(metricPublishers)
-            .scheduledExecutorService(scheduledExecutorService);
+            .scheduledExecutorService(scheduledExecutorService)
+            .requestCompressionConfiguration(requestCompressionConfiguration);
     }
 
     /**
@@ -230,19 +234,30 @@ public final class ClientOverrideConfiguration
         return executionAttributes;
     }
 
+    /**
+     * The request compression configuration object, which includes options to enable/disable request compression and set the
+     * minimum compression threshold.
+     *
+     * @see Builder#requestCompressionConfiguration(RequestCompressionConfiguration)
+     */
+    public Optional<RequestCompressionConfiguration> requestCompressionConfiguration() {
+        return Optional.ofNullable(requestCompressionConfiguration);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ClientOverrideConfiguration")
-                .add("headers", headers)
-                .add("retryPolicy", retryPolicy)
-                .add("apiCallTimeout", apiCallTimeout)
-                .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
-                .add("executionInterceptors", executionInterceptors)
-                .add("advancedOptions", advancedOptions)
-                .add("profileFile", defaultProfileFile)
-                .add("profileName", defaultProfileName)
-                .add("scheduledExecutorService", scheduledExecutorService)
-                .build();
+                       .add("headers", headers)
+                       .add("retryPolicy", retryPolicy)
+                       .add("apiCallTimeout", apiCallTimeout)
+                       .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
+                       .add("executionInterceptors", executionInterceptors)
+                       .add("advancedOptions", advancedOptions)
+                       .add("profileFile", defaultProfileFile)
+                       .add("profileName", defaultProfileName)
+                       .add("scheduledExecutorService", scheduledExecutorService)
+                       .add("requestCompressionConfiguration", requestCompressionConfiguration)
+                       .build();
     }
 
     /**
@@ -513,6 +528,23 @@ public final class ClientOverrideConfiguration
         <T> Builder putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
         ExecutionAttributes executionAttributes();
+
+        /**
+         * Sets the {@link RequestCompressionConfiguration} for this client.
+         */
+        Builder requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration);
+
+        /**
+         * Sets the {@link RequestCompressionConfiguration} for this client.
+         */
+        default Builder requestCompressionConfiguration(Consumer<RequestCompressionConfiguration.Builder>
+                                                            requestCompressionConfiguration) {
+            return requestCompressionConfiguration(RequestCompressionConfiguration.builder()
+                                                                                  .applyMutation(requestCompressionConfiguration)
+                                                                                  .build());
+        }
+
+        RequestCompressionConfiguration requestCompressionConfiguration();
     }
 
     /**
@@ -530,6 +562,7 @@ public final class ClientOverrideConfiguration
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder();
         private ScheduledExecutorService scheduledExecutorService;
+        private RequestCompressionConfiguration requestCompressionConfiguration;
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -722,6 +755,21 @@ public final class ClientOverrideConfiguration
         @Override
         public ExecutionAttributes executionAttributes() {
             return executionAttributes.build();
+        }
+
+        @Override
+        public Builder requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration) {
+            this.requestCompressionConfiguration = requestCompressionConfiguration;
+            return this;
+        }
+
+        public void setRequestCompressionEnabled(RequestCompressionConfiguration requestCompressionConfiguration) {
+            requestCompressionConfiguration(requestCompressionConfiguration);
+        }
+
+        @Override
+        public RequestCompressionConfiguration requestCompressionConfiguration() {
+            return requestCompressionConfiguration;
         }
 
         @Override

@@ -23,6 +23,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.RequestCompressionConfiguration;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -189,6 +190,12 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<AttributeMap> CLIENT_CONTEXT_PARAMS =
         new SdkClientOption<>(AttributeMap.class);
+
+    /**
+     * Option to specify the request compression configuration settings.
+     */
+    public static final SdkClientOption<RequestCompressionConfiguration> REQUEST_COMPRESSION_CONFIGURATION =
+        new SdkClientOption<>(RequestCompressionConfiguration.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);
