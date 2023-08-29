@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -28,6 +29,8 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.core.metrics.CoreMetric.SIGNING_DURATION;
 
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +70,7 @@ import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncSigningStageTest {
-
+    private static final int TEST_TIME_OFFSET = 17;
     private static final SignerProperty<String> SIGNER_PROPERTY = SignerProperty.create(String.class, "key");
 
     @Mock
@@ -134,6 +137,59 @@ public class AsyncSigningStageTest {
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
 
+        // Assert that the time offset set was zero
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK)).isNotNull();
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK).instant())
+            .isCloseTo(Instant.now(), within(10, ChronoUnit.MILLIS));
+
+        // assert that metrics are collected
+        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
+
+        verifyNoInteractions(oldSigner);
+    }
+
+
+    @Test
+    public void execute_selectedAuthSchemeAndTimeOffsetSet_doesSraSignAndAdjustTheSigningClock() throws Exception {
+        // Set up a scheme with a signer property
+        SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(identity),
+            signer,
+            AuthSchemeOption.builder()
+                            .schemeId("my.auth#myAuth")
+                            .putSignerProperty(SIGNER_PROPERTY, "value")
+                            .build());
+        RequestExecutionContext context = createContext(selectedAuthScheme);
+
+        // Setup the timeoffset to test that the clock is setup properly.
+        httpClientDependencies.updateTimeOffset(TEST_TIME_OFFSET);
+
+        SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
+            .thenReturn(SyncSignedRequest.builder()
+                                         .request(signedRequest)
+                                         .build());
+
+        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
+        SdkHttpFullRequest result = stage.execute(request, context).join();
+
+        assertThat(result).isSameAs(signedRequest);
+        // assert that interceptor context is updated with result
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
+
+        // assert that the input to the signer is as expected, including that signer properties are set
+        verify(signer).sign(syncSignRequestCaptor.capture());
+        SyncSignRequest<? extends Identity> signRequest = syncSignRequestCaptor.getValue();
+        assertThat(signRequest.identity()).isSameAs(identity);
+        assertThat(signRequest.request()).isSameAs(request);
+        assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
+
+        // Assert that the signing clock is setup properly
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK)).isNotNull();
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK).instant())
+            .isCloseTo(Instant.now().minusSeconds(17)
+                , within(10, ChronoUnit.MILLIS));
+
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
 
@@ -177,8 +233,13 @@ public class AsyncSigningStageTest {
         AsyncSignRequest<? extends Identity> signRequest = asyncSignRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
-        assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
         assertThat(signRequest.payload().get()).isSameAs(asyncPayload);
+        assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
+
+        // Assert that the time offset set was zero
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK)).isNotNull();
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK).instant())
+            .isCloseTo(Instant.now(), within(10, ChronoUnit.MILLIS));
 
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
@@ -224,6 +285,11 @@ public class AsyncSigningStageTest {
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
         assertThat(signRequest.payload().get()).isSameAs(asyncPayload);
+
+        // Assert that the time offset set was zero
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK)).isNotNull();
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK).instant())
+            .isCloseTo(Instant.now(), within(10, ChronoUnit.MILLIS));
 
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());

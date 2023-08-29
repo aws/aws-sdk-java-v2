@@ -2,7 +2,7 @@ package software.amazon.awssdk.http.auth.aws;
 
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.REGION_NAME;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.SIGNING_CLOCK;
+import static software.amazon.awssdk.http.auth.spi.HttpSigner.SIGNING_CLOCK;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
