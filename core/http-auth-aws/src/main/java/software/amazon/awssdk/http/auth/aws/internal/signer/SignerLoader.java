@@ -19,7 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.ClassLoaderHelper;
 /**
  * Utility class for instantiating signers only if they're available on the class path.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class SignerLoader {
 
     private static final Map<String, HttpSigner<AwsCredentialsIdentity>> SIGNERS = new ConcurrentHashMap<>();
@@ -37,7 +37,7 @@ public final class SignerLoader {
     }
 
     public static AwsV4aHttpSigner getAwsV4aHttpSigner() {
-        return get(AwsV4aHttpSigner.class, "software.amazon.awssdk.http.auth.aws.crt.internal.signer.DefaultAwsCrtV4aHttpSigner");
+        return get(AwsV4aHttpSigner.class, "software.amazon.awssdk.http.auth.aws.crt.DefaultAwsCrtV4aHttpSigner");
     }
 
     @SuppressWarnings("unchecked")

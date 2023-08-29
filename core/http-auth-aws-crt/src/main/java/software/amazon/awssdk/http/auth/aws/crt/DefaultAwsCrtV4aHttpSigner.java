@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
+package software.amazon.awssdk.http.auth.aws.crt;
 
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtHttpRequestConverter.toRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtUtils.sanitizeRequest;
@@ -31,6 +31,8 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aContext;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aPayloadSigner;
 import software.amazon.awssdk.http.auth.aws.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
