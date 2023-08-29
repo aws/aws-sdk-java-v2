@@ -38,7 +38,7 @@ public final class ChunkBuffer {
     private final AtomicLong transferredBytes;
     private final ByteBuffer currentBuffer;
     private final int chunkSize;
-    private Long totalBytes;
+    private final Long totalBytes;
 
     private ChunkBuffer(Long totalBytes, Integer bufferSize) {
         int chunkSize = bufferSize != null ? bufferSize : DEFAULT_ASYNC_CHUNK_SIZE;
