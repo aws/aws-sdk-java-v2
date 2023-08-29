@@ -47,6 +47,13 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @SdkInternalApi
 public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
+    /**
+     * Returns a default implementation for {@link AwsV4aHttpSigner}.
+     */
+    public static AwsV4aHttpSigner create() {
+        return new DefaultAwsCrtV4aHttpSigner();
+    }
+
     private static Duration validateExpirationDuration(Duration expirationDuration) {
         if (expirationDuration.compareTo(PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
             throw new IllegalArgumentException(
