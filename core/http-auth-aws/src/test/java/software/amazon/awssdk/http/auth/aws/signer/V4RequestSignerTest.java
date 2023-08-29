@@ -120,13 +120,13 @@ public class V4RequestSignerTest {
 
     private V4Properties getProperties(AwsCredentialsIdentity creds) {
         Clock clock = new TickingClock(Instant.EPOCH);
-        return new V4Properties(
-            creds,
-            new CredentialScope("us-east-1", "demo", clock.instant()),
-            clock,
-            false,
-            false
-        );
+        return V4Properties.builder()
+            .credentials(creds)
+            .credentialScope(new CredentialScope("us-east-1", "demo", clock.instant()))
+            .signingClock(clock)
+            .doubleUrlEncode(false)
+            .normalizePath(false)
+            .build();
     }
 
     private SdkHttpRequest.Builder getRequest() {

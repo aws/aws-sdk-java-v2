@@ -83,6 +83,13 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
     SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
         SignerProperty.create(Boolean.class, "PayloadSigningEnabled");
 
+    /**
+     * Whether to indicate that a payload is chunk-encoded or not. This property defaults to false. This can be set true to
+     * enable the `aws-chunk` content-encoding
+     */
+    SignerProperty<Boolean> CHUNK_ENCODING_ENABLED =
+        SignerProperty.create(Boolean.class, "ChunkEncodingEnabled");
+
 
     /**
      * Get a default implementation of a {@link AwsV4HttpSigner}

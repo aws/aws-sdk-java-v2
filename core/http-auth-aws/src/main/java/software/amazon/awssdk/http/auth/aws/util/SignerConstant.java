@@ -59,6 +59,11 @@ public final class SignerConstant {
 
     public static final String STREAMING_UNSIGNED_PAYLOAD_TRAILER = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
 
+    public static final String STREAMING_SIGNED_PAYLOAD = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
+
+    public static final String STREAMING_SIGNED_PAYLOAD_TRAILER = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
+
+
     /**
      * Seconds in a week, which is the max expiration time Sig-v4 accepts.
      */
