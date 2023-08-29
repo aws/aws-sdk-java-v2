@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.crt;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.DefaultAwsCrtV4aHttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
@@ -30,9 +31,9 @@ public interface AwsCrtV4aHttpSigner extends AwsV4aHttpSigner {
     /**
      * Get a default implementation of a {@link AwsCrtV4aHttpSigner}
      *
-     * @return AwsCrtV4aHttpSigner
+     * @return AwsV4aHttpSigner
      */
-    static AwsCrtV4aHttpSigner create() {
-        return null;
+    static AwsV4aHttpSigner create() {
+        return new DefaultAwsCrtV4aHttpSigner();
     }
 }

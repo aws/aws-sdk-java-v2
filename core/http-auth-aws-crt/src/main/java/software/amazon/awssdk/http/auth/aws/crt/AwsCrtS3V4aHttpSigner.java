@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.crt;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.crt.internal.DefaultAwsCrtS3V4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -25,14 +26,14 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * specifically for S3-CRT.
  */
 @SdkPublicApi
-public interface AwsCrtS3V4aHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
+public interface AwsCrtS3V4aHttpSigner extends AwsV4aHttpSigner {
 
     /**
      * Get a default implementation of a {@link AwsCrtS3V4aHttpSigner}
      *
      * @return AwsCrtS3V4aHttpSigner
      */
-    static AwsCrtS3V4aHttpSigner create() {
+    static AwsV4aHttpSigner create() {
         return new DefaultAwsCrtS3V4aHttpSigner();
     }
 }

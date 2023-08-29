@@ -59,10 +59,10 @@ public interface AwsV4aAuthScheme extends AuthScheme<AwsCredentialsIdentity> {
     }
 
     /**
-     * TODO(sra-identity-and-auth): Not implemented yet.
+     * Retrieve the {@link AwsV4aHttpSigner} associated with this authentication scheme.
      */
     @Override
     default HttpSigner<AwsCredentialsIdentity> signer() {
-        throw new UnsupportedOperationException("todo");
+        return AwsV4aHttpSigner.create();
     }
 }

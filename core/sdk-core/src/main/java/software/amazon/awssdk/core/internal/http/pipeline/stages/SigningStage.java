@@ -141,8 +141,8 @@ public class SigningStage implements RequestToRequestPipeline {
 
             SdkHttpFullRequest signedRequest = measuredSign.left();
 
-            // TODO: This case does not apply to SigningStage as event stream operations are not supported by SyncClients that
-            //  use this SigningStage. So this is dead code and can be removed.
+            // TODO(sra-identity-and-auth): This case does not apply to SigningStage as event stream operations are not supported
+            //  by SyncClients that use this SigningStage. So this is dead code and can be removed.
             if (signer instanceof AsyncRequestBodySigner) {
                 //Transform request body provider with signing operator
                 AsyncRequestBody transformedRequestProvider =

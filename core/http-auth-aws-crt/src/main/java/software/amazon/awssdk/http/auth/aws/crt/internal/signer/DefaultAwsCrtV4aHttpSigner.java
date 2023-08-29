@@ -146,5 +146,4 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         // There isn't currently a concept of async for crt signers
         throw new UnsupportedOperationException();
     }
-
 }
