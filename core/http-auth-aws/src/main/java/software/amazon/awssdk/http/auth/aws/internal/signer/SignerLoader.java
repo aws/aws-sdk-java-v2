@@ -22,9 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.AwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
-import software.amazon.awssdk.http.auth.aws.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.ClassLoaderHelper;
 
 /**
  * Utility class for instantiating signers only if they're available on the class path.
