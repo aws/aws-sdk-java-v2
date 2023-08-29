@@ -643,11 +643,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .returns(returns);
 
         Set<Class<?>> concreteAuthSchemeClasses = authSchemeSpecUtils.allServiceConcreteAuthSchemeClasses();
-        if (concreteAuthSchemeClasses.isEmpty()) {
-            builder.addStatement("return $T.emptyMap()", Collections.class);
-            return builder.build();
-        }
-
         builder.addStatement("$T schemes = new $T<>($L + this.additionalAuthSchemes.size())",
                              returns, HashMap.class, concreteAuthSchemeClasses.size());
         for (Class<?> concreteAuthScheme : concreteAuthSchemeClasses) {
