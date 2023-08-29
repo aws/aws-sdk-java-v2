@@ -135,7 +135,7 @@
         <jetty.version>9.4.45.v20220203</jetty.version>
 
         <!-- build plugin dependencies-->
-        <maven.surefire.version>3.0.0-M5</maven.surefire.version>
+        <maven.surefire.version>3.1.2</maven.surefire.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
@@ -256,7 +256,6 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.version}</version>
                     <configuration>
-                        <argLine>${argLine}</argLine>
                         <excludes>
                             <exclude>**/*StabilityTest.java</exclude>
                             <exclude>**/*StabilityTests.java</exclude>
