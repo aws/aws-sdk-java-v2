@@ -50,6 +50,8 @@ public final class CrtInputStream implements HttpRequestBodyStream {
 
         if (read > 0) {
             bodyBytesOut.put(readBuffer, 0, read);
+        } else {
+            FunctionalUtils.invokeSafely(providerStream::close);
         }
 
         return read < 0;

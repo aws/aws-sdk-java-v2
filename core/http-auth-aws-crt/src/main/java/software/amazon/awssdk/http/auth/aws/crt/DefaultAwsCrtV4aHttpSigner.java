@@ -143,31 +143,40 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
                 throw new UnsupportedOperationException("Unknown auth-location: " + authLocation);
         }
 
-        if (!isPayloadSigning) {
-            if (isChunkEncoding) {
-                if (isTrailing) {
-                    signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER);
-                } else {
-                    throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
-                }
-            } else {
-                signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
-            }
+        if (isPayloadSigning) {
+            configurePayloadSigning(signingConfig, isChunkEncoding, isTrailing);
         } else {
-            if (isChunkEncoding) {
-                if (isTrailing) {
-                    signingConfig.setSignedBodyValue(
-                        AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER
-                    );
-                } else {
-                    signingConfig.setSignedBodyValue(
-                        AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD
-                    );
-                }
-            }
+            configureUnsignedPayload(signingConfig, isChunkEncoding, isTrailing);
         }
 
         return signingConfig;
+    }
+
+    private static void configureUnsignedPayload(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailing) {
+        if (isChunkEncoding) {
+            if (isTrailing) {
+                signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            } else {
+                throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
+            }
+        } else {
+            signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
+        }
+    }
+
+    private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailing) {
+        if (isChunkEncoding) {
+            if (isTrailing) {
+                signingConfig.setSignedBodyValue(
+                    AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER
+                );
+            } else {
+                signingConfig.setSignedBodyValue(
+                    AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD
+                );
+            }
+        }
+        // if not chunked encoding, then signed-payload simply means the sha256 hash is included in the canonical request
     }
 
     private static SyncSignedRequest doSign(SyncSignRequest<? extends AwsCredentialsIdentity> request,

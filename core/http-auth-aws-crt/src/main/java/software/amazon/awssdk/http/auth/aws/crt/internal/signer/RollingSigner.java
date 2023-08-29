@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
@@ -27,6 +26,7 @@ import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.auth.aws.crt.internal.CrtInputStream;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * A class which calculates a rolling signature of arbitrary data using HMAC-SHA256. Each time a signature is calculated, the
@@ -47,15 +47,7 @@ public final class RollingSigner {
 
     private static byte[] signChunk(byte[] chunkBody, byte[] previousSignature, AwsSigningConfig signingConfig) {
         HttpRequestBodyStream crtBody = new CrtInputStream(() -> new ByteArrayInputStream(chunkBody));
-        CompletableFuture<byte[]> future = AwsSigner.signChunk(crtBody, previousSignature, signingConfig);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("The thread got interrupted while attempting to sign request.", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to sign request.", e);
-        }
+        return CompletableFutureUtils.joinLikeSync(AwsSigner.signChunk(crtBody, previousSignature, signingConfig));
     }
 
     private static AwsSigningResult signTrailerHeaders(Map<String, List<String>> headerMap, byte[] previousSignature,
@@ -68,15 +60,8 @@ public final class RollingSigner {
         // All the config remains the same as signing config except the Signature Type.
         AwsSigningConfig configCopy = signingConfig.clone();
         configCopy.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_TRAILING_HEADERS);
-        CompletableFuture<AwsSigningResult> future = AwsSigner.sign(httpHeaderList, previousSignature, configCopy);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("The thread got interrupted while attempting to sign request.", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to sign request.", e);
-        }
+
+        return CompletableFutureUtils.joinLikeSync(AwsSigner.sign(httpHeaderList, previousSignature, configCopy));
     }
 
     /**
