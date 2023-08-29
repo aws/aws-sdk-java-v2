@@ -39,18 +39,23 @@ public class BuilderClassTest {
     }
 
     @Test
-    public void baseClientBuilderInterfaceWithBearerAuthClass() throws Exception {
+    public void baseClientBuilderInterfaceWithBearerAuth() throws Exception {
         validateBearerAuthGeneration(BaseClientBuilderInterface::new, "test-bearer-auth-client-builder-interface.java");
     }
 
     @Test
-    public void baseClientBuilderInterfaceWithNoAuthClass() throws Exception {
-        validateNoAuthAuthGeneration(BaseClientBuilderClass::new, "test-no-auth-auth-client-builder-class.java");
+    public void baseClientBuilderClassWithBearerAuth() throws Exception {
+        validateBearerAuthGeneration(BaseClientBuilderClass::new, "test-bearer-auth-client-builder-class.java");
     }
 
     @Test
-    public void baseClientBuilderWithBearerAuthClass() throws Exception {
-        validateBearerAuthGeneration(BaseClientBuilderClass::new, "test-bearer-auth-client-builder-class.java");
+    public void baseClientBuilderClassWithNoAuthOperation() throws Exception {
+        validateNoAuthOperationAuthGeneration(BaseClientBuilderClass::new, "test-no-auth-ops-client-builder-class.java");
+    }
+
+    @Test
+    public void baseClientBuilderClassWithNoAuthService() throws Exception {
+        validateNoAuthServiceAuthGeneration(BaseClientBuilderClass::new, "test-no-auth-service-client-builder-class.java");
     }
 
     @Test
@@ -123,8 +128,13 @@ public class BuilderClassTest {
         assertThat(generatorConstructor.apply(ClientTestModels.bearerAuthServiceModels()), generatesTo(expectedClassName));
     }
 
-    private void validateNoAuthAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
-                                              String expectedClassName) {
+    private void validateNoAuthOperationAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
+                                                       String expectedClassName) {
+        assertThat(generatorConstructor.apply(ClientTestModels.operationWithNoAuth()), generatesTo(expectedClassName));
+    }
+
+    private void validateNoAuthServiceAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
+                                                     String expectedClassName) {
         assertThat(generatorConstructor.apply(ClientTestModels.serviceWithNoAuth()), generatesTo(expectedClassName));
     }
 
