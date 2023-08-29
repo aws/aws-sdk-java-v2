@@ -89,7 +89,7 @@ public interface AwsV4aHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      * Get a default implementation of a {@link AwsV4aHttpSigner}
      */
     static AwsV4aHttpSigner create() {
-        return SignerLoader.getSigV4aSigner();
+        return SignerLoader.getAwsV4aHttpSigner();
     }
 
     /**

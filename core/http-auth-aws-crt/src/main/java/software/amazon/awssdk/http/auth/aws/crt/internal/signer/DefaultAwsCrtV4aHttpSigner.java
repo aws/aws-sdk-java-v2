@@ -23,7 +23,7 @@ import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_U
 import java.time.Clock;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
@@ -44,7 +44,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
  * An implementation of a {@link AwsV4aHttpSigner} that uses properties to compose v4a-signers in order to delegate signing of a
  * request and payload (if applicable) accordingly.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
     /**
