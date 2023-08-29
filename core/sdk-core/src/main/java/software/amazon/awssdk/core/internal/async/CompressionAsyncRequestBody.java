@@ -20,7 +20,10 @@ import static software.amazon.awssdk.core.internal.io.AwsChunkedInputStream.DEFA
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -137,6 +140,10 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
 
     private static final class SplittingSubscriber extends DelegatingSubscriber<ByteBuffer, Iterable<ByteBuffer>> {
         private final ChunkBuffer chunkBuffer;
+        private final AtomicBoolean upstreamDone = new AtomicBoolean(false);
+        private final AtomicLong downstreamDemand = new AtomicLong();
+        private final Object lock = new Object();
+        private volatile boolean sentFinalChunk = false;
 
         protected SplittingSubscriber(Subscriber<? super Iterable<ByteBuffer>> subscriber, int chunkSize) {
             super(subscriber);
@@ -146,16 +153,60 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
         }
 
         @Override
+        public void onSubscribe(Subscription s) {
+            subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long n) {
+                    if (n <= 0) {
+                        throw new IllegalArgumentException("n > 0 required but it was " + n);
+                    }
+
+                    downstreamDemand.getAndAdd(n);
+
+                    if (upstreamDone.get()) {
+                        sendFinalChunk();
+                    } else {
+                        s.request(n);
+                    }
+                }
+
+                @Override
+                public void cancel() {
+                    s.cancel();
+                }
+            });
+        }
+
+        @Override
         public void onNext(ByteBuffer byteBuffer) {
+            downstreamDemand.decrementAndGet();
             Iterable<ByteBuffer> buffers = chunkBuffer.split(byteBuffer);
             subscriber.onNext(buffers);
         }
 
         @Override
         public void onComplete() {
-            Optional<ByteBuffer> byteBuffer = chunkBuffer.getBufferedData();
-            byteBuffer.ifPresent(buffer -> subscriber.onNext(Collections.singletonList(buffer)));
-            super.onComplete();
+            upstreamDone.compareAndSet(false, true);
+            if (downstreamDemand.get() > 0) {
+                sendFinalChunk();
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            upstreamDone.compareAndSet(false, true);
+            super.onError(t);
+        }
+
+        private void sendFinalChunk() {
+            synchronized (lock) {
+                if (!sentFinalChunk) {
+                    sentFinalChunk = true;
+                    Optional<ByteBuffer> byteBuffer = chunkBuffer.getBufferedData();
+                    byteBuffer.ifPresent(buffer -> subscriber.onNext(Collections.singletonList(buffer)));
+                    subscriber.onComplete();
+                }
+            }
         }
     }
 }

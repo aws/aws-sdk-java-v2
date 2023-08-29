@@ -29,8 +29,8 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Class that will buffer incoming BufferBytes to chunks of bufferSize.
- * If totalBytes is not provided, i.e. content-length is unknown, {@code getBufferedData()} should be used in the Subscriber's
- * {@code onComplete} to check for a final chunk that is smaller than the chunk size, and send if present.
+ * If totalBytes is not provided, i.e. content-length is unknown, {@link #getBufferedData()} should be used in the Subscriber's
+ * {@code onComplete()} to check for a final chunk that is smaller than the chunk size, and send if present.
  */
 @SdkInternalApi
 public final class ChunkBuffer {

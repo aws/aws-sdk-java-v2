@@ -114,7 +114,7 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
         Waiter.run(() -> syncClient.describeObject(r -> r.path("/foo")))
               .untilException(ObjectNotFoundException.class)
               .orFailAfter(Duration.ofMinutes(1));
-        Thread.sleep(500);
+        Thread.sleep(1000);
         mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
     }
 
