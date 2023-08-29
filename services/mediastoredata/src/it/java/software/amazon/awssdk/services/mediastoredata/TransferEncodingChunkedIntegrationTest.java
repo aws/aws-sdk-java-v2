@@ -76,11 +76,12 @@ public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegr
     }
 
     @AfterAll
-    public static void tearDown() {
+    public static void tearDown() throws InterruptedException {
         syncClientWithApache.deleteObject(deleteObjectRequest);
         Waiter.run(() -> syncClientWithApache.describeObject(r -> r.path("/foo")))
               .untilException(ObjectNotFoundException.class)
               .orFailAfter(Duration.ofMinutes(1));
+        Thread.sleep(500);
         mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
     }
 
@@ -100,7 +101,7 @@ public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegr
 
     @Test
     public void nettyClientPutObject_withoutContentLength_sendsSuccessfully() {
-        asyncClientWithNetty.putObject(putObjectRequest, customAsyncRequestBodyWithoutContentLength()).join();
+        asyncClientWithNetty.putObject(putObjectRequest, customAsyncRequestBodyWithoutContentLength("TestBody".getBytes())).join();
         assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
     }
 }
