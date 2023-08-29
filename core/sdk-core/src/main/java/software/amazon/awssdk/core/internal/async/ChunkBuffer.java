@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkInternalApi
 public final class ChunkBuffer {
     private static final Logger log = Logger.loggerFor(ChunkBuffer.class);
-    private AtomicLong transferredBytes;
+    private final AtomicLong transferredBytes;
     private final ByteBuffer currentBuffer;
     private final int chunkSize;
     private Long totalBytes;
@@ -45,9 +45,7 @@ public final class ChunkBuffer {
         this.chunkSize = chunkSize;
         this.currentBuffer = ByteBuffer.allocate(chunkSize);
         this.transferredBytes = new AtomicLong(0);
-        if (totalBytes != null) {
-            this.totalBytes = totalBytes;
-        }
+        this.totalBytes = totalBytes;
     }
 
     public static Builder builder() {

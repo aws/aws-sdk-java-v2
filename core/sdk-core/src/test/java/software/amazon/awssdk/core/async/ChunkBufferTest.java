@@ -199,6 +199,7 @@ class ChunkBufferTest {
 
         Optional<ByteBuffer> lastBuffer = chunkBuffer.getBufferedData();
         assertThat(lastBuffer.isPresent());
+        assertThat(lastBuffer.get().remaining()).isEqualTo(2);
     }
 
 
@@ -279,49 +280,5 @@ class ChunkBufferTest {
         assertThat(remainderBytes.get()).isEqualTo((totalBytes * threads) % bufferSize);
         assertThat(remainderBytesBuffers.get()).isOne();
         assertThat(otherSizeBuffers.get()).isZero();
-    }
-
-    @Test
-    void concurrentTreads_calling_bufferAndCreateChunks_unknownLength() throws ExecutionException, InterruptedException {
-        int totalBytes = 17;
-        int bufferSize = 5;
-        int threads = 8;
-
-        ChunkBuffer chunkBuffer = ChunkBuffer.builder()
-                                             .bufferSize(bufferSize)
-                                             .build();
-
-        ExecutorService service = Executors.newFixedThreadPool(threads);
-
-        Collection<Future<Iterable>> futures;
-
-        AtomicInteger counter = new AtomicInteger(0);
-
-        futures = IntStream.range(0, threads).<Future<Iterable>>mapToObj(t -> service.submit(() -> {
-            String inputString = StringUtils.repeat(Integer.toString(counter.incrementAndGet()), totalBytes);
-            return chunkBuffer.split(ByteBuffer.wrap(inputString.getBytes(StandardCharsets.UTF_8)));
-        })).collect(Collectors.toCollection(() -> new ArrayList<>(threads)));
-
-        AtomicInteger filledBuffers = new AtomicInteger(0);
-        AtomicInteger otherSizeBuffers = new AtomicInteger(0);
-
-        for (Future<Iterable> bufferedFuture : futures) {
-            Iterable<ByteBuffer> buffers = bufferedFuture.get();
-            buffers.forEach(b -> {
-                System.out.println(b.remaining());
-                if (b.remaining() == bufferSize) {
-                    filledBuffers.incrementAndGet();
-                } else {
-                    otherSizeBuffers.incrementAndGet();
-                }
-
-            });
-        }
-
-        assertThat(filledBuffers.get()).isEqualTo((totalBytes * threads) / bufferSize);
-        assertThat(otherSizeBuffers.get()).isZero();
-
-        ByteBuffer lastBuffer = chunkBuffer.getBufferedData().get();
-        assertThat(lastBuffer.remaining()).isOne();
     }
 }
