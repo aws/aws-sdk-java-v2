@@ -214,11 +214,26 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
-    public static IntermediateModel serviceWithNoAuth() {
+    public static IntermediateModel operationWithNoAuth() {
         File serviceModel =
             new File(ClientTestModels.class.getResource("client/c2j/ops-with-no-auth/service-2.json").getFile());
         File customizationModel =
             new File(ClientTestModels.class.getResource("client/c2j/ops-with-no-auth/customization.config")
+                                           .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel serviceWithNoAuth() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/service-with-no-auth/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/service-with-no-auth/customization.config")
                                            .getFile());
         C2jModels models = C2jModels
             .builder()
