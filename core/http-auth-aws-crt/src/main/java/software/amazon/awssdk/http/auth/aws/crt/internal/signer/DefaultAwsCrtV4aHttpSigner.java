@@ -34,6 +34,7 @@ import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
@@ -46,6 +47,13 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
  */
 @SdkInternalApi
 public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
+
+    /**
+     * Returns a default implementation for {@link AwsV4aHttpSigner}.
+     */
+    public static AwsV4aHttpSigner create() {
+        return new DefaultAwsCrtV4aHttpSigner();
+    }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
         if (expirationDuration.compareTo(PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
