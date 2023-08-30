@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "psnilesh",
+    "description": "Add new methods to DynamoDb enhanced table interface for returning \ncapacity units consumed by GetItem API to the caller if requested.\n\nhttps://github.com/aws/aws-sdk-java-v2/issues/4372"
+}
