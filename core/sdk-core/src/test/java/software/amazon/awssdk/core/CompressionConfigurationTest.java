@@ -20,24 +20,24 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-public class RequestCompressionConfigurationTest {
+public class CompressionConfigurationTest {
 
     @Test
     public void equalsHashcode() {
-        EqualsVerifier.forClass(RequestCompressionConfiguration.class)
+        EqualsVerifier.forClass(CompressionConfiguration.class)
                       .withNonnullFields("requestCompressionEnabled", "minimumCompressionThresholdInBytes")
                       .verify();
     }
 
     @Test
     public void toBuilder() {
-        RequestCompressionConfiguration configuration =
-            RequestCompressionConfiguration.builder()
-                                           .requestCompressionEnabled(true)
-                                           .minimumCompressionThresholdInBytes(99999)
-                                           .build();
+        CompressionConfiguration configuration =
+            CompressionConfiguration.builder()
+                                    .requestCompressionEnabled(true)
+                                    .minimumCompressionThresholdInBytes(99999)
+                                    .build();
 
-        RequestCompressionConfiguration another = configuration.toBuilder().build();
+        CompressionConfiguration another = configuration.toBuilder().build();
         assertThat(configuration).isEqualTo(another);
     }
 }

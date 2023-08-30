@@ -24,7 +24,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.RequestCompressionConfiguration;
+import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -60,11 +60,11 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
 
     @BeforeAll
     public static void setup() {
-        RequestCompressionConfiguration compressionConfiguration =
-            RequestCompressionConfiguration.builder()
-                                           .minimumCompressionThresholdInBytes(1)
-                                           .requestCompressionEnabled(true)
-                                           .build();
+        CompressionConfiguration compressionConfiguration =
+            CompressionConfiguration.builder()
+                                    .minimumCompressionThresholdInBytes(1)
+                                    .requestCompressionEnabled(true)
+                                    .build();
 
         RequestCompression requestCompressionTrait = RequestCompression.builder()
                                                                        .encodings("gzip")
@@ -79,7 +79,7 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
                                                                       .addExecutionInterceptor(new CaptureContentEncodingHeaderInterceptor())
                                                                       .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                                                              requestCompressionTrait)
-                                                                      .requestCompressionConfiguration(compressionConfiguration))
+                                                                      .compressionConfiguration(compressionConfiguration))
                                          .build();
 
         asyncClient = MediaStoreDataAsyncClient.builder()
@@ -90,14 +90,14 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
                                                                             .addExecutionInterceptor(new CaptureContentEncodingHeaderInterceptor())
                                                                             .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                                                                    requestCompressionTrait)
-                                                                            .requestCompressionConfiguration(compressionConfiguration))
+                                                                            .compressionConfiguration(compressionConfiguration))
                                                .build();
 
         putObjectRequest = PutObjectRequest.builder()
                                            .contentType("application/octet-stream")
                                            .path("/foo")
                                            .overrideConfiguration(
-                                               o -> o.requestCompressionConfiguration(
+                                               o -> o.compressionConfiguration(
                                                    c -> c.requestCompressionEnabled(true)))
                                            .build();
         deleteObjectRequest = DeleteObjectRequest.builder().path("/foo").build();

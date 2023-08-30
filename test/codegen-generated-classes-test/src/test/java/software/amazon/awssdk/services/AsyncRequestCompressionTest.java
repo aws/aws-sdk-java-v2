@@ -76,7 +76,7 @@ public class AsyncRequestCompressionTest {
         PutOperationWithRequestCompressionRequest request =
             PutOperationWithRequestCompressionRequest.builder()
                                                      .body(SdkBytes.fromUtf8String(UNCOMPRESSED_BODY))
-                                                     .overrideConfiguration(o -> o.requestCompressionConfiguration(
+                                                     .overrideConfiguration(o -> o.compressionConfiguration(
                                                          c -> c.minimumCompressionThresholdInBytes(1)))
                                                      .build();
 
@@ -140,7 +140,7 @@ public class AsyncRequestCompressionTest {
         PutOperationWithRequestCompressionRequest request =
             PutOperationWithRequestCompressionRequest.builder()
                                                      .body(SdkBytes.fromUtf8String(UNCOMPRESSED_BODY))
-                                                     .overrideConfiguration(o -> o.requestCompressionConfiguration(
+                                                     .overrideConfiguration(o -> o.compressionConfiguration(
                                                          c -> c.minimumCompressionThresholdInBytes(1)))
                                                      .build();
 

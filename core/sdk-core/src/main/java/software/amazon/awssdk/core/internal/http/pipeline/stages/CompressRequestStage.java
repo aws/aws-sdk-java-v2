@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.client.config.SdkClientOption.REQUEST_COMPRESSION_CONFIGURATION;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.COMPRESSION_CONFIGURATION;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestCompressionConfiguration;
+import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -48,10 +48,10 @@ import software.amazon.awssdk.utils.IoUtils;
 public class CompressRequestStage implements MutableRequestToRequestPipeline {
     private static final int DEFAULT_MIN_COMPRESSION_SIZE = 10_240;
     private static final int MIN_COMPRESSION_SIZE_LIMIT = 10_485_760;
-    private final RequestCompressionConfiguration compressionConfig;
+    private final CompressionConfiguration compressionConfig;
 
     public CompressRequestStage(HttpClientDependencies dependencies) {
-        compressionConfig = dependencies.clientConfiguration().option(REQUEST_COMPRESSION_CONFIGURATION);
+        compressionConfig = dependencies.clientConfiguration().option(COMPRESSION_CONFIGURATION);
     }
 
     @Override
@@ -160,8 +160,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
         Optional<Boolean> requestCompressionEnabledRequestLevel =
             context.originalRequest().overrideConfiguration()
-                   .flatMap(RequestOverrideConfiguration::requestCompressionConfiguration)
-                   .map(RequestCompressionConfiguration::requestCompressionEnabled);
+                   .flatMap(RequestOverrideConfiguration::compressionConfiguration)
+                   .map(CompressionConfiguration::requestCompressionEnabled);
         if (requestCompressionEnabledRequestLevel.isPresent()) {
             return requestCompressionEnabledRequestLevel.get();
         }
@@ -185,8 +185,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
         Optional<Integer> minimumCompressionSizeRequestLevel =
             context.originalRequest().overrideConfiguration()
-                   .flatMap(RequestOverrideConfiguration::requestCompressionConfiguration)
-                   .map(RequestCompressionConfiguration::minimumCompressionThresholdInBytes);
+                   .flatMap(RequestOverrideConfiguration::compressionConfiguration)
+                   .map(CompressionConfiguration::minimumCompressionThresholdInBytes);
         if (minimumCompressionSizeRequestLevel.isPresent()) {
             return minimumCompressionSizeRequestLevel.get();
         }

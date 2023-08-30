@@ -51,12 +51,10 @@ public class RequestCompressionTrait {
 
         List<String> encodings = operationModel.getRequestCompression().getEncodings();
 
-        return CodeBlock.builder()
-                        .add(CodeBlock.of(".putExecutionAttribute($T.REQUEST_COMPRESSION, "
-                                          + "$T.builder().encodings($L).isStreaming($L).build())",
-                                          SdkInternalExecutionAttribute.class, RequestCompression.class,
-                                          encodings.stream().collect(Collectors.joining("\", \"", "\"", "\"")),
-                                          operationModel.hasStreamingInput()))
-                        .build();
+        return CodeBlock.of(".putExecutionAttribute($T.REQUEST_COMPRESSION, "
+                            + "$T.builder().encodings($L).isStreaming($L).build())",
+                            SdkInternalExecutionAttribute.class, RequestCompression.class,
+                            encodings.stream().collect(Collectors.joining("\", \"", "\"", "\"")),
+                            operationModel.hasStreamingInput());
     }
 }

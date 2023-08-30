@@ -39,10 +39,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.RequestCompressionConfiguration;
+import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.regions.Region;
@@ -178,11 +177,10 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                                                                        .encodings("gzip")
                                                                        .isStreaming(false)
                                                                        .build();
-        RequestCompressionConfiguration compressionConfiguration =
-            RequestCompressionConfiguration.builder()
-                                           // uncompressed payload is 404 bytes
-                                           .minimumCompressionThresholdInBytes(100)
-                                           .build();
+        CompressionConfiguration compressionConfiguration = CompressionConfiguration.builder()
+                                                                                    // uncompressed payload is 404 bytes
+                                                                                    .minimumCompressionThresholdInBytes(100)
+                                                                                    .build();
 
         CloudWatchClient requestCompressionClient =
             CloudWatchClient.builder()
@@ -202,7 +200,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         requestCompressionClient.putMetricData(PutMetricDataRequest.builder()
                                                                    .namespace("AWS.EC2")
                                                                    .metricData(datum)
-                                                                   .overrideConfiguration(c -> c.requestCompressionConfiguration(compressionConfiguration))
+                                                                   .overrideConfiguration(c -> c.compressionConfiguration(compressionConfiguration))
                                                                    .build());
 
         GetMetricStatisticsResponse result =

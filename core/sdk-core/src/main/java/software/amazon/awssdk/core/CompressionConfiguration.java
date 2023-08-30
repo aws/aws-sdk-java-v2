@@ -25,13 +25,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * compression threshold in bytes.
  */
 @SdkPublicApi
-public final class RequestCompressionConfiguration implements ToCopyableBuilder<RequestCompressionConfiguration.Builder,
-    RequestCompressionConfiguration> {
+public final class CompressionConfiguration implements ToCopyableBuilder<CompressionConfiguration.Builder,
+    CompressionConfiguration> {
 
     private final Boolean requestCompressionEnabled;
     private final Integer minimumCompressionThresholdInBytes;
 
-    private RequestCompressionConfiguration(DefaultBuilder builder) {
+    private CompressionConfiguration(DefaultBuilder builder) {
         this.requestCompressionEnabled = builder.requestCompressionEnabled;
         this.minimumCompressionThresholdInBytes = builder.minimumCompressionThresholdInBytes;
     }
@@ -51,7 +51,7 @@ public final class RequestCompressionConfiguration implements ToCopyableBuilder<
     }
 
     /**
-     * Create a {@link RequestCompressionConfiguration.Builder}, used to create a {@link RequestCompressionConfiguration}.
+     * Create a {@link CompressionConfiguration.Builder}, used to create a {@link CompressionConfiguration}.
      */
     public static Builder builder() {
         return new DefaultBuilder();
@@ -71,7 +71,7 @@ public final class RequestCompressionConfiguration implements ToCopyableBuilder<
             return false;
         }
 
-        RequestCompressionConfiguration that = (RequestCompressionConfiguration) o;
+        CompressionConfiguration that = (CompressionConfiguration) o;
 
         if (!requestCompressionEnabled.equals(that.requestCompressionEnabled)) {
             return false;
@@ -87,11 +87,11 @@ public final class RequestCompressionConfiguration implements ToCopyableBuilder<
     }
 
 
-    public interface Builder extends CopyableBuilder<Builder, RequestCompressionConfiguration> {
+    public interface Builder extends CopyableBuilder<Builder, CompressionConfiguration> {
 
         /**
-         * Configures whether request compression is enabled or not, for operations that have the "requestCompression" C2J trait.
-         * The default value is true.
+         * Configures whether request compression is enabled or not, for operations that the service has designated as
+         * supporting compression. The default value is true.
          *
          * @param requestCompressionEnabled
          * @return This object for method chaining.
@@ -116,9 +116,9 @@ public final class RequestCompressionConfiguration implements ToCopyableBuilder<
         private DefaultBuilder() {
         }
 
-        private DefaultBuilder(RequestCompressionConfiguration requestCompressionConfiguration) {
-            this.requestCompressionEnabled = requestCompressionConfiguration.requestCompressionEnabled;
-            this.minimumCompressionThresholdInBytes = requestCompressionConfiguration.minimumCompressionThresholdInBytes;
+        private DefaultBuilder(CompressionConfiguration compressionConfiguration) {
+            this.requestCompressionEnabled = compressionConfiguration.requestCompressionEnabled;
+            this.minimumCompressionThresholdInBytes = compressionConfiguration.minimumCompressionThresholdInBytes;
         }
 
         @Override
@@ -134,8 +134,8 @@ public final class RequestCompressionConfiguration implements ToCopyableBuilder<
         }
 
         @Override
-        public RequestCompressionConfiguration build() {
-            return new RequestCompressionConfiguration(this);
+        public CompressionConfiguration build() {
+            return new CompressionConfiguration(this);
         }
     }
 }
