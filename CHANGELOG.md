@@ -1,3 +1,49 @@
+# __2.20.137__ __2023-08-29__
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Added API example requests and responses for several operations. Fixed the validation regex for user pools Identity Provider name.
+
+## __Amazon FSx__
+  - ### Features
+    - Documentation updates for project quotas.
+
+## __Amazon Omics__
+  - ### Features
+    - Add RetentionMode support for Runs.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Adds support for the new Export and Message Insights features: create, get, list and cancel export jobs; get message insights.
+
+# __2.20.136__ __2023-08-28__
+## __AWS Backup__
+  - ### Features
+    - Add support for customizing time zone for backup window in backup plan rules.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate licensing optimization recommendations for sql server running on EC2 instances.
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for permissions and links.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Remove incorrect regex enforcement on pagination tokens.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - WorkSpaces Web now enables Admins to configure which cookies are synchronized from an end-user's local browser to the in-session browser. In conjunction with a browser extension, this feature enables enhanced Single-Sign On capability by reducing the number of times an end-user has to authenticate.
+
+## __Service Quotas__
+  - ### Features
+    - Service Quotas now supports viewing the applied quota value and requesting a quota increase for a specific resource in an AWS account.
+
 # __2.20.135__ __2023-08-25__
 ## __AWS CloudTrail__
   - ### Features
