@@ -20,10 +20,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.async.AddingTrailingDataSubscriber;
 import software.amazon.awssdk.utils.async.BufferingSubscriber;
 import software.amazon.awssdk.utils.async.EventListeningSubscriber;
 import software.amazon.awssdk.utils.async.FilteringSubscriber;
@@ -116,6 +118,18 @@ public interface SdkPublisher<T> extends Publisher<T> {
      */
     default SdkPublisher<T> limit(int limit) {
         return subscriber -> subscribe(new LimitingSubscriber<>(subscriber, limit));
+    }
+
+
+    /**
+     * Creates a new publisher that emits trailing events provided by {@code trailingDataSupplier} in addition to the
+     * published events.
+     *
+     * @param trailingDataSupplier supplier to provide the trailing data
+     * @return New publisher that will publish additional events
+     */
+    default SdkPublisher<T> addTrailingData(Supplier<Iterable<T>> trailingDataSupplier) {
+        return subscriber -> subscribe(new AddingTrailingDataSubscriber<T>(subscriber, trailingDataSupplier));
     }
 
     /**

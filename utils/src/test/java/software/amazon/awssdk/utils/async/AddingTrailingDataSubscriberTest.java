@@ -18,7 +18,9 @@ package software.amazon.awssdk.utils.async;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
@@ -35,27 +37,44 @@ public class AddingTrailingDataSubscriberTest {
 
     @Test
     void subscriberNull_shouldThrowException() {
-        assertThatThrownBy(() -> new AddingTrailingDataSubscriber<>(null, () -> 1))
+        assertThatThrownBy(() -> new AddingTrailingDataSubscriber<>(null, () -> Arrays.asList(1, 2)))
             .hasMessageContaining("must not be null");
     }
 
     @Test
-    void trailingDataNotNull_shouldNotSendAdditionalData() {
+    void trailingDataHasItems_shouldSendAdditionalData() {
         List<Integer> result = new ArrayList<>();
         CompletableFuture future = new CompletableFuture();
         SequentialSubscriber<Integer> downstreamSubscriber = new SequentialSubscriber<Integer>(i -> result.add(i), future);
 
-        Subscriber<Integer> subscriber = new AddingTrailingDataSubscriber<>(downstreamSubscriber, () -> Integer.MAX_VALUE);
+        Subscriber<Integer> subscriber = new AddingTrailingDataSubscriber<>(downstreamSubscriber,
+                                                                            () -> Arrays.asList(Integer.MAX_VALUE,
+                                                                                            Integer.MIN_VALUE));
 
         publishData(subscriber);
 
         future.join();
 
-        assertThat(result).containsExactly(0, 1, 2, Integer.MAX_VALUE);
+        assertThat(result).containsExactly(0, 1, 2, Integer.MAX_VALUE, Integer.MIN_VALUE);
     }
 
     @Test
-    void trailingDataNull_shouldNotSendAdditionalData() {
+    void trailingDataEmpty_shouldNotSendAdditionalData() {
+        List<Integer> result = new ArrayList<>();
+        CompletableFuture future = new CompletableFuture();
+        SequentialSubscriber<Integer> downstreamSubscriber = new SequentialSubscriber<Integer>(i -> result.add(i), future);
+
+        Subscriber<Integer> subscriber = new AddingTrailingDataSubscriber<>(downstreamSubscriber, () -> new ArrayList<>());
+
+        publishData(subscriber);
+
+        future.join();
+
+        assertThat(result).containsExactly(0, 1, 2);
+    }
+
+    @Test
+    void trailingDataNull_shouldCompleteNormally() {
         List<Integer> result = new ArrayList<>();
         CompletableFuture future = new CompletableFuture();
         SequentialSubscriber<Integer> downstreamSubscriber = new SequentialSubscriber<Integer>(i -> result.add(i), future);

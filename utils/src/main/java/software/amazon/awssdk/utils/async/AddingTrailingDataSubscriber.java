@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.utils.async;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * Allows to send trailing data before invoking onComplete on the downstream subscriber.
- * If the trailingDataSupplier returns null, this class will invoke onComplete directly
+ * trailingDataIterable will be created when the upstream subscriber has called onComplete.
  */
 @SdkProtectedApi
 public class AddingTrailingDataSubscriber<T> extends DelegatingSubscriber<T, T> {
@@ -55,15 +55,15 @@ public class AddingTrailingDataSubscriber<T> extends DelegatingSubscriber<T, T> 
     /**
      * Whether we have called onComplete on the downstream subscriber.
      */
-    private AtomicBoolean onCompleteCalledOnDownstream = new AtomicBoolean(false);
+    private volatile boolean onCompleteCalledOnDownstream = false;
 
-    private final Supplier<T> trailingDataSupplier;
-    private volatile T trailingData;
+    private final Supplier<Iterable<T>> trailingDataIterableSupplier;
+    private Iterator<T> trailingDataIterator;
 
     public AddingTrailingDataSubscriber(Subscriber<? super T> subscriber,
-                                        Supplier<T> trailingDataSupplier) {
+                                        Supplier<Iterable<T>> trailingDataIterableSupplier) {
         super(Validate.paramNotNull(subscriber, "subscriber"));
-        this.trailingDataSupplier = Validate.paramNotNull(trailingDataSupplier, "trailingDataSupplier");
+        this.trailingDataIterableSupplier = Validate.paramNotNull(trailingDataIterableSupplier, "trailingDataIterableSupplier");
     }
 
     @Override
@@ -81,16 +81,16 @@ public class AddingTrailingDataSubscriber<T> extends DelegatingSubscriber<T, T> 
 
             @Override
             public void request(long l) {
-                if (onErrorCalledByUpstream) {
-                    return;
-                }
-
-                if (onCompleteCalledByUpstream) {
-                    sendTrailingDataIfNeededAndComplete();
+                if (onErrorCalledByUpstream || onCompleteCalledOnDownstream) {
                     return;
                 }
 
                 addDownstreamDemand(l);
+
+                if (onCompleteCalledByUpstream) {
+                    sendTrailingDataAndCompleteIfNeeded();
+                    return;
+                }
                 upstreamSubscription.request(l);
             }
 
@@ -117,11 +117,7 @@ public class AddingTrailingDataSubscriber<T> extends DelegatingSubscriber<T, T> 
     @Override
     public void onComplete() {
         onCompleteCalledByUpstream = true;
-
-        trailingData = trailingDataSupplier.get();
-        if (trailingData == null || downstreamDemand.get() > 0) {
-            sendTrailingDataIfNeededAndComplete();
-        }
+        sendTrailingDataAndCompleteIfNeeded();
     }
 
     private void addDownstreamDemand(long l) {
@@ -137,12 +133,39 @@ public class AddingTrailingDataSubscriber<T> extends DelegatingSubscriber<T, T> 
         }
     }
 
-    private void sendTrailingDataIfNeededAndComplete() {
-        if (onCompleteCalledOnDownstream.compareAndSet(false, true)) {
-            if (trailingData != null) {
-                subscriber.onNext(trailingData);
-            }
-            subscriber.onComplete();
+    private synchronized void sendTrailingDataAndCompleteIfNeeded() {
+        if (onCompleteCalledOnDownstream) {
+            return;
         }
+
+        if (trailingDataIterator == null) {
+            Iterable<T> supplier = trailingDataIterableSupplier.get();
+            if (supplier == null) {
+                completeDownstreamSubscriber();
+                return;
+            }
+
+            trailingDataIterator = supplier.iterator();
+        }
+
+        sendTrailingDataIfNeeded();
+
+        if (!trailingDataIterator.hasNext()) {
+            completeDownstreamSubscriber();
+        }
+    }
+
+    private void sendTrailingDataIfNeeded() {
+        long demand = downstreamDemand.get();
+
+        while (trailingDataIterator.hasNext() && demand > 0) {
+            subscriber.onNext(trailingDataIterator.next());
+            demand = downstreamDemand.decrementAndGet();
+        }
+    }
+
+    private void completeDownstreamSubscriber() {
+        subscriber.onComplete();
+        onCompleteCalledOnDownstream = true;
     }
 }

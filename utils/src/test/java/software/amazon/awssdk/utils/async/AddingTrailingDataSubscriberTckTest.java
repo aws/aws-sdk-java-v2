@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils.async;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -30,7 +31,7 @@ public class AddingTrailingDataSubscriberTckTest extends SubscriberWhiteboxVerif
     public Subscriber<Integer> createSubscriber(WhiteboxSubscriberProbe<Integer> probe) {
         Subscriber<Integer> foo = new SequentialSubscriber<>(s -> {}, new CompletableFuture<>());
 
-        return new AddingTrailingDataSubscriber<Integer>(foo, () -> Integer.MIN_VALUE) {
+        return new AddingTrailingDataSubscriber<Integer>(foo, () -> Arrays.asList(0, 1, 2)) {
             @Override
             public void onError(Throwable throwable) {
                 super.onError(throwable);
