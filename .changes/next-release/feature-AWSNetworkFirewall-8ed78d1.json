@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Network Firewall",
+    "contributor": "",
+    "description": "Network Firewall increasing pagination token string length"
+}
