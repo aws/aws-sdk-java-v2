@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "The DryRun field in EC2 APIs is no longer hidden and has been exposed. To determine the DryRun status for an EC2 operation using the dryRun field, users are now required to catch the Ec2Exception and extract the dryRun status from the errorCode of AwsErrorDetails within the Ec2Exception."
-}
