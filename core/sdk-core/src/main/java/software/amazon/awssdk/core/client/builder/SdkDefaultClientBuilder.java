@@ -328,7 +328,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         Boolean requestCompressionEnabled = null;
         Integer minCompressionThreshold = null;
 
-        // Client level
         if (clientOverrideConfiguration != null) {
             RequestCompressionConfiguration clientConfig =
                 clientOverrideConfiguration.requestCompressionConfiguration().orElse(null);
@@ -338,8 +337,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             }
         }
 
-
-        // Env level
         if (requestCompressionEnabled == null) {
             Optional<Boolean> systemSetting = SdkSystemSetting.AWS_DISABLE_REQUEST_COMPRESSION.getBooleanValue();
             if (systemSetting.isPresent()) {
@@ -351,7 +348,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                 SdkSystemSetting.AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES.getIntegerValue().orElse(null);
         }
 
-        // Profile level
         if (requestCompressionEnabled == null || minCompressionThreshold == null) {
             Supplier<ProfileFile> profileFileSupplier = ProfileFile::defaultProfileFile;
             String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
