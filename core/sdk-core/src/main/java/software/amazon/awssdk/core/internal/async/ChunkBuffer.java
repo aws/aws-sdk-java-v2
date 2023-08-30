@@ -46,8 +46,8 @@ public final class ChunkBuffer {
         int chunkSize = bufferSize != null ? bufferSize : DEFAULT_ASYNC_CHUNK_SIZE;
         this.chunkSize = chunkSize;
         this.currentBuffer = ByteBuffer.allocate(chunkSize);
-        this.transferredBytes = new AtomicLong(0);
         this.totalBytes = totalBytes;
+        this.transferredBytes = new AtomicLong(0);
     }
 
     public static Builder builder() {

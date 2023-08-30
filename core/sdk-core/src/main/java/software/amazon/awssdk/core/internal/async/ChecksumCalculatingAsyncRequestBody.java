@@ -16,7 +16,8 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
-import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumContentLength;
+import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.LAST_CHUNK_LEN;
+import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumTrailerLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChunkLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChecksumTrailer;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChunk;
