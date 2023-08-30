@@ -124,7 +124,7 @@ public class AsyncRequestCompressionTest {
                                                                 AsyncResponseTransformer.toBytes()).join();
 
         SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
-        String loggedBody = new String(mockAsyncHttpClient.getStreamingPayload());
+        String loggedBody = new String(mockAsyncHttpClient.getStreamingPayload().get());
 
         assertThat(loggedBody).isEqualTo(compressedBody);
         assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
@@ -168,7 +168,7 @@ public class AsyncRequestCompressionTest {
                                                                 AsyncResponseTransformer.toBytes()).join();
 
         SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
-        String loggedBody = new String(mockAsyncHttpClient.getStreamingPayload());
+        String loggedBody = new String(mockAsyncHttpClient.getStreamingPayload().get());
 
         assertThat(loggedBody).isEqualTo(compressedBody);
         assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");

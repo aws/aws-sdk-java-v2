@@ -51,7 +51,7 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
     private final List<Pair<HttpExecuteResponse, Duration>> responses = new LinkedList<>();
     private final AtomicInteger responseIndex = new AtomicInteger(0);
     private final ExecutorService executor;
-    private int asyncRequestBodyLength = -1;
+    private Integer asyncRequestBodyLength;
     private byte[] streamingPayload;
 
     public MockAsyncHttpClient() {
@@ -70,7 +70,7 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
         request.responseHandler().onHeaders(nextResponse.httpResponse());
         CompletableFuture.runAsync(() -> request.responseHandler().onStream(new ResponsePublisher(content, index)), executor);
 
-        if (asyncRequestBodyLength > 0) {
+        if (asyncRequestBodyLength != null && asyncRequestBodyLength > 0) {
             captureStreamingPayload(request.requestContentPublisher());
         }
 
@@ -145,10 +145,11 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
     }
 
     /**
-     * Returns the streaming payload byte array, if the asyncRequestBodyLength was set correctly. Otherwise, returns null.
+     * Returns the streaming payload byte array, if the asyncRequestBodyLength was set correctly. Otherwise, returns empty
+     * Optional.
      */
-    public byte[] getStreamingPayload() {
-        return streamingPayload.clone();
+    public Optional<byte[]> getStreamingPayload() {
+        return streamingPayload != null ? Optional.of(streamingPayload.clone()) : Optional.empty();
     }
 
     private final class ResponsePublisher implements SdkHttpContentPublisher {
