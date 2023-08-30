@@ -429,7 +429,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param operationWithRequestCompressionRequest
-     *        A {@link Consumer} that will call methods on {@link OperationWithRequestCompressionRequest.Builder} to
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.OperationWithRequestCompressionRequest.Builder} to
      *        create a request.
      * @return Result of the OperationWithRequestCompression operation returned by the service.
      * @throws SdkException
