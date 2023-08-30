@@ -196,7 +196,9 @@ public final class UploadWithKnownContentLengthHelper {
             returnFuture.whenComplete((r, t) -> {
                 if (t != null) {
                     s.cancel();
-                    multipartUploadHelper.cancelingOtherOngoingRequests(futures, t);
+                    if (failureActionInitiated.compareAndSet(false, true)) {
+                        multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
+                    }
                 }
             });
         }
