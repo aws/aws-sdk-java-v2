@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.AwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -37,12 +36,8 @@ public final class SignerLoader {
     private SignerLoader() {
     }
 
-    public static AwsV4aHttpSigner getSigV4aSigner() {
-        return get(AwsV4aHttpSigner.class, "software.amazon.awssdk.http.auth.aws.crt.AwsCrtV4aHttpSigner");
-    }
-
-    public static AwsS3V4HttpSigner getS3SigV4aSigner() {
-        return get(AwsS3V4HttpSigner.class, "software.amazon.awssdk.http.auth.aws.crt.AwsCrtS3V4aHttpSigner");
+    public static AwsV4aHttpSigner getAwsV4aHttpSigner() {
+        return get(AwsV4aHttpSigner.class, "software.amazon.awssdk.http.auth.aws.crt.DefaultAwsCrtV4aHttpSigner");
     }
 
     @SuppressWarnings("unchecked")

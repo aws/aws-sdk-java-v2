@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
+package software.amazon.awssdk.http.auth.aws.crt;
 
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtHttpRequestConverter.toRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtUtils.sanitizeRequest;
@@ -23,7 +23,7 @@ import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_U
 import java.time.Clock;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
@@ -31,6 +31,8 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aContext;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aPayloadSigner;
 import software.amazon.awssdk.http.auth.aws.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
@@ -44,8 +46,15 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
  * An implementation of a {@link AwsV4aHttpSigner} that uses properties to compose v4a-signers in order to delegate signing of a
  * request and payload (if applicable) accordingly.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
+
+    /**
+     * Returns a default implementation for {@link AwsV4aHttpSigner}.
+     */
+    public static AwsV4aHttpSigner create() {
+        return new DefaultAwsCrtV4aHttpSigner();
+    }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
         if (expirationDuration.compareTo(PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
