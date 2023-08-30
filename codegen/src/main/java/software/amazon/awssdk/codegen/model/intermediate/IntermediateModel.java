@@ -273,13 +273,6 @@ public final class IntermediateModel {
         return AwsResponseMetadata.class.getName();
     }
 
-    @JsonIgnore
-    public List<OperationModel> simpleMethodsRequiringTesting() {
-        return getOperations().values().stream()
-                              .filter(v -> v.getInputShape().isSimpleMethod())
-                              .collect(Collectors.toList());
-    }
-
     public Optional<OperationModel> getEndpointOperation() {
         return endpointOperation;
     }
