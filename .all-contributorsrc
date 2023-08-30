@@ -859,6 +859,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "deki",
+      "name": "Dennis Kieselhorst",
+      "avatar_url": "https://avatars.githubusercontent.com/u/858827?v=4",
+      "profile": "http://www.dekies.de",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
