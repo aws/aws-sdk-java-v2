@@ -17,7 +17,6 @@ package software.amazon.awssdk.benchmark.stats;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -25,7 +24,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.infra.BenchmarkParams;
@@ -46,9 +45,9 @@ public class SdkBenchmarkParams {
 
     private Mode mode;
 
-    @JsonSerialize(using = LocalDateSerializer.class)
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    private LocalDateTime date;
+    @JsonSerialize(using = ZonedDateSerializer.class)
+    @JsonDeserialize(using = ZonedDateDeserializer.class)
+    private ZonedDateTime date;
 
     public SdkBenchmarkParams() {
     }
@@ -59,7 +58,7 @@ public class SdkBenchmarkParams {
         this.jvmName = benchmarkParams.getVmName();
         this.jvmVersion = benchmarkParams.getVmVersion();
         this.mode = benchmarkParams.getMode();
-        this.date = LocalDateTime.now();
+        this.date = ZonedDateTime.now();
     }
 
     public String getSdkVersion() {
@@ -94,11 +93,11 @@ public class SdkBenchmarkParams {
         this.jvmVersion = jvmVersion;
     }
 
-    public LocalDateTime getDate() {
+    public ZonedDateTime getDate() {
         return date;
     }
 
-    public void setDate(LocalDateTime date) {
+    public void setDate(ZonedDateTime date) {
         this.date = date;
     }
 
@@ -110,18 +109,18 @@ public class SdkBenchmarkParams {
         this.mode = mode;
     }
 
-    private static class LocalDateSerializer extends JsonSerializer<LocalDateTime> {
+    private static class ZonedDateSerializer extends JsonSerializer<ZonedDateTime> {
 
         @Override
-        public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-            gen.writeString(value.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        public void serialize(ZonedDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeString(value.format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
         }
     }
 
-    private static class LocalDateDeserializer extends JsonDeserializer<LocalDateTime> {
+    private static class ZonedDateDeserializer extends JsonDeserializer<ZonedDateTime> {
         @Override
-        public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-            return LocalDateTime.parse(p.readValueAs(String.class));
+        public ZonedDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            return ZonedDateTime.parse(p.getValueAsString());
         }
     }
 }
