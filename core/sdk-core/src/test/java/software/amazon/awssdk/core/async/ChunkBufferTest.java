@@ -198,7 +198,7 @@ class ChunkBufferTest {
         assertThat(iteratedCounts.get()).isEqualTo(3);
 
         Optional<ByteBuffer> lastBuffer = chunkBuffer.getBufferedData();
-        assertThat(lastBuffer.isPresent());
+        assertThat(lastBuffer).isPresent();
         assertThat(lastBuffer.get().remaining()).isEqualTo(2);
     }
 
