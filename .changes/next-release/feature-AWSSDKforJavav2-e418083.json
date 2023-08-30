@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Adding support for \"requestCompression\" trait to GZIP compress payloads for non-streaming operations."
-}
