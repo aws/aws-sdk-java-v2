@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Audit Manager",
+    "contributor": "",
+    "description": "This release marks some assessment metadata as sensitive. We added a sensitive trait to the following attributes: assessmentName, emailAddress, scope, createdBy, lastUpdatedBy, and userName."
+}
