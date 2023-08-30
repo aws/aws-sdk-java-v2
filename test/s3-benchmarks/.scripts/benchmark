@@ -64,7 +64,7 @@ if [ ! -d result ]; then
 fi
 
 sizes_str="1B 8MB+1 8MB-1 128MB 4GB 30GB"
-versions_str="v1 v2 CRT"
+versions_str="v1 v2 CRT java"
 sizes=( $sizes_str )
 versions=( $versions_str )
 

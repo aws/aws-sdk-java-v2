@@ -25,6 +25,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**

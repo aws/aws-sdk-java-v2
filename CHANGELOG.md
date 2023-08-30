@@ -1,3 +1,270 @@
+# __2.20.137__ __2023-08-29__
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Added API example requests and responses for several operations. Fixed the validation regex for user pools Identity Provider name.
+
+## __Amazon FSx__
+  - ### Features
+    - Documentation updates for project quotas.
+
+## __Amazon Omics__
+  - ### Features
+    - Add RetentionMode support for Runs.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Adds support for the new Export and Message Insights features: create, get, list and cancel export jobs; get message insights.
+
+# __2.20.136__ __2023-08-28__
+## __AWS Backup__
+  - ### Features
+    - Add support for customizing time zone for backup window in backup plan rules.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate licensing optimization recommendations for sql server running on EC2 instances.
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for permissions and links.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Remove incorrect regex enforcement on pagination tokens.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - WorkSpaces Web now enables Admins to configure which cookies are synchronized from an end-user's local browser to the in-session browser. In conjunction with a browser extension, this feature enables enhanced Single-Sign On capability by reducing the number of times an end-user has to authenticate.
+
+## __Service Quotas__
+  - ### Features
+    - Service Quotas now supports viewing the applied quota value and requesting a quota increase for a specific resource in an AWS account.
+
+# __2.20.135__ __2023-08-25__
+## __AWS CloudTrail__
+  - ### Features
+    - Add ThrottlingException with error code 429 to handle CloudTrail Delegated Admin request rate exceeded on organization resources.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Doc-only update to get doc bug fixes into the SDK docs
+
+## __Amazon Detective__
+  - ### Features
+    - Added protections to interacting with fields containing customer information.
+
+# __2.20.134__ __2023-08-24__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes additional audio channel tags in Quicktime outputs, support for film grain synthesis for AV1 outputs, ability to create audio-only FLAC outputs, and ability to specify Amazon S3 destination storage class.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports passthrough of KLV data to a HLS output group with a TS container. MediaLive now supports setting an attenuation mode for AC3 audio when the coding mode is 3/2 LFE. MediaLive now supports specifying whether to include filler NAL units in RTMP output group settings.
+
+## __AWS Glue__
+  - ### Features
+    - Added API attributes that help in the monitoring of sessions.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Adds new source location AUTODETECT_SIGV4 access type.
+
+## __AWS S3 Control__
+  - ### Features
+    - Updates to endpoint ruleset tests to address Smithy validation issues and standardize the capitalization of DualStack.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 M7a instances, powered by 4th generation AMD EPYC processors, deliver up to 50% higher performance compared to M6a instances. Amazon EC2 Hpc7a instances, powered by 4th Gen AMD EPYC processors, deliver up to 2.5x better performance compared to Amazon EC2 Hpc6a instances.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Excel support in Snapshot Export APIs. Removed Required trait for some insight Computations. Namespace-shared Folders support. Global Filters support. Table pin Column support.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release updates the supported versions for Percona XtraBackup in Aurora MySQL.
+
+## __Amazon S3__
+  - ### Features
+    - Add support for presigned `DeleteObject` in `S3Presigner`.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updates to endpoint ruleset tests to address Smithy validation issues.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Documentation updates for Amazon Verified Permissions.
+
+# __2.20.133__ __2023-08-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon API Gateway__
+  - ### Features
+    - This release adds RootResourceId to GetRestApi response.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Marking fields as sensitive on BundleTask and GetPasswordData
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds 1 new voice - Zayd (ar-AE)
+
+# __2.20.132__ __2023-08-22__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release adds the LastUpdatedDate and LastUsedDate timestamps to help you manage your cost allocation tags.
+
+## __AWS Global Accelerator__
+  - ### Features
+    - Global Accelerator now supports Client Ip Preservation for Network Load Balancer endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 - DynamoDb Enhanced__
+  - ### Bugfixes
+    - Changes the default behavior of the DynamoDb Enhanced atomic counter extension to automatically filter out any counter attributes in the item to be updated. This allows users to read and update items without DynamoDb collision errors.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding parameters to CreateCustomDbEngineVersion reserved for future use.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Documentation updates for Amazon Verified Permissions. Increases max results per page for ListPolicyStores, ListPolicies, and ListPolicyTemplates APIs from 20 to 50.
+
+# __2.20.131__ __2023-08-21__
+## __AWS Cloud9__
+  - ### Features
+    - Doc only update to add Ubuntu 22.04 as an Image ID option for Cloud9
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The DeleteKeyPair API has been updated to return the keyPairId when an existing key pair is deleted.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS Aurora Global Database Unplanned Failover
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Fixed typos in description fields
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Allow customers to manage outbound traffic from their Kx Environment when attaching a transit gateway by providing network acl entries. Allow the customer to choose how they want to update the databases on a cluster allowing updates to possibly be faster than usual.
+
+# __2.20.130__ __2023-08-18__
+## __AWS CodeCommit__
+  - ### Features
+    - Add new ListFileCommitHistory operation to retrieve commits which introduced changes to a specific file.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added Inspector Lambda code Vulnerability section to ASFF, including GeneratorDetails, EpssScore, ExploitAvailable, and CodeVulnerabilities.
+
+# __2.20.129__ __2023-08-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Sends final checksum chunk and trailer when only onComplete() is called by upstream (empty content)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for SubnetConfigurations to allow users to select their own IPv4 and IPv6 addresses for Interface VPC endpoints
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift updates its instance types support.
+
+# __2.20.128__ __2023-08-16__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add support for the `SERVICE_ENDPOINT` metric. This metric represents the endpoint (scheme and authority) that the request was sent to.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Doc-only update to incorporate several doc bug fixes
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release updates the Custom Vocabulary Weight field to support a value of 0.
+
+# __2.20.127__ __2023-08-15__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Crawlers can now accept SerDe overrides from a custom csv classifier. The two SerDe options are LazySimpleSerDe and OpenCSVSerDe. In case, the user wants crawler to do the selection, "None" can be selected for this purpose.
+
+## __AWS Performance Insights__
+  - ### Features
+    - AWS Performance Insights for Amazon RDS is launching Performance Analysis On Demand, a new feature that allows you to analyze database performance metrics and find out the performance issues. You can now use SDK to create, list, get, delete, and manage tags of performance analysis reports.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Updated API documentation to include additional exceptions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Provide explanation if CheckDomainTransferability return false. Provide requestId if a request is already submitted. Add sensitive protection for customer information
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now provides SupportedResponseMIMETypes from DescribeInferenceRecommendationsJob response
+
+# __2.20.126__ __2023-08-14__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Fix SDK logging of certain fields.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __Amazon Omics__
+  - ### Features
+    - This release provides support for annotation store versioning and cross account sharing for Omics Analytics
+
 # __2.20.125__ __2023-08-11__
 ## __AWS Config__
   - ### Features
@@ -1184,7 +1451,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
