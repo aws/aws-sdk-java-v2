@@ -30,11 +30,13 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.async.CompressionAsyncRequestBody;
 import software.amazon.awssdk.core.internal.compression.Compressor;
 import software.amazon.awssdk.core.internal.compression.CompressorType;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
+import software.amazon.awssdk.core.internal.sync.CompressionContentStreamProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.IoUtils;
@@ -62,15 +64,27 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
         Compressor compressor = resolveCompressorType(context.executionAttributes());
 
-        // non-streaming
         if (!isStreaming(context)) {
             compressEntirePayload(input, compressor);
             updateContentEncodingHeader(input, compressor);
             updateContentLengthHeader(input);
+            return input;
         }
 
-        // TODO : streaming - sync & async
+        if (!isTransferEncodingChunked(input)) {
+            return input;
+        }
 
+        if (context.requestProvider() == null) {
+            input.contentStreamProvider(new CompressionContentStreamProvider(input.contentStreamProvider(), compressor));
+        } else {
+            context.requestProvider(CompressionAsyncRequestBody.builder()
+                                                               .asyncRequestBody(context.requestProvider())
+                                                               .compressor(compressor)
+                                                               .build());
+        }
+
+        updateContentEncodingHeader(input, compressor);
         return input;
     }
 
@@ -121,6 +135,12 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private boolean isTransferEncodingChunked(SdkHttpFullRequest.Builder input) {
+        return input.firstMatchingHeader("Transfer-Encoding")
+                    .map(headerValue -> headerValue.equals("chunked"))
+                    .orElse(false);
     }
 
     private Compressor resolveCompressorType(ExecutionAttributes executionAttributes) {
