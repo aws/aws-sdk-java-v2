@@ -25,12 +25,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.reactivestreams.Subscriber;
@@ -52,8 +50,6 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
  * Base class for MediaStoreData integration tests. Used for Transfer-Encoding and Request Compression testing.
  */
 public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
-    protected static Random random = new Random();
-    protected static final String CONTAINER_NAME = "java-sdk-test-mediastoredata-" + Instant.now().toEpochMilli() + random.nextInt();
     protected static AwsCredentialsProvider credentialsProvider;
     protected static MediaStoreClient mediaStoreClient;
     protected static URI uri;
@@ -65,7 +61,6 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
                                            .credentialsProvider(credentialsProvider)
                                            .httpClient(ApacheHttpClient.builder().build())
                                            .build();
-        uri = URI.create(createContainer().endpoint());
     }
 
     @AfterEach
@@ -73,14 +68,14 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
         CaptureTransferEncodingHeaderInterceptor.reset();
     }
 
-    private static Container createContainer() {
-        mediaStoreClient.createContainer(r -> r.containerName(CONTAINER_NAME));
-        DescribeContainerResponse response = waitContainerToBeActive();
+    protected static Container createContainer(String containerName) {
+        mediaStoreClient.createContainer(r -> r.containerName(containerName));
+        DescribeContainerResponse response = waitContainerToBeActive(containerName);
         return response.container();
     }
 
-    private static DescribeContainerResponse waitContainerToBeActive() {
-        return Waiter.run(() -> mediaStoreClient.describeContainer(r -> r.containerName(CONTAINER_NAME)))
+    private static DescribeContainerResponse waitContainerToBeActive(String containerName) {
+        return Waiter.run(() -> mediaStoreClient.describeContainer(r -> r.containerName(containerName)))
                      .until(r -> r.container().status() == ContainerStatus.ACTIVE)
                      .orFailAfter(Duration.ofMinutes(3));
     }

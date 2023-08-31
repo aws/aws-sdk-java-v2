@@ -17,8 +17,10 @@ package software.amazon.awssdk.services.mediastoredata;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.testutils.Waiter;
  * Integration test to verify Transfer-Encoding:chunked functionalities for all supported HTTP clients. Do not delete.
  */
 public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegrationTestBase {
+    protected static final String CONTAINER_NAME = "java-sdk-test-mediastoredata-transferencoding" + Instant.now().toEpochMilli();
     private static MediaStoreDataClient syncClientWithApache;
     private static MediaStoreDataClient syncClientWithUrlConnection;
     private static MediaStoreDataAsyncClient asyncClientWithNetty;
@@ -44,6 +47,7 @@ public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegr
 
     @BeforeAll
     public static void setup() {
+        uri = URI.create(createContainer(CONTAINER_NAME).endpoint());
         syncClientWithApache = MediaStoreDataClient.builder()
                                                    .endpointOverride(uri)
                                                    .credentialsProvider(credentialsProvider)

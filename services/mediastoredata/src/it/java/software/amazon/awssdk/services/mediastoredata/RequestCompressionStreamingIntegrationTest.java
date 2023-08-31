@@ -18,8 +18,10 @@ package software.amazon.awssdk.services.mediastoredata;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -49,6 +51,7 @@ import software.amazon.awssdk.testutils.Waiter;
  * Integration test to verify Request Compression functionalities for streaming operations. Do not delete.
  */
 public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIntegrationTestBase {
+    protected static final String CONTAINER_NAME = "java-sdk-test-mediastoredata-compression" + Instant.now().toEpochMilli();
     private static final String UNCOMPRESSED_BODY =
         "RequestCompressionTest-RequestCompressionTest-RequestCompressionTest-RequestCompressionTest-RequestCompressionTest";
     private static String compressedBody;
@@ -60,6 +63,8 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
 
     @BeforeAll
     public static void setup() {
+        uri = URI.create(createContainer(CONTAINER_NAME).endpoint());
+
         CompressionConfiguration compressionConfiguration =
             CompressionConfiguration.builder()
                                     .minimumCompressionThresholdInBytes(1)
