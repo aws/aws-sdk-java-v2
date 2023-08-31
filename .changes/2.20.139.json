@@ -1,0 +1,96 @@
+{
+    "version": "2.20.139",
+    "date": "2023-08-31",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "contributor": "",
+            "description": "Adds new API DescribeEntityAggregatesForOrganization that retrieves entity aggregates across your organization. Also adds support for resource status filtering in DescribeAffectedEntitiesForOrganization, resource status aggregates in the DescribeEntityAggregates response, and new resource statuses."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "deki",
+            "description": "Use latest AWS Lambda Java 17 runtime version in SAM template of archetype"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Media Pipelines",
+            "contributor": "",
+            "description": "This release adds support for feature Voice Enhancement for Call Recording as part of Amazon Chime SDK call analytics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudHSM",
+            "contributor": "",
+            "description": "Deprecating CloudHSM Classic API Service."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "contributor": "",
+            "description": "Documentation updates for CloudWatch Events."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignService",
+            "contributor": "",
+            "description": "Amazon Connect outbound campaigns has launched agentless dialing mode which enables customers to make automated outbound calls without agent engagement. This release updates three of the campaign management API's to support the new agentless dialing mode and the new dialing capacity field."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "Adds sensitive trait to various shapes in Customer Profiles API model."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Participant Service",
+            "contributor": "",
+            "description": "Amazon Connect Participant Service adds the ability to get a view resource using a view token, which is provided in a participant message, with the release of the DescribeView API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release adds support for an account-level setting that you can use to configure the number of days for AWS Fargate task retirement."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "Updated \"type\" description for CreateChannel, UpdateChannel, Channel, and ChannelSummary."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Grafana",
+            "contributor": "",
+            "description": "Marking SAML RoleValues attribute as sensitive and updating VpcConfiguration attributes to match documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Runtime",
+            "contributor": "",
+            "description": "This release adds a new InvokeEndpointWithResponseStream API to support streaming of model responses."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka Connect",
+            "contributor": "",
+            "description": "Minor model changes for Kafka Connect as well as endpoint updates."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Make KeyCheckValue field optional when using asymmetric keys as Key Check Values typically only apply to symmetric keys"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

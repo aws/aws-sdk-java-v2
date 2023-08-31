@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudHSM",
-    "contributor": "",
-    "description": "Deprecating CloudHSM Classic API Service."
-}
