@@ -182,14 +182,14 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    public void sign_ChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
+    public void sign_ChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
-                .putHeader(Header.CONTENT_LENGTH, "20")
-                .putHeader("x-amz-trailer", "aTrailer"),
+                .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -205,11 +205,11 @@ public class DefaultAwsV4HttpSignerTest {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
-                .putHeader(Header.CONTENT_LENGTH, "20")
-                .putHeader("x-amz-trailer", "aTrailer"),
+                .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
                 .putProperty(PAYLOAD_SIGNING_ENABLED, false)
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);

@@ -166,7 +166,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         }
 
         if (isChunkEncoding) {
-            return new AwsChunkedV4PayloadSigner(properties.getCredentialScope(), DEFAULT_CHUNK_SIZE_IN_BYTES);
+            return new AwsChunkedV4PayloadSigner(properties.getCredentialScope(), DEFAULT_CHUNK_SIZE_IN_BYTES, null);
         }
 
         return V4PayloadSigner.create();
