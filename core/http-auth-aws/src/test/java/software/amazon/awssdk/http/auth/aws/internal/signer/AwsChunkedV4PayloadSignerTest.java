@@ -101,7 +101,7 @@ public class AwsChunkedV4PayloadSignerTest {
 
     @Test
     public void sign_withSignedPayloadAndTrailer_shouldChunkEncodeWithSigV4ExtAndSigV4Trailer() throws IOException {
-        // TODO: Update trailer here when flexible checksums is implemented
+        // TODO(sra-identity-and-auth): Update trailer here when flexible checksums is implemented
         String expectedContent =
             "4;chunk-signature=082f5b0e588893570e152b401a886161ee772ed066948f68c8f01aee11cca4f8\r\n{\"Ta\r\n" +
             "4;chunk-signature=777b02ec61ce7934578b1efe6fbe08c21ae4a8cdf66a709d3b4fd320dddd2839\r\nbleN\r\n" +
@@ -138,7 +138,7 @@ public class AwsChunkedV4PayloadSignerTest {
 
     @Test
     public void sign_withTrailer_shouldChunkEncodeWithTrailer() throws IOException {
-        // TODO: Update trailer here when flexible checksums is implemented
+        // TODO(sra-identity-and-auth): Update trailer here when flexible checksums is implemented
         String expectedContent =
             "4\r\n{\"Ta\r\n" +
             "4\r\nbleN\r\n" +
