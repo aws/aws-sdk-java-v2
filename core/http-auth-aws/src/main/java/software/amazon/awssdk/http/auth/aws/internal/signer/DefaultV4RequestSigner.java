@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.addHostHeader;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.deriveSigningKey;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hashCanonicalRequest;
@@ -45,11 +46,11 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
     @Override
     public V4Context sign(SdkHttpRequest.Builder requestBuilder) {
         // Step 0: Pre-requisites
-        String checksum = getChecksum(requestBuilder);
+        String contentHash = getContentHash(requestBuilder);
         addHostHeader(requestBuilder);
 
         // Step 1: Create a canonical request
-        V4CanonicalRequest canonicalRequest = createCanonicalRequest(requestBuilder.build(), checksum);
+        V4CanonicalRequest canonicalRequest = createCanonicalRequest(requestBuilder.build(), contentHash);
 
         // Step 2: Create a hash of the canonical request
         String canonicalRequestHash = hashCanonicalRequest(canonicalRequest.getCanonicalRequestString());
@@ -63,12 +64,12 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
         String signature = createSignature(stringToSign, signingKey);
 
         // Step 5: Return the signature to be added to the request
-        return new V4Context(checksum, signingKey, signature, canonicalRequest, requestBuilder);
+        return new V4Context(contentHash, signingKey, signature, canonicalRequest, requestBuilder);
     }
 
-    private String getChecksum(SdkHttpRequest.Builder requestBuilder) {
-        return requestBuilder.firstMatchingHeader("x-amz-content-sha256").orElseThrow(
-            () -> new IllegalArgumentException("Checksum must be present in the 'x-amz-content-sha256' header!")
+    private String getContentHash(SdkHttpRequest.Builder requestBuilder) {
+        return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
+            () -> new IllegalArgumentException("Content hash must be present in the '" +  X_AMZ_CONTENT_SHA256 + "' header!")
         );
     }
 

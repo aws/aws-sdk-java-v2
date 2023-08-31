@@ -15,19 +15,18 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.fromChecksumAlgorithm;
 import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.readAll;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.getBinaryRequestPayloadStream;
-import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
@@ -36,38 +35,43 @@ import software.amazon.awssdk.http.auth.aws.internal.io.ChecksumSubscriber;
 import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
 
 /**
- * The default implementation of a checksummer. By default, this will calculate the SHA256 checksum of a payload and add it as the
- * value for the 'x-amz-content-sha256' header on the request.
+ * A "flexible" implementation of a checksummer.
  */
 @SdkInternalApi
-public final class DefaultChecksummer implements Checksummer {
+public final class FlexibleChecksummer implements Checksummer {
+    private final Map<String, SdkChecksum> checksumMap;
+
+    public FlexibleChecksummer(Map<String, ChecksumAlgorithm> algorithmMap) {
+        this.checksumMap = algorithmMap
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, v -> fromChecksumAlgorithm(v.getValue())));
+    }
 
     @Override
     public void checksum(ContentStreamProvider payload, SdkHttpRequest.Builder request) {
-        SdkChecksum sdkChecksum = fromChecksumAlgorithm(SHA256);
-        InputStream payloadStream = new ChecksumInputStream(
-            getBinaryRequestPayloadStream(payload),
-            Collections.singletonList(sdkChecksum)
+        InputStream payloadStream = getBinaryRequestPayloadStream(payload);
+
+        ChecksumInputStream computingStream = new ChecksumInputStream(
+            payloadStream,
+            checksumMap.values()
         );
 
-        readAll(payloadStream);
+        readAll(computingStream);
 
-        request.putHeader(X_AMZ_CONTENT_SHA256, toHex(sdkChecksum.getChecksumBytes()));
+        checksumMap.forEach((header, checksum) -> request.putHeader(header, checksum.getChecksum()));
     }
 
     @Override
     public CompletableFuture<Void> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
-        SdkChecksum sdkChecksum = fromChecksumAlgorithm(SHA256);
-
-        ChecksumSubscriber checksumSubscriber = new ChecksumSubscriber(Collections.singletonList(sdkChecksum));
+        ChecksumSubscriber checksumSubscriber = new ChecksumSubscriber(checksumMap.values());
 
         if (payload != null) {
             payload.subscribe(checksumSubscriber);
         }
 
-        return checksumSubscriber.checksum().thenRun(() -> {
-            String checksum = toHex(sdkChecksum.getChecksumBytes());
-            request.putHeader(X_AMZ_CONTENT_SHA256, checksum);
-        });
+        return checksumSubscriber.checksum().thenRun(
+            () -> checksumMap.forEach((header, checksum) -> request.putHeader(header, checksum.getChecksum()))
+        );
     }
 }

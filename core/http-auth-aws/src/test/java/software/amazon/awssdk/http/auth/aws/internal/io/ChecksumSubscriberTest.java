@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws;
+package software.amazon.awssdk.http.auth.aws.internal.io;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,39 +21,66 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static software.amazon.awssdk.utils.CompletableFutureUtils.joinLikeSync;
 
 import io.reactivex.Flowable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.auth.aws.internal.util.DigestComputingSubscriber;
+import software.amazon.awssdk.http.auth.aws.internal.checksums.Crc32Checksum;
+import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
+import software.amazon.awssdk.http.auth.aws.internal.checksums.Sha256Checksum;
 import software.amazon.awssdk.utils.BinaryUtils;
 
-public class DigestComputingSubscriberTest {
+public class ChecksumSubscriberTest {
 
     @Test
     public void test_computesCorrectSha256() {
         String testString = "AWS SDK for Java";
         String expectedDigest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
 
-        DigestComputingSubscriber subscriber = DigestComputingSubscriber.forSha256();
-
+        SdkChecksum checksum = new Sha256Checksum();
+        ChecksumSubscriber subscriber = new ChecksumSubscriber(Collections.singleton(checksum));
         Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testString.getBytes(StandardCharsets.UTF_8)));
-
         publisher.subscribe(subscriber);
 
-        String computedDigest = BinaryUtils.toHex(subscriber.digestBytes().join());
+        joinLikeSync(subscriber.checksum());
+        String computedDigest = BinaryUtils.toHex(checksum.getChecksumBytes());
 
         assertThat(computedDigest).isEqualTo(expectedDigest);
+    }
+
+    @Test
+    public void test_withMultipleChecksums_shouldComputeCorrectChecksums() {
+        String testString = "AWS SDK for Java";
+        String expectedSha256Digest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
+        String expectedCrc32Digest = "4ac37ece";
+
+        SdkChecksum sha256Checksum = new Sha256Checksum();
+        SdkChecksum crc32Checksum = new Crc32Checksum();
+        ChecksumSubscriber subscriber = new ChecksumSubscriber(Arrays.asList(sha256Checksum, crc32Checksum));
+        Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testString.getBytes(StandardCharsets.UTF_8)));
+        publisher.subscribe(subscriber);
+
+        joinLikeSync(subscriber.checksum());
+        String computedSha256Digest = BinaryUtils.toHex(sha256Checksum.getChecksumBytes());
+        String computedCrc32Digest = BinaryUtils.toHex(crc32Checksum.getChecksumBytes());
+
+        assertThat(computedSha256Digest).isEqualTo(expectedSha256Digest);
+        assertThat(computedCrc32Digest).isEqualTo(expectedCrc32Digest);
     }
 
     @Test
     public void test_futureCancelledBeforeSubscribe_cancelsSubscription() {
         Subscription mockSubscription = mock(Subscription.class);
 
-        DigestComputingSubscriber subscriber = DigestComputingSubscriber.forSha256();
-        subscriber.digestBytes().cancel(true);
+        ChecksumSubscriber subscriber = new ChecksumSubscriber(Collections.emptyList());
+
+        subscriber.checksum().cancel(true);
 
         subscriber.onSubscribe(mockSubscription);
 
@@ -65,12 +92,12 @@ public class DigestComputingSubscriberTest {
     public void test_publisherCallsOnError_errorPropagatedToFuture() {
         Subscription mockSubscription = mock(Subscription.class);
 
-        DigestComputingSubscriber subscriber = DigestComputingSubscriber.forSha256();
+        ChecksumSubscriber subscriber = new ChecksumSubscriber(Collections.emptyList());
         subscriber.onSubscribe(mockSubscription);
 
         RuntimeException error = new RuntimeException("error");
         subscriber.onError(error);
 
-        assertThatThrownBy(subscriber.digestBytes()::join).hasCause(error);
+        assertThatThrownBy(subscriber.checksum()::join).hasCause(error);
     }
 }

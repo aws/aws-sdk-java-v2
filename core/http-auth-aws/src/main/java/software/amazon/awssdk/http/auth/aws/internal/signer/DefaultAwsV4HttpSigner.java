@@ -22,7 +22,6 @@ import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.UNSIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
 
 import java.time.Clock;
@@ -112,7 +111,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
-        boolean isTrailing = hasTrailer(request.request());
+        boolean isTrailing = hasTrailer(request);
 
         if (isEventStreaming) {
             return new PrecomputedChecksummer(() -> STREAMING_EVENTS_PAYLOAD);
@@ -125,7 +124,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                 }
                 return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD);
             }
-            return Checksummer.create();
+            return Checksummer.create(request.property(CHECKSUM_ALGORITHM));
         }
 
         if (isChunkEncoding) {
@@ -135,7 +134,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
         }
 
-        return new PrecomputedChecksummer(() -> UNSIGNED_PAYLOAD);
+        return Checksummer.create(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
     }
 
     private static V4PayloadSigner v4PayloadSigner(
@@ -177,8 +176,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        String checksum = checksummer.checksum(request.payload().orElse(null));
-        requestBuilder.putHeader(X_AMZ_CONTENT_SHA256, checksum);
+        checksummer.checksum(request.payload().orElse(null), requestBuilder);
 
         V4Context v4Context = requestSigner.sign(requestBuilder);
 
@@ -206,11 +204,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
         CompletableFuture<V4Context> futureV4Context =
-            checksummer.checksum(request.payload().orElse(null)).thenApply(
-                checksum -> {
-                    requestBuilder.putHeader(X_AMZ_CONTENT_SHA256, checksum);
-                    return requestSigner.sign(requestBuilder);
-                });
+            checksummer.checksum(request.payload().orElse(null), requestBuilder)
+                       .thenApply(__ -> requestSigner.sign(requestBuilder));
 
         return futureV4Context.thenApply(
             v4Context -> AsyncSignedRequest.builder()
@@ -235,10 +230,10 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
     }
 
-    private static boolean hasTrailer(SdkHttpRequest request) {
-        // TODO(sra-identity-and-auth): Trailer would be determined by being a flexible-checksum enabled request, we will need
-        //  to update this once flexible checksums is enabled
-        return request.firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+    private static boolean hasTrailer(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        // Flexible checksums dictates adding a trailer when signing, but there may be existing trailers on
+        // the request (in the future)
+        return request.hasProperty(CHECKSUM_ALGORITHM) || request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
     }
 
     /**

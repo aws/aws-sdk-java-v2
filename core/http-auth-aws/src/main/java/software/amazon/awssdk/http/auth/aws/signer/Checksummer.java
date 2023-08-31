@@ -15,15 +15,28 @@
 
 package software.amazon.awssdk.http.auth.aws.signer;
 
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.ConstantChecksumAlgorithm;
+import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.checksumHeaderName;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+
 import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultChecksummer;
+import software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer;
+import software.amazon.awssdk.http.auth.aws.internal.signer.PrecomputedChecksummer;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * An interface for defining how a checksum is formed from a payload synchronously and asynchronously.
+ * <p>
+ * The implementation may choose to also manipulate the request with the checksum, such as adding it as a header.
  */
 @SdkProtectedApi
 public interface Checksummer {
@@ -35,12 +48,49 @@ public interface Checksummer {
     }
 
     /**
-     * Given a payload, calculate a checksum and return it as a string.
+     * Get a flexible checksummer that uses the given checksum-algorithm and the default.
      */
-    String checksum(ContentStreamProvider payload);
+    static Checksummer create(ChecksumAlgorithm checksumAlgorithm) {
+        if (checksumAlgorithm != null) {
+            Map<String, ChecksumAlgorithm> checksums = ImmutableMap.of(
+                X_AMZ_CONTENT_SHA256, SHA256,
+                checksumHeaderName(checksumAlgorithm), checksumAlgorithm
+            );
+
+            return new FlexibleChecksummer(checksums);
+        }
+        return create();
+    }
 
     /**
-     * Given a payload, asynchronously calculate a checksum and return a future containing it as a string.
+     * Get a flexible checksummer that uses the given checksum-algorithm and the default.
      */
-    CompletableFuture<String> checksum(Publisher<ByteBuffer> payload);
+    static Checksummer create(String checksum) {
+        return new PrecomputedChecksummer(() -> checksum);
+    }
+
+    /**
+     * Get a flexible checksummer that uses the given checksum-algorithm and the default.
+     */
+    static Checksummer create(String checksum, ChecksumAlgorithm checksumAlgorithm) {
+        if (checksumAlgorithm != null) {
+            Map<String, ChecksumAlgorithm> checksums = ImmutableMap.of(
+                X_AMZ_CONTENT_SHA256, new ConstantChecksumAlgorithm(checksum),
+                checksumHeaderName(checksumAlgorithm), checksumAlgorithm
+            );
+
+            return new FlexibleChecksummer(checksums);
+        }
+        return create(checksum);
+    }
+
+    /**
+     * Given a payload, calculate a checksum and add it to the request.
+     */
+    void checksum(ContentStreamProvider payload, SdkHttpRequest.Builder request);
+
+    /**
+     * Given a payload, asynchronously calculate a checksum and promise to add it to the request.
+     */
+    CompletableFuture<Void> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request);
 }

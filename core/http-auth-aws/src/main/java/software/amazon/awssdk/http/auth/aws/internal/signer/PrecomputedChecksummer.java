@@ -15,15 +15,23 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
 
-@SdkProtectedApi
+/**
+ * An implementation of a checksummer that simply passes along a computed value as a checksum. Specifically, this is used in
+ * the cases where the checksum is a pre-defined value that dictates specific behavior by the signer (such as aws-chunked
+ * payload signing, unsigned streaming with trailers, etc.).
+ */
+@SdkInternalApi
 public final class PrecomputedChecksummer implements Checksummer {
 
     private final Callable<String> computation;
@@ -33,18 +41,22 @@ public final class PrecomputedChecksummer implements Checksummer {
     }
 
     @Override
-    public String checksum(ContentStreamProvider payload) {
+    public void checksum(ContentStreamProvider payload, SdkHttpRequest.Builder request) {
         try {
-            return computation.call();
+            String checksum = computation.call();
+            request.putHeader(X_AMZ_CONTENT_SHA256, checksum);
         } catch (Exception e) {
             throw new RuntimeException("Could not retrieve checksum: ", e);
         }
     }
 
     @Override
-    public CompletableFuture<String> checksum(Publisher<ByteBuffer> payload) {
+    public CompletableFuture<Void> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
         try {
-            return CompletableFuture.completedFuture(computation.call());
+            String checksum = computation.call();
+            request.putHeader(X_AMZ_CONTENT_SHA256, checksum);
+
+            return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             throw new RuntimeException("Could not retrieve checksum: ", e);
         }
