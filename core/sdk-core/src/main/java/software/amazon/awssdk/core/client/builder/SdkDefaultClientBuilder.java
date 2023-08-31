@@ -272,20 +272,19 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             Optional.ofNullable(configuration.option(PROFILE_FILE_SUPPLIER))
                     .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
 
-        configuration = addCompressionConfigGlobalDefaults(configuration, profileFileSupplier);
+        configuration = configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
+                                                  .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
+                                                  .option(PROFILE_FILE, profileFileSupplier.get())
+                                                  .option(PROFILE_FILE_SUPPLIER, profileFileSupplier)
+                                                  .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
+                                                  .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
+                                                  .option(USER_AGENT_SUFFIX, "")
+                                                  .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
 
-        return configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
-                                         .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
-                                         .option(PROFILE_FILE, profileFileSupplier.get())
-                                         .option(PROFILE_FILE_SUPPLIER, profileFileSupplier)
-                                         .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
-                                         .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
-                                         .option(USER_AGENT_SUFFIX, "")
-                                         .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+        return addCompressionConfigGlobalDefaults(configuration);
     }
 
-    private SdkClientConfiguration addCompressionConfigGlobalDefaults(SdkClientConfiguration configuration,
-                                                                      Supplier<ProfileFile> profileFileSupplier) {
+    private SdkClientConfiguration addCompressionConfigGlobalDefaults(SdkClientConfiguration configuration) {
         Optional<Boolean> requestCompressionEnabled = getCompressionEnabled(configuration);
         Optional<Integer> minCompressionThreshold = getCompressionThreshold(configuration);
 
@@ -301,7 +300,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             if (systemSetting.isPresent()) {
                 compressionEnabled = !systemSetting.get();
             } else {
-                Profile profile = profileFileSupplier.get().profile(configuration.option(PROFILE_NAME)).orElse(null);
+                Profile profile = configuration.option(PROFILE_FILE_SUPPLIER).get()
+                                               .profile(configuration.option(PROFILE_NAME)).orElse(null);
                 if (profile != null) {
                     Optional<Boolean> profileSetting = profile.booleanProperty(ProfileProperty.DISABLE_REQUEST_COMPRESSION);
                     if (profileSetting.isPresent()) {
@@ -316,7 +316,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             if (systemSetting.isPresent()) {
                 compressionThreshold = systemSetting.get();
             } else {
-                Profile profile = profileFileSupplier.get().profile(configuration.option(PROFILE_NAME)).orElse(null);
+                Profile profile = configuration.option(PROFILE_FILE_SUPPLIER).get()
+                                               .profile(configuration.option(PROFILE_NAME)).orElse(null);
                 if (profile != null) {
                     Optional<String> profileSetting = profile.property(ProfileProperty.REQUEST_MIN_COMPRESSION_SIZE_BYTES);
                     if (profileSetting.isPresent()) {
