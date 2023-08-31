@@ -236,8 +236,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private static boolean hasTrailer(SdkHttpRequest request) {
-        // TODO: Trailer would be determined by being a flexible-checksum enabled request, we will need to update
-        // this once flexible checksums is enabled
+        // TODO(sra-identity-and-auth): Trailer would be determined by being a flexible-checksum enabled request, we will need
+        //  to update this once flexible checksums is enabled
         return request.firstMatchingHeader(X_AMZ_TRAILER).isPresent();
     }
 

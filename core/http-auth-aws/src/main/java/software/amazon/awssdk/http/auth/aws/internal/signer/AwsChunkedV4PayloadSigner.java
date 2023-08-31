@@ -170,6 +170,6 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     }
 
     private void setupChecksumTrailer(ChunkedEncodedInputStream.Builder builder) {
-        // TODO: Set up checksumming of chunks and add as a trailer
+        // TODO(sra-identity-and-auth): Set up checksumming of chunks and add as a trailer
     }
 }

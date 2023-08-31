@@ -185,13 +185,13 @@ public final class ChunkedEncodedInputStream extends InputStream {
 
     @Override
     public synchronized void mark(int readlimit) {
-        // TODO: Implement this, likely needed for retries
+        // TODO(sra-identity-and-auth): Implement this, likely needed for retries
         throw new UnsupportedOperationException();
     }
 
     @Override
     public synchronized void reset() {
-        // TODO: Implement this, likely needed for retries
+        // TODO(sra-identity-and-auth): Implement this, likely needed for retries
         throw new UnsupportedOperationException();
     }
 

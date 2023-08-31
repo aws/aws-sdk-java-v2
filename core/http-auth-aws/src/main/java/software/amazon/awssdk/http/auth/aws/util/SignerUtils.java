@@ -207,7 +207,8 @@ public final class SignerUtils {
 
     public static byte[] hash(InputStream input) {
         try {
-            // TODO: Performance testing to verify if we should cache message digest instances (thread-local)
+            // TODO(sra-identity-and-auth): Performance testing to verify if we should cache message digest instances
+            //  (thread-local)
             MessageDigest md = getMessageDigestInstance();
             DigestInputStream digestInputStream = new SdkDigestInputStream(input, md);
             byte[] buffer = new byte[1024];
