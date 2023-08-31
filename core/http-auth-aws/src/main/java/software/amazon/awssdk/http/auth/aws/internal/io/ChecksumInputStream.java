@@ -23,6 +23,9 @@ import java.util.Collection;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
+/**
+ * An input-stream that takes a collection of checksums, and updates each checksum when it reads data.
+ */
 @SdkInternalApi
 public class ChecksumInputStream extends FilterInputStream {
 

@@ -25,6 +25,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
+/**
+ * A subscriber that takes a collection of checksums, and updates each checksum when it receives data.
+ */
 @SdkInternalApi
 public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
     private final CompletableFuture<Void> checksumming = new CompletableFuture<>();

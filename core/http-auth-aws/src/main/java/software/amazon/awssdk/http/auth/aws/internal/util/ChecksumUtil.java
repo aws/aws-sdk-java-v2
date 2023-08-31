@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.util;
 
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.MD5;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 
@@ -27,6 +28,7 @@ import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.ConstantChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.Crc32CChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.Crc32Checksum;
+import software.amazon.awssdk.http.auth.aws.internal.checksums.Md5Checksum;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.Sha1Checksum;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.Sha256Checksum;
@@ -51,11 +53,7 @@ public final class ChecksumUtil {
     }
 
     /**
-     * Gets the SdkChecksum object based on the given ChecksumAlgorithm. Instances for CRC32C, CRC32 Algorithm will be added from
-     * CRT Java library once they are available in release.
-     *
-     * @param checksumAlgorithm Algorithm for calculating the checksum
-     * @return an SdkChecksum instance.
+     * Gets the SdkChecksum object based on the given ChecksumAlgorithm.
      */
     public static SdkChecksum fromChecksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
         if (SHA256.algorithmId().equals(checksumAlgorithm.algorithmId())) {
@@ -72,6 +70,10 @@ public final class ChecksumUtil {
 
         if (CRC32C.algorithmId().equals(checksumAlgorithm.algorithmId())) {
             return new Crc32CChecksum();
+        }
+
+        if (MD5.algorithmId().equals(checksumAlgorithm.algorithmId())) {
+            return new Md5Checksum();
         }
 
         if (CONSTANT_CHECKSUM.equals(checksumAlgorithm.algorithmId())) {

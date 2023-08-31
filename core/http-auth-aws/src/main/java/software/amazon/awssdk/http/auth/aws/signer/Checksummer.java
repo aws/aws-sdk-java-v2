@@ -48,7 +48,7 @@ public interface Checksummer {
     }
 
     /**
-     * Get a flexible checksummer that uses the given checksum-algorithm and the default.
+     * Get a flexible checksummer that performs two checksums: the given checksum-algorithm and the default (sha256).
      */
     static Checksummer create(ChecksumAlgorithm checksumAlgorithm) {
         if (checksumAlgorithm != null) {
@@ -63,14 +63,15 @@ public interface Checksummer {
     }
 
     /**
-     * Get a flexible checksummer that uses the given checksum-algorithm and the default.
+     * Get a precomputed checksummer that results the given checksum string.
      */
     static Checksummer create(String checksum) {
         return new PrecomputedChecksummer(() -> checksum);
     }
 
     /**
-     * Get a flexible checksummer that uses the given checksum-algorithm and the default.
+     * Get a flexible checksummer that performs two checksums: the given checksum-algorithm and a precomputed checksum from the
+     * given checksum string.
      */
     static Checksummer create(String checksum, ChecksumAlgorithm checksumAlgorithm) {
         if (checksumAlgorithm != null) {

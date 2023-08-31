@@ -69,6 +69,12 @@
             <artifactId>checksums</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk.crt</groupId>
+            <artifactId>aws-crt</artifactId>
+            <version>${awscrt.version}</version>
+            <optional>true</optional>
+        </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>

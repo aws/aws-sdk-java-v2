@@ -35,7 +35,9 @@ import software.amazon.awssdk.http.auth.aws.internal.io.ChecksumSubscriber;
 import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
 
 /**
- * A "flexible" implementation of a checksummer.
+ * A "flexible" implementation of a checksummer. It takes a map of checksums and their header names, computes them efficiently
+ * by updating each checksum while reading the payload (once), and adds the computed checksum strings to the request using the
+ * given header names in the map. This should be used in cases where a (flexible) checksum algorithm is present during signing.
  */
 @SdkInternalApi
 public final class FlexibleChecksummer implements Checksummer {

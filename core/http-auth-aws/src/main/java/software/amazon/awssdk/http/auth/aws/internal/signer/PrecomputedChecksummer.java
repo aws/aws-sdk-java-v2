@@ -28,8 +28,8 @@ import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
 
 /**
  * An implementation of a checksummer that simply passes along a computed value as a checksum. Specifically, this is used in
- * the cases where the checksum is a pre-defined value that dictates specific behavior by the signer (such as aws-chunked
- * payload signing, unsigned streaming with trailers, etc.).
+ * the cases where the checksum is a pre-defined value that dictates specific behavior by the signer, and flexible checksums is
+ * not enabled for the request (such as aws-chunked payload signing without trailers, unsigned streaming without trailers, etc.).
  */
 @SdkInternalApi
 public final class PrecomputedChecksummer implements Checksummer {

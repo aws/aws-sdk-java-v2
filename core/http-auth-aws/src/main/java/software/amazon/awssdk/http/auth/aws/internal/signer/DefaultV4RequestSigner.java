@@ -32,6 +32,14 @@ import software.amazon.awssdk.http.auth.aws.util.SignerUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * The default implementation of a v4-request-signer. It performs each step of the SigV4 signing process, but does not add the
+ * signature or auth information to the request itself.
+ * <p>
+ * All signing information, such as signature, signing key, canonical request, etc. is present in context object that is
+ * returned. This can be used by the caller to add the auth info to the request, such as adding the signature as a query
+ * parameter or building an authorization header using the signature and canonical request headers.
+ */
 @SdkInternalApi
 public final class DefaultV4RequestSigner implements V4RequestSigner {
 

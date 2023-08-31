@@ -235,7 +235,7 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    public void sign_withFlexibleChecksum_DelegatesToFlexibleChecksummer() {
+    public void sign_withChecksumAlgorithm_DelegatesToChecksummerWithThatChecksumAlgorithm() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> {
@@ -250,7 +250,7 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    public void sign_withFlexibleChecksumAndPayloadSigningFalse_DelegatesToFlexibleChecksummer() {
+    public void sign_withChecksumAlgorithmAndPayloadSigningFalse_DelegatesToChecksummerWithThatChecksumAlgorithm() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> {
@@ -258,7 +258,6 @@ public class DefaultAwsV4HttpSignerTest {
             signRequest -> signRequest
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
                 .putProperty(PAYLOAD_SIGNING_ENABLED, false)
-
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);

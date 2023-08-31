@@ -17,10 +17,10 @@ package software.amazon.awssdk.http.auth.aws.internal.checksums;
 
 import static software.amazon.awssdk.http.auth.aws.internal.checksums.factory.CrtBasedChecksumProvider.longToByte;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.checksums.CRC32;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.factory.CrtBasedChecksumProvider;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.factory.SdkCrc32;
 
@@ -81,14 +81,9 @@ public class Crc32Checksum implements SdkChecksum {
 
     private Checksum cloneChecksum(Checksum checksum) {
         if (isCrtBasedChecksum) {
-            try {
-                Method method = checksum.getClass().getDeclaredMethod("clone");
-                return (Checksum) method.invoke(checksum);
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalStateException("Could not clone checksum class " + checksum.getClass(), e);
-            }
-        } else {
-            return (Checksum) ((SdkCrc32) checksum).clone();
+            return (Checksum) ((CRC32) checksum).clone();
         }
+
+        return (Checksum) ((SdkCrc32) checksum).clone();
     }
 }
