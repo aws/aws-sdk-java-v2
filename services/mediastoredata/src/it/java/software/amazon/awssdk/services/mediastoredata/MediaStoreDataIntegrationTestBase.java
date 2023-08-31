@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.reactivestreams.Subscriber;
@@ -51,7 +52,8 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
  * Base class for MediaStoreData integration tests. Used for Transfer-Encoding and Request Compression testing.
  */
 public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
-    protected static final String CONTAINER_NAME = "java-sdk-test-mediastoredata-" + Instant.now().toEpochMilli();
+    protected static Random random = new Random();
+    protected static final String CONTAINER_NAME = "java-sdk-test-mediastoredata-" + Instant.now().toEpochMilli() + random.nextInt();
     protected static AwsCredentialsProvider credentialsProvider;
     protected static MediaStoreClient mediaStoreClient;
     protected static URI uri;
