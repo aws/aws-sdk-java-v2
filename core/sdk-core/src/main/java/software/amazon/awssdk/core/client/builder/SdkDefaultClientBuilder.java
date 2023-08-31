@@ -276,7 +276,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                   .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
                                                   .option(PROFILE_FILE, profileFileSupplier.get())
                                                   .option(PROFILE_FILE_SUPPLIER, profileFileSupplier)
-                                                  .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
+                                                  .option(PROFILE_NAME,
+                                                          ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
                                                   .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
                                                   .option(USER_AGENT_SUFFIX, "")
                                                   .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
