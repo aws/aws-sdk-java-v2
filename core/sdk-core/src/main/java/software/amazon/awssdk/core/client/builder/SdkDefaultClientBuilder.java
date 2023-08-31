@@ -301,8 +301,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             if (systemSetting.isPresent()) {
                 compressionEnabled = !systemSetting.get();
             } else {
-                String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
-                Profile profile = profileFileSupplier.get().profile(profileName).orElse(null);
+                Profile profile = profileFileSupplier.get().profile(configuration.option(PROFILE_NAME)).orElse(null);
                 if (profile != null) {
                     Optional<Boolean> profileSetting = profile.booleanProperty(ProfileProperty.DISABLE_REQUEST_COMPRESSION);
                     if (profileSetting.isPresent()) {
@@ -317,8 +316,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             if (systemSetting.isPresent()) {
                 compressionThreshold = systemSetting.get();
             } else {
-                String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
-                Profile profile = profileFileSupplier.get().profile(profileName).orElse(null);
+                Profile profile = profileFileSupplier.get().profile(configuration.option(PROFILE_NAME)).orElse(null);
                 if (profile != null) {
                     Optional<String> profileSetting = profile.property(ProfileProperty.REQUEST_MIN_COMPRESSION_SIZE_BYTES);
                     if (profileSetting.isPresent()) {
