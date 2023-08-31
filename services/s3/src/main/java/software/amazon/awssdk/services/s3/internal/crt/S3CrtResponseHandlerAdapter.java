@@ -20,11 +20,13 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
+import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -46,9 +48,14 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
     private volatile S3MetaRequest metaRequest;
 
-    public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture, SdkAsyncHttpResponseHandler responseHandler) {
+    private final PublisherListener<S3MetaRequestProgress> progressListener;
+
+    public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
+                                       SdkAsyncHttpResponseHandler responseHandler,
+                                       PublisherListener<S3MetaRequestProgress> progressListener) {
         this.resultFuture = executeFuture;
         this.responseHandler = responseHandler;
+        this.progressListener =  S3CrtProgressListener.builder().delegateListener(progressListener).build();
     }
 
     @Override
@@ -103,7 +110,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                 failResponseHandlerAndFuture(failure);
                 return;
             }
-
+            this.progressListener.subscriberOnComplete();
             completeFutureAndCloseRequest();
         });
     }
@@ -145,6 +152,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     }
 
     private void failResponseHandlerAndFuture(Throwable exception) {
+        this.progressListener.subscriberOnError(exception);
         resultFuture.completeExceptionally(exception);
         runAndLogError(log.logger(), "Exception thrown in SdkAsyncHttpResponseHandler#onError, ignoring",
                        () -> responseHandler.onError(exception));
@@ -158,5 +166,10 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     public void metaRequest(S3MetaRequest s3MetaRequest) {
         metaRequest = s3MetaRequest;
+    }
+
+    @Override
+    public void onProgress(S3MetaRequestProgress progress) {
+        this.progressListener.subscriberOnNext(progress);
     }
 }

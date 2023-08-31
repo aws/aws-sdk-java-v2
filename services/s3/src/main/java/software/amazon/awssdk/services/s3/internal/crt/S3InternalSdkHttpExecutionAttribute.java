@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.http.SdkHttpExecutionAttribute;
@@ -40,6 +42,13 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
 
     public static final S3InternalSdkHttpExecutionAttribute<Region> SIGNING_REGION =
         new S3InternalSdkHttpExecutionAttribute<>(Region.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<Path> SOURCE_REQ_PATH =
+        new S3InternalSdkHttpExecutionAttribute<>(Path.class);
+
+
+    public static final S3InternalSdkHttpExecutionAttribute<PublisherListener> CRT_PROGRESS_LISTENER =
+        new S3InternalSdkHttpExecutionAttribute<>(PublisherListener.class);
 
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);
