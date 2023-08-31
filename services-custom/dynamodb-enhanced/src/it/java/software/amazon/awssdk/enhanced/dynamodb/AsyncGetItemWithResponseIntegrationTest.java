@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
+import java.util.Arrays;
 import java.util.Objects;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.data.Offset;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -74,7 +74,7 @@ public class AsyncGetItemWithResponseIntegrationTest extends DynamoDbEnhancedInt
 
     @Test
     public void getItem_withoutReturnConsumedCapacity() {
-        Record record = new Record().setId(101).setId2(102).setStringAttr1(RandomStringUtils.random(80_000));
+        Record record = new Record().setId(101).setId2(102).setStringAttr1(getStringAttrValue(80_000));
         Key key = Key.builder()
                      .partitionValue(record.getId())
                      .sortValue(record.getId2())
@@ -86,7 +86,7 @@ public class AsyncGetItemWithResponseIntegrationTest extends DynamoDbEnhancedInt
 
     @Test
     public void getItem_withReturnConsumedCapacity_eventualConsistent() {
-        Record record = new Record().setId(101).setId2(102).setStringAttr1(RandomStringUtils.randomAlphabetic(80 * 1024));
+        Record record = new Record().setId(101).setId2(102).setStringAttr1(getStringAttrValue(80 * 1024));
         Key key = Key.builder()
                      .partitionValue(record.getId())
                      .sortValue(record.getId2())
@@ -104,7 +104,7 @@ public class AsyncGetItemWithResponseIntegrationTest extends DynamoDbEnhancedInt
 
     @Test
     public void getItem_withReturnConsumedCapacity_stronglyConsistent() {
-        Record record = new Record().setId(201).setId2(202).setStringAttr1(RandomStringUtils.randomAlphabetic(80 * 1024));
+        Record record = new Record().setId(201).setId2(202).setStringAttr1(getStringAttrValue(80 * 1024));
         Key key = Key.builder()
                      .partitionValue(record.getId())
                      .sortValue(record.getId2())
@@ -118,6 +118,12 @@ public class AsyncGetItemWithResponseIntegrationTest extends DynamoDbEnhancedInt
         assertThat(consumedCapacity).isNotNull();
         // A strongly consistent read request of an item up to 4 KB requires one read request unit.
         assertThat(consumedCapacity.capacityUnits()).isCloseTo(20.0, Offset.offset(1.0));
+    }
+
+    private static String getStringAttrValue(int numChars) {
+        char[] chars = new char[numChars];
+        Arrays.fill(chars, 'a');
+        return new String(chars);
     }
 
     private static final class Record {
