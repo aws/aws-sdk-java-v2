@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Managed Streaming for Kafka Connect",
+    "contributor": "",
+    "description": "Minor model changes for Kafka Connect as well as endpoint updates."
+}
