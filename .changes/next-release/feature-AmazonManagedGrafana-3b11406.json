@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Grafana",
+    "contributor": "",
+    "description": "Marking SAML RoleValues attribute as sensitive and updating VpcConfiguration attributes to match documentation."
+}
