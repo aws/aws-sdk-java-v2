@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Runtime",
+    "contributor": "",
+    "description": "This release adds a new InvokeEndpointWithResponseStream API to support streaming of model responses."
+}
