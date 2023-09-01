@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
 public class ChecksumInputStreamTest {
 
     @Test
-    public void test_computesCorrectSha256() {
+    public void read_computesCorrectSha256() {
         String testString = "AWS SDK for Java";
         String expectedDigest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
 
@@ -46,7 +46,7 @@ public class ChecksumInputStreamTest {
     }
 
     @Test
-    public void test_withMultipleChecksums_shouldComputeCorrectChecksums() {
+    public void read_withMultipleChecksums_shouldComputeCorrectChecksums() {
         String testString = "AWS SDK for Java";
         String expectedSha256Digest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
         String expectedCrc32Digest = "4ac37ece";

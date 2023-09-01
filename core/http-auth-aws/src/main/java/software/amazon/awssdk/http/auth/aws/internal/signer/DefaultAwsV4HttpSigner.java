@@ -111,7 +111,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
-        boolean isTrailing = hasTrailer(request);
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
 
         if (isEventStreaming) {
             return new PrecomputedChecksummer(() -> STREAMING_EVENTS_PAYLOAD);
@@ -119,7 +120,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         if (isPayloadSigning) {
             if (isChunkEncoding) {
-                if (isTrailing) {
+                if (isFlexible || isTrailing) {
                     return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD_TRAILER);
                 }
                 return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD);
@@ -128,7 +129,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         }
 
         if (isChunkEncoding) {
-            if (isTrailing) {
+            if (isFlexible || isTrailing) {
                 return new PrecomputedChecksummer(() -> STREAMING_UNSIGNED_PAYLOAD_TRAILER);
             }
             throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
@@ -228,12 +229,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static boolean isEventStreaming(SdkHttpRequest request) {
         return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
-    }
-
-    private static boolean hasTrailer(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        // Flexible checksums dictates adding a trailer when signing, but there may be existing trailers on
-        // the request (in the future)
-        return request.hasProperty(CHECKSUM_ALGORITHM) || request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
     }
 
     /**

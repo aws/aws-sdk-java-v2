@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.utils.CompletableFutureUtils.joinLikeSync;
 
 import io.reactivex.Flowable;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -39,7 +38,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
 public class ChecksumSubscriberTest {
 
     @Test
-    public void test_computesCorrectSha256() {
+    public void checksum_computesCorrectSha256() {
         String testString = "AWS SDK for Java";
         String expectedDigest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
 
@@ -55,7 +54,7 @@ public class ChecksumSubscriberTest {
     }
 
     @Test
-    public void test_withMultipleChecksums_shouldComputeCorrectChecksums() {
+    public void checksum_withMultipleChecksums_shouldComputeCorrectChecksums() {
         String testString = "AWS SDK for Java";
         String expectedSha256Digest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
         String expectedCrc32Digest = "4ac37ece";
@@ -75,7 +74,7 @@ public class ChecksumSubscriberTest {
     }
 
     @Test
-    public void test_futureCancelledBeforeSubscribe_cancelsSubscription() {
+    public void checksum_futureCancelledBeforeSubscribe_cancelsSubscription() {
         Subscription mockSubscription = mock(Subscription.class);
 
         ChecksumSubscriber subscriber = new ChecksumSubscriber(Collections.emptyList());
@@ -89,7 +88,7 @@ public class ChecksumSubscriberTest {
     }
 
     @Test
-    public void test_publisherCallsOnError_errorPropagatedToFuture() {
+    public void checksum_publisherCallsOnError_errorPropagatedToFuture() {
         Subscription mockSubscription = mock(Subscription.class);
 
         ChecksumSubscriber subscriber = new ChecksumSubscriber(Collections.emptyList());

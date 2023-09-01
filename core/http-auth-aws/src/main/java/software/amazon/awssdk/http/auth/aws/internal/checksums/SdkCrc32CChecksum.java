@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.checksums.factory;
+package software.amazon.awssdk.http.auth.aws.internal.checksums;
 
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * The createCopy method is used to save current checksum state when the checksum is marked.
  */
 @SdkInternalApi
-public final class SdkCrc32C implements Checksum, Cloneable {
+public final class SdkCrc32CChecksum implements Checksum, Cloneable {
 
     private static final int T8_0_START = 0 * 256;
     private static final int T8_1_START = 1 * 256;
@@ -568,16 +568,16 @@ public final class SdkCrc32C implements Checksum, Cloneable {
      */
     private int crc;
 
-    private SdkCrc32C() {
+    private SdkCrc32CChecksum() {
         reset();
     }
 
-    private SdkCrc32C(int crc) {
+    private SdkCrc32CChecksum(int crc) {
         this.crc = crc;
     }
 
-    public static SdkCrc32C create() {
-        return new SdkCrc32C();
+    public static SdkCrc32CChecksum create() {
+        return new SdkCrc32CChecksum();
     }
 
     @Override
@@ -633,6 +633,6 @@ public final class SdkCrc32C implements Checksum, Cloneable {
 
     @Override
     public Object clone() {
-        return new SdkCrc32C(crc);
+        return new SdkCrc32CChecksum(crc);
     }
 }
