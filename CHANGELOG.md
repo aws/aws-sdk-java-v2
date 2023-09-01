@@ -1,3 +1,25 @@
+# __2.20.140__ __2023-09-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Jackson to `2.15.2`.
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - New Identity Store content for China Region launch
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - This release adds support for the Voice Analytics feature for customer-owned KVS streams as part of the Amazon Chime SDK call analytics.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect adds the ability to read, create, update, delete, and list view resources, and adds the ability to read, create, delete, and list view versions.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Removed the descriptive text in the introduction.
+
 # __2.20.139__ __2023-08-31__
 ## __AWS Health APIs and Notifications__
   - ### Features
