@@ -1,3 +1,69 @@
+# __2.20.139__ __2023-08-31__
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Adds new API DescribeEntityAggregatesForOrganization that retrieves entity aggregates across your organization. Also adds support for resource status filtering in DescribeAffectedEntitiesForOrganization, resource status aggregates in the DescribeEntityAggregates response, and new resource statuses.
+
+## __AWS Lambda__
+  - ### Features
+    - Use latest AWS Lambda Java 17 runtime version in SAM template of archetype
+        - Contributed by: [@deki](https://github.com/deki)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - This release adds support for feature Voice Enhancement for Call Recording as part of Amazon Chime SDK call analytics.
+
+## __Amazon CloudHSM__
+  - ### Features
+    - Deprecating CloudHSM Classic API Service.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Documentation updates for CloudWatch Events.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Adds sensitive trait to various shapes in Customer Profiles API model.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Amazon Connect Participant Service adds the ability to get a view resource using a view token, which is provided in a participant message, with the release of the DescribeView API.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for an account-level setting that you can use to configure the number of days for AWS Fargate task retirement.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Updated "type" description for CreateChannel, UpdateChannel, Channel, and ChannelSummary.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Marking SAML RoleValues attribute as sensitive and updating VpcConfiguration attributes to match documentation.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - This release adds a new InvokeEndpointWithResponseStream API to support streaming of model responses.
+
+## __AmazonConnectCampaignService__
+  - ### Features
+    - Amazon Connect outbound campaigns has launched agentless dialing mode which enables customers to make automated outbound calls without agent engagement. This release updates three of the campaign management API's to support the new agentless dialing mode and the new dialing capacity field.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Minor model changes for Kafka Connect as well as endpoint updates.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Make KeyCheckValue field optional when using asymmetric keys as Key Check Values typically only apply to symmetric keys
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@deki](https://github.com/deki)
 # __2.20.138__ __2023-08-30__
 ## __AWS App Runner__
   - ### Features
@@ -1496,7 +1562,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
