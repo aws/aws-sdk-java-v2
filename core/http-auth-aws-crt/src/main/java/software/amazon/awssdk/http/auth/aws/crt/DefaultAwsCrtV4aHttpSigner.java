@@ -15,6 +15,13 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtHttpRequestConverter.toRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtUtils.sanitizeRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtUtils.toCredentials;
@@ -118,11 +125,11 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         signingConfig.setCredentials(toCredentials(v4aProperties.getCredentials()));
         signingConfig.setService(v4aProperties.getCredentialScope().getService());
         signingConfig.setRegion(v4aProperties.getCredentialScope().getRegion());
-        signingConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        signingConfig.setAlgorithm(SIGV4_ASYMMETRIC);
         signingConfig.setTime(v4aProperties.getCredentialScope().getInstant().toEpochMilli());
         signingConfig.setUseDoubleUriEncode(v4aProperties.shouldDoubleUrlEncode());
         signingConfig.setShouldNormalizeUriPath(v4aProperties.shouldNormalizePath());
-        signingConfig.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256);
+        signingConfig.setSignedBodyHeader(X_AMZ_CONTENT_SHA256);
 
         switch (authLocation) {
             case HEADER:
@@ -134,7 +141,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
                 }
                 break;
             case QUERY_STRING:
-                signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
+                signingConfig.setSignatureType(HTTP_REQUEST_VIA_QUERY_PARAMS);
                 if (request.hasProperty(EXPIRATION_DURATION)) {
                     signingConfig.setExpirationInSeconds(validateExpirationDuration(expirationDuration).getSeconds());
                 }
@@ -155,25 +162,21 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     private static void configureUnsignedPayload(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailing) {
         if (isChunkEncoding) {
             if (isTrailing) {
-                signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+                signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
             } else {
                 throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
             }
         } else {
-            signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
+            signingConfig.setSignedBodyValue(UNSIGNED_PAYLOAD);
         }
     }
 
     private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailing) {
         if (isChunkEncoding) {
             if (isTrailing) {
-                signingConfig.setSignedBodyValue(
-                    AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER
-                );
+                signingConfig.setSignedBodyValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
             } else {
-                signingConfig.setSignedBodyValue(
-                    AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD
-                );
+                signingConfig.setSignedBodyValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
             }
         }
         // if not chunked encoding, then signed-payload simply means the sha256 hash is included in the canonical request
