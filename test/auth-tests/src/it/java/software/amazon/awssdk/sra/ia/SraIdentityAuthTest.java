@@ -15,8 +15,15 @@
 
 package software.amazon.awssdk.sra.ia;
 
+import static java.util.Collections.singletonList;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.signer.NoOpSigner;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
 import software.amazon.awssdk.services.acm.AcmClient;
 import software.amazon.awssdk.services.codecatalyst.CodeCatalystClient;
 
@@ -42,5 +49,35 @@ class SraIdentityAuthTest {
                  .authSchemeProvider(null)
                  .putAuthScheme(null)
                  .build();
+    }
+
+    // From https://quip-amazon.com/BRKSAiAaVE6s/AWS-SDK-for-Java-2x-SRA-Authentication#temp:C:TCW3d7718fff4e0435fb78f01ac0
+    @Test
+    public void disableSigning() {
+        // Before
+        ClientOverrideConfiguration config =
+            ClientOverrideConfiguration.builder()
+                                       .putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                          new NoOpSigner())
+                                       .build();
+
+        AcmClient client =
+            AcmClient.builder()
+                     .overrideConfiguration(config)
+                     .build();
+
+        // After
+        AuthSchemeOption noAuth = AuthSchemeOption.builder()
+                                                  .schemeId("smithy.api#noAuth")
+                                                  .schemeId(NoAuthAuthScheme.SCHEME_ID)
+                                                  // .putIdentityProperty(null, null)
+                                                  // .putSignerProperty(null, null)
+                                                  .build();
+        client =
+            AcmClient.builder()
+                     .authSchemeProvider(p -> singletonList(noAuth))
+                     .build();
+
+        client.listCertificates();
     }
 }
