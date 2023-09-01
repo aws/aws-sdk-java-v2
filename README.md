@@ -321,6 +321,12 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+<!-- ALL-CONTRIBUTORS-LIST:END --> 
+Conclusion:- 
+
+The new AWS SDK demonstrated great performance and low resource usage. It creates only 20 threads comparing with 1000 for old client. Also application with new SDK takes two times less memory than with old SDK.
+
+This is very important for a containerized application that operates with limited amount of memory. In Java(64-bit VM) single thread stack takes 1024k. So 1000 threads is plus 1GB memory. I recommend use new AWS SDK for non-blocking applications.
+AWS has just released a new Java SDK (https://aws.amazon.com/blogs/developer/aws-sdk-for-java-2-x-released/) and I would like to review the main feature that was introduced in the new SDK.
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
