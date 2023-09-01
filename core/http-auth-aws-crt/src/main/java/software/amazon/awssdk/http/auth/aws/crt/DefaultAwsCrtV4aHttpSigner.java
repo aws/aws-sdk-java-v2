@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
+package software.amazon.awssdk.http.auth.aws.crt;
 
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS;
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256;
@@ -33,15 +33,18 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.AwsChunkedV4aPayloadSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aContext;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aPayloadSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aProperties;
 import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
@@ -56,20 +59,20 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
  * An implementation of a {@link AwsV4aHttpSigner} that uses properties to compose v4a-signers in order to delegate signing of a
  * request and payload (if applicable) accordingly.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
 
     private static V4aProperties v4aProperties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        Clock signingClock = request.requireProperty(AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
+        Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
-        String regionName = request.requireProperty(AwsV4HttpSigner.REGION_NAME);
-        String serviceSigningName = request.requireProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME);
+        String regionName = request.requireProperty(REGION_NAME);
+        String serviceSigningName = request.requireProperty(SERVICE_SIGNING_NAME);
         CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, signingInstant);
-        boolean doubleUrlEncode = request.requireProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
-        boolean normalizePath = request.requireProperty(AwsV4HttpSigner.NORMALIZE_PATH, true);
+        boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
+        boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
 
         return V4aProperties
             .builder()
@@ -95,8 +98,6 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     }
 
     private static boolean hasTrailer(SdkHttpRequest request) {
-        // TODO: Trailer would be determined by being a flexible-checksum enabled request, we will need to update
-        // this once flexible checksums is enabled
         return request.firstMatchingHeader(X_AMZ_TRAILER).isPresent();
     }
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
+package software.amazon.awssdk.http.auth.aws.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.crt.TestUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
