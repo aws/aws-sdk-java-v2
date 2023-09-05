@@ -76,6 +76,8 @@
                             <excludes>
                                 <exclude>META-INF/**/pom.xml</exclude>
                                 <exclude>META-INF/**/pom.properties</exclude>
+                                <!-- exclude multirelease classes -->
+                                <exclude>META-INF/versions/**/*.class</exclude>
                             </excludes>
                         </filter>
                     </filters>
