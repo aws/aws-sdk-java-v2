@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.model.service;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.checksum.HttpChecksum;
+import software.amazon.awssdk.codegen.compression.RequestCompression;
 import software.amazon.awssdk.codegen.model.intermediate.EndpointDiscovery;
 
 public class Operation {
@@ -51,6 +52,8 @@ public class Operation {
     private boolean httpChecksumRequired;
 
     private HttpChecksum httpChecksum;
+
+    private RequestCompression requestCompression;
 
     private Map<String, StaticContextParam> staticContextParams;
 
@@ -187,6 +190,14 @@ public class Operation {
 
     public void setHttpChecksum(HttpChecksum httpChecksum) {
         this.httpChecksum = httpChecksum;
+    }
+
+    public RequestCompression getRequestCompression() {
+        return requestCompression;
+    }
+
+    public void setRequestCompression(RequestCompression requestCompression) {
+        this.requestCompression = requestCompression;
     }
 
     public Map<String, StaticContextParam> getStaticContextParams() {
