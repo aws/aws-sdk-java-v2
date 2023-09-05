@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
@@ -73,9 +74,6 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                           .readMapping(AwsSignerExecutionAttribute::awsCredentialsReadMapping)
                           .writeMapping(AwsSignerExecutionAttribute::awsCredentialsWriteMapping)
                           .build();
-
-
-
 
     /**
      * The AWS {@link Region} that is used for signing a request. This is not always same as the region configured on the client
@@ -200,6 +198,7 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                           .writeMapping(AwsSignerExecutionAttribute::presignerExpirationWriteMapping)
                           .build();
 
+    private static Clock presignerExpirationClock = Clock.systemUTC();
 
     private AwsSignerExecutionAttribute() {
     }
@@ -417,6 +416,11 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                                   .copy(o -> o.putSignerProperty(HttpSigner.SIGNING_CLOCK, clock)));
     }
 
+    @SdkTestInternalApi
+    static void presignerExpirationClock(Clock clock) {
+        presignerExpirationClock = clock;
+    }
+
     private static Instant presignerExpirationReadMapping(SelectedAuthScheme<?> authScheme) {
         if (authScheme == null) {
             return null;
@@ -428,12 +432,13 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
 
         // This is kind of weird, since reading the value twice will give different values. That seems very unlikely to cause
         // issues, though.
-        return Instant.now().plus(expirationDuration);
+        return presignerExpirationClock.instant().plus(expirationDuration);
     }
 
     private static <T extends Identity> SelectedAuthScheme<?> presignerExpirationWriteMapping(SelectedAuthScheme<T> authScheme,
                                                                                               Instant expiration) {
-        Duration expirationDuration = Duration.between(Instant.now(), expiration);
+        Duration expirationDuration = expiration == null ? null
+                                                         : Duration.between(presignerExpirationClock.instant(), expiration);
 
         if (authScheme == null) {
             // This is an unusual use-case.
@@ -442,6 +447,7 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
             return new SelectedAuthScheme<>(CompletableFuture.completedFuture(new UnsetIdentity()),
                                             new UnsetHttpSigner(),
                                             AuthSchemeOption.builder()
+                                                            .schemeId("unset")
                                                             .putSignerProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION,
                                                                                expirationDuration)
                                                             .build());
