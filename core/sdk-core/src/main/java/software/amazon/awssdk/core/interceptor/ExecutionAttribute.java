@@ -61,6 +61,7 @@ public final class ExecutionAttribute<T> {
     public ExecutionAttribute(String name) {
         this(name, null);
     }
+
     private ExecutionAttribute(String name, ValueStorage<T> storage) {
         this.name = name;
         this.storage = storage == null ? new DefaultValueStorage() : storage;
