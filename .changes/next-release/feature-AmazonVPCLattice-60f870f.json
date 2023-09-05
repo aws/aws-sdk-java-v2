@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon VPC Lattice",
-    "contributor": "",
-    "description": "This release adds Lambda event structure version config support for LAMBDA target groups. It also adds newline support for auth policies."
-}
