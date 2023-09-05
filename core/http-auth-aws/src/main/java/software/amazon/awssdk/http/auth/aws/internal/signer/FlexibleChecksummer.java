@@ -41,10 +41,10 @@ import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
  */
 @SdkInternalApi
 public final class FlexibleChecksummer implements Checksummer {
-    private final Map<String, SdkChecksum> checksumMap;
+    private final Map<String, SdkChecksum> headerToChecksum;
 
-    public FlexibleChecksummer(Map<String, ChecksumAlgorithm> algorithmMap) {
-        this.checksumMap = algorithmMap
+    public FlexibleChecksummer(Map<String, ChecksumAlgorithm> headerToChecksumAlgorithm) {
+        this.headerToChecksum = headerToChecksumAlgorithm
             .entrySet()
             .stream()
             .collect(Collectors.toMap(Map.Entry::getKey, v -> fromChecksumAlgorithm(v.getValue())));
@@ -56,24 +56,24 @@ public final class FlexibleChecksummer implements Checksummer {
 
         ChecksumInputStream computingStream = new ChecksumInputStream(
             payloadStream,
-            checksumMap.values()
+            headerToChecksum.values()
         );
 
         readAll(computingStream);
 
-        checksumMap.forEach((header, checksum) -> request.putHeader(header, checksum.getChecksum()));
+        headerToChecksum.forEach((header, checksum) -> request.putHeader(header, checksum.getChecksum()));
     }
 
     @Override
     public CompletableFuture<Void> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
-        ChecksumSubscriber checksumSubscriber = new ChecksumSubscriber(checksumMap.values());
+        ChecksumSubscriber checksumSubscriber = new ChecksumSubscriber(headerToChecksum.values());
 
         if (payload != null) {
             payload.subscribe(checksumSubscriber);
         }
 
         return checksumSubscriber.checksum().thenRun(
-            () -> checksumMap.forEach((header, checksum) -> request.putHeader(header, checksum.getChecksum()))
+            () -> headerToChecksum.forEach((header, checksum) -> request.putHeader(header, checksum.getChecksum()))
         );
     }
 }

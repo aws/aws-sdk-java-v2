@@ -61,7 +61,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
 
     private static V4Properties v4Properties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        Clock signingClock = request.requireProperty(AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
+        Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
         String regionName = request.requireProperty(AwsV4HttpSigner.REGION_NAME);
@@ -115,27 +115,31 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
 
         if (isEventStreaming) {
-            return new PrecomputedChecksummer(() -> STREAMING_EVENTS_PAYLOAD);
+            return Checksummer.forPrecomputed256Checksum(STREAMING_EVENTS_PAYLOAD);
         }
 
         if (isPayloadSigning) {
             if (isChunkEncoding) {
                 if (isFlexible || isTrailing) {
-                    return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD_TRAILER);
+                    return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD_TRAILER);
                 }
-                return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD);
+                return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD);
             }
-            return Checksummer.create(request.property(CHECKSUM_ALGORITHM));
+
+            if (request.hasProperty(CHECKSUM_ALGORITHM)) {
+                return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM));
+            }
+            return Checksummer.create();
         }
 
         if (isChunkEncoding) {
             if (isFlexible || isTrailing) {
-                return new PrecomputedChecksummer(() -> STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+                return Checksummer.forPrecomputed256Checksum(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
             }
             throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
         }
 
-        return Checksummer.create(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
+        return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
     }
 
     private static V4PayloadSigner v4PayloadSigner(

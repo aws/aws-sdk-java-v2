@@ -28,7 +28,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
-public class PrecomputedChecksummerTest {
+public class PrecomputedSha256ChecksummerTest {
 
     ContentStreamProvider payload = () -> new ByteArrayInputStream("foo".getBytes(StandardCharsets.UTF_8));
     Publisher<ByteBuffer> payloadAsync = Flowable.just(ByteBuffer.wrap("foo".getBytes(StandardCharsets.UTF_8)));
@@ -40,7 +40,7 @@ public class PrecomputedChecksummerTest {
 
     @Test
     public void checksummer_shouldAddComputedValue() {
-        PrecomputedChecksummer checksummer = new PrecomputedChecksummer(() -> "something");
+        PrecomputedSha256Checksummer checksummer = new PrecomputedSha256Checksummer(() -> "something");
         SdkHttpRequest expectedRequest = request
             .putHeader("x-amz-content-sha256", "something")
             .build();
@@ -52,7 +52,7 @@ public class PrecomputedChecksummerTest {
 
     @Test
     public void checksummerAsync_shouldAddComputedValue() {
-        PrecomputedChecksummer checksummer = new PrecomputedChecksummer(() -> "something");
+        PrecomputedSha256Checksummer checksummer = new PrecomputedSha256Checksummer(() -> "something");
         SdkHttpRequest expectedRequest = request
             .putHeader("x-amz-content-sha256", "something")
             .build();

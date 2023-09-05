@@ -21,6 +21,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.ch
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
@@ -28,9 +29,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultChecksummer;
 import software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer;
-import software.amazon.awssdk.http.auth.aws.internal.signer.PrecomputedChecksummer;
+import software.amazon.awssdk.http.auth.aws.internal.signer.PrecomputedSha256Checksummer;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
@@ -41,16 +41,18 @@ import software.amazon.awssdk.utils.ImmutableMap;
 @SdkProtectedApi
 public interface Checksummer {
     /**
-     * Get a default implementation of a checksummer.
+     * Get a default implementation of a checksummer, which calculates the SHA-256 checksum and places it in the
+     * x-amz-content-sha256 header.
      */
     static Checksummer create() {
-        return new DefaultChecksummer();
+        return new FlexibleChecksummer(Collections.singletonMap(X_AMZ_CONTENT_SHA256, SHA256));
     }
 
     /**
-     * Get a flexible checksummer that performs two checksums: the given checksum-algorithm and the default (sha256).
+     * Get a flexible checksummer that performs two checksums: the given checksum-algorithm and the SHA-256 checksum. It places
+     * the SHA-256 checksum in x-amz-content-sha256 header, and the given checksum-algorithm in the x-amz-checksum-[name] header.
      */
-    static Checksummer create(ChecksumAlgorithm checksumAlgorithm) {
+    static Checksummer forFlexibleChecksum(ChecksumAlgorithm checksumAlgorithm) {
         if (checksumAlgorithm != null) {
             Map<String, ChecksumAlgorithm> checksums = ImmutableMap.of(
                 X_AMZ_CONTENT_SHA256, SHA256,
@@ -59,30 +61,32 @@ public interface Checksummer {
 
             return new FlexibleChecksummer(checksums);
         }
-        return create();
+
+        throw new IllegalArgumentException("Checksum Algorithm cannot be null!");
     }
 
     /**
-     * Get a precomputed checksummer that results the given checksum string.
+     * Get a precomputed checksummer which places the precomputed checksum to the x-amz-content-sha256 header.
      */
-    static Checksummer create(String checksum) {
-        return new PrecomputedChecksummer(() -> checksum);
+    static Checksummer forPrecomputed256Checksum(String precomputedSha256) {
+        return new PrecomputedSha256Checksummer(() -> precomputedSha256);
     }
 
     /**
      * Get a flexible checksummer that performs two checksums: the given checksum-algorithm and a precomputed checksum from the
-     * given checksum string.
+     * given checksum string. It places the precomputed checksum in x-amz-content-sha256 header, and the given checksum-algorithm
+     * in the x-amz-checksum-[name] header.
      */
-    static Checksummer create(String checksum, ChecksumAlgorithm checksumAlgorithm) {
+    static Checksummer forFlexibleChecksum(String precomputedSha256, ChecksumAlgorithm checksumAlgorithm) {
         if (checksumAlgorithm != null) {
             Map<String, ChecksumAlgorithm> checksums = ImmutableMap.of(
-                X_AMZ_CONTENT_SHA256, new ConstantChecksumAlgorithm(checksum),
+                X_AMZ_CONTENT_SHA256, new ConstantChecksumAlgorithm(precomputedSha256),
                 checksumHeaderName(checksumAlgorithm), checksumAlgorithm
             );
 
             return new FlexibleChecksummer(checksums);
         }
-        return create(checksum);
+        return forPrecomputed256Checksum(precomputedSha256);
     }
 
     /**

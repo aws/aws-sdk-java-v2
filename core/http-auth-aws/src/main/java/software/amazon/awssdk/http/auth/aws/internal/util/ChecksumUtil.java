@@ -23,6 +23,8 @@ import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 
 import java.io.InputStream;
 import java.util.Locale;
+import java.util.Map;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.ConstantChecksum;
@@ -32,11 +34,20 @@ import software.amazon.awssdk.http.auth.aws.internal.checksums.Md5Checksum;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.Sha1Checksum;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.Sha256Checksum;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 @SdkInternalApi
 public final class ChecksumUtil {
 
     private static final String CONSTANT_CHECKSUM = "CONSTANT";
+
+    private static final Map<String, Supplier<SdkChecksum>> checksumMap = ImmutableMap.of(
+        SHA256.algorithmId(), Sha256Checksum::new,
+        SHA1.algorithmId(), Sha1Checksum::new,
+        CRC32.algorithmId(), Crc32Checksum::new,
+        CRC32C.algorithmId(), Crc32CChecksum::new,
+        MD5.algorithmId(), Md5Checksum::new
+    );
 
     private ChecksumUtil() {
     }
@@ -56,24 +67,8 @@ public final class ChecksumUtil {
      * Gets the SdkChecksum object based on the given ChecksumAlgorithm.
      */
     public static SdkChecksum fromChecksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
-        if (SHA256.algorithmId().equals(checksumAlgorithm.algorithmId())) {
-            return new Sha256Checksum();
-        }
-
-        if (SHA1.algorithmId().equals(checksumAlgorithm.algorithmId())) {
-            return new Sha1Checksum();
-        }
-
-        if (CRC32.algorithmId().equals(checksumAlgorithm.algorithmId())) {
-            return new Crc32Checksum();
-        }
-
-        if (CRC32C.algorithmId().equals(checksumAlgorithm.algorithmId())) {
-            return new Crc32CChecksum();
-        }
-
-        if (MD5.algorithmId().equals(checksumAlgorithm.algorithmId())) {
-            return new Md5Checksum();
+        if (checksumMap.containsKey(checksumAlgorithm.algorithmId())) {
+            return checksumMap.get(checksumAlgorithm.algorithmId()).get();
         }
 
         if (CONSTANT_CHECKSUM.equals(checksumAlgorithm.algorithmId())) {

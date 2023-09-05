@@ -32,11 +32,11 @@ import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
  * not enabled for the request (such as aws-chunked payload signing without trailers, unsigned streaming without trailers, etc.).
  */
 @SdkInternalApi
-public final class PrecomputedChecksummer implements Checksummer {
+public final class PrecomputedSha256Checksummer implements Checksummer {
 
     private final Callable<String> computation;
 
-    public PrecomputedChecksummer(Callable<String> computation) {
+    public PrecomputedSha256Checksummer(Callable<String> computation) {
         this.computation = computation;
     }
 
