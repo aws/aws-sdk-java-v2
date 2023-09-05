@@ -31,8 +31,6 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @ThreadSafe
 public final class IdentityProperty<T> {
-    private static final ConcurrentMap<String, IdentityProperty<?>> NAME_HISTORY = new ConcurrentHashMap<>();
-
     private final Class<T> clazz;
     private final String name;
 
@@ -42,24 +40,10 @@ public final class IdentityProperty<T> {
 
         this.clazz = clazz;
         this.name = name;
-        ensureUnique();
     }
 
     public static <T> IdentityProperty<T> create(Class<T> clazz, String name) {
         return new IdentityProperty<>(clazz, name);
-    }
-
-    private void ensureUnique() {
-        IdentityProperty<?> prev = NAME_HISTORY.putIfAbsent(name, this);
-        if (prev != null) {
-            throw new IllegalArgumentException(String.format("No duplicate IdentityProperty names allowed but both "
-                                                             + "IdentityProperty %s and %s have the same name: %s. "
-                                                             + "IdentityProperty should be referenced from a shared static "
-                                                             + "constant to protect against erroneous or unexpected collisions.",
-                                                             Integer.toHexString(System.identityHashCode(prev)),
-                                                             Integer.toHexString(System.identityHashCode(this)),
-                                                             name));
-        }
     }
 
     @Override

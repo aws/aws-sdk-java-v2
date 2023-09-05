@@ -32,8 +32,6 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @ThreadSafe
 public final class SignerProperty<T> {
-    private static final ConcurrentMap<String, SignerProperty<?>> NAME_HISTORY = new ConcurrentHashMap<>();
-
     private final Class<T> clazz;
     private final String name;
 
@@ -43,7 +41,6 @@ public final class SignerProperty<T> {
 
         this.clazz = clazz;
         this.name = name;
-        ensureUnique();
     }
 
     /**
@@ -51,19 +48,6 @@ public final class SignerProperty<T> {
      */
     public static <T> SignerProperty<T> create(Class<T> clazz, String name) {
         return new SignerProperty<>(clazz, name);
-    }
-
-    private void ensureUnique() {
-        SignerProperty<?> prev = NAME_HISTORY.putIfAbsent(name, this);
-        if (prev != null) {
-            throw new IllegalArgumentException(String.format("No duplicate SignerProperty names allowed but both "
-                                                             + "SignerProperty %s and %s have the same name: %s. "
-                                                             + "SignerProperty should be referenced from a shared static "
-                                                             + "constant to protect against erroneous or unexpected collisions.",
-                                                             Integer.toHexString(System.identityHashCode(prev)),
-                                                             Integer.toHexString(System.identityHashCode(this)),
-                                                             name));
-        }
     }
 
     @Override
