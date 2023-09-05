@@ -20,14 +20,18 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.AuthLocation;
+import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.CHUNK_ENCODING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.PAYLOAD_SIGNING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtUtils.toCredentials;
 
 import java.time.Duration;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
@@ -192,5 +196,94 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     @Test
     public void signAsync_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> signer.signAsync((AsyncSignRequest) null));
+    }
+
+    @Test
+    public void sign_WithChunkEncodingTrue_DelegatesToAwsChunkedPayloadSigner() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+                               .hasValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+    }
+
+    @Test
+    public void sign_WithChunkEncodingTrueWithout_DelegatesToAwsChunkedPayloadSigner() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+                               .hasValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+    }
+
+    @Test
+    public void sign_ChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20")
+                .putHeader("x-amz-trailer", "aTrailer"),
+            signRequest -> signRequest
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+                               .hasValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+    }
+
+    @Test
+    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20")
+                .putHeader("x-amz-trailer", "aTrailer"),
+            signRequest -> signRequest
+                .putProperty(AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+                               .hasValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+    }
+
+    @Test
+    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueWithoutTrailer_Throws() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
     }
 }

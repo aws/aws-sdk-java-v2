@@ -25,14 +25,15 @@ import software.amazon.awssdk.utils.FunctionalUtils;
 
 @SdkInternalApi
 public final class CrtInputStream implements HttpRequestBodyStream {
+    private static final int READ_BUFFER_SIZE = 4096;
     private final ContentStreamProvider provider;
     private final int bufSize;
     private final byte[] readBuffer;
     private InputStream providerStream;
 
-    CrtInputStream(ContentStreamProvider provider, int bufSize) {
+    public CrtInputStream(ContentStreamProvider provider) {
         this.provider = provider;
-        this.bufSize = bufSize;
+        this.bufSize = READ_BUFFER_SIZE;
         this.readBuffer = new byte[bufSize];
     }
 
@@ -49,6 +50,8 @@ public final class CrtInputStream implements HttpRequestBodyStream {
 
         if (read > 0) {
             bodyBytesOut.put(readBuffer, 0, read);
+        } else {
+            FunctionalUtils.invokeSafely(providerStream::close);
         }
 
         return read < 0;

@@ -15,13 +15,23 @@
 
 package software.amazon.awssdk.http.auth.aws.crt;
 
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyHeaderType.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtHttpRequestConverter.toRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtUtils.sanitizeRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.CrtUtils.toCredentials;
+import static software.amazon.awssdk.http.auth.aws.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
+import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
@@ -31,8 +41,11 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.AwsChunkedV4aPayloadSigner;
 import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aContext;
 import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aPayloadSigner;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aProperties;
+import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
@@ -49,11 +62,43 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @SdkProtectedApi
 public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
-    /**
-     * Returns a default implementation for {@link AwsV4aHttpSigner}.
-     */
-    public static AwsV4aHttpSigner create() {
-        return new DefaultAwsCrtV4aHttpSigner();
+    private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
+
+    private static V4aProperties v4aProperties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
+        Instant signingInstant = signingClock.instant();
+        AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
+        String regionName = request.requireProperty(REGION_NAME);
+        String serviceSigningName = request.requireProperty(SERVICE_SIGNING_NAME);
+        CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, signingInstant);
+        boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
+        boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
+
+        return V4aProperties
+            .builder()
+            .credentials(credentials)
+            .credentialScope(credentialScope)
+            .signingClock(signingClock)
+            .doubleUrlEncode(doubleUrlEncode)
+            .normalizePath(normalizePath)
+            .build();
+    }
+
+    private static V4aPayloadSigner v4aPayloadSigner(
+        SignRequest<?, ? extends AwsCredentialsIdentity> request,
+        V4aProperties v4aProperties) {
+
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+
+        if (isChunkEncoding) {
+            return new AwsChunkedV4aPayloadSigner(v4aProperties.getCredentialScope(), DEFAULT_CHUNK_SIZE_IN_BYTES);
+        }
+
+        return V4aPayloadSigner.create();
+    }
+
+    private static boolean hasTrailer(SdkHttpRequest request) {
+        return request.firstMatchingHeader(X_AMZ_TRAILER).isPresent();
     }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
@@ -65,6 +110,77 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
             );
         }
         return expirationDuration;
+    }
+
+    private static AwsSigningConfig signingConfig(
+        SignRequest<?, ? extends AwsCredentialsIdentity> request,
+        V4aProperties v4aProperties) {
+
+        AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
+        Duration expirationDuration = request.property(EXPIRATION_DURATION);
+        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+        boolean isTrailing = hasTrailer(request.request());
+
+        AwsSigningConfig signingConfig = new AwsSigningConfig();
+        signingConfig.setCredentials(toCredentials(v4aProperties.getCredentials()));
+        signingConfig.setService(v4aProperties.getCredentialScope().getService());
+        signingConfig.setRegion(v4aProperties.getCredentialScope().getRegion());
+        signingConfig.setAlgorithm(SIGV4_ASYMMETRIC);
+        signingConfig.setTime(v4aProperties.getCredentialScope().getInstant().toEpochMilli());
+        signingConfig.setUseDoubleUriEncode(v4aProperties.shouldDoubleUrlEncode());
+        signingConfig.setShouldNormalizeUriPath(v4aProperties.shouldNormalizePath());
+        signingConfig.setSignedBodyHeader(X_AMZ_CONTENT_SHA256);
+
+        switch (authLocation) {
+            case HEADER:
+                signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
+                if (request.hasProperty(EXPIRATION_DURATION)) {
+                    throw new UnsupportedOperationException(
+                        String.format("%s is not supported for %s.", EXPIRATION_DURATION, AuthLocation.HEADER)
+                    );
+                }
+                break;
+            case QUERY_STRING:
+                signingConfig.setSignatureType(HTTP_REQUEST_VIA_QUERY_PARAMS);
+                if (request.hasProperty(EXPIRATION_DURATION)) {
+                    signingConfig.setExpirationInSeconds(validateExpirationDuration(expirationDuration).getSeconds());
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown auth-location: " + authLocation);
+        }
+
+        if (isPayloadSigning) {
+            configurePayloadSigning(signingConfig, isChunkEncoding, isTrailing);
+        } else {
+            configureUnsignedPayload(signingConfig, isChunkEncoding, isTrailing);
+        }
+
+        return signingConfig;
+    }
+
+    private static void configureUnsignedPayload(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailing) {
+        if (isChunkEncoding) {
+            if (isTrailing) {
+                signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            } else {
+                throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
+            }
+        } else {
+            signingConfig.setSignedBodyValue(UNSIGNED_PAYLOAD);
+        }
+    }
+
+    private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailing) {
+        if (isChunkEncoding) {
+            if (isTrailing) {
+                signingConfig.setSignedBodyValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
+            } else {
+                signingConfig.setSignedBodyValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
+            }
+        }
+        // if not chunked encoding, then signed-payload simply means the sha256 hash is included in the canonical request
     }
 
     private static SyncSignedRequest doSign(SyncSignRequest<? extends AwsCredentialsIdentity> request,
@@ -86,7 +202,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         ContentStreamProvider payload = payloadSigner.sign(request.payload().orElse(null), v4aContext);
 
         return SyncSignedRequest.builder()
-                                .request(v4aContext.getSignedRequest())
+                                .request(v4aContext.getSignedRequest().build())
                                 .payload(payload)
                                 .build();
     }
@@ -94,60 +210,17 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     private static V4aContext sign(SdkHttpRequest request, HttpRequest crtRequest, AwsSigningConfig signingConfig) {
         AwsSigningResult signingResult = CompletableFutureUtils.joinLikeSync(AwsSigner.sign(crtRequest, signingConfig));
         return new V4aContext(
-            toRequest(request, signingResult.getSignedRequest())
-        );
+            toRequest(request, signingResult.getSignedRequest()).toBuilder(),
+            signingResult.getSignature(),
+            signingConfig);
     }
 
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        AwsSigningConfig signingConfig = signingConfig(request);
-        V4aPayloadSigner payloadSigner = V4aPayloadSigner.create();
+        V4aProperties v4aProperties = v4aProperties(request);
+        AwsSigningConfig signingConfig = signingConfig(request, v4aProperties);
+        V4aPayloadSigner payloadSigner = v4aPayloadSigner(request, v4aProperties);
         return doSign(request, signingConfig, payloadSigner);
-    }
-
-    private AwsSigningConfig signingConfig(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        String regionName = request.requireProperty(REGION_NAME);
-        String serviceSigningName = request.requireProperty(SERVICE_SIGNING_NAME);
-        Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
-        boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
-        boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
-        AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
-        Duration expirationDuration = request.property(EXPIRATION_DURATION);
-        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
-
-        AwsSigningConfig signingConfig = new AwsSigningConfig();
-        signingConfig.setCredentials(toCredentials(request.identity()));
-        signingConfig.setService(serviceSigningName);
-        signingConfig.setRegion(regionName);
-        signingConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
-        signingConfig.setTime(signingClock.instant().toEpochMilli());
-        signingConfig.setUseDoubleUriEncode(doubleUrlEncode);
-        signingConfig.setShouldNormalizeUriPath(normalizePath);
-
-        switch (authLocation) {
-            case HEADER:
-                signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
-                if (request.hasProperty(EXPIRATION_DURATION)) {
-                    throw new UnsupportedOperationException(
-                        String.format("%s is not supported for %s.", EXPIRATION_DURATION, AuthLocation.HEADER)
-                    );
-                }
-                break;
-            case QUERY_STRING:
-                signingConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
-                if (request.hasProperty(EXPIRATION_DURATION)) {
-                    signingConfig.setExpirationInSeconds(validateExpirationDuration(expirationDuration).getSeconds());
-                }
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown auth-location: " + authLocation);
-        }
-
-        if (!isPayloadSigning) {
-            signingConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
-        }
-
-        return signingConfig;
     }
 
     @Override
