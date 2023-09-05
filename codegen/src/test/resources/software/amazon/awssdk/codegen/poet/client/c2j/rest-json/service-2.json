@@ -22,6 +22,16 @@
       },
       "httpChecksumRequired": true
     },
+    "OperationWithRequestCompression": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "requestCompression": {
+        "encodings": ["gzip"]
+      }
+    },
     "APostOperation": {
       "name": "APostOperation",
       "http": {
