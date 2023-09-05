@@ -17,17 +17,32 @@ package software.amazon.awssdk.sra.ia;
 
 import static java.util.Collections.singletonList;
 
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.authcrt.signer.AwsCrtV4aSigner;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.NoOpSigner;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.services.acm.AcmClient;
 import software.amazon.awssdk.services.codecatalyst.CodeCatalystClient;
@@ -137,5 +152,84 @@ class SraIdentityAuthTest {
                      .build();
 
         sraClient.listCertificates();
+    }
+
+
+    @Test // very unlikely use case. could achieve what's needed with changing SignerProperties
+    void useDifferentSigner() {
+        // Before
+        ClientOverrideConfiguration config =
+            ClientOverrideConfiguration.builder()
+                                       .putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                          new MyCustomSigV4Signer())
+                                       .build();
+
+        AcmClient client =
+            AcmClient.builder()
+                     .overrideConfiguration(config)
+                     .build();
+
+        client.listCertificates();
+
+        // After
+        AcmClient sraClient =
+            AcmClient.builder()
+                     .putAuthScheme(new MyV4AuthSchemeWithCustomSigner())
+                     .putAuthScheme(new AwsV4AuthScheme() {
+                         @Override
+                         public AwsV4HttpSigner signer() {
+                             return new MyCustomSigV4NewHttpSigner();
+                         }
+                     })
+                     .build();
+
+        sraClient.listCertificates();
+
+    }
+
+    private class MyCustomSigV4Signer implements Signer {
+        @Override
+        public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+            return null;
+        }
+    }
+
+    private class MyCustomSigV4NewHttpSigner implements HttpSigner<AwsCredentialsIdentity> {
+        @Override
+        public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+            return null;
+        }
+
+        @Override
+        public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+            return null;
+        }
+    }
+
+    private class MyV4AuthSchemeWithCustomSigner implements AuthScheme<AwsCredentialsIdentity> {
+        @Override
+        public String schemeId() {
+            return AwsV4AuthScheme.SCHEME_ID;
+        }
+
+        @Override
+        public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviderConfiguration providers) {
+            return providers.identityProvider(AwsCredentialsIdentity.class);
+        }
+
+        @Override
+        public HttpSigner<AwsCredentialsIdentity> signer() {
+            return new HttpSigner<AwsCredentialsIdentity>() {
+                @Override
+                public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+                    return null;
+                }
+
+                @Override
+                public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+                    return null;
+                }
+            };
+        }
     }
 }
