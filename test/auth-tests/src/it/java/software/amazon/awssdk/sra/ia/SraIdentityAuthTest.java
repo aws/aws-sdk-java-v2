@@ -17,7 +17,10 @@ package software.amazon.awssdk.sra.ia;
 
 import static java.util.Collections.singletonList;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -27,6 +30,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
@@ -46,6 +50,9 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.services.acm.AcmClient;
 import software.amazon.awssdk.services.codecatalyst.CodeCatalystClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
+import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 
 class SraIdentityAuthTest {
 
@@ -230,6 +237,38 @@ class SraIdentityAuthTest {
                     return null;
                 }
             };
+        }
+    }
+
+    @Test
+    void s3PayloadSigningOnByDefault() {
+        S3Client sraS3Client =
+            S3Client.builder()
+                    .authSchemeProvider(new PayloadSigningEnabledS3AuthSchemeProvider())
+                    .build();
+
+        sraS3Client.putObject(builder -> builder.bucket("b").key("k"), RequestBody.fromString("contents"));
+    }
+
+    private class PayloadSigningEnabledS3AuthSchemeProvider implements S3AuthSchemeProvider {
+
+        S3AuthSchemeProvider defaultS3AuthSchemeProvider = S3AuthSchemeProvider.defaultProvider();
+
+        @Override
+        public List<AuthSchemeOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams) {
+            return defaultS3AuthSchemeProvider
+                .resolveAuthScheme(authSchemeParams)
+                .stream()
+                .map(authSchemeOption -> {
+                    if (authSchemeOption.schemeId().equals(AwsV4AuthScheme.SCHEME_ID)) {
+                        return authSchemeOption
+                            .toBuilder()
+                            .putSignerProperty(AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED, true)
+                            .build();
+                    }
+                    return authSchemeOption;
+                })
+                .collect(Collectors.toList());
         }
     }
 }
