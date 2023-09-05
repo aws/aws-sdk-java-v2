@@ -34,8 +34,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class CrtHttpRequestConverter {
 
-    private static final int READ_BUFFER_SIZE = 4096;
-
     private CrtHttpRequestConverter() {
     }
 
@@ -52,7 +50,7 @@ public final class CrtHttpRequestConverter {
 
         HttpRequestBodyStream crtInputStream = null;
         if (payload != null) {
-            crtInputStream = new CrtInputStream(payload, READ_BUFFER_SIZE);
+            crtInputStream = new CrtInputStream(payload);
         }
 
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtInputStream);
@@ -147,6 +145,6 @@ public final class CrtHttpRequestConverter {
     }
 
     public static HttpRequestBodyStream toCrtStream(byte[] data) {
-        return new CrtInputStream(() -> new ByteArrayInputStream(data), READ_BUFFER_SIZE);
+        return new CrtInputStream(() -> new ByteArrayInputStream(data));
     }
 }

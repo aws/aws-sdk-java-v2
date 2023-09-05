@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -48,14 +48,14 @@ public final class SignerLoader {
     private static <T extends HttpSigner<AwsCredentialsIdentity>> T initializeV4aSigner(Class<T> expectedClass, String fqcn) {
         try {
             Class<?> signerClass = ClassLoaderHelper.loadClass(fqcn, false, (Class) null);
-            Method m = signerClass.getDeclaredMethod("create");
-            Object result = m.invoke(null);
+            Constructor<?> m = signerClass.getConstructor();
+            Object result = m.newInstance();
             return expectedClass.cast(result);
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Cannot find the " + fqcn + " class. "
                                             + "To invoke a request that requires a SigV4a signer, such as region independent "
                                             + "signing, the 'aws-crt' core module must be on the class path.", e);
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
             throw new IllegalStateException("Failed to create " + fqcn, e);
         }
     }
