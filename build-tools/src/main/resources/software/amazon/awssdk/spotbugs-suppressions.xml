@@ -272,4 +272,13 @@
         <Method name="fromFile"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+
+    <!-- Intentional for backwards-compatibility -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute"/>
+            <Class name="software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute"/>
+        </Or>
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+    </Match>
 </FindBugsFilter>

@@ -22,6 +22,10 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
 
 class AuthSchemeOptionTest {
+    private static final IdentityProperty<String> IDENTITY_PROPERTY_1 = IdentityProperty.create(String.class, "identityKey1");
+    private static final SignerProperty<String> SIGNER_PROPERTY_1 = SignerProperty.create(String.class, "signingKey1");
+    private static final IdentityProperty<String> IDENTITY_PROPERTY_2 = IdentityProperty.create(String.class, "identityKey2");
+    private static final SignerProperty<String> SIGNER_PROPERTY_2 = SignerProperty.create(String.class, "signingKey2");
 
     @Test
     public void emptyBuilder_isNotSuccessful() {
@@ -36,59 +40,50 @@ class AuthSchemeOptionTest {
 
     @Test
     public void putProperty_sameProperty_isReplaced() {
-        IdentityProperty<String> identityProperty = IdentityProperty.create(String.class, "identityKey1");
-        SignerProperty<String> signerProperty = SignerProperty.create(String.class, "signingKey1");
 
         AuthSchemeOption authSchemeOption = AuthSchemeOption.builder()
                                                             .schemeId("my.api#myAuth")
-                                                            .putIdentityProperty(identityProperty, "identity-value1")
-                                                            .putIdentityProperty(identityProperty, "identity-value2")
-                                                            .putSignerProperty(signerProperty, "signing-value1")
-                                                            .putSignerProperty(signerProperty, "signing-value2")
+                                                            .putIdentityProperty(IDENTITY_PROPERTY_1, "identity-value1")
+                                                            .putIdentityProperty(IDENTITY_PROPERTY_1, "identity-value2")
+                                                            .putSignerProperty(SIGNER_PROPERTY_1, "signing-value1")
+                                                            .putSignerProperty(SIGNER_PROPERTY_1, "signing-value2")
                                                             .build();
 
-        assertEquals("identity-value2", authSchemeOption.identityProperty(identityProperty));
-        assertEquals("signing-value2", authSchemeOption.signerProperty(signerProperty));
+        assertEquals("identity-value2", authSchemeOption.identityProperty(IDENTITY_PROPERTY_1));
+        assertEquals("signing-value2", authSchemeOption.signerProperty(SIGNER_PROPERTY_1));
     }
 
     @Test
     public void copyBuilder_addProperty_retains() {
-        IdentityProperty<String> identityProperty = IdentityProperty.create(String.class, "identityKey");
-        SignerProperty<String> signerProperty = SignerProperty.create(String.class, "signingKey");
         AuthSchemeOption authSchemeOption = AuthSchemeOption.builder()
                                                             .schemeId("my.api#myAuth")
-                                                            .putIdentityProperty(identityProperty, "identity-value1")
-                                                            .putSignerProperty(signerProperty, "signing-value1")
+                                                            .putIdentityProperty(IDENTITY_PROPERTY_1, "identity-value1")
+                                                            .putSignerProperty(SIGNER_PROPERTY_1, "signing-value1")
                                                             .build();
 
-        IdentityProperty<String> identityProperty2 = IdentityProperty.create(String.class, "identityKey2");
-        SignerProperty<String> signerProperty2 = SignerProperty.create(String.class, "signingKey2");
-
         authSchemeOption =
-            authSchemeOption.copy(builder -> builder.putIdentityProperty(identityProperty2, "identity2-value1")
-                                                    .putSignerProperty(signerProperty2, "signing2-value1"));
+            authSchemeOption.copy(builder -> builder.putIdentityProperty(IDENTITY_PROPERTY_2, "identity2-value1")
+                                                    .putSignerProperty(SIGNER_PROPERTY_2, "signing2-value1"));
 
-        assertEquals("identity-value1", authSchemeOption.identityProperty(identityProperty));
-        assertEquals("identity2-value1", authSchemeOption.identityProperty(identityProperty2));
-        assertEquals("signing-value1", authSchemeOption.signerProperty(signerProperty));
-        assertEquals("signing2-value1", authSchemeOption.signerProperty(signerProperty2));
+        assertEquals("identity-value1", authSchemeOption.identityProperty(IDENTITY_PROPERTY_1));
+        assertEquals("identity2-value1", authSchemeOption.identityProperty(IDENTITY_PROPERTY_2));
+        assertEquals("signing-value1", authSchemeOption.signerProperty(SIGNER_PROPERTY_1));
+        assertEquals("signing2-value1", authSchemeOption.signerProperty(SIGNER_PROPERTY_2));
     }
 
     @Test
     public void copyBuilder_updateProperty_updates() {
-        IdentityProperty<String> identityProperty = IdentityProperty.create(String.class, "identityKey");
-        SignerProperty<String> signerProperty = SignerProperty.create(String.class, "signingKey");
         AuthSchemeOption authSchemeOption = AuthSchemeOption.builder()
                                                             .schemeId("my.api#myAuth")
-                                                            .putIdentityProperty(identityProperty, "identity-value1")
-                                                            .putSignerProperty(signerProperty, "signing-value1")
+                                                            .putIdentityProperty(IDENTITY_PROPERTY_1, "identity-value1")
+                                                            .putSignerProperty(SIGNER_PROPERTY_1, "signing-value1")
                                                             .build();
 
         authSchemeOption =
-            authSchemeOption.copy(builder -> builder.putIdentityProperty(identityProperty, "identity-value2")
-                                                    .putSignerProperty(signerProperty, "signing-value2"));
+            authSchemeOption.copy(builder -> builder.putIdentityProperty(IDENTITY_PROPERTY_1, "identity-value2")
+                                                    .putSignerProperty(SIGNER_PROPERTY_1, "signing-value2"));
 
-        assertEquals("identity-value2", authSchemeOption.identityProperty(identityProperty));
-        assertEquals("signing-value2", authSchemeOption.signerProperty(signerProperty));
+        assertEquals("identity-value2", authSchemeOption.identityProperty(IDENTITY_PROPERTY_1));
+        assertEquals("signing-value2", authSchemeOption.signerProperty(SIGNER_PROPERTY_1));
     }
 }
