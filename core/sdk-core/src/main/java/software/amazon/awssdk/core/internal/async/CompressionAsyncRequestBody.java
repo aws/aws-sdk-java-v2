@@ -71,7 +71,7 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
     }
 
     private SdkPublisher<Iterable<ByteBuffer>> split(SdkPublisher<ByteBuffer> source) {
-        return subscriber -> source.subscribe(new SplittingSubscriber(subscriber, chunkBuffer));
+        return subscriber -> source.subscribe(new SplittingSubscriber(subscriber));
     }
 
     private Iterable<ByteBuffer> getBufferedDataIfPresent() {
@@ -148,12 +148,10 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
         }
     }
 
-    private static final class SplittingSubscriber extends DelegatingSubscriber<ByteBuffer, Iterable<ByteBuffer>> {
-        private final ChunkBuffer chunkBuffer;
+    private final class SplittingSubscriber extends DelegatingSubscriber<ByteBuffer, Iterable<ByteBuffer>> {
 
-        protected SplittingSubscriber(Subscriber<? super Iterable<ByteBuffer>> subscriber, ChunkBuffer chunkBuffer) {
+        protected SplittingSubscriber(Subscriber<? super Iterable<ByteBuffer>> subscriber) {
             super(subscriber);
-            this.chunkBuffer = chunkBuffer;
         }
 
         @Override
