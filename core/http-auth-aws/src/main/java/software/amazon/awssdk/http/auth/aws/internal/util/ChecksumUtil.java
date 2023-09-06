@@ -41,7 +41,7 @@ public final class ChecksumUtil {
 
     private static final String CONSTANT_CHECKSUM = "CONSTANT";
 
-    private static final Map<String, Supplier<SdkChecksum>> checksumMap = ImmutableMap.of(
+    private static final Map<String, Supplier<SdkChecksum>> CHECKSUM_MAP = ImmutableMap.of(
         SHA256.algorithmId(), Sha256Checksum::new,
         SHA1.algorithmId(), Sha1Checksum::new,
         CRC32.algorithmId(), Crc32Checksum::new,
@@ -67,8 +67,8 @@ public final class ChecksumUtil {
      * Gets the SdkChecksum object based on the given ChecksumAlgorithm.
      */
     public static SdkChecksum fromChecksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
-        if (checksumMap.containsKey(checksumAlgorithm.algorithmId())) {
-            return checksumMap.get(checksumAlgorithm.algorithmId()).get();
+        if (CHECKSUM_MAP.containsKey(checksumAlgorithm.algorithmId())) {
+            return CHECKSUM_MAP.get(checksumAlgorithm.algorithmId()).get();
         }
 
         if (CONSTANT_CHECKSUM.equals(checksumAlgorithm.algorithmId())) {

@@ -86,7 +86,8 @@ public interface Checksummer {
 
             return new FlexibleChecksummer(checksums);
         }
-        return forPrecomputed256Checksum(precomputedSha256);
+
+        throw new IllegalArgumentException("Checksum Algorithm cannot be null!");
     }
 
     /**

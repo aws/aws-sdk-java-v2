@@ -139,7 +139,11 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
         }
 
-        return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
+        if (isFlexible) {
+            return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
+        }
+
+        return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
     }
 
     private static V4PayloadSigner v4PayloadSigner(
