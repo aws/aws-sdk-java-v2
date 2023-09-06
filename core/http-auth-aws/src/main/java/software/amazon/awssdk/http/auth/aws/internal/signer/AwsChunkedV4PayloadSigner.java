@@ -257,7 +257,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         return new Builder();
     }
 
-    private static class Builder {
+    static class Builder {
         private CredentialScope credentialScope;
         private Integer chunkSize;
         private ChecksumAlgorithm checksumAlgorithm;
