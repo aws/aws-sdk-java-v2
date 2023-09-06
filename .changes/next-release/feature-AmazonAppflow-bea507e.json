@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Appflow",
+    "contributor": "",
+    "description": "Adding OAuth2.0 support for servicenow connector."
+}
