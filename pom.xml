@@ -84,6 +84,7 @@
         <module>test/auth-tests</module>
         <module>test/region-testing</module>
         <module>test/ruleset-testing-core</module>
+        <module>test/old-client-version-compatibility-test</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
