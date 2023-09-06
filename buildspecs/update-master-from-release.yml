@@ -26,13 +26,15 @@ phases:
     - MINOR=$(echo $RELEASE_VERSION | cut -d'.' -f2)
     - POINT=$(echo $RELEASE_VERSION | cut -d'.' -f3)
     - NEW_VERSION_SNAPSHOT="$MAJOR.$MINOR.$((POINT + 1))-SNAPSHOT"
-    - echo "New shapshot version - $NEW_VERSION_SNAPSHOT"
+    - echo "New snapshot version - $NEW_VERSION_SNAPSHOT"
     -
     - git checkout master
     - git merge public/release --no-edit
     -
     - MASTER_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
     - echo "Master version - $MASTER_VERSION"
+    -
+    - trap 'echo "Error: Failed to update versions"; exit 1' ERR
     - |
       if [ "$MASTER_VERSION" != "$NEW_VERSION_SNAPSHOT" ]; then
 
@@ -43,4 +45,5 @@ phases:
         git commit -am "Update to next snapshot version: $NEW_VERSION_SNAPSHOT"
       fi
     -
+    - git status
     - git push
