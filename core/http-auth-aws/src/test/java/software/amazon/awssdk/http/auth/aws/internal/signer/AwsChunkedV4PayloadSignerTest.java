@@ -87,7 +87,10 @@ public class AwsChunkedV4PayloadSignerTest {
             canonicalRequest,
             requestBuilder
         );
-        AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, null);
+        AwsChunkedV4PayloadSigner signer = AwsChunkedV4PayloadSigner.builder()
+                                                                    .credentialScope(credentialScope)
+                                                                    .chunkSize(chunkSize)
+                                                                    .build();
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -125,7 +128,11 @@ public class AwsChunkedV4PayloadSignerTest {
             canonicalRequest,
             requestBuilder
         );
-        AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, CRC32);
+        AwsChunkedV4PayloadSigner signer = AwsChunkedV4PayloadSigner.builder()
+                                                                    .credentialScope(credentialScope)
+                                                                    .chunkSize(chunkSize)
+                                                                    .checksumAlgorithm(CRC32)
+                                                                    .build();
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -162,7 +169,11 @@ public class AwsChunkedV4PayloadSignerTest {
             canonicalRequest,
             requestBuilder
         );
-        AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, SHA256);
+        AwsChunkedV4PayloadSigner signer = AwsChunkedV4PayloadSigner.builder()
+                                                                    .credentialScope(credentialScope)
+                                                                    .chunkSize(chunkSize)
+                                                                    .checksumAlgorithm(SHA256)
+                                                                    .build();
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -207,7 +218,10 @@ public class AwsChunkedV4PayloadSignerTest {
             canonicalRequest,
             requestBuilder
         );
-        AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, null);
+        AwsChunkedV4PayloadSigner signer = AwsChunkedV4PayloadSigner.builder()
+                                                                    .credentialScope(credentialScope)
+                                                                    .chunkSize(chunkSize)
+                                                                    .build();
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -255,7 +269,11 @@ public class AwsChunkedV4PayloadSignerTest {
             canonicalRequest,
             requestBuilder
         );
-        AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, CRC32);
+        AwsChunkedV4PayloadSigner signer = AwsChunkedV4PayloadSigner.builder()
+                                                                    .credentialScope(credentialScope)
+                                                                    .chunkSize(chunkSize)
+                                                                    .checksumAlgorithm(CRC32)
+                                                                    .build();
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -303,7 +321,11 @@ public class AwsChunkedV4PayloadSignerTest {
             canonicalRequest,
             requestBuilder
         );
-        AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, CRC32);
+        AwsChunkedV4PayloadSigner signer = AwsChunkedV4PayloadSigner.builder()
+                                                                    .credentialScope(credentialScope)
+                                                                    .chunkSize(chunkSize)
+                                                                    .checksumAlgorithm(CRC32)
+                                                                    .build();
 
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
@@ -333,14 +355,20 @@ public class AwsChunkedV4PayloadSignerTest {
             requestBuilder
         );
         v4Context.getSignedRequest().removeHeader(Header.CONTENT_LENGTH);
-        AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, null);
+        AwsChunkedV4PayloadSigner signer = AwsChunkedV4PayloadSigner.builder()
+                                                                    .credentialScope(credentialScope)
+                                                                    .chunkSize(chunkSize)
+                                                                    .build();
 
         assertThrows(IllegalArgumentException.class, () -> signer.sign(payload, v4Context));
     }
 
     @Test
     public void signAsync_throws() {
-        AwsChunkedV4PayloadSigner signer = new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, null);
+        AwsChunkedV4PayloadSigner signer = AwsChunkedV4PayloadSigner.builder()
+                                                                    .credentialScope(credentialScope)
+                                                                    .chunkSize(chunkSize)
+                                                                    .build();
 
         assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(null, null));
     }

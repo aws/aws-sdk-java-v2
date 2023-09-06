@@ -52,13 +52,14 @@ import software.amazon.awssdk.http.auth.aws.signer.V4Context;
 import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An implementation of a V4PayloadSigner which chunk-encodes a payload, optionally adding a chunk-signature chunk-extension,
  * and/or trailers representing trailing headers with their signature at the end.
  */
 @SdkInternalApi
-public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
+public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
 
     private static final String EMPTY_HASH = toHex(hash(""));
 
@@ -66,9 +67,9 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     private final int chunkSize;
     private final ChecksumAlgorithm checksumAlgorithm;
 
-    public AwsChunkedV4PayloadSigner(CredentialScope credentialScope, int chunkSize, ChecksumAlgorithm checksumAlgorithm) {
-        this.credentialScope = credentialScope;
-        this.chunkSize = chunkSize;
+    private AwsChunkedV4PayloadSigner(CredentialScope credentialScope, int chunkSize, ChecksumAlgorithm checksumAlgorithm) {
+        this.credentialScope = Validate.paramNotNull(credentialScope, "CredentialScope");
+        this.chunkSize = Validate.isPositive(chunkSize, "ChunkSize");
         this.checksumAlgorithm = checksumAlgorithm;
     }
 
@@ -115,16 +116,12 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
                 break;
             }
             case STREAMING_UNSIGNED_PAYLOAD_TRAILER:
-                if (checksumAlgorithm != null) {
-                    setupChecksumTrailer(chunkedEncodedInputStreamBuilder, request);
-                }
+                setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder, request);
                 break;
             case STREAMING_SIGNED_PAYLOAD_TRAILER: {
                 RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
                 setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
-                if (checksumAlgorithm != null) {
-                    setupChecksumTrailer(chunkedEncodedInputStreamBuilder, request);
-                }
+                setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder, request);
                 setupSigTrailer(chunkedEncodedInputStreamBuilder, rollingSigner);
                 break;
             }
@@ -187,13 +184,16 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
                         )
                     );
 
+                String canonicalHeadersString = getCanonicalHeadersString(getCanonicalHeaders(headers));
+                String canonicalHashHex = toHex(hash(canonicalHeadersString));
+
                 // build the string-to-sign template for the rolling-signer to sign
                 return String.join("\n",
                                    "AWS4-HMAC-SHA256-TRAILER",
                                    credentialScope.getDatetime(),
                                    credentialScope.scope(),
                                    previousSignature,
-                                   toHex(hash(getCanonicalHeadersString(getCanonicalHeaders(headers))))
+                                   canonicalHashHex
                 );
             }
 
@@ -212,9 +212,9 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
      * <p>
      * The checksum-algorithm MUST be set if this is called, otherwise it will throw.
      */
-    private void setupChecksumTrailer(ChunkedEncodedInputStream.Builder builder, SdkHttpRequest.Builder request) {
+    private void setupChecksumTrailerIfNeeded(ChunkedEncodedInputStream.Builder builder, SdkHttpRequest.Builder request) {
         if (checksumAlgorithm == null) {
-            throw new IllegalArgumentException("A checksum-algorithm must be configured in order to add a checksum trailer!");
+            return;
         }
         SdkChecksum sdkChecksum = fromChecksumAlgorithm(checksumAlgorithm);
         ChecksumInputStream checksumInputStream = new ChecksumInputStream(
@@ -251,5 +251,50 @@ public class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
             builder.addTrailer(() -> Pair.of(header, values));
             request.removeHeader(header);
         }
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
+    public interface Builder {
+        Builder credentialScope(CredentialScope credentialScope);
+
+        Builder chunkSize(int chunkSize);
+
+        Builder checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm);
+
+        AwsChunkedV4PayloadSigner build();
+    }
+
+    private static class BuilderImpl implements Builder {
+        private CredentialScope credentialScope;
+        private int chunkSize;
+        private ChecksumAlgorithm checksumAlgorithm;
+
+        @Override
+        public Builder credentialScope(CredentialScope credentialScope) {
+            this.credentialScope = credentialScope;
+            return this;
+        }
+
+        @Override
+        public Builder chunkSize(int chunkSize) {
+            this.chunkSize = chunkSize;
+            return this;
+        }
+
+        @Override
+        public Builder checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
+            this.checksumAlgorithm = checksumAlgorithm;
+            return this;
+        }
+
+        @Override
+        public AwsChunkedV4PayloadSigner build() {
+            return new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, checksumAlgorithm);
+        }
+
+
     }
 }

@@ -164,25 +164,7 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    public void sign_WithChunkEncodingTrueWithout_DelegatesToAwsChunkedPayloadSigner() {
-        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest
-                .putHeader(Header.CONTENT_LENGTH, "20"),
-            signRequest -> signRequest
-                .putProperty(CHUNK_ENCODING_ENABLED, true)
-        );
-
-        SyncSignedRequest signedRequest = signer.sign(request);
-
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-            .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
-    }
-
-    @Test
-    public void sign_ChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
+    public void sign_WithChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
@@ -198,6 +180,7 @@ public class DefaultAwsV4HttpSignerTest {
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
 
     @Test
@@ -218,6 +201,7 @@ public class DefaultAwsV4HttpSignerTest {
             .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
 
     @Test
