@@ -67,10 +67,10 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     private final int chunkSize;
     private final ChecksumAlgorithm checksumAlgorithm;
 
-    private AwsChunkedV4PayloadSigner(CredentialScope credentialScope, int chunkSize, ChecksumAlgorithm checksumAlgorithm) {
-        this.credentialScope = Validate.paramNotNull(credentialScope, "CredentialScope");
-        this.chunkSize = Validate.isPositive(chunkSize, "ChunkSize");
-        this.checksumAlgorithm = checksumAlgorithm;
+    private AwsChunkedV4PayloadSigner(Builder builder) {
+        this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
+        this.chunkSize = Validate.isPositive(builder.chunkSize, "ChunkSize");
+        this.checksumAlgorithm = builder.checksumAlgorithm;
     }
 
     /**
@@ -254,47 +254,31 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     }
 
     public static Builder builder() {
-        return new BuilderImpl();
+        return new Builder();
     }
 
-    public interface Builder {
-        Builder credentialScope(CredentialScope credentialScope);
-
-        Builder chunkSize(int chunkSize);
-
-        Builder checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm);
-
-        AwsChunkedV4PayloadSigner build();
-    }
-
-    private static class BuilderImpl implements Builder {
+    private static class Builder {
         private CredentialScope credentialScope;
-        private int chunkSize;
+        private Integer chunkSize;
         private ChecksumAlgorithm checksumAlgorithm;
 
-        @Override
         public Builder credentialScope(CredentialScope credentialScope) {
             this.credentialScope = credentialScope;
             return this;
         }
 
-        @Override
-        public Builder chunkSize(int chunkSize) {
+        public Builder chunkSize(Integer chunkSize) {
             this.chunkSize = chunkSize;
             return this;
         }
 
-        @Override
         public Builder checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
             this.checksumAlgorithm = checksumAlgorithm;
             return this;
         }
 
-        @Override
         public AwsChunkedV4PayloadSigner build() {
-            return new AwsChunkedV4PayloadSigner(credentialScope, chunkSize, checksumAlgorithm);
+            return new AwsChunkedV4PayloadSigner(this);
         }
-
-
     }
 }
