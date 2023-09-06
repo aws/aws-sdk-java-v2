@@ -17,7 +17,9 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AUTH_LOCATION;
+import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHUNK_ENCODING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
@@ -230,5 +232,37 @@ public class DefaultAwsV4HttpSignerTest {
         );
 
         assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
+    }
+
+    @Test
+    public void sign_withChecksumAlgorithm_DelegatesToChecksummerWithThatChecksumAlgorithm() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest.putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32")).isPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).isPresent();
+    }
+
+    @Test
+    public void sign_withChecksumAlgorithmAndPayloadSigningFalse_DelegatesToChecksummerWithThatChecksumAlgorithm() {
+        SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+        );
+
+        SyncSignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32")).isPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
     }
 }

@@ -13,28 +13,32 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.util;
+package software.amazon.awssdk.http.auth.aws.internal.io;
 
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.zip.Checksum;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
+/**
+ * A subscriber that takes a collection of checksums, and updates each checksum when it receives data.
+ */
 @SdkInternalApi
-public final class DigestComputingSubscriber implements Subscriber<ByteBuffer> {
-    private final CompletableFuture<byte[]> digestBytes = new CompletableFuture<>();
-    private final MessageDigest messageDigest;
+public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
+    private final CompletableFuture<Void> checksumming = new CompletableFuture<>();
+    private final Collection<Checksum> checksums = new ArrayList<>();
     private volatile boolean canceled = false;
     private volatile Subscription subscription;
 
-    public DigestComputingSubscriber(MessageDigest messageDigest) {
-        this.messageDigest = messageDigest;
+    public ChecksumSubscriber(Collection<? extends Checksum> consumers) {
+        this.checksums.addAll(consumers);
 
-        digestBytes.whenComplete((r, t) -> {
+        checksumming.whenComplete((r, t) -> {
             if (t instanceof CancellationException) {
                 synchronized (this) {
                     canceled = true;
@@ -46,18 +50,10 @@ public final class DigestComputingSubscriber implements Subscriber<ByteBuffer> {
         });
     }
 
-    public static DigestComputingSubscriber forSha256() {
-        try {
-            return new DigestComputingSubscriber(MessageDigest.getInstance("SHA-256"));
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Unable to create SHA-256 computing subscriber" + e.getMessage());
-        }
-    }
-
     @Override
     public void onSubscribe(Subscription subscription) {
         synchronized (this) {
-            if (!canceled) {
+            if (!canceled && this.subscription == null) {
                 this.subscription = subscription;
                 subscription.request(Long.MAX_VALUE);
             } else {
@@ -69,21 +65,31 @@ public final class DigestComputingSubscriber implements Subscriber<ByteBuffer> {
     @Override
     public void onNext(ByteBuffer byteBuffer) {
         if (!canceled) {
-            messageDigest.update(byteBuffer);
+            byte[] buf;
+
+            if (byteBuffer.hasArray()) {
+                buf = byteBuffer.array();
+            } else {
+                buf = new byte[byteBuffer.remaining()];
+                byteBuffer.get(buf);
+            }
+
+            // We have to use a byte[], since update(<ByteBuffer>) is java 9+
+            checksums.forEach(checksum -> checksum.update(buf, 0, buf.length));
         }
     }
 
     @Override
     public void onError(Throwable throwable) {
-        digestBytes.completeExceptionally(throwable);
+        checksumming.completeExceptionally(throwable);
     }
 
     @Override
     public void onComplete() {
-        digestBytes.complete(messageDigest.digest());
+        checksumming.complete(null);
     }
 
-    public CompletableFuture<byte[]> digestBytes() {
-        return digestBytes;
+    public CompletableFuture<Void> checksum() {
+        return checksumming;
     }
 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
@@ -82,6 +83,12 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      */
     SignerProperty<Boolean> CHUNK_ENCODING_ENABLED =
         SignerProperty.create(Boolean.class, "ChunkEncodingEnabled");
+
+    /**
+     * The algorithm to use for calculating a "flexible" checksum. This property is optional.
+     */
+    SignerProperty<ChecksumAlgorithm> CHECKSUM_ALGORITHM =
+        SignerProperty.create(ChecksumAlgorithm.class, "ChecksumAlgorithm");
 
 
     /**

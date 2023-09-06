@@ -25,7 +25,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 @SdkProtectedApi
 @Immutable
 public final class V4Context {
-    private final String checksum;
+    private final String contentHash;
     private final byte[] signingKey;
     private final String signature;
     private final V4CanonicalRequest canonicalRequest;
@@ -33,15 +33,15 @@ public final class V4Context {
 
     public V4Context(String contentHash, byte[] signingKey, String signature,
                      V4CanonicalRequest canonicalRequest, SdkHttpRequest.Builder signedRequest) {
-        this.checksum = contentHash;
+        this.contentHash = contentHash;
         this.signingKey = signingKey.clone();
         this.signature = signature;
         this.canonicalRequest = canonicalRequest;
         this.signedRequest = signedRequest;
     }
 
-    public String getContentChecksum() {
-        return checksum;
+    public String getContentHash() {
+        return contentHash;
     }
 
     public byte[] getSigningKey() {

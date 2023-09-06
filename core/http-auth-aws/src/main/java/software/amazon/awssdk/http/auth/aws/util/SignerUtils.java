@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.auth.aws.util;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -29,7 +28,6 @@ import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.io.SdkDigestInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.util.FifoCache;
 import software.amazon.awssdk.http.auth.aws.internal.util.SignerKey;
 import software.amazon.awssdk.http.auth.aws.internal.util.SigningAlgorithm;
@@ -190,7 +188,7 @@ public final class SignerUtils {
         try {
             return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Unable to get SHA256 Function: " + e.getMessage());
+            throw new RuntimeException("Unable to get SHA256 Function: ", e);
         }
     }
 
@@ -201,7 +199,7 @@ public final class SignerUtils {
             }
             return streamProvider.newStream();
         } catch (Exception e) {
-            throw new RuntimeException("Unable to read request payload to sign request: " + e.getMessage());
+            throw new RuntimeException("Unable to read request payload to sign request: ", e);
         }
     }
 
@@ -210,13 +208,15 @@ public final class SignerUtils {
             // TODO(sra-identity-and-auth): Performance testing to verify if we should cache message digest instances
             //  (thread-local)
             MessageDigest md = getMessageDigestInstance();
-            DigestInputStream digestInputStream = new SdkDigestInputStream(input, md);
-            byte[] buffer = new byte[1024];
-            while (digestInputStream.read(buffer) > -1) {
+            byte[] buf = new byte[4096];
+            int read = 0;
+            while (read >= 0) {
+                read = input.read(buf);
+                md.update(buf, 0, read);
             }
-            return digestInputStream.getMessageDigest().digest();
+            return md.digest();
         } catch (Exception e) {
-            throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());
+            throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
     }
 
@@ -226,19 +226,12 @@ public final class SignerUtils {
             md.update(data);
             return md.digest();
         } catch (Exception e) {
-            throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());
+            throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
     }
 
     public static byte[] hash(String text) {
-        try {
-            MessageDigest md = getMessageDigestInstance();
-            md.update(text.getBytes(StandardCharsets.UTF_8));
-            return md.digest();
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());
-        }
+        return hash(text.getBytes(StandardCharsets.UTF_8));
     }
-
 
 }

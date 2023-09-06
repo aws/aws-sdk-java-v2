@@ -22,7 +22,6 @@ import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.UNSIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
 
 import java.time.Clock;
@@ -62,7 +61,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
 
     private static V4Properties v4Properties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        Clock signingClock = request.requireProperty(AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
+        Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
         String regionName = request.requireProperty(AwsV4HttpSigner.REGION_NAME);
@@ -112,30 +111,39 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
-        boolean isTrailing = hasTrailer(request.request());
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
 
         if (isEventStreaming) {
-            return new PrecomputedChecksummer(() -> STREAMING_EVENTS_PAYLOAD);
+            return Checksummer.forPrecomputed256Checksum(STREAMING_EVENTS_PAYLOAD);
         }
 
         if (isPayloadSigning) {
             if (isChunkEncoding) {
-                if (isTrailing) {
-                    return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD_TRAILER);
+                if (isFlexible || isTrailing) {
+                    return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD_TRAILER);
                 }
-                return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD);
+                return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD);
+            }
+
+            if (request.hasProperty(CHECKSUM_ALGORITHM)) {
+                return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM));
             }
             return Checksummer.create();
         }
 
         if (isChunkEncoding) {
-            if (isTrailing) {
-                return new PrecomputedChecksummer(() -> STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            if (isFlexible || isTrailing) {
+                return Checksummer.forPrecomputed256Checksum(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
             }
             throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
         }
 
-        return new PrecomputedChecksummer(() -> UNSIGNED_PAYLOAD);
+        if (isFlexible) {
+            return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
+        }
+
+        return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
     }
 
     private static V4PayloadSigner v4PayloadSigner(
@@ -177,8 +185,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        String checksum = checksummer.checksum(request.payload().orElse(null));
-        requestBuilder.putHeader(X_AMZ_CONTENT_SHA256, checksum);
+        checksummer.checksum(request.payload().orElse(null), requestBuilder);
 
         V4Context v4Context = requestSigner.sign(requestBuilder);
 
@@ -206,11 +213,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
         CompletableFuture<V4Context> futureV4Context =
-            checksummer.checksum(request.payload().orElse(null)).thenApply(
-                checksum -> {
-                    requestBuilder.putHeader(X_AMZ_CONTENT_SHA256, checksum);
-                    return requestSigner.sign(requestBuilder);
-                });
+            checksummer.checksum(request.payload().orElse(null), requestBuilder)
+                       .thenApply(__ -> requestSigner.sign(requestBuilder));
 
         return futureV4Context.thenApply(
             v4Context -> AsyncSignedRequest.builder()
@@ -233,12 +237,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static boolean isEventStreaming(SdkHttpRequest request) {
         return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
-    }
-
-    private static boolean hasTrailer(SdkHttpRequest request) {
-        // TODO(sra-identity-and-auth): Trailer would be determined by being a flexible-checksum enabled request, we will need
-        //  to update this once flexible checksums is enabled
-        return request.firstMatchingHeader(X_AMZ_TRAILER).isPresent();
     }
 
     /**
