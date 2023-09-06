@@ -1,3 +1,45 @@
+# __2.20.141__ __2023-09-05__
+## __AWS Cloud9__
+  - ### Features
+    - Added support for Ubuntu 22.04 that was not picked up in a previous Trebuchet request. Doc-only update.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release adds support to provide recommendations for G4dn and P3 instances that use NVIDIA GPUs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for RequestCompression trait to GZIP compress requests.
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds support for line item filtering in for the custom line item resource.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introducing Amazon EC2 C7gd, M7gd, and R7gd Instances with up to 3.8 TB of local NVMe-based SSD block-level storage. These instances are powered by AWS Graviton3 processors, delivering up to 25% better performance over Graviton2-based instances.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Improve Endpoint Ruleset test coverage.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for feature integration with AWS Backup.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Neo now supports data input shape derivation for Pytorch 2.0 and XGBoost compilation job for cloud instance targets. You can skip DataInputConfig field during compilation job creation. You can also access derived information from model in DescribeCompilationJob response.
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - This release adds Lambda event structure version config support for LAMBDA target groups. It also adds newline support for auth policies.
+
 # __2.20.140__ __2023-09-01__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -1584,7 +1626,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
