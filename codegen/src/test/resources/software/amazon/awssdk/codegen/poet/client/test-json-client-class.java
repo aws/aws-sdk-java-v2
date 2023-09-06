@@ -15,8 +15,8 @@ import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -43,6 +43,8 @@ import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.json.model.OperationWithRequestCompressionRequest;
+import software.amazon.awssdk.services.json.model.OperationWithRequestCompressionResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -61,6 +63,7 @@ import software.amazon.awssdk.services.json.transform.BearerAuthOperationRequest
 import software.amazon.awssdk.services.json.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.OperationWithChecksumRequiredRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.OperationWithRequestCompressionRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PutOperationWithChecksumRequestMarshaller;
@@ -283,16 +286,9 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler
                     .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
-                            .withOperationName("GetOperationWithChecksum")
-                            .withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler)
-                            .withInput(getOperationWithChecksumRequest)
+                            .withOperationName("GetOperationWithChecksum").withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withInput(getOperationWithChecksumRequest)
                             .withMetricCollector(apiCallMetricCollector)
-                            .putExecutionAttribute(
-                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(true)
-                                            .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
-                                            .isRequestStreaming(false).build())
                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -402,6 +398,57 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     /**
+     * Invokes the OperationWithRequestCompression operation.
+     *
+     * @param operationWithRequestCompressionRequest
+     * @return Result of the OperationWithRequestCompression operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.OperationWithRequestCompression
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithRequestCompression"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public OperationWithRequestCompressionResponse operationWithRequestCompression(
+            OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
+            SdkClientException, JsonException {
+        JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                .isPayloadJson(true).build();
+
+        HttpResponseHandler<OperationWithRequestCompressionResponse> responseHandler = protocolFactory.createResponseHandler(
+                operationMetadata, OperationWithRequestCompressionResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+                .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithRequestCompression");
+
+            return clientHandler
+                    .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
+                            .withOperationName("OperationWithRequestCompression")
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withInput(operationWithRequestCompressionRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
+                            .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
      * Some paginated operation with result_key in paginators.json file
      *
      * @param paginatedOperationWithResultKeyRequest
@@ -503,11 +550,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows '
      *        <p>
@@ -564,12 +611,6 @@ final class DefaultJsonClient implements JsonClient {
                             .withErrorResponseHandler(errorResponseHandler)
                             .withInput(putOperationWithChecksumRequest)
                             .withMetricCollector(apiCallMetricCollector)
-                            .putExecutionAttribute(
-                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(false)
-                                            .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
-                                            .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
-                                            .build())
                             .withRequestBody(requestBody)
                             .withMarshaller(
                                     StreamingRequestMarshaller.builder()
@@ -588,11 +629,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.
@@ -651,11 +692,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
@@ -825,3 +866,4 @@ final class DefaultJsonClient implements JsonClient {
         clientHandler.close();
     }
 }
+
