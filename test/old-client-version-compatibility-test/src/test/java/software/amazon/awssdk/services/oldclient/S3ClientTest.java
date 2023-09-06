@@ -19,9 +19,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -31,6 +33,10 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 public class S3ClientTest {
     S3Client s3 = S3Client.create();
+    S3Client s3CustomSigner = S3Client.builder()
+                                      .overrideConfiguration(c -> c.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                                      Aws4Signer.create()))
+                                      .build();
     S3AsyncClient s3Async = S3AsyncClient.create();
     String bucket = "millem-test-bucket-102390129";
 
@@ -71,6 +77,16 @@ public class S3ClientTest {
         ResponseBytes<GetObjectResponse> response = s3Async.getObject(r -> r.bucket(bucket).key("key1/key2").checksumMode(ChecksumMode.ENABLED),
                                                                       AsyncResponseTransformer.toBytes())
                                                            .join();
+        assertThat(response.asUtf8String()).isEqualTo("foo");
+        assertThat(response.response().checksumCRC32()).isEqualTo("jHNlIQ==");
+    }
+
+    @Test
+    public void putGetFlexibleChecksums_customSigner() {
+        s3CustomSigner.putObject(r -> r.bucket(bucket).key("key1/key2").checksumAlgorithm(ChecksumAlgorithm.CRC32),
+                     RequestBody.fromString("foo"));
+        ResponseBytes<GetObjectResponse> response =
+            s3CustomSigner.getObjectAsBytes(r -> r.bucket(bucket).key("key1/key2").checksumMode(ChecksumMode.ENABLED));
         assertThat(response.asUtf8String()).isEqualTo("foo");
         assertThat(response.response().checksumCRC32()).isEqualTo("jHNlIQ==");
     }
