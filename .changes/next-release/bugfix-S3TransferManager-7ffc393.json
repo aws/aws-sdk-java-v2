@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "S3 Transfer Manager",
     "contributor": "",
-    "description": "Fix for [Issue#4168](https://github.com/aws/aws-sdk-java-v2/issues/4168)  by enabling the direct passing of requestPath to the AWS Common Runtime (CRT). This ensures that Java SDK Transfer Manager no longer performs file I/O when using CRT, regardless."
+    "description": "Improved CRT client uploads by directly passing requestPath, eliminating unnecessary file I/O in the Java SDK Transfer Manager."
 }
