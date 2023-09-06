@@ -75,12 +75,9 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
     }
 
     private Iterable<ByteBuffer> getBufferedDataIfPresent() {
-        Optional<ByteBuffer> byteBuffer = chunkBuffer.getBufferedData();
-        if (byteBuffer.isPresent()) {
-            return Collections.singletonList(byteBuffer.get());
-        }
-        return Collections.emptyList();
-
+        return chunkBuffer.getBufferedData()
+                          .map(Collections::singletonList)
+                          .orElse(Collections.emptyList());
     }
 
     private SdkPublisher<ByteBuffer> flattening(SdkPublisher<Iterable<ByteBuffer>> source) {
