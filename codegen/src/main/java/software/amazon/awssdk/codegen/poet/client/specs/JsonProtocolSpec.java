@@ -186,6 +186,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+                     .add(HttpChecksumTrait.create(opModel))
                      .add(RequestCompressionTrait.create(opModel, model));
 
         if (opModel.hasStreamingInput()) {

@@ -22,12 +22,17 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -39,19 +44,17 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
-
+@WireMockTest
 public class AsyncFaultTest {
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
 
 
     private ProtocolRestJsonAsyncClient client;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    public void setup(WireMockRuntimeInfo wiremock) {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_1)
-                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                            .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
                                             .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                             .build();
 
@@ -64,6 +67,21 @@ public class AsyncFaultTest {
                                     .withStatus(200)));
         assertThatThrownBy(() -> client.streamingOutputOperation(SdkBuilder::build, new CancelSubscriptionTransformer()).join())
             .hasRootCauseExactlyInstanceOf(SelfCancelException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {500, 200})
+    @Timeout(value = 2)
+    public void requestContentLengthNotMatch_shouldThrowException(int statusCode) {
+        stubFor(post(anyUrl())
+                    .willReturn(aResponse()
+                                    .withBody("hello world")
+                                    .withHeader("content-length", String.valueOf(100))
+                                    .withStatus(statusCode)));
+        assertThatThrownBy(() -> client.allTypes().join())
+            .hasRootCauseExactlyInstanceOf(IOException.class)
+            .hasMessageContaining("Response had content-length of 100 bytes, but only received 11 bytes before the connection "
+                                  + "was closed");
     }
 
     private static class CancelSubscriptionTransformer

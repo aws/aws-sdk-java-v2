@@ -20,10 +20,7 @@ import static software.amazon.awssdk.core.internal.io.AwsChunkedInputStream.DEFA
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -42,19 +39,23 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
 
     private final AsyncRequestBody wrapped;
     private final Compressor compressor;
-    private final int chunkSize;
+    private final ChunkBuffer chunkBuffer;
 
     private CompressionAsyncRequestBody(DefaultBuilder builder) {
         this.wrapped = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
         this.compressor = Validate.paramNotNull(builder.compressor, "compressor");
-        this.chunkSize = builder.chunkSize != null ? builder.chunkSize : DEFAULT_CHUNK_SIZE;
+        int chunkSize = builder.chunkSize != null ? builder.chunkSize : DEFAULT_CHUNK_SIZE;
+        this.chunkBuffer = ChunkBuffer.builder()
+                                      .bufferSize(chunkSize)
+                                      .build();
     }
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
         Validate.notNull(s, "Subscription MUST NOT be null.");
 
-        SdkPublisher<Iterable<ByteBuffer>> split = split(wrapped);
+        SdkPublisher<Iterable<ByteBuffer>> split =
+            split(wrapped).addTrailingData(() -> Collections.singleton(getBufferedDataIfPresent()));
         SdkPublisher<ByteBuffer> flattening = flattening(split);
         flattening.map(compressor::compress).subscribe(s);
     }
@@ -70,7 +71,13 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
     }
 
     private SdkPublisher<Iterable<ByteBuffer>> split(SdkPublisher<ByteBuffer> source) {
-        return subscriber -> source.subscribe(new SplittingSubscriber(subscriber, chunkSize));
+        return subscriber -> source.subscribe(new SplittingSubscriber(subscriber));
+    }
+
+    private Iterable<ByteBuffer> getBufferedDataIfPresent() {
+        return chunkBuffer.getBufferedData()
+                          .map(Collections::singletonList)
+                          .orElse(Collections.emptyList());
     }
 
     private SdkPublisher<ByteBuffer> flattening(SdkPublisher<Iterable<ByteBuffer>> source) {
@@ -138,75 +145,16 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
         }
     }
 
-    private static final class SplittingSubscriber extends DelegatingSubscriber<ByteBuffer, Iterable<ByteBuffer>> {
-        private final ChunkBuffer chunkBuffer;
-        private final AtomicBoolean upstreamDone = new AtomicBoolean(false);
-        private final AtomicLong downstreamDemand = new AtomicLong();
-        private final Object lock = new Object();
-        private volatile boolean sentFinalChunk = false;
+    private final class SplittingSubscriber extends DelegatingSubscriber<ByteBuffer, Iterable<ByteBuffer>> {
 
-        protected SplittingSubscriber(Subscriber<? super Iterable<ByteBuffer>> subscriber, int chunkSize) {
+        protected SplittingSubscriber(Subscriber<? super Iterable<ByteBuffer>> subscriber) {
             super(subscriber);
-            this.chunkBuffer = ChunkBuffer.builder()
-                                          .bufferSize(chunkSize)
-                                          .build();
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            subscriber.onSubscribe(new Subscription() {
-                @Override
-                public void request(long n) {
-                    if (n <= 0) {
-                        throw new IllegalArgumentException("n > 0 required but it was " + n);
-                    }
-
-                    downstreamDemand.getAndAdd(n);
-
-                    if (upstreamDone.get()) {
-                        sendFinalChunk();
-                    } else {
-                        s.request(n);
-                    }
-                }
-
-                @Override
-                public void cancel() {
-                    s.cancel();
-                }
-            });
         }
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            downstreamDemand.decrementAndGet();
             Iterable<ByteBuffer> buffers = chunkBuffer.split(byteBuffer);
             subscriber.onNext(buffers);
-        }
-
-        @Override
-        public void onComplete() {
-            upstreamDone.compareAndSet(false, true);
-            if (downstreamDemand.get() > 0) {
-                sendFinalChunk();
-            }
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            upstreamDone.compareAndSet(false, true);
-            super.onError(t);
-        }
-
-        private void sendFinalChunk() {
-            synchronized (lock) {
-                if (!sentFinalChunk) {
-                    sentFinalChunk = true;
-                    Optional<ByteBuffer> byteBuffer = chunkBuffer.getBufferedData();
-                    byteBuffer.ifPresent(buffer -> subscriber.onNext(Collections.singletonList(buffer)));
-                    subscriber.onComplete();
-                }
-            }
         }
     }
 }

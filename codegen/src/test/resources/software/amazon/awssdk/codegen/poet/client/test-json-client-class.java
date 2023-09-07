@@ -15,6 +15,7 @@ import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -286,9 +287,16 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler
                     .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
-                            .withOperationName("GetOperationWithChecksum").withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withInput(getOperationWithChecksumRequest)
+                            .withOperationName("GetOperationWithChecksum")
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withInput(getOperationWithChecksumRequest)
                             .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(
+                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                    HttpChecksum.builder().requestChecksumRequired(true)
+                                            .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
+                                            .isRequestStreaming(false).build())
                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -550,11 +558,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows '
      *        <p>
@@ -611,6 +619,12 @@ final class DefaultJsonClient implements JsonClient {
                             .withErrorResponseHandler(errorResponseHandler)
                             .withInput(putOperationWithChecksumRequest)
                             .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(
+                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                    HttpChecksum.builder().requestChecksumRequired(false)
+                                            .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
+                                            .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
+                                            .build())
                             .withRequestBody(requestBody)
                             .withMarshaller(
                                     StreamingRequestMarshaller.builder()
@@ -629,11 +643,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.
@@ -692,11 +706,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
@@ -866,4 +880,3 @@ final class DefaultJsonClient implements JsonClient {
         clientHandler.close();
     }
 }
-
