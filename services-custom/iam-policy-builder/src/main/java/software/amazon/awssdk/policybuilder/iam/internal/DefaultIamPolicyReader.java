@@ -132,9 +132,10 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
 
         if (principalsNode.isObject()) {
             List<IamPrincipal> result = new ArrayList<>();
-            principalsNode.asObject().forEach((id, value) -> {
-                result.add(IamPrincipal.create(id, expectString(value, name + " entry value")));
-            });
+            Map<String, JsonNode> principalsNodeObject = principalsNode.asObject();
+            principalsNodeObject.keySet().forEach(
+                k -> result.addAll(IamPrincipal.createAll(k, readStringArray(principalsNodeObject, k)))
+            );
             return result;
         }
 
