@@ -133,30 +133,31 @@ public class SigningStage implements RequestToRequestPipeline {
         Signer signer = context.signer();
         MetricCollector metricCollector = context.attemptMetricCollector();
 
-        if (shouldSign(signer)) {
-            adjustForClockSkew(context.executionAttributes());
-
-            Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
-                () -> signer.sign(request, context.executionAttributes()));
-
-            metricCollector.reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
-
-            SdkHttpFullRequest signedRequest = measuredSign.left();
-
-            // TODO(sra-identity-and-auth): This case does not apply to SigningStage as event stream operations are not supported
-            //  by SyncClients that use this SigningStage. So this is dead code and can be removed.
-            if (signer instanceof AsyncRequestBodySigner) {
-                //Transform request body provider with signing operator
-                AsyncRequestBody transformedRequestProvider =
-                    ((AsyncRequestBodySigner) signer)
-                        .signAsyncRequestBody(signedRequest, context.requestProvider(), context.executionAttributes());
-                context.requestProvider(transformedRequestProvider);
-            }
-            updateHttpRequestInInterceptorContext(signedRequest, context.executionContext());
-            return signedRequest;
+        if (!shouldSign(context.executionAttributes(), signer)) {
+            return request;
         }
 
-        return request;
+        adjustForClockSkew(context.executionAttributes());
+
+        Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
+            () -> signer.sign(request, context.executionAttributes()));
+
+        metricCollector.reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
+
+        SdkHttpFullRequest signedRequest = measuredSign.left();
+
+        // TODO: This case does not apply to SigningStage as event stream operations are not supported by SyncClients that
+        //  use this SigningStage. So this is dead code and can be removed.
+        if (signer instanceof AsyncRequestBodySigner) {
+            //Transform request body provider with signing operator
+            AsyncRequestBody transformedRequestProvider =
+                ((AsyncRequestBodySigner) signer)
+                    .signAsyncRequestBody(signedRequest, context.requestProvider(), context.executionAttributes());
+            context.requestProvider(transformedRequestProvider);
+        }
+        updateHttpRequestInInterceptorContext(signedRequest, context.executionContext());
+        return signedRequest;
+
     }
 
 
@@ -172,8 +173,9 @@ public class SigningStage implements RequestToRequestPipeline {
      *
      * @return True if request should be signed, false if not.
      */
-    private boolean shouldSign(Signer signer) {
-        return signer != null;
+    private boolean shouldSign(ExecutionAttributes attributes, Signer signer) {
+        return signer != null &&
+               !Boolean.FALSE.equals(attributes.getAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST));
     }
 
     /**

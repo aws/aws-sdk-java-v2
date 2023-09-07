@@ -1,18 +1,3 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
 package software.amazon.awssdk.services.query.auth.scheme.internal;
 
 import java.time.Duration;
@@ -47,6 +32,7 @@ import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
+import software.amazon.awssdk.services.query.endpoints.internal.AuthSchemeUtils;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -60,41 +46,41 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
         List<AuthSchemeOption> authOptions = resolveAuthOptions(context, executionAttributes);
         SelectedAuthScheme<? extends Identity> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+        AuthSchemeUtils.putSelectedAuthScheme(executionAttributes, selectedAuthScheme);
     }
 
     private List<AuthSchemeOption> resolveAuthOptions(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
         QueryAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(QueryAuthSchemeProvider.class,
-                executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
-                "Expected an instance of QueryAuthSchemeProvider");
+                                                                           executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
+                                                                           "Expected an instance of QueryAuthSchemeProvider");
         QueryAuthSchemeParams params = authSchemeParams(context.request(), executionAttributes);
         return authSchemeProvider.resolveAuthScheme(params);
     }
 
     private SelectedAuthScheme<? extends Identity> selectAuthScheme(List<AuthSchemeOption> authOptions,
-            ExecutionAttributes executionAttributes) {
+                                                                    ExecutionAttributes executionAttributes) {
         MetricCollector metricCollector = executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
         IdentityProviderConfiguration identityResolvers = executionAttributes
-                .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
+            .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
         List<Supplier<String>> discardedReasons = new ArrayList<>();
         for (AuthSchemeOption authOption : authOptions) {
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
             SelectedAuthScheme<? extends Identity> selectedAuthScheme = trySelectAuthScheme(authOption, authScheme,
-                    identityResolvers, discardedReasons, metricCollector);
+                                                                                            identityResolvers, discardedReasons, metricCollector);
             if (selectedAuthScheme != null) {
                 if (!discardedReasons.isEmpty()) {
                     LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
-                            discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))));
+                                                  discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))));
                 }
                 return selectedAuthScheme;
             }
         }
         throw SdkException
-                .builder()
-                .message(
-                        "Failed to determine how to authenticate the user: "
-                                + discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))).build();
+            .builder()
+            .message(
+                "Failed to determine how to authenticate the user: "
+                + discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))).build();
     }
 
     private QueryAuthSchemeParams authSchemeParams(SdkRequest request, ExecutionAttributes executionAttributes) {
@@ -115,17 +101,17 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         return builder.build();
     }
 
-    private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(
-            AuthSchemeOption authOption, AuthScheme<T> authScheme,
-            IdentityProviderConfiguration identityProviders, List<Supplier<String>> discardedReasons,
-            MetricCollector metricCollector) {
+    private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,
+                                                                           IdentityProviderConfiguration identityProviders, List<Supplier<String>> discardedReasons,
+                                                                           MetricCollector metricCollector) {
         if (authScheme == null) {
             discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
             return null;
         }
         IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
         if (identityProvider == null) {
-            discardedReasons.add(() -> String.format("'%s' does not have an identity provider configured.", authOption.schemeId()));
+            discardedReasons
+                .add(() -> String.format("'%s' does not have an identity provider configured.", authOption.schemeId()));
             return null;
         }
         ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();

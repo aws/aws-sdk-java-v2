@@ -108,8 +108,8 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                              listOf(AuthSchemeOption.class))
                .addStatement("$T selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes)",
                              wildcardSelectedAuthScheme())
-               .addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
-                             SdkInternalExecutionAttribute.class);
+               .addStatement("$T.putSelectedAuthScheme(executionAttributes, selectedAuthScheme)",
+                             endpointRulesSpecUtils.rulesRuntimeClassName("AuthSchemeUtils"));
         return builder.build();
     }
 

@@ -64,7 +64,7 @@ import utils.ValidSdkObjects;
 public class SigningStageTest {
 
     private static final int TEST_TIME_OFFSET = 17;
-    private static final SignerProperty<String> SIGNER_PROPERTY = SignerProperty.create(String.class, "key");
+    private static final SignerProperty<String> SIGNER_PROPERTY = SignerProperty.create(String.class, "SigningStageTest.key");
 
     @Mock
     private Identity identity;
@@ -105,7 +105,7 @@ public class SigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+        RequestExecutionContext context = createContext(selectedAuthScheme, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
@@ -146,7 +146,7 @@ public class SigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+        RequestExecutionContext context = createContext(selectedAuthScheme, null);
 
         // Setup the timeoffset to test that the clock is setup properly.
         httpClientDependencies.updateTimeOffset(TEST_TIME_OFFSET);
@@ -192,7 +192,7 @@ public class SigningStageTest {
             AuthSchemeOption.builder()
                             .schemeId("smithy.api#noAuth")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+        RequestExecutionContext context = createContext(selectedAuthScheme, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))

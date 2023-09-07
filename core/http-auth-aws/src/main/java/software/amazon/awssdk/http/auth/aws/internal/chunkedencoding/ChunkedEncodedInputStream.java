@@ -202,6 +202,11 @@ public final class ChunkedEncodedInputStream extends InputStream {
     public interface Builder {
 
         /**
+         * Get the current backing input stream configured for the builder.
+         */
+        InputStream inputStream();
+
+        /**
          * Set the backing input stream.
          */
         Builder inputStream(InputStream inputStream);
@@ -254,6 +259,11 @@ public final class ChunkedEncodedInputStream extends InputStream {
         private ChunkHeaderProvider header = chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8);
         private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
         private final List<TrailerProvider> trailers = new ArrayList<>();
+
+        @Override
+        public InputStream inputStream() {
+            return this.inputStream;
+        }
 
         @Override
         public Builder inputStream(InputStream inputStream) {
