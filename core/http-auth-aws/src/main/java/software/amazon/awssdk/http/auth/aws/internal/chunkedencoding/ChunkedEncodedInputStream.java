@@ -63,7 +63,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
     private Chunk currentChunk;
     private boolean isFinished = false;
 
-    private ChunkedEncodedInputStream(BuilderImpl builder) {
+    private ChunkedEncodedInputStream(Builder builder) {
         this.inputStream = Validate.notNull(builder.inputStream, "Input-Stream cannot be null!");
         this.chunkSize = Validate.isPositive(builder.chunkSize, "Chunk-size must be greater than 0!");
         this.header = Validate.notNull(builder.header, "Header cannot be null!");
@@ -72,7 +72,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
     }
 
     public static Builder builder() {
-        return new BuilderImpl();
+        return new Builder();
     }
 
     @Override
@@ -199,120 +199,58 @@ public final class ChunkedEncodedInputStream extends InputStream {
         throw new UnsupportedOperationException();
     }
 
-    public interface Builder {
-
-        /**
-         * Get the current backing input stream configured for the builder.
-         */
-        InputStream inputStream();
-
-        /**
-         * Set the backing input stream.
-         */
-        Builder inputStream(InputStream inputStream);
-
-        /**
-         * Set the size of chunks from input stream. The actual size (in bytes) of an encoded chunk depends on the configuration.
-         */
-        Builder chunkSize(int chunkSize);
-
-        /**
-         * Set the header to be used when creating an encoded chunk. This header will be the first part of an encoded chunk.
-         */
-        Builder header(ChunkHeaderProvider header);
-
-        /**
-         * Set the chunk-extensions to be used when creating an encoded chunk. These extensions will immediately follow the
-         * header.
-         */
-        Builder extensions(List<ChunkExtensionProvider> extensions);
-
-        /**
-         * Add a chunk-extension.
-         */
-        Builder addExtension(ChunkExtensionProvider extension);
-
-        /**
-         * Get the trailers currently set for the builder.
-         */
-        List<TrailerProvider> trailers();
-
-        /**
-         * Set the trailers to be used when creating the final chunk. These trailers will immediately follow the final encoded
-         * chunk.
-         */
-        Builder trailers(List<TrailerProvider> trailers);
-
-        /**
-         * Add a trailer.
-         */
-        Builder addTrailer(TrailerProvider trailer);
-
-        ChunkedEncodedInputStream build();
-    }
-
-    private static class BuilderImpl implements Builder {
+    public static class Builder {
         private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
         private final List<TrailerProvider> trailers = new ArrayList<>();
         private InputStream inputStream;
         private int chunkSize;
         private ChunkHeaderProvider header = chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8);
 
-        @Override
         public InputStream inputStream() {
             return this.inputStream;
         }
 
-        @Override
         public Builder inputStream(InputStream inputStream) {
             this.inputStream = inputStream;
             return this;
         }
 
-        @Override
         public Builder chunkSize(int chunkSize) {
             this.chunkSize = chunkSize;
             return this;
         }
 
-        @Override
         public Builder header(ChunkHeaderProvider header) {
             this.header = header;
             return this;
         }
 
-        @Override
         public Builder extensions(List<ChunkExtensionProvider> extensions) {
             this.extensions.clear();
             extensions.forEach(this::addExtension);
             return this;
         }
 
-        @Override
         public Builder addExtension(ChunkExtensionProvider extension) {
             this.extensions.add(Validate.notNull(extension, "ExtensionProvider cannot be null!"));
             return this;
         }
 
-        @Override
         public List<TrailerProvider> trailers() {
             return new ArrayList<>(trailers);
         }
 
-        @Override
         public Builder trailers(List<TrailerProvider> trailers) {
             this.trailers.clear();
             trailers.forEach(this::addTrailer);
             return this;
         }
 
-        @Override
         public Builder addTrailer(TrailerProvider trailer) {
             this.trailers.add(Validate.notNull(trailer, "TrailerProvider cannot be null!"));
             return this;
         }
 
-        @Override
         public ChunkedEncodedInputStream build() {
             return new ChunkedEncodedInputStream(this);
         }

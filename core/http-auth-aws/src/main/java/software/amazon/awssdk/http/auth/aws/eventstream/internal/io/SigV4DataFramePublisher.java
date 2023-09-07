@@ -36,6 +36,7 @@ import software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.MappingSubscriber;
 import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
@@ -52,22 +53,24 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
 
     private final Publisher<ByteBuffer> sigv4Publisher;
 
-    private SigV4DataFramePublisher(Publisher<ByteBuffer> publisher,
-                                    AwsCredentialsIdentity credentials,
-                                    CredentialScope credentialScope,
-                                    String signature,
-                                    Clock signingClock) {
+    private SigV4DataFramePublisher(Builder builder) {
+        Validate.paramNotNull(builder.publisher, "Publisher");
+        Validate.paramNotNull(builder.credentials, "Credentials");
+        Validate.paramNotNull(builder.credentialScope, "CredentialScope");
+        Validate.paramNotNull(builder.signature, "Signature");
+        Validate.paramNotNull(builder.signingClock, "SigningClock");
+
 
         // Adapt the publisher with a trailing-empty frame publisher
-        Publisher<ByteBuffer> trailingPublisher = new TrailingDataFramePublisher(publisher);
+        Publisher<ByteBuffer> trailingPublisher = new TrailingDataFramePublisher(builder.publisher);
 
         // Map publisher with signing function
         this.sigv4Publisher = subscriber -> {
             Subscriber<ByteBuffer> adaptedSubscriber =
-                MappingSubscriber.create(subscriber, getDataFrameSigner(credentials,
-                                                                        credentialScope,
-                                                                        signature,
-                                                                        signingClock
+                MappingSubscriber.create(subscriber, getDataFrameSigner(builder.credentials,
+                                                                        builder.credentialScope,
+                                                                        builder.signature,
+                                                                        builder.signingClock
                                          )
                 );
             trailingPublisher.subscribe(adaptedSubscriber);
@@ -229,7 +232,7 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
     }
 
     public static Builder builder() {
-        return new BuilderImpl();
+        return new Builder();
     }
 
     @Override
@@ -237,60 +240,40 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
         sigv4Publisher.subscribe(subscriber);
     }
 
-    public interface Builder {
-        Builder publisher(Publisher<ByteBuffer> publisher);
-
-        Builder credentials(AwsCredentialsIdentity credentials);
-
-        Builder credentialScope(CredentialScope credentialScope);
-
-        Builder signature(String signature);
-
-        Builder signingClock(Clock signingClock);
-
-        SigV4DataFramePublisher build();
-    }
-
-    private static class BuilderImpl implements Builder {
+    public static class Builder {
         private Publisher<ByteBuffer> publisher;
         private AwsCredentialsIdentity credentials;
         private CredentialScope credentialScope;
         private String signature;
         private Clock signingClock;
 
-        @Override
         public Builder publisher(Publisher<ByteBuffer> publisher) {
             this.publisher = publisher;
             return this;
         }
 
-        @Override
         public Builder credentials(AwsCredentialsIdentity credentials) {
             this.credentials = credentials;
             return this;
         }
 
-        @Override
         public Builder credentialScope(CredentialScope credentialScope) {
             this.credentialScope = credentialScope;
             return this;
         }
 
-        @Override
         public Builder signature(String signature) {
             this.signature = signature;
             return this;
         }
 
-        @Override
         public Builder signingClock(Clock signingClock) {
             this.signingClock = signingClock;
             return this;
         }
 
-        @Override
         public SigV4DataFramePublisher build() {
-            return new SigV4DataFramePublisher(publisher, credentials, credentialScope, signature, signingClock);
+            return new SigV4DataFramePublisher(this);
         }
 
     }

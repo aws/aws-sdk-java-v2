@@ -38,7 +38,7 @@ public final class V4Properties {
     private final boolean normalizePath;
 
 
-    private V4Properties(BuilderImpl builder) {
+    private V4Properties(Builder builder) {
         this.credentials = Validate.paramNotNull(builder.credentials, "Credentials");
         this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
         this.signingClock = Validate.paramNotNull(builder.signingClock, "SigningClock");
@@ -47,7 +47,7 @@ public final class V4Properties {
     }
 
     public static Builder builder() {
-        return new BuilderImpl();
+        return new Builder();
     }
 
     public AwsCredentialsIdentity getCredentials() {
@@ -70,58 +70,38 @@ public final class V4Properties {
         return normalizePath;
     }
 
-    public interface Builder {
-        Builder credentials(AwsCredentialsIdentity credentials);
-
-        Builder credentialScope(CredentialScope credentialScope);
-
-        Builder signingClock(Clock signingClock);
-
-        Builder doubleUrlEncode(Boolean doubleUrlEncode);
-
-        Builder normalizePath(Boolean normalizePath);
-
-        V4Properties build();
-    }
-
-    private static class BuilderImpl implements Builder {
+    public static class Builder {
         private AwsCredentialsIdentity credentials;
         private CredentialScope credentialScope;
         private Clock signingClock;
         private Boolean doubleUrlEncode;
         private Boolean normalizePath;
 
-        @Override
         public Builder credentials(AwsCredentialsIdentity credentials) {
             this.credentials = Validate.paramNotNull(credentials, "Credentials");
             return this;
         }
 
-        @Override
         public Builder credentialScope(CredentialScope credentialScope) {
             this.credentialScope = Validate.paramNotNull(credentialScope, "CredentialScope");
             return this;
         }
 
-        @Override
         public Builder signingClock(Clock signingClock) {
             this.signingClock = signingClock;
             return this;
         }
 
-        @Override
         public Builder doubleUrlEncode(Boolean doubleUrlEncode) {
             this.doubleUrlEncode = doubleUrlEncode;
             return this;
         }
 
-        @Override
         public Builder normalizePath(Boolean normalizePath) {
             this.normalizePath = normalizePath;
             return this;
         }
 
-        @Override
         public V4Properties build() {
             return new V4Properties(this);
         }
