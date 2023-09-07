@@ -15,11 +15,23 @@
 
 package software.amazon.awssdk.benchmark;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.OBJECT_MAPPER;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -45,6 +57,8 @@ import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutV1Map
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientQueryV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientScanV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientUpdateV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.stats.SdkBenchmarkResult;
+import software.amazon.awssdk.benchmark.utils.BenchmarkProcessorOutput;
 import software.amazon.awssdk.utils.Logger;
 
 
@@ -84,13 +98,15 @@ public class BenchmarkRunner {
 
     private final List<String> benchmarksToRun;
     private final BenchmarkResultProcessor resultProcessor;
+    private final BenchmarkRunnerOptions options;
 
-    private BenchmarkRunner(List<String> benchmarksToRun) {
+    private BenchmarkRunner(List<String> benchmarksToRun, BenchmarkRunnerOptions options) {
         this.benchmarksToRun = benchmarksToRun;
         this.resultProcessor = new BenchmarkResultProcessor();
+        this.options = options;
     }
 
-    public static void main(String... args) throws RunnerException, JsonProcessingException {
+    public static void main(String... args) throws Exception {
         List<String> benchmarksToRun = new ArrayList<>();
         benchmarksToRun.addAll(SYNC_BENCHMARKS);
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
@@ -99,13 +115,14 @@ public class BenchmarkRunner {
 
         log.info(() -> "Skipping tests, to reduce benchmark times: \n" + MAPPER_BENCHMARKS + "\n" + METRIC_BENCHMARKS);
 
-
-        BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
+        BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun, parseOptions(args));
 
         runner.runBenchmark();
     }
 
     private void runBenchmark() throws RunnerException {
+        log.info(() -> "Running with options: " + options);
+
         ChainedOptionsBuilder optionsBuilder = new OptionsBuilder();
 
         benchmarksToRun.forEach(optionsBuilder::include);
@@ -114,11 +131,70 @@ public class BenchmarkRunner {
 
         Collection<RunResult> results = new Runner(optionsBuilder.build()).run();
 
-        List<String> failedResult = resultProcessor.processBenchmarkResult(results);
+        BenchmarkProcessorOutput processedResults = resultProcessor.processBenchmarkResult(results);
+        List<String> failedResults = processedResults.getFailedBenchmarks();
 
-        if (!failedResult.isEmpty()) {
-            log.info(() -> "Failed perf regression tests: " + failedResult);
-            throw new RuntimeException("Perf regression tests failed: " + failedResult);
+        if (options.outputPath != null) {
+            log.info(() -> "Writing results to " + options.outputPath);
+            writeResults(processedResults, options.outputPath);
+        }
+
+        if (options.check && !failedResults.isEmpty()) {
+            log.info(() -> "Failed perf regression tests: " + failedResults);
+            throw new RuntimeException("Perf regression tests failed: " + failedResults);
+        }
+    }
+
+    private static BenchmarkRunnerOptions parseOptions(String[] args) throws ParseException {
+        Options cliOptions = new Options();
+        cliOptions.addOption("o", "output", true,
+                                     "The path to write the benchmark results to.");
+        cliOptions.addOption("c", "check", false,
+                             "If specified, exit with error code 1 if the results are not within the baseline.");
+
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmdLine = parser.parse(cliOptions, args);
+
+        BenchmarkRunnerOptions options = new BenchmarkRunnerOptions()
+            .check(cmdLine.hasOption("c"));
+
+        if (cmdLine.hasOption("o")) {
+            options.outputPath(Paths.get(cmdLine.getOptionValue("o")));
+        }
+
+        return options;
+    }
+
+    private static void writeResults(BenchmarkProcessorOutput output, Path outputPath) {
+        List<SdkBenchmarkResult> results = output.getBenchmarkResults().values().stream().collect(Collectors.toList());
+        try (OutputStream os = Files.newOutputStream(outputPath)) {
+            OBJECT_MAPPER.writeValue(os, results);
+        } catch (IOException e) {
+            log.error(() -> "Failed to write the results to " + outputPath, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static class BenchmarkRunnerOptions {
+        private Path outputPath;
+        private boolean check;
+
+        public BenchmarkRunnerOptions outputPath(Path outputPath) {
+            this.outputPath = outputPath;
+            return this;
+        }
+
+        public BenchmarkRunnerOptions check(boolean check) {
+            this.check = check;
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "BenchmarkRunnerOptions{" +
+                   "outputPath=" + outputPath +
+                   ", check=" + check +
+                   '}';
         }
     }
 }

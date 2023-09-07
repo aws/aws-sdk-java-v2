@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -61,15 +62,18 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         logger.info(() -> "Benchmark config: " + config);
         Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
-        s3 = S3CrtAsyncClient.builder()
-                             .targetThroughputInGbps(config.targetThroughput())
-                             .minimumPartSizeInBytes(partSizeInMb)
-                             .initialReadBufferSizeInBytes(readBufferSizeInMb)
-                             .targetThroughputInGbps(config.targetThroughput() == null ?
-                                                     Double.valueOf(100.0) : config.targetThroughput())
-                             .build();
-        s3Sync = S3Client.builder()
-                         .build();
+        S3CrtAsyncClientBuilder builder = S3CrtAsyncClient.builder()
+                                                          .targetThroughputInGbps(config.targetThroughput())
+                                                          .minimumPartSizeInBytes(partSizeInMb)
+                                                          .initialReadBufferSizeInBytes(readBufferSizeInMb)
+                                                          .targetThroughputInGbps(config.targetThroughput() == null ?
+                                                                                  Double.valueOf(100.0) :
+                                                                                  config.targetThroughput());
+        if (config.maxConcurrency() != null) {
+            builder.maxConcurrency(config.maxConcurrency());
+        }
+        s3 = builder.build();
+        s3Sync = S3Client.builder().build();
         transferManager = S3TransferManager.builder()
                                            .s3Client(s3)
                                            .build();

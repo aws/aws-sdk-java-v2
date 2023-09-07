@@ -19,8 +19,10 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.ifNotExists;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -37,12 +39,12 @@ import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
- * This extension enables atomic counter attributes to be written to the database.
- * The extension is loaded by default when you instantiate a
- * {@link DynamoDbEnhancedClient} and only needs to be added to the client if you
- * are adding custom extensions to the client.
+ * This extension enables atomic counter attributes to be changed in DynamoDb by creating instructions for modifying
+ * an existing value or setting a start value. The extension is loaded by default when you instantiate a
+ * {@link DynamoDbEnhancedClient} and only needs to be added to the client if you are adding custom extensions to the client.
  * <p>
  * To utilize atomic counters, first create a field in your model that will be used to store the counter.
  * This class field should of type {@link Long} and you need to tag it as an atomic counter:
@@ -56,8 +58,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
  * <p>
  * Every time a new update of the record is successfully written to the database, the counter will be updated automatically.
  * By default, the counter starts at 0 and increments by 1 for each update. The tags provide the capability of adjusting
- * the counter start and increment/decrement values such as described in
- * {@link DynamoDbAtomicCounter}.
+ * the counter start and increment/decrement values such as described in {@link DynamoDbAtomicCounter}.
  * <p>
  * Example 1: Using a bean based table schema
  * <pre>
@@ -86,10 +87,18 @@ import software.amazon.awssdk.utils.CollectionUtils;
  * }
  * </pre>
  * <p>
- * <b>NOTE: </b>When using putItem, the counter will be reset to its start value.
+ * <b>NOTES: </b>
+ * <ul>
+ *     <li>When using putItem, the counter will be reset to its start value.</li>
+ *     <li>The extension will remove any existing occurrences of the atomic counter attributes from the record during an
+ *     <i>updateItem</i> operation. Manually editing attributes marked as atomic counters will have <b>NO EFFECT</b>.</li>
+ * </ul>
  */
 @SdkPublicApi
 public final class AtomicCounterExtension implements DynamoDbEnhancedClientExtension {
+
+    private static final Logger log = Logger.loggerFor(AtomicCounterExtension.class);
+
     private AtomicCounterExtension() {
     }
 
@@ -118,6 +127,7 @@ public final class AtomicCounterExtension implements DynamoDbEnhancedClientExten
                 break;
             case UPDATE_ITEM:
                 modificationBuilder.updateExpression(createUpdateExpression(counters));
+                modificationBuilder.transformedItem(filterFromItem(counters, context.items()));
                 break;
             default: break;
         }
@@ -133,6 +143,22 @@ public final class AtomicCounterExtension implements DynamoDbEnhancedClientExten
     private Map<String, AttributeValue> addToItem(Map<String, AtomicCounter> counters, Map<String, AttributeValue> items) {
         Map<String, AttributeValue> itemToTransform = new HashMap<>(items);
         counters.forEach((attribute, counter) -> itemToTransform.put(attribute, attributeValue(counter.startValue().value())));
+        return Collections.unmodifiableMap(itemToTransform);
+    }
+
+    private Map<String, AttributeValue> filterFromItem(Map<String, AtomicCounter> counters, Map<String, AttributeValue> items) {
+        Map<String, AttributeValue> itemToTransform = new HashMap<>(items);
+        List<String> removedAttributes = new ArrayList<>();
+        for (String attributeName : counters.keySet()) {
+            if (itemToTransform.containsKey(attributeName)) {
+                itemToTransform.remove(attributeName);
+                removedAttributes.add(attributeName);
+            }
+        }
+        if (!removedAttributes.isEmpty()) {
+            log.debug(() -> String.format("Filtered atomic counter attributes from existing update item to avoid collisions: %s",
+                                          String.join(",", removedAttributes)));
+        }
         return Collections.unmodifiableMap(itemToTransform);
     }
 

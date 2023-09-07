@@ -21,6 +21,7 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -39,6 +40,7 @@ public class ApiCallMetricCollectionStage<OutputT> implements RequestToResponseP
     @Override
     public Response<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
         MetricCollector metricCollector = context.executionContext().metricCollector();
+        MetricUtils.collectServiceEndpointMetrics(metricCollector, input);
 
         // Note: at this point, any exception, even a service exception, will
         // be thrown from the wrapped pipeline so we can't use
