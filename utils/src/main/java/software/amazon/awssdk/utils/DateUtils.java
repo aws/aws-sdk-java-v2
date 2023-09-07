@@ -200,6 +200,8 @@ public final class DateUtils {
         if (dateString == null) {
             return null;
         }
+
+        validateTimestampLength(dateString);
         BigDecimal dateValue = new BigDecimal(dateString);
         return Instant.ofEpochMilli(dateValue.scaleByPowerOfTen(MILLI_SECOND_PRECISION).longValue());
     }
@@ -224,5 +226,14 @@ public final class DateUtils {
         BigDecimal dateValue = BigDecimal.valueOf(instant.toEpochMilli());
         return dateValue.scaleByPowerOfTen(0 - MILLI_SECOND_PRECISION)
                         .toPlainString();
+    }
+
+    private static void validateTimestampLength(String timestamp) {
+        // Helps avoid BigDecimal parsing unnecessarily large numbers, since it's unbounded
+        // Long has a max value of 9,223,372,036,854,775,807, which is 19 digits. Assume that a valid timestamp is no
+        // no longer than 20 characters long (+1 for decimal)
+        if (timestamp.length() > 20) {
+            throw new RuntimeException("Input timestamp string must be no longer than 20 characters");
+        }
     }
 }

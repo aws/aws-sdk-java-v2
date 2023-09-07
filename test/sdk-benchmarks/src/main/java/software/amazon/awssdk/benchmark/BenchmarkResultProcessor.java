@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,6 +35,7 @@ import org.openjdk.jmh.util.Statistics;
 import software.amazon.awssdk.benchmark.stats.SdkBenchmarkParams;
 import software.amazon.awssdk.benchmark.stats.SdkBenchmarkResult;
 import software.amazon.awssdk.benchmark.stats.SdkBenchmarkStatistics;
+import software.amazon.awssdk.benchmark.utils.BenchmarkProcessorOutput;
 import software.amazon.awssdk.utils.Logger;
 
 
@@ -66,15 +68,18 @@ class BenchmarkResultProcessor {
      * Process benchmark results
      *
      * @param results the results of the benchmark
-     * @return the benchmark Id that failed the regression
+     * @return the benchmark results
      */
-    List<String> processBenchmarkResult(Collection<RunResult> results) {
-        List<SdkBenchmarkResult> currentData = new ArrayList<>();
+    BenchmarkProcessorOutput processBenchmarkResult(Collection<RunResult> results) {
+        Map<String, SdkBenchmarkResult> benchmarkResults = new HashMap<>();
+
         for (RunResult result : results) {
             String benchmarkId = getBenchmarkId(result.getParams());
+            SdkBenchmarkResult sdkBenchmarkData = constructSdkBenchmarkResult(result);
+
+            benchmarkResults.put(benchmarkId, sdkBenchmarkData);
 
             SdkBenchmarkResult baselineResult = baseline.get(benchmarkId);
-            SdkBenchmarkResult sdkBenchmarkData = constructSdkBenchmarkResult(result);
 
             if (baselineResult == null) {
                 log.warn(() -> {
@@ -90,15 +95,14 @@ class BenchmarkResultProcessor {
                 continue;
             }
 
-            currentData.add(sdkBenchmarkData);
-
             if (!validateBenchmarkResult(sdkBenchmarkData, baselineResult)) {
                 failedBenchmarkIds.add(benchmarkId);
             }
         }
 
-        log.info(() -> "Current result: " + serializeResult(currentData));
-        return failedBenchmarkIds;
+        BenchmarkProcessorOutput output = new BenchmarkProcessorOutput(benchmarkResults, failedBenchmarkIds);
+        log.info(() -> "Current result: " + serializeResult(output));
+        return output;
     }
 
     private SdkBenchmarkResult constructSdkBenchmarkResult(RunResult runResult) {
@@ -169,9 +173,9 @@ class BenchmarkResultProcessor {
         return current.getMode() == baseline.getMode();
     }
 
-    private String serializeResult(List<SdkBenchmarkResult> currentData) {
+    private String serializeResult(BenchmarkProcessorOutput processorOutput) {
         try {
-            return OBJECT_MAPPER.writeValueAsString(currentData);
+            return OBJECT_MAPPER.writeValueAsString(processorOutput);
         } catch (JsonProcessingException e) {
             log.error(() -> "Failed to serialize current result", e);
         }

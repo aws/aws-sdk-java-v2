@@ -1549,6 +1549,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteKeyPairRequest"},
+      "output":{"shape":"DeleteKeyPairResult"},
       "documentation":"<p>Deletes the specified key pair, by removing the public key from Amazon EC2.</p>"
     },
     "DeleteLaunchTemplate":{
@@ -16432,6 +16433,21 @@
         }
       }
     },
+    "DeleteKeyPairResult":{
+      "type":"structure",
+      "members":{
+        "Return":{
+          "shape":"Boolean",
+          "documentation":"<p>Is <code>true</code> if the request succeeds, and an error otherwise.</p>",
+          "locationName":"return"
+        },
+        "KeyPairId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the key pair.</p>",
+          "locationName":"keyPairId"
+        }
+      }
+    },
     "DeleteLaunchTemplateRequest":{
       "type":"structure",
       "members":{
@@ -30129,7 +30145,7 @@
           "locationName":"instanceId"
         },
         "PasswordData":{
-          "shape":"String",
+          "shape":"PasswordData",
           "documentation":"<p>The password of the instance. Returns an empty string if the password is not available.</p>",
           "locationName":"passwordData"
         },
@@ -35346,7 +35362,47 @@
         "m7i-flex.xlarge",
         "m7i-flex.2xlarge",
         "m7i-flex.4xlarge",
-        "m7i-flex.8xlarge"
+        "m7i-flex.8xlarge",
+        "m7a.medium",
+        "m7a.large",
+        "m7a.xlarge",
+        "m7a.2xlarge",
+        "m7a.4xlarge",
+        "m7a.8xlarge",
+        "m7a.12xlarge",
+        "m7a.16xlarge",
+        "m7a.24xlarge",
+        "m7a.32xlarge",
+        "m7a.48xlarge",
+        "m7a.metal-48xl",
+        "hpc7a.12xlarge",
+        "hpc7a.24xlarge",
+        "hpc7a.48xlarge",
+        "hpc7a.96xlarge",
+        "c7gd.medium",
+        "c7gd.large",
+        "c7gd.xlarge",
+        "c7gd.2xlarge",
+        "c7gd.4xlarge",
+        "c7gd.8xlarge",
+        "c7gd.12xlarge",
+        "c7gd.16xlarge",
+        "m7gd.medium",
+        "m7gd.large",
+        "m7gd.xlarge",
+        "m7gd.2xlarge",
+        "m7gd.4xlarge",
+        "m7gd.8xlarge",
+        "m7gd.12xlarge",
+        "m7gd.16xlarge",
+        "r7gd.medium",
+        "r7gd.large",
+        "r7gd.xlarge",
+        "r7gd.2xlarge",
+        "r7gd.4xlarge",
+        "r7gd.8xlarge",
+        "r7gd.12xlarge",
+        "r7gd.16xlarge"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -39256,7 +39312,8 @@
       "enum":[
         "region",
         "availability-zone",
-        "availability-zone-id"
+        "availability-zone-id",
+        "outpost"
       ]
     },
     "LogDestinationType":{
@@ -44065,6 +44122,10 @@
         "weekly",
         "monthly"
       ]
+    },
+    "PasswordData":{
+      "type":"string",
+      "sensitive":true
     },
     "PathComponent":{
       "type":"structure",
@@ -49406,12 +49467,20 @@
           "locationName":"uploadPolicy"
         },
         "UploadPolicySignature":{
-          "shape":"String",
+          "shape":"S3StorageUploadPolicySignature",
           "documentation":"<p>The signature of the JSON document.</p>",
           "locationName":"uploadPolicySignature"
         }
       },
       "documentation":"<p>Describes the storage parameters for Amazon S3 and Amazon S3 buckets for an instance store-backed AMI.</p>"
+    },
+    "S3StorageUploadPolicy":{
+      "type":"string",
+      "sensitive":true
+    },
+    "S3StorageUploadPolicySignature":{
+      "type":"string",
+      "sensitive":true
     },
     "SSEType":{
       "type":"string",

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -140,6 +141,23 @@ public class SdkPublishersTest {
             .isInstanceOf(ExecutionException.class)
             .hasCause(exception);
     }
+
+    @Test
+    public void addTrailingData_handlesCorrectly() {
+        FakeSdkPublisher<String> fakePublisher = new FakeSdkPublisher<>();
+
+        FakeStringSubscriber fakeSubscriber = new FakeStringSubscriber();
+        fakePublisher.addTrailingData(() -> Arrays.asList("two", "three"))
+                     .subscribe(fakeSubscriber);
+
+        fakePublisher.publish("one");
+        fakePublisher.complete();
+
+        assertThat(fakeSubscriber.recordedEvents()).containsExactly("one", "two", "three");
+        assertThat(fakeSubscriber.isComplete()).isTrue();
+        assertThat(fakeSubscriber.isError()).isFalse();
+    }
+
 
     private final static class FakeByteBufferSubscriber implements Subscriber<ByteBuffer> {
         private final List<String> recordedEvents = new ArrayList<>();

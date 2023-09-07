@@ -67,7 +67,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
  *     }
  *
  *     public void setId(String id) {
- *          this.name = id;
+ *          this.id = id;
  *     }
  *
  *     public Instant getCreatedOn() {
