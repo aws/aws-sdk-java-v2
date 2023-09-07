@@ -55,7 +55,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                                        PublisherListener<S3MetaRequestProgress> progressListener) {
         this.resultFuture = executeFuture;
         this.responseHandler = responseHandler;
-        this.progressListener =  S3CrtProgressListener.builder().delegateListener(progressListener).build();
+        this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
     }
 
     @Override
@@ -171,5 +171,8 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     @Override
     public void onProgress(S3MetaRequestProgress progress) {
         this.progressListener.subscriberOnNext(progress);
+    }
+
+    private static class NoOpPublisherListener implements PublisherListener<S3MetaRequestProgress> {
     }
 }

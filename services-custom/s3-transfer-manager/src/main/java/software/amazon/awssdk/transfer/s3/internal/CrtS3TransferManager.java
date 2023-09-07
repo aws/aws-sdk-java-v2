@@ -16,13 +16,13 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
+import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
+import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
-import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
-import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
-import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SOURCE_REQ_PATH;
 import static software.amazon.awssdk.transfer.s3.internal.GenericS3TransferManager.assertNotUnsupportedArn;
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.CrtContentLengthOnlyAsyncFileRequestBody;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -65,11 +66,11 @@ class CrtS3TransferManager extends DelegatingS3TransferManager {
         Validate.paramNotNull(uploadFileRequest, "uploadFileRequest");
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest, null);
+        Long fileContentLength = AsyncRequestBody.fromFile(uploadFileRequest.source()).contentLength().orElse(null);
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest, fileContentLength);
 
         Consumer<SdkHttpExecutionAttributes.Builder> attachObservable =
             b -> b.put(METAREQUEST_PAUSE_OBSERVABLE, observable)
-                  .put(SOURCE_REQ_PATH, uploadFileRequest.source())
                   .put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener());
 
         PutObjectRequest putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservable);
@@ -83,7 +84,7 @@ class CrtS3TransferManager extends DelegatingS3TransferManager {
             assertNotUnsupportedArn(putObjectRequest.bucket(), "upload");
 
             CompletableFuture<PutObjectResponse> crtFuture =
-                s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromFile(uploadFileRequest.source()));
+                s3AsyncClient.putObject(putObjectRequest, uploadFileRequest.source());
 
             // Forward upload cancellation to CRT future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);

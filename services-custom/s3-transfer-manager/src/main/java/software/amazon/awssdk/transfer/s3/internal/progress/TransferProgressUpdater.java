@@ -45,10 +45,10 @@ public class TransferProgressUpdater {
     private final CompletableFuture<Void> endOfStreamFuture;
 
     public TransferProgressUpdater(TransferObjectRequest request,
-                                   AsyncRequestBody requestBody) {
+                                   Long contentLength) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
         snapshotBuilder.transferredBytes(0L);
-        getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::totalBytes);
+        Optional.ofNullable(contentLength).ifPresent(snapshotBuilder::totalBytes);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
         progress = new DefaultTransferProgress(snapshot);
         context = TransferListenerContext.builder()
@@ -107,8 +107,7 @@ public class TransferProgressUpdater {
 
             @Override
             public void subscriberOnNext(S3MetaRequestProgress s3MetaRequestProgress) {
-                incrementBytesTransferred(Math.toIntExact(s3MetaRequestProgress.getBytesTransferred()),
-                                          s3MetaRequestProgress.getContentLength());
+                incrementBytesTransferred(Math.toIntExact(s3MetaRequestProgress.getBytesTransferred()));
             }
 
             @Override
@@ -169,13 +168,6 @@ public class TransferProgressUpdater {
     private void incrementBytesTransferred(int numBytes) {
         TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
             b.transferredBytes(b.getTransferredBytes() + numBytes);
-        });
-        listenerInvoker.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
-    }
-
-    private void incrementBytesTransferred(int numBytes, long totalBytes) {
-        TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
-            b.transferredBytes(b.getTransferredBytes() + numBytes).totalBytes(totalBytes);
         });
         listenerInvoker.bytesTransferred(context.copy(b -> b.progressSnapshot(snapshot)));
     }
