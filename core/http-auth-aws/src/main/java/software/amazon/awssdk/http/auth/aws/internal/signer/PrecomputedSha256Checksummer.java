@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
@@ -24,12 +24,11 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
 
 /**
- * An implementation of a checksummer that simply passes along a computed value as a checksum. Specifically, this is used in
- * the cases where the checksum is a pre-defined value that dictates specific behavior by the signer, and flexible checksums is
- * not enabled for the request (such as aws-chunked payload signing without trailers, unsigned streaming without trailers, etc.).
+ * An implementation of a checksummer that simply passes along a computed value as a checksum. Specifically, this is used in the
+ * cases where the checksum is a pre-defined value that dictates specific behavior by the signer, and flexible checksums is not
+ * enabled for the request (such as aws-chunked payload signing without trailers, unsigned streaming without trailers, etc.).
  */
 @SdkInternalApi
 public final class PrecomputedSha256Checksummer implements Checksummer {

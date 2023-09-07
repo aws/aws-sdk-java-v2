@@ -19,8 +19,6 @@ import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.auth.aws.signer.V4Context;
-import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
 
 /**
  * A default implementation of a payload signer that is a no-op, since payloads are most commonly unsigned.

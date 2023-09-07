@@ -44,6 +44,22 @@ public class Crc32Checksum implements SdkChecksum {
         }
     }
 
+    public static boolean isCrtAvailable() {
+        try {
+            ClassLoaderHelper.loadClass(CRT_CLASSPATH_FOR_CRC32, false);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static byte[] longToByte(Long input) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(input);
+        return buffer.array();
+    }
+
     @Override
     public byte[] getChecksumBytes() {
         return Arrays.copyOfRange(longToByte(crc32.getValue()), 4, 8);
@@ -71,7 +87,7 @@ public class Crc32Checksum implements SdkChecksum {
 
     @Override
     public void reset() {
-        if ((lastMarkedCrc32 == null)) {
+        if (lastMarkedCrc32 == null) {
             crc32.reset();
         } else {
             crc32 = cloneChecksum(lastMarkedCrc32);
@@ -88,21 +104,5 @@ public class Crc32Checksum implements SdkChecksum {
         }
 
         throw new IllegalStateException("Unsupported checksum");
-    }
-
-    public static boolean isCrtAvailable() {
-        try {
-            ClassLoaderHelper.loadClass(CRT_CLASSPATH_FOR_CRC32, false);
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static byte[] longToByte(Long input) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.putLong(input);
-        return buffer.array();
     }
 }

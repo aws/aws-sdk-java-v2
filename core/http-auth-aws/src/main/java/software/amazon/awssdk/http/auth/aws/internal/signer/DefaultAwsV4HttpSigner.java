@@ -15,14 +15,15 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.util.CredentialUtils.sanitizeCredentials;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_EVENTS_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.UNSIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.CredentialUtils.sanitizeCredentials;
+import static software.amazon.awssdk.http.auth.aws.internal.util.LoaderUtil.getEventStreamV4PayloadSigner;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_EVENTS_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_TRAILER;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -34,21 +35,13 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
-import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.signer.V4Context;
-import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
-import software.amazon.awssdk.http.auth.aws.signer.V4Properties;
-import software.amazon.awssdk.http.auth.aws.signer.V4RequestSigner;
-import software.amazon.awssdk.http.auth.aws.util.CredentialUtils;
+import software.amazon.awssdk.http.auth.aws.internal.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.utils.ClassLoaderHelper;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * An implementation of a {@link AwsV4HttpSigner} that uses properties to compose v4-signers in order to delegate signing of a
@@ -57,7 +50,6 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
-    private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
 
     private static V4Properties v4Properties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
@@ -65,10 +57,10 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
         String regionName = request.requireProperty(AwsV4HttpSigner.REGION_NAME);
-        String serviceSigningName = request.requireProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME);
+        String serviceSigningName = request.requireProperty(SERVICE_SIGNING_NAME);
         CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, signingInstant);
-        boolean doubleUrlEncode = request.requireProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
-        boolean normalizePath = request.requireProperty(AwsV4HttpSigner.NORMALIZE_PATH, true);
+        boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
+        boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
 
         return V4Properties.builder()
                            .credentials(credentials)
@@ -156,7 +148,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         if (isEventStreaming) {
             if (isPayloadSigning) {
-                return loadEventStreamSigner(
+                return getEventStreamV4PayloadSigner(
                     properties.getCredentials(),
                     properties.getCredentialScope(),
                     properties.getSigningClock()
@@ -241,32 +233,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static boolean isEventStreaming(SdkHttpRequest request) {
         return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
-    }
-
-    /**
-     * A class-loader for the event-stream signer, which throws exceptions if it can't load the class (it's likely not on the
-     * classpath, so it should be added), or if it can't instantiate the signer.
-     */
-    private static V4PayloadSigner loadEventStreamSigner(
-        AwsCredentialsIdentity credentials,
-        CredentialScope credentialScope,
-        Clock signingClock
-    ) {
-        String classPath = "software.amazon.awssdk.http.auth.aws.eventstream.signer.EventStreamV4PayloadSigner";
-        try {
-            Class<?> signerClass = ClassLoaderHelper.loadClass(classPath, false);
-            return (V4PayloadSigner) signerClass.getConstructor(
-                AwsCredentialsIdentity.class,
-                CredentialScope.class,
-                Clock.class
-            ).newInstance(credentials, credentialScope, signingClock);
-        } catch (ClassNotFoundException e) {
-            LOG.debug(() -> "Cannot find the " + classPath + " class: ", e);
-            throw new RuntimeException("Event-stream signer not found. You must add a dependency on the " +
-                                       "http-auth-aws-event-stream module to enable this functionality: ", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not instantiate the event-stream signer: ", e);
-        }
     }
 
     @Override

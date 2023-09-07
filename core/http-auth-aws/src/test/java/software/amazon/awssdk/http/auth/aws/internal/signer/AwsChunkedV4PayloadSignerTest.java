@@ -33,9 +33,6 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.signer.V4CanonicalRequest;
-import software.amazon.awssdk.http.auth.aws.signer.V4Context;
 
 /**
  * Test the delegation of signing to the correct implementations.

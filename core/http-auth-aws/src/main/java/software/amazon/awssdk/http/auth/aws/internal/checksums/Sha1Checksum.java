@@ -50,10 +50,10 @@ public class Sha1Checksum implements SdkChecksum {
     @Override
     public void reset() {
         digest = (digestLastMarked == null)
-                // This is necessary so that should there be a reset without a
-                // preceding mark, the Sha-1 would still be computed correctly.
-                ? getDigest()
-                : cloneFrom(digestLastMarked);
+                 // This is necessary so that should there be a reset without a
+                 // preceding mark, the Sha-1 would still be computed correctly.
+                 ? getDigest()
+                 : cloneFrom(digestLastMarked);
     }
 
     private MessageDigest getDigest() {

@@ -18,9 +18,9 @@ package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 import static java.util.Arrays.copyOf;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static software.amazon.awssdk.http.auth.aws.signer.V4CanonicalRequest.getCanonicalHeadersString;
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.deriveSigningKey;
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hash;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getCanonicalHeadersString;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.deriveSigningKey;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.hash;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
 import java.io.ByteArrayInputStream;
@@ -36,9 +36,9 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.internal.signer.RollingSigner;
-import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.util.SignerConstant;
+import software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.Pair;
 
@@ -269,9 +269,9 @@ public class ChunkedEncodedInputStreamTest {
                 StandardCharsets.UTF_8)
         );
         expected.write((
-            "x-amz-checksum-crc32c:wdBDMA==\r\n" +
-            "x-amz-trailer-signature:ce306fa4cdf73aa89071b78358f0d22ea79c43117314c8ed68017f7d6f91048e\r\n" +
-            "\r\n").getBytes(StandardCharsets.UTF_8)
+                           "x-amz-checksum-crc32c:wdBDMA==\r\n" +
+                           "x-amz-trailer-signature:ce306fa4cdf73aa89071b78358f0d22ea79c43117314c8ed68017f7d6f91048e\r\n" +
+                           "\r\n").getBytes(StandardCharsets.UTF_8)
         );
 
         assertEquals(expectedBytesRead, bytesRead);

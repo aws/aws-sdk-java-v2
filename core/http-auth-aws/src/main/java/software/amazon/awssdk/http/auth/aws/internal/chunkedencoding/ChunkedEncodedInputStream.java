@@ -30,11 +30,11 @@ import software.amazon.awssdk.utils.Validate;
 
 
 /**
- * An implementation of chunk-transfer encoding, but by wrapping an {@link InputStream}.
- * This implementation supports chunk-headers, chunk-extensions, and trailers.
+ * An implementation of chunk-transfer encoding, but by wrapping an {@link InputStream}. This implementation supports
+ * chunk-headers, chunk-extensions, and trailers.
  * <p>
- * Per <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1">RFC-7230</a>, a chunk-transfer encoded message
- * is defined as:
+ * Per <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1">RFC-7230</a>, a chunk-transfer encoded message is
+ * defined as:
  * <pre>
  *     chunked-body   = *chunk
  *                      last-chunk
@@ -71,6 +71,10 @@ public final class ChunkedEncodedInputStream extends InputStream {
         this.trailers.addAll(Validate.notNull(builder.trailers, "Trailers cannot be null!"));
     }
 
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
     @Override
     public int read() throws IOException {
         if (currentChunk == null || !currentChunk.hasRemaining() && !isFinished) {
@@ -105,8 +109,8 @@ public final class ChunkedEncodedInputStream extends InputStream {
     }
 
     /**
-     * Read from an input-stream, up to a max number of bytes, storing them in a byte-array.
-     * The actual number of bytes can be less than the max in the event that we reach the end of the stream.
+     * Read from an input-stream, up to a max number of bytes, storing them in a byte-array. The actual number of bytes can be
+     * less than the max in the event that we reach the end of the stream.
      * <p>
      * This method is necessary because we cannot assume the backing stream uses the default implementation of
      * {@code read(byte b[], int off, int len)}
@@ -126,8 +130,8 @@ public final class ChunkedEncodedInputStream extends InputStream {
     }
 
     /**
-     * Create a chunk from a byte-array, which includes the header, the extensions, and the chunk data.
-     * The input array should be correctly sized, i.e. the number of bytes should equal its length.
+     * Create a chunk from a byte-array, which includes the header, the extensions, and the chunk data. The input array should be
+     * correctly sized, i.e. the number of bytes should equal its length.
      */
     private Chunk getNextChunk(byte[] data) throws IOException {
         ByteArrayOutputStream chunkStream = new ByteArrayOutputStream();
@@ -195,10 +199,6 @@ public final class ChunkedEncodedInputStream extends InputStream {
         throw new UnsupportedOperationException();
     }
 
-    public static Builder builder() {
-        return new BuilderImpl();
-    }
-
     public interface Builder {
 
         /**
@@ -212,20 +212,18 @@ public final class ChunkedEncodedInputStream extends InputStream {
         Builder inputStream(InputStream inputStream);
 
         /**
-         * Set the size of chunks from input stream.
-         * The actual size (in bytes) of an encoded chunk depends on the configuration.
+         * Set the size of chunks from input stream. The actual size (in bytes) of an encoded chunk depends on the configuration.
          */
         Builder chunkSize(int chunkSize);
 
         /**
-         * Set the header to be used when creating an encoded chunk.
-         * This header will be the first part of an encoded chunk.
+         * Set the header to be used when creating an encoded chunk. This header will be the first part of an encoded chunk.
          */
         Builder header(ChunkHeaderProvider header);
 
         /**
-         * Set the chunk-extensions to be used when creating an encoded chunk.
-         * These extensions will immediately follow the header.
+         * Set the chunk-extensions to be used when creating an encoded chunk. These extensions will immediately follow the
+         * header.
          */
         Builder extensions(List<ChunkExtensionProvider> extensions);
 
@@ -240,8 +238,8 @@ public final class ChunkedEncodedInputStream extends InputStream {
         List<TrailerProvider> trailers();
 
         /**
-         * Set the trailers to be used when creating the final chunk.
-         * These trailers will immediately follow the final encoded chunk.
+         * Set the trailers to be used when creating the final chunk. These trailers will immediately follow the final encoded
+         * chunk.
          */
         Builder trailers(List<TrailerProvider> trailers);
 
@@ -254,11 +252,11 @@ public final class ChunkedEncodedInputStream extends InputStream {
     }
 
     private static class BuilderImpl implements Builder {
+        private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
+        private final List<TrailerProvider> trailers = new ArrayList<>();
         private InputStream inputStream;
         private int chunkSize;
         private ChunkHeaderProvider header = chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8);
-        private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
-        private final List<TrailerProvider> trailers = new ArrayList<>();
 
         @Override
         public InputStream inputStream() {
