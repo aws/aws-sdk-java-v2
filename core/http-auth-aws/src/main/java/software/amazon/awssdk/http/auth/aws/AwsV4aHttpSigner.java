@@ -37,13 +37,6 @@ public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner, HttpSigner<AwsC
     SignerProperty<String> REGION_NAME = SignerProperty.create(String.class, "SigningScope");
 
     /**
-     * Whether to indicate that a payload is chunk-encoded or not. This property defaults to false. This can be set true to
-     * enable the `aws-chunk` content-encoding
-     */
-    SignerProperty<Boolean> CHUNK_ENCODING_ENABLED =
-        SignerProperty.create(Boolean.class, "ChunkEncodingEnabled");
-
-    /**
      * Get a default implementation of a {@link AwsV4aHttpSigner}
      */
     static AwsV4aHttpSigner create() {

@@ -87,14 +87,14 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
 
         if (isChunkEncoding) {
-            return new AwsChunkedV4aPayloadSigner(v4aProperties.getCredentialScope(), DEFAULT_CHUNK_SIZE_IN_BYTES);
+            return AwsChunkedV4aPayloadSigner.builder()
+                                            .credentialScope(v4aProperties.getCredentialScope())
+                                            .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
+                                            .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
+                                            .build();
         }
 
         return V4aPayloadSigner.create();
-    }
-
-    private static boolean hasTrailer(SdkHttpRequest request) {
-        return request.firstMatchingHeader(X_AMZ_TRAILER).isPresent();
     }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
@@ -116,7 +116,8 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         Duration expirationDuration = request.property(EXPIRATION_DURATION);
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
-        boolean isTrailing = hasTrailer(request.request());
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
 
         AwsSigningConfig signingConfig = new AwsSigningConfig();
         signingConfig.setCredentials(toCredentials(v4aProperties.getCredentials()));
@@ -148,9 +149,9 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         }
 
         if (isPayloadSigning) {
-            configurePayloadSigning(signingConfig, isChunkEncoding, isTrailing);
+            configurePayloadSigning(signingConfig, isChunkEncoding, isTrailing || isFlexible);
         } else {
-            configureUnsignedPayload(signingConfig, isChunkEncoding, isTrailing);
+            configureUnsignedPayload(signingConfig, isChunkEncoding, isTrailing || isFlexible);
         }
 
         return signingConfig;

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.aws;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
@@ -35,12 +34,6 @@ public interface AwsV4HttpSigner extends AwsV4FamilyHttpSigner, HttpSigner<AwsCr
      */
     SignerProperty<String> REGION_NAME =
         SignerProperty.create(String.class, "RegionName");
-
-    /**
-     * The algorithm to use for calculating a "flexible" checksum. This property is optional.
-     */
-    SignerProperty<ChecksumAlgorithm> CHECKSUM_ALGORITHM =
-        SignerProperty.create(ChecksumAlgorithm.class, "ChecksumAlgorithm");
 
     /**
      * Get a default implementation of a {@link AwsV4HttpSigner}
