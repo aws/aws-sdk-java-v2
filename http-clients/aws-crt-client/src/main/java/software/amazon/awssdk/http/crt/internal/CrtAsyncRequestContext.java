@@ -21,13 +21,13 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
-public final class CrtRequestContext {
+public final class CrtAsyncRequestContext {
     private final AsyncExecuteRequest request;
     private final long readBufferSize;
     private final HttpClientConnectionManager crtConnPool;
     private final MetricCollector metricCollector;
 
-    private CrtRequestContext(Builder builder) {
+    private CrtAsyncRequestContext(Builder builder) {
         this.request = builder.request;
         this.readBufferSize = builder.readBufferSize;
         this.crtConnPool = builder.crtConnPool;
@@ -77,8 +77,8 @@ public final class CrtRequestContext {
             return this;
         }
 
-        public CrtRequestContext build() {
-            return new CrtRequestContext(this);
+        public CrtAsyncRequestContext build() {
+            return new CrtAsyncRequestContext(this);
         }
     }
 }

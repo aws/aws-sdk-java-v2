@@ -69,12 +69,12 @@ public class CrtRequestExecutorTest {
     @Test
     public void acquireConnectionThrowException_shouldInvokeOnError() {
         RuntimeException exception = new RuntimeException("error");
-        CrtRequestContext context = CrtRequestContext.builder()
-                                                     .crtConnPool(connectionManager)
-                                                     .request(AsyncExecuteRequest.builder()
+        CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
+                                                               .crtConnPool(connectionManager)
+                                                               .request(AsyncExecuteRequest.builder()
                                                                                  .responseHandler(responseHandler)
                                                                                  .build())
-                                                     .build();
+                                                               .build();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
@@ -94,7 +94,7 @@ public class CrtRequestExecutorTest {
     @Test
     public void makeRequestThrowException_shouldInvokeOnError() {
         CrtRuntimeException exception = new CrtRuntimeException("");
-        CrtRequestContext context = crtRequestContext();
+        CrtAsyncRequestContext context = crtRequestContext();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
@@ -116,7 +116,7 @@ public class CrtRequestExecutorTest {
 
     @Test
     public void makeRequest_success() {
-        CrtRequestContext context = crtRequestContext();
+        CrtAsyncRequestContext context = crtRequestContext();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
         completableFuture.complete(httpClientConnection);
@@ -127,12 +127,12 @@ public class CrtRequestExecutorTest {
 
     @Test
     public void cancelRequest_shouldInvokeOnError() {
-        CrtRequestContext context = CrtRequestContext.builder()
-                                                     .crtConnPool(connectionManager)
-                                                     .request(AsyncExecuteRequest.builder()
+        CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
+                                                               .crtConnPool(connectionManager)
+                                                               .request(AsyncExecuteRequest.builder()
                                                                                  .responseHandler(responseHandler)
                                                                                  .build())
-                                                     .build();
+                                                               .build();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
@@ -150,7 +150,7 @@ public class CrtRequestExecutorTest {
 
     @Test
     public void execute_AcquireConnectionFailure_shouldAlwaysWrapIOException() {
-        CrtRequestContext context = crtRequestContext();
+        CrtAsyncRequestContext context = crtRequestContext();
         RuntimeException exception = new RuntimeException("some failure");
         CompletableFuture<HttpClientConnection> completableFuture = CompletableFutureUtils.failedFuture(exception);
 
@@ -163,7 +163,7 @@ public class CrtRequestExecutorTest {
     @Test
     public void executeRequest_failedOfIllegalStateException_shouldWrapIOException() {
         IllegalStateException exception = new IllegalStateException("connection closed");
-        CrtRequestContext context = crtRequestContext();
+        CrtAsyncRequestContext context = crtRequestContext();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
@@ -185,7 +185,7 @@ public class CrtRequestExecutorTest {
     @Test
     public void executeRequest_failedOfRetryableHttpException_shouldWrapIOException() {
         HttpException exception = new HttpException(0x080a); // AWS_ERROR_HTTP_CONNECTION_CLOSED
-        CrtRequestContext context = crtRequestContext();
+        CrtAsyncRequestContext context = crtRequestContext();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
@@ -208,7 +208,7 @@ public class CrtRequestExecutorTest {
     @Test
     public void executeRequest_failedOfNonRetryableHttpException_shouldNotWrapIOException() {
         HttpException exception = new HttpException(0x0801); // AWS_ERROR_HTTP_HEADER_NOT_FOUND
-        CrtRequestContext context = crtRequestContext();
+        CrtAsyncRequestContext context = crtRequestContext();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
@@ -227,17 +227,17 @@ public class CrtRequestExecutorTest {
         assertThatThrownBy(executeFuture::join).hasCause(exception);
     }
 
-    private CrtRequestContext crtRequestContext() {
+    private CrtAsyncRequestContext crtRequestContext() {
         SdkHttpFullRequest request = createRequest(URI.create("http://localhost"));
-        return CrtRequestContext.builder()
-                                .readBufferSize(2000)
-                                .crtConnPool(connectionManager)
-                                .request(AsyncExecuteRequest.builder()
+        return CrtAsyncRequestContext.builder()
+                                     .readBufferSize(2000)
+                                     .crtConnPool(connectionManager)
+                                     .request(AsyncExecuteRequest.builder()
                                                             .request(request)
                                                             .requestContentPublisher(createProvider(""))
                                                             .responseHandler(responseHandler)
                                                             .build())
-                                .build();
+                                     .build();
     }
 
 }
