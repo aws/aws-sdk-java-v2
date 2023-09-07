@@ -20,7 +20,6 @@ import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -47,8 +46,10 @@ import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.services.acm.AcmClient;
+import software.amazon.awssdk.services.acm.model.ListCertificatesRequest;
 import software.amazon.awssdk.services.codecatalyst.CodeCatalystClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
@@ -105,6 +106,8 @@ class SraIdentityAuthTest {
         AcmClient sraClient =
             AcmClient.builder()
                      .authSchemeProvider(p -> singletonList(noAuth))
+                     // TODO: review: This is not needed because NoAuthAuthScheme is configured on client by default.
+                     // .putAuthScheme(NoAuthAuthScheme.create())
                      .build();
 
         sraClient.listCertificates();
@@ -182,12 +185,12 @@ class SraIdentityAuthTest {
         AcmClient sraClient =
             AcmClient.builder()
                      .putAuthScheme(new MyV4AuthSchemeWithCustomSigner())
-                     .putAuthScheme(new AwsV4AuthScheme() {
-                         @Override
-                         public AwsV4HttpSigner signer() {
-                             return new MyCustomSigV4NewHttpSigner();
-                         }
-                     })
+                     // .putAuthScheme(new AwsV4AuthScheme() {
+                     //     @Override
+                     //     public AwsV4HttpSigner signer() {
+                     //         return new MyCustomSigV4NewHttpSigner();
+                     //     }
+                     // })
                      .build();
 
         sraClient.listCertificates();
@@ -269,6 +272,28 @@ class SraIdentityAuthTest {
                     return authSchemeOption;
                 })
                 .collect(Collectors.toList());
+        }
+    }
+
+    // Covered in Identity surface area review - https://quip-amazon.com/hkexAI3EY2JY
+    @Test
+    void requestOverrideIdentityProvider() {
+        AcmClient sraClient = AcmClient.create();
+        sraClient.listCertificates(ListCertificatesRequest.builder()
+                                                          .overrideConfiguration(
+                                                              r -> r.credentialsProvider(new MyOdinIdentityProvider()))
+                                                          .build());
+    }
+
+    private class MyOdinIdentityProvider implements IdentityProvider<AwsCredentialsIdentity> {
+        @Override
+        public Class<AwsCredentialsIdentity> identityType() {
+            return null;
+        }
+
+        @Override
+        public CompletableFuture<? extends AwsCredentialsIdentity> resolveIdentity(ResolveIdentityRequest request) {
+            return null;
         }
     }
 }
