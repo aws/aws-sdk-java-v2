@@ -83,10 +83,14 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
     }
 
     @Override
-    public void close() {
-        attributes.values().forEach(v -> IoUtils.closeIfCloseable(v, null));
-        attributes.values().forEach(this::shutdownIfExecutorService);
-    }
+    public void close() { 
+     attributes.values().stream()
+             .filter(value -> !(value instanceof ExecutorService))
+             .forEach(v -> IoUtils.closeIfCloseable(v, null)); 
+     attributes.values().stream()
+             .filter(value -> value instanceof ExecutorService)
+             .forEach(this::shutdownIfExecutorService); 
+}
 
     private void shutdownIfExecutorService(Object object) {
         if (object instanceof ExecutorService) {
