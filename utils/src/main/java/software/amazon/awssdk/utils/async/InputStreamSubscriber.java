@@ -105,6 +105,7 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
         if (len == 0) {
             return 0;
         }
+
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes, off, len);
         TransferResult transferResult = delegate.blockingTransferTo(byteBuffer);
         int dataTransferred = byteBuffer.position() - off;
