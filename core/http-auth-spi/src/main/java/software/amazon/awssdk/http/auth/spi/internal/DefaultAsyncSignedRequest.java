@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public final class DefaultAsyncSignedRequest
-    extends DefaultSignedRequest<Publisher<ByteBuffer>> implements AsyncSignedRequest {
+    extends DefaultBaseSignedRequest<Publisher<ByteBuffer>> implements AsyncSignedRequest {
 
     private DefaultAsyncSignedRequest(BuilderImpl builder) {
         super(builder);
@@ -38,7 +38,7 @@ public final class DefaultAsyncSignedRequest
 
     @SdkInternalApi
     public static final class BuilderImpl
-        extends DefaultSignedRequest.BuilderImpl<AsyncSignedRequest.Builder, Publisher<ByteBuffer>>
+        extends DefaultBaseSignedRequest.BuilderImpl<AsyncSignedRequest.Builder, Publisher<ByteBuffer>>
         implements AsyncSignedRequest.Builder {
 
         @Override

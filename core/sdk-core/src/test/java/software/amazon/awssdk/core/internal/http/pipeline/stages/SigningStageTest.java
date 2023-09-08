@@ -54,8 +54,8 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import utils.ValidSdkObjects;
@@ -79,7 +79,7 @@ public class SigningStageTest {
     MetricCollector metricCollector;
 
     @Captor
-    private ArgumentCaptor<SyncSignRequest<? extends Identity>> signRequestCaptor;
+    private ArgumentCaptor<SignRequest<? extends Identity>> signRequestCaptor;
 
     private HttpClientDependencies httpClientDependencies;
     private SigningStage stage;
@@ -108,10 +108,10 @@ public class SigningStageTest {
         RequestExecutionContext context = createContext(selectedAuthScheme, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
-            .thenReturn(SyncSignedRequest.builder()
-                                         .request(signedRequest)
-                                         .build());
+        when(signer.sign(Mockito.<SignRequest<? extends Identity>>any()))
+            .thenReturn(SignedRequest.builder()
+                                     .request(signedRequest)
+                                     .build());
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context);
@@ -122,7 +122,7 @@ public class SigningStageTest {
 
         // assert that the input to the signer is as expected, including that signer properties are set
         verify(signer).sign(signRequestCaptor.capture());
-        SyncSignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
+        SignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
@@ -152,10 +152,10 @@ public class SigningStageTest {
         httpClientDependencies.updateTimeOffset(TEST_TIME_OFFSET);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
-            .thenReturn(SyncSignedRequest.builder()
-                                         .request(signedRequest)
-                                         .build());
+        when(signer.sign(Mockito.<SignRequest<? extends Identity>>any()))
+            .thenReturn(SignedRequest.builder()
+                                     .request(signedRequest)
+                                     .build());
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context);
@@ -166,7 +166,7 @@ public class SigningStageTest {
 
         // Assert that the input to the signer is as expected, including that signer properties are set
         verify(signer).sign(signRequestCaptor.capture());
-        SyncSignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
+        SignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
@@ -195,10 +195,10 @@ public class SigningStageTest {
         RequestExecutionContext context = createContext(selectedAuthScheme, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
-            .thenReturn(SyncSignedRequest.builder()
-                                         .request(signedRequest)
-                                         .build());
+        when(signer.sign(Mockito.<SignRequest<? extends Identity>>any()))
+            .thenReturn(SignedRequest.builder()
+                                     .request(signedRequest)
+                                     .build());
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context);
@@ -209,7 +209,7 @@ public class SigningStageTest {
 
         // assert that the input to the signer is as expected, including that signer properties are set
         verify(signer).sign(signRequestCaptor.capture());
-        SyncSignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
+        SignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isNull();

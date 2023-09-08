@@ -45,9 +45,9 @@ import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.http.auth.spi.BaseSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -480,10 +480,10 @@ public class EndpointInterceptorTests {
     }
 
     public static class CapturingSigner implements HttpSigner<AwsCredentialsIdentity> {
-        private SignRequest<?, ?> request;
+        private BaseSignRequest<?, ?> request;
 
         @Override
-        public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+        public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
             this.request = request;
             throw new CaptureCompletedException("stop");
         }

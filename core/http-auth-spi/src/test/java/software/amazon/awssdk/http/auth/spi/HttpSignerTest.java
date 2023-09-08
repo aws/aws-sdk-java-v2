@@ -36,20 +36,20 @@ public class HttpSignerTest {
 
     @Test
     public void sign_usingConsumerBuilder_works() {
-        SyncSignedRequest signedRequest = signer.sign(r -> r.request(mock(SdkHttpRequest.class))
-                                                                .identity(IDENTITY)
-                                                                .putProperty(KEY, VALUE));
+        SignedRequest signedRequest = signer.sign(r -> r.request(mock(SdkHttpRequest.class))
+                                                        .identity(IDENTITY)
+                                                        .putProperty(KEY, VALUE));
         assertNotNull(signedRequest);
     }
 
     @Test
     public void sign_usingRequest_works() {
-        SyncSignedRequest signedRequest =
-            signer.sign(SyncSignRequest.builder(IDENTITY)
-                                           .request(mock(SdkHttpRequest.class))
-                                           .identity(IDENTITY) // Note, this is doable
-                                           .putProperty(KEY, VALUE)
-                                           .build());
+        SignedRequest signedRequest =
+            signer.sign(SignRequest.builder(IDENTITY)
+                                   .request(mock(SdkHttpRequest.class))
+                                   .identity(IDENTITY) // Note, this is doable
+                                   .putProperty(KEY, VALUE)
+                                   .build());
         assertNotNull(signedRequest);
     }
 
@@ -86,14 +86,14 @@ public class HttpSignerTest {
      */
     private static class TestSigner implements HttpSigner<TokenIdentity> {
         @Override
-        public SyncSignedRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
+        public SignedRequest sign(SignRequest<? extends TokenIdentity> request) {
             assertEquals(VALUE, request.property(KEY));
             assertEquals(IDENTITY, request.identity());
 
-            return SyncSignedRequest.builder()
-                                        .request(addTokenHeader(request))
-                                        .payload(request.payload().orElse(null))
-                                        .build();
+            return SignedRequest.builder()
+                                .request(addTokenHeader(request))
+                                .payload(request.payload().orElse(null))
+                                .build();
         }
 
         @Override
@@ -109,7 +109,7 @@ public class HttpSignerTest {
             );
         }
 
-        private SdkHttpRequest addTokenHeader(SignRequest<?, ? extends TokenIdentity> input) {
+        private SdkHttpRequest addTokenHeader(BaseSignRequest<?, ? extends TokenIdentity> input) {
             // return input.request().copy(b -> b.putHeader("Token-Header", input.identity().token()));
             return input.request();
         }

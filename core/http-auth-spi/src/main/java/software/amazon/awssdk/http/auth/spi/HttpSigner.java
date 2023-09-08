@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 
 /**
@@ -45,20 +45,20 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @param request The inputs to sign a request.
      * @return A signed version of the request.
      */
-    SyncSignedRequest sign(SyncSignRequest<? extends IdentityT> request);
+    SignedRequest sign(SignRequest<? extends IdentityT> request);
 
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
      * <p>
-     * Similar to {@link #sign(SyncSignRequest)}, but takes a lambda to configure a new {@link SyncSignRequest.Builder}.
-     * This removes the need to call {@link SyncSignRequest#builder(IdentityT)}} and
-     * {@link SyncSignRequest.Builder#build()}.
+     * Similar to {@link #sign(SignRequest)}, but takes a lambda to configure a new {@link SignRequest.Builder}.
+     * This removes the need to call {@link SignRequest#builder(IdentityT)}} and
+     * {@link SignRequest.Builder#build()}.
      *
-     * @param consumer A {@link Consumer} to which an empty {@link SyncSignRequest.Builder} will be given.
+     * @param consumer A {@link Consumer} to which an empty {@link SignRequest.Builder} will be given.
      * @return A signed version of the request.
      */
-    default SyncSignedRequest sign(Consumer<SyncSignRequest.Builder<IdentityT>> consumer) {
-        return sign(DefaultSyncSignRequest.<IdentityT>builder().applyMutation(consumer).build());
+    default SignedRequest sign(Consumer<SignRequest.Builder<IdentityT>> consumer) {
+        return sign(DefaultSignRequest.<IdentityT>builder().applyMutation(consumer).build());
     }
 
     /**
@@ -78,7 +78,7 @@ public interface HttpSigner<IdentityT extends Identity> {
      * {@link AsyncSignRequest.Builder}. This removes the need to call {@link AsyncSignRequest#builder(IdentityT)}} and
      * {@link AsyncSignRequest.Builder#build()}.
      *
-     * @param consumer A {@link Consumer} to which an empty {@link SignRequest.Builder} will be given.
+     * @param consumer A {@link Consumer} to which an empty {@link BaseSignRequest.Builder} will be given.
      * @return A future containing the signed version of the request.
      */
     default CompletableFuture<AsyncSignedRequest> signAsync(Consumer<AsyncSignRequest.Builder<IdentityT>> consumer) {

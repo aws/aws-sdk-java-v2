@@ -26,8 +26,8 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -143,7 +143,7 @@ public final class S3SignerExecutionAttribute extends SdkExecutionAttribute {
 
     private static class UnsetHttpSigner implements HttpSigner<UnsetIdentity> {
         @Override
-        public SyncSignedRequest sign(SyncSignRequest<? extends UnsetIdentity> request) {
+        public SignedRequest sign(SignRequest<? extends UnsetIdentity> request) {
             throw new IllegalStateException("A signer was not configured.");
         }
 

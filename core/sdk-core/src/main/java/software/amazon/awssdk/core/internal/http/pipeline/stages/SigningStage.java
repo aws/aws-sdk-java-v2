@@ -38,8 +38,8 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -94,7 +94,7 @@ public class SigningStage implements RequestToRequestPipeline {
     private <T extends Identity> SdkHttpFullRequest doSraSign(SdkHttpFullRequest request,
                                                               SelectedAuthScheme<T> selectedAuthScheme,
                                                               T identity) {
-        SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+        SignRequest.Builder<T> signRequestBuilder = SignRequest
             .builder(identity)
             .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
             .request(request)
@@ -103,11 +103,11 @@ public class SigningStage implements RequestToRequestPipeline {
         authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
         HttpSigner<T> signer = selectedAuthScheme.signer();
-        SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+        SignedRequest signedRequest = signer.sign(signRequestBuilder.build());
         return toSdkHttpFullRequest(signedRequest);
     }
 
-    private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
+    private SdkHttpFullRequest toSdkHttpFullRequest(SignedRequest signedRequest) {
         SdkHttpRequest request = signedRequest.request();
         if (request instanceof SdkHttpFullRequest) {
             return (SdkHttpFullRequest) request;

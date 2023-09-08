@@ -33,7 +33,7 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 public final class TestUtils {
@@ -45,13 +45,13 @@ public final class TestUtils {
     }
 
     // Helpers for generating test requests
-    public static <T extends AwsCredentialsIdentity> SyncSignRequest<T> generateBasicRequest(
+    public static <T extends AwsCredentialsIdentity> SignRequest<T> generateBasicRequest(
         T credentials,
         Consumer<? super SdkHttpRequest.Builder> requestOverrides,
-        Consumer<? super SyncSignRequest.Builder<T>> signRequestOverrides
+        Consumer<? super SignRequest.Builder<T>> signRequestOverrides
     ) {
-        return SyncSignRequest.builder(credentials)
-                              .request(SdkHttpRequest.builder()
+        return SignRequest.builder(credentials)
+                          .request(SdkHttpRequest.builder()
                                                      .method(SdkHttpMethod.POST)
                                                      .putHeader("x-amz-archive-description", "test  test")
                                                      .putHeader("Host", "demo.us-east-1.amazonaws.com")
@@ -59,12 +59,12 @@ public final class TestUtils {
                                                      .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
                                                      .build()
                                                      .copy(requestOverrides))
-                              .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-                              .putProperty(REGION_NAME, "aws-global")
-                              .putProperty(SERVICE_SIGNING_NAME, "demo")
-                              .putProperty(SIGNING_CLOCK, new TickingClock(Instant.ofEpochMilli(1596476903000L)))
-                              .build()
-                              .copy(signRequestOverrides);
+                          .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                          .putProperty(REGION_NAME, "aws-global")
+                          .putProperty(SERVICE_SIGNING_NAME, "demo")
+                          .putProperty(SIGNING_CLOCK, new TickingClock(Instant.ofEpochMilli(1596476903000L)))
+                          .build()
+                          .copy(signRequestOverrides);
     }
 
     public static AwsSigningConfig generateBasicSigningConfig(AwsCredentialsIdentity credentials) {

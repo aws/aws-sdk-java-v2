@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public final class DefaultAsyncSignRequest<IdentityT extends Identity>
-    extends DefaultSignRequest<Publisher<ByteBuffer>, IdentityT> implements AsyncSignRequest<IdentityT> {
+    extends DefaultBaseSignRequest<Publisher<ByteBuffer>, IdentityT> implements AsyncSignRequest<IdentityT> {
 
     private DefaultAsyncSignRequest(BuilderImpl<IdentityT> builder) {
         super(builder);
@@ -54,7 +54,7 @@ public final class DefaultAsyncSignRequest<IdentityT extends Identity>
 
     @SdkInternalApi
     public static final class BuilderImpl<IdentityT extends Identity>
-        extends DefaultSignRequest.BuilderImpl<AsyncSignRequest.Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>
+        extends DefaultBaseSignRequest.BuilderImpl<AsyncSignRequest.Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>
         implements AsyncSignRequest.Builder<IdentityT> {
 
         // Used to enable consumer builder pattern in HttpSigner.signAsync()

@@ -24,8 +24,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
@@ -37,18 +37,18 @@ class BearerHttpSignerTest {
         return BEARER_AUTH_MARKER + token;
     }
 
-    private static SyncSignRequest<? extends TokenIdentity> generateBasicRequest(String token) {
+    private static SignRequest<? extends TokenIdentity> generateBasicRequest(String token) {
 
-        return SyncSignRequest.builder(TokenIdentity.create(token))
-                              .request(SdkHttpRequest.builder()
+        return SignRequest.builder(TokenIdentity.create(token))
+                          .request(SdkHttpRequest.builder()
                                                      .method(SdkHttpMethod.POST)
                                                      .putHeader("Host", "demo.us-east-1.amazonaws.com")
                                                      .putHeader("x-amz-archive-description", "test  test")
                                                      .encodedPath("/")
                                                      .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
                                                      .build())
-                              .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-                              .build();
+                          .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                          .build();
     }
 
     private static AsyncSignRequest<? extends TokenIdentity> generateBasicAsyncRequest(String token) {
@@ -70,7 +70,7 @@ class BearerHttpSignerTest {
         String tokenValue = "mF_9.B5f-4.1JqM";
 
         BearerHttpSigner tokenSigner = BearerHttpSigner.create();
-        SyncSignedRequest signedRequest = tokenSigner.sign(generateBasicRequest(tokenValue));
+        SignedRequest signedRequest = tokenSigner.sign(generateBasicRequest(tokenValue));
 
 
         String expectedHeader = createExpectedHeader(tokenValue);

@@ -21,9 +21,9 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.BearerHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.BaseSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
@@ -33,11 +33,11 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 public final class DefaultBearerHttpSigner implements BearerHttpSigner {
 
     @Override
-    public SyncSignedRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
-        return SyncSignedRequest.builder()
-                                .request(doSign(request))
-                                .payload(request.payload().orElse(null))
-                                .build();
+    public SignedRequest sign(SignRequest<? extends TokenIdentity> request) {
+        return SignedRequest.builder()
+                            .request(doSign(request))
+                            .payload(request.payload().orElse(null))
+                            .build();
     }
 
     @Override
@@ -51,9 +51,9 @@ public final class DefaultBearerHttpSigner implements BearerHttpSigner {
     }
 
     /**
-     * Using {@link SignRequest}, sign the request with a {@link SignRequest} and re-build it.
+     * Using {@link BaseSignRequest}, sign the request with a {@link BaseSignRequest} and re-build it.
      */
-    private SdkHttpRequest doSign(SignRequest<?, ? extends TokenIdentity> request) {
+    private SdkHttpRequest doSign(BaseSignRequest<?, ? extends TokenIdentity> request) {
         return request.request().toBuilder()
                       .putHeader(
                           "Authorization",

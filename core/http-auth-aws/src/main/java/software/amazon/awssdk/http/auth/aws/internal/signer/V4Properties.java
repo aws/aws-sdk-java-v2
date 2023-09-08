@@ -18,7 +18,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 import java.time.Clock;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.BaseSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.Validate;
@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * A class which contains "properties" relevant to SigV4. These properties can be derived {@link SignerProperty}'s on a
- * {@link SignRequest}.
+ * {@link BaseSignRequest}.
  */
 @SdkInternalApi
 @Immutable
