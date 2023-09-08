@@ -107,7 +107,7 @@ public class TransferProgressUpdater {
 
             @Override
             public void subscriberOnNext(S3MetaRequestProgress s3MetaRequestProgress) {
-                incrementBytesTransferred(Math.toIntExact(s3MetaRequestProgress.getBytesTransferred()));
+                incrementBytesTransferred(s3MetaRequestProgress.getBytesTransferred());
             }
 
             @Override
@@ -165,7 +165,7 @@ public class TransferProgressUpdater {
         progress.updateAndGet(b -> b.transferredBytes(0L));
     }
 
-    private void incrementBytesTransferred(int numBytes) {
+    private void incrementBytesTransferred(long numBytes) {
         TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
             b.transferredBytes(b.getTransferredBytes() + numBytes);
         });
