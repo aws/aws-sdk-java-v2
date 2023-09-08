@@ -22,7 +22,6 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.transfer.s3.internal.GenericS3TransferManager.assertNotUnsupportedArn;
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -31,7 +30,6 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.crt.CrtContentLengthOnlyAsyncFileRequestBody;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;

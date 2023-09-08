@@ -26,21 +26,23 @@ phases:
     - MINOR=$(echo $RELEASE_VERSION | cut -d'.' -f2)
     - POINT=$(echo $RELEASE_VERSION | cut -d'.' -f3)
     - NEW_VERSION_SNAPSHOT="$MAJOR.$MINOR.$((POINT + 1))-SNAPSHOT"
-    - echo "New shapshot version - $NEW_VERSION_SNAPSHOT"
+    - echo "New snapshot version - $NEW_VERSION_SNAPSHOT"
     -
     - git checkout master
     - git merge public/release --no-edit
     -
     - MASTER_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
     - echo "Master version - $MASTER_VERSION"
+    -
     - |
       if [ "$MASTER_VERSION" != "$NEW_VERSION_SNAPSHOT" ]; then
 
-        mvn versions:set -DnewVersion=$NEW_VERSION_SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
+        mvn versions:set -DnewVersion=$NEW_VERSION_SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true || { echo "Failed to update POMs to next snapshot version"; exit 1; }
         sed -i -E "s/(<version>).+(<\/version>)/\1$RELEASE_VERSION\2/" README.md
         sed -i -E "s/(<awsjavasdk.previous.version>).+(<\/awsjavasdk.previous.version>)/\1$RELEASE_VERSION\2/" pom.xml
 
         git commit -am "Update to next snapshot version: $NEW_VERSION_SNAPSHOT"
       fi
     -
+    - git status
     - git push
