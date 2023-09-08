@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,7 +34,6 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
@@ -147,21 +145,5 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
         assertThat(transferListener.getRatioTransferredList().get(transferListener.getRatioTransferredList().size() - 1))
             .isNotEqualTo(100.0);
-    }
-
-    @Test
-    void upload_file_errorPropagatedToListener() throws IOException, InterruptedException {
-        Map<String, String> metadata = new HashMap<>();
-        CaptureTransferListener transferListener = new CaptureTransferListener();
-        metadata.put("x-amz-meta-foobar", "FOO BAR");
-        FileUpload fileUpload =
-            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET+TEST_BUCKET).key(TEST_KEY).metadata(metadata).checksumAlgorithm(ChecksumAlgorithm.CRC32))
-                                .source(testFile.toPath())
-                                .addTransferListener(LoggingTransferListener.create())
-                                .addTransferListener(transferListener)
-                                .build());
-        assertThatExceptionOfType(CompletionException.class).isThrownBy(
-            () -> fileUpload.completionFuture().join());
-        assertThat(transferListener.getExceptionCaught()).isInstanceOf(NoSuchBucketException.class);
     }
 }

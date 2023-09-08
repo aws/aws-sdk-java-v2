@@ -152,7 +152,6 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     }
 
     private void failResponseHandlerAndFuture(Throwable exception) {
-        this.progressListener.subscriberOnError(exception);
         resultFuture.completeExceptionally(exception);
         runAndLogError(log.logger(), "Exception thrown in SdkAsyncHttpResponseHandler#onError, ignoring",
                        () -> responseHandler.onError(exception));
