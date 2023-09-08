@@ -15,7 +15,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.NoAuthAuthScheme;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
 import software.amazon.awssdk.services.database.auth.scheme.internal.DatabaseAuthSchemeInterceptor;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
