@@ -58,7 +58,7 @@ public final class GetItemEnhancedRequest {
      * @return a builder with all existing values set
      */
     public Builder toBuilder() {
-        return builder().key(key).consistentRead(consistentRead);
+        return builder().key(key).consistentRead(consistentRead).returnConsumedCapacity(returnConsumedCapacity);
     }
 
     /**
