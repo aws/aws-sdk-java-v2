@@ -1,3 +1,72 @@
+# __2.20.144__ __2023-09-08__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in async client where the future would get stuck if there is a server error and the server fails to return response body that matches with the content length specified in the response header. See [#4354](https://github.com/aws/aws-sdk-java-v2/issues/4354)
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Content updates to IAM Identity Center API for China Regions.
+
+## __Amazon FSx__
+  - ### Features
+    - Amazon FSx documentation fixes
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Autopilot APIs will now support holiday featurization for Timeseries models. The models will now hold holiday metadata and should be able to accommodate holiday effect during inference.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - A new field "ErrorDetails" will be added to the output of "DescribeWorkspaceImages" API call. This field provides in-depth details about the error occurred during image import process. These details include the possible causes of the errors and troubleshooting information.
+
+# __2.20.143__ __2023-09-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __AWS SimSpace Weaver__
+  - ### Features
+    - BucketName and ObjectKey are now required for the S3Location data type. BucketName is now required for the S3Destination data type.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Minor changes to send unsigned requests to Neptune clusters
+
+# __2.20.142__ __2023-09-06__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds advanced Output Locking options for Epoch Locking: Custom Epoch and Jam Sync Time
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix an issue where the multirelease classes were not being shaded or removed.
+
+## __AWS WAFV2__
+  - ### Features
+    - The targeted protection level of the Bot Control managed rule group now provides optional, machine-learning analysis of traffic statistics to detect some bot-related activity. You can enable or disable the machine learning functionality through the API.
+
+## __Amazon Appflow__
+  - ### Features
+    - Adding OAuth2.0 support for servicenow connector.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds 'outpost' location type to the DescribeInstanceTypeOfferings API, allowing customers that have been allowlisted for outpost to query their offerings in the API.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables default UDP connection termination and disabling unhealthy target connection termination for Network Load Balancers.
+
 # __2.20.141__ __2023-09-05__
 ## __AWS Cloud9__
   - ### Features
