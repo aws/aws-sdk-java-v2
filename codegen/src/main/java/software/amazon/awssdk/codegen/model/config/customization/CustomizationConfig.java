@@ -103,6 +103,13 @@ public class CustomizationConfig {
     /**
      * APIs that have no required arguments in their model but can't be called via a simple method
      */
+    private List<String> excludedSimpleMethods = new ArrayList<>();
+
+    /**
+     * APIs that have no required arguments in their model but can't be called via a simple method.
+     * Superseded by {@link #excludedSimpleMethods}
+     */
+    @Deprecated
     private List<String> blacklistedSimpleMethods = new ArrayList<>();
 
     /**
@@ -226,6 +233,11 @@ public class CustomizationConfig {
      * See S3 customization.config for an example.
      */
     private String asyncClientDecorator;
+
+    /**
+     * Only for s3. A set of customization to related to multipart operations.
+     */
+    private MultipartCustomization multipartCustomization;
 
     /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
@@ -368,10 +380,26 @@ public class CustomizationConfig {
         this.serviceSpecificHttpConfig = serviceSpecificHttpConfig;
     }
 
+    public List<String> getExcludedSimpleMethods() {
+        return excludedSimpleMethods;
+    }
+
+    public void setExcludedSimpleMethods(List<String> excludedSimpleMethods) {
+        this.excludedSimpleMethods = excludedSimpleMethods;
+    }
+
+    /**
+     * Use {@link #getExcludedSimpleMethods()}
+     */
+    @Deprecated
     public List<String> getBlacklistedSimpleMethods() {
         return blacklistedSimpleMethods;
     }
 
+    /**
+     * Use {@link #setExcludedSimpleMethods(List)}
+     */
+    @Deprecated
     public void setBlacklistedSimpleMethods(List<String> blackListedSimpleMethods) {
         this.blacklistedSimpleMethods = blackListedSimpleMethods;
     }
@@ -664,5 +692,13 @@ public class CustomizationConfig {
 
     public void setCustomClientContextParams(Map<String, ClientContextParam> customClientContextParams) {
         this.customClientContextParams = customClientContextParams;
+    }
+
+    public MultipartCustomization getMultipartCustomization() {
+        return this.multipartCustomization;
+    }
+
+    public void setMultipartCustomization(MultipartCustomization multipartCustomization) {
+        this.multipartCustomization = multipartCustomization;
     }
 }

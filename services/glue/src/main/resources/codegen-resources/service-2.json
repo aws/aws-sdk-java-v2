@@ -6562,6 +6562,10 @@
         "CustomDatatypes":{
           "shape":"CustomDatatypes",
           "documentation":"<p>Creates a list of supported custom datatypes.</p>"
+        },
+        "Serde":{
+          "shape":"CsvSerdeOption",
+          "documentation":"<p>Sets the SerDe for processing CSV in the classifier, which will be applied in the Data Catalog. Valid values are <code>OpenCSVSerDe</code>, <code>LazySimpleSerDe</code>, and <code>None</code>. You can specify the <code>None</code> value when you want the crawler to do the detection.</p>"
         }
       },
       "documentation":"<p>Specifies a custom CSV classifier for <code>CreateClassifier</code> to create.</p>"
@@ -7613,6 +7617,10 @@
         "CustomDatatypes":{
           "shape":"CustomDatatypes",
           "documentation":"<p>A list of custom datatypes including \"BINARY\", \"BOOLEAN\", \"DATE\", \"DECIMAL\", \"DOUBLE\", \"FLOAT\", \"INT\", \"LONG\", \"SHORT\", \"STRING\", \"TIMESTAMP\".</p>"
+        },
+        "Serde":{
+          "shape":"CsvSerdeOption",
+          "documentation":"<p>Sets the SerDe for processing CSV in the classifier, which will be applied in the Data Catalog. Valid values are <code>OpenCSVSerDe</code>, <code>LazySimpleSerDe</code>, and <code>None</code>. You can specify the <code>None</code> value when you want the crawler to do the detection.</p>"
         }
       },
       "documentation":"<p>A classifier for custom <code>CSV</code> content.</p>"
@@ -7640,6 +7648,14 @@
       "max":1,
       "min":1,
       "pattern":"[^\\r\\n]"
+    },
+    "CsvSerdeOption":{
+      "type":"string",
+      "enum":[
+        "OpenCSVSerDe",
+        "LazySimpleSerDe",
+        "None"
+      ]
     },
     "CustomCode":{
       "type":"structure",
@@ -12772,6 +12788,10 @@
       "documentation":"<p>The same unique identifier was associated with two different records.</p>",
       "exception":true
     },
+    "IdleTimeout":{
+      "type":"integer",
+      "box":true
+    },
     "IllegalBlueprintStateException":{
       "type":"structure",
       "members":{
@@ -17795,6 +17815,30 @@
         "GlueVersion":{
           "shape":"GlueVersionString",
           "documentation":"<p>The Glue version determines the versions of Apache Spark and Python that Glue supports. The GlueVersion must be greater than 2.0.</p>"
+        },
+        "NumberOfWorkers":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The number of workers of a defined <code>WorkerType</code> to use for the session.</p>"
+        },
+        "WorkerType":{
+          "shape":"WorkerType",
+          "documentation":"<p>The type of predefined worker that is allocated when a session runs. Accepts a value of <code>G.1X</code>, <code>G.2X</code>, <code>G.4X</code>, or <code>G.8X</code> for Spark sessions. Accepts the value <code>Z.2X</code> for Ray sessions.</p>"
+        },
+        "CompletedOn":{
+          "shape":"TimestampValue",
+          "documentation":"<p>The date and time that this session is completed.</p>"
+        },
+        "ExecutionTime":{
+          "shape":"NullableDouble",
+          "documentation":"<p>The total time the session ran for.</p>"
+        },
+        "DPUSeconds":{
+          "shape":"NullableDouble",
+          "documentation":"<p>The DPUs consumed by the session (formula: ExecutionTime * MaxCapacity).</p>"
+        },
+        "IdleTimeout":{
+          "shape":"IdleTimeout",
+          "documentation":"<p>The number of minutes when idle before the session times out.</p>"
         }
       },
       "documentation":"<p>The period in which a remote Spark runtime environment is running.</p>"
@@ -20074,6 +20118,10 @@
         "CustomDatatypes":{
           "shape":"CustomDatatypes",
           "documentation":"<p>Specifies a list of supported custom datatypes.</p>"
+        },
+        "Serde":{
+          "shape":"CsvSerdeOption",
+          "documentation":"<p>Sets the SerDe for processing CSV in the classifier, which will be applied in the Data Catalog. Valid values are <code>OpenCSVSerDe</code>, <code>LazySimpleSerDe</code>, and <code>None</code>. You can specify the <code>None</code> value when you want the crawler to do the detection.</p>"
         }
       },
       "documentation":"<p>Specifies a custom CSV classifier to be updated.</p>"

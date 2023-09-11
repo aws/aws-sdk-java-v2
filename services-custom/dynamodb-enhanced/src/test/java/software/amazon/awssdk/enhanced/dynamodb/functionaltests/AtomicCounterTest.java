@@ -112,15 +112,35 @@ public class AtomicCounterTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void createViaUpdate_settingCounterInPojo_throwsException() {
+    public void createViaUpdate_settingCounterInPojo_hasNoEffect() {
         AtomicCounterRecord record = new AtomicCounterRecord();
         record.setId(RECORD_ID);
         record.setDefaultCounter(10L);
         record.setAttribute1(STRING_VALUE);
 
-        assertThatThrownBy(() -> mappedTable.updateItem(record))
-            .isInstanceOf(DynamoDbException.class)
-            .hasMessageContaining("Two document paths");
+        mappedTable.updateItem(record);
+        AtomicCounterRecord persistedRecord = mappedTable.getItem(record);
+        assertThat(persistedRecord.getAttribute1()).isEqualTo(STRING_VALUE);
+        assertThat(persistedRecord.getDefaultCounter()).isEqualTo(0L);
+        assertThat(persistedRecord.getCustomCounter()).isEqualTo(10L);
+        assertThat(persistedRecord.getDecreasingCounter()).isEqualTo(-20L);
+    }
+
+    @Test
+    public void updateItem_retrievedFromDb_shouldNotThrowException() {
+        AtomicCounterRecord record = new AtomicCounterRecord();
+        record.setId(RECORD_ID);
+        record.setAttribute1(STRING_VALUE);
+        mappedTable.updateItem(record);
+
+        AtomicCounterRecord retrievedRecord = mappedTable.getItem(record);
+        retrievedRecord.setAttribute1("ChangingThisAttribute");
+
+        retrievedRecord = mappedTable.updateItem(retrievedRecord);
+        assertThat(retrievedRecord).isNotNull();
+        assertThat(retrievedRecord.getDefaultCounter()).isEqualTo(1L);
+        assertThat(retrievedRecord.getCustomCounter()).isEqualTo(15L);
+        assertThat(retrievedRecord.getDecreasingCounter()).isEqualTo(-21L);
     }
 
     @Test

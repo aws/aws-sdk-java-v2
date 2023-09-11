@@ -396,7 +396,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Deletes the specified member accounts from Security Hub.</p> <p>Can be used to delete member accounts that belong to an organization as well as member accounts that were invited manually.</p>"
+      "documentation":"<p>Deletes the specified member accounts from Security Hub.</p> <p>You can invoke this API only to delete accounts that became members through invitation. You can't invoke this API to delete accounts that belong to an Organizations organization.</p>"
     },
     "DescribeActionTargets":{
       "name":"DescribeActionTargets",
@@ -541,7 +541,7 @@
         {"shape":"InvalidAccessException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Disables Security Hub in your account only in the current Region. To disable Security Hub in all Regions, you must submit one request per Region where you have enabled Security Hub.</p> <p>When you disable Security Hub for an administrator account, it doesn't disable Security Hub for any associated member accounts.</p> <p>When you disable Security Hub, your existing findings and insights and any Security Hub configuration settings are deleted after 90 days and cannot be recovered. Any standards that were enabled are disabled, and your administrator and member account associations are removed.</p> <p>If you want to save your existing findings, you must export them before you disable Security Hub.</p>"
+      "documentation":"<p>Disables Security Hub in your account only in the current Amazon Web Services Region. To disable Security Hub in all Regions, you must submit one request per Region where you have enabled Security Hub.</p> <p>You can't disable Security Hub in an account that is currently the Security Hub administrator.</p> <p>When you disable Security Hub, your existing findings and insights and any Security Hub configuration settings are deleted after 90 days and cannot be recovered. Any standards that were enabled are disabled, and your administrator and member account associations are removed.</p> <p>If you want to save your existing findings, you must export them before you disable Security Hub.</p>"
     },
     "DisassociateFromAdministratorAccount":{
       "name":"DisassociateFromAdministratorAccount",
@@ -1571,143 +1571,143 @@
       "members":{
         "ProductArn":{
           "shape":"StringFilterList",
-          "documentation":"<p> The Amazon Resource Name (ARN) for a third-party product that generated a finding in Security Hub. </p>"
+          "documentation":"<p> The Amazon Resource Name (ARN) for a third-party product that generated a finding in Security Hub. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "AwsAccountId":{
           "shape":"StringFilterList",
-          "documentation":"<p> The Amazon Web Services account ID in which a finding was generated. </p>"
+          "documentation":"<p> The Amazon Web Services account ID in which a finding was generated. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 100 items. </p>"
         },
         "Id":{
           "shape":"StringFilterList",
-          "documentation":"<p> The product-specific identifier for a finding. </p>"
+          "documentation":"<p> The product-specific identifier for a finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "GeneratorId":{
           "shape":"StringFilterList",
-          "documentation":"<p> The identifier for the solution-specific component that generated a finding. </p>"
+          "documentation":"<p> The identifier for the solution-specific component that generated a finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 100 items. </p>"
         },
         "Type":{
           "shape":"StringFilterList",
-          "documentation":"<p> One or more finding types in the format of namespace/category/classifier that classify a finding. For a list of namespaces, classifiers, and categories, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-findings-format-type-taxonomy.html\">Types taxonomy for ASFF</a> in the <i>Security Hub User Guide</i>. </p>"
+          "documentation":"<p> One or more finding types in the format of namespace/category/classifier that classify a finding. For a list of namespaces, classifiers, and categories, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-findings-format-type-taxonomy.html\">Types taxonomy for ASFF</a> in the <i>Security Hub User Guide</i>.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "FirstObservedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p> A timestamp that indicates when the potential security issue captured by a finding was first observed by the security findings product. </p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p> A timestamp that indicates when the potential security issue captured by a finding was first observed by the security findings product. </p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "LastObservedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p> A timestamp that indicates when the potential security issue captured by a finding was most recently observed by the security findings product. </p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p> A timestamp that indicates when the potential security issue captured by a finding was most recently observed by the security findings product. </p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "CreatedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p> A timestamp that indicates when this finding record was created. </p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p> A timestamp that indicates when this finding record was created. </p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "UpdatedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p> A timestamp that indicates when the finding record was most recently updated. </p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p> A timestamp that indicates when the finding record was most recently updated. </p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "Confidence":{
           "shape":"NumberFilterList",
-          "documentation":"<p>The likelihood that a finding accurately identifies the behavior or issue that it was intended to identify. <code>Confidence</code> is scored on a 0–100 basis using a ratio scale. A value of <code>0</code> means 0 percent confidence, and a value of <code>100</code> means 100 percent confidence. For example, a data exfiltration detection based on a statistical deviation of network traffic has low confidence because an actual exfiltration hasn't been verified. For more information, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/asff-top-level-attributes.html#asff-confidence\">Confidence</a> in the <i>Security Hub User Guide</i>. </p>"
+          "documentation":"<p>The likelihood that a finding accurately identifies the behavior or issue that it was intended to identify. <code>Confidence</code> is scored on a 0–100 basis using a ratio scale. A value of <code>0</code> means 0 percent confidence, and a value of <code>100</code> means 100 percent confidence. For example, a data exfiltration detection based on a statistical deviation of network traffic has low confidence because an actual exfiltration hasn't been verified. For more information, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/asff-top-level-attributes.html#asff-confidence\">Confidence</a> in the <i>Security Hub User Guide</i>.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "Criticality":{
           "shape":"NumberFilterList",
-          "documentation":"<p> The level of importance that is assigned to the resources that are associated with a finding. <code>Criticality</code> is scored on a 0–100 basis, using a ratio scale that supports only full integers. A score of <code>0</code> means that the underlying resources have no criticality, and a score of <code>100</code> is reserved for the most critical resources. For more information, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/asff-top-level-attributes.html#asff-criticality\">Criticality</a> in the <i>Security Hub User Guide</i>.</p>"
+          "documentation":"<p> The level of importance that is assigned to the resources that are associated with a finding. <code>Criticality</code> is scored on a 0–100 basis, using a ratio scale that supports only full integers. A score of <code>0</code> means that the underlying resources have no criticality, and a score of <code>100</code> is reserved for the most critical resources. For more information, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/asff-top-level-attributes.html#asff-criticality\">Criticality</a> in the <i>Security Hub User Guide</i>.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "Title":{
           "shape":"StringFilterList",
-          "documentation":"<p> A finding's title. </p>"
+          "documentation":"<p> A finding's title. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 100 items. </p>"
         },
         "Description":{
           "shape":"StringFilterList",
-          "documentation":"<p> A finding's description. </p>"
+          "documentation":"<p> A finding's description. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "SourceUrl":{
           "shape":"StringFilterList",
-          "documentation":"<p> Provides a URL that links to a page about the current finding in the finding product. </p>"
+          "documentation":"<p> Provides a URL that links to a page about the current finding in the finding product. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ProductName":{
           "shape":"StringFilterList",
-          "documentation":"<p> Provides the name of the product that generated the finding. For control-based findings, the product name is Security Hub. </p>"
+          "documentation":"<p> Provides the name of the product that generated the finding. For control-based findings, the product name is Security Hub. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "CompanyName":{
           "shape":"StringFilterList",
-          "documentation":"<p> The name of the company for the product that generated the finding. For control-based findings, the company is Amazon Web Services. </p>"
+          "documentation":"<p> The name of the company for the product that generated the finding. For control-based findings, the company is Amazon Web Services. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "SeverityLabel":{
           "shape":"StringFilterList",
-          "documentation":"<p> The severity value of the finding. </p>"
+          "documentation":"<p> The severity value of the finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ResourceType":{
           "shape":"StringFilterList",
-          "documentation":"<p> The type of resource that the finding pertains to. </p>"
+          "documentation":"<p> The type of resource that the finding pertains to. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ResourceId":{
           "shape":"StringFilterList",
-          "documentation":"<p> The identifier for the given resource type. For Amazon Web Services resources that are identified by Amazon Resource Names (ARNs), this is the ARN. For Amazon Web Services resources that lack ARNs, this is the identifier as defined by the Amazon Web Service that created the resource. For non-Amazon Web Services resources, this is a unique identifier that is associated with the resource. </p>"
+          "documentation":"<p> The identifier for the given resource type. For Amazon Web Services resources that are identified by Amazon Resource Names (ARNs), this is the ARN. For Amazon Web Services resources that lack ARNs, this is the identifier as defined by the Amazon Web Service that created the resource. For non-Amazon Web Services resources, this is a unique identifier that is associated with the resource. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 100 items. </p>"
         },
         "ResourcePartition":{
           "shape":"StringFilterList",
-          "documentation":"<p> The partition in which the resource that the finding pertains to is located. A partition is a group of Amazon Web Services Regions. Each Amazon Web Services account is scoped to one partition. </p>"
+          "documentation":"<p> The partition in which the resource that the finding pertains to is located. A partition is a group of Amazon Web Services Regions. Each Amazon Web Services account is scoped to one partition. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ResourceRegion":{
           "shape":"StringFilterList",
-          "documentation":"<p> The Amazon Web Services Region where the resource that a finding pertains to is located. </p>"
+          "documentation":"<p> The Amazon Web Services Region where the resource that a finding pertains to is located. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ResourceTags":{
           "shape":"MapFilterList",
-          "documentation":"<p> A list of Amazon Web Services tags associated with a resource at the time the finding was processed. </p>"
+          "documentation":"<p> A list of Amazon Web Services tags associated with a resource at the time the finding was processed. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ResourceDetailsOther":{
           "shape":"MapFilterList",
-          "documentation":"<p> Custom fields and values about the resource that a finding pertains to. </p>"
+          "documentation":"<p> Custom fields and values about the resource that a finding pertains to. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ComplianceStatus":{
           "shape":"StringFilterList",
-          "documentation":"<p> The result of a security check. This field is only used for findings generated from controls. </p>"
+          "documentation":"<p> The result of a security check. This field is only used for findings generated from controls. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ComplianceSecurityControlId":{
           "shape":"StringFilterList",
-          "documentation":"<p> The security control ID for which a finding was generated. Security control IDs are the same across standards.</p>"
+          "documentation":"<p> The security control ID for which a finding was generated. Security control IDs are the same across standards.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "ComplianceAssociatedStandardsId":{
           "shape":"StringFilterList",
-          "documentation":"<p>The unique identifier of a standard in which a control is enabled. This field consists of the resource portion of the Amazon Resource Name (ARN) returned for a standard in the <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_DescribeStandards.html\">DescribeStandards</a> API response.</p>"
+          "documentation":"<p>The unique identifier of a standard in which a control is enabled. This field consists of the resource portion of the Amazon Resource Name (ARN) returned for a standard in the <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_DescribeStandards.html\">DescribeStandards</a> API response.</p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "VerificationState":{
           "shape":"StringFilterList",
-          "documentation":"<p> Provides the veracity of a finding. </p>"
+          "documentation":"<p> Provides the veracity of a finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "WorkflowStatus":{
           "shape":"StringFilterList",
-          "documentation":"<p> Provides information about the status of the investigation into a finding. </p>"
+          "documentation":"<p> Provides information about the status of the investigation into a finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "RecordState":{
           "shape":"StringFilterList",
-          "documentation":"<p> Provides the current state of a finding. </p>"
+          "documentation":"<p> Provides the current state of a finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "RelatedFindingsProductArn":{
           "shape":"StringFilterList",
-          "documentation":"<p> The ARN for the product that generated a related finding. </p>"
+          "documentation":"<p> The ARN for the product that generated a related finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "RelatedFindingsId":{
           "shape":"StringFilterList",
-          "documentation":"<p> The product-generated identifier for a related finding. </p>"
+          "documentation":"<p> The product-generated identifier for a related finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "NoteText":{
           "shape":"StringFilterList",
-          "documentation":"<p> The text of a user-defined note that's added to a finding. </p>"
+          "documentation":"<p> The text of a user-defined note that's added to a finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "NoteUpdatedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p> The timestamp of when the note was updated. Uses the date-time format specified in <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>. </p>"
+          "documentation":"<p> The timestamp of when the note was updated. Uses the date-time format specified in <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "NoteUpdatedBy":{
           "shape":"StringFilterList",
-          "documentation":"<p> The principal that created a note. </p>"
+          "documentation":"<p> The principal that created a note. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         },
         "UserDefinedFields":{
           "shape":"MapFilterList",
-          "documentation":"<p> A list of user-defined name and value string pairs added to a finding. </p>"
+          "documentation":"<p> A list of user-defined name and value string pairs added to a finding. </p> <p> Array Members: Minimum number of 1 item. Maximum number of 20 items. </p>"
         }
       },
       "documentation":"<p> The criteria that determine which findings a rule applies to. </p>"
@@ -12768,6 +12768,10 @@
         "Sample":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether the finding is a sample finding.</p>"
+        },
+        "GeneratorDetails":{
+          "shape":"GeneratorDetails",
+          "documentation":"<p>Provides metadata for the Amazon CodeGuru detector associated with a finding. This field pertains to findings that relate to Lambda functions. Amazon Inspector identifies policy violations and vulnerabilities in Lambda function code based on internal detectors developed in collaboration with Amazon CodeGuru. Security Hub receives those findings. </p>"
         }
       },
       "documentation":"<p>Provides a consistent format for Security Hub findings. <code>AwsSecurityFinding</code> format allows you to share findings between Amazon Web Services security services and third-party solutions.</p> <note> <p>A finding is a potential security issue generated either by Amazon Web Services services or by the integrated third-party solutions and standards checks.</p> </note>"
@@ -14629,6 +14633,28 @@
       },
       "documentation":"<p>Provides details about the current status of the sensitive data detection.</p>"
     },
+    "CodeVulnerabilitiesFilePath":{
+      "type":"structure",
+      "members":{
+        "EndLine":{
+          "shape":"Integer",
+          "documentation":"<p> The line number of the last line of code in which the vulnerability is located. </p>"
+        },
+        "FileName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The name of the file in which the code vulnerability is located. </p>"
+        },
+        "FilePath":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The file path to the code in which the vulnerability is located. </p>"
+        },
+        "StartLine":{
+          "shape":"Integer",
+          "documentation":"<p> The line number of the first line of code in which the vulnerability is located. </p>"
+        }
+      },
+      "documentation":"<p> Provides details about where a code vulnerability is located in your Lambda function. </p>"
+    },
     "Compliance":{
       "type":"structure",
       "members":{
@@ -15719,6 +15745,24 @@
     "FirewallPolicyStatelessRuleGroupReferencesList":{
       "type":"list",
       "member":{"shape":"FirewallPolicyStatelessRuleGroupReferencesDetails"}
+    },
+    "GeneratorDetails":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The name of the detector used to identify the code vulnerability. </p>"
+        },
+        "Description":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The description of the detector used to identify the code vulnerability. </p>"
+        },
+        "Labels":{
+          "shape":"TypeList",
+          "documentation":"<p> An array of tags used to identify the detector associated with the finding. </p>"
+        }
+      },
+      "documentation":"<p> Provides metadata for the Amazon CodeGuru detector associated with a finding. This field pertains to findings that relate to Lambda functions. Amazon Inspector identifies policy violations and vulnerabilities in Lambda function code based on internal detectors developed in collaboration with Amazon CodeGuru. Security Hub receives those findings. </p>"
     },
     "GeoLocation":{
       "type":"structure",
@@ -19497,9 +19541,50 @@
         "FixAvailable":{
           "shape":"VulnerabilityFixAvailable",
           "documentation":"<p>Specifies if all vulnerable packages in a finding have a value for <code>FixedInVersion</code> and <code>Remediation</code>. This field is evaluated for each vulnerability <code>Id</code> based on the number of vulnerable packages that have a value for both <code>FixedInVersion</code> and <code>Remediation</code>. Valid values are as follows:</p> <ul> <li> <p> <code>YES</code> if all vulnerable packages have a value for both <code>FixedInVersion</code> and <code>Remediation</code> </p> </li> <li> <p> <code>NO</code> if no vulnerable packages have a value for <code>FixedInVersion</code> and <code>Remediation</code> </p> </li> <li> <p> <code>PARTIAL</code> otherwise</p> </li> </ul>"
+        },
+        "EpssScore":{
+          "shape":"Double",
+          "documentation":"<p>The Exploit Prediction Scoring System (EPSS) score for a finding. </p>"
+        },
+        "ExploitAvailable":{
+          "shape":"VulnerabilityExploitAvailable",
+          "documentation":"<p>Whether an exploit is available for a finding. </p>"
+        },
+        "CodeVulnerabilities":{
+          "shape":"VulnerabilityCodeVulnerabilitiesList",
+          "documentation":"<p>The vulnerabilities found in your Lambda function code. This field pertains to findings that Security Hub receives from Amazon Inspector. </p>"
         }
       },
       "documentation":"<p>A vulnerability associated with a finding.</p>"
+    },
+    "VulnerabilityCodeVulnerabilities":{
+      "type":"structure",
+      "members":{
+        "Cwes":{
+          "shape":"TypeList",
+          "documentation":"<p> The Common Weakness Enumeration (CWE) item associated with the detected code vulnerability. </p>"
+        },
+        "FilePath":{
+          "shape":"CodeVulnerabilitiesFilePath",
+          "documentation":"<p> Provides details about where a code vulnerability is located in your Lambda function. </p>"
+        },
+        "SourceArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lambda layer in which the code vulnerability is located. </p>"
+        }
+      },
+      "documentation":"<p>Provides details about the vulnerabilities found in your Lambda function code. This field pertains to findings that Security Hub receives from Amazon Inspector. </p>"
+    },
+    "VulnerabilityCodeVulnerabilitiesList":{
+      "type":"list",
+      "member":{"shape":"VulnerabilityCodeVulnerabilities"}
+    },
+    "VulnerabilityExploitAvailable":{
+      "type":"string",
+      "enum":[
+        "YES",
+        "NO"
+      ]
     },
     "VulnerabilityFixAvailable":{
       "type":"string",
@@ -19582,7 +19667,7 @@
           "documentation":"<p>The status of the investigation into the finding. The workflow status is specific to an individual finding. It does not affect the generation of new findings. For example, setting the workflow status to <code>SUPPRESSED</code> or <code>RESOLVED</code> does not prevent a new finding for the same issue.</p> <p>The allowed values are the following.</p> <ul> <li> <p> <code>NEW</code> - The initial state of a finding, before it is reviewed.</p> <p>Security Hub also resets the workflow status from <code>NOTIFIED</code> or <code>RESOLVED</code> to <code>NEW</code> in the following cases:</p> <ul> <li> <p> <code>RecordState</code> changes from <code>ARCHIVED</code> to <code>ACTIVE</code>.</p> </li> <li> <p> <code>ComplianceStatus</code> changes from <code>PASSED</code> to either <code>WARNING</code>, <code>FAILED</code>, or <code>NOT_AVAILABLE</code>.</p> </li> </ul> </li> <li> <p> <code>NOTIFIED</code> - Indicates that you notified the resource owner about the security issue. Used when the initial reviewer is not the resource owner, and needs intervention from the resource owner.</p> </li> <li> <p> <code>SUPPRESSED</code> - Indicates that you reviewed the finding and do not believe that any action is needed. The finding is no longer updated.</p> </li> <li> <p> <code>RESOLVED</code> - The finding was reviewed and remediated and is now considered resolved. </p> </li> </ul>"
         }
       },
-      "documentation":"<p>Provides information about the status of the investigation into a finding.</p>"
+      "documentation":"<p>Provides details about the status of the investigation into a finding.</p>"
     },
     "WorkflowState":{
       "type":"string",
@@ -19616,5 +19701,5 @@
       "documentation":"<p>Used to update information about the investigation into the finding.</p>"
     }
   },
-  "documentation":"<p>Security Hub provides you with a comprehensive view of the security state of your Amazon Web Services environment and resources. It also provides you with the readiness status of your environment based on controls from supported security standards. Security Hub collects security data from Amazon Web Services accounts, services, and integrated third-party products and helps you analyze security trends in your environment to identify the highest priority security issues. For more information about Security Hub, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html\">Security HubUser Guide</a>.</p> <p>When you use operations in the Security Hub API, the requests are executed only in the Amazon Web Services Region that is currently active or in the specific Amazon Web Services Region that you specify in your request. Any configuration or settings change that results from the operation is applied only to that Region. To make the same change in other Regions, run the same command for each Region in which you want to apply the change.</p> <p>For example, if your Region is set to <code>us-west-2</code>, when you use <code>CreateMembers</code> to add a member account to Security Hub, the association of the member account with the administrator account is created only in the <code>us-west-2</code> Region. Security Hub must be enabled for the member account in the same Region that the invitation was sent from.</p> <p>The following throttling limits apply to using Security Hub API operations.</p> <ul> <li> <p> <code>BatchEnableStandards</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 1 request per second.</p> </li> <li> <p> <code>GetFindings</code> - <code>RateLimit</code> of 3 requests per second. <code>BurstLimit</code> of 6 requests per second.</p> </li> <li> <p> <code>BatchImportFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>BatchUpdateFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>UpdateStandardsControl</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p>All other operations - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> </ul>"
+  "documentation":"<p>Security Hub provides you with a comprehensive view of the security state of your Amazon Web Services environment and resources. It also provides you with the readiness status of your environment based on controls from supported security standards. Security Hub collects security data from Amazon Web Services accounts, services, and integrated third-party products and helps you analyze security trends in your environment to identify the highest priority security issues. For more information about Security Hub, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html\"> <i>Security Hub User Guide</i> </a>.</p> <p>When you use operations in the Security Hub API, the requests are executed only in the Amazon Web Services Region that is currently active or in the specific Amazon Web Services Region that you specify in your request. Any configuration or settings change that results from the operation is applied only to that Region. To make the same change in other Regions, run the same command for each Region in which you want to apply the change.</p> <p>For example, if your Region is set to <code>us-west-2</code>, when you use <code>CreateMembers</code> to add a member account to Security Hub, the association of the member account with the administrator account is created only in the <code>us-west-2</code> Region. Security Hub must be enabled for the member account in the same Region that the invitation was sent from.</p> <p>The following throttling limits apply to using Security Hub API operations.</p> <ul> <li> <p> <code>BatchEnableStandards</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 1 request per second.</p> </li> <li> <p> <code>GetFindings</code> - <code>RateLimit</code> of 3 requests per second. <code>BurstLimit</code> of 6 requests per second.</p> </li> <li> <p> <code>BatchImportFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>BatchUpdateFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>UpdateStandardsControl</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p>All other operations - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> </ul>"
 }
