@@ -44,7 +44,7 @@ public class Crc32CChecksum implements SdkChecksum {
         }
     }
 
-    public static boolean isCrtAvailable() {
+    private static boolean isCrtAvailable() {
         try {
             ClassLoaderHelper.loadClass(CRT_CLASSPATH_FOR_CRC32C, false);
         } catch (ClassNotFoundException e) {

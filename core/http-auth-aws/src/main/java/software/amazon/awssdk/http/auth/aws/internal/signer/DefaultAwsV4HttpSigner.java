@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.internal.util.CredentialUtils.sanitizeCredentials;
-import static software.amazon.awssdk.http.auth.aws.internal.util.LoaderUtil.getEventStreamV4PayloadSigner;
+import static software.amazon.awssdk.http.auth.aws.internal.util.OptionalDependencyLoaderUtil.getEventStreamV4PayloadSigner;
 import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_EVENTS_PAYLOAD;
 import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;

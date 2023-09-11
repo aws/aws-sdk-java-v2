@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.LoaderUtil.getAwsV4aHttpSigner;
+import static software.amazon.awssdk.http.auth.aws.internal.util.OptionalDependencyLoaderUtil.getDefaultAwsCrtV4aHttpSigner;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
@@ -47,6 +47,6 @@ public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner, HttpSigner<AwsC
      * Get a default implementation of a {@link AwsV4aHttpSigner}
      */
     static AwsV4aHttpSigner create() {
-        return getAwsV4aHttpSigner();
+        return getDefaultAwsCrtV4aHttpSigner();
     }
 }
