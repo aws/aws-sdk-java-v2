@@ -22,15 +22,13 @@ import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Extension of {@link Checksum} to support checksums and checksum validations used by the SDK that
- * are not provided by the JDK.
+ * Extension of {@link Checksum} to support checksums and checksum validations used by the SDK that are not provided by the JDK.
  */
 @SdkInternalApi
 public interface SdkChecksum extends Checksum {
 
     /**
-     * Returns the computed checksum in a byte array rather than the long provided by
-     * {@link #getValue()}.
+     * Returns the computed checksum in a byte array rather than the long provided by {@link #getValue()}.
      *
      * @return byte[] containing the checksum
      */
@@ -47,9 +45,7 @@ public interface SdkChecksum extends Checksum {
      * Updates the current checksum with the specified array of bytes.
      *
      * @param b the array of bytes to update the checksum with
-     *
-     * @throws NullPointerException
-     *         if {@code b} is {@code null}
+     * @throws NullPointerException if {@code b} is {@code null}
      */
     default void update(byte[] b) {
         update(b, 0, b.length);
@@ -58,17 +54,15 @@ public interface SdkChecksum extends Checksum {
 
     /**
      * Updates the current checksum with the bytes from the specified buffer.
+     * <p>
+     * The checksum is updated with the remaining bytes in the buffer, starting at the buffer's position. Upon return, the
+     * buffer's position will be updated to its limit; its limit will not have been changed.
      *
-     * The checksum is updated with the remaining bytes in the buffer, starting
-     * at the buffer's position. Upon return, the buffer's position will be
-     * updated to its limit; its limit will not have been changed.
-     *
-     * @apiNote For best performance with DirectByteBuffer and other ByteBuffer
-     * implementations without a backing array implementers of this interface
-     * should override this method.
-     *
-     * @implSpec The default implementation has the following behavior.<br>
-     * For ByteBuffers backed by an accessible byte array.
+     * @param buffer the ByteBuffer to update the checksum with
+     * @throws NullPointerException if {@code buffer} is {@code null}
+     * @apiNote For best performance with DirectByteBuffer and other ByteBuffer implementations without a backing array
+     * implementers of this interface should override this method.
+     * @implSpec The default implementation has the following behavior.<br> For ByteBuffers backed by an accessible byte array.
      * <pre>{@code
      * update(buffer.array(),
      *        buffer.position() + buffer.arrayOffset(),
@@ -83,12 +77,6 @@ public interface SdkChecksum extends Checksum {
      *     update(b, 0, length);
      * }
      * }</pre>
-     *
-     * @param buffer the ByteBuffer to update the checksum with
-     *
-     * @throws NullPointerException
-     *         if {@code buffer} is {@code null}
-     *
      */
     default void update(ByteBuffer buffer) {
         int pos = buffer.position();
@@ -113,7 +101,6 @@ public interface SdkChecksum extends Checksum {
     /**
      * Return an encoded-string representation of the checksum. By default, this returns a String that is the lowercase, base16
      * (hex) representation of the checksum.
-     *
      */
     default String getChecksum() {
         return toHex(getChecksumBytes());

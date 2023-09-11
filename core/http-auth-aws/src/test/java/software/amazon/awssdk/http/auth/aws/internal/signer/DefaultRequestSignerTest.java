@@ -25,10 +25,6 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.signer.V4Context;
-import software.amazon.awssdk.http.auth.aws.signer.V4Properties;
-import software.amazon.awssdk.http.auth.aws.signer.V4RequestSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 public class DefaultRequestSignerTest {

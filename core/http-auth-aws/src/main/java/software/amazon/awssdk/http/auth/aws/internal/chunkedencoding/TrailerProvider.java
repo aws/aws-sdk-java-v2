@@ -22,9 +22,8 @@ import software.amazon.awssdk.utils.Pair;
 /**
  * A functional interface for defining a trailer, where the trailer is a header pair.
  * <p>
- * A trailer usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to.
- * Per <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1.2">RFC-7230</a>, the chunked trailer
- * section is defined as:
+ * A trailer usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to. Per <a
+ * href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1.2">RFC-7230</a>, the chunked trailer section is defined as:
  * <pre>
  *     trailer-part   = *( header-field CRLF )
  * </pre>

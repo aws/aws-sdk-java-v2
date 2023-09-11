@@ -35,8 +35,8 @@ public class PrecomputedSha256ChecksummerTest {
 
 
     SdkHttpRequest.Builder request = SdkHttpRequest.builder()
-                                           .uri(URI.create("https://localhost"))
-                                           .method(SdkHttpMethod.GET);
+                                                   .uri(URI.create("https://localhost"))
+                                                   .method(SdkHttpMethod.GET);
 
     @Test
     public void checksummer_shouldAddComputedValue() {

@@ -20,9 +20,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 /**
  * A functional interface for defining a header of a chunk.
  * <p>
- * The header usually depends on the chunk-data itself (hex-size), but is not required to.
- * In <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1">RFC-7230</a>, the chunk-header is specifically
- * the {@code chunk-size}, but this interface can give us greater flexibility.
+ * The header usually depends on the chunk-data itself (hex-size), but is not required to. In <a
+ * href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1">RFC-7230</a>, the chunk-header is specifically the
+ * {@code chunk-size}, but this interface can give us greater flexibility.
  */
 @FunctionalInterface
 @SdkInternalApi

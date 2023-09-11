@@ -29,8 +29,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class SdkCrc32CChecksum implements Checksum, Cloneable {
 
-    private static final int T8_0_START = 0 * 256;
-    private static final int T8_1_START = 1 * 256;
+    private static final int T8_0_START = 0;
+    private static final int T8_1_START = 256;
     private static final int T8_2_START = 2 * 256;
     private static final int T8_3_START = 3 * 256;
     private static final int T_8_4_START = 4 * 256;
@@ -583,7 +583,7 @@ public final class SdkCrc32CChecksum implements Checksum, Cloneable {
     @Override
     public long getValue() {
         long ret = crc;
-        return (~ret) & 0xffffffffL;
+        return ~ret & 0xffffffffL;
     }
 
     @Override
@@ -596,22 +596,22 @@ public final class SdkCrc32CChecksum implements Checksum, Cloneable {
         int localCrc = crc;
 
         while (len > 7) {
-            int c0 = (b[off + 0] ^ localCrc) & 0xff;
+            int c0 = (b[off] ^ localCrc) & 0xff;
             localCrc >>>= 8;
-            int c1 = (b[off + 1] ^ (localCrc)) & 0xff;
+            int c1 = (b[off + 1] ^ localCrc) & 0xff;
             localCrc >>>= 8;
-            int c2 = (b[off + 2] ^ (localCrc)) & 0xff;
+            int c2 = (b[off + 2] ^ localCrc) & 0xff;
             localCrc >>>= 8;
-            int c3 = (b[off + 3] ^ (localCrc)) & 0xff;
-            localCrc = (T[T8_7_START + c0] ^ T[T8_6_START + c1]) ^
-                       (T[T8_5_START + c2] ^ T[T_8_4_START + c3]);
+            int c3 = (b[off + 3] ^ localCrc) & 0xff;
+            localCrc = T[T8_7_START + c0] ^ T[T8_6_START + c1] ^
+                       T[T8_5_START + c2] ^ T[T_8_4_START + c3];
             int c4 = b[off + 4] & 0xff;
             int c5 = b[off + 5] & 0xff;
             int c6 = b[off + 6] & 0xff;
             int c7 = b[off + 7] & 0xff;
 
-            localCrc ^= (T[T8_3_START + c4] ^ T[T8_2_START + c5]) ^
-                        (T[T8_1_START + c6] ^ T[T8_0_START + c7]);
+            localCrc ^= T[T8_3_START + c4] ^ T[T8_2_START + c5] ^
+                        T[T8_1_START + c6] ^ T[T8_0_START + c7];
 
             off += 8;
             len -= 8;
@@ -619,7 +619,8 @@ public final class SdkCrc32CChecksum implements Checksum, Cloneable {
 
         /* loop unroll - duff's device style */
         for (int index = 0; index < len; index++) {
-            localCrc = (localCrc >>> 8) ^ T[T8_0_START + ((localCrc ^ b[off++]) & 0xff)];
+            localCrc = (localCrc >>> 8) ^ T[T8_0_START + ((localCrc ^ b[off]) & 0xff)];
+            off++;
         }
 
         // Publish crc out to object
@@ -632,7 +633,7 @@ public final class SdkCrc32CChecksum implements Checksum, Cloneable {
     }
 
     @Override
-    public Object clone() {
+    public SdkCrc32CChecksum clone() {
         return new SdkCrc32CChecksum(crc);
     }
 }

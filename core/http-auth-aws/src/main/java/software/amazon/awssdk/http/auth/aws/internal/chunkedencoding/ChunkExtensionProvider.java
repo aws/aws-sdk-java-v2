@@ -21,8 +21,8 @@ import software.amazon.awssdk.utils.Pair;
 /**
  * A functional interface for defining an extension of a chunk, where the extension is a key-value pair.
  * <p>
- * An extension usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to.
- * Per <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1.1">RFC-7230</a> The chunk-extension is defined as:
+ * An extension usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to. Per <a
+ * href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1.1">RFC-7230</a> The chunk-extension is defined as:
  * <pre>
  *     chunk-ext      = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
  *     chunk-ext-name = token

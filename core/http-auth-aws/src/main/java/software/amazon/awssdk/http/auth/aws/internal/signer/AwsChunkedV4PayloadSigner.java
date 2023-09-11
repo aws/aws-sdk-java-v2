@@ -15,17 +15,17 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
+import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getCanonicalHeaders;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getCanonicalHeadersString;
 import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.checksumHeaderName;
 import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.fromChecksumAlgorithm;
-import static software.amazon.awssdk.http.auth.aws.signer.V4CanonicalRequest.getCanonicalHeaders;
-import static software.amazon.awssdk.http.auth.aws.signer.V4CanonicalRequest.getCanonicalHeadersString;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hash;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.hash;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.moveContentLength;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
 import java.io.InputStream;
@@ -41,15 +41,11 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChunkedEncodedInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.TrailerProvider;
 import software.amazon.awssdk.http.auth.aws.internal.io.ChecksumInputStream;
-import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.signer.V4Context;
-import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
@@ -73,23 +69,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         this.checksumAlgorithm = builder.checksumAlgorithm;
     }
 
-    /**
-     * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If neither header is present,
-     * an exception is thrown.
-     */
-    private static void moveContentLength(SdkHttpRequest.Builder request) {
-        if (!request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH).isPresent()) {
-            // if the decoded length isn't present, content-length must be there
-            String contentLength = request
-                .firstMatchingHeader(Header.CONTENT_LENGTH)
-                .orElseThrow(() -> new IllegalArgumentException(Header.CONTENT_LENGTH + " must be specified!"));
-
-            request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, contentLength)
-                   .removeHeader(Header.CONTENT_LENGTH);
-        } else {
-            // decoded header is already there, so remove content-length just to be sure it's gone
-            request.removeHeader(Header.CONTENT_LENGTH);
-        }
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -140,8 +121,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     /**
      * Add the chunk signature as a chunk-extension.
      * <p>
-     * An instance of a rolling-signer is required, since each chunk's signature is dependent on the last. The first
-     * chunk signature is dependent on the request signature ("seed" signature).
+     * An instance of a rolling-signer is required, since each chunk's signature is dependent on the last. The first chunk
+     * signature is dependent on the request signature ("seed" signature).
      */
     private void setupSigExt(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
         Function<byte[], String> extTemplate = chunk -> rollingSigner.sign(
@@ -167,8 +148,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     /**
      * Add the trailer signature as a chunk-trailer.
      * <p>
-     * In order for this to work, the instance of the rolling-signer MUST be the same instance used to provide a chunk
-     * signature chunk-extension. The trailer signature depends on the rolling calculation of all previous chunks.
+     * In order for this to work, the instance of the rolling-signer MUST be the same instance used to provide a chunk signature
+     * chunk-extension. The trailer signature depends on the rolling calculation of all previous chunks.
      */
     private void setupSigTrailer(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
         List<TrailerProvider> trailers = builder.trailers();
@@ -251,10 +232,6 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
             builder.addTrailer(() -> Pair.of(header, values));
             request.removeHeader(header);
         }
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     static class Builder {

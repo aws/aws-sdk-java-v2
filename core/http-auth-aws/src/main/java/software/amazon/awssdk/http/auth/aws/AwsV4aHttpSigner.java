@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.http.auth.aws;
 
+import static software.amazon.awssdk.http.auth.aws.internal.util.OptionalDependencyLoaderUtil.getDefaultAwsCrtV4aHttpSigner;
+
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.aws.internal.signer.SignerLoader;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -31,7 +32,6 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner, HttpSigner<AwsCredentialsIdentity> {
     /**
      * The AWS region name to be used for computing the signature. This property is required.
-     *
      * TODO(sra-identity-and-auth): Should this be a list or rename to SIGNING_SCOPE?
      */
     SignerProperty<String> REGION_NAME = SignerProperty.create(String.class, "SigningScope");
@@ -47,6 +47,6 @@ public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner, HttpSigner<AwsC
      * Get a default implementation of a {@link AwsV4aHttpSigner}
      */
     static AwsV4aHttpSigner create() {
-        return SignerLoader.getAwsV4aHttpSigner();
+        return getDefaultAwsCrtV4aHttpSigner();
     }
 }

@@ -23,16 +23,23 @@ import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHECKSUM_ALGO
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHUNK_ENCODING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
+import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncRequest;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.auth.aws.AwsV4FamilyHttpSigner.AuthLocation;
 import software.amazon.awssdk.http.auth.aws.TestUtils;
+import software.amazon.awssdk.http.auth.aws.eventstream.internal.io.SigV4DataFramePublisher;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.ClassLoaderHelper;
 
 /**
  * Test the delegation of signing to the correct implementations.
@@ -142,7 +149,14 @@ public class DefaultAwsV4HttpSignerTest {
             }
         );
 
-        assertThrows(RuntimeException.class, () -> signer.sign(request));
+        try (MockedStatic<ClassLoaderHelper> utilities = Mockito.mockStatic(ClassLoaderHelper.class)) {
+            utilities.when(() ->ClassLoaderHelper.loadClass(
+                "software.amazon.awssdk.http.auth.aws.eventstream.HttpAuthAwsEventStream",
+                false)
+            ).thenThrow(new ClassNotFoundException("boom!"));
+            Exception e = assertThrows(RuntimeException.class, () -> signer.sign(request));
+            assertThat(e).hasMessageContaining("http-auth-aws-event-stream");
+        }
     }
 
     @Test
@@ -248,5 +262,33 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32")).isPresent();
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+    }
+
+    @Test
+    public void sign_WithEventStreamContentType_DelegatesToEventStreamPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
+            signRequest -> {
+            }
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.payload().get()).isInstanceOf(SigV4DataFramePublisher.class);
+    }
+
+    @Test
+    public void sign_WithEventStreamContentTypeAndUnsignedPayload_Throws() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+        );
+
+        assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(request));
     }
 }
