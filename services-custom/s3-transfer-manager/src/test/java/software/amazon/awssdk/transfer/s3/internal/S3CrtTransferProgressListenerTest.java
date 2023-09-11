@@ -86,7 +86,7 @@ public class S3CrtTransferProgressListenerTest {
     }
 
     @Test
-    void listeners_reports_ErrorsWithValidPayload(WireMockRuntimeInfo wm) {
+    void listeners_reports_ErrorsWithValidPayload(WireMockRuntimeInfo wm) throws InterruptedException {
         TransferListener transferListenerMock = mock(TransferListener.class);
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(404).withBody(ERROR_BODY)));
         S3TransferManager tm = new GenericS3TransferManager(getAsyncClientBuilder(wm).build(), mock(UploadDirectoryHelper.class),
@@ -102,6 +102,7 @@ public class S3CrtTransferProgressListenerTest {
                                 .build());
 
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> fileUpload.completionFuture().join());
+        Thread.sleep(500);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(NoSuchBucketException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -126,9 +127,8 @@ public class S3CrtTransferProgressListenerTest {
                                 .addTransferListener(transferListenerMock)
                                 .build());
 
-        Thread.sleep(10);
-
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> fileUpload.completionFuture().join());
+        Thread.sleep(500);
 
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(S3Exception.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
@@ -139,7 +139,7 @@ public class S3CrtTransferProgressListenerTest {
 
 
     @Test
-    void listeners_reports_ErrorsWhenCancelled(WireMockRuntimeInfo wm) {
+    void listeners_reports_ErrorsWhenCancelled(WireMockRuntimeInfo wm) throws InterruptedException {
         TransferListener transferListenerMock = mock(TransferListener.class);
 
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody("{}")));
@@ -154,6 +154,8 @@ public class S3CrtTransferProgressListenerTest {
                             .addTransferListener(transferListener)
                             .addTransferListener(transferListenerMock)
                             .build()).completionFuture().cancel(true);
+
+        Thread.sleep(500);
 
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
@@ -180,8 +182,7 @@ public class S3CrtTransferProgressListenerTest {
                             .addTransferListener(transferListenerMock)
                             .build()).completionFuture().join();
 
-        Thread.sleep(20);
-
+        Thread.sleep(500);
         assertThat(transferListener.getExceptionCaught()).isNull();
         assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.isTransferInitiated()).isTrue();
