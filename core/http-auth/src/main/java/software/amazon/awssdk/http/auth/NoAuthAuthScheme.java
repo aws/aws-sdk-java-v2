@@ -13,10 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.spi;
+package software.amazon.awssdk.http.auth;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultNoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.internal.DefaultNoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.identity.spi.Identity;
 
 /**
