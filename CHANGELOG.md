@@ -1,3 +1,16 @@
+# __2.20.145__ __2023-09-11__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental Link now supports attaching a Link UHD device to a MediaConnect flow.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release will have ValidationException be thrown from ECR LifecyclePolicy APIs in regions LifecyclePolicy is not supported, this includes existing Amazon Dedicated Cloud (ADC) regions. This release will also change Tag: TagValue and Tag: TagKey to required.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release launches new updates to QuickSight KPI visuals - support for sparklines, new templated layout and new targets for conditional formatting rules.
+
 # __2.20.144__ __2023-09-08__
 ## __AWS SDK for Java v2__
   - ### Features
