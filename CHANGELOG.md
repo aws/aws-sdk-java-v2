@@ -1,3 +1,40 @@
+# __2.20.145__ __2023-09-11__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental Link now supports attaching a Link UHD device to a MediaConnect flow.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release will have ValidationException be thrown from ECR LifecyclePolicy APIs in regions LifecyclePolicy is not supported, this includes existing Amazon Dedicated Cloud (ADC) regions. This release will also change Tag: TagValue and Tag: TagKey to required.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release launches new updates to QuickSight KPI visuals - support for sparklines, new templated layout and new targets for conditional formatting rules.
+
+# __2.20.144__ __2023-09-08__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in async client where the future would get stuck if there is a server error and the server fails to return response body that matches with the content length specified in the response header. See [#4354](https://github.com/aws/aws-sdk-java-v2/issues/4354)
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Content updates to IAM Identity Center API for China Regions.
+
+## __Amazon FSx__
+  - ### Features
+    - Amazon FSx documentation fixes
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Autopilot APIs will now support holiday featurization for Timeseries models. The models will now hold holiday metadata and should be able to accommodate holiday effect during inference.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - A new field "ErrorDetails" will be added to the output of "DescribeWorkspaceImages" API call. This field provides in-depth details about the error occurred during image import process. These details include the possible causes of the errors and troubleshooting information.
+
 # __2.20.143__ __2023-09-07__
 ## __AWS SDK for Java v2__
   - ### Features
