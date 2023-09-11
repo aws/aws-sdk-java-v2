@@ -1,0 +1,24 @@
+{
+    "version": "2.20.145",
+    "date": "2023-09-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "AWS Elemental Link now supports attaching a Link UHD device to a MediaConnect flow."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "contributor": "",
+            "description": "This release will have ValidationException be thrown from ECR LifecyclePolicy APIs in regions LifecyclePolicy is not supported, this includes existing Amazon Dedicated Cloud (ADC) regions. This release will also change Tag: TagValue and Tag: TagKey to required."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "This release launches new updates to QuickSight KPI visuals - support for sparklines, new templated layout and new targets for conditional formatting rules."
+        }
+    ]
+}
