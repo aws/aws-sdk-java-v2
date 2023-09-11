@@ -208,18 +208,4 @@ public class TransferProgressUpdater {
                                                                     .exception(t)
                                                                     .build());
     }
-
-    private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {
-        if (requestBody == null) {
-            return Optional.empty();
-        }
-        // requestBody.contentLength() may throw if the file does not exist.
-        // We ignore any potential exception here to defer failure
-        // to the s3CrtAsyncClient call and its associated future.
-        try {
-            return requestBody.contentLength();
-        } catch (Exception ignored) {
-            return Optional.empty();
-        }
-    }
 }
