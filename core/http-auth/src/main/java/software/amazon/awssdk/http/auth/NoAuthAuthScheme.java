@@ -35,6 +35,14 @@ public interface NoAuthAuthScheme extends AuthScheme<NoAuthAuthScheme.AnonymousI
     }
 
     /**
+     * Retrieve the scheme ID.
+     */
+    @Override
+    default String schemeId() {
+        return SCHEME_ID;
+    }
+
+    /**
      * An anonymous identity used by the no-auth auth scheme.
      */
     interface AnonymousIdentity extends Identity {

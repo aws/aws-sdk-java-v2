@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.internal.DefaultBearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -37,8 +38,7 @@ public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {
      * Get a default implementation of a {@link BearerAuthScheme}
      */
     static BearerAuthScheme create() {
-        return new BearerAuthScheme() {
-        };
+        return DefaultBearerAuthScheme.create();
     }
 
     /**
@@ -53,15 +53,11 @@ public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {
      * Retrieve the {@link TokenIdentity} based {@link IdentityProvider} associated with this authentication scheme.
      */
     @Override
-    default IdentityProvider<TokenIdentity> identityProvider(IdentityProviderConfiguration providers) {
-        return providers.identityProvider(TokenIdentity.class);
-    }
+    IdentityProvider<TokenIdentity> identityProvider(IdentityProviderConfiguration providers);
 
     /**
      * Retrieve the {@link BearerHttpSigner} associated with this authentication scheme.
      */
     @Override
-    default BearerHttpSigner signer() {
-        return BearerHttpSigner.create();
-    }
+    BearerHttpSigner signer();
 }
