@@ -27,8 +27,8 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 
@@ -88,9 +88,9 @@ public class DefaultNoAuthAuthScheme implements NoAuthAuthScheme {
     private static HttpSigner<AnonymousIdentity> noAuthSigner() {
         return new HttpSigner<AnonymousIdentity>() {
             @Override
-            public SyncSignedRequest sign(SyncSignRequest<? extends AnonymousIdentity> request) {
+            public SignedRequest sign(SignRequest<? extends AnonymousIdentity> request) {
 
-                return new SyncSignedRequest() {
+                return new SignedRequest() {
                     @Override
                     public SdkHttpRequest request() {
                         return request.request();

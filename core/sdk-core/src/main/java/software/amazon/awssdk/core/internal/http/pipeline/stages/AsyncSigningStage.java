@@ -41,10 +41,10 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.BaseSignedRequest;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignedRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 
@@ -98,14 +98,14 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         HttpSigner<T> signer = selectedAuthScheme.signer();
 
         if (context.requestProvider() == null) {
-            SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+            SignRequest.Builder<T> signRequestBuilder = SignRequest
                 .builder(identity)
                 .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
                 .request(request)
                 .payload(request.contentStreamProvider().orElse(null));
             authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
-            SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+            SignedRequest signedRequest = signer.sign(signRequestBuilder.build());
             return CompletableFuture.completedFuture(toSdkHttpFullRequest(signedRequest));
         }
 
@@ -145,7 +145,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
                                                             .copy(b -> b.asyncRequestBody(newAsyncRequestBody)));
     }
 
-    private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
+    private SdkHttpFullRequest toSdkHttpFullRequest(SignedRequest signedRequest) {
         SdkHttpRequest request = signedRequest.request();
         if (request instanceof SdkHttpFullRequest) {
             return (SdkHttpFullRequest) request;
@@ -161,8 +161,8 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         return toSdkHttpFullRequestBuilder(signedRequest).build();
     }
 
-    private SdkHttpFullRequest.Builder toSdkHttpFullRequestBuilder(SignedRequest<?> signedRequest) {
-        SdkHttpRequest request = signedRequest.request();
+    private SdkHttpFullRequest.Builder toSdkHttpFullRequestBuilder(BaseSignedRequest<?> baseSignedRequest) {
+        SdkHttpRequest request = baseSignedRequest.request();
         return SdkHttpFullRequest.builder()
                                  .protocol(request.protocol())
                                  .method(request.method())

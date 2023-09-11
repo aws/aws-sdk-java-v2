@@ -15,54 +15,34 @@
 
 package software.amazon.awssdk.http.auth.spi.internal;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.spi.SignedRequest;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-abstract class DefaultSignedRequest<PayloadT> implements SignedRequest<PayloadT> {
+public final class DefaultSignedRequest
+    extends DefaultBaseSignedRequest<ContentStreamProvider> implements SignedRequest {
 
-    protected final SdkHttpRequest request;
-    protected final PayloadT payload;
-
-    protected DefaultSignedRequest(BuilderImpl<?, PayloadT> builder) {
-        this.request = Validate.paramNotNull(builder.request, "request");
-        this.payload = builder.payload;
+    private DefaultSignedRequest(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
-    public SdkHttpRequest request() {
-        return request;
+    public String toString() {
+        return ToString.builder("SyncSignedRequest")
+                       .add("request", request)
+                       .build();
     }
 
-    @Override
-    public Optional<PayloadT> payload() {
-        return Optional.ofNullable(payload);
-    }
-
-    protected abstract static class BuilderImpl<B extends Builder<B, PayloadT>, PayloadT> implements Builder<B, PayloadT> {
-        private SdkHttpRequest request;
-        private PayloadT payload;
-
-        protected BuilderImpl() {
-        }
+    @SdkInternalApi
+    public static final class BuilderImpl
+        extends DefaultBaseSignedRequest.BuilderImpl<SignedRequest.Builder, ContentStreamProvider>
+        implements SignedRequest.Builder {
 
         @Override
-        public B request(SdkHttpRequest request) {
-            this.request = request;
-            return thisBuilder();
-        }
-
-        @Override
-        public B payload(PayloadT payload) {
-            this.payload = payload;
-            return thisBuilder();
-        }
-
-        private B thisBuilder() {
-            return (B) this;
+        public SignedRequest build() {
+            return new DefaultSignedRequest(this);
         }
     }
 }

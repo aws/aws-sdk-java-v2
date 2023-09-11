@@ -45,9 +45,9 @@ import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.internal.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.BaseSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -60,7 +60,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
 
-    private static V4aProperties v4aProperties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
+    private static V4aProperties v4aProperties(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
         Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
@@ -81,7 +81,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     }
 
     private static V4aPayloadSigner v4aPayloadSigner(
-        SignRequest<?, ? extends AwsCredentialsIdentity> request,
+        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4aProperties v4aProperties) {
 
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
@@ -109,7 +109,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     }
 
     private static AwsSigningConfig signingConfig(
-        SignRequest<?, ? extends AwsCredentialsIdentity> request,
+        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4aProperties v4aProperties) {
 
         AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
@@ -179,14 +179,14 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         // if not chunked encoding, then signed-payload simply means the sha256 hash is included in the canonical request
     }
 
-    private static SyncSignedRequest doSign(SyncSignRequest<? extends AwsCredentialsIdentity> request,
-                                            AwsSigningConfig signingConfig,
-                                            V4aPayloadSigner payloadSigner) {
+    private static SignedRequest doSign(SignRequest<? extends AwsCredentialsIdentity> request,
+                                        AwsSigningConfig signingConfig,
+                                        V4aPayloadSigner payloadSigner) {
         if (CredentialUtils.isAnonymous(request.identity())) {
-            return SyncSignedRequest.builder()
-                                    .request(request.request())
-                                    .payload(request.payload().orElse(null))
-                                    .build();
+            return SignedRequest.builder()
+                                .request(request.request())
+                                .payload(request.payload().orElse(null))
+                                .build();
         }
 
         SdkHttpRequest sanitizedRequest = sanitizeRequest(request.request());
@@ -197,10 +197,10 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
         ContentStreamProvider payload = payloadSigner.sign(request.payload().orElse(null), v4aContext);
 
-        return SyncSignedRequest.builder()
-                                .request(v4aContext.getSignedRequest().build())
-                                .payload(payload)
-                                .build();
+        return SignedRequest.builder()
+                            .request(v4aContext.getSignedRequest().build())
+                            .payload(payload)
+                            .build();
     }
 
     private static V4aContext sign(SdkHttpRequest request, HttpRequest crtRequest, AwsSigningConfig signingConfig) {
@@ -212,7 +212,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     }
 
     @Override
-    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+    public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
         V4aProperties v4aProperties = v4aProperties(request);
         AwsSigningConfig signingConfig = signingConfig(request, v4aProperties);
         V4aPayloadSigner payloadSigner = v4aPayloadSigner(request, v4aProperties);
