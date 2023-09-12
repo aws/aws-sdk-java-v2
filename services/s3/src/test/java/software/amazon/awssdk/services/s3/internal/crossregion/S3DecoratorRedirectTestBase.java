@@ -162,6 +162,60 @@ public abstract class S3DecoratorRedirectTestBase {
         verifyHeadBucketServiceCall(0);
     }
 
+    @Test
+    void authorizationHeaderMalformedError_AndThen_redirect() throws Throwable {
+        stubServiceClientConfiguration();
+        stubApiWithAuthorizationHeaderMalformedError() ;
+        stubHeadBucketRedirect();
+        ListObjectsResponse listObjectsResponse = apiCallToService();
+        assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
+
+        ArgumentCaptor<ListObjectsRequest> preCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
+        verifyTheApiServiceCall(2, preCacheCaptor);
+        // We need to get the BucketEndpointProvider in order to update the cache
+        verifyTheEndPointProviderOverridden(1, preCacheCaptor, CROSS_REGION.id());
+        listObjectsResponse = apiCallToService();
+        assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
+        // We need to captor again so that we get the args used in second API Call
+        ArgumentCaptor<ListObjectsRequest> overAllPostCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
+        verifyTheApiServiceCall(3, overAllPostCacheCaptor);
+        assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
+        verifyTheEndPointProviderOverridden(1, overAllPostCacheCaptor, CROSS_REGION.id());
+        verifyTheEndPointProviderOverridden(2, overAllPostCacheCaptor, CROSS_REGION.id());
+        verifyHeadBucketServiceCall(1);
+    }
+
+
+    @Test
+    void headBucketCall_WithAuthorizationFailureError() throws Throwable {
+        stubServiceClientConfiguration();
+        stubApiWithAuthorizationHeaderMalformedError() ;
+        stubHeadBucketRedirectWithAuthorizationHeaderMalformed();
+        ListObjectsResponse listObjectsResponse = apiCallToService();
+        assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
+
+        ArgumentCaptor<ListObjectsRequest> preCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
+        verifyTheApiServiceCall(2, preCacheCaptor);
+        // We need to get the BucketEndpointProvider in order to update the cache
+        verifyTheEndPointProviderOverridden(1, preCacheCaptor, CROSS_REGION.id());
+        listObjectsResponse = apiCallToService();
+        assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
+        // We need to captor again so that we get the args used in second API Call
+        ArgumentCaptor<ListObjectsRequest> overAllPostCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
+        verifyTheApiServiceCall(3, overAllPostCacheCaptor);
+        assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
+        verifyTheEndPointProviderOverridden(1, overAllPostCacheCaptor, CROSS_REGION.id());
+        verifyTheEndPointProviderOverridden(2, overAllPostCacheCaptor, CROSS_REGION.id());
+        verifyHeadBucketServiceCall(1);
+    }
+
+    protected abstract void stubApiWithAuthorizationHeaderWithInternalSoftwareError();
+
+
+    protected abstract void stubHeadBucketRedirectWithAuthorizationHeaderMalformed();
+
+    protected abstract void stubApiWithAuthorizationHeaderMalformedError();
+
     protected abstract void verifyNoBucketCall();
 
     protected abstract void verifyNoBucketApiCall(int i, ArgumentCaptor<ListBucketsRequest> requestArgumentCaptor);
