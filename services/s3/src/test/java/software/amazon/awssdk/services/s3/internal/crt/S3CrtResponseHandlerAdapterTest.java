@@ -61,8 +61,8 @@ public class S3CrtResponseHandlerAdapterTest {
         future = new CompletableFuture<>();
         sdkResponseHandler = new TestResponseHandler();
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
-                                                                 sdkResponseHandler);
-
+                                                                 sdkResponseHandler,
+                                                                 null);
         responseHandlerAdapter.metaRequest(s3MetaRequest);
     }
 
