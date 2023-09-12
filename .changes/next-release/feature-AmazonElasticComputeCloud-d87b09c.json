@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This release adds support for restricting public sharing of AMIs through AMI Block Public Access"
+}
