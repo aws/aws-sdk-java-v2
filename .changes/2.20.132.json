@@ -1,0 +1,42 @@
+{
+    "version": "2.20.132",
+    "date": "2023-08-22",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 - DynamoDb Enhanced",
+            "contributor": "",
+            "description": "Changes the default behavior of the DynamoDb Enhanced atomic counter extension to automatically filter out any counter attributes in the item to be updated. This allows users to read and update items without DynamoDb collision errors."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release adds the LastUpdatedDate and LastUsedDate timestamps to help you manage your cost allocation tags."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "contributor": "",
+            "description": "Global Accelerator now supports Client Ip Preservation for Network Load Balancer endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adding parameters to CreateCustomDbEngineVersion reserved for future use."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Verified Permissions. Increases max results per page for ListPolicyStores, ListPolicies, and ListPolicyTemplates APIs from 20 to 50."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

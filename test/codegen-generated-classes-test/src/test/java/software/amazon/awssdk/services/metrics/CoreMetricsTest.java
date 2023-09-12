@@ -24,8 +24,10 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
@@ -38,7 +40,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -50,6 +55,8 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.endpoints.ProtocolRestJsonEndpointParams;
+import software.amazon.awssdk.services.protocolrestjson.endpoints.ProtocolRestJsonEndpointProvider;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
 import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyIterable;
@@ -75,6 +82,9 @@ public class CoreMetricsTest {
     @Mock
     private MetricPublisher mockPublisher;
 
+    @Mock
+    private ProtocolRestJsonEndpointProvider mockEndpointProvider;
+
     @Before
     public void setup() throws IOException {
         client = ProtocolRestJsonClient.builder()
@@ -82,6 +92,7 @@ public class CoreMetricsTest {
                 .region(Region.US_WEST_2)
                 .credentialsProvider(mockCredentialsProvider)
                 .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
+                .endpointProvider(mockEndpointProvider)
                 .build();
         AbortableInputStream content = contentStream("{}");
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
@@ -114,6 +125,11 @@ public class CoreMetricsTest {
             }
             return AwsBasicCredentials.create("foo", "bar");
         });
+
+        when(mockEndpointProvider.resolveEndpoint(any(ProtocolRestJsonEndpointParams.class))).thenReturn(
+            CompletableFuture.completedFuture(Endpoint.builder()
+                                                      .url(URI.create("https://protocolrestjson.amazonaws.com"))
+                                                      .build()));
     }
 
     @After
@@ -181,6 +197,8 @@ public class CoreMetricsTest {
         assertThat(capturedCollection.metricValues(CoreMetric.MARSHALLING_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(0);
+        assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT).get(0)).isEqualTo(URI.create(
+            "https://protocolrestjson.amazonaws.com"));
 
         assertThat(capturedCollection.children()).hasSize(1);
         MetricCollection attemptCollection = capturedCollection.children().get(0);
@@ -250,9 +268,52 @@ public class CoreMetricsTest {
                 assertThat(requestMetrics.metricValues(CoreMetric.UNMARSHALLING_DURATION)).hasOnlyOneElementSatisfying(d -> {
                     assertThat(d).isGreaterThanOrEqualTo(Duration.ZERO);
                 });
+                assertThat(requestMetrics.metricValues(CoreMetric.ERROR_TYPE)).containsExactly(SdkErrorType.SERVER_ERROR.toString());
             }
         }
     }
+
+    @Test
+    public void testApiCall_httpClientThrowsNetworkError_errorTypeIncludedInMetrics() throws IOException {
+        ExecutableHttpRequest mockExecuteRequest = mock(ExecutableHttpRequest.class);
+        when(mockExecuteRequest.call()).thenThrow(new IOException("I/O error"));
+
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
+            .thenReturn(mockExecuteRequest);
+
+        thrown.expect(SdkException.class);
+        try {
+            client.allTypes();
+        } finally {
+            ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+            verify(mockPublisher).publish(collectionCaptor.capture());
+
+            MetricCollection capturedCollection = collectionCaptor.getValue();
+            assertThat(capturedCollection.children()).isNotEmpty();
+            for (MetricCollection requestMetrics : capturedCollection.children()) {
+                assertThat(requestMetrics.metricValues(CoreMetric.ERROR_TYPE)).containsExactly(SdkErrorType.IO.toString());
+            }
+        }
+    }
+
+    @Test
+    public void testApiCall_endpointProviderAddsPathQueryFragment_notReportedInServiceEndpointMetric() {
+        when(mockEndpointProvider.resolveEndpoint(any(ProtocolRestJsonEndpointParams.class)))
+            .thenReturn(CompletableFuture.completedFuture(Endpoint.builder()
+                                                                  .url(URI.create("https://protocolrestjson.amazonaws.com:8080/foo?bar#baz"))
+                                                                  .build()));
+
+        client.allTypes();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(mockPublisher).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+
+        URI expectedServiceEndpoint = URI.create("https://protocolrestjson.amazonaws.com:8080");
+        assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT)).containsExactly(expectedServiceEndpoint);
+    }
+
 
     private static HttpExecuteResponse mockExecuteResponse(SdkHttpFullResponse httpResponse) {
         HttpExecuteResponse mockResponse = mock(HttpExecuteResponse.class);

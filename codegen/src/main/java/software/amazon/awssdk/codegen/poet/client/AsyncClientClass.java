@@ -24,7 +24,6 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
@@ -93,6 +92,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private final ClassName serviceClientConfigurationClassName;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
         super(dependencies.getModel());
@@ -100,6 +100,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.poetExtensions = dependencies.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -133,7 +134,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                .build())
             .addField(AsyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
@@ -151,10 +153,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod());
-
-        if (model.hasPaginators()) {
-            type.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
-        }
 
         if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
             type.addMethod(applySignerOverrideMethod(poetExtensions, model));
@@ -193,19 +191,18 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private Stream<MethodSpec> operations(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(traditionalMethod(opModel));
-        if (opModel.isPaginated()) {
-            methods.add(paginatedTraditionalMethod(opModel));
-        }
         return methods.stream();
     }
 
     private MethodSpec constructor(TypeSpec.Builder classBuilder) {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                                               .addModifiers(PROTECTED)
-                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                                               .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                                             AwsAsyncClientHandler.class)
-                                               .addStatement("this.clientConfiguration = clientConfiguration");
+        MethodSpec.Builder builder
+            = MethodSpec.constructorBuilder()
+                        .addModifiers(PROTECTED)
+                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
+                        .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                        .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
+                        .addStatement("this.clientConfiguration = clientConfiguration")
+                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -261,6 +258,16 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
                          .addStatement("return SERVICE_NAME")
+                         .build();
+    }
+
+    @Override
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(serviceClientConfigurationClassName)
+                         .addStatement("return this.serviceClientConfiguration")
                          .build();
     }
 
@@ -403,14 +410,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .endControlFlow();
 
         return builder;
-    }
-
-    @Override
-    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
-        return builder.addModifiers(PUBLIC)
-                      .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
-                                    poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName()),
-                                    opModel.getInput().getVariableName());
     }
 
     @Override

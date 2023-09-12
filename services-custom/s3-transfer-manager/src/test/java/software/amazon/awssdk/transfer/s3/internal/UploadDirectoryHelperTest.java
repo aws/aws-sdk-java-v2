@@ -443,10 +443,9 @@ public class UploadDirectoryHelperTest {
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
                                                                                                 .build()),
-                                     new S3MetaRequestPauseObservable(),
                                      UploadFileRequest.builder()
                                                       .source(Paths.get(".")).putObjectRequest(b -> b.bucket("bucket").key("key"))
-                                                      .build(), S3ClientType.CRT_BASED);
+                                                      .build());
     }
 
     private FileUpload newUpload(CompletableFuture<CompletedFileUpload> future) {
@@ -454,11 +453,10 @@ public class UploadDirectoryHelperTest {
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
                                                                                                 .build()),
-                                     new S3MetaRequestPauseObservable(),
                                      UploadFileRequest.builder()
                                                       .putObjectRequest(p -> p.key("key").bucket("bucket")).source(Paths.get(
                                                           "test.txt"))
-                                                      .build(), S3ClientType.CRT_BASED);
+                                                      .build());
     }
 
     private Path createJimFsTestDirectory(FileSystem fileSystem) {

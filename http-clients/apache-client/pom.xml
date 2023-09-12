@@ -21,7 +21,7 @@
     <parent>
         <artifactId>http-clients</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.20.8-SNAPSHOT</version>
+        <version>2.20.147-SNAPSHOT</version>
     </parent>
 
     <artifactId>apache-client</artifactId>
@@ -59,7 +59,6 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>${commons-codec.verion}</version>
         </dependency>
 
         <dependency>

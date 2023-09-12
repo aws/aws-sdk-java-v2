@@ -54,10 +54,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      */
     private static final Duration BLOCKING_REFRESH_MAX_WAIT = Duration.ofSeconds(5);
 
-    /**
-     * Random instance used for jittering refresh results.
-     */
-    private static final Random JITTER_RANDOM = new Random();
 
     /**
      * Used as a primitive form of rate limiting for the speed of our refreshes. This will make sure that the backing supplier has
@@ -93,6 +89,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private final AtomicInteger consecutiveStaleRetrievalFailures = new AtomicInteger(0);
 
     /**
+     * The name to include with each log message, to differentiate caches.
+     */
+    private final String cachedValueName;
+
+    /**
      * The value currently stored in this cache.
      */
     private volatile RefreshResult<T> cachedValue;
@@ -102,6 +103,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      */
     private final Supplier<RefreshResult<T>> valueSupplier;
 
+    /**
+     * Random instance used for jittering refresh results.
+     */
+    private final Random jitterRandom = new Random();
+
     private CachedSupplier(Builder<T> builder) {
         Validate.notNull(builder.supplier, "builder.supplier");
         Validate.notNull(builder.jitterEnabled, "builder.jitterEnabled");
@@ -110,6 +116,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
         this.staleValueBehavior = Validate.notNull(builder.staleValueBehavior, "builder.staleValueBehavior");
         this.clock = Validate.notNull(builder.clock, "builder.clock");
+        this.cachedValueName = Validate.notNull(builder.cachedValueName, "builder.cachedValueName");
     }
 
     /**
@@ -124,8 +131,10 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     @Override
     public T get() {
         if (cacheIsStale()) {
+            log.debug(() -> "(" + cachedValueName + ") Cached value is stale and will be refreshed.");
             refreshCache();
         } else if (shouldInitiateCachePrefetch()) {
+            log.debug(() -> "(" + cachedValueName + ") Cached value has reached prefetch time and will be refreshed.");
             prefetchCache();
         }
 
@@ -187,6 +196,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
             try {
                 // Make sure the value was not refreshed while we waited for the lock.
                 if (cacheIsStale() || shouldInitiateCachePrefetch()) {
+                    log.debug(() -> "(" + cachedValueName + ") Refreshing cached value.");
 
                     // It wasn't, call the supplier to update it.
 
@@ -195,7 +205,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                     }
 
                     try {
-                        cachedValue = handleFetchedSuccess(prefetchStrategy.fetch(valueSupplier));
+                        RefreshResult<T> cachedValue = handleFetchedSuccess(prefetchStrategy.fetch(valueSupplier));
+                        this.cachedValue = cachedValue;
+                        log.debug(() -> "(" + cachedValueName + ") Successfully refreshed cached value. "
+                                        + "Next Prefetch Time: " + cachedValue.prefetchTime() + ". "
+                                        + "Next Stale Time: " + cachedValue.staleTime());
                     } catch (RuntimeException t) {
                         cachedValue = handleFetchFailure(t);
                     }
@@ -226,13 +240,13 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         switch (staleValueBehavior) {
             case STRICT:
                 Instant newStale = now.plusSeconds(1);
-                log.warn(() -> "Retrieved value expiration is in the past (" + fetch.staleTime() + "). Using expiration "
-                               + "of " + newStale);
+                log.warn(() -> "(" + cachedValueName + ") Retrieved value expiration is in the past (" + fetch.staleTime() +
+                               "). Using expiration of " + newStale);
                 return fetch.toBuilder().staleTime(newStale).build(); // Refresh again in 1 second
             case ALLOW:
                 Instant newStaleTime = jitterTime(now, Duration.ofMinutes(1), Duration.ofMinutes(10));
-                log.warn(() -> "Cached value expiration has been extended to " + newStaleTime + " because the downstream "
-                               + "service returned a time in the past: " + fetch.staleTime());
+                log.warn(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " + newStaleTime +
+                               " because the downstream service returned a time in the past: " + fetch.staleTime());
 
                 return fetch.toBuilder()
                             .staleTime(newStaleTime)
@@ -246,6 +260,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Perform necessary transformations of the currently-cached value based on the stale value behavior of this supplier.
      */
     private RefreshResult<T> handleFetchFailure(RuntimeException e) {
+        log.debug(() -> "(" + cachedValueName + ") Failed to refresh cached value.", e);
+
         RefreshResult<T> currentCachedValue = cachedValue;
         if (currentCachedValue == null) {
             throw e;
@@ -260,8 +276,9 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                     throw e;
                 case ALLOW:
                     Instant newStaleTime = jitterTime(now, Duration.ofMillis(1), maxStaleFailureJitter(numFailures));
-                    log.warn(() -> "Cached value expiration has been extended to " + newStaleTime + " because calling the "
-                                   + "downstream service failed (consecutive failures: " + numFailures + ").");
+                    log.warn(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " +
+                                   newStaleTime + " because calling the downstream service failed (consecutive failures: " +
+                                   numFailures + ").", e);
 
                     return currentCachedValue.toBuilder()
                                              .staleTime(newStaleTime)
@@ -323,7 +340,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
     private Instant jitterTime(Instant time, Duration jitterStart, Duration jitterEnd) {
         long jitterRange = jitterEnd.minus(jitterStart).toMillis();
-        long jitterAmount = Math.abs(JITTER_RANDOM.nextLong() % jitterRange);
+        long jitterAmount = Math.abs(jitterRandom.nextLong() % jitterRange);
         return time.plus(jitterStart).plusMillis(jitterAmount);
     }
 
@@ -344,6 +361,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         private Boolean jitterEnabled = true;
         private StaleValueBehavior staleValueBehavior = StaleValueBehavior.STRICT;
         private Clock clock = Clock.systemUTC();
+        private String cachedValueName = "unknown";
 
         private Builder(Supplier<RefreshResult<T>> supplier) {
             this.supplier = supplier;
@@ -369,6 +387,17 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          */
         public Builder<T> staleValueBehavior(StaleValueBehavior staleValueBehavior) {
             this.staleValueBehavior = staleValueBehavior;
+            return this;
+        }
+
+        /**
+         * Configures a name for the cached value. This name will be included with logs emitted by this supplier, to aid
+         * in debugging.
+         *
+         * By default, this uses "unknown".
+         */
+        public Builder<T> cachedValueName(String cachedValueName) {
+            this.cachedValueName = cachedValueName;
             return this;
         }
 

@@ -382,7 +382,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
 
         @Override
         public void cancel() {
-            log.trace(() -> "Received cancel()");
+            log.trace(() -> "Received cancel() from " + subscriber);
 
             // Create exception here instead of in supplier to preserve a more-useful stack trace.
             highPriorityQueue.add(new CancelQueueEntry<>());

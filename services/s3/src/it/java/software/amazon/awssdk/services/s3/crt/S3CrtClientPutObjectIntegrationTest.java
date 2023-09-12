@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.crt;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import io.reactivex.Flowable;
@@ -24,6 +25,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
@@ -34,10 +36,12 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.internal.crt.CrtContentLengthOnlyAsyncFileRequestBody;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
@@ -47,7 +51,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String TEST_BUCKET = temporaryBucketName(S3CrtClientPutObjectIntegrationTest.class);
     private static final String TEST_KEY = "8mib_file.dat";
-    private static final int OBJ_SIZE = 8 * 1024 * 1024;
+    private static final int OBJ_SIZE = 10 * 1024 * 1024;
 
     private static RandomTempFile testFile;
     private static S3AsyncClient s3Crt;
@@ -84,6 +88,25 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
         byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
 
         Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+    }
+
+    @Test
+    void putObject_file_objectSentCorrectly() throws Exception {
+        s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), testFile.toPath()).join();
+        ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                                               ResponseTransformer.toInputStream());
+        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
+        Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+    }
+
+
+    @Test
+    void putObject_failsFor_CrtContentLengthOnlyAsyncFileRequestBody()  {
+        assertThatThrownBy(() ->
+                               s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                               new CrtContentLengthOnlyAsyncFileRequestBody(testFile.toPath())).join())
+            .isInstanceOf(CompletionException.class)
+            .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test

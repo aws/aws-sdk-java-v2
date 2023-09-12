@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -55,6 +56,7 @@ public class CustomizationConfig {
      */
     private Map<String, OperationModifier> operationModifiers;
     private Map<String, ShapeSubstitution> shapeSubstitutions;
+    private CustomSdkShapes customSdkShapes;
     private Map<String, ShapeModifier> shapeModifiers;
     /**
      * Sets the custom field name that identifies the type of modeled exception for JSON protocols.
@@ -101,6 +103,13 @@ public class CustomizationConfig {
     /**
      * APIs that have no required arguments in their model but can't be called via a simple method
      */
+    private List<String> excludedSimpleMethods = new ArrayList<>();
+
+    /**
+     * APIs that have no required arguments in their model but can't be called via a simple method.
+     * Superseded by {@link #excludedSimpleMethods}
+     */
+    @Deprecated
     private List<String> blacklistedSimpleMethods = new ArrayList<>();
 
     /**
@@ -212,9 +221,33 @@ public class CustomizationConfig {
     private boolean delegateSyncClientClass;
 
     /**
+     * Fully qualified name of a class that given the default sync client instance can return the final client instance,
+     * for instance by decorating the client with specific-purpose implementations of the client interface.
+     * See S3 customization.config for an example.
+     */
+    private String syncClientDecorator;
+
+    /**
+     * Fully qualified name of a class that given the default async client instance can return the final client instance,
+     * for instance by decorating the client with specific-purpose implementations of the client interface.
+     * See S3 customization.config for an example.
+     */
+    private String asyncClientDecorator;
+
+    /**
+     * Only for s3. A set of customization to related to multipart operations.
+     */
+    private MultipartCustomization multipartCustomization;
+
+    /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
      */
     private boolean skipEndpointTestGeneration;
+
+    /**
+     * Whether to generate client-level endpoint tests; overrides test case criteria such as operation inputs.
+     */
+    private boolean generateEndpointClientTests;
 
     /**
      * A mapping from the skipped test's description to the reason why it's being skipped.
@@ -229,6 +262,11 @@ public class CustomizationConfig {
      * Whether marshallers perform validations against members marked with RequiredTrait.
      */
     private boolean requiredTraitValidationEnabled = false;
+
+    /**
+     * Customization to attach map of Custom client param configs that can be set on a client builder.
+     */
+    private Map<String, ClientContextParam> customClientContextParams;
 
     private CustomizationConfig() {
     }
@@ -251,6 +289,14 @@ public class CustomizationConfig {
 
     public void setRenameShapes(Map<String, String> renameShapes) {
         this.renameShapes = renameShapes;
+    }
+
+    public CustomSdkShapes getCustomSdkShapes() {
+        return customSdkShapes;
+    }
+
+    public void setCustomSdkShapes(CustomSdkShapes customSdkShapes) {
+        this.customSdkShapes = customSdkShapes;
     }
 
     public Map<String, ShapeSubstitution> getShapeSubstitutions() {
@@ -334,10 +380,26 @@ public class CustomizationConfig {
         this.serviceSpecificHttpConfig = serviceSpecificHttpConfig;
     }
 
+    public List<String> getExcludedSimpleMethods() {
+        return excludedSimpleMethods;
+    }
+
+    public void setExcludedSimpleMethods(List<String> excludedSimpleMethods) {
+        this.excludedSimpleMethods = excludedSimpleMethods;
+    }
+
+    /**
+     * Use {@link #getExcludedSimpleMethods()}
+     */
+    @Deprecated
     public List<String> getBlacklistedSimpleMethods() {
         return blacklistedSimpleMethods;
     }
 
+    /**
+     * Use {@link #setExcludedSimpleMethods(List)}
+     */
+    @Deprecated
     public void setBlacklistedSimpleMethods(List<String> blackListedSimpleMethods) {
         this.blacklistedSimpleMethods = blackListedSimpleMethods;
     }
@@ -552,6 +614,22 @@ public class CustomizationConfig {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
     }
 
+    public String getSyncClientDecorator() {
+        return syncClientDecorator;
+    }
+
+    public void setSyncClientDecorator(String syncClientDecorator) {
+        this.syncClientDecorator = syncClientDecorator;
+    }
+
+    public String getAsyncClientDecorator() {
+        return asyncClientDecorator;
+    }
+
+    public void setAsyncClientDecorator(String asyncClientDecorator) {
+        this.asyncClientDecorator = asyncClientDecorator;
+    }
+
     public boolean isDelegateSyncClientClass() {
         return delegateSyncClientClass;
     }
@@ -566,6 +644,14 @@ public class CustomizationConfig {
 
     public void setSkipEndpointTestGeneration(boolean skipEndpointTestGeneration) {
         this.skipEndpointTestGeneration = skipEndpointTestGeneration;
+    }
+
+    public boolean isGenerateEndpointClientTests() {
+        return generateEndpointClientTests;
+    }
+
+    public void setGenerateEndpointClientTests(boolean generateEndpointClientTests) {
+        this.generateEndpointClientTests = generateEndpointClientTests;
     }
 
     public boolean useGlobalEndpoint() {
@@ -598,5 +684,21 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public Map<String, ClientContextParam> getCustomClientContextParams() {
+        return customClientContextParams;
+    }
+
+    public void setCustomClientContextParams(Map<String, ClientContextParam> customClientContextParams) {
+        this.customClientContextParams = customClientContextParams;
+    }
+
+    public MultipartCustomization getMultipartCustomization() {
+        return this.multipartCustomization;
+    }
+
+    public void setMultipartCustomization(MultipartCustomization multipartCustomization) {
+        this.multipartCustomization = multipartCustomization;
     }
 }

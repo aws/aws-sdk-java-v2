@@ -42,5 +42,8 @@
     <requiredProperty key="nativeImage">
       <validationRegex>(true|false)</validationRegex>
     </requiredProperty>
+    <requiredProperty key="credentialProvider">
+      <validationRegex>(default|identity-center)</validationRegex>
+    </requiredProperty>
   </requiredProperties>
 </archetype-descriptor>

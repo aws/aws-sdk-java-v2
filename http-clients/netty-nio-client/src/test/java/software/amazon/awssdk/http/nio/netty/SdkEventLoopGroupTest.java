@@ -18,8 +18,15 @@ package software.amazon.awssdk.http.nio.netty;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.oio.OioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.channel.socket.oio.OioDatagramChannel;
+import io.netty.channel.socket.oio.OioSocketChannel;
 import org.junit.Test;
 
 public class SdkEventLoopGroupTest {
@@ -28,13 +35,24 @@ public class SdkEventLoopGroupTest {
     public void creatingUsingBuilder() {
         SdkEventLoopGroup sdkEventLoopGroup = SdkEventLoopGroup.builder().numberOfThreads(1).build();
         assertThat(sdkEventLoopGroup.channelFactory()).isNotNull();
+        assertThat(sdkEventLoopGroup.datagramChannelFactory()).isNotNull();
         assertThat(sdkEventLoopGroup.eventLoopGroup()).isNotNull();
     }
 
     @Test
-    public void creatingUsingStaticMethod() {
+    public void creatingUsingStaticMethod_A() {
         SdkEventLoopGroup sdkEventLoopGroup = SdkEventLoopGroup.create(new NioEventLoopGroup(), NioSocketChannel::new);
         assertThat(sdkEventLoopGroup.channelFactory()).isNotNull();
+        assertThat(sdkEventLoopGroup.datagramChannelFactory().newChannel()).isInstanceOf(NioDatagramChannel.class);
+        assertThat(sdkEventLoopGroup.eventLoopGroup()).isNotNull();
+    }
+
+    @Test
+    public void creatingUsingStaticMethod_B() {
+        SdkEventLoopGroup sdkEventLoopGroup = SdkEventLoopGroup.create(new OioEventLoopGroup(), OioSocketChannel::new);
+        assertThat(sdkEventLoopGroup.channelFactory()).isNotNull();
+        assertThat(sdkEventLoopGroup.datagramChannelFactory()).isNotNull();
+        assertThat(sdkEventLoopGroup.datagramChannelFactory().newChannel()).isInstanceOf(OioDatagramChannel.class);
         assertThat(sdkEventLoopGroup.eventLoopGroup()).isNotNull();
     }
 
@@ -43,6 +61,7 @@ public class SdkEventLoopGroupTest {
         SdkEventLoopGroup sdkEventLoopGroup = SdkEventLoopGroup.create(new NioEventLoopGroup());
 
         assertThat(sdkEventLoopGroup.channelFactory()).isNotNull();
+        assertThat(sdkEventLoopGroup.datagramChannelFactory().newChannel()).isInstanceOf(NioDatagramChannel.class);
     }
 
     @Test(expected = IllegalArgumentException.class)

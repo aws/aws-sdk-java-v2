@@ -86,6 +86,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         tests.put("For region us-isob-east-1 with FIPS disabled and DualStack enabled", "Client builder does the validation");
         tests.put("For region us-isob-west-1 with FIPS enabled and DualStack enabled", "Client builder does the validation");
         tests.put("For region us-isob-west-1 with FIPS disabled and DualStack enabled", "Client builder does the validation");
+        tests.put("Missing region", "Client does validation");
         GLOBAL_SKIP_ENDPOINT_TESTS = Collections.unmodifiableMap(tests);
 
     }
@@ -108,6 +109,10 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         if (endpointRulesSpecUtils.isS3()) {
             b.addField(s3RegionEndpointSystemPropertySaveValueField());
+        }
+
+        if (serviceHasNoMatchingTestCases()) {
+            return b.build();
         }
 
         b.addMethod(methodSetupMethod());
@@ -214,16 +219,22 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                                          .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                                          .returns(ParameterizedTypeName.get(List.class, SyncTestCase.class));
 
+
+
+
         b.addCode("return $T.asList(", Arrays.class);
 
         EndpointTestSuiteModel endpointTestSuiteModel = model.getEndpointTestSuiteModel();
         Iterator<EndpointTestModel> testIter = endpointTestSuiteModel.getTestCases().iterator();
-
+        boolean isFirst = true;
         while (testIter.hasNext()) {
             EndpointTestModel test = testIter.next();
-
-            if (test.getOperationInputs() != null) {
+            if (testCaseHasOperationInputs(test)) {
                 Iterator<OperationInput> operationInputsIter = test.getOperationInputs().iterator();
+                if (!isFirst) {
+                    b.addCode(", ");
+                }
+                isFirst = false;
                 while (operationInputsIter.hasNext()) {
                     OperationInput opInput = operationInputsIter.next();
                     OperationModel opModel = model.getOperation(opInput.getOperationName());
@@ -239,17 +250,17 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                         b.addCode(",");
                     }
                 }
-            } else {
+            } else if (shouldGenerateClientTestsOverride()) {
+                if (!isFirst) {
+                    b.addCode(", ");
+                }
+                isFirst = false;
                 b.addCode("new $T($S, $L, $L$L)",
                           SyncTestCase.class,
                           test.getDocumentation(),
                           syncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
                           TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
                           getSkipReasonBlock(test.getDocumentation()));
-            }
-
-            if (testIter.hasNext()) {
-                b.addCode(",");
             }
         }
 
@@ -364,12 +375,16 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         EndpointTestSuiteModel endpointTestSuiteModel = model.getEndpointTestSuiteModel();
         Iterator<EndpointTestModel> testIter = endpointTestSuiteModel.getTestCases().iterator();
-
+        boolean isFirst = true;
         while (testIter.hasNext()) {
             EndpointTestModel test = testIter.next();
 
-            if (test.getOperationInputs() != null) {
+            if (testCaseHasOperationInputs(test)) {
                 Iterator<OperationInput> operationInputsIter = test.getOperationInputs().iterator();
+                if (!isFirst) {
+                    b.addCode(", ");
+                }
+                isFirst = false;
                 while (operationInputsIter.hasNext()) {
                     OperationInput opInput = operationInputsIter.next();
                     OperationModel opModel = model.getOperation(opInput.getOperationName());
@@ -385,17 +400,17 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                         b.addCode(",");
                     }
                 }
-            } else {
+            } else if (shouldGenerateClientTestsOverride()) {
+                if (!isFirst) {
+                    b.addCode(", ");
+                }
+                isFirst = false;
                 b.addCode("new $T($S, $L, $L$L)",
                           AsyncTestCase.class,
                           test.getDocumentation(),
                           asyncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
                           TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
                           getSkipReasonBlock(test.getDocumentation()));
-            }
-
-            if (testIter.hasNext()) {
-                b.addCode(",");
             }
         }
 
@@ -520,6 +535,11 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
             config.add("$T.builder()", configClass());
 
             params.forEach((n, v) -> {
+
+                if (!endpointRulesSpecUtils.isDeclaredParam(n)) {
+                    return;
+                }
+
                 CodeBlock valueLiteral = endpointRulesSpecUtils.treeNodeToLiteral(v);
                 switch (n) {
                     case "UseDualStack":
@@ -643,6 +663,27 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         return skippedTests;
     }
 
+    private boolean serviceHasNoMatchingTestCases() {
+        boolean noTestCasesHaveOperationInputs = model.getEndpointTestSuiteModel().getTestCases().stream()
+                                                      .noneMatch(EndpointRulesClientTestSpec::testCaseHasOperationInputs);
+        return noTestCasesHaveOperationInputs && !shouldGenerateClientTestsOverride();
+    }
+
+    /**
+     * Always generate client endpoint tests if the test case has operation inputs
+     */
+    private static boolean testCaseHasOperationInputs(EndpointTestModel test) {
+        return test.getOperationInputs() != null;
+    }
+
+    /**
+     * Some services can run tests without operation inputs if there are other conditions that allow
+     * codegen to create a functioning test case
+     */
+    private boolean shouldGenerateClientTestsOverride() {
+        return model.getCustomizationConfig().isGenerateEndpointClientTests();
+    }
+
     private CodeBlock getSkipReasonBlock(String testName) {
         if (getSkippedTests().containsKey(testName)) {
             Validate.notNull(getSkippedTests().get(testName), "Test %s must have a reason for skipping", testName);
@@ -653,9 +694,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
     private MethodSpec methodSetupMethod() {
         MethodSpec.Builder b = MethodSpec.methodBuilder("methodSetup")
-            .addModifiers(Modifier.PUBLIC)
-            .addAnnotation(BeforeEach.class)
-            .returns(void.class);
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .addAnnotation(BeforeEach.class)
+                                         .returns(void.class);
 
         b.addStatement("super.methodSetup()");
 
@@ -675,9 +716,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
     private FieldSpec s3RegionEndpointSystemPropertySaveValueField() {
         return FieldSpec.builder(String.class, "regionalEndpointPropertySaveValue")
-            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-            .initializer("$T.getProperty($L)", System.class, s3RegionalEndpointSystemPropertyCode())
-            .build();
+                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                        .initializer("$T.getProperty($L)", System.class, s3RegionalEndpointSystemPropertyCode())
+                        .build();
     }
 
     private MethodSpec teardownMethod() {

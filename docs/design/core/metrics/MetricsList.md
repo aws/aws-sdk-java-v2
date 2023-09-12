@@ -29,7 +29,8 @@ class within `sdk-core`.
 | AwsExtendedRequestId          | `String`      | The extended request ID of the service request.|
 | UnmarshallingDuration         | `Duration`    | The duration of time taken to unmarshall the HTTP response to an SDK response. |
 | ServiceCallDuration           | `Duration`    | The duration of time  taken to connect to the service (or acquire a connection from the connection pool), send the serialized request and receive the initial response (e.g. HTTP status code and headers). This DOES NOT include the time taken to read the entire response from the service. |
-| `RetryCount`                  | `Integer`    | The number of retries that the SDK performed in the execution of the request. 0 implies that the request worked the first  time, and no retries were attempted. |
+| RetryCount                    | `Integer`    | The number of retries that the SDK performed in the execution of the request. 0 implies that the request worked the first  time, and no retries were attempted. |
+| ErrorType                     | `String`     | The general type or category of error that was encountered for a failed API call attempt.<br>The following are possible values:<br> `Throttling` - The service responded with a throttling error.<br>`ServerError` - The service responded with an error other than throttling.<br>`ConfiguredTimeout` - A client timeout occurred, either at the API call level, or API call attempt level.<br>`IO` - An I/O error occurred.<br>`Other` - Catch-all for other errors that don't fall into the above categories.|
 
 ## HTTP Metrics
 

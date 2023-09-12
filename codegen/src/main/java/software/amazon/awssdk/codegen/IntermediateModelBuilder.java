@@ -253,14 +253,16 @@ public class IntermediateModelBuilder {
             } else {
                 inputShape.setSimpleMethod(false);
 
-                boolean methodIsNotBlacklisted = !config.getBlacklistedSimpleMethods().contains(methodName) ||
-                                                 config.getBlacklistedSimpleMethods().stream().noneMatch(m -> m.equals("*"));
+                boolean methodIsNotExcluded = !config.getExcludedSimpleMethods().contains(methodName) ||
+                                              config.getExcludedSimpleMethods().stream().noneMatch(m -> m.equals("*")) ||
+                                              !config.getBlacklistedSimpleMethods().contains(methodName) ||
+                                              config.getBlacklistedSimpleMethods().stream().noneMatch(m -> m.equals("*"));
                 boolean methodHasNoRequiredMembers = !CollectionUtils.isNullOrEmpty(inputShape.getRequired());
                 boolean methodIsNotStreaming = !operation.isStreaming();
                 boolean methodHasSimpleMethodVerb = methodName.matches(Constant.APPROVED_SIMPLE_METHOD_VERBS);
 
-                if (methodIsNotBlacklisted && methodHasNoRequiredMembers && methodIsNotStreaming && methodHasSimpleMethodVerb) {
-                    log.warn("A potential simple method exists that isn't whitelisted or blacklisted: " + methodName);
+                if (methodIsNotExcluded && methodHasNoRequiredMembers && methodIsNotStreaming && methodHasSimpleMethodVerb) {
+                    log.warn("A potential simple method exists that isn't explicitly excluded or included: " + methodName);
                 }
             }
         });

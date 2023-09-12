@@ -16,7 +16,8 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
-import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumContentLength;
+import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.LAST_CHUNK_LEN;
+import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumTrailerLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChunkLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChecksumTrailer;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.createChunk;
@@ -28,11 +29,13 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -129,13 +132,12 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public Optional<Long> contentLength() {
-
         if (wrapped.contentLength().isPresent() && algorithm != null) {
             return Optional.of(calculateChunkLength(wrapped.contentLength().get())
-                    + calculateChecksumContentLength(algorithm, trailerHeader));
-        } else {
-            return wrapped.contentLength();
+                               + LAST_CHUNK_LEN
+                               + calculateChecksumTrailerLength(algorithm, trailerHeader));
         }
+        return wrapped.contentLength();
     }
 
     @Override
@@ -149,10 +151,13 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         if (sdkChecksum != null) {
             sdkChecksum.reset();
         }
-
         SynchronousChunkBuffer synchronousChunkBuffer = new SynchronousChunkBuffer(totalBytes);
-        wrapped.flatMapIterable(synchronousChunkBuffer::buffer)
+        alwaysInvokeOnNext(wrapped).flatMapIterable(synchronousChunkBuffer::buffer)
                .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
+    }
+
+    private SdkPublisher<ByteBuffer> alwaysInvokeOnNext(SdkPublisher<ByteBuffer> source) {
+        return subscriber -> source.subscribe(new OnNextGuaranteedSubscriber(subscriber));
     }
 
     private static final class ChecksumCalculatingSubscriber implements Subscriber<ByteBuffer> {
@@ -239,7 +244,33 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         }
 
         private Iterable<ByteBuffer> buffer(ByteBuffer bytes) {
-            return chunkBuffer.bufferAndCreateChunks(bytes);
+            return chunkBuffer.split(bytes);
+        }
+    }
+
+    public static class OnNextGuaranteedSubscriber extends DelegatingSubscriber<ByteBuffer, ByteBuffer> {
+
+        private volatile boolean onNextInvoked;
+
+        public OnNextGuaranteedSubscriber(Subscriber<? super ByteBuffer> subscriber) {
+            super(subscriber);
+        }
+
+        @Override
+        public void onNext(ByteBuffer t) {
+            if (!onNextInvoked) {
+                onNextInvoked = true;
+            }
+
+            subscriber.onNext(t);
+        }
+
+        @Override
+        public void onComplete() {
+            if (!onNextInvoked) {
+                subscriber.onNext(ByteBuffer.wrap(new byte[0]));
+            }
+            super.onComplete();
         }
     }
 

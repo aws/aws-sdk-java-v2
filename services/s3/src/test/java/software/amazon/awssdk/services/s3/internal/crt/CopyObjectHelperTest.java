@@ -33,6 +33,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
@@ -48,7 +49,6 @@ import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-
 class CopyObjectHelperTest {
 
     private static final String SOURCE_BUCKET = "source";
@@ -56,17 +56,18 @@ class CopyObjectHelperTest {
     private static final String DESTINATION_BUCKET = "destination";
     private static final String DESTINATION_KEY = "destinationKey";
     private static final String MULTIPART_ID = "multipartId";
+
+    private static final Long PART_SIZE_BYTES = 1024L;
     private S3AsyncClient s3AsyncClient;
     private CopyObjectHelper copyHelper;
-    private S3NativeClientConfiguration s3NativeClientConfiguration;
+
+    private static final long PART_SIZE = 1024L;
+    private static final long UPLOAD_THRESHOLD = PART_SIZE * 2;
 
     @BeforeEach
     public void setUp() {
-        s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
-                                                                 .partSizeInBytes(1024L)
-                                                                 .build();
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        copyHelper = new CopyObjectHelper(s3AsyncClient, s3NativeClientConfiguration);
+        copyHelper = new CopyObjectHelper(s3AsyncClient, PART_SIZE, UPLOAD_THRESHOLD);
     }
 
     @Test
@@ -105,6 +106,25 @@ class CopyObjectHelperTest {
         CopyObjectRequest copyObjectRequest = copyObjectRequest();
 
         stubSuccessfulHeadObjectCall(512L);
+
+        CopyObjectResponse expectedResponse = CopyObjectResponse.builder().build();
+        CompletableFuture<CopyObjectResponse> copyFuture =
+            CompletableFuture.completedFuture(expectedResponse);
+
+        when(s3AsyncClient.copyObject(copyObjectRequest)).thenReturn(copyFuture);
+
+        CompletableFuture<CopyObjectResponse> future =
+            copyHelper.copyObject(copyObjectRequest);
+
+        assertThat(future.join()).isEqualTo(expectedResponse);
+    }
+
+    @Test
+    void copy_doesNotExceedThreshold_shouldUseSingleObjectCopy() {
+
+        CopyObjectRequest copyObjectRequest = copyObjectRequest();
+
+        stubSuccessfulHeadObjectCall(2000L);
 
         CopyObjectResponse expectedResponse = CopyObjectResponse.builder().build();
         CompletableFuture<CopyObjectResponse> copyFuture =
@@ -179,7 +199,7 @@ class CopyObjectHelperTest {
 
         CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
 
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart copy requests").hasRootCause(exception);
+        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart requests").hasRootCause(exception);
 
         verify(s3AsyncClient, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
 
@@ -217,12 +237,77 @@ class CopyObjectHelperTest {
         CompletableFuture<CopyObjectResponse> future =
             copyHelper.copyObject(copyObjectRequest);
 
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart copy requests").hasRootCause(exception);
+        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart requests").hasRootCause(exception);
 
         ArgumentCaptor<AbortMultipartUploadRequest> argumentCaptor = ArgumentCaptor.forClass(AbortMultipartUploadRequest.class);
         verify(s3AsyncClient).abortMultipartUpload(argumentCaptor.capture());
         AbortMultipartUploadRequest actualRequest = argumentCaptor.getValue();
         assertThat(actualRequest.uploadId()).isEqualTo(MULTIPART_ID);
+    }
+
+    @Test
+    void multiPartCopy_contentSizeExceeds10000Parts_shouldAdjustPartSize() {
+        long contentLength = 1024L * 10_000 * 2; // twice too many parts with configures part size
+
+        stubSuccessfulHeadObjectCall(contentLength);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        CopyObjectRequest copyObjectRequest = copyObjectRequest();
+
+        CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
+
+        CopyObjectResponse actualResponse = future.join();
+        assertThat(actualResponse.copyObjectResult()).isNotNull();
+
+        ArgumentCaptor<UploadPartCopyRequest> argumentCaptor = ArgumentCaptor.forClass(UploadPartCopyRequest.class);
+        verify(s3AsyncClient, times(10_000)).uploadPartCopy(argumentCaptor.capture());
+        List<UploadPartCopyRequest> actualUploadPartCopyRequests = argumentCaptor.getAllValues();
+        assertThat(actualUploadPartCopyRequests).allSatisfy(d -> {
+            assertThat(d.sourceBucket()).isEqualTo(SOURCE_BUCKET);
+            assertThat(d.sourceKey()).isEqualTo(SOURCE_KEY);
+            assertThat(d.destinationBucket()).isEqualTo(DESTINATION_BUCKET);
+            assertThat(d.destinationKey()).isEqualTo(DESTINATION_KEY);
+        });
+
+        long expectedPartSize = 2048L;
+        for (int i = 0; i < actualUploadPartCopyRequests.size(); i++) {
+            int rangeStart = (int) expectedPartSize * i;
+            int rangeEnd = (int) (rangeStart + (expectedPartSize - 1));
+            assertThat(actualUploadPartCopyRequests.get(i).copySourceRange()).isEqualTo(
+                String.format("bytes=%d-%d", rangeStart, rangeEnd));
+        }
+    }
+
+
+    @Test
+    public void multiPartCopy_sseCHeadersSetInOriginalRequest_includedInCompleteMultipart() {
+        String customerAlgorithm = "algorithm";
+        String customerKey = "key";
+        String customerKeyMd5 = "keyMd5";
+
+        CopyObjectRequest copyRequest = copyObjectRequest().copy(r -> r.sseCustomerAlgorithm(customerAlgorithm)
+                                                                       .sseCustomerKey(customerKey)
+                                                                       .sseCustomerKeyMD5(customerKeyMd5));
+
+        stubSuccessfulHeadObjectCall(3 * PART_SIZE_BYTES);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyRequest).join();
+
+        ArgumentCaptor<CompleteMultipartUploadRequest> completeMultipartCaptor =
+            ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
+
+        verify(s3AsyncClient).completeMultipartUpload(completeMultipartCaptor.capture());
+
+        CompleteMultipartUploadRequest completeRequest = completeMultipartCaptor.getValue();
+
+        assertThat(completeRequest.sseCustomerAlgorithm()).isEqualTo(customerAlgorithm);
+        assertThat(completeRequest.sseCustomerKey()).isEqualTo(customerKey);
+        assertThat(completeRequest.sseCustomerKeyMD5()).isEqualTo(customerKeyMd5);
     }
 
     @Test

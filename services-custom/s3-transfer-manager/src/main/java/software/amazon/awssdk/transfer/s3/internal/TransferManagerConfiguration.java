@@ -24,7 +24,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.ExecutorUtils;
@@ -32,7 +31,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 /**
- * Contains resolved configuration settings for {@link S3TransferManager}.
+ * Contains resolved configuration settings for {@link GenericS3TransferManager}.
  * This configuration object can be {@link #close()}d to release all closeable resources configured within it.
  */
 @SdkInternalApi

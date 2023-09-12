@@ -67,7 +67,8 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverridden");
 
     /**
-     * This is the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is true), otherwise null.
+     * This is the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is true), otherwise the endpoint generated from regional
+     * metadata.
      */
     public static final ExecutionAttribute<URI> CLIENT_ENDPOINT = new ExecutionAttribute<>("EndpointOverride");
 
@@ -107,7 +108,6 @@ public class SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
-
 
     protected SdkExecutionAttribute() {
     }
