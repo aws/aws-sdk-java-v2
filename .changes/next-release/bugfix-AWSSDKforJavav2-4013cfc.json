@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Apache HTTP client: Prevent NumberFormatException if proxyPort is empty when useSystemPropertyValues is also set to false"
+}
