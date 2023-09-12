@@ -136,6 +136,12 @@
     </Match>
 
     <Match>
+        <Class name="software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aContext" />
+        <Method name="getSignature" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
         <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
         <Method name="unmarshallStructured" />
         <Bug pattern="BC_UNCONFIRMED_CAST" />
@@ -265,5 +271,14 @@
         <Class name="software.amazon.awssdk.transfer.s3.model.ResumableFileUpload"/>
         <Method name="fromFile"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <!-- Intentional for backwards-compatibility -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute"/>
+            <Class name="software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute"/>
+        </Or>
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
     </Match>
 </FindBugsFilter>

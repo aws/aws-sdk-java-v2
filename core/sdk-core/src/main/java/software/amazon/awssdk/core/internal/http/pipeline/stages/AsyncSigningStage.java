@@ -31,7 +31,6 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.SignerOverrideUtils;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
@@ -42,10 +41,10 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.BaseSignedRequest;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignedRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 
@@ -65,10 +64,10 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     @Override
     public CompletableFuture<SdkHttpFullRequest> execute(SdkHttpFullRequest request, RequestExecutionContext context)
             throws Exception {
-        if (shouldDoSraSigning(context)) {
-            return sraSignRequest(request,
-                                  context,
-                                  context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+        SelectedAuthScheme<?> selectedAuthScheme =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (shouldDoSraSigning(context, selectedAuthScheme)) {
+            return sraSignRequest(request, context, selectedAuthScheme);
         }
         return signRequest(request, context);
     }
@@ -99,14 +98,14 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         HttpSigner<T> signer = selectedAuthScheme.signer();
 
         if (context.requestProvider() == null) {
-            SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+            SignRequest.Builder<T> signRequestBuilder = SignRequest
                 .builder(identity)
                 .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
                 .request(request)
                 .payload(request.contentStreamProvider().orElse(null));
             authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
-            SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+            SignedRequest signedRequest = signer.sign(signRequestBuilder.build());
             return CompletableFuture.completedFuture(toSdkHttpFullRequest(signedRequest));
         }
 
@@ -146,7 +145,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
                                                             .copy(b -> b.asyncRequestBody(newAsyncRequestBody)));
     }
 
-    private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
+    private SdkHttpFullRequest toSdkHttpFullRequest(SignedRequest signedRequest) {
         SdkHttpRequest request = signedRequest.request();
         if (request instanceof SdkHttpFullRequest) {
             return (SdkHttpFullRequest) request;
@@ -162,8 +161,8 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         return toSdkHttpFullRequestBuilder(signedRequest).build();
     }
 
-    private SdkHttpFullRequest.Builder toSdkHttpFullRequestBuilder(SignedRequest<?> signedRequest) {
-        SdkHttpRequest request = signedRequest.request();
+    private SdkHttpFullRequest.Builder toSdkHttpFullRequestBuilder(BaseSignedRequest<?> baseSignedRequest) {
+        SdkHttpRequest request = baseSignedRequest.request();
         return SdkHttpFullRequest.builder()
                                  .protocol(request.protocol())
                                  .method(request.method())
@@ -184,7 +183,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         Signer signer = context.signer();
         MetricCollector metricCollector = context.attemptMetricCollector();
 
-        if (!shouldSign(signer)) {
+        if (!shouldSign(context.executionAttributes(), signer)) {
             return CompletableFuture.completedFuture(request);
         }
 
@@ -213,20 +212,19 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     }
 
     /**
-     * We sign if a signer is provided is not null.
-     *
-     * @return True if request should be signed, false if not.
+     * We sign if it isn't auth=none. This attribute is no longer set in the SRA, so this exists only for old clients. In
+     * addition to this, old clients only set this to false, never true. So, we have to treat null as true.
      */
-    private boolean shouldSign(Signer signer) {
-        return signer != null;
+    private boolean shouldSign(ExecutionAttributes attributes, Signer signer) {
+        return signer != null &&
+               !Boolean.FALSE.equals(attributes.getAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST));
     }
 
     /**
      * Returns true if we should use SRA signing logic.
      */
-    private boolean shouldDoSraSigning(RequestExecutionContext context) {
-        return !SignerOverrideUtils.isSignerOverridden(context)
-               && context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
+    private boolean shouldDoSraSigning(RequestExecutionContext context, SelectedAuthScheme<?> selectedAuthScheme) {
+        return context.signer() == null && selectedAuthScheme != null;
     }
 
     /**

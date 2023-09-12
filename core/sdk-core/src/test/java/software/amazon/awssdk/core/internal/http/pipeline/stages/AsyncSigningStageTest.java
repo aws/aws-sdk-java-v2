@@ -63,8 +63,8 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import utils.ValidSdkObjects;
@@ -87,7 +87,7 @@ public class AsyncSigningStageTest {
     MetricCollector metricCollector;
 
     @Captor
-    private ArgumentCaptor<SyncSignRequest<? extends Identity>> syncSignRequestCaptor;
+    private ArgumentCaptor<SignRequest<? extends Identity>> signRequestCaptor;
 
     @Captor
     private ArgumentCaptor<AsyncSignRequest<? extends Identity>> asyncSignRequestCaptor;
@@ -116,13 +116,13 @@ public class AsyncSigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+        RequestExecutionContext context = createContext(selectedAuthScheme, (Signer) null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
-            .thenReturn(SyncSignedRequest.builder()
-                                         .request(signedRequest)
-                                         .build());
+        when(signer.sign(Mockito.<SignRequest<? extends Identity>>any()))
+            .thenReturn(SignedRequest.builder()
+                                     .request(signedRequest)
+                                     .build());
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
@@ -132,8 +132,8 @@ public class AsyncSigningStageTest {
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).sign(syncSignRequestCaptor.capture());
-        SyncSignRequest<? extends Identity> signRequest = syncSignRequestCaptor.getValue();
+        verify(signer).sign(signRequestCaptor.capture());
+        SignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
@@ -159,16 +159,16 @@ public class AsyncSigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+        RequestExecutionContext context = createContext(selectedAuthScheme, (Signer) null);
 
         // Setup the timeoffset to test that the clock is setup properly.
         httpClientDependencies.updateTimeOffset(TEST_TIME_OFFSET);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
-            .thenReturn(SyncSignedRequest.builder()
-                                         .request(signedRequest)
-                                         .build());
+        when(signer.sign(Mockito.<SignRequest<? extends Identity>>any()))
+            .thenReturn(SignedRequest.builder()
+                                     .request(signedRequest)
+                                     .build());
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
@@ -178,8 +178,8 @@ public class AsyncSigningStageTest {
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).sign(syncSignRequestCaptor.capture());
-        SyncSignRequest<? extends Identity> signRequest = syncSignRequestCaptor.getValue();
+        verify(signer).sign(signRequestCaptor.capture());
+        SignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
@@ -257,7 +257,7 @@ public class AsyncSigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload);
+        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");
@@ -307,7 +307,7 @@ public class AsyncSigningStageTest {
                             .schemeId("smithy.api#noAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload);
+        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");

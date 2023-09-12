@@ -33,8 +33,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface AsyncSignRequest<IdentityT extends Identity> extends SignRequest<Publisher<ByteBuffer>, IdentityT>,
-    ToCopyableBuilder<AsyncSignRequest.Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
+public interface AsyncSignRequest<IdentityT extends Identity>
+    extends BaseSignRequest<Publisher<ByteBuffer>, IdentityT>,
+            ToCopyableBuilder<AsyncSignRequest.Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
+
     /**
      * Get a new builder for creating a {@link AsyncSignRequest}.
      */
@@ -46,7 +48,7 @@ public interface AsyncSignRequest<IdentityT extends Identity> extends SignReques
      * A builder for a {@link AsyncSignRequest}.
      */
     interface Builder<IdentityT extends Identity>
-        extends SignRequest.Builder<Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>,
+        extends BaseSignRequest.Builder<Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>,
             CopyableBuilder<Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
     }
 }

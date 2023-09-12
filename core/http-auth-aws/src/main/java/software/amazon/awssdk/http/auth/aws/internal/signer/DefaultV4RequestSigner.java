@@ -15,22 +15,27 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.addHostHeader;
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.deriveSigningKey;
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.hashCanonicalRequest;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.addHostHeader;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.deriveSigningKey;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.hashCanonicalRequest;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.signer.V4CanonicalRequest;
-import software.amazon.awssdk.http.auth.aws.signer.V4Context;
-import software.amazon.awssdk.http.auth.aws.signer.V4Properties;
-import software.amazon.awssdk.http.auth.aws.signer.V4RequestSigner;
-import software.amazon.awssdk.http.auth.aws.util.SignerConstant;
-import software.amazon.awssdk.http.auth.aws.util.SignerUtils;
+import software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant;
+import software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * The default implementation of a v4-request-signer. It performs each step of the SigV4 signing process, but does not add the
+ * signature or auth information to the request itself.
+ * <p>
+ * All signing information, such as signature, signing key, canonical request, etc. is present in context object that is returned.
+ * This can be used by the caller to add the auth info to the request, such as adding the signature as a query parameter or
+ * building an authorization header using the signature and canonical request headers.
+ */
 @SdkInternalApi
 public final class DefaultV4RequestSigner implements V4RequestSigner {
 
@@ -45,11 +50,11 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
     @Override
     public V4Context sign(SdkHttpRequest.Builder requestBuilder) {
         // Step 0: Pre-requisites
-        String checksum = getChecksum(requestBuilder);
+        String contentHash = getContentHash(requestBuilder);
         addHostHeader(requestBuilder);
 
         // Step 1: Create a canonical request
-        V4CanonicalRequest canonicalRequest = createCanonicalRequest(requestBuilder.build(), checksum);
+        V4CanonicalRequest canonicalRequest = createCanonicalRequest(requestBuilder.build(), contentHash);
 
         // Step 2: Create a hash of the canonical request
         String canonicalRequestHash = hashCanonicalRequest(canonicalRequest.getCanonicalRequestString());
@@ -63,12 +68,12 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
         String signature = createSignature(stringToSign, signingKey);
 
         // Step 5: Return the signature to be added to the request
-        return new V4Context(checksum, signingKey, signature, canonicalRequest, requestBuilder);
+        return new V4Context(contentHash, signingKey, signature, canonicalRequest, requestBuilder);
     }
 
-    private String getChecksum(SdkHttpRequest.Builder requestBuilder) {
-        return requestBuilder.firstMatchingHeader("x-amz-content-sha256").orElseThrow(
-            () -> new IllegalArgumentException("Checksum must be present in the 'x-amz-content-sha256' header!")
+    private String getContentHash(SdkHttpRequest.Builder requestBuilder) {
+        return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
+            () -> new IllegalArgumentException("Content hash must be present in the '" + X_AMZ_CONTENT_SHA256 + "' header!")
         );
     }
 

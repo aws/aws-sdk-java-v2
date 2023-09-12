@@ -15,15 +15,15 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.util.CredentialUtils.sanitizeCredentials;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_EVENTS_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.UNSIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_CONTENT_SHA256;
-import static software.amazon.awssdk.http.auth.aws.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.CredentialUtils.sanitizeCredentials;
+import static software.amazon.awssdk.http.auth.aws.internal.util.OptionalDependencyLoaderUtil.getEventStreamV4PayloadSigner;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_EVENTS_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_TRAILER;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -35,21 +35,13 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.signer.Checksummer;
-import software.amazon.awssdk.http.auth.aws.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.signer.V4Context;
-import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
-import software.amazon.awssdk.http.auth.aws.signer.V4Properties;
-import software.amazon.awssdk.http.auth.aws.signer.V4RequestSigner;
-import software.amazon.awssdk.http.auth.aws.util.CredentialUtils;
+import software.amazon.awssdk.http.auth.aws.internal.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.BaseSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.utils.ClassLoaderHelper;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * An implementation of a {@link AwsV4HttpSigner} that uses properties to compose v4-signers in order to delegate signing of a
@@ -58,18 +50,17 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
-    private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
 
-    private static V4Properties v4Properties(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        Clock signingClock = request.requireProperty(AwsV4HttpSigner.SIGNING_CLOCK, Clock.systemUTC());
+    private static V4Properties v4Properties(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
         String regionName = request.requireProperty(AwsV4HttpSigner.REGION_NAME);
-        String serviceSigningName = request.requireProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME);
+        String serviceSigningName = request.requireProperty(SERVICE_SIGNING_NAME);
         CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, signingInstant);
-        boolean doubleUrlEncode = request.requireProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, true);
-        boolean normalizePath = request.requireProperty(AwsV4HttpSigner.NORMALIZE_PATH, true);
+        boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
+        boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
 
         return V4Properties.builder()
                            .credentials(credentials)
@@ -81,7 +72,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private static V4RequestSigner v4RequestSigner(
-        SignRequest<?, ? extends AwsCredentialsIdentity> request,
+        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4Properties v4Properties) {
 
         AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
@@ -108,38 +99,47 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return requestSigner.apply(v4Properties);
     }
 
-    private static Checksummer checksummer(SignRequest<?, ? extends AwsCredentialsIdentity> request) {
+    private static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
-        boolean isTrailing = hasTrailer(request.request());
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
 
         if (isEventStreaming) {
-            return new PrecomputedChecksummer(() -> STREAMING_EVENTS_PAYLOAD);
+            return Checksummer.forPrecomputed256Checksum(STREAMING_EVENTS_PAYLOAD);
         }
 
         if (isPayloadSigning) {
             if (isChunkEncoding) {
-                if (isTrailing) {
-                    return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD_TRAILER);
+                if (isFlexible || isTrailing) {
+                    return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD_TRAILER);
                 }
-                return new PrecomputedChecksummer(() -> STREAMING_SIGNED_PAYLOAD);
+                return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD);
+            }
+
+            if (request.hasProperty(CHECKSUM_ALGORITHM)) {
+                return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM));
             }
             return Checksummer.create();
         }
 
         if (isChunkEncoding) {
-            if (isTrailing) {
-                return new PrecomputedChecksummer(() -> STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            if (isFlexible || isTrailing) {
+                return Checksummer.forPrecomputed256Checksum(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
             }
             throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
         }
 
-        return new PrecomputedChecksummer(() -> UNSIGNED_PAYLOAD);
+        if (isFlexible) {
+            return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
+        }
+
+        return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
     }
 
     private static V4PayloadSigner v4PayloadSigner(
-        SignRequest<?, ? extends AwsCredentialsIdentity> request,
+        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4Properties properties) {
 
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
@@ -148,7 +148,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         if (isEventStreaming) {
             if (isPayloadSigning) {
-                return loadEventStreamSigner(
+                return getEventStreamV4PayloadSigner(
                     properties.getCredentials(),
                     properties.getCredentialScope(),
                     properties.getSigningClock()
@@ -158,36 +158,39 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         }
 
         if (isChunkEncoding) {
-            return new AwsChunkedV4PayloadSigner(properties.getCredentialScope(), DEFAULT_CHUNK_SIZE_IN_BYTES);
+            return AwsChunkedV4PayloadSigner.builder()
+                                            .credentialScope(properties.getCredentialScope())
+                                            .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
+                                            .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
+                                            .build();
         }
 
         return V4PayloadSigner.create();
     }
 
-    private static SyncSignedRequest doSign(SyncSignRequest<? extends AwsCredentialsIdentity> request,
-                                            Checksummer checksummer,
-                                            V4RequestSigner requestSigner,
-                                            V4PayloadSigner payloadSigner) {
+    private static SignedRequest doSign(SignRequest<? extends AwsCredentialsIdentity> request,
+                                        Checksummer checksummer,
+                                        V4RequestSigner requestSigner,
+                                        V4PayloadSigner payloadSigner) {
         if (CredentialUtils.isAnonymous(request.identity())) {
-            return SyncSignedRequest.builder()
-                                    .request(request.request())
-                                    .payload(request.payload().orElse(null))
-                                    .build();
+            return SignedRequest.builder()
+                                .request(request.request())
+                                .payload(request.payload().orElse(null))
+                                .build();
         }
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        String checksum = checksummer.checksum(request.payload().orElse(null));
-        requestBuilder.putHeader(X_AMZ_CONTENT_SHA256, checksum);
+        checksummer.checksum(request.payload().orElse(null), requestBuilder);
 
         V4Context v4Context = requestSigner.sign(requestBuilder);
 
         ContentStreamProvider payload = payloadSigner.sign(request.payload().orElse(null), v4Context);
 
-        return SyncSignedRequest.builder()
-                                .request(v4Context.getSignedRequest().build())
-                                .payload(payload)
-                                .build();
+        return SignedRequest.builder()
+                            .request(v4Context.getSignedRequest().build())
+                            .payload(payload)
+                            .build();
     }
 
     private static CompletableFuture<AsyncSignedRequest> doSign(AsyncSignRequest<? extends AwsCredentialsIdentity> request,
@@ -206,11 +209,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
         CompletableFuture<V4Context> futureV4Context =
-            checksummer.checksum(request.payload().orElse(null)).thenApply(
-                checksum -> {
-                    requestBuilder.putHeader(X_AMZ_CONTENT_SHA256, checksum);
-                    return requestSigner.sign(requestBuilder);
-                });
+            checksummer.checksum(request.payload().orElse(null), requestBuilder)
+                       .thenApply(__ -> requestSigner.sign(requestBuilder));
 
         return futureV4Context.thenApply(
             v4Context -> AsyncSignedRequest.builder()
@@ -235,40 +235,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
     }
 
-    private static boolean hasTrailer(SdkHttpRequest request) {
-        // TODO: Trailer would be determined by being a flexible-checksum enabled request, we will need to update
-        // this once flexible checksums is enabled
-        return request.firstMatchingHeader(X_AMZ_TRAILER).isPresent();
-    }
-
-    /**
-     * A class-loader for the event-stream signer, which throws exceptions if it can't load the class (it's likely not on the
-     * classpath, so it should be added), or if it can't instantiate the signer.
-     */
-    private static V4PayloadSigner loadEventStreamSigner(
-        AwsCredentialsIdentity credentials,
-        CredentialScope credentialScope,
-        Clock signingClock
-    ) {
-        String classPath = "software.amazon.awssdk.http.auth.aws.eventstream.signer.EventStreamV4PayloadSigner";
-        try {
-            Class<?> signerClass = ClassLoaderHelper.loadClass(classPath, false);
-            return (V4PayloadSigner) signerClass.getConstructor(
-                AwsCredentialsIdentity.class,
-                CredentialScope.class,
-                Clock.class
-            ).newInstance(credentials, credentialScope, signingClock);
-        } catch (ClassNotFoundException e) {
-            LOG.debug(() -> "Cannot find the " + classPath + " class: ", e);
-            throw new RuntimeException("Event-stream signer not found. You must add a dependency on the " +
-                                       "http-auth-aws-event-stream module to enable this functionality: ", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not instantiate the event-stream signer: ", e);
-        }
-    }
-
     @Override
-    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+    public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
         Checksummer checksummer = checksummer(request);
         V4Properties v4Properties = v4Properties(request);
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);

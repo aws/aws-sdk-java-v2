@@ -15,95 +15,39 @@
 
 package software.amazon.awssdk.http.auth.spi;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Input parameters to sign a request using {@link HttpSigner}.
+ * Input parameters to sign a request with sync payload, using {@link HttpSigner}.
  *
- * @param <PayloadT> The type of payload of the request.
  * @param <IdentityT> The type of the identity.
  */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface SignRequest<PayloadT, IdentityT extends Identity> {
+public interface SignRequest<IdentityT extends Identity>
+    extends BaseSignRequest<ContentStreamProvider, IdentityT>,
+            ToCopyableBuilder<SignRequest.Builder<IdentityT>, SignRequest<IdentityT>> {
 
     /**
-     * Returns the HTTP request object, without the request body payload.
+     * Get a new builder for creating a {@link SignRequest}.
      */
-    SdkHttpRequest request();
-
-    /**
-     * Returns the body payload of the request. A payload is optional. By default, the payload will be empty.
-     */
-    Optional<PayloadT> payload();
-
-    /**
-     * Returns the identity.
-     */
-    IdentityT identity();
-
-    /**
-     * Returns the value of a property that the {@link HttpSigner} can use during signing.
-     */
-    <T> T property(SignerProperty<T> property);
-
-    /**
-     * Ensure that the {@link SignerProperty} is present in the {@link SignRequest}.
-     * <p>
-     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
-     */
-    default <T> boolean hasProperty(SignerProperty<T> property) {
-        return property(property) != null;
-    }
-
-    /**
-     * Ensure that the {@link SignerProperty} is present in the {@link SignRequest}.
-     * <p>
-     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
-     */
-    default <T> T requireProperty(SignerProperty<T> property) {
-        return Validate.notNull(property(property), property.toString() + " must not be null!");
-    }
-
-    /**
-     * Ensure that the {@link SignerProperty} is present in the {@link SignRequest}.
-     * <p>
-     * The value, {@link T}, is return when present, and the default is returned otherwise.
-     */
-    default <T> T requireProperty(SignerProperty<T> property, T defaultValue) {
-        return Validate.getOrDefault(property(property), () -> defaultValue);
+    static <IdentityT extends Identity> Builder<IdentityT> builder(IdentityT identity) {
+        return DefaultSignRequest.builder(identity);
     }
 
     /**
      * A builder for a {@link SignRequest}.
      */
-    interface Builder<B extends Builder<B, PayloadT, IdentityT>, PayloadT, IdentityT extends Identity> {
-
-        /**
-         * Set the HTTP request object, without the request body payload.
-         */
-        B request(SdkHttpRequest request);
-
-        /**
-         * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
-         */
-        B payload(PayloadT payload);
-
-        /**
-         * Set the identity of the request.
-         */
-        B identity(IdentityT identity);
-
-        /**
-         * Set a property that the {@link HttpSigner} can use during signing.
-         */
-        <T> B putProperty(SignerProperty<T> key, T value);
+    interface Builder<IdentityT extends Identity>
+        extends BaseSignRequest.Builder<Builder<IdentityT>, ContentStreamProvider, IdentityT>,
+            CopyableBuilder<Builder<IdentityT>, SignRequest<IdentityT>> {
     }
 }

@@ -16,21 +16,11 @@
 package software.amazon.awssdk.services.mediastoredata;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import io.reactivex.Flowable;
-import java.io.ByteArrayInputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,7 +31,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -55,14 +44,12 @@ import software.amazon.awssdk.services.mediastoredata.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.mediastoredata.model.ObjectNotFoundException;
 import software.amazon.awssdk.services.mediastoredata.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.Waiter;
-import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
  * Integration test to verify Transfer-Encoding:chunked functionalities for all supported HTTP clients. Do not delete.
  */
-public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBase {
-    private static final String CONTAINER_NAME = "java-sdk-test-" + Instant.now().toEpochMilli();
-    private static MediaStoreClient mediaStoreClient;
+public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegrationTestBase {
+    protected static final String CONTAINER_NAME = "java-sdk-test-mediastoredata-transferencoding" + Instant.now().toEpochMilli();
     private static MediaStoreDataClient syncClientWithApache;
     private static MediaStoreDataClient syncClientWithUrlConnection;
     private static MediaStoreDataAsyncClient asyncClientWithNetty;
@@ -73,14 +60,7 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
 
     @BeforeAll
     public static void setup() {
-        credentialsProvider = getCredentialsProvider();
-        mediaStoreClient = MediaStoreClient.builder()
-                                           .credentialsProvider(credentialsProvider)
-                                           .httpClient(ApacheHttpClient.builder().build())
-                                           .build();
-        container = createContainer();
-        URI uri = URI.create(container.endpoint());
-
+        uri = URI.create(createContainer(CONTAINER_NAME).endpoint());
         syncClientWithApache = MediaStoreDataClient.builder()
                                                    .endpointOverride(uri)
                                                    .credentialsProvider(credentialsProvider)
@@ -113,12 +93,13 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
     }
 
     @AfterAll
-    public static void tearDown() {
+    public static void tearDown() throws InterruptedException {
         syncClientWithApache.deleteObject(deleteObjectRequest);
         Waiter.run(() -> syncClientWithApache.describeObject(r -> r.path("/foo")))
               .untilException(ObjectNotFoundException.class)
               .orFailAfter(Duration.ofMinutes(1));
-        CaptureTransferEncodingHeaderInterceptor.reset();
+        Thread.sleep(1000);
+        mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
     }
 
     @Test
@@ -137,89 +118,7 @@ public class TransferEncodingChunkedIntegrationTest extends AwsIntegrationTestBa
 
     @Test
     public void nettyClientPutObject_withoutContentLength_sendsSuccessfully() {
-        asyncClientWithNetty.putObject(putObjectRequest, customAsyncRequestBodyWithoutContentLength()).join();
+        asyncClientWithNetty.putObject(putObjectRequest, customAsyncRequestBodyWithoutContentLength("TestBody".getBytes())).join();
         assertThat(CaptureTransferEncodingHeaderInterceptor.isChunked).isTrue();
-    }
-
-    private static Container createContainer() {
-        mediaStoreClient.createContainer(r -> r.containerName(CONTAINER_NAME));
-        DescribeContainerResponse response = waitContainerToBeActive();
-        return response.container();
-    }
-
-    private static DescribeContainerResponse waitContainerToBeActive() {
-        return Waiter.run(() -> mediaStoreClient.describeContainer(r -> r.containerName(CONTAINER_NAME)))
-                     .until(r -> ContainerStatus.ACTIVE.equals(r.container().status()))
-                     .orFailAfter(Duration.ofMinutes(3));
-    }
-
-    private static class CaptureTransferEncodingHeaderInterceptor implements ExecutionInterceptor {
-        private static boolean isChunked;
-
-        public static void reset() {
-            isChunked = false;
-        }
-
-        @Override
-        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
-            isChunked = context.httpRequest().matchingHeaders("Transfer-Encoding").contains("chunked");
-        }
-    }
-
-    private AsyncRequestBody customAsyncRequestBodyWithoutContentLength() {
-        return new AsyncRequestBody() {
-            @Override
-            public Optional<Long> contentLength() {
-                return Optional.empty();
-            }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                Flowable.fromPublisher(AsyncRequestBody.fromBytes("Random text".getBytes()))
-                        .subscribe(s);
-            }
-        };
-    }
-
-    private static class TestContentProvider implements ContentStreamProvider {
-        private final byte[] content;
-        private final List<CloseTrackingInputStream> createdStreams = new ArrayList<>();
-        private CloseTrackingInputStream currentStream;
-
-        private TestContentProvider(byte[] content) {
-            this.content = content;
-        }
-
-        @Override
-        public InputStream newStream() {
-            if (currentStream != null) {
-                invokeSafely(currentStream::close);
-            }
-            currentStream = new CloseTrackingInputStream(new ByteArrayInputStream(content));
-            createdStreams.add(currentStream);
-            return currentStream;
-        }
-
-        List<CloseTrackingInputStream> getCreatedStreams() {
-            return createdStreams;
-        }
-    }
-
-    private static class CloseTrackingInputStream extends FilterInputStream {
-        private boolean isClosed = false;
-
-        CloseTrackingInputStream(InputStream in) {
-            super(in);
-        }
-
-        @Override
-        public void close() throws IOException {
-            super.close();
-            isClosed = true;
-        }
-
-        boolean isClosed() {
-            return isClosed;
-        }
     }
 }

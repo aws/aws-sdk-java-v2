@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.identity.spi;
 
-import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -64,15 +63,16 @@ public final class IdentityProperty<T> {
 
         IdentityProperty<?> that = (IdentityProperty<?>) o;
 
-        return Objects.equals(clazz, that.clazz) &&
-               Objects.equals(name, that.name);
+        if (!clazz.equals(that.clazz)) {
+            return false;
+        }
+        return name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        int hashCode = 1;
-        hashCode = 31 * hashCode + Objects.hashCode(clazz);
-        hashCode = 31 * hashCode + Objects.hashCode(name);
-        return hashCode;
+        int result = clazz.hashCode();
+        result = 31 * result + name.hashCode();
+        return result;
     }
 }

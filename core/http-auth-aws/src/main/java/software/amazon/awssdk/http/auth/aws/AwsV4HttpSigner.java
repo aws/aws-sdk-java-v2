@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws;
 
-import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.signer.DefaultAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
@@ -29,7 +29,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html">here</a>.
  */
 @SdkPublicApi
-public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
+public interface AwsV4HttpSigner extends AwsV4FamilyHttpSigner, HttpSigner<AwsCredentialsIdentity> {
     /**
      * The AWS region name to be used for computing the signature. This property is required.
      */
@@ -37,72 +37,15 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
         SignerProperty.create(String.class, "RegionName");
 
     /**
-     * The name of the AWS service. This property is required.
+     * The algorithm to use for calculating a "flexible" checksum. This property is optional.
      */
-    SignerProperty<String> SERVICE_SIGNING_NAME =
-        SignerProperty.create(String.class, "ServiceSigningName");
-
-    /**
-     * A boolean to indicate whether to double url-encode the resource path when constructing the canonical request. This property
-     * defaults to true.
-     */
-    SignerProperty<Boolean> DOUBLE_URL_ENCODE =
-        SignerProperty.create(Boolean.class, "DoubleUrlEncode");
-
-    /**
-     * A boolean to indicate whether the resource path should be "normalized" according to RFC3986 when constructing the canonical
-     * request. This property defaults to true.
-     */
-    SignerProperty<Boolean> NORMALIZE_PATH =
-        SignerProperty.create(Boolean.class, "NormalizePath");
-
-    /**
-     * The location where auth-related data is inserted, as a result of signing. This property defaults to HEADER.
-     */
-    SignerProperty<AuthLocation> AUTH_LOCATION =
-        SignerProperty.create(AuthLocation.class, "AuthLocation");
-
-    /**
-     * The duration for the request to be valid. This property defaults to null. This can be set to presign the request for
-     * later use. The maximum allowed value for this property is 7 days. This is only supported when AuthLocation=QUERY.
-     */
-    SignerProperty<Duration> EXPIRATION_DURATION =
-        SignerProperty.create(Duration.class, "ExpirationDuration");
-
-    /**
-     * Whether to indicate that a payload is signed or not. This property defaults to true. This can be set false to disable
-     * payload signing.
-     */
-    SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
-        SignerProperty.create(Boolean.class, "PayloadSigningEnabled");
-
-    /**
-     * Whether to indicate that a payload is chunk-encoded or not. This property defaults to false. This can be set true to
-     * enable the `aws-chunk` content-encoding
-     */
-    SignerProperty<Boolean> CHUNK_ENCODING_ENABLED =
-        SignerProperty.create(Boolean.class, "ChunkEncodingEnabled");
-
+    SignerProperty<ChecksumAlgorithm> CHECKSUM_ALGORITHM =
+        SignerProperty.create(ChecksumAlgorithm.class, "ChecksumAlgorithm");
 
     /**
      * Get a default implementation of a {@link AwsV4HttpSigner}
      */
     static AwsV4HttpSigner create() {
         return new DefaultAwsV4HttpSigner();
-    }
-
-    /**
-     * This enum represents where auth-related data is inserted, as a result of signing.
-     */
-    enum AuthLocation {
-        /**
-         * Indicates auth-related data is inserted in HTTP headers.
-         */
-        HEADER,
-
-        /**
-         * Indicates auth-related data is inserted in HTTP query-parameters.
-         */
-        QUERY_STRING
     }
 }

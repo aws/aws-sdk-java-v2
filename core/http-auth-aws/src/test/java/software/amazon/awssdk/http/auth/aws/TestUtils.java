@@ -16,19 +16,19 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public final class TestUtils {
     // Helpers for generating test requests
-    public static <T extends AwsCredentialsIdentity> SyncSignRequest<T> generateBasicRequest(
+    public static <T extends AwsCredentialsIdentity> SignRequest<T> generateBasicRequest(
         T credentials,
         Consumer<? super SdkHttpRequest.Builder> requestOverrides,
-        Consumer<? super SyncSignRequest.Builder<T>> signRequestOverrides
+        Consumer<? super SignRequest.Builder<T>> signRequestOverrides
     ) {
-        return SyncSignRequest.builder(credentials)
-                              .request(SdkHttpRequest.builder()
+        return SignRequest.builder(credentials)
+                          .request(SdkHttpRequest.builder()
                                                      .method(SdkHttpMethod.POST)
                                                      .putHeader("Host", "demo.us-east-1.amazonaws.com")
                                                      .putHeader("x-amz-archive-description", "test  test")
@@ -36,13 +36,13 @@ public final class TestUtils {
                                                      .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
                                                      .build()
                                                      .copy(requestOverrides))
-                              .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-                              .putProperty(REGION_NAME, "us-east-1")
-                              .putProperty(SERVICE_SIGNING_NAME, "demo")
-                              .putProperty(SIGNING_CLOCK,
+                          .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                          .putProperty(REGION_NAME, "us-east-1")
+                          .putProperty(SERVICE_SIGNING_NAME, "demo")
+                          .putProperty(SIGNING_CLOCK,
                                            new TickingClock(Instant.ofEpochMilli(351153000968L)))
-                              .build()
-                              .copy(signRequestOverrides);
+                          .build()
+                          .copy(signRequestOverrides);
     }
 
     public static <T extends AwsCredentialsIdentity> AsyncSignRequest<T> generateBasicAsyncRequest(

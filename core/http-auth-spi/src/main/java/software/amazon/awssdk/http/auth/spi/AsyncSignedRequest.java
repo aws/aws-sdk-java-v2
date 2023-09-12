@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface AsyncSignedRequest extends SignedRequest<Publisher<ByteBuffer>> {
+public interface AsyncSignedRequest extends BaseSignedRequest<Publisher<ByteBuffer>> {
 
     /**
      * Get a new builder for creating a {@link AsyncSignedRequest}.
@@ -41,7 +41,7 @@ public interface AsyncSignedRequest extends SignedRequest<Publisher<ByteBuffer>>
     /**
      * A builder for a {@link AsyncSignedRequest}.
      */
-    interface Builder extends SignedRequest.Builder<Builder, Publisher<ByteBuffer>>,
+    interface Builder extends BaseSignedRequest.Builder<Builder, Publisher<ByteBuffer>>,
                               SdkBuilder<Builder, AsyncSignedRequest> {
     }
 }
