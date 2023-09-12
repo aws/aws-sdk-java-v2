@@ -41,6 +41,10 @@ public final class DefaultAwsV4aAuthScheme implements AwsV4aAuthScheme {
         return providers.identityProvider(AwsCredentialsIdentity.class);
     }
 
+    /**
+     * AwsV4aHttpSigner.create() returns the CRT implementation and requires the optional dependency http-auth-aws-crt to be
+     * added. So lazily creating the instance only when this method is called.
+     */
     @Override
     public AwsV4aHttpSigner signer() {
         return SignerSingletonHolder.INSTANCE;
