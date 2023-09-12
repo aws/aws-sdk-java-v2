@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.apache;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.InetAddress;
@@ -27,6 +28,7 @@ import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import software.amazon.awssdk.http.SdkHttpClient;
 
 /**
  * @see ApacheHttpClientWireMockTest
@@ -144,5 +146,25 @@ public class ApacheHttpClientTest {
                         .dnsResolver(dnsResolver)
                         .build()
                         .close();
+    }
+
+
+    @Test
+    void emptyProxyPort_shouldThrowNumberFormatException() {
+        System.setProperty("http.proxyPort", "");
+        assertThatThrownBy(ApacheHttpClient.builder()::build)
+            .isInstanceOf(NumberFormatException.class)
+            .hasMessageContaining("For input string: \"\"");
+    }
+
+    @Test
+    void emptyProxyPort_whenUseSystemPropertyIsFalse_shouldNotThrowException() {
+        System.setProperty("http.proxyPort", "");
+        SdkHttpClient client = ApacheHttpClient.builder()
+                                               .proxyConfiguration(ProxyConfiguration.builder()
+                                                                                     .useSystemPropertyValues(false)
+                                                                                     .build())
+                                               .build();
+        assertThat(client).isNotNull();
     }
 }

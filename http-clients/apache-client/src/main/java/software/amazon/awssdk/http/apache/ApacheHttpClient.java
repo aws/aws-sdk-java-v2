@@ -144,6 +144,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                                           AttributeMap standardOptions) {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
+        configuration.proxyConfiguration = Validate.getOrDefault(configuration.proxyConfiguration,
+                                                                 ProxyConfiguration.builder()::build);
+
         HttpClientBuilder builder = HttpClients.custom();
         // Note that it is important we register the original connection manager with the
         // IdleConnectionReaper as it's required for the successful deregistration of managers
@@ -455,7 +458,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
+        private ProxyConfiguration proxyConfiguration;
         private InetAddress localAddress;
         private Boolean expectContinueEnabled;
         private HttpRoutePlanner httpRoutePlanner;

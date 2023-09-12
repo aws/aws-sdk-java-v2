@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.apache;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
 import java.util.HashSet;
@@ -152,6 +153,21 @@ public class ProxyConfigurationTest {
                               .build();
 
         assertThat(proxyConfiguration.toBuilder()).isNotNull();
+    }
+
+    @Test
+    void emptyProxyPort_shouldThrowNumberFormatException() {
+        System.setProperty("http.proxyPort", "");
+        assertThatThrownBy(ProxyConfiguration.builder()::build)
+            .isInstanceOf(NumberFormatException.class)
+            .hasMessageContaining("For input string: \"\"");
+    }
+
+    @Test
+    void emptyProxyPort_whenUseSystemPropertyIsFalse_shouldNotThrowException() {
+        System.setProperty("http.proxyPort", "");
+        ProxyConfiguration configuration = ProxyConfiguration.builder().useSystemPropertyValues(false).build();
+        assertThat(configuration).isNotNull();
     }
 
     private static void clearProxyProperties() {
