@@ -1,3 +1,33 @@
+# __2.20.146__ __2023-09-12__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Improved CRT client uploads by directly passing requestPath, eliminating unnecessary file I/O in the Java SDK Transfer Manager.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports confidence score buckets for retrieved passage results using the Retrieve API.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces DynamoDbTable#getItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnConsumedCapacity to get additional information the service response.
+        - Contributed by: [@psnilesh](https://github.com/psnilesh)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for restricting public sharing of AMIs through AMI Block Public Access
+
+## __Amazon EventBridge__
+  - ### Features
+    - Adds sensitive trait to various shapes in Jetstream Connections API model.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@psnilesh](https://github.com/psnilesh)
 # __2.20.145__ __2023-09-11__
 ## __AWS Elemental MediaLive__
   - ### Features
@@ -1708,7 +1738,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
