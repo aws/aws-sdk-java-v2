@@ -28,7 +28,6 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 @SdkInternalApi
 public final class DefaultAwsV4aAuthScheme implements AwsV4aAuthScheme {
     private static final DefaultAwsV4aAuthScheme DEFAULT = new DefaultAwsV4aAuthScheme();
-    private static final AwsV4aHttpSigner DEFAULT_SIGNER = AwsV4aHttpSigner.create();
 
     /**
      * Returns an instance of the {@link DefaultAwsV4aAuthScheme}.
@@ -44,6 +43,10 @@ public final class DefaultAwsV4aAuthScheme implements AwsV4aAuthScheme {
 
     @Override
     public AwsV4aHttpSigner signer() {
-        return DEFAULT_SIGNER;
+        return SignerSingletonHolder.INSTANCE;
+    }
+
+    private static class SignerSingletonHolder {
+        private static final AwsV4aHttpSigner INSTANCE = AwsV4aHttpSigner.create();
     }
 }
