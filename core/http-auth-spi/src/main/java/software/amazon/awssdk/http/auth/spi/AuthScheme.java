@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
@@ -52,7 +52,7 @@ public interface AuthScheme<T extends Identity> {
      * Note, the returned identity provider may differ from the type of identity provider retrieved from the provided identity
      * provider configuration.
      */
-    IdentityProvider<T> identityProvider(IdentityProviderConfiguration providers);
+    IdentityProvider<T> identityProvider(IdentityProviders providers);
 
     /**
      * Retrieve the signer associated with this authentication scheme. This signer is guaranteed to support the identity generated

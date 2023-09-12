@@ -18,7 +18,7 @@ package software.amazon.awssdk.http.auth.aws;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 
@@ -54,7 +54,7 @@ public interface AwsV4aAuthScheme extends AuthScheme<AwsCredentialsIdentity> {
      * Retrieve the {@link AwsCredentialsIdentity} based {@link IdentityProvider} associated with this authentication scheme.
      */
     @Override
-    default IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviderConfiguration providers) {
+    default IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
         return providers.identityProvider(AwsCredentialsIdentity.class);
     }
 

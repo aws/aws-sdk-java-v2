@@ -58,7 +58,7 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
@@ -336,7 +336,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                  IdentityProvider.class, TokenIdentity.class, AwsClientOption.class);
             builder.beginControlFlow("if (identityProvider != null)");
             builder.addStatement("$T identityProviderConfig = config.option($T.IDENTITY_PROVIDER_CONFIGURATION)",
-                                 IdentityProviderConfiguration.class, SdkClientOption.class);
+                                 IdentityProviders.class, SdkClientOption.class);
 
             builder.addStatement("builder.option($T.IDENTITY_PROVIDER_CONFIGURATION, "
                                  + "identityProviderConfig.toBuilder()"

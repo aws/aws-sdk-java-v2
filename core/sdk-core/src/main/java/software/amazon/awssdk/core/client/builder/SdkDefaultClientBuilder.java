@@ -85,7 +85,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -284,7 +284,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                   .option(USER_AGENT_SUFFIX, "")
                                                   .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                                   .option(IDENTITY_PROVIDER_CONFIGURATION,
-                                                          IdentityProviderConfiguration.builder().build()));
+                                                          IdentityProviders.builder().build()));
         
 
         return addCompressionConfigGlobalDefaults(configuration);

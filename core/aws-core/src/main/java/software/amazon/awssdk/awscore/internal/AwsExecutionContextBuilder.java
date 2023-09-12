@@ -47,7 +47,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
@@ -172,7 +172,7 @@ public final class AwsExecutionContextBuilder {
         //  over client.
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
-        IdentityProviderConfiguration identityProviders = resolveIdentityProviderConfiguration(originalRequest, clientConfig);
+        IdentityProviders identityProviders = resolveIdentityProviders(originalRequest, clientConfig);
 
         executionAttributes
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
@@ -183,16 +183,16 @@ public final class AwsExecutionContextBuilder {
     // TODO(sra-identity-and-auth): This is hard coding the logic for the credentialsIdentityProvider from
     //  AwsRequestOverrideConfiguration. Currently, AwsRequestOverrideConfiguration does not support overriding the
     //  tokenIdentityProvider. When adding that support this method will need to be updated.
-    private static IdentityProviderConfiguration resolveIdentityProviderConfiguration(SdkRequest originalRequest,
-                                                                                      SdkClientConfiguration clientConfig) {
-        IdentityProviderConfiguration identityProviderConfiguration =
+    private static IdentityProviders resolveIdentityProviders(SdkRequest originalRequest,
+                                                              SdkClientConfiguration clientConfig) {
+        IdentityProviders identityProviders =
             clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
 
-        // identityProviderConfiguration can be null, for new core with old client. In this case, even if
-        // AwsRequestOverrideConfiguration has credentialsIdentityProvider set (because it is in new core), it is ok to not setup
+        // identityProviders can be null, for new core with old client. In this case, even if AwsRequestOverrideConfiguration
+        // has credentialsIdentityProvider set (because it is in new core), it is ok to not setup
         // IDENTITY_PROVIDER_CONFIGURATION, as old client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also
         // needed for SRA logic.
-        if (identityProviderConfiguration == null) {
+        if (identityProviders == null) {
             return null;
         }
 
@@ -201,8 +201,8 @@ public final class AwsExecutionContextBuilder {
                               .map(c -> (AwsRequestOverrideConfiguration) c)
                               .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                               .map(identityProvider ->
-                                       identityProviderConfiguration.copy(b -> b.putIdentityProvider(identityProvider)))
-                              .orElse(identityProviderConfiguration);
+                                       identityProviders.copy(b -> b.putIdentityProvider(identityProvider)))
+                              .orElse(identityProviders);
     }
 
     /**

@@ -22,26 +22,26 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 
-class IdentityProviderConfigurationTest {
+class IdentityProvidersTest {
 
     @Test
     public void builder_empty_builds() {
-        assertNotNull(IdentityProviderConfiguration.builder().build());
+        assertNotNull(IdentityProviders.builder().build());
     }
 
     @Test
     public void identityProvider_withUnknownType_returnsNull() {
         IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = new AwsCredentialsProvider();
-        IdentityProviderConfiguration identityProviders =
-            IdentityProviderConfiguration.builder().putIdentityProvider(awsCredentialsProvider).build();
+        IdentityProviders identityProviders =
+            IdentityProviders.builder().putIdentityProvider(awsCredentialsProvider).build();
         assertNull(identityProviders.identityProvider(TokenIdentity.class));
     }
 
     @Test
     public void identityProvider_canBeRetrieved() {
         IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = new AwsCredentialsProvider();
-        IdentityProviderConfiguration identityProviders =
-            IdentityProviderConfiguration.builder().putIdentityProvider(awsCredentialsProvider).build();
+        IdentityProviders identityProviders =
+            IdentityProviders.builder().putIdentityProvider(awsCredentialsProvider).build();
         assertSame(awsCredentialsProvider, identityProviders.identityProvider(AwsCredentialsIdentity.class));
     }
 
@@ -49,10 +49,10 @@ class IdentityProviderConfigurationTest {
     public void putIdentityProvider_ofSameType_isReplaced() {
         IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider1 = new AwsCredentialsProvider();
         IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider2 = new AwsCredentialsProvider();
-        IdentityProviderConfiguration identityProviders =
-            IdentityProviderConfiguration.builder()
-                                         .putIdentityProvider(awsCredentialsProvider1)
-                                         .putIdentityProvider(awsCredentialsProvider2).build();
+        IdentityProviders identityProviders =
+            IdentityProviders.builder()
+                             .putIdentityProvider(awsCredentialsProvider1)
+                             .putIdentityProvider(awsCredentialsProvider2).build();
         assertSame(awsCredentialsProvider2, identityProviders.identityProvider(AwsCredentialsIdentity.class));
     }
 
@@ -60,11 +60,11 @@ class IdentityProviderConfigurationTest {
     public void identityProvider_withSubType_returnsAppropriateSubType() {
         IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = new AwsCredentialsProvider();
         IdentityProvider<AwsSessionCredentialsIdentity> awsSessionCredentialsProvider = new AwsSessionCredentialsProvider();
-        IdentityProviderConfiguration identityProviders =
-            IdentityProviderConfiguration.builder()
-                                         .putIdentityProvider(awsCredentialsProvider)
-                                         .putIdentityProvider(awsSessionCredentialsProvider)
-                                         .build();
+        IdentityProviders identityProviders =
+            IdentityProviders.builder()
+                             .putIdentityProvider(awsCredentialsProvider)
+                             .putIdentityProvider(awsSessionCredentialsProvider)
+                             .build();
 
         assertSame(awsCredentialsProvider, identityProviders.identityProvider(AwsCredentialsIdentity.class));
         assertSame(awsSessionCredentialsProvider, identityProviders.identityProvider(AwsSessionCredentialsIdentity.class));
@@ -73,10 +73,10 @@ class IdentityProviderConfigurationTest {
     @Test
     public void identityProvider_withOnlySubType_returnsNullForParentType() {
         IdentityProvider<AwsSessionCredentialsIdentity> awsSessionCredentialsProvider = new AwsSessionCredentialsProvider();
-        IdentityProviderConfiguration identityProviders =
-            IdentityProviderConfiguration.builder()
-                                         .putIdentityProvider(awsSessionCredentialsProvider)
-                                         .build();
+        IdentityProviders identityProviders =
+            IdentityProviders.builder()
+                             .putIdentityProvider(awsSessionCredentialsProvider)
+                             .build();
 
         assertNull(identityProviders.identityProvider(AwsCredentialsIdentity.class));
     }
@@ -84,10 +84,10 @@ class IdentityProviderConfigurationTest {
     @Test
     public void copyBuilder_addIdentityProvider_works() {
         IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = new AwsCredentialsProvider();
-        IdentityProviderConfiguration identityProviders =
-            IdentityProviderConfiguration.builder()
-                                         .putIdentityProvider(awsCredentialsProvider)
-                                         .build();
+        IdentityProviders identityProviders =
+            IdentityProviders.builder()
+                             .putIdentityProvider(awsCredentialsProvider)
+                             .build();
 
         IdentityProvider<TokenIdentity> tokenProvider = new TokenProvider();
         identityProviders = identityProviders.copy(builder -> builder.putIdentityProvider(tokenProvider));

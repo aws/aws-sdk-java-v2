@@ -52,7 +52,7 @@ import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
@@ -212,9 +212,9 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                 .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, PollyAuthSchemeProvider.defaultProvider())
                 .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
                 .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION,
-                              IdentityProviderConfiguration.builder()
-                                                           .putIdentityProvider(credentialsProvider())
-                                                           .build());
+                              IdentityProviders.builder()
+                                               .putIdentityProvider(credentialsProvider())
+                                               .build());
     }
 
     private Map<String, AuthScheme<?>> authSchemes() {

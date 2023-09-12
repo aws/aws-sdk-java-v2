@@ -26,7 +26,7 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -111,9 +111,9 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         "AuthSchemes");
 
     /**
-     * The {@link IdentityProviderConfiguration} for a request.
+     * The {@link IdentityProviders} for a request.
      */
-    public static final ExecutionAttribute<IdentityProviderConfiguration> IDENTITY_PROVIDER_CONFIGURATION =
+    public static final ExecutionAttribute<IdentityProviders> IDENTITY_PROVIDER_CONFIGURATION =
         new ExecutionAttribute<>("IdentityProviderConfiguration");
 
     /**

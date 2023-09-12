@@ -49,7 +49,7 @@ import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClient;
@@ -468,7 +468,7 @@ public class EndpointInterceptorTests {
             }
 
             @Override
-            public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviderConfiguration providers) {
+            public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
                 return providers.identityProvider(AwsCredentialsIdentity.class);
             }
 

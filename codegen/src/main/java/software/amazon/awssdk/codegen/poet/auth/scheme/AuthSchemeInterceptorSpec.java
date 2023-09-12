@@ -49,7 +49,7 @@ import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.identity.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -200,7 +200,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                              mapOf(String.class, wildcardAuthScheme()),
                              SdkInternalExecutionAttribute.class)
                .addStatement("$T identityResolvers = executionAttributes.getAttribute($T.IDENTITY_PROVIDER_CONFIGURATION)",
-                             IdentityProviderConfiguration.class, SdkInternalExecutionAttribute.class)
+                             IdentityProviders.class, SdkInternalExecutionAttribute.class)
                .addStatement("$T discardedReasons = new $T<>()",
                              listOfStringSuppliers(), ArrayList.class);
 
@@ -235,7 +235,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                                .returns(namedSelectedAuthScheme())
                                                .addParameter(AuthSchemeOption.class, "authOption")
                                                .addParameter(namedAuthScheme(), "authScheme")
-                                               .addParameter(IdentityProviderConfiguration.class, "identityProviders")
+                                               .addParameter(IdentityProviders.class, "identityProviders")
                                                .addParameter(listOfStringSuppliers(), "discardedReasons")
                                                .addParameter(MetricCollector.class, "metricCollector")
                                                .addTypeVariable(TypeVariableName.get("T", Identity.class));
