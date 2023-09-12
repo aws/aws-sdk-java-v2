@@ -49,8 +49,8 @@ public interface AuthScheme<T extends Identity> {
      * For example, if the scheme ID is aws.auth#sigv4, the provider returns an {@link AwsCredentialsIdentity}, if the scheme ID
      * is httpBearerAuth, the provider returns a {@link TokenIdentity}.
      * <p>
-     * Note, the returned identity provider may differ from the type of identity provider retrieved from the provided identity
-     * provider configuration.
+     * Note, the returned identity provider may differ from the type of identity provider retrieved from the provided
+     * {@link IdentityProviders}.
      */
     IdentityProvider<T> identityProvider(IdentityProviders providers);
 
