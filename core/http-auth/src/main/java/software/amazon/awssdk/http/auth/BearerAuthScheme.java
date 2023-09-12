@@ -42,14 +42,6 @@ public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {
     }
 
     /**
-     * Retrieve the scheme ID.
-     */
-    @Override
-    default String schemeId() {
-        return SCHEME_ID;
-    }
-
-    /**
      * Retrieve the {@link TokenIdentity} based {@link IdentityProvider} associated with this authentication scheme.
      */
     @Override

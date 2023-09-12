@@ -56,6 +56,11 @@ public final class DefaultNoAuthAuthScheme implements NoAuthAuthScheme {
     }
 
     @Override
+    public String schemeId() {
+        return SCHEME_ID;
+    }
+
+    @Override
     public IdentityProvider<AnonymousIdentity> identityProvider(IdentityProviderConfiguration providers) {
         return DEFAULT_IDENTITY_PROVIDER;
     }

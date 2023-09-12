@@ -42,14 +42,6 @@ public interface AwsV4aAuthScheme extends AuthScheme<AwsCredentialsIdentity> {
     }
 
     /**
-     * Retrieve the scheme ID.
-     */
-    @Override
-    default String schemeId() {
-        return SCHEME_ID;
-    }
-
-    /**
      * Retrieve the {@link AwsCredentialsIdentity} based {@link IdentityProvider} associated with this authentication scheme.
      */
     @Override

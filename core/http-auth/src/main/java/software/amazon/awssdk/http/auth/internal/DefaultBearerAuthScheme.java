@@ -38,6 +38,11 @@ public final class DefaultBearerAuthScheme implements BearerAuthScheme {
     }
 
     @Override
+    public String schemeId() {
+        return SCHEME_ID;
+    }
+
+    @Override
     public IdentityProvider<TokenIdentity> identityProvider(IdentityProviderConfiguration providers) {
         return providers.identityProvider(TokenIdentity.class);
     }

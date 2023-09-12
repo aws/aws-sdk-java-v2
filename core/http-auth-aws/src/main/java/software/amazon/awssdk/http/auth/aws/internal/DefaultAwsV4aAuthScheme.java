@@ -37,6 +37,11 @@ public final class DefaultAwsV4aAuthScheme implements AwsV4aAuthScheme {
     }
 
     @Override
+    public String schemeId() {
+        return SCHEME_ID;
+    }
+
+    @Override
     public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviderConfiguration providers) {
         return providers.identityProvider(AwsCredentialsIdentity.class);
     }
