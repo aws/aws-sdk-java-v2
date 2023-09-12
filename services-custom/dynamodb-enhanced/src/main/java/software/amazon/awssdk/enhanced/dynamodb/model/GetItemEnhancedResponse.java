@@ -43,7 +43,7 @@ public final class GetItemEnhancedResponse<T> {
     }
 
     /**
-     * The attribute values values returned by {@link GetItem} operation.
+     * The attribute values returned by {@code GetItem} operation.
      */
     public T attributes() {
         return attributes;
