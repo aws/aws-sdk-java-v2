@@ -61,13 +61,13 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                                                                     ExecutionAttributes executionAttributes) {
         MetricCollector metricCollector = executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
-        IdentityProviders identityResolvers = executionAttributes
+        IdentityProviders identityProviders = executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
         List<Supplier<String>> discardedReasons = new ArrayList<>();
         for (AuthSchemeOption authOption : authOptions) {
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
             SelectedAuthScheme<? extends Identity> selectedAuthScheme = trySelectAuthScheme(authOption, authScheme,
-                                                                                            identityResolvers, discardedReasons, metricCollector);
+                                                                                            identityProviders, discardedReasons, metricCollector);
             if (selectedAuthScheme != null) {
                 if (!discardedReasons.isEmpty()) {
                     LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),

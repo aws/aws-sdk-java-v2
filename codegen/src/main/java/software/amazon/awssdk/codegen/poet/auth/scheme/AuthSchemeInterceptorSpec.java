@@ -199,7 +199,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addStatement("$T authSchemes = executionAttributes.getAttribute($T.AUTH_SCHEMES)",
                              mapOf(String.class, wildcardAuthScheme()),
                              SdkInternalExecutionAttribute.class)
-               .addStatement("$T identityResolvers = executionAttributes.getAttribute($T.IDENTITY_PROVIDER_CONFIGURATION)",
+               .addStatement("$T identityProviders = executionAttributes.getAttribute($T.IDENTITY_PROVIDER_CONFIGURATION)",
                              IdentityProviders.class, SdkInternalExecutionAttribute.class)
                .addStatement("$T discardedReasons = new $T<>()",
                              listOfStringSuppliers(), ArrayList.class);
@@ -207,7 +207,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         builder.beginControlFlow("for ($T authOption : authOptions)", AuthSchemeOption.class);
         {
             builder.addStatement("$T authScheme = authSchemes.get(authOption.schemeId())", wildcardAuthScheme())
-                   .addStatement("$T selectedAuthScheme = trySelectAuthScheme(authOption, authScheme, identityResolvers, "
+                   .addStatement("$T selectedAuthScheme = trySelectAuthScheme(authOption, authScheme, identityProviders, "
                                  + "discardedReasons, metricCollector)",
                                  wildcardSelectedAuthScheme());
             builder.beginControlFlow("if (selectedAuthScheme != null)");
