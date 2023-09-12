@@ -101,26 +101,25 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The auth scheme provider used to resolve the auth scheme for a request.
      */
-    public static final ExecutionAttribute<AuthSchemeProvider> AUTH_SCHEME_RESOLVER = new ExecutionAttribute<>(
-        "AuthSchemeProvider");
+    public static final ExecutionAttribute<AuthSchemeProvider> AUTH_SCHEME_RESOLVER =
+        new ExecutionAttribute<>("AuthSchemeProvider");
 
     /**
      * The auth schemes available for a request.
      */
-    public static final ExecutionAttribute<Map<String, AuthScheme<?>>> AUTH_SCHEMES = new ExecutionAttribute<>(
-        "AuthSchemes");
+    public static final ExecutionAttribute<Map<String, AuthScheme<?>>> AUTH_SCHEMES = new ExecutionAttribute<>("AuthSchemes");
 
     /**
      * The {@link IdentityProviders} for a request.
      */
-    public static final ExecutionAttribute<IdentityProviders> IDENTITY_PROVIDER_CONFIGURATION =
-        new ExecutionAttribute<>("IdentityProviderConfiguration");
+    public static final ExecutionAttribute<IdentityProviders> IDENTITY_PROVIDERS = new ExecutionAttribute<>("IdentityProviders");
 
     /**
      * The selected auth scheme for a request.
      */
-    public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME = new ExecutionAttribute<>(
-        "SelectedAuthScheme");
+    public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME =
+        new ExecutionAttribute<>("SelectedAuthScheme");
+
     /**
      * The supported compression algorithms for an operation, and whether the operation is streaming or not.
      */

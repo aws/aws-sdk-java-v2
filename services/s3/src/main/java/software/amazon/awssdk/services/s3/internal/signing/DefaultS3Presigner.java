@@ -373,7 +373,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams)
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, S3AuthSchemeProvider.defaultProvider())
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
-            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION,
+            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS,
                           IdentityProviders.builder()
                                            .putIdentityProvider(credentialsProvider())
                                            .build());

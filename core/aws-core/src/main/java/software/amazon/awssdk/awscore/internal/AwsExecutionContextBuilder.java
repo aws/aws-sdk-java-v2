@@ -177,7 +177,7 @@ public final class AwsExecutionContextBuilder {
         executionAttributes
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes)
-            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION, identityProviders);
+            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
     }
 
     // TODO(sra-identity-and-auth): This is hard coding the logic for the credentialsIdentityProvider from
@@ -186,12 +186,11 @@ public final class AwsExecutionContextBuilder {
     private static IdentityProviders resolveIdentityProviders(SdkRequest originalRequest,
                                                               SdkClientConfiguration clientConfig) {
         IdentityProviders identityProviders =
-            clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
+            clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
 
         // identityProviders can be null, for new core with old client. In this case, even if AwsRequestOverrideConfiguration
-        // has credentialsIdentityProvider set (because it is in new core), it is ok to not setup
-        // IDENTITY_PROVIDER_CONFIGURATION, as old client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also
-        // needed for SRA logic.
+        // has credentialsIdentityProvider set (because it is in new core), it is ok to not setup IDENTITY_PROVIDERS, as old
+        // client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also needed for SRA logic.
         if (identityProviders == null) {
             return null;
         }

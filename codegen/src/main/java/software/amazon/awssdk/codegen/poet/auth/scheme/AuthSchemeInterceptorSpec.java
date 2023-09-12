@@ -199,7 +199,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addStatement("$T authSchemes = executionAttributes.getAttribute($T.AUTH_SCHEMES)",
                              mapOf(String.class, wildcardAuthScheme()),
                              SdkInternalExecutionAttribute.class)
-               .addStatement("$T identityProviders = executionAttributes.getAttribute($T.IDENTITY_PROVIDER_CONFIGURATION)",
+               .addStatement("$T identityProviders = executionAttributes.getAttribute($T.IDENTITY_PROVIDERS)",
                              IdentityProviders.class, SdkInternalExecutionAttribute.class)
                .addStatement("$T discardedReasons = new $T<>()",
                              listOfStringSuppliers(), ArrayList.class);

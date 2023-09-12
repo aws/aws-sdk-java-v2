@@ -206,7 +206,7 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_withoutIdentityProviderConfiguration_assignsNull() {
+    public void invokeInterceptorsAndCreateExecutionContext_withoutIdentityProviders_assignsNull() {
         ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
 
         ExecutionContext executionContext =
@@ -214,17 +214,17 @@ public class AwsExecutionContextBuilderTest {
                                                                                    testClientConfiguration().build());
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
-        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION)).isNull();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS)).isNull();
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_requestOverrideForIdentityProvider_updatesIdentityProviderConfiguration() {
+    public void invokeInterceptorsAndCreateExecutionContext_requestOverrideForIdentityProvider_updatesIdentityProviders() {
         IdentityProvider<? extends AwsCredentialsIdentity> clientCredentialsProvider =
             StaticCredentialsProvider.create(AwsBasicCredentials.create("foo", "bar"));
         IdentityProviders identityProviders =
             IdentityProviders.builder().putIdentityProvider(clientCredentialsProvider).build();
         SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION, identityProviders)
+            .option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders)
             .build();
 
         IdentityProvider<? extends AwsCredentialsIdentity> requestCredentialsProvider =
@@ -239,7 +239,7 @@ public class AwsExecutionContextBuilderTest {
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
 
         IdentityProviders actualIdentityProviders =
-            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
 
         IdentityProvider<AwsCredentialsIdentity> actualIdentityProvider =
             actualIdentityProviders.identityProvider(AwsCredentialsIdentity.class);

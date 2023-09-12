@@ -335,11 +335,10 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addStatement("$T<? extends $T> identityProvider = config.option($T.TOKEN_IDENTITY_PROVIDER)",
                                  IdentityProvider.class, TokenIdentity.class, AwsClientOption.class);
             builder.beginControlFlow("if (identityProvider != null)");
-            builder.addStatement("$T identityProviderConfig = config.option($T.IDENTITY_PROVIDER_CONFIGURATION)",
+            builder.addStatement("$T identityProviders = config.option($T.IDENTITY_PROVIDERS)",
                                  IdentityProviders.class, SdkClientOption.class);
 
-            builder.addStatement("builder.option($T.IDENTITY_PROVIDER_CONFIGURATION, "
-                                 + "identityProviderConfig.toBuilder()"
+            builder.addStatement("builder.option($T.IDENTITY_PROVIDERS, identityProviders.toBuilder()"
                                  + ".putIdentityProvider(identityProvider).build())", SdkClientOption.class);
 
             builder.endControlFlow();

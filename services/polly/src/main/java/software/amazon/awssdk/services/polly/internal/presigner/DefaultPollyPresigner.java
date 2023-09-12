@@ -211,7 +211,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                 .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration)
                 .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, PollyAuthSchemeProvider.defaultProvider())
                 .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
-                .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION,
+                .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS,
                               IdentityProviders.builder()
                                                .putIdentityProvider(credentialsProvider())
                                                .build());

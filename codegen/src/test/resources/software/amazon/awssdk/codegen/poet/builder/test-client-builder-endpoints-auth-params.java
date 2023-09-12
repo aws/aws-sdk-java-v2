@@ -77,9 +77,9 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         SdkClientConfiguration.Builder builder = config.toBuilder();
         IdentityProvider<? extends TokenIdentity> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
         if (identityProvider != null) {
-            IdentityProviders identityProviderConfig = config.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
-            builder.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION, identityProviderConfig.toBuilder()
-                                                                                                  .putIdentityProvider(identityProvider).build());
+            IdentityProviders identityProviders = config.option(SdkClientOption.IDENTITY_PROVIDERS);
+            builder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders.toBuilder()
+                                                                                     .putIdentityProvider(identityProvider).build());
         }
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.CLIENT_CONTEXT_PARAMS,
                                                                                     clientContextParams.build());

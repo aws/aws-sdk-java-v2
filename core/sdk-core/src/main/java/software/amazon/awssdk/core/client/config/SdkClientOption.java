@@ -203,8 +203,7 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     /**
      * The IdentityProviders configured on the client.
      */
-    public static final SdkClientOption<IdentityProviders> IDENTITY_PROVIDER_CONFIGURATION =
-        new SdkClientOption<>(IdentityProviders.class);
+    public static final SdkClientOption<IdentityProviders> IDENTITY_PROVIDERS = new SdkClientOption<>(IdentityProviders.class);
 
     /**
      * The container for any client contexts parameters set on the client.
