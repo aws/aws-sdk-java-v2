@@ -33,6 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 
 /**
@@ -109,6 +110,10 @@ public final class BatchGetResultPage {
                                               .sortValue(sortValue)
                                               .build(); })
                                 .collect(Collectors.toList());
+    }
+
+    public List<ConsumedCapacity> consumedCapacity() {
+        return this.batchGetItemResponse.consumedCapacity();
     }
 
     /**
