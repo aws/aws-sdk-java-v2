@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.spi;
+package software.amazon.awssdk.identity.spi;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -21,11 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 class IdentityProviderConfigurationTest {
 

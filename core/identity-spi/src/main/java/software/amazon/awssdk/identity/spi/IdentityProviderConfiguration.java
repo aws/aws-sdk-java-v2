@@ -13,19 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.spi;
+package software.amazon.awssdk.identity.spi;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultIdentityProviderConfiguration;
-import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.internal.DefaultIdentityProviderConfiguration;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * The identity providers configured in the SDK.
  * <p>
- * Used by the {@link AuthScheme} implementation to load any @{@link IdentityProvider}s it needs from the set that are
+ * Used by the AuthScheme implementation to load any @{@link IdentityProvider}s it needs from the set that are
  * configured on the SDK.
  */
 @SdkPublicApi
