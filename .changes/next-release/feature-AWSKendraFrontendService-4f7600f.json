@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSKendraFrontendService",
-    "contributor": "",
-    "description": "Amazon Kendra now supports confidence score buckets for retrieved passage results using the Retrieve API."
-}
