@@ -49,6 +49,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedRespo
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
@@ -210,8 +211,8 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public T getItem(GetItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, T> operation = GetItemOperation.create(request);
-        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
     }
 
     @Override
@@ -229,6 +230,19 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     public T getItem(T keyItem) {
         return getItem(keyFrom(keyItem));
+    }
+
+    @Override
+    public GetItemEnhancedResponse<T> getItemWithResponse(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
+        GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return getItemWithResponse(builder.build());
+    }
+
+    @Override
+    public GetItemEnhancedResponse<T> getItemWithResponse(GetItemEnhancedRequest request) {
+        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
