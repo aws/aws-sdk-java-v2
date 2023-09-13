@@ -32,6 +32,6 @@ import software.amazon.awssdk.utils.Pair;
  */
 @FunctionalInterface
 @SdkInternalApi
-public interface TrailerProvider {
+public interface TrailerProvider extends Resettable {
     Pair<String, List<String>> get();
 }

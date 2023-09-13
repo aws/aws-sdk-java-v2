@@ -13,19 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
+package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
-/**
- * A functional interface for defining a header of a chunk.
- * <p>
- * The header usually depends on the chunk-data itself (hex-size), but is not required to. In <a
- * href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1">RFC-7230</a>, the chunk-header is specifically the
- * {@code chunk-size}, but this interface can give us greater flexibility.
- */
-@FunctionalInterface
 @SdkInternalApi
-public interface ChunkHeaderProvider extends Resettable {
-    byte[] get(byte[] chunk);
+public interface Resettable {
+    default void reset() {
+    }
 }

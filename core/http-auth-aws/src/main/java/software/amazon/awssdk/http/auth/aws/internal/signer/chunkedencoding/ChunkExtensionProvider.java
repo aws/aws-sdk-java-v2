@@ -31,6 +31,6 @@ import software.amazon.awssdk.utils.Pair;
  */
 @FunctionalInterface
 @SdkInternalApi
-public interface ChunkExtensionProvider {
+public interface ChunkExtensionProvider extends Resettable {
     Pair<byte[], byte[]> get(byte[] chunk);
 }

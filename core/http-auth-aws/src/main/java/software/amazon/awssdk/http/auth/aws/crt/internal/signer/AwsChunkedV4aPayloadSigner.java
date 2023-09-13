@@ -15,30 +15,29 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.fromChecksumAlgorithm;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.moveContentLength;
+import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.checksumHeaderName;
+import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.fromChecksumAlgorithm;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.moveContentLength;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
+import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChecksumTrailerProvider;
+import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChunkedEncodedInputStream;
+import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.TrailerProvider;
+import software.amazon.awssdk.http.auth.aws.internal.io.ChecksumInputStream;
+import software.amazon.awssdk.http.auth.aws.internal.io.ResettableContentStreamProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChunkedEncodedInputStream;
-import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.TrailerProvider;
-import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
@@ -58,6 +57,10 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
         this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
         this.chunkSize = Validate.isPositive(builder.chunkSize, "ChunkSize");
         this.checksumAlgorithm = builder.checksumAlgorithm;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -93,7 +96,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
                 throw new UnsupportedOperationException();
         }
 
-        return chunkedEncodedInputStreamBuilder::build;
+        return new ResettableContentStreamProvider(chunkedEncodedInputStreamBuilder::build);
     }
 
     /**
@@ -103,12 +106,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
      * signature is dependent on the request signature ("seed" signature).
      */
     private void setupSigExt(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
-        builder.addExtension(
-            chunk -> Pair.of(
-                "chunk-signature".getBytes(StandardCharsets.UTF_8),
-                rollingSigner.sign(chunk)
-            )
-        );
+        builder.addExtension(new SigV4aChunkExtensionProvider(rollingSigner, credentialScope));
     }
 
     /**
@@ -119,16 +117,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
      */
     private void setupSigTrailer(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
         List<TrailerProvider> trailers = builder.trailers();
-        Supplier<Map<String, List<String>>> headersSupplier =
-            () -> trailers.stream().map(TrailerProvider::get).collect(Collectors.toMap(Pair::left, Pair::right));
-        Supplier<byte[]> sigSupplier = () -> rollingSigner.sign(headersSupplier.get());
-
-        builder.addTrailer(
-            () -> Pair.of(
-                "x-amz-trailer-signature",
-                Collections.singletonList(new String(sigSupplier.get(), StandardCharsets.UTF_8))
-            )
-        );
+        builder.addTrailer(new SigV4aTrailerProvider(trailers, rollingSigner, credentialScope));
     }
 
     /**
@@ -147,10 +136,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
         );
         String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
 
-        TrailerProvider checksumTrailer = () -> Pair.of(
-            checksumHeaderName,
-            Collections.singletonList(sdkChecksum.getChecksum())
-        );
+        TrailerProvider checksumTrailer = new ChecksumTrailerProvider(sdkChecksum, checksumHeaderName);
 
         request.appendHeader(X_AMZ_TRAILER, checksumHeaderName);
         builder.inputStream(checksumInputStream).addTrailer(checksumTrailer);
@@ -175,10 +161,6 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
             builder.addTrailer(() -> Pair.of(header, values));
             request.removeHeader(header);
         }
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     static final class Builder {
