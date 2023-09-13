@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "faucct",
-    "description": "Fix `InputStreamSubscriber` to return 0 when reading a length of 0."
-}

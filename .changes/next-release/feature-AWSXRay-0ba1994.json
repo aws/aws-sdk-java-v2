@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS X-Ray",
-    "contributor": "",
-    "description": "Add StartTime field in GetTraceSummaries API response for each TraceSummary."
-}

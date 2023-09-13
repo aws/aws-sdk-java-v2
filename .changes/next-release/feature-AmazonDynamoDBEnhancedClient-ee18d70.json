@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "psnilesh",
-    "description": "This commit introduces returnConsumedCapacity input to BatchGetItemEnhancedRequest that allows customers to find out exactly how much read units were consumed by the operation."
-}
