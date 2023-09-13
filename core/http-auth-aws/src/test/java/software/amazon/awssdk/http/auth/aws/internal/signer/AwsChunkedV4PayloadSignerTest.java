@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
@@ -101,7 +101,7 @@ public class AwsChunkedV4PayloadSignerTest {
     }
 
     @Test
-    public void sign_withSignedPayloadAndChecksum_shouldChunkEncodeWithSigV4ExtAndChecksumTrailer() throws IOException {
+    public void sign_withSignedPayloadAndChecksum_shouldChunkEncodeWithSigV4ExtAndSigV4Trailer() throws IOException {
         String expectedContent =
             "4;chunk-signature=082f5b0e588893570e152b401a886161ee772ed066948f68c8f01aee11cca4f8\r\n{\"Ta\r\n" +
             "4;chunk-signature=777b02ec61ce7934578b1efe6fbe08c21ae4a8cdf66a709d3b4fd320dddd2839\r\nbleN\r\n" +
@@ -135,6 +135,7 @@ public class AwsChunkedV4PayloadSignerTest {
 
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
+        assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
 
         byte[] tmp = new byte[1024];
         int actualBytes = readAll(signedPayload.newStream(), tmp);
@@ -176,6 +177,7 @@ public class AwsChunkedV4PayloadSignerTest {
 
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
+        assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-sha256");
 
         byte[] tmp = new byte[1024];
         int actualBytes = readAll(signedPayload.newStream(), tmp);
@@ -226,6 +228,7 @@ public class AwsChunkedV4PayloadSignerTest {
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("PreExistingHeader1")).isNotPresent();
         assertThat(requestBuilder.firstMatchingHeader("PreExistingHeader2")).isNotPresent();
+        assertThat(requestBuilder.matchingHeaders("x-amz-trailer")).contains("PreExistingHeader1", "PreExistingHeader2");
 
         byte[] tmp = new byte[1024];
         int actualBytes = readAll(signedPayload.newStream(), tmp);
@@ -278,6 +281,9 @@ public class AwsChunkedV4PayloadSignerTest {
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("PreExistingHeader1")).isNotPresent();
         assertThat(requestBuilder.firstMatchingHeader("PreExistingHeader2")).isNotPresent();
+        assertThat(requestBuilder.matchingHeaders("x-amz-trailer")).contains(
+            "PreExistingHeader1", "PreExistingHeader2", "x-amz-checksum-crc32"
+        );
 
         byte[] tmp = new byte[1024];
         int actualBytes = readAll(signedPayload.newStream(), tmp);
@@ -329,6 +335,7 @@ public class AwsChunkedV4PayloadSignerTest {
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("PreExistingHeader1")).isNotPresent();
+        assertThat(requestBuilder.matchingHeaders("x-amz-trailer")).contains("zzz", "PreExistingHeader1", "x-amz-checksum-crc32");
 
         byte[] tmp = new byte[1024];
         int actualBytes = readAll(signedPayload.newStream(), tmp);

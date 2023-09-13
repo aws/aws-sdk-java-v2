@@ -18,6 +18,15 @@ package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC;
+import static software.amazon.awssdk.http.auth.aws.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.AuthLocation;
 import static software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner.CHUNK_ENCODING_ENABLED;
@@ -28,11 +37,9 @@ import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRe
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
 
 import java.time.Duration;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.Header;
-import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignedRequest;
@@ -61,11 +68,11 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         expectedSigningConfig.setCredentials(toCredentials(request.identity()));
         expectedSigningConfig.setService("demo");
         expectedSigningConfig.setRegion("aws-global");
-        expectedSigningConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        expectedSigningConfig.setAlgorithm(SIGV4_ASYMMETRIC);
         expectedSigningConfig.setTime(1596476903000L);
         expectedSigningConfig.setUseDoubleUriEncode(true);
         expectedSigningConfig.setShouldNormalizeUriPath(true);
-        expectedSigningConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
+        expectedSigningConfig.setSignatureType(HTTP_REQUEST_VIA_HEADERS);
 
         SignedRequest signedRequest = signer.sign(request);
 
@@ -91,11 +98,11 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         expectedSigningConfig.setCredentials(toCredentials(request.identity()));
         expectedSigningConfig.setService("demo");
         expectedSigningConfig.setRegion("aws-global");
-        expectedSigningConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        expectedSigningConfig.setAlgorithm(SIGV4_ASYMMETRIC);
         expectedSigningConfig.setTime(1596476903000L);
         expectedSigningConfig.setUseDoubleUriEncode(true);
         expectedSigningConfig.setShouldNormalizeUriPath(true);
-        expectedSigningConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
+        expectedSigningConfig.setSignatureType(HTTP_REQUEST_VIA_QUERY_PARAMS);
 
         SignedRequest signedRequest = signer.sign(request);
 
@@ -126,11 +133,11 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         expectedSigningConfig.setCredentials(toCredentials(request.identity()));
         expectedSigningConfig.setService("demo");
         expectedSigningConfig.setRegion("aws-global");
-        expectedSigningConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        expectedSigningConfig.setAlgorithm(SIGV4_ASYMMETRIC);
         expectedSigningConfig.setTime(1596476903000L);
         expectedSigningConfig.setUseDoubleUriEncode(true);
         expectedSigningConfig.setShouldNormalizeUriPath(true);
-        expectedSigningConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS);
+        expectedSigningConfig.setSignatureType(HTTP_REQUEST_VIA_QUERY_PARAMS);
         expectedSigningConfig.setExpirationInSeconds(1);
 
         SignedRequest signedRequest = signer.sign(request);
@@ -163,12 +170,12 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         expectedSigningConfig.setCredentials(toCredentials(request.identity()));
         expectedSigningConfig.setService("demo");
         expectedSigningConfig.setRegion("aws-global");
-        expectedSigningConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC);
+        expectedSigningConfig.setAlgorithm(SIGV4_ASYMMETRIC);
         expectedSigningConfig.setTime(1596476903000L);
         expectedSigningConfig.setUseDoubleUriEncode(true);
         expectedSigningConfig.setShouldNormalizeUriPath(true);
-        expectedSigningConfig.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS);
-        expectedSigningConfig.setSignedBodyValue(AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD);
+        expectedSigningConfig.setSignatureType(HTTP_REQUEST_VIA_HEADERS);
+        expectedSigningConfig.setSignedBodyValue(UNSIGNED_PAYLOAD);
 
         SignedRequest signedRequest = signer.sign(request);
 
@@ -196,7 +203,9 @@ public class DefaultAwsCrtV4aHttpSignerTest {
 
     @Test
     public void signAsync_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> signer.signAsync((AsyncSignRequest) null));
+        assertThrows(UnsupportedOperationException.class,
+                     () -> signer.signAsync((AsyncSignRequest<? extends AwsCredentialsIdentity>) null)
+        );
     }
 
     @Test
@@ -211,47 +220,30 @@ public class DefaultAwsCrtV4aHttpSignerTest {
 
         SignedRequest signedRequest = signer.sign(request);
 
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-                               .hasValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+                               .hasValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
 
     @Test
-    public void sign_WithChunkEncodingTrueWithout_DelegatesToAwsChunkedPayloadSigner() {
+    public void sign_WithChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
                 .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
         );
 
         SignedRequest signedRequest = signer.sign(request);
 
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-                               .hasValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
-    }
-
-    @Test
-    public void sign_ChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
-        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest
-                .putHeader(Header.CONTENT_LENGTH, "20")
-                .putHeader("x-amz-trailer", "aTrailer"),
-            signRequest -> signRequest
-                .putProperty(CHUNK_ENCODING_ENABLED, true)
-        );
-
-        SignedRequest signedRequest = signer.sign(request);
-
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-                               .hasValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+                               .hasValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
 
     @Test
@@ -259,19 +251,20 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
-                .putHeader(Header.CONTENT_LENGTH, "20")
-                .putHeader("x-amz-trailer", "aTrailer"),
+                .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
-                .putProperty(AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
         );
 
         SignedRequest signedRequest = signer.sign(request);
 
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-                               .hasValue(AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER);
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
-        AssertionsForClassTypes.assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+                               .hasValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
 
     @Test
@@ -281,7 +274,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
             httpRequest -> httpRequest
                 .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
-                .putProperty(AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
         );
 
