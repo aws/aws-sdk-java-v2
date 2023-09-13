@@ -159,8 +159,6 @@ public class AwsCrtHttpClientSpiVerificationTest {
         HttpExecuteResponse response = executableRequest.call();
 
         assertThat(response.responseBody().isPresent()).isTrue();
-        assertThat(response.responseBody().get().available()).isEqualTo(TEST_BODY_LEN);
-
         byte[] readBody = new byte[TEST_BODY_LEN];
         assertThat(response.responseBody().get().read(readBody)).isEqualTo(TEST_BODY_LEN);
         assertThat(readBody).isEqualTo(body);

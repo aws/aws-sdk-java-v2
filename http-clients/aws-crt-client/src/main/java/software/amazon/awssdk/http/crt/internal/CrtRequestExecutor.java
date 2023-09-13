@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
@@ -198,68 +199,79 @@ public final class CrtRequestExecutor {
         }
     }
 
+    private static final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamResponseHandler {
+        private final SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder();
+        private final InputStreamSubscriber inputStreamSubscriber = new InputStreamSubscriber();
+        private final SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
+
+        private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
+        private final HttpClientConnection crtConn;
+
+        InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
+                                                     CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
+            this.crtConn = crtConn;
+            this.requestCompletionFuture = requestCompletionFuture;
+            responseBuilder.content(AbortableInputStream.create(inputStreamSubscriber));
+        }
+
+        @Override
+        public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType,
+                                      HttpHeader[] nextHeaders) {
+            for (HttpHeader header : nextHeaders) {
+                responseBuilder.putHeader(header.getName(), header.getValue());
+            }
+
+            if (responseBuilder.statusCode() == 0) {
+                responseBuilder.statusCode(responseStatusCode);
+            }
+
+            simplePublisher.subscribe(inputStreamSubscriber);
+        }
+
+        @Override
+        public void onResponseComplete(HttpStream stream, int errorCode) {
+            if (errorCode == 0) {
+                requestCompletionFuture.complete(responseBuilder.build());
+            } else {
+                requestCompletionFuture.completeExceptionally(new HttpException(errorCode));
+            }
+            stream.close();
+            crtConn.close();
+        }
+
+        @Override
+        public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
+            CompletableFuture<Void> writeFuture = simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
+            simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
+
+            // go ahead and let back pressure know we consumed the data.
+            if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {
+                return bodyBytesIn.length;
+            }
+
+            writeFuture.whenComplete((result, failure) -> {
+                if (failure != null) {
+                    requestCompletionFuture.completeExceptionally(failure);
+                    return;
+                }
+
+                // otherwise, increment the window upon buffer consumption.
+                stream.incrementWindow(bodyBytesIn.length);
+            });
+
+            // the bodyBytesIn have not cleared the queues yet, so do let backpressure do its thing.
+            return 0;
+        }
+    }
+
     private void executeRequest(CrtRequestContext executionContext,
                                 CompletableFuture<SdkHttpFullResponse> requestFuture,
                                 HttpClientConnection crtConn) {
         HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
-        SdkHttpFullResponse.Builder builder = SdkHttpFullResponse.builder();
-
-        InputStreamSubscriber inputStreamSubscriber = new InputStreamSubscriber();
-        builder.content(AbortableInputStream.create(inputStreamSubscriber));
-
-        SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
 
         try {
-            HttpStreamResponseHandler crtResponseHandler = new HttpStreamResponseHandler() {
-                @Override
-                public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType,
-                                              HttpHeader[] nextHeaders) {
-                    for (HttpHeader header : nextHeaders) {
-                        builder.putHeader(header.getName(), header.getValue());
-                    }
-
-                    if (builder.statusCode() == 0) {
-                        builder.statusCode(responseStatusCode);
-                    }
-
-                    simplePublisher.subscribe(inputStreamSubscriber);
-                }
-
-                @Override
-                public void onResponseComplete(HttpStream stream, int errorCode) {
-                    if (errorCode == 0) {
-                        requestFuture.complete(builder.build());
-                    } else {
-                        requestFuture.completeExceptionally(new HttpException(errorCode));
-                    }
-                    stream.close();
-                    crtConn.close();
-                }
-
-                @Override
-                public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
-                    CompletableFuture<Void> writeFuture = simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
-                    simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
-
-                    // go ahead and let back pressure know we consumed the data.
-                    if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {
-                        return bodyBytesIn.length;
-                    }
-
-                    writeFuture.whenComplete((result, failure) -> {
-                        if (failure != null) {
-                            requestFuture.completeExceptionally(failure);
-                            return;
-                        }
-
-                        // otherwise, increment the window upon buffer consumption.
-                        stream.incrementWindow(bodyBytesIn.length);
-                    });
-
-                    // the bodyBytesIn have not cleared the queues yet, so do let backpressure do its thing.
-                    return 0;
-                }
-            };
+            HttpStreamResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(crtConn,
+                                                                                                            requestFuture);
 
             // Submit the request on the connection
             crtConn.makeRequest(crtRequest, crtResponseHandler).activate();

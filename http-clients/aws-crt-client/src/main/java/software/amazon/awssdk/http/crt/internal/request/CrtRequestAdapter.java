@@ -20,14 +20,12 @@ import static java.lang.Math.min;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -79,7 +77,7 @@ public final class CrtRequestAdapter {
                                               .map(value -> "?" + value)
                                               .orElse("");
 
-        HttpHeader[] crtHeaderArray = asArray(createSyncHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
+        HttpHeader[] crtHeaderArray = asArray(createHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
 
         ContentStreamProvider provider = sdkExecuteRequest.contentStreamProvider().isPresent() ?
                                          sdkExecuteRequest.contentStreamProvider().get() : null;
@@ -88,53 +86,7 @@ public final class CrtRequestAdapter {
             return new HttpRequest(method,
                                    encodedPath + encodedQueryString,
                                    crtHeaderArray,
-                                   new HttpRequestBodyStream() {
-                                       private InputStream providerStream;
-                                       private final byte[] readBuffer = new byte[READ_BUFFER_SIZE];
-                                       ;
-                                       private static final int READ_BUFFER_SIZE = 16 * 1024;
-
-
-                                       @Override
-                                       public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
-                                           int read = 0;
-
-                                           try {
-                                               if (providerStream == null) {
-                                                   createNewStream();
-                                               }
-
-                                               int toRead = min(READ_BUFFER_SIZE, bodyBytesOut.remaining());
-                                               read = providerStream.read(readBuffer, 0, toRead);
-
-                                               if (read > 0) {
-                                                   bodyBytesOut.put(readBuffer, 0, read);
-                                               }
-                                           } catch (IOException ioe) {
-                                               throw new RuntimeException(ioe);
-                                           }
-
-                                           return read < 0;
-                                       }
-
-                                       @Override
-                                       public boolean resetPosition() {
-                                           try {
-                                               createNewStream();
-                                           } catch (IOException ioe) {
-                                               throw new RuntimeException(ioe);
-                                           }
-
-                                           return true;
-                                       }
-
-                                       private void createNewStream() throws IOException {
-                                           if (providerStream != null) {
-                                               providerStream.close();
-                                           }
-                                           providerStream = provider.newStream();
-                                       }
-                                   });
+                                   new CrtRequestInputStreamAdapter(provider));
         }
 
         return new HttpRequest(method,
@@ -175,7 +127,7 @@ public final class CrtRequestAdapter {
         return crtHeaderList;
     }
 
-    private static List<HttpHeader> createSyncHttpHeaderList(URI uri, HttpExecuteRequest sdkExecuteRequest) {
+    private static List<HttpHeader> createHttpHeaderList(URI uri, HttpExecuteRequest sdkExecuteRequest) {
         SdkHttpRequest sdkRequest = sdkExecuteRequest.httpRequest();
         // worst case we may add 3 more headers here
         List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.numHeaders() + 3);
@@ -190,21 +142,7 @@ public final class CrtRequestAdapter {
             crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
 
-        // Set Content-Length if needed
-        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && sdkExecuteRequest.contentStreamProvider().isPresent()) {
-            try  (InputStream inputStream = sdkExecuteRequest.contentStreamProvider().get().newStream()) {
-                byte[] scratch = new byte[1024];
-                Long contentLength = 0L;
-                int read = 0;
-                while ((read = inputStream.read(scratch)) > 0) {
-                    contentLength += read;
-                }
-
-                crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength)));
-            } catch (IOException e) {
-                // do nothing intentionally.
-            }
-        }
+        // We assume content length was set by the caller if a stream was present, so don't set it here.
 
         // Add the rest of the Headers
         sdkRequest.forEachHeader((key, value) -> {
