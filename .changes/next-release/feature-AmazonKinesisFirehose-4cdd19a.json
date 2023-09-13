@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Firehose",
+    "contributor": "",
+    "description": "DocumentIdOptions has been added for the Amazon OpenSearch destination."
+}
