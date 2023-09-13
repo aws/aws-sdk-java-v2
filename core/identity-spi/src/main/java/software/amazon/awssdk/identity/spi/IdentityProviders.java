@@ -13,24 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.spi;
+package software.amazon.awssdk.identity.spi;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultIdentityProviderConfiguration;
-import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.internal.DefaultIdentityProviders;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * The identity providers configured in the SDK.
- * <p>
- * Used by the {@link AuthScheme} implementation to load any @{@link IdentityProvider}s it needs from the set that are
- * configured on the SDK.
+ * An interface to allow retrieving an IdentityProvider based on the identity type.
  */
 @SdkPublicApi
-public interface IdentityProviderConfiguration extends ToCopyableBuilder<IdentityProviderConfiguration.Builder,
-    IdentityProviderConfiguration> {
+public interface IdentityProviders extends ToCopyableBuilder<IdentityProviders.Builder, IdentityProviders> {
 
     /**
      * Retrieve an identity provider for the provided identity type.
@@ -38,16 +32,16 @@ public interface IdentityProviderConfiguration extends ToCopyableBuilder<Identit
     <T extends Identity> IdentityProvider<T> identityProvider(Class<T> identityType);
 
     /**
-     * Get a new builder for creating a {@link IdentityProviderConfiguration}.
+     * Get a new builder for creating a {@link IdentityProviders}.
      */
     static Builder builder() {
-        return DefaultIdentityProviderConfiguration.builder();
+        return DefaultIdentityProviders.builder();
     }
 
     /**
-     * A builder for a {@link IdentityProviderConfiguration}.
+     * A builder for a {@link IdentityProviders}.
      */
-    interface Builder extends CopyableBuilder<Builder, IdentityProviderConfiguration> {
+    interface Builder extends CopyableBuilder<Builder, IdentityProviders> {
 
         /**
          * Add the {@link IdentityProvider} for a given type. If a provider of that type, as determined by {@link

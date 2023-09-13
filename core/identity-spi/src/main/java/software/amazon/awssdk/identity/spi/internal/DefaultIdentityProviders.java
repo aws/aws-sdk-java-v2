@@ -13,23 +13,29 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.spi.internal;
+package software.amazon.awssdk.identity.spi.internal;
 
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * A default implementation of {@link IdentityProviders}. This implementation holds a map of {@link IdentityProvider}s and
+ * retrieves from the collection based on identity type.
+ */
+@Immutable
 @SdkInternalApi
-public final class DefaultIdentityProviderConfiguration implements IdentityProviderConfiguration {
+public final class DefaultIdentityProviders implements IdentityProviders {
 
     private final Map<Class<?>, IdentityProvider<?>> identityProviders;
 
-    private DefaultIdentityProviderConfiguration(BuilderImpl builder) {
+    private DefaultIdentityProviders(BuilderImpl builder) {
         this.identityProviders = new HashMap<>(builder.identityProviders);
     }
 
@@ -49,7 +55,7 @@ public final class DefaultIdentityProviderConfiguration implements IdentityProvi
 
     @Override
     public String toString() {
-        return ToString.builder("IdentityProviderConfiguration")
+        return ToString.builder("IdentityProviders")
                        .add("identityProviders", identityProviders)
                        .build();
     }
@@ -60,7 +66,7 @@ public final class DefaultIdentityProviderConfiguration implements IdentityProvi
         private BuilderImpl() {
         }
 
-        private BuilderImpl(DefaultIdentityProviderConfiguration identityProviders) {
+        private BuilderImpl(DefaultIdentityProviders identityProviders) {
             this.identityProviders.putAll(identityProviders.identityProviders);
         }
 
@@ -71,8 +77,8 @@ public final class DefaultIdentityProviderConfiguration implements IdentityProvi
             return this;
         }
 
-        public IdentityProviderConfiguration build() {
-            return new DefaultIdentityProviderConfiguration(this);
+        public IdentityProviders build() {
+            return new DefaultIdentityProviders(this);
         }
     }
 }
