@@ -23,5 +23,5 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * (http-auth-aws), and should bring in the required dependencies (aws-crt).
  */
 @SdkProtectedApi
-public class HttpAuthAwsCrt {
+public final class HttpAuthAwsCrt {
 }

@@ -23,5 +23,5 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * dependency in consumers (http-auth-aws), and should bring in the required dependencies (eventstream).
  */
 @SdkProtectedApi
-public class HttpAuthAwsEventStream {
+public final class HttpAuthAwsEventStream {
 }
