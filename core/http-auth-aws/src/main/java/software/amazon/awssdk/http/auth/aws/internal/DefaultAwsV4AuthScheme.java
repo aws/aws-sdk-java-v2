@@ -18,9 +18,9 @@ package software.amazon.awssdk.http.auth.aws.internal;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 
 /**
  * A default implementation of {@link AwsV4AuthScheme}.
@@ -43,7 +43,7 @@ public final class DefaultAwsV4AuthScheme implements AwsV4AuthScheme {
     }
 
     @Override
-    public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviderConfiguration providers) {
+    public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
         return providers.identityProvider(AwsCredentialsIdentity.class);
     }
 

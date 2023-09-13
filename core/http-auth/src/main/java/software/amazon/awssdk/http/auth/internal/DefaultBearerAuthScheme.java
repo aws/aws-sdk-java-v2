@@ -18,8 +18,8 @@ package software.amazon.awssdk.http.auth.internal;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.BearerHttpSigner;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
@@ -43,7 +43,7 @@ public final class DefaultBearerAuthScheme implements BearerAuthScheme {
     }
 
     @Override
-    public IdentityProvider<TokenIdentity> identityProvider(IdentityProviderConfiguration providers) {
+    public IdentityProvider<TokenIdentity> identityProvider(IdentityProviders providers) {
         return providers.identityProvider(TokenIdentity.class);
     }
 
