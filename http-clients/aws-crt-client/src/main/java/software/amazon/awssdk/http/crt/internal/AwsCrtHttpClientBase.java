@@ -48,7 +48,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * Common functionality and configuration for the CRT Http clients.
  */
 @SdkInternalApi
-public class AwsCrtHttpClientBase implements SdkAutoCloseable {
+public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private static final Logger log = Logger.loggerFor(AwsCrtHttpClientBase.class);
 
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
