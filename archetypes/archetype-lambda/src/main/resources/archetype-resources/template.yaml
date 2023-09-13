@@ -6,7 +6,7 @@ Resources:
   ${handlerClassName}Function:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: java8
+      Runtime: java17
       Handler: ${package}.${handlerClassName}::handleRequest
       Timeout: 60
       MemorySize: 512

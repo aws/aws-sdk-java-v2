@@ -467,6 +467,8 @@
         {"shape":"InvalidParameterValueException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"PreconditionNotMetException"},
         {"shape":"InternalFailureException"},
         {"shape":"ResourceUnavailableException"}
       ],
@@ -1074,6 +1076,42 @@
       ],
       "documentation":"<p>Describes read and write permissions for a dashboard.</p>"
     },
+    "DescribeDashboardSnapshotJob":{
+      "name":"DescribeDashboardSnapshotJob",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/dashboards/{DashboardId}/snapshot-jobs/{SnapshotJobId}"
+      },
+      "input":{"shape":"DescribeDashboardSnapshotJobRequest"},
+      "output":{"shape":"DescribeDashboardSnapshotJobResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"UnsupportedUserEditionException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Describes an existing snapshot job.</p> <p>Poll job descriptions after a job starts to know the status of the job. For information on available status codes, see <code>JobStatus</code>.</p>"
+    },
+    "DescribeDashboardSnapshotJobResult":{
+      "name":"DescribeDashboardSnapshotJobResult",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/dashboards/{DashboardId}/snapshot-jobs/{SnapshotJobId}/result"
+      },
+      "input":{"shape":"DescribeDashboardSnapshotJobResultRequest"},
+      "output":{"shape":"DescribeDashboardSnapshotJobResultResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"UnsupportedUserEditionException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Describes the result of an existing snapshot job that has finished running.</p> <p>A finished snapshot job will return a <code>COMPLETED</code> or <code>FAILED</code> status when you poll the job with a <code>DescribeDashboardSnapshotJob</code> API call.</p> <p>If the job has not finished running, this operation returns a message that says <code>Dashboard Snapshot Job with id &lt;SnapshotjobId&gt; has not reached a terminal state.</code>.</p>"
+    },
     "DescribeDataSet":{
       "name":"DescribeDataSet",
       "http":{
@@ -1192,6 +1230,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
+        {"shape":"InvalidNextTokenException"},
         {"shape":"UnsupportedUserEditionException"},
         {"shape":"InternalFailureException"}
       ],
@@ -1210,6 +1249,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
+        {"shape":"InvalidNextTokenException"},
         {"shape":"UnsupportedUserEditionException"},
         {"shape":"InternalFailureException"}
       ],
@@ -2364,7 +2404,7 @@
         {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Starts an Asset Bundle export job.</p> <p>An Asset Bundle export job exports specified Amazon QuickSight assets. You can also choose to export any asset dependencies in the same job. Export jobs run asynchronously and can be polled with a <code>DescribeAssetBundleExportJob</code> API call. When a job is successfully completed, a download URL that contains the exported assets is returned. The URL is valid for 5 minutes and can be refreshed with a <code>DescribeAssetBundleExportJob</code> API call. Each Amazon QuickSight account can run up to 10 export jobs concurrently.</p> <p>The API caller must have the necessary permissions in their IAM role to access each resource before the resources can be exported.</p>"
+      "documentation":"<p>Starts an Asset Bundle export job.</p> <p>An Asset Bundle export job exports specified Amazon QuickSight assets. You can also choose to export any asset dependencies in the same job. Export jobs run asynchronously and can be polled with a <code>DescribeAssetBundleExportJob</code> API call. When a job is successfully completed, a download URL that contains the exported assets is returned. The URL is valid for 5 minutes and can be refreshed with a <code>DescribeAssetBundleExportJob</code> API call. Each Amazon QuickSight account can run up to 5 export jobs concurrently.</p> <p>The API caller must have the necessary permissions in their IAM role to access each resource before the resources can be exported.</p>"
     },
     "StartAssetBundleImportJob":{
       "name":"StartAssetBundleImportJob",
@@ -2383,7 +2423,28 @@
         {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Starts an Asset Bundle import job.</p> <p>An Asset Bundle import job imports specified Amazon QuickSight assets into an Amazon QuickSight account. You can also choose to import a naming prefix and specified configuration overrides. The assets that are contained in the bundle file that you provide are used to create or update a new or existing asset in your Amazon QuickSight account. Each Amazon QuickSight account can run up to 10 import jobs concurrently.</p> <p>The API caller must have the necessary <code>\"create\"</code>, <code>\"describe\"</code>, and <code>\"update\"</code> permissions in their IAM role to access each resource type that is contained in the bundle file before the resources can be imported.</p>"
+      "documentation":"<p>Starts an Asset Bundle import job.</p> <p>An Asset Bundle import job imports specified Amazon QuickSight assets into an Amazon QuickSight account. You can also choose to import a naming prefix and specified configuration overrides. The assets that are contained in the bundle file that you provide are used to create or update a new or existing asset in your Amazon QuickSight account. Each Amazon QuickSight account can run up to 5 import jobs concurrently.</p> <p>The API caller must have the necessary <code>\"create\"</code>, <code>\"describe\"</code>, and <code>\"update\"</code> permissions in their IAM role to access each resource type that is contained in the bundle file before the resources can be imported.</p>"
+    },
+    "StartDashboardSnapshotJob":{
+      "name":"StartDashboardSnapshotJob",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/dashboards/{DashboardId}/snapshot-jobs"
+      },
+      "input":{"shape":"StartDashboardSnapshotJobRequest"},
+      "output":{"shape":"StartDashboardSnapshotJobResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceExistsException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"UnsupportedUserEditionException"},
+        {"shape":"UnsupportedPricingPlanException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Starts an asynchronous job that generates a dashboard snapshot. You can request one of the following format configurations per API call.</p> <ul> <li> <p>1 paginated PDF</p> </li> <li> <p>1 Excel workbook</p> </li> <li> <p>5 CSVs</p> </li> </ul> <p>Poll job descriptions with a <code>DescribeDashboardSnapshotJob</code> API call. Once the job succeeds, use the <code>DescribeDashboardSnapshotJobResult</code> API to obtain the download URIs that the job generates.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -3022,9 +3083,19 @@
         "AccountSubscriptionStatus":{
           "shape":"String",
           "documentation":"<p>The status of your account subscription.</p>"
+        },
+        "IAMIdentityCenterInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the IAM Identity Center instance.</p>"
         }
       },
       "documentation":"<p>A structure that contains the following account information elements:</p> <ul> <li> <p>Your Amazon QuickSight account name.</p> </li> <li> <p>The edition of Amazon QuickSight that your account is using.</p> </li> <li> <p>The notification email address that is associated with the Amazon QuickSight account. </p> </li> <li> <p>The authentication type of the Amazon QuickSight account.</p> </li> <li> <p>The status of the Amazon QuickSight account's subscription.</p> </li> </ul>"
+    },
+    "AccountName":{
+      "type":"string",
+      "max":62,
+      "min":1,
+      "pattern":"^(?!D-|d-)([\\da-zA-Z]+)([-]*[\\da-zA-Z])*"
     },
     "AccountSettings":{
       "type":"structure",
@@ -3059,7 +3130,7 @@
     "ActionList":{
       "type":"list",
       "member":{"shape":"String"},
-      "max":16,
+      "max":20,
       "min":1
     },
     "ActiveIAMPolicyAssignment":{
@@ -3110,6 +3181,10 @@
         "DateAggregationFunction":{
           "shape":"DateAggregationFunction",
           "documentation":"<p>Aggregation for date values.</p> <ul> <li> <p> <code>COUNT</code>: Aggregate by the total number of values, including duplicates.</p> </li> <li> <p> <code>DISTINCT_COUNT</code>: Aggregate by the total number of distinct values.</p> </li> <li> <p> <code>MIN</code>: Select the smallest date value.</p> </li> <li> <p> <code>MAX</code>: Select the largest date value.</p> </li> </ul>"
+        },
+        "AttributeAggregationFunction":{
+          "shape":"AttributeAggregationFunction",
+          "documentation":"<p>Aggregation for attributes.</p>"
         }
       },
       "documentation":"<p>An aggregation function aggregates values from a dimension or measure.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
@@ -3123,8 +3198,7 @@
       "type":"structure",
       "required":[
         "Column",
-        "SortDirection",
-        "AggregationFunction"
+        "SortDirection"
       ],
       "members":{
         "Column":{
@@ -3152,6 +3226,12 @@
       "max":2048,
       "min":1,
       "pattern":"[\\w\\-]+|(\\$LATEST)|(\\$PUBLISHED)"
+    },
+    "AllSheetsFilterScopeConfiguration":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The configuration for applying a filter to all sheets. You can apply this filter to all visuals on every sheet.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
     },
     "AmazonElasticsearchParameters":{
       "type":"structure",
@@ -3474,6 +3554,20 @@
         }
       },
       "documentation":"<p>The settings that you want to use with the Q search bar.</p>"
+    },
+    "AnonymousUserSnapshotJobResult":{
+      "type":"structure",
+      "members":{
+        "FileGroups":{
+          "shape":"SnapshotJobResultFileGroupList",
+          "documentation":"<p>A list of <code>SnapshotJobResultFileGroup</code> objects that contain information on the files that are requested during a <code>StartDashboardSnapshotJob</code> API call. If the job succeeds, these objects contain the location where the snapshot artifacts are stored. If the job fails, the objects contain information about the error that caused the job to fail.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains the file groups that are requested for the artifact generation in a <code>StartDashboardSnapshotJob</code> API call. </p>"
+    },
+    "AnonymousUserSnapshotJobResultList":{
+      "type":"list",
+      "member":{"shape":"AnonymousUserSnapshotJobResult"}
     },
     "ArcAxisConfiguration":{
       "type":"structure",
@@ -4258,7 +4352,7 @@
           "documentation":"<p>The Amazon S3 URI for an asset bundle import file that exists in an Amazon S3 bucket that the caller has read access to. The file must be a zip format file and can't exceed 20 MB.</p>"
         }
       },
-      "documentation":"<p>The source of the asset bundle zip file that contains the data that you want to import.</p>"
+      "documentation":"<p>The source of the asset bundle zip file that contains the data that you want to import. The file must be in <code>QUICKSIGHT_JSON</code> format.</p>"
     },
     "AssetBundleImportSourceDescription":{
       "type":"structure",
@@ -4301,6 +4395,20 @@
         }
       },
       "documentation":"<p>Parameters for Amazon Athena.</p>"
+    },
+    "AttributeAggregationFunction":{
+      "type":"structure",
+      "members":{
+        "SimpleAttributeAggregation":{
+          "shape":"SimpleAttributeAggregationFunction",
+          "documentation":"<p>The built-in aggregation functions for attributes.</p> <ul> <li> <p> <code>UNIQUE_VALUE</code>: Returns the unique value for a field, aggregated by the dimension fields.</p> </li> </ul>"
+        },
+        "ValueForMultipleValues":{
+          "shape":"String",
+          "documentation":"<p>Used by the <code>UNIQUE_VALUE</code> aggregation function. If there are multiple values for the field used by the aggregation, the value for this property will be returned instead. Defaults to '*'.</p>"
+        }
+      },
+      "documentation":"<p>Aggregation for attributes.</p>"
     },
     "AuroraParameters":{
       "type":"structure",
@@ -4353,7 +4461,8 @@
       "enum":[
         "IAM_AND_QUICKSIGHT",
         "IAM_ONLY",
-        "ACTIVE_DIRECTORY"
+        "ACTIVE_DIRECTORY",
+        "IAM_IDENTITY_CENTER"
       ]
     },
     "AuthorSpecifiedAggregation":{
@@ -5490,6 +5599,16 @@
       "max":3,
       "min":2
     },
+    "ColorsConfiguration":{
+      "type":"structure",
+      "members":{
+        "CustomColors":{
+          "shape":"CustomColorsList",
+          "documentation":"<p>A list of up to 50 custom colors.</p>"
+        }
+      },
+      "documentation":"<p>The color configurations for a column.</p>"
+    },
     "ColumnConfiguration":{
       "type":"structure",
       "required":["Column"],
@@ -5505,6 +5624,10 @@
         "Role":{
           "shape":"ColumnRole",
           "documentation":"<p>The role of the column.</p>"
+        },
+        "ColorsConfiguration":{
+          "shape":"ColorsConfiguration",
+          "documentation":"<p>The color configurations of the column.</p>"
         }
       },
       "documentation":"<p>The general configuration of a column.</p>"
@@ -6347,7 +6470,7 @@
           "locationName":"AwsAccountId"
         },
         "AccountName":{
-          "shape":"String",
+          "shape":"AccountName",
           "documentation":"<p>The name of your Amazon QuickSight account. This name is unique over all of Amazon Web Services, and it appears only when users sign in. You can't change <code>AccountName</code> value after the Amazon QuickSight account is created.</p>"
         },
         "NotificationEmail":{
@@ -6792,13 +6915,13 @@
         },
         "MemberId":{
           "shape":"RestrictiveResourceId",
-          "documentation":"<p>The ID of the asset (the dashboard, analysis, or dataset).</p>",
+          "documentation":"<p>The ID of the asset that you want to add to the folder.</p>",
           "location":"uri",
           "locationName":"MemberId"
         },
         "MemberType":{
           "shape":"MemberType",
-          "documentation":"<p>The type of the member, including <code>DASHBOARD</code>, <code>ANALYSIS</code>, and <code>DATASET</code>.</p>",
+          "documentation":"<p>The member type of the asset that you want to add to a folder.</p>",
           "location":"uri",
           "locationName":"MemberType"
         }
@@ -6859,6 +6982,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>Tags for the folder.</p>"
+        },
+        "SharingModel":{
+          "shape":"SharingModel",
+          "documentation":"<p>An optional parameter that determines the sharing scope of the folder. The default value for this parameter is <code>ACCOUNT</code>.</p>"
         }
       }
     },
@@ -7807,6 +7934,30 @@
         }
       },
       "documentation":"<p>The URL operation that opens a link to another webpage.</p>"
+    },
+    "CustomColor":{
+      "type":"structure",
+      "required":["Color"],
+      "members":{
+        "FieldValue":{
+          "shape":"FieldValue",
+          "documentation":"<p>The data value that the color is applied to.</p>"
+        },
+        "Color":{
+          "shape":"HexColor",
+          "documentation":"<p>The color that is applied to the data value.</p>"
+        },
+        "SpecialValue":{
+          "shape":"SpecialValue",
+          "documentation":"<p>The value of a special data value.</p>"
+        }
+      },
+      "documentation":"<p>Determines the color that's applied to a particular data value in a column.</p>"
+    },
+    "CustomColorsList":{
+      "type":"list",
+      "member":{"shape":"CustomColor"},
+      "max":50
     },
     "CustomContentConfiguration":{
       "type":"structure",
@@ -9682,6 +9833,10 @@
         "DateTimeFormat":{
           "shape":"DateTimeFormat",
           "documentation":"<p>Customize how dates are formatted in controls.</p>"
+        },
+        "InfoIconLabelOptions":{
+          "shape":"SheetControlInfoIconLabelOptions",
+          "documentation":"<p>The configuration of info icon label options.</p>"
         }
       },
       "documentation":"<p>The display options of a control.</p>"
@@ -9878,7 +10033,12 @@
         "MIN",
         "COUNT",
         "DISTINCT_COUNT",
-        "AVERAGE"
+        "AVERAGE",
+        "MEDIAN",
+        "STDEV",
+        "STDEVP",
+        "VAR",
+        "VARP"
       ]
     },
     "DefaultFormatting":{
@@ -10280,13 +10440,13 @@
         },
         "MemberId":{
           "shape":"RestrictiveResourceId",
-          "documentation":"<p>The ID of the asset (the dashboard, analysis, or dataset) that you want to delete.</p>",
+          "documentation":"<p>The ID of the asset that you want to delete.</p>",
           "location":"uri",
           "locationName":"MemberId"
         },
         "MemberType":{
           "shape":"MemberType",
-          "documentation":"<p>The type of the member, including <code>DASHBOARD</code>, <code>ANALYSIS</code>, and <code>DATASET</code> </p>",
+          "documentation":"<p>The member type of the asset that you want to delete from a folder.</p>",
           "location":"uri",
           "locationName":"MemberType"
         }
@@ -11335,7 +11495,7 @@
         },
         "ExportFormat":{
           "shape":"AssetBundleExportFormat",
-          "documentation":"<p>The format of the export.</p>"
+          "documentation":"<p>The format of the exported asset bundle. A <code>QUICKSIGHT_JSON</code> formatted file can be used to make a <code>StartAssetBundleImportJob</code> API call. A <code>CLOUDFORMATION_JSON</code> formatted file can be used in the CloudFormation console and with the CloudFormation APIs.</p>"
         },
         "CloudFormationOverridePropertyConfiguration":{
           "shape":"AssetBundleCloudFormationOverridePropertyConfiguration",
@@ -11604,6 +11764,149 @@
         }
       }
     },
+    "DescribeDashboardSnapshotJobRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DashboardId",
+        "SnapshotJobId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that the dashboard snapshot job is executed in.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DashboardId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the dashboard that you have started a snapshot job for.</p>",
+          "location":"uri",
+          "locationName":"DashboardId"
+        },
+        "SnapshotJobId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the job to be described. The job ID is set when you start a new job with a <code>StartDashboardSnapshotJob</code> API call.</p>",
+          "location":"uri",
+          "locationName":"SnapshotJobId"
+        }
+      }
+    },
+    "DescribeDashboardSnapshotJobResponse":{
+      "type":"structure",
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p> The ID of the Amazon Web Services account that the dashboard snapshot job is executed in. </p>"
+        },
+        "DashboardId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the dashboard that you have started a snapshot job for.</p>"
+        },
+        "SnapshotJobId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the job to be described. The job ID is set when you start a new job with a <code>StartDashboardSnapshotJob</code> API call.</p>"
+        },
+        "UserConfiguration":{
+          "shape":"SnapshotUserConfigurationRedacted",
+          "documentation":"<p>The user configuration for the snapshot job. This information is provided when you make a <code>StartDashboardSnapshotJob</code> API call.</p>"
+        },
+        "SnapshotConfiguration":{
+          "shape":"SnapshotConfiguration",
+          "documentation":"<p>The snapshot configuration of the job. This information is provided when you make a <code>StartDashboardSnapshotJob</code> API call.</p>"
+        },
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the snapshot job. The job ARN is generated when you start a new job with a <code>StartDashboardSnapshotJob</code> API call.</p>"
+        },
+        "JobStatus":{
+          "shape":"SnapshotJobStatus",
+          "documentation":"<p>Indicates the status of a job. The status updates as the job executes. This shows one of the following values.</p> <ul> <li> <p> <code>COMPLETED</code> - The job was completed successfully.</p> </li> <li> <p> <code>FAILED</code> - The job failed to execute.</p> </li> <li> <p> <code>QUEUED</code> - The job is queued and hasn't started yet.</p> </li> <li> <p> <code>RUNNING</code> - The job is still running.</p> </li> </ul>"
+        },
+        "CreatedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p> The time that the snapshot job was created. </p>"
+        },
+        "LastUpdatedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p> The time that the snapshot job status was last updated. </p>"
+        },
+        "RequestId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Web Services request ID for this operation. </p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request</p>"
+        }
+      }
+    },
+    "DescribeDashboardSnapshotJobResultRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DashboardId",
+        "SnapshotJobId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that the dashboard snapshot job is executed in.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DashboardId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the dashboard that you have started a snapshot job for.</p>",
+          "location":"uri",
+          "locationName":"DashboardId"
+        },
+        "SnapshotJobId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the job to be described. The job ID is set when you start a new job with a <code>StartDashboardSnapshotJob</code> API call.</p>",
+          "location":"uri",
+          "locationName":"SnapshotJobId"
+        }
+      }
+    },
+    "DescribeDashboardSnapshotJobResultResponse":{
+      "type":"structure",
+      "members":{
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the snapshot job. The job ARN is generated when you start a new job with a <code>StartDashboardSnapshotJob</code> API call.</p>"
+        },
+        "JobStatus":{
+          "shape":"SnapshotJobStatus",
+          "documentation":"<p>Indicates the status of a job after it has reached a terminal state. A finished snapshot job will retuen a <code>COMPLETED</code> or <code>FAILED</code> status.</p>"
+        },
+        "CreatedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time that a snapshot job was created.</p>"
+        },
+        "LastUpdatedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time that a snapshot job status was last updated.</p>"
+        },
+        "Result":{
+          "shape":"SnapshotJobResult",
+          "documentation":"<p>The result of the snapshot job. Jobs that have successfully completed will return the S3Uri where they are located. Jobs that have failedwill return information on the error that caused the job to fail.</p>"
+        },
+        "ErrorInfo":{
+          "shape":"SnapshotJobErrorInfo",
+          "documentation":"<p>Displays information for the error that caused a job to fail.</p>"
+        },
+        "RequestId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request</p>",
+          "location":"statusCode"
+        }
+      }
+    },
     "DescribeDataSetPermissionsRequest":{
       "type":"structure",
       "required":[
@@ -11833,6 +12136,25 @@
           "documentation":"<p>The ID of the folder.</p>",
           "location":"uri",
           "locationName":"FolderId"
+        },
+        "Namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The namespace of the folder whose permissions you want described.</p>",
+          "location":"querystring",
+          "locationName":"namespace"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be returned per request.</p>",
+          "box":true,
+          "location":"querystring",
+          "locationName":"max-results"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>A pagination token for the next set of results.</p>",
+          "location":"querystring",
+          "locationName":"next-token"
         }
       }
     },
@@ -11859,6 +12181,10 @@
         "RequestId":{
           "shape":"String",
           "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The pagination token for the next set of results, or null if there are no more results.</p>"
         }
       }
     },
@@ -11901,6 +12227,25 @@
           "documentation":"<p>The ID of the folder.</p>",
           "location":"uri",
           "locationName":"FolderId"
+        },
+        "Namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The namespace of the folder whose permissions you want described.</p>",
+          "location":"querystring",
+          "locationName":"namespace"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be returned per request.</p>",
+          "box":true,
+          "location":"querystring",
+          "locationName":"max-results"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>A pagination token for the next set of results.</p>",
+          "location":"querystring",
+          "locationName":"next-token"
         }
       }
     },
@@ -11927,6 +12272,10 @@
         "RequestId":{
           "shape":"String",
           "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>A pagination token for the next set of results, or null if there are no more results.</p>"
         }
       }
     },
@@ -13096,6 +13445,10 @@
         "TitleOptions":{
           "shape":"LabelOptions",
           "documentation":"<p>The options to configure the title visibility, name, and font size.</p>"
+        },
+        "InfoIconLabelOptions":{
+          "shape":"SheetControlInfoIconLabelOptions",
+          "documentation":"<p>The configuration of info icon label options.</p>"
         }
       },
       "documentation":"<p>The display options of a control.</p>"
@@ -13387,7 +13740,7 @@
     "FieldOrderList":{
       "type":"list",
       "member":{"shape":"FieldId"},
-      "max":100
+      "max":200
     },
     "FieldSeriesItem":{
       "type":"structure",
@@ -13972,6 +14325,10 @@
         "SelectedSheets":{
           "shape":"SelectedSheetsFilterScopeConfiguration",
           "documentation":"<p>The configuration for applying a filter to specific sheets.</p>"
+        },
+        "AllSheets":{
+          "shape":"AllSheetsFilterScopeConfiguration",
+          "documentation":"<p>The configuration for applying a filter to all sheets.</p>"
         }
       },
       "documentation":"<p>The scope configuration for a <code>FilterGroup</code>.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
@@ -14132,6 +14489,10 @@
         "LastUpdatedTime":{
           "shape":"Timestamp",
           "documentation":"<p>The time that the folder was last updated.</p>"
+        },
+        "SharingModel":{
+          "shape":"SharingModel",
+          "documentation":"<p>The sharing scope of the folder.</p>"
         }
       },
       "documentation":"<p>A folder in Amazon QuickSight.</p>"
@@ -14226,6 +14587,10 @@
         "LastUpdatedTime":{
           "shape":"Timestamp",
           "documentation":"<p>The time that the folder was last updated.</p>"
+        },
+        "SharingModel":{
+          "shape":"SharingModel",
+          "documentation":"<p>The sharing scope of the folder.</p>"
         }
       },
       "documentation":"<p>A summary of information about an existing Amazon QuickSight folder. </p>"
@@ -14323,10 +14688,7 @@
     },
     "ForecastComputation":{
       "type":"structure",
-      "required":[
-        "ComputationId",
-        "Time"
-      ],
+      "required":["ComputationId"],
       "members":{
         "ComputationId":{
           "shape":"ShortRestrictiveResourceId",
@@ -15643,10 +16005,7 @@
     },
     "GrowthRateComputation":{
       "type":"structure",
-      "required":[
-        "ComputationId",
-        "Time"
-      ],
+      "required":["ComputationId"],
       "members":{
         "ComputationId":{
           "shape":"ShortRestrictiveResourceId",
@@ -16101,7 +16460,8 @@
       "type":"string",
       "enum":[
         "IAM",
-        "QUICKSIGHT"
+        "QUICKSIGHT",
+        "IAM_IDENTITY_CENTER"
       ]
     },
     "IdentityTypeNotSupportedException":{
@@ -16646,6 +17006,34 @@
         "RIGHT"
       ]
     },
+    "KPIActualValueConditionalFormatting":{
+      "type":"structure",
+      "members":{
+        "TextColor":{
+          "shape":"ConditionalFormattingColor",
+          "documentation":"<p>The conditional formatting of the actual value's text color.</p>"
+        },
+        "Icon":{
+          "shape":"ConditionalFormattingIcon",
+          "documentation":"<p>The conditional formatting of the actual value's icon.</p>"
+        }
+      },
+      "documentation":"<p>The conditional formatting for the actual value of a KPI visual.</p>"
+    },
+    "KPIComparisonValueConditionalFormatting":{
+      "type":"structure",
+      "members":{
+        "TextColor":{
+          "shape":"ConditionalFormattingColor",
+          "documentation":"<p>The conditional formatting of the comparison value's text color.</p>"
+        },
+        "Icon":{
+          "shape":"ConditionalFormattingIcon",
+          "documentation":"<p>The conditional formatting of the comparison value's icon.</p>"
+        }
+      },
+      "documentation":"<p>The conditional formatting for the comparison value of a KPI visual.</p>"
+    },
     "KPIConditionalFormatting":{
       "type":"structure",
       "members":{
@@ -16666,6 +17054,14 @@
         "ProgressBar":{
           "shape":"KPIProgressBarConditionalFormatting",
           "documentation":"<p>The conditional formatting for the progress bar of a KPI visual.</p>"
+        },
+        "ActualValue":{
+          "shape":"KPIActualValueConditionalFormatting",
+          "documentation":"<p>The conditional formatting for the actual value of a KPI visual.</p>"
+        },
+        "ComparisonValue":{
+          "shape":"KPIComparisonValueConditionalFormatting",
+          "documentation":"<p>The conditional formatting for the comparison value of a KPI visual.</p>"
         }
       },
       "documentation":"<p>The conditional formatting options of a KPI visual.</p>"
@@ -16741,6 +17137,14 @@
         "SecondaryValueFontConfiguration":{
           "shape":"FontConfiguration",
           "documentation":"<p>The options that determine the secondary value font configuration.</p>"
+        },
+        "Sparkline":{
+          "shape":"KPISparklineOptions",
+          "documentation":"<p>The options that determine the visibility, color, type, and tooltip visibility of the sparkline of a KPI visual.</p>"
+        },
+        "VisualLayoutOptions":{
+          "shape":"KPIVisualLayoutOptions",
+          "documentation":"<p>The options that determine the layout a KPI visual.</p>"
         }
       },
       "documentation":"<p>The options that determine the presentation of a KPI visual.</p>"
@@ -16779,6 +17183,36 @@
       },
       "documentation":"<p>The sort configuration of a KPI visual.</p>"
     },
+    "KPISparklineOptions":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The visibility of the sparkline.</p>"
+        },
+        "Type":{
+          "shape":"KPISparklineType",
+          "documentation":"<p>The type of the sparkline.</p>"
+        },
+        "Color":{
+          "shape":"HexColor",
+          "documentation":"<p>The color of the sparkline.</p>"
+        },
+        "TooltipVisibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The tooltip visibility of the sparkline.</p>"
+        }
+      },
+      "documentation":"<p>The options that determine the visibility, color, type, and tooltip visibility of the sparkline of a KPI visual.</p>"
+    },
+    "KPISparklineType":{
+      "type":"string",
+      "enum":[
+        "LINE",
+        "AREA"
+      ]
+    },
     "KPIVisual":{
       "type":"structure",
       "required":["VisualId"],
@@ -16813,6 +17247,34 @@
         }
       },
       "documentation":"<p>A key performance indicator (KPI).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/kpi.html\">Using KPIs</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
+    },
+    "KPIVisualLayoutOptions":{
+      "type":"structure",
+      "members":{
+        "StandardLayout":{
+          "shape":"KPIVisualStandardLayout",
+          "documentation":"<p>The standard layout of the KPI visual.</p>"
+        }
+      },
+      "documentation":"<p>The options that determine the layout a KPI visual.</p>"
+    },
+    "KPIVisualStandardLayout":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Type":{
+          "shape":"KPIVisualStandardLayoutType",
+          "documentation":"<p>The standard layout type.</p>"
+        }
+      },
+      "documentation":"<p>The standard layout of the KPI visual.</p>"
+    },
+    "KPIVisualStandardLayoutType":{
+      "type":"string",
+      "enum":[
+        "CLASSIC",
+        "VERTICAL"
+      ]
     },
     "LabelOptions":{
       "type":"structure",
@@ -17401,6 +17863,10 @@
         "TitleOptions":{
           "shape":"LabelOptions",
           "documentation":"<p>The options to configure the title visibility, name, and font size.</p>"
+        },
+        "InfoIconLabelOptions":{
+          "shape":"SheetControlInfoIconLabelOptions",
+          "documentation":"<p>The configuration of info icon label options.</p>"
         }
       },
       "documentation":"<p>The display options of a control.</p>"
@@ -18969,7 +19435,6 @@
       "type":"structure",
       "required":[
         "ComputationId",
-        "Time",
         "Type"
       ],
       "members":{
@@ -19054,12 +19519,7 @@
     },
     "MetricComparisonComputation":{
       "type":"structure",
-      "required":[
-        "ComputationId",
-        "Time",
-        "FromValue",
-        "TargetValue"
-      ],
+      "required":["ComputationId"],
       "members":{
         "ComputationId":{
           "shape":"ShortRestrictiveResourceId",
@@ -20336,10 +20796,7 @@
     },
     "PeriodOverPeriodComputation":{
       "type":"structure",
-      "required":[
-        "ComputationId",
-        "Time"
-      ],
+      "required":["ComputationId"],
       "members":{
         "ComputationId":{
           "shape":"ShortRestrictiveResourceId",
@@ -20362,10 +20819,7 @@
     },
     "PeriodToDateComputation":{
       "type":"structure",
-      "required":[
-        "ComputationId",
-        "Time"
-      ],
+      "required":["ComputationId"],
       "members":{
         "ComputationId":{
           "shape":"ShortRestrictiveResourceId",
@@ -20890,6 +21344,18 @@
         "CollapsedRowDimensionsVisibility":{
           "shape":"Visibility",
           "documentation":"<p>The visibility setting of a pivot table's collapsed row dimension fields. If the value of this structure is <code>HIDDEN</code>, all collapsed columns in a pivot table are automatically hidden. The default value is <code>VISIBLE</code>.</p>"
+        },
+        "RowsLayout":{
+          "shape":"PivotTableRowsLayout",
+          "documentation":"<p>The layout for the row dimension headers of a pivot table. Choose one of the following options.</p> <ul> <li> <p> <code>TABULAR</code>: (Default) Each row field is displayed in a separate column.</p> </li> <li> <p> <code>HIERARCHY</code>: All row fields are displayed in a single column. Indentation is used to differentiate row headers of different fields.</p> </li> </ul>"
+        },
+        "RowsLabelOptions":{
+          "shape":"PivotTableRowsLabelOptions",
+          "documentation":"<p>The options for the label that is located above the row headers. This option is only applicable when <code>RowsLayout</code> is set to <code>HIERARCHY</code>.</p>"
+        },
+        "DefaultCellWidth":{
+          "shape":"PixelLength",
+          "documentation":"<p>The default cell width of the pivot table.</p>"
         }
       },
       "documentation":"<p>The table options for a pivot table visual.</p>"
@@ -20907,6 +21373,32 @@
         }
       },
       "documentation":"<p>The paginated report options for a pivot table visual.</p>"
+    },
+    "PivotTableRowsLabelOptions":{
+      "type":"structure",
+      "members":{
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The visibility of the rows label.</p>"
+        },
+        "CustomLabel":{
+          "shape":"PivotTableRowsLabelText",
+          "documentation":"<p>The custom label string for the rows label.</p>"
+        }
+      },
+      "documentation":"<p>The options for the label thta is located above the row headers. This option is only applicable when <code>RowsLayout</code> is set to <code>HIERARCHY</code>.</p>"
+    },
+    "PivotTableRowsLabelText":{
+      "type":"string",
+      "max":1024,
+      "min":1
+    },
+    "PivotTableRowsLayout":{
+      "type":"string",
+      "enum":[
+        "TABULAR",
+        "HIERARCHY"
+      ]
     },
     "PivotTableSortBy":{
       "type":"structure",
@@ -22052,6 +22544,10 @@
         "DateTimeFormat":{
           "shape":"DateTimeFormat",
           "documentation":"<p>Customize how dates are formatted in controls.</p>"
+        },
+        "InfoIconLabelOptions":{
+          "shape":"SheetControlInfoIconLabelOptions",
+          "documentation":"<p>The configuration of info icon label options.</p>"
         }
       },
       "documentation":"<p>The display options of a control.</p>"
@@ -22345,6 +22841,10 @@
         "RowAlternateColors":{
           "shape":"RowAlternateColorList",
           "documentation":"<p>Determines the list of row alternate colors.</p>"
+        },
+        "UsePrimaryBackgroundColor":{
+          "shape":"WidgetStatus",
+          "documentation":"<p>The primary background color options for alternate rows.</p>"
         }
       },
       "documentation":"<p>Determines the row alternate color options.</p>"
@@ -22490,6 +22990,29 @@
       "type":"string",
       "max":1024,
       "min":1
+    },
+    "S3BucketConfiguration":{
+      "type":"structure",
+      "required":[
+        "BucketName",
+        "BucketPrefix",
+        "BucketRegion"
+      ],
+      "members":{
+        "BucketName":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The name of an existing Amazon S3 bucket where the generated snapshot artifacts are sent.</p>"
+        },
+        "BucketPrefix":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The prefix of the Amazon S3 bucket that the generated snapshots are stored in.</p>"
+        },
+        "BucketRegion":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The region that the Amazon S3 bucket is located in. The bucket must be located in the same region that the <code>StartDashboardSnapshotJob</code> API call is made.</p>"
+        }
+      },
+      "documentation":"<p>An optional structure that contains the Amazon S3 bucket configuration that the generated snapshots are stored in. If you don't provide this information, generated snapshots are stored in the default Amazon QuickSight bucket.</p>"
     },
     "S3Key":{
       "type":"string",
@@ -23368,6 +23891,11 @@
       "type":"long",
       "sensitive":true
     },
+    "SensitiveS3Uri":{
+      "type":"string",
+      "pattern":"^(https|s3)://([^/]+)/?(.*)$",
+      "sensitive":true
+    },
     "SensitiveString":{
       "type":"string",
       "sensitive":true
@@ -23459,6 +23987,12 @@
       "max":128,
       "min":1
     },
+    "SessionTagKeyList":{
+      "type":"list",
+      "member":{"shape":"SessionTagKey"},
+      "max":50,
+      "min":1
+    },
     "SessionTagList":{
       "type":"list",
       "member":{"shape":"SessionTag"},
@@ -23503,6 +24037,13 @@
       },
       "documentation":"<p>The shape conditional formatting of a filled map visual.</p>"
     },
+    "SharingModel":{
+      "type":"string",
+      "enum":[
+        "ACCOUNT",
+        "NAMESPACE"
+      ]
+    },
     "Sheet":{
       "type":"structure",
       "members":{
@@ -23530,6 +24071,25 @@
         "SINGLE_VALUED",
         "DATE_RANGE"
       ]
+    },
+    "SheetControlInfoIconLabelOptions":{
+      "type":"structure",
+      "members":{
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The visibility configuration of info icon label options.</p>"
+        },
+        "InfoIconText":{
+          "shape":"SheetControlInfoIconText",
+          "documentation":"<p> The text content of info icon.</p>"
+        }
+      },
+      "documentation":"<p>A control to display info icons for filters and parameters.</p>"
+    },
+    "SheetControlInfoIconText":{
+      "type":"string",
+      "max":100,
+      "min":1
     },
     "SheetControlLayout":{
       "type":"structure",
@@ -23824,6 +24384,10 @@
       },
       "documentation":"<p>A <code>SignupResponse</code> object that contains a summary of a newly created account.</p>"
     },
+    "SimpleAttributeAggregationFunction":{
+      "type":"string",
+      "enum":["UNIQUE_VALUE"]
+    },
     "SimpleClusterMarker":{
       "type":"structure",
       "members":{
@@ -23861,9 +24425,41 @@
         "TitleOptions":{
           "shape":"LabelOptions",
           "documentation":"<p>The options to configure the title visibility, name, and font size.</p>"
+        },
+        "InfoIconLabelOptions":{
+          "shape":"SheetControlInfoIconLabelOptions",
+          "documentation":"<p>The configuration of info icon label options.</p>"
         }
       },
       "documentation":"<p>The display options of a control.</p>"
+    },
+    "SmallMultiplesAxisPlacement":{
+      "type":"string",
+      "enum":[
+        "OUTSIDE",
+        "INSIDE"
+      ]
+    },
+    "SmallMultiplesAxisProperties":{
+      "type":"structure",
+      "members":{
+        "Scale":{
+          "shape":"SmallMultiplesAxisScale",
+          "documentation":"<p>Determines whether scale of the axes are shared or independent. The default value is <code>SHARED</code>.</p>"
+        },
+        "Placement":{
+          "shape":"SmallMultiplesAxisPlacement",
+          "documentation":"<p>Defines the placement of the axis. By default, axes are rendered <code>OUTSIDE</code> of the panels. Axes with <code>INDEPENDENT</code> scale are rendered <code>INSIDE</code> the panels.</p>"
+        }
+      },
+      "documentation":"<p>Configures the properties of a chart's axes that are used by small multiples panels.</p>"
+    },
+    "SmallMultiplesAxisScale":{
+      "type":"string",
+      "enum":[
+        "SHARED",
+        "INDEPENDENT"
+      ]
     },
     "SmallMultiplesDimensionFieldList":{
       "type":"list",
@@ -23884,9 +24480,291 @@
         "PanelConfiguration":{
           "shape":"PanelConfiguration",
           "documentation":"<p>Configures the display options for each small multiples panel.</p>"
+        },
+        "XAxis":{
+          "shape":"SmallMultiplesAxisProperties",
+          "documentation":"<p>The properties of a small multiples X axis.</p>"
+        },
+        "YAxis":{
+          "shape":"SmallMultiplesAxisProperties",
+          "documentation":"<p>The properties of a small multiples Y axis.</p>"
         }
       },
       "documentation":"<p>Options that determine the layout and display options of a chart's small multiples.</p>"
+    },
+    "SnapshotAnonymousUser":{
+      "type":"structure",
+      "members":{
+        "RowLevelPermissionTags":{
+          "shape":"SessionTagList",
+          "documentation":"<p>The tags to be used for row-level security (RLS). Make sure that the relevant datasets have RLS tags configured before you start a snapshot export job. You can configure the RLS tags of a dataset with a <code>DataSet$RowLevelPermissionTagConfiguration</code> API call.</p> <p>These are not the tags that are used for Amazon Web Services resource tagging. For more information on row level security in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-rls-tags.html\">Using Row-Level Security (RLS) with Tags</a>in the <i>Amazon QuickSight User Guide</i>.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information on the anonymous user configuration.</p>"
+    },
+    "SnapshotAnonymousUserList":{
+      "type":"list",
+      "member":{"shape":"SnapshotAnonymousUser"},
+      "max":1,
+      "min":1
+    },
+    "SnapshotAnonymousUserRedacted":{
+      "type":"structure",
+      "members":{
+        "RowLevelPermissionTagKeys":{
+          "shape":"SessionTagKeyList",
+          "documentation":"<p>The tag keys for the <code>RowLevelPermissionTags</code>.</p>"
+        }
+      },
+      "documentation":"<p>Use this structure to redact sensitive information that you provide about an anonymous user from the snapshot.</p>"
+    },
+    "SnapshotAnonymousUserRedactedList":{
+      "type":"list",
+      "member":{"shape":"SnapshotAnonymousUserRedacted"},
+      "max":1,
+      "min":1
+    },
+    "SnapshotConfiguration":{
+      "type":"structure",
+      "required":["FileGroups"],
+      "members":{
+        "FileGroups":{
+          "shape":"SnapshotFileGroupList",
+          "documentation":"<p>A list of <code>SnapshotJobResultFileGroup</code> objects that contain information about the snapshot that is generated. This list can hold a maximum of 6 <code>FileGroup</code> configurations.</p>"
+        },
+        "DestinationConfiguration":{
+          "shape":"SnapshotDestinationConfiguration",
+          "documentation":"<p>A structure that contains information on the Amazon S3 bucket that the generated snapshot is stored in.</p>"
+        },
+        "Parameters":{"shape":"Parameters"}
+      },
+      "documentation":"<p>Describes the configuration of the dashboard snapshot.</p>"
+    },
+    "SnapshotDestinationConfiguration":{
+      "type":"structure",
+      "members":{
+        "S3Destinations":{
+          "shape":"SnapshotS3DestinationConfigurationList",
+          "documentation":"<p> A list of <code>SnapshotS3DestinationConfiguration</code> objects that contain Amazon S3 destination configurations. This structure can hold a maximum of 1 <code>S3DestinationConfiguration</code>. </p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information on the Amazon S3 destinations of the generated snapshot.</p>"
+    },
+    "SnapshotFile":{
+      "type":"structure",
+      "required":[
+        "SheetSelections",
+        "FormatType"
+      ],
+      "members":{
+        "SheetSelections":{
+          "shape":"SnapshotFileSheetSelectionList",
+          "documentation":"<p>A list of <code>SnapshotFileSheetSelection</code> objects that contain information on the dashboard sheet that is exported. These objects provide information about the snapshot artifacts that are generated during the job. This structure can hold a maximum of 5 CSV configurations, 5 Excel configurations, or 1 configuration for PDF.</p>"
+        },
+        "FormatType":{
+          "shape":"SnapshotFileFormatType",
+          "documentation":"<p>The format of the snapshot file to be generated. You can choose between <code>CSV</code>, <code>Excel</code>, or <code>PDF</code>.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains the information for the snapshot that you want to generate. This information is provided by you when you start a new snapshot job.</p>"
+    },
+    "SnapshotFileFormatType":{
+      "type":"string",
+      "enum":[
+        "CSV",
+        "PDF",
+        "EXCEL"
+      ]
+    },
+    "SnapshotFileGroup":{
+      "type":"structure",
+      "members":{
+        "Files":{
+          "shape":"SnapshotFileList",
+          "documentation":"<p>A list of <code>SnapshotFile</code> objects that contain the information on the snapshot files that need to be generated. This structure can hold 1 configuration at a time.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains the information on the snapshot files.</p>"
+    },
+    "SnapshotFileGroupList":{
+      "type":"list",
+      "member":{"shape":"SnapshotFileGroup"},
+      "max":7,
+      "min":1
+    },
+    "SnapshotFileList":{
+      "type":"list",
+      "member":{"shape":"SnapshotFile"},
+      "max":1,
+      "min":1
+    },
+    "SnapshotFileSheetSelection":{
+      "type":"structure",
+      "required":[
+        "SheetId",
+        "SelectionScope"
+      ],
+      "members":{
+        "SheetId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The sheet ID of the dashboard to generate the snapshot artifact from. This value is required for CSV, Excel, and PDF format types.</p>"
+        },
+        "SelectionScope":{
+          "shape":"SnapshotFileSheetSelectionScope",
+          "documentation":"<p>The selection scope of the visuals on a sheet of a dashboard that you are generating a snapthot of. You can choose one of the following options.</p> <ul> <li> <p> <code>ALL_VISUALS</code> - Selects all visuals that are on the sheet. This value is required if the snapshot is a PDF.</p> </li> <li> <p> <code>SELECTED_VISUALS</code> - Select the visual that you want to add to the snapshot. This value is required if the snapshot is a CSV or Excel workbook.</p> </li> </ul>"
+        },
+        "VisualIds":{
+          "shape":"SnapshotFileSheetSelectionVisualIdList",
+          "documentation":"<p> A structure that lists the IDs of the visuals in the selected sheet. Supported visual types are table, pivot table visuals. This value is required if you are generating a CSV or Excel workbook. This value supports a maximum of 1 visual ID for CSV and 5 visual IDs across up to 5 sheet selections for Excel. If you are generating an Excel workbook, the order of the visual IDs provided in this structure determines the order of the worksheets in the Excel file. </p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information that identifies the snapshot that needs to be generated.</p>"
+    },
+    "SnapshotFileSheetSelectionList":{
+      "type":"list",
+      "member":{"shape":"SnapshotFileSheetSelection"},
+      "max":5,
+      "min":1
+    },
+    "SnapshotFileSheetSelectionScope":{
+      "type":"string",
+      "enum":[
+        "ALL_VISUALS",
+        "SELECTED_VISUALS"
+      ]
+    },
+    "SnapshotFileSheetSelectionVisualIdList":{
+      "type":"list",
+      "member":{"shape":"ShortRestrictiveResourceId"},
+      "max":5,
+      "min":1
+    },
+    "SnapshotJobErrorInfo":{
+      "type":"structure",
+      "members":{
+        "ErrorMessage":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        },
+        "ErrorType":{
+          "shape":"String",
+          "documentation":"<p>The error type.</p>"
+        }
+      },
+      "documentation":"<p>An object that contains information on the error that caused the snapshot job to fail.</p>"
+    },
+    "SnapshotJobResult":{
+      "type":"structure",
+      "members":{
+        "AnonymousUsers":{
+          "shape":"AnonymousUserSnapshotJobResultList",
+          "documentation":"<p> A list of <code>AnonymousUserSnapshotJobResult</code> objects that contain information on anonymous users and their user configurations. This data provided by you when you make a <code>StartDashboardSnapshotJob</code> API call.</p>"
+        }
+      },
+      "documentation":"<p>An object that provides information on the result of a snapshot job. This object provides information about the job, the job status, and the location of the generated file.</p>"
+    },
+    "SnapshotJobResultErrorInfo":{
+      "type":"structure",
+      "members":{
+        "ErrorMessage":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>"
+        },
+        "ErrorType":{
+          "shape":"String",
+          "documentation":"<p>The error type.</p>"
+        }
+      },
+      "documentation":"<p>Information on the error that caused the snapshot job to fail.</p>"
+    },
+    "SnapshotJobResultErrorInfoList":{
+      "type":"list",
+      "member":{"shape":"SnapshotJobResultErrorInfo"}
+    },
+    "SnapshotJobResultFileGroup":{
+      "type":"structure",
+      "members":{
+        "Files":{
+          "shape":"SnapshotFileList",
+          "documentation":"<p> A list of <code>SnapshotFile</code> objects.</p>"
+        },
+        "S3Results":{
+          "shape":"SnapshotJobS3ResultList",
+          "documentation":"<p> A list of <code>SnapshotJobS3Result</code> objects.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information on the generated snapshot file groups.</p>"
+    },
+    "SnapshotJobResultFileGroupList":{
+      "type":"list",
+      "member":{"shape":"SnapshotJobResultFileGroup"}
+    },
+    "SnapshotJobS3Result":{
+      "type":"structure",
+      "members":{
+        "S3DestinationConfiguration":{
+          "shape":"SnapshotS3DestinationConfiguration",
+          "documentation":"<p>A list of Amazon S3 bucket configurations that are provided when you make a <code>StartDashboardSnapshotJob</code> API call. </p>"
+        },
+        "S3Uri":{
+          "shape":"SensitiveS3Uri",
+          "documentation":"<p>The Amazon S3 Uri.</p>"
+        },
+        "ErrorInfo":{
+          "shape":"SnapshotJobResultErrorInfoList",
+          "documentation":"<p>An array of error records that describe any failures that occur while the dashboard snapshot job runs.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon S3 result from the snapshot job. The result includes the <code>DestinationConfiguration</code> and the Amazon S3 Uri. If an error occured during the job, the result returns information on the error.</p>"
+    },
+    "SnapshotJobS3ResultList":{
+      "type":"list",
+      "member":{"shape":"SnapshotJobS3Result"}
+    },
+    "SnapshotJobStatus":{
+      "type":"string",
+      "enum":[
+        "QUEUED",
+        "RUNNING",
+        "COMPLETED",
+        "FAILED"
+      ]
+    },
+    "SnapshotS3DestinationConfiguration":{
+      "type":"structure",
+      "members":{
+        "BucketConfiguration":{
+          "shape":"S3BucketConfiguration",
+          "documentation":"<p>A structure that contains details about the Amazon S3 bucket that the generated dashboard snapshot is saved in.</p>"
+        }
+      },
+      "documentation":"<p>A structure that describes the Amazon S3 settings to use to save the generated dashboard snapshot.</p>"
+    },
+    "SnapshotS3DestinationConfigurationList":{
+      "type":"list",
+      "member":{"shape":"SnapshotS3DestinationConfiguration"},
+      "max":1,
+      "min":1
+    },
+    "SnapshotUserConfiguration":{
+      "type":"structure",
+      "members":{
+        "AnonymousUsers":{
+          "shape":"SnapshotAnonymousUserList",
+          "documentation":"<p>An array of records that describe the anonymous users that the dashboard snapshot is generated for.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information about the users that the dashboard snapshot is generated for.</p>"
+    },
+    "SnapshotUserConfigurationRedacted":{
+      "type":"structure",
+      "members":{
+        "AnonymousUsers":{
+          "shape":"SnapshotAnonymousUserRedactedList",
+          "documentation":"<p> An array of records that describe anonymous users that the dashboard snapshot is generated for. Sensitive user information is excluded. </p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information about the users that the dashboard snapshot is generated for. Sensitive user information is excluded. </p>"
     },
     "SnowflakeParameters":{
       "type":"structure",
@@ -23957,6 +24835,14 @@
         }
       },
       "documentation":"<p>The parameters for Spark.</p>"
+    },
+    "SpecialValue":{
+      "type":"string",
+      "enum":[
+        "EMPTY",
+        "NULL",
+        "OTHER"
+      ]
     },
     "SqlEndpointPath":{
       "type":"string",
@@ -24080,7 +24966,7 @@
         },
         "AssetBundleImportSource":{
           "shape":"AssetBundleImportSource",
-          "documentation":"<p>The source of the asset bundle zip file that contains the data that you want to import.</p>"
+          "documentation":"<p>The source of the asset bundle zip file that contains the data that you want to import. The file must be in <code>QUICKSIGHT_JSON</code> format. </p>"
         },
         "OverrideParameters":{
           "shape":"AssetBundleImportJobOverrideParameters",
@@ -24110,6 +24996,64 @@
         "Status":{
           "shape":"StatusCode",
           "documentation":"<p>The HTTP status of the response.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
+    "StartDashboardSnapshotJobRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DashboardId",
+        "SnapshotJobId",
+        "UserConfiguration",
+        "SnapshotConfiguration"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that the dashboard snapshot job is executed in.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DashboardId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the dashboard that you want to start a snapshot job for. </p>",
+          "location":"uri",
+          "locationName":"DashboardId"
+        },
+        "SnapshotJobId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>An ID for the dashboard snapshot job. This ID is unique to the dashboard while the job is running. This ID can be used to poll the status of a job with a <code>DescribeDashboardSnapshotJob</code> while the job runs. You can reuse this ID for another job 24 hours after the current job is completed.</p>"
+        },
+        "UserConfiguration":{
+          "shape":"SnapshotUserConfiguration",
+          "documentation":"<p> A structure that contains information about the anonymous users that the generated snapshot is for. This API will not return information about registered Amazon QuickSight.</p>"
+        },
+        "SnapshotConfiguration":{
+          "shape":"SnapshotConfiguration",
+          "documentation":"<p>A structure that describes the configuration of the dashboard snapshot.</p>"
+        }
+      }
+    },
+    "StartDashboardSnapshotJobResponse":{
+      "type":"structure",
+      "members":{
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the dashboard snapshot job.</p>"
+        },
+        "SnapshotJobId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the job. The job ID is set when you start a new job with a <code>StartDashboardSnapshotJob</code> API call.</p>"
+        },
+        "RequestId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Web Services request ID for this operation. </p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request</p>",
           "location":"statusCode"
         }
       }
@@ -24284,6 +25228,14 @@
       },
       "documentation":"<p>The configuration that defines the default value of a <code>String</code> parameter when a value has not been set.</p>"
     },
+    "StyledCellType":{
+      "type":"string",
+      "enum":[
+        "TOTAL",
+        "METRIC_HEADER",
+        "VALUE"
+      ]
+    },
     "SubnetId":{
       "type":"string",
       "max":255,
@@ -24326,6 +25278,10 @@
         "MetricHeaderCellStyle":{
           "shape":"TableCellStyle",
           "documentation":"<p>The cell styling options for the subtotals of header cells.</p>"
+        },
+        "StyleTargets":{
+          "shape":"TableStyleTargetList",
+          "documentation":"<p>The style targets options for subtotals.</p>"
         }
       },
       "documentation":"<p>The subtotal options.</p>"
@@ -24631,14 +25587,24 @@
       "members":{
         "SelectedFieldOptions":{
           "shape":"TableFieldOptionList",
-          "documentation":"<p>The selected field options for the table field options.</p>"
+          "documentation":"<p>The field options to be configured to a table.</p>"
         },
         "Order":{
           "shape":"FieldOrderList",
-          "documentation":"<p>The order of field IDs of the field options for a table visual.</p>"
+          "documentation":"<p>The order of the field IDs that are configured as field options for a table visual.</p>"
+        },
+        "PinnedFieldOptions":{
+          "shape":"TablePinnedFieldOptions",
+          "documentation":"<p>The settings for the pinned columns of a table visual.</p>"
         }
       },
-      "documentation":"<p>The field options for a table visual.</p>"
+      "documentation":"<p>The field options of a table visual.</p>"
+    },
+    "TableFieldOrderList":{
+      "type":"list",
+      "member":{"shape":"FieldId"},
+      "documentation":"<p>A list of table field IDs.</p>",
+      "max":201
     },
     "TableFieldURLConfiguration":{
       "type":"structure",
@@ -24726,6 +25692,16 @@
       },
       "documentation":"<p>The paginated report options for a table visual.</p>"
     },
+    "TablePinnedFieldOptions":{
+      "type":"structure",
+      "members":{
+        "PinnedLeftFields":{
+          "shape":"TableFieldOrderList",
+          "documentation":"<p>A list of columns to be pinned to the left of a table visual.</p>"
+        }
+      },
+      "documentation":"<p>The settings for the pinned columns of a table visual.</p>"
+    },
     "TableRowConditionalFormatting":{
       "type":"structure",
       "members":{
@@ -24783,6 +25759,22 @@
         }
       },
       "documentation":"<p>The sort configuration for a <code>TableVisual</code>.</p>"
+    },
+    "TableStyleTarget":{
+      "type":"structure",
+      "required":["CellType"],
+      "members":{
+        "CellType":{
+          "shape":"StyledCellType",
+          "documentation":"<p>The cell type of the table style target.</p>"
+        }
+      },
+      "documentation":"<p>The table style target.</p>"
+    },
+    "TableStyleTargetList":{
+      "type":"list",
+      "member":{"shape":"TableStyleTarget"},
+      "max":3
     },
     "TableTotalsPlacement":{
       "type":"string",
@@ -25251,6 +26243,10 @@
         "PlaceholderOptions":{
           "shape":"TextControlPlaceholderOptions",
           "documentation":"<p>The configuration of the placeholder options in a text area control.</p>"
+        },
+        "InfoIconLabelOptions":{
+          "shape":"SheetControlInfoIconLabelOptions",
+          "documentation":"<p>The configuration of info icon label options.</p>"
         }
       },
       "documentation":"<p>The display options of a control.</p>"
@@ -25293,6 +26289,10 @@
         "PlaceholderOptions":{
           "shape":"TextControlPlaceholderOptions",
           "documentation":"<p>The configuration of the placeholder options in a text field control.</p>"
+        },
+        "InfoIconLabelOptions":{
+          "shape":"SheetControlInfoIconLabelOptions",
+          "documentation":"<p>The configuration of info icon label options.</p>"
         }
       },
       "documentation":"<p>The display options of a control.</p>"
@@ -25842,8 +26842,6 @@
       "type":"structure",
       "required":[
         "ComputationId",
-        "Time",
-        "Category",
         "Type"
       ],
       "members":{
@@ -25891,7 +26889,6 @@
       "type":"structure",
       "required":[
         "ComputationId",
-        "Category",
         "Type"
       ],
       "members":{
@@ -26004,6 +27001,10 @@
         "CellValueSynonyms":{
           "shape":"CellValueSynonyms",
           "documentation":"<p>The other names or aliases for the calculated field cell value.</p>"
+        },
+        "NonAdditive":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>The non additive for the table style target.</p>"
         }
       },
       "documentation":"<p>A structure that represents a calculated field.</p>"
@@ -26079,7 +27080,7 @@
         },
         "Aggregation":{
           "shape":"DefaultAggregation",
-          "documentation":"<p>The type of aggregation that is performed on the column data when it's queried. Valid values for this structure are <code>SUM</code>, <code>MAX</code>, <code>MIN</code>, <code>COUNT</code>, <code>DISTINCT_COUNT</code>, and <code>AVERAGE</code>.</p>"
+          "documentation":"<p>The type of aggregation that is performed on the column data when it's queried.</p>"
         },
         "IsIncludedInTopic":{
           "shape":"Boolean",
@@ -26120,6 +27121,10 @@
         "CellValueSynonyms":{
           "shape":"CellValueSynonyms",
           "documentation":"<p>The other names or aliases for the column cell value.</p>"
+        },
+        "NonAdditive":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>The non additive value for the column.</p>"
         }
       },
       "documentation":"<p>Represents a column in a dataset.</p>"
@@ -26485,10 +27490,7 @@
     },
     "TotalAggregationComputation":{
       "type":"structure",
-      "required":[
-        "ComputationId",
-        "Value"
-      ],
+      "required":["ComputationId"],
       "members":{
         "ComputationId":{
           "shape":"ShortRestrictiveResourceId",
@@ -26864,10 +27866,7 @@
     },
     "UniqueValuesComputation":{
       "type":"structure",
-      "required":[
-        "ComputationId",
-        "Category"
-      ],
+      "required":["ComputationId"],
       "members":{
         "ComputationId":{
           "shape":"ShortRestrictiveResourceId",
@@ -28926,7 +29925,8 @@
       "enum":[
         "TOP",
         "MIDDLE",
-        "BOTTOM"
+        "BOTTOM",
+        "AUTO"
       ]
     },
     "Visibility":{

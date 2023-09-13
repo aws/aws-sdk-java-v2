@@ -28,6 +28,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,6 +59,7 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -113,6 +115,12 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
+        }
+
+        if (hasSdkClientContextParams()) {
+            model.getCustomizationConfig().getCustomClientContextParams().forEach((n, m) -> {
                 builder.addMethod(clientContextParamSetter(n, m));
             });
         }
@@ -260,10 +268,8 @@ public class BaseClientBuilderClass implements ClassSpec {
         builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
         builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
 
-        if (!model.getMetadata().isQueryProtocol()) {
-            for (String interceptor : model.getCustomizationConfig().getInterceptors()) {
-                builtInInterceptors.add(ClassName.bestGuess(interceptor));
-            }
+        for (String interceptor : model.getCustomizationConfig().getInterceptors()) {
+            builtInInterceptors.add(ClassName.bestGuess(interceptor));
         }
 
         for (ClassName interceptor : builtInInterceptors) {
@@ -287,6 +293,16 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
                         CollectionUtils.class, SdkClientOption.class);
+
+        if (model.getMetadata().isQueryProtocol()) {
+            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
+            builder.addStatement("$T protocolInterceptors = $T.singletonList(new $T())",
+                                 listType,
+                                 Collections.class,
+                                 QueryParametersToBodyInterceptor.class);
+            builder.addStatement("interceptors = $T.mergeLists(interceptors, protocolInterceptors)",
+                                 CollectionUtils.class);
+        }
 
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
@@ -607,6 +623,12 @@ public class BaseClientBuilderClass implements ClassSpec {
     private boolean hasClientContextParams() {
         Map<String, ClientContextParam> clientContextParams = model.getClientContextParams();
         return clientContextParams != null && !clientContextParams.isEmpty();
+    }
+
+    private boolean hasSdkClientContextParams() {
+        return model.getCustomizationConfig() != null
+               && model.getCustomizationConfig().getCustomClientContextParams() != null
+               && !model.getCustomizationConfig().getCustomClientContextParams().isEmpty();
     }
 
     private MethodSpec validateClientOptionsMethod() {

@@ -42,8 +42,8 @@ public final class RetryOnExceptionsCondition implements RetryCondition {
 
     /**
      * @param context Context about the state of the last request and information about the number of requests made.
-     * @return True if the exception class matches one of the whitelisted exceptions or if the cause of the exception matches the
-     *     whitelisted exception.
+     * @return True if the exception class or the cause of the exception matches one of the exceptions supplied at
+     * initialization time.
      */
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
@@ -56,10 +56,10 @@ public final class RetryOnExceptionsCondition implements RetryCondition {
         Predicate<Class<? extends Exception>> isRetryableException =
             ex -> ex.isAssignableFrom(exception.getClass());
 
-        Predicate<Class<? extends Exception>> hasRetrableCause =
+        Predicate<Class<? extends Exception>> hasRetryableCause =
             ex -> exception.getCause() != null && ex.isAssignableFrom(exception.getCause().getClass());
 
-        return exceptionsToRetryOn.stream().anyMatch(isRetryableException.or(hasRetrableCause));
+        return exceptionsToRetryOn.stream().anyMatch(isRetryableException.or(hasRetryableCause));
     }
 
     /**

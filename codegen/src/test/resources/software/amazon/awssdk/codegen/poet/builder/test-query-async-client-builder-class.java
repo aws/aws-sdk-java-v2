@@ -12,6 +12,7 @@ import software.amazon.awssdk.codegen.internal.QueryProtocolCustomTestIntercepto
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -38,6 +39,8 @@ final class DefaultQueryAsyncClientBuilder extends DefaultQueryBaseClientBuilder
     @Override
     protected final QueryAsyncClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.asyncClientConfiguration();
+        this.validateClientOptions(clientConfiguration);
+        QueryServiceClientConfiguration serviceClientConfiguration = initializeServiceClientConfig(clientConfiguration);
         List<ExecutionInterceptor> interceptors = clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS);
         List<ExecutionInterceptor> queryParamsToBodyInterceptor = Collections
             .singletonList(new QueryParametersToBodyInterceptor());
@@ -47,15 +50,19 @@ final class DefaultQueryAsyncClientBuilder extends DefaultQueryBaseClientBuilder
         interceptors = CollectionUtils.mergeLists(customizationInterceptors, interceptors);
         clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
                                                  .build();
-        this.validateClientOptions(clientConfiguration);
+        QueryAsyncClient client = new DefaultQueryAsyncClient(serviceClientConfiguration, clientConfiguration);
+        return client;
+    }
+
+    private QueryServiceClientConfiguration initializeServiceClientConfig(SdkClientConfiguration clientConfig) {
         URI endpointOverride = null;
-        if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
-            && Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
-            endpointOverride = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        EndpointProvider endpointProvider = clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER);
+        if (clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
+            && Boolean.TRUE.equals(clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
+            endpointOverride = clientConfig.option(SdkClientOption.ENDPOINT);
         }
-        QueryServiceClientConfiguration serviceClientConfiguration = QueryServiceClientConfiguration.builder()
-                                                                                                    .overrideConfiguration(overrideConfiguration()).region(clientConfiguration.option(AwsClientOption.AWS_REGION))
-                                                                                                    .endpointOverride(endpointOverride).build();
-        return new DefaultQueryAsyncClient(serviceClientConfiguration, clientConfiguration);
+        return QueryServiceClientConfiguration.builder().overrideConfiguration(overrideConfiguration())
+                                              .region(clientConfig.option(AwsClientOption.AWS_REGION)).endpointOverride(endpointOverride)
+                                              .endpointProvider(endpointProvider).build();
     }
 }

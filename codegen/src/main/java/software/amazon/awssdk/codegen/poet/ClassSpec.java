@@ -20,7 +20,7 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.Collections;
 
 /**
- * Represents the a Poet generated class
+ * Represents a Poet generated class
  */
 public interface ClassSpec {
 

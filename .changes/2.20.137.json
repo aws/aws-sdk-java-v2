@@ -1,0 +1,30 @@
+{
+    "version": "2.20.137",
+    "date": "2023-08-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Added API example requests and responses for several operations. Fixed the validation regex for user pools Identity Provider name."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Documentation updates for project quotas."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "Add RetentionMode support for Runs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Adds support for the new Export and Message Insights features: create, get, list and cancel export jobs; get message insights."
+        }
+    ]
+}

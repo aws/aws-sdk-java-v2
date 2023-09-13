@@ -29,9 +29,6 @@ import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createReque
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -45,14 +42,10 @@ import software.amazon.awssdk.http.RecordingResponseHandler;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.Logger;
 
 public class AwsCrtHttpClientWireMockTest {
-    private static final Logger log = Logger.loggerFor(AwsCrtHttpClientWireMockTest.class);
-
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig()
                                                           .dynamicPort());
