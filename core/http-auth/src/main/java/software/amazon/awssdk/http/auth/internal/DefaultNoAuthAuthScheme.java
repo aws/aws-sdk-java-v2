@@ -33,7 +33,7 @@ import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 
 /**
- * A default, no-op implementation of {@link NoAuthAuthScheme}. This implementation always:
+ * A default implementation of {@link NoAuthAuthScheme}. This implementation always:
  *
  * <ul>
  *     <li>Returns an {@link IdentityProvider} that always returns the same static instance that implements the
@@ -42,7 +42,7 @@ import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
  * </ul>
  */
 @SdkInternalApi
-public class DefaultNoAuthAuthScheme implements NoAuthAuthScheme {
+public final class DefaultNoAuthAuthScheme implements NoAuthAuthScheme {
     private static final DefaultNoAuthAuthScheme DEFAULT = new DefaultNoAuthAuthScheme();
     private static final IdentityProvider<AnonymousIdentity> DEFAULT_IDENTITY_PROVIDER = noAuthIdentityProvider();
     private static final HttpSigner<AnonymousIdentity> DEFAULT_SIGNER = noAuthSigner();

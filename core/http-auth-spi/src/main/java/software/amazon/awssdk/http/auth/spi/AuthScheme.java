@@ -30,6 +30,8 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
  *     <li>A signer - An API that can be used to sign HTTP requests.</li>
  * </ol>
  *
+ * See example auth schemes defined <a href="https://smithy.io/2.0/spec/authentication-traits.html">here</a>.
+ *
  * @param <T> The type of the {@link Identity} used by this authentication scheme.
  * @see IdentityProvider
  * @see HttpSigner
@@ -38,7 +40,7 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 public interface AuthScheme<T extends Identity> {
 
     /**
-     * Retrieve the scheme ID, a unique identifier for the authentication scheme (aws.auth#sigv4, smithy.api#httpBearerAuth).
+     * Retrieve the scheme ID, a unique identifier for the authentication scheme.
      */
     String schemeId();
 

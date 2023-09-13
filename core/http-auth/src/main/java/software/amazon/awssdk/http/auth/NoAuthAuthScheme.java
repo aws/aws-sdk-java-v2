@@ -18,7 +18,10 @@ package software.amazon.awssdk.http.auth;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.internal.DefaultNoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 
 /**
  * An auth scheme that represents no authentication.
@@ -33,6 +36,18 @@ public interface NoAuthAuthScheme extends AuthScheme<NoAuthAuthScheme.AnonymousI
     static NoAuthAuthScheme create() {
         return DefaultNoAuthAuthScheme.create();
     }
+
+    /**
+     * Retrieve the {@link AnonymousIdentity} based {@link IdentityProvider} associated with this authentication scheme.
+     */
+    @Override
+    IdentityProvider<AnonymousIdentity> identityProvider(IdentityProviders providers);
+
+    /**
+     * Retrieve the {@link HttpSigner} associated with this authentication scheme.
+     */
+    @Override
+    HttpSigner<AnonymousIdentity> signer();
 
     /**
      * An anonymous identity used by the no-auth auth scheme.
