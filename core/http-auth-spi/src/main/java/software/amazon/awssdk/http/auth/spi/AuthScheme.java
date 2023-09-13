@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
@@ -50,10 +51,10 @@ public interface AuthScheme<T extends Identity> {
      * For example, if the scheme ID is aws.auth#sigv4, the provider returns an {@link AwsCredentialsIdentity}, if the scheme ID
      * is httpBearerAuth, the provider returns a {@link TokenIdentity}.
      * <p>
-     * Note, the returned identity provider may differ from the type of identity provider retrieved from the provided identity
-     * provider configuration.
+     * Note, the returned identity provider may differ from the type of identity provider retrieved from the provided
+     * {@link IdentityProviders}.
      */
-    IdentityProvider<T> identityProvider(IdentityProviderConfiguration providers);
+    IdentityProvider<T> identityProvider(IdentityProviders providers);
 
     /**
      * Retrieve the signer associated with this authentication scheme. This signer is guaranteed to support the identity generated

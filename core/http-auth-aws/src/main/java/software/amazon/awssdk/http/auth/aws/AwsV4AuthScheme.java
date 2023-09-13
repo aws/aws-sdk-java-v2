@@ -18,9 +18,9 @@ package software.amazon.awssdk.http.auth.aws;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.aws.internal.DefaultAwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 
 /**
  * The <a href="https://smithy.io/2.0/aws/aws-auth.html#aws-auth-sigv4-trait">aws.auth#sigv4</a> auth scheme, which uses a
@@ -45,7 +45,7 @@ public interface AwsV4AuthScheme extends AuthScheme<AwsCredentialsIdentity> {
      * Retrieve the {@link AwsCredentialsIdentity} based {@link IdentityProvider} associated with this authentication scheme.
      */
     @Override
-    IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviderConfiguration providers);
+    IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers);
 
     /**
      * Retrieve the {@link AwsV4HttpSigner} associated with this authentication scheme.

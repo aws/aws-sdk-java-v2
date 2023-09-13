@@ -18,8 +18,8 @@ import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
 import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeInterceptor;
@@ -81,9 +81,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         SdkClientConfiguration.Builder builder = config.toBuilder();
         IdentityProvider<? extends TokenIdentity> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
         if (identityProvider != null) {
-            IdentityProviderConfiguration identityProviderConfig = config.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
-            builder.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION, identityProviderConfig.toBuilder()
-                                                                                                  .putIdentityProvider(identityProvider).build());
+            IdentityProviders identityProviders = config.option(SdkClientOption.IDENTITY_PROVIDERS);
+            builder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders.toBuilder()
+                                                                                     .putIdentityProvider(identityProvider).build());
         }
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.SERVICE_CONFIGURATION,
                                                                                     finalServiceConfig);

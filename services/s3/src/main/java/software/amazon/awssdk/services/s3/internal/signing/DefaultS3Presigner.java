@@ -65,7 +65,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
@@ -373,10 +373,10 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams)
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, S3AuthSchemeProvider.defaultProvider())
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
-            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION,
-                          IdentityProviderConfiguration.builder()
-                                                       .putIdentityProvider(credentialsProvider())
-                                                       .build());
+            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS,
+                          IdentityProviders.builder()
+                                           .putIdentityProvider(credentialsProvider())
+                                           .build());
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
 

@@ -27,7 +27,9 @@ import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.TIME
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 import static software.amazon.awssdk.core.metrics.CoreMetric.SIGNING_DURATION;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
@@ -176,6 +178,51 @@ public class SigningStageTest {
         assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK).instant())
             .isCloseTo(Instant.now().minusSeconds(17)
                 , within(10, ChronoUnit.MILLIS));
+
+        // assert that metrics are collected
+        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
+
+        verifyNoInteractions(oldSigner);
+    }
+
+    @Test
+    public void execute_selectedAuthScheme_doesSraSignAndDoesNotOverrideAuthSchemeOptionClock() throws Exception {
+        // Set up a scheme with a signer property and the signing clock set
+        Clock clock = testClock();
+        SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(identity),
+            signer,
+            AuthSchemeOption.builder()
+                            .schemeId("my.auth#myAuth")
+                            .putSignerProperty(SIGNER_PROPERTY, "value")
+                            // The auth scheme option includes the signing clock property
+                            .putSignerProperty(HttpSigner.SIGNING_CLOCK, clock)
+                            .build());
+        RequestExecutionContext context = createContext(selectedAuthScheme);
+
+        SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        when(signer.sign(Mockito.<SignRequest<? extends Identity>>any()))
+            .thenReturn(SignedRequest.builder()
+                                     .request(signedRequest)
+                                     .build());
+
+        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
+        SdkHttpFullRequest result = stage.execute(request, context);
+
+        assertThat(result).isSameAs(signedRequest);
+        // assert that interceptor context is updated with result
+        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
+
+        // assert that the input to the signer is as expected, including that signer properties are set
+        verify(signer).sign(signRequestCaptor.capture());
+        SignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
+        assertThat(signRequest.identity()).isSameAs(identity);
+        assertThat(signRequest.request()).isSameAs(request);
+        assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK)).isNotNull();
+
+        // assert that the signing stage does not override the auth-option provided clock.
+        assertThat(signRequest.property(HttpSigner.SIGNING_CLOCK)).isSameAs(clock);
 
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
@@ -394,5 +441,24 @@ public class SigningStageTest {
                                                                  .build();
         context.attemptMetricCollector(metricCollector);
         return context;
+    }
+
+    public static Clock testClock() {
+        return new Clock() {
+            @Override
+            public ZoneId getZone() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Clock withZone(ZoneId zone) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Instant instant() {
+                return Instant.now();
+            }
+        };
     }
 }

@@ -34,7 +34,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -203,8 +203,7 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     /**
      * The IdentityProviders configured on the client.
      */
-    public static final SdkClientOption<IdentityProviderConfiguration> IDENTITY_PROVIDER_CONFIGURATION =
-        new SdkClientOption<>(IdentityProviderConfiguration.class);
+    public static final SdkClientOption<IdentityProviders> IDENTITY_PROVIDERS = new SdkClientOption<>(IdentityProviders.class);
 
     /**
      * The container for any client contexts parameters set on the client.

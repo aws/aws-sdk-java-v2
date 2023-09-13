@@ -34,6 +34,12 @@
         "crt-core": { "packageName": "AwsJavaSdk-Core-CrtCore" },
         "checksums-spi": { "packageName": "AwsJavaSdk-Core-ChecksumsSpi" },
         "checksums": { "packageName": "AwsJavaSdk-Core-Checksums" },
+        "identity-spi": { "packageName": "AwsJavaSdk-Core-IdentitySpi" },
+        "http-auth-spi": { "packageName": "AwsJavaSdk-Core-HttpAuthSpi" },
+        "http-auth": { "packageName": "AwsJavaSdk-Core-HttpAuth" },
+        "http-auth-aws": { "packageName": "AwsJavaSdk-Core-HttpAuthAws" },
+        "http-auth-aws-crt": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsCrt" },
+        "http-auth-aws-event-stream": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsEventStream" },
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },

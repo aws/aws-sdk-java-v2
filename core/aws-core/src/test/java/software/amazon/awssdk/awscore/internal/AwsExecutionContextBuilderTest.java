@@ -51,9 +51,9 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -206,7 +206,7 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_withoutIdentityProviderConfiguration_assignsNull() {
+    public void invokeInterceptorsAndCreateExecutionContext_withoutIdentityProviders_assignsNull() {
         ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
 
         ExecutionContext executionContext =
@@ -214,17 +214,17 @@ public class AwsExecutionContextBuilderTest {
                                                                                    testClientConfiguration().build());
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
-        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION)).isNull();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS)).isNull();
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_requestOverrideForIdentityProvider_updatesIdentityProviderConfiguration() {
+    public void invokeInterceptorsAndCreateExecutionContext_requestOverrideForIdentityProvider_updatesIdentityProviders() {
         IdentityProvider<? extends AwsCredentialsIdentity> clientCredentialsProvider =
             StaticCredentialsProvider.create(AwsBasicCredentials.create("foo", "bar"));
-        IdentityProviderConfiguration identityProviderConfiguration =
-            IdentityProviderConfiguration.builder().putIdentityProvider(clientCredentialsProvider).build();
+        IdentityProviders identityProviders =
+            IdentityProviders.builder().putIdentityProvider(clientCredentialsProvider).build();
         SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION, identityProviderConfiguration)
+            .option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders)
             .build();
 
         IdentityProvider<? extends AwsCredentialsIdentity> requestCredentialsProvider =
@@ -238,11 +238,11 @@ public class AwsExecutionContextBuilderTest {
         ExecutionContext executionContext =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
 
-        IdentityProviderConfiguration actualIdentityProviderConfiguration =
-            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
+        IdentityProviders actualIdentityProviders =
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
 
         IdentityProvider<AwsCredentialsIdentity> actualIdentityProvider =
-            actualIdentityProviderConfiguration.identityProvider(AwsCredentialsIdentity.class);
+            actualIdentityProviders.identityProvider(AwsCredentialsIdentity.class);
 
         assertThat(actualIdentityProvider).isSameAs(requestCredentialsProvider);
     }

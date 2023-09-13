@@ -21,10 +21,10 @@ import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -61,13 +61,13 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                                                                     ExecutionAttributes executionAttributes) {
         MetricCollector metricCollector = executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
-        IdentityProviderConfiguration identityResolvers = executionAttributes
-            .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
+        IdentityProviders identityProviders = executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
         List<Supplier<String>> discardedReasons = new ArrayList<>();
         for (AuthSchemeOption authOption : authOptions) {
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
             SelectedAuthScheme<? extends Identity> selectedAuthScheme = trySelectAuthScheme(authOption, authScheme,
-                                                                                            identityResolvers, discardedReasons, metricCollector);
+                                                                                            identityProviders, discardedReasons, metricCollector);
             if (selectedAuthScheme != null) {
                 if (!discardedReasons.isEmpty()) {
                     LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
@@ -102,7 +102,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
     }
 
     private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,
-                                                                           IdentityProviderConfiguration identityProviders, List<Supplier<String>> discardedReasons,
+                                                                           IdentityProviders identityProviders, List<Supplier<String>> discardedReasons,
                                                                            MetricCollector metricCollector) {
         if (authScheme == null) {
             discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));

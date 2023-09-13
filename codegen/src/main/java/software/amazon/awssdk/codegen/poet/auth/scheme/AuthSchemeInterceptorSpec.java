@@ -49,10 +49,10 @@ import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -199,15 +199,15 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addStatement("$T authSchemes = executionAttributes.getAttribute($T.AUTH_SCHEMES)",
                              mapOf(String.class, wildcardAuthScheme()),
                              SdkInternalExecutionAttribute.class)
-               .addStatement("$T identityResolvers = executionAttributes.getAttribute($T.IDENTITY_PROVIDER_CONFIGURATION)",
-                             IdentityProviderConfiguration.class, SdkInternalExecutionAttribute.class)
+               .addStatement("$T identityProviders = executionAttributes.getAttribute($T.IDENTITY_PROVIDERS)",
+                             IdentityProviders.class, SdkInternalExecutionAttribute.class)
                .addStatement("$T discardedReasons = new $T<>()",
                              listOfStringSuppliers(), ArrayList.class);
 
         builder.beginControlFlow("for ($T authOption : authOptions)", AuthSchemeOption.class);
         {
             builder.addStatement("$T authScheme = authSchemes.get(authOption.schemeId())", wildcardAuthScheme())
-                   .addStatement("$T selectedAuthScheme = trySelectAuthScheme(authOption, authScheme, identityResolvers, "
+                   .addStatement("$T selectedAuthScheme = trySelectAuthScheme(authOption, authScheme, identityProviders, "
                                  + "discardedReasons, metricCollector)",
                                  wildcardSelectedAuthScheme());
             builder.beginControlFlow("if (selectedAuthScheme != null)");
@@ -235,7 +235,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                                .returns(namedSelectedAuthScheme())
                                                .addParameter(AuthSchemeOption.class, "authOption")
                                                .addParameter(namedAuthScheme(), "authScheme")
-                                               .addParameter(IdentityProviderConfiguration.class, "identityProviders")
+                                               .addParameter(IdentityProviders.class, "identityProviders")
                                                .addParameter(listOfStringSuppliers(), "discardedReasons")
                                                .addParameter(MetricCollector.class, "metricCollector")
                                                .addTypeVariable(TypeVariableName.get("T", Identity.class));
