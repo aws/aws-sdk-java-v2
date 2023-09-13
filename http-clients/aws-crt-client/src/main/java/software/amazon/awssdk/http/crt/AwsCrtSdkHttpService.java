@@ -35,6 +35,6 @@ public class AwsCrtSdkHttpService implements SdkAsyncHttpService, SdkHttpService
 
     @Override
     public SdkHttpClient.Builder createHttpClientBuilder() {
-        return AwsCrtSyncHttpClient.builder();
+        return AwsCrtHttpClient.builder();
     }
 }

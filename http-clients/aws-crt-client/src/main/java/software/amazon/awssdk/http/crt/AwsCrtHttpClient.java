@@ -30,9 +30,10 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
+import software.amazon.awssdk.http.crt.internal.AwsCrtHttpClientBase;
 import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
-import software.amazon.awssdk.http.crt.internal.CrtSyncRequestContext;
+import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -42,36 +43,36 @@ import software.amazon.awssdk.utils.AttributeMap;
  *
  * <p>This can be created via {@link #builder()}</p>
  * {@snippet :
-    SdkHttpClient client = AwsCrtSyncHttpClient.builder()
-    .maxConcurrency(100)
-    .connectionTimeout(Duration.ofSeconds(1))
-    .connectionMaxIdleTime(Duration.ofSeconds(5))
-    .build();
- * }
+ * SdkHttpClient client = software.amazon.awssdk.http.crt.AwsCrtHttpClient.builder()
+ * .maxConcurrency(100)
+ * .connectionTimeout(Duration.ofSeconds(1))
+ * .connectionMaxIdleTime(Duration.ofSeconds(5))
+ * .build();
+ *}
  *
  */
-public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements SdkHttpClient {
+public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkHttpClient {
 
-    private AwsCrtSyncHttpClient(AwsCrtSyncHttpClient.DefaultSyncBuilder builder, AttributeMap config) {
-        super(builder.getBuilderBase(), config);
+    private AwsCrtHttpClient(DefaultBuilder builder, AttributeMap config) {
+        super(builder, config);
     }
 
-    public static AwsCrtSyncHttpClient.Builder builder() {
-        return new AwsCrtSyncHttpClient.DefaultSyncBuilder();
+    public static AwsCrtHttpClient.Builder builder() {
+        return new DefaultBuilder();
     }
 
     /**
-     * Create a {@link AwsCrtSyncHttpClient} client with the default configuration
+     * Create a {@link AwsCrtHttpClient} client with the default configuration
      *
      * @return an {@link SdkHttpClient}
      */
-    public static AwsCrtSyncHttpClient create() {
-        return new AwsCrtSyncHttpClient.DefaultSyncBuilder().build();
+    public static AwsCrtHttpClient create() {
+        return new DefaultBuilder().build();
     }
 
     @Override
     public String clientName() {
-        return super.clientName();
+        return SdkHttpClient.super.clientName();
     }
 
     @Override
@@ -91,11 +92,11 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * request)
          */
         try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(poolKey(request.httpRequest()))) {
-            CrtSyncRequestContext context = CrtSyncRequestContext.builder()
-                                                                 .crtConnPool(crtConnPool)
-                                                                 .readBufferSize(this.readBufferSize)
-                                                                 .request(request)
-                                                                 .build();
+            CrtRequestContext context = CrtRequestContext.builder()
+                                                         .crtConnPool(crtConnPool)
+                                                         .readBufferSize(this.readBufferSize)
+                                                         .request(request)
+                                                         .build();
             return new ExecutableHttpRequest() {
                 Future<SdkHttpFullResponse> responseFuture;
 
@@ -135,14 +136,14 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
     /**
      * Builder that allows configuration of the AWS CRT HTTP implementation.
      */
-    public interface Builder extends SdkHttpClient.Builder<AwsCrtSyncHttpClient.Builder> {
+    public interface Builder extends SdkHttpClient.Builder<AwsCrtHttpClient.Builder> {
 
         /**
          * The Maximum number of allowed concurrent requests. For HTTP/1.1 this is the same as max connections.
          * @param maxConcurrency maximum concurrency per endpoint
          * @return The builder of the method chaining.
          */
-        AwsCrtSyncHttpClient.Builder maxConcurrency(Integer maxConcurrency);
+        AwsCrtHttpClient.Builder maxConcurrency(Integer maxConcurrency);
 
         /**
          * Configures the number of unread bytes that can be buffered in the
@@ -152,14 +153,14 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * @param readBufferSize The number of bytes that can be buffered.
          * @return The builder of the method chaining.
          */
-        AwsCrtSyncHttpClient.Builder readBufferSizeInBytes(Long readBufferSize);
+        AwsCrtHttpClient.Builder readBufferSizeInBytes(Long readBufferSize);
 
         /**
          * Sets the http proxy configuration to use for this client.
          * @param proxyConfiguration The http proxy configuration to use
          * @return The builder of the method chaining.
          */
-        AwsCrtSyncHttpClient.Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
+        AwsCrtHttpClient.Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
 
         /**
          * Sets the http proxy configuration to use for this client.
@@ -167,7 +168,7 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * @param proxyConfigurationBuilderConsumer The consumer of the proxy configuration builder object.
          * @return the builder for method chaining.
          */
-        AwsCrtSyncHttpClient.Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
+        AwsCrtHttpClient.Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
 
         /**
          * Configure the health checks for all connections established by this client.
@@ -185,7 +186,7 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
          */
-        AwsCrtSyncHttpClient.Builder connectionHealthConfiguration(ConnectionHealthConfiguration healthChecksConfiguration);
+        AwsCrtHttpClient.Builder connectionHealthConfiguration(ConnectionHealthConfiguration healthChecksConfiguration);
 
         /**
          * A convenience method that creates an instance of the {@link ConnectionHealthConfiguration} builder, avoiding the
@@ -195,7 +196,7 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * @return The builder of the method chaining.
          * @see #connectionHealthConfiguration(ConnectionHealthConfiguration)
          */
-        AwsCrtSyncHttpClient.Builder connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
+        AwsCrtHttpClient.Builder connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
                                                                         healthChecksConfigurationBuilder);
 
         /**
@@ -203,14 +204,14 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * @param connectionMaxIdleTime the maximum amount of connection idle time
          * @return The builder of the method chaining.
          */
-        AwsCrtSyncHttpClient.Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
+        AwsCrtHttpClient.Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
 
         /**
          * The amount of time to wait when initially establishing a connection before giving up and timing out.
          * @param connectionTimeout timeout
          * @return The builder of the method chaining.
          */
-        AwsCrtSyncHttpClient.Builder connectionTimeout(Duration connectionTimeout);
+        AwsCrtHttpClient.Builder connectionTimeout(Duration connectionTimeout);
 
         /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
@@ -224,7 +225,7 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * @param tcpKeepAliveConfiguration The TCP keep-alive configuration to use
          * @return The builder of the method chaining.
          */
-        AwsCrtSyncHttpClient.Builder tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration);
+        AwsCrtHttpClient.Builder tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration);
 
         /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
@@ -238,7 +239,7 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * @return The builder of the method chaining.
          * @see #tcpKeepAliveConfiguration(TcpKeepAliveConfiguration)
          */
-        AwsCrtSyncHttpClient.Builder tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
+        AwsCrtHttpClient.Builder tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
                                                                     tcpKeepAliveConfigurationBuilder);
 
         /**
@@ -255,104 +256,27 @@ public final class AwsCrtSyncHttpClient extends AwsCrtHttpClientBase implements 
          * @param postQuantumTlsEnabled whether to prefer Post Quantum TLS
          * @return The builder of the method chaining.
          */
-        AwsCrtSyncHttpClient.Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
+        AwsCrtHttpClient.Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
     }
 
     /**
      * Factory that allows more advanced configuration of the AWS CRT HTTP implementation. Use {@link #builder()} to
      * configure and construct an immutable instance of the factory.
      */
-    private static final class DefaultSyncBuilder implements AwsCrtSyncHttpClient.Builder {
+    private static final class DefaultBuilder extends AwsCrtClientBuilderBase<AwsCrtHttpClient.Builder> implements AwsCrtHttpClient.Builder {
 
-        private final AwsCrtClientBuilderBase builderBase = new AwsCrtClientBuilderBase();
 
-        private DefaultSyncBuilder() {
-        }
-
-        public AwsCrtClientBuilderBase getBuilderBase() {
-            return this.builderBase;
+        @Override
+        public AwsCrtHttpClient build() {
+            return new AwsCrtHttpClient(this, getAttributeMap().build()
+                                                         .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
         @Override
-        public AwsCrtSyncHttpClient build() {
-            return new AwsCrtSyncHttpClient(this, builderBase.getAttributeMap().build()
-                                                              .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
-            return new AwsCrtSyncHttpClient(this, builderBase.getAttributeMap().build()
-                                                              .merge(serviceDefaults)
-                                                              .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder maxConcurrency(Integer maxConcurrency) {
-            builderBase.maxConcurrency(maxConcurrency);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder readBufferSizeInBytes(Long readBufferSize) {
-            builderBase.readBufferSizeInBytes(readBufferSize);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder proxyConfiguration(ProxyConfiguration proxyConfiguration) {
-            builderBase.proxyConfiguration(proxyConfiguration);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder connectionHealthConfiguration(ConnectionHealthConfiguration monitoringOptions) {
-            builderBase.connectionHealthConfiguration(monitoringOptions);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
-                                                                               configurationBuilder) {
-            builderBase.connectionHealthConfiguration(configurationBuilder);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder connectionMaxIdleTime(Duration connectionMaxIdleTime) {
-            builderBase.connectionMaxIdleTime(connectionMaxIdleTime);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder connectionTimeout(Duration connectionTimeout) {
-            builderBase.connectionTimeout(connectionTimeout);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration) {
-            builderBase.tcpKeepAliveConfiguration(tcpKeepAliveConfiguration);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
-                                                                           tcpKeepAliveConfigurationBuilder) {
-            TcpKeepAliveConfiguration.Builder builder = TcpKeepAliveConfiguration.builder();
-            tcpKeepAliveConfigurationBuilder.accept(builder);
-            return tcpKeepAliveConfiguration(builder.build());
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled) {
-            builderBase.postQuantumTlsEnabled(postQuantumTlsEnabled);
-            return this;
-        }
-
-        @Override
-        public AwsCrtSyncHttpClient.Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer) {
-            builderBase.proxyConfiguration(proxyConfigurationBuilderConsumer);
-            return this;
+        public AwsCrtHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
+            return new AwsCrtHttpClient(this, getAttributeMap().build()
+                                                         .merge(serviceDefaults)
+                                                         .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
     }
 

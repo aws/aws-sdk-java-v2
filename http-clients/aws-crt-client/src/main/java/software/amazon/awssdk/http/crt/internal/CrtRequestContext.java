@@ -21,13 +21,13 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
-public final class CrtSyncRequestContext {
+public final class CrtRequestContext {
     private final HttpExecuteRequest request;
     private final long readBufferSize;
     private final HttpClientConnectionManager crtConnPool;
     private final MetricCollector metricCollector;
 
-    private CrtSyncRequestContext(Builder builder) {
+    private CrtRequestContext(Builder builder) {
         this.request = builder.request;
         this.readBufferSize = builder.readBufferSize;
         this.crtConnPool = builder.crtConnPool;
@@ -77,8 +77,8 @@ public final class CrtSyncRequestContext {
             return this;
         }
 
-        public CrtSyncRequestContext build() {
-            return new CrtSyncRequestContext(this);
+        public CrtRequestContext build() {
+            return new CrtRequestContext(this);
         }
     }
 }

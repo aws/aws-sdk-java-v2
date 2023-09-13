@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRE
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -45,12 +46,14 @@ import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.async.InputStreamSubscriber;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @SdkInternalApi
 public final class CrtRequestExecutor {
     private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
 
-    public CompletableFuture<SdkHttpFullResponse> execute(CrtSyncRequestContext executionContext) {
+    public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext) {
         // go ahead and get a reference to the metricCollector since multiple futures will
         // need it regardless.
         MetricCollector metricCollector = executionContext.metricCollector();
@@ -150,8 +153,8 @@ public final class CrtRequestExecutor {
         metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, saturatedCast(managerMetrics.getPendingConcurrencyAcquires()));
     }
 
-    private static void reportSyncMetrics(CrtSyncRequestContext executionContext, MetricCollector metricCollector,
-                                           long acquireStartTime) {
+    private static void reportSyncMetrics(CrtRequestContext executionContext, MetricCollector metricCollector,
+                                          long acquireStartTime) {
         long acquireCompletionTime = System.nanoTime();
         Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - acquireStartTime);
         metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
@@ -195,69 +198,70 @@ public final class CrtRequestExecutor {
         }
     }
 
-    private void executeRequest(CrtSyncRequestContext executionContext,
-                                           CompletableFuture<SdkHttpFullResponse> requestFuture,
-                                           HttpClientConnection crtConn) {
-        HttpRequest crtRequest = CrtRequestAdapter.toSyncCrtRequest(executionContext);
+    private void executeRequest(CrtRequestContext executionContext,
+                                CompletableFuture<SdkHttpFullResponse> requestFuture,
+                                HttpClientConnection crtConn) {
+        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
         SdkHttpFullResponse.Builder builder = SdkHttpFullResponse.builder();
-        HttpStream[] httpResponseStream = {null};
 
-        CRTAsyncInputStreamAdapter responseStream =
-            new CRTAsyncInputStreamAdapter(new CRTAsyncInputStreamAdapter.ReadObserver() {
-                //This function is called by the responseStream whenever the responseHandler (below)
-                // publishes data to it.
-            @Override
-            public void bytesRead(int count) {
-                // since threading boundaries and queues are involved we need manual window management.
-                // this is called as the responseStream consumer consumes data. We increment the window
-                // upon each read.
-                if (httpResponseStream[0] != null) {
-                    httpResponseStream[0].incrementWindow(count);
-                }
-            }
-        });
+        InputStreamSubscriber inputStreamSubscriber = new InputStreamSubscriber();
+        builder.content(AbortableInputStream.create(inputStreamSubscriber));
 
-        builder.content(AbortableInputStream.create(responseStream));
-
-        // Submit the request on the connection
-        HttpStreamResponseHandler crtResponseHandler = new HttpStreamResponseHandler() {
-            @Override
-            public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType,
-                                          HttpHeader[] nextHeaders) {
-                for (HttpHeader header : nextHeaders) {
-                    builder.putHeader(header.getName(), header.getValue());
-                }
-
-                if (builder.statusCode() == 0) {
-                    builder.statusCode(responseStatusCode);
-                }
-
-                if (httpResponseStream[0] == null) {
-                    httpResponseStream[0] = stream;
-                }
-            }
-
-            @Override
-            public void onResponseComplete(HttpStream stream, int errorCode) {
-                if (errorCode == 0) {
-                    requestFuture.complete(builder.build());
-                } else {
-                    requestFuture.completeExceptionally(new HttpException(errorCode));
-                }
-                stream.close();
-                crtConn.close();
-            }
-
-            @Override
-            public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
-                responseStream.onDataReceived(bodyBytesIn);
-                // sending data to responseStream does not mean it has cleared the consumer. We must wait until we
-                // receive a notification (see above in the responseStream declaration) to increment the window.
-                return 0;
-            }
-        };
+        SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
 
         try {
+            HttpStreamResponseHandler crtResponseHandler = new HttpStreamResponseHandler() {
+                @Override
+                public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType,
+                                              HttpHeader[] nextHeaders) {
+                    for (HttpHeader header : nextHeaders) {
+                        builder.putHeader(header.getName(), header.getValue());
+                    }
+
+                    if (builder.statusCode() == 0) {
+                        builder.statusCode(responseStatusCode);
+                    }
+
+                    simplePublisher.subscribe(inputStreamSubscriber);
+                }
+
+                @Override
+                public void onResponseComplete(HttpStream stream, int errorCode) {
+                    if (errorCode == 0) {
+                        requestFuture.complete(builder.build());
+                    } else {
+                        requestFuture.completeExceptionally(new HttpException(errorCode));
+                    }
+                    stream.close();
+                    crtConn.close();
+                }
+
+                @Override
+                public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
+                    CompletableFuture<Void> writeFuture = simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
+                    simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
+
+                    // go ahead and let back pressure know we consumed the data.
+                    if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {
+                        return bodyBytesIn.length;
+                    }
+
+                    writeFuture.whenComplete((result, failure) -> {
+                        if (failure != null) {
+                            requestFuture.completeExceptionally(failure);
+                            return;
+                        }
+
+                        // otherwise, increment the window upon buffer consumption.
+                        stream.incrementWindow(bodyBytesIn.length);
+                    });
+
+                    // the bodyBytesIn have not cleared the queues yet, so do let backpressure do its thing.
+                    return 0;
+                }
+            };
+
+            // Submit the request on the connection
             crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
         } catch (HttpException e) {
             crtConn.close();

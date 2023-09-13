@@ -13,15 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt;
+package software.amazon.awssdk.http.crt.internal;
 
 import java.time.Duration;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.crt.ConnectionHealthConfiguration;
+import software.amazon.awssdk.http.crt.ProxyConfiguration;
+import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 
-class AwsCrtClientBuilderBase {
+@SdkInternalApi
+public class AwsCrtClientBuilderBase<BuilderT> {
     private final AttributeMap.Builder standardOptions = AttributeMap.builder();
     private Long readBufferSize;
     private ProxyConfiguration proxyConfiguration;
@@ -29,86 +34,102 @@ class AwsCrtClientBuilderBase {
     private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
     private Boolean postQuantumTlsEnabled;
 
-    AwsCrtClientBuilderBase() {
+    protected AwsCrtClientBuilderBase() {
     }
 
-    AttributeMap.Builder getAttributeMap() {
+    protected AttributeMap.Builder getAttributeMap() {
         return standardOptions;
     }
 
-    void maxConcurrency(Integer maxConcurrency) {
+    private BuilderT thisBuilder() {
+        return (BuilderT) this;
+    }
+
+    public BuilderT maxConcurrency(Integer maxConcurrency) {
         Validate.isPositiveOrNull(maxConcurrency, "maxConcurrency");
         standardOptions.put(SdkHttpConfigurationOption.MAX_CONNECTIONS, maxConcurrency);
+        return thisBuilder();
     }
 
-    void readBufferSizeInBytes(Long readBufferSize) {
+    public BuilderT readBufferSizeInBytes(Long readBufferSize) {
         Validate.isPositiveOrNull(readBufferSize, "readBufferSize");
         this.readBufferSize = readBufferSize;
+        return thisBuilder();
     }
 
-    Long getReadBufferSizeInBytes() {
+    public Long getReadBufferSizeInBytes() {
         return this.readBufferSize;
     }
 
-    void proxyConfiguration(ProxyConfiguration proxyConfiguration) {
+
+    public BuilderT proxyConfiguration(ProxyConfiguration proxyConfiguration) {
         this.proxyConfiguration = proxyConfiguration;
+        return thisBuilder();
     }
 
-    ProxyConfiguration getProxyConfiguration() {
+    public ProxyConfiguration getProxyConfiguration() {
         return this.proxyConfiguration;
     }
 
-    void connectionHealthConfiguration(ConnectionHealthConfiguration monitoringOptions) {
+    public BuilderT connectionHealthConfiguration(ConnectionHealthConfiguration monitoringOptions) {
         this.connectionHealthConfiguration = monitoringOptions;
+        return thisBuilder();
     }
 
-    ConnectionHealthConfiguration getConnectionHealthConfiguration() {
+    public ConnectionHealthConfiguration getConnectionHealthConfiguration() {
         return this.connectionHealthConfiguration;
     }
 
-    void connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
+    public BuilderT connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
                                            configurationBuilder) {
         ConnectionHealthConfiguration.Builder builder = ConnectionHealthConfiguration.builder();
         configurationBuilder.accept(builder);
         connectionHealthConfiguration(builder.build());
+        return thisBuilder();
     }
 
-    void connectionMaxIdleTime(Duration connectionMaxIdleTime) {
+    public BuilderT connectionMaxIdleTime(Duration connectionMaxIdleTime) {
         Validate.isPositive(connectionMaxIdleTime, "connectionMaxIdleTime");
         standardOptions.put(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT, connectionMaxIdleTime);
+        return thisBuilder();
     }
 
-    void connectionTimeout(Duration connectionTimeout) {
+    public BuilderT connectionTimeout(Duration connectionTimeout) {
         Validate.isPositive(connectionTimeout, "connectionTimeout");
         standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, connectionTimeout);
+        return thisBuilder();
     }
 
-    void tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration) {
+    public BuilderT tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration) {
         this.tcpKeepAliveConfiguration = tcpKeepAliveConfiguration;
+        return thisBuilder();
     }
 
-    TcpKeepAliveConfiguration getTcpKeepAliveConfiguration() {
+    public TcpKeepAliveConfiguration getTcpKeepAliveConfiguration() {
         return this.tcpKeepAliveConfiguration;
     }
 
-    void tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
+    public BuilderT tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
                                        tcpKeepAliveConfigurationBuilder) {
         TcpKeepAliveConfiguration.Builder builder = TcpKeepAliveConfiguration.builder();
         tcpKeepAliveConfigurationBuilder.accept(builder);
         tcpKeepAliveConfiguration(builder.build());
+        return thisBuilder();
     }
 
-    void postQuantumTlsEnabled(Boolean postQuantumTlsEnabled) {
+    public BuilderT postQuantumTlsEnabled(Boolean postQuantumTlsEnabled) {
         this.postQuantumTlsEnabled = postQuantumTlsEnabled;
+        return thisBuilder();
     }
 
-    Boolean getPostQuantumTlsEnabled() {
+    public Boolean getPostQuantumTlsEnabled() {
         return this.postQuantumTlsEnabled;
     }
 
-    void proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer) {
+    public BuilderT proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer) {
         ProxyConfiguration.Builder builder = ProxyConfiguration.builder();
         proxyConfigurationBuilderConsumer.accept(builder);
         proxyConfiguration(builder.build());
+        return thisBuilder();
     }
 }

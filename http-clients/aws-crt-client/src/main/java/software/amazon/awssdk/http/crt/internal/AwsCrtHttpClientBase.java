@@ -13,25 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt;
+package software.amazon.awssdk.http.crt.internal;
 
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMonitoringOptions;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
-import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
@@ -44,21 +39,16 @@ import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestContext;
-import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
-import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Common functionality and configuration for the CRT Http clients.
  */
-class AwsCrtHttpClientBase implements SdkAutoCloseable {
+@SdkInternalApi
+public class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private static final Logger log = Logger.loggerFor(AwsCrtHttpClientBase.class);
 
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
@@ -76,7 +66,7 @@ class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
-    AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
+    public AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
         if (config.get(PROTOCOL) == Protocol.HTTP2) {
             throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtAsyncHttpClient yet. Use "
                                                + "NettyNioAsyncHttpClient instead.");
@@ -117,7 +107,7 @@ class AwsCrtHttpClientBase implements SdkAutoCloseable {
         return subresource;
     }
 
-    String clientName() {
+    protected String clientName() {
         return AWS_COMMON_RUNTIME;
     }
 
@@ -154,7 +144,7 @@ class AwsCrtHttpClientBase implements SdkAutoCloseable {
      * existing pool.  If we add all of execute() to the scope, we include, at minimum a JNI call to the native
      * pool implementation.
      */
-    HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
+    protected HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
         synchronized (this) {
             if (isClosed) {
                 throw new IllegalStateException("Client is closed. No more requests can be made with this client.");

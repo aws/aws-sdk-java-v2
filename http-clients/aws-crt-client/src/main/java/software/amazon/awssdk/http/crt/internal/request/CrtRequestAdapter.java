@@ -34,7 +34,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestContext;
-import software.amazon.awssdk.http.crt.internal.CrtSyncRequestContext;
+import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 
 @SdkInternalApi
 public final class CrtRequestAdapter {
@@ -64,7 +64,7 @@ public final class CrtRequestAdapter {
                                                          request.readBufferSize()));
     }
 
-    public static HttpRequest toSyncCrtRequest(CrtSyncRequestContext request) {
+    public static HttpRequest toCrtRequest(CrtRequestContext request) {
 
         HttpExecuteRequest sdkExecuteRequest = request.sdkRequest();
         SdkHttpRequest sdkRequest = sdkExecuteRequest.httpRequest();
