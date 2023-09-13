@@ -151,6 +151,7 @@ public class AsyncSigningStageTest {
 
     @Test
     public void execute_selectedAuthSchemeAndTimeOffsetSet_doesSraSignAndAdjustTheSigningClock() throws Exception {
+        AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
         // Set up a scheme with a signer property
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
@@ -159,17 +160,19 @@ public class AsyncSigningStageTest {
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme, (Signer) null);
+        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload, null);
+
+        SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
+        Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");
+        when(signer.signAsync(Mockito.<AsyncSignRequest<? extends Identity>>any()))
+            .thenReturn(
+                CompletableFuture.completedFuture(AsyncSignedRequest.builder()
+                                                                    .request(signedRequest)
+                                                                    .payload(signedPayload)
+                                                                    .build()));
 
         // Setup the timeoffset to test that the clock is setup properly.
         httpClientDependencies.updateTimeOffset(TEST_TIME_OFFSET);
-
-        SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.sign(Mockito.<SignRequest<? extends Identity>>any()))
-            .thenReturn(SignedRequest.builder()
-                                     .request(signedRequest)
-                                     .build());
-
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
 
@@ -178,8 +181,8 @@ public class AsyncSigningStageTest {
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).sign(signRequestCaptor.capture());
-        SignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
+        verify(signer).signAsync(asyncSignRequestCaptor.capture());
+        AsyncSignRequest<? extends Identity> signRequest = asyncSignRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
@@ -198,6 +201,7 @@ public class AsyncSigningStageTest {
 
     @Test
     public void execute_selectedAuthScheme_doesSraSignAndDoesNotOverrideAuthSchemeOptionClock() throws Exception {
+        AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
         // Set up a scheme with a signer property and the signing clock set
         Clock clock = SigningStageTest.testClock();
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
@@ -209,13 +213,15 @@ public class AsyncSigningStageTest {
                             // The auth scheme option includes the signing clock property
                             .putSignerProperty(HttpSigner.SIGNING_CLOCK, clock)
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme);
+
+        RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.sign(Mockito.<SyncSignRequest<? extends Identity>>any()))
-            .thenReturn(SyncSignedRequest.builder()
+        when(signer.signAsync(Mockito.<AsyncSignRequest<? extends Identity>>any()))
+            .thenReturn(
+                CompletableFuture.completedFuture(AsyncSignedRequest.builder()
                                          .request(signedRequest)
-                                         .build());
+                                         .build()));
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
@@ -225,8 +231,8 @@ public class AsyncSigningStageTest {
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).sign(syncSignRequestCaptor.capture());
-        SyncSignRequest<? extends Identity> signRequest = syncSignRequestCaptor.getValue();
+        verify(signer).signAsync(asyncSignRequestCaptor.capture());
+        AsyncSignRequest<? extends Identity> signRequest = asyncSignRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
         assertThat(signRequest.property(SIGNER_PROPERTY)).isEqualTo("value");
