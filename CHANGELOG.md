@@ -1,3 +1,84 @@
+# __2.20.147__ __2023-09-13__
+## __AWS Cloud9__
+  - ### Features
+    - Update to include information on Ubuntu 18 deprecation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Allow IamPolicy to read json policies where the principal value is itself an array
+    - Fix `InputStreamSubscriber` to return 0 when reading a length of 0.
+        - Contributed by: [@faucct](https://github.com/faucct)
+
+## __AWS SimSpace Weaver__
+  - ### Features
+    - Edited the introductory text for the API reference.
+
+## __AWS X-Ray__
+  - ### Features
+    - Add StartTime field in GetTraceSummaries API response for each TraceSummary.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release updates the Amazon CloudWatch Internet Monitor API domain name.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces returnConsumedCapacity input to BatchGetItemEnhancedRequest that allows customers to find out exactly how much read units were consumed by the operation.
+        - Contributed by: [@psnilesh](https://github.com/psnilesh)
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add `managementType` field to ListCoverage API response.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Doc only update that changes description for ParticipantToken.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - DocumentIdOptions has been added for the Amazon OpenSearch destination.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Updated existing APIs and added new ones to support using AWS Elastic Disaster Recovery post-launch actions. Added support for new regions.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+# __2.20.146__ __2023-09-12__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Improved CRT client uploads by directly passing requestPath, eliminating unnecessary file I/O in the Java SDK Transfer Manager.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports confidence score buckets for retrieved passage results using the Retrieve API.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - This commit introduces DynamoDbTable#getItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnConsumedCapacity to get additional information the service response.
+        - Contributed by: [@psnilesh](https://github.com/psnilesh)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for restricting public sharing of AMIs through AMI Block Public Access
+
+## __Amazon EventBridge__
+  - ### Features
+    - Adds sensitive trait to various shapes in Jetstream Connections API model.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@psnilesh](https://github.com/psnilesh)
 # __2.20.145__ __2023-09-11__
 ## __AWS Elemental MediaLive__
   - ### Features

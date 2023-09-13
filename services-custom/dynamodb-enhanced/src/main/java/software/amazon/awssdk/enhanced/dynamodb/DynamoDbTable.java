@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -395,6 +396,64 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @return The retrieved item
      */
     default T getItem(T keyItem) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Retrieves a single item from the mapped table using a supplied primary {@link Key}. This is similar to
+     * {@link #getItem(GetItemEnhancedRequest)} but returns {@link GetItemEnhancedResponse} for additional information.
+     *
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link GetItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.getItemWithResponse(GetItemEnhancedRequest.builder().key(key).build());
+     * }
+     * </pre>
+     *
+     * @param request A {@link GetItemEnhancedRequest} with key and optional directives for retrieving an item from the
+     *                table.
+     * @return The retrieved item
+     */
+    default GetItemEnhancedResponse<T> getItemWithResponse(GetItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Retrieves a single item from the mapped table using a supplied primary {@link Key}. This is similar to
+     * {@link #getItem(Consumer<GetItemEnhancedRequest.Builder>)} but returns {@link GetItemEnhancedResponse} for additional
+     * information.
+     *
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link GetItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API GetItem operation. Consult the GetItem documentation for
+     * further details and constraints.
+     * <p>
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link GetItemEnhancedRequest#builder()}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem item = mappedTable.getItemWithResponse(r -> r.key(key));
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link GetItemEnhancedRequest.Builder} with key and optional
+     *                        directives for retrieving an item from the table.
+     * @return The retrieved item
+     */
+    default GetItemEnhancedResponse<T> getItemWithResponse(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
