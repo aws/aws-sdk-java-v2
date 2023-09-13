@@ -123,23 +123,14 @@ public class AwsCrtHttpClientSpiVerificationTest {
         }
     }
 
-    @Test
-    public void callsOnStreamForEmptyResponseContent() throws Exception {
-        stubFor(any(urlEqualTo("/")).willReturn(aResponse().withStatus(204).withHeader("foo", "bar")));
-
-        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(URI.create("http://localhost:" + mockServer.port()));
-        HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
-        executeRequestBuilder.request(request);
-        executeRequestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]));
-        ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
-        HttpExecuteResponse response = executableRequest.call();
-
-        assertThat(response.responseBody().isPresent()).isTrue();
-        assertThat(response.responseBody().get().available() == 0).isTrue();
-        assertThat(response.httpResponse() != null).isTrue();
-        assertThat(response.httpResponse().statusCode() == 204).isTrue();
-        assertThat(response.httpResponse().headers().get("foo").isEmpty()).isFalse();
-    }
+    // the following test is commented out but here because I want anyone coming to this file to find out why I removed this test
+    // to know why. The SdkHttpClient interface has a different invariant regarding when a response stream is present than does
+    // the async subscriber model. SdkHttpClientTestSuite.validateResponse() asserts that the response stream is null
+    // on head requests. To meet that contract, we'd have to be null here as well. However, this test is supposed to
+    // check the exact opposite of that invariant. Since this test was ported from the async tests, we're going to assume
+    // this is an oversight between the sync and async APIs. However. that is why this test is removed.
+    //
+    //public void callsOnStreamForEmptyResponseContent();
 
     @Test
     public void testGetRequest() throws Exception {
@@ -176,7 +167,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
         ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
         HttpExecuteResponse response = executableRequest.call();
 
-        assertThat(response.responseBody().isPresent()).isTrue();
+        assertThat(response.responseBody().isPresent()).isFalse();
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
 

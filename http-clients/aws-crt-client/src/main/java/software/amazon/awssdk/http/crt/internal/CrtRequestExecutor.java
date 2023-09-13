@@ -201,8 +201,8 @@ public final class CrtRequestExecutor {
 
     private static final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamResponseHandler {
         private final SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder();
-        private final InputStreamSubscriber inputStreamSubscriber = new InputStreamSubscriber();
-        private final SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
+        private volatile InputStreamSubscriber inputStreamSubscriber;
+        private volatile SimplePublisher<ByteBuffer> simplePublisher;
 
         private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
         private final HttpClientConnection crtConn;
@@ -211,7 +211,6 @@ public final class CrtRequestExecutor {
                                                      CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
             this.crtConn = crtConn;
             this.requestCompletionFuture = requestCompletionFuture;
-            responseBuilder.content(AbortableInputStream.create(inputStreamSubscriber));
         }
 
         @Override
@@ -225,7 +224,6 @@ public final class CrtRequestExecutor {
                 responseBuilder.statusCode(responseStatusCode);
             }
 
-            simplePublisher.subscribe(inputStreamSubscriber);
         }
 
         @Override
@@ -237,12 +235,27 @@ public final class CrtRequestExecutor {
             }
             stream.close();
             crtConn.close();
+
+            if (simplePublisher != null) {
+                simplePublisher.complete();
+                inputStreamSubscriber.close();
+            }
         }
 
         @Override
         public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
+
+            // Per the client conformance tests, unless there's an actual body the response stream must be null.
+            // This is function is only called in one of the CRT's IO threads, or is otherwise sequentially ordered.
+            // It is volatile in the declaration for thread visibility reasons, NOT concurrency control.
+            if (inputStreamSubscriber == null && simplePublisher == null) {
+                inputStreamSubscriber = new InputStreamSubscriber();
+                simplePublisher = new SimplePublisher<>();
+                simplePublisher.subscribe(inputStreamSubscriber);
+                responseBuilder.content(AbortableInputStream.create(inputStreamSubscriber));
+            }
+
             CompletableFuture<Void> writeFuture = simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
-            simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
 
             // go ahead and let back pressure know we consumed the data.
             if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {

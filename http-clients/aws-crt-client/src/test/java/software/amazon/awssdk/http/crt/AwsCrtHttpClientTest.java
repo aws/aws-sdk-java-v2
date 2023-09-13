@@ -21,14 +21,14 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
-import software.amazon.awssdk.http.SdkAsyncHttpClientH1TestSuite;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Testing the scenario where h1 server sends 5xx errors.
  */
-public class H1ServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
+public class AwsCrtHttpClientTest extends SdkHttpClientTestSuite {
 
     @BeforeAll
     public static void beforeAll() {
@@ -42,8 +42,13 @@ public class H1ServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
     }
 
     @Override
-    protected SdkAsyncHttpClient setupClient() {
-        return AwsCrtAsyncHttpClient.builder()
-                                    .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
+    protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
+        return AwsCrtHttpClient.builder()
+                               .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
+    }
+
+    // Empty test; behavior not supported when using custom factory
+    @Override
+    public void testCustomTlsTrustManagerAndTrustAllFails() {
     }
 }
