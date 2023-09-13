@@ -71,8 +71,8 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
         SdkClientException exception = assertThrows(SdkClientException.class,
                                                     () -> s3.getBucketLocation(b-> b.bucket(bucketArn).build()));
 
-        assertEquals(exception.getMessage(), "Simple bucket ARNs are not supported in GetBucketLocationRequest. Pass in "
-                                             + "the name of the bucket instead");
+        assertEquals(exception.getMessage(), "Invalid ARN: Unrecognized format: arn:aws:s3:::mybucket (type: mybucket). "
+                                             + "Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest.");
     }
 
 
