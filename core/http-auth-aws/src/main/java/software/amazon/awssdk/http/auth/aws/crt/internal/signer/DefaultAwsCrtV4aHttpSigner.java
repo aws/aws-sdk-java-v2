@@ -88,10 +88,10 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
         if (isChunkEncoding) {
             return AwsChunkedV4aPayloadSigner.builder()
-                                            .credentialScope(v4aProperties.getCredentialScope())
-                                            .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
-                                            .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
-                                            .build();
+                                             .credentialScope(v4aProperties.getCredentialScope())
+                                             .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
+                                             .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
+                                             .build();
         }
 
         return V4aPayloadSigner.create();
