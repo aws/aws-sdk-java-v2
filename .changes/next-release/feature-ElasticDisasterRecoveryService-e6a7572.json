@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Disaster Recovery Service",
+    "contributor": "",
+    "description": "Updated existing APIs and added new ones to support using AWS Elastic Disaster Recovery post-launch actions. Added support for new regions."
+}
