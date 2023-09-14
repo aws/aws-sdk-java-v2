@@ -18,9 +18,9 @@ package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 import java.time.Clock;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.spi.BaseSignRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
+import software.amazon.awssdk.http.auth.aws.signer.internal.CredentialScope;
+import software.amazon.awssdk.http.auth.signer.spi.BaseSignRequest;
+import software.amazon.awssdk.http.auth.signer.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.Validate;
 

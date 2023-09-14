@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.checksumHeaderName;
-import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.fromChecksumAlgorithm;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.moveContentLength;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.ChecksumUtil.checksumHeaderName;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.ChecksumUtil.fromChecksumAlgorithm;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerUtils.moveContentLength;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -34,11 +34,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChunkedEncodedInputStream;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.TrailerProvider;
-import software.amazon.awssdk.http.auth.aws.internal.io.ChecksumInputStream;
-import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.internal.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.internal.checksums.SdkChecksum;
+import software.amazon.awssdk.http.auth.aws.signer.internal.chunkedencoding.ChunkedEncodedInputStream;
+import software.amazon.awssdk.http.auth.aws.signer.internal.chunkedencoding.TrailerProvider;
+import software.amazon.awssdk.http.auth.aws.signer.internal.io.ChecksumInputStream;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;

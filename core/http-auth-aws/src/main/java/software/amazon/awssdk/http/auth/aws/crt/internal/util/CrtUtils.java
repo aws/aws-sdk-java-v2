@@ -15,14 +15,14 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.util;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.AUTHORIZATION;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.HOST;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_CREDENTIAL;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_DATE;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_EXPIRES;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_SIGNATURE;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_SIGNED_HEADERS;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.AUTHORIZATION;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.HOST;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.X_AMZ_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.X_AMZ_CREDENTIAL;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.X_AMZ_DATE;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.X_AMZ_EXPIRES;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.X_AMZ_SIGNATURE;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.X_AMZ_SIGNED_HEADERS;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;

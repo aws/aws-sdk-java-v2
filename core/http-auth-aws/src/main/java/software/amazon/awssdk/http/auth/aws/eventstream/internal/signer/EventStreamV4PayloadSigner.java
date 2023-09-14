@@ -21,9 +21,9 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.aws.eventstream.internal.io.SigV4DataFramePublisher;
-import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.internal.signer.V4Context;
-import software.amazon.awssdk.http.auth.aws.internal.signer.V4PayloadSigner;
+import software.amazon.awssdk.http.auth.aws.signer.internal.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.internal.V4Context;
+import software.amazon.awssdk.http.auth.aws.signer.internal.V4PayloadSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.Validate;
 

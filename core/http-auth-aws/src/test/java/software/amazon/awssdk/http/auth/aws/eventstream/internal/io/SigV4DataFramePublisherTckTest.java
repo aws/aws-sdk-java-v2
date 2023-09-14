@@ -22,8 +22,8 @@ import java.time.Instant;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
-import software.amazon.awssdk.http.auth.aws.TestUtils.TickingClock;
-import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.TestUtils.TickingClock;
+import software.amazon.awssdk.http.auth.aws.signer.internal.CredentialScope;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 

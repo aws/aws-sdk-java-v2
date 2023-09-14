@@ -17,8 +17,8 @@ package software.amazon.awssdk.core;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.scheme.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.signer.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.Validate;
 

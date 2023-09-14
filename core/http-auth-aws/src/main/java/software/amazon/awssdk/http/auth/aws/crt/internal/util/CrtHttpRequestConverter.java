@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.util;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.HOST;
+import static software.amazon.awssdk.http.auth.aws.signer.internal.util.SignerConstant.HOST;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;

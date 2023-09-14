@@ -17,7 +17,6 @@ package software.amazon.awssdk.auth.token.signer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Clock;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +25,8 @@ import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.scheme.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.signer.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
 
 class SdkTokenExecutionAttributeTest {
