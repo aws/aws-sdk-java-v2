@@ -24,8 +24,8 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
-import software.amazon.awssdk.http.auth.signer.BearerHttpSigner;
 import software.amazon.awssdk.http.auth.scheme.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.signer.BearerHttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
 
 /**

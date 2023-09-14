@@ -34,8 +34,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
-import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.scheme.spi.AuthSchemeOption;
 
 public final class AuthSchemeSpecUtils {
