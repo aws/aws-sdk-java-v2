@@ -159,7 +159,7 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>http-auth-aws-event-stream</artifactId>
+                <artifactId>http-auth-aws-eventstream</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>

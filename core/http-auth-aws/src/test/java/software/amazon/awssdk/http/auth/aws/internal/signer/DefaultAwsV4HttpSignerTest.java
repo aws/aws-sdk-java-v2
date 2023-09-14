@@ -155,7 +155,7 @@ public class DefaultAwsV4HttpSignerTest {
                 false)
             ).thenThrow(new ClassNotFoundException("boom!"));
             Exception e = assertThrows(RuntimeException.class, () -> signer.sign(request));
-            assertThat(e).hasMessageContaining("http-auth-aws-event-stream");
+            assertThat(e).hasMessageContaining("http-auth-aws-eventstream");
         }
     }
 

@@ -25,7 +25,7 @@
         <version>2.20.144-SNAPSHOT</version>
     </parent>
 
-    <artifactId>http-auth-aws-event-stream</artifactId>
+    <artifactId>http-auth-aws-eventstream</artifactId>
     <name>AWS Java SDK :: HTTP Auth Event Stream</name>
     <description>
         The AWS SDK for Java - HTTP Auth AWS Event Stream module contains interfaces and implementations for AWS

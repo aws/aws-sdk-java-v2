@@ -37,7 +37,7 @@ public final class OptionalDependencyLoaderUtil {
     private static final String HTTP_AUTH_AWS_CRT_MODULE = "software.amazon.awssdk:http-auth-aws-crt";
     private static final String HTTP_AUTH_AWS_EVENT_STREAM_PATH =
         "software.amazon.awssdk.http.auth.aws.eventstream.HttpAuthAwsEventStream";
-    private static final String HTTP_AUTH_AWS_EVENT_STREAM_MODULE = "software.amazon.awssdk:http-auth-aws-event-stream";
+    private static final String HTTP_AUTH_AWS_EVENT_STREAM_MODULE = "software.amazon.awssdk:http-auth-aws-eventstream";
 
     private OptionalDependencyLoaderUtil() {
     }
