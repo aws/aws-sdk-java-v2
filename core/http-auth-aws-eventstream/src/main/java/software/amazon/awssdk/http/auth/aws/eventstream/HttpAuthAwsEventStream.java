@@ -18,7 +18,7 @@ package software.amazon.awssdk.http.auth.aws.eventstream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * This is a place-holder class for this module, http-auth-aws-event-stream. In the event that we decide to move back
+ * This is a place-holder class for this module, http-auth-aws-eventstream. In the event that we decide to move back
  * event-stream signer logic back to this dedicated module, no issues will arise. This module should be an optional
  * dependency in consumers (http-auth-aws), and should bring in the required dependencies (eventstream).
  */
