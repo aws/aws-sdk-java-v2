@@ -17,16 +17,21 @@ package software.amazon.awssdk.sra.ia;
 
 import static java.util.Collections.singletonList;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.authcrt.signer.AwsCrtV4aSigner;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -49,6 +54,8 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.RegionScope;
 import software.amazon.awssdk.services.acm.AcmClient;
+import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeParams;
+import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeProvider;
 import software.amazon.awssdk.services.acm.model.ListCertificatesRequest;
 import software.amazon.awssdk.services.codecatalyst.CodeCatalystClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -167,7 +174,7 @@ class SraIdentityAuthTest {
 
     @Test // very unlikely use case. could achieve what's needed with changing SignerProperties
     void useDifferentSigner() {
-        // Before
+        // Before. See overrideSigningNameForGammaAsAttributeViaSigner()
         ClientOverrideConfiguration config =
             ClientOverrideConfiguration.builder()
                                        .putAdvancedOption(SdkAdvancedClientOption.SIGNER,
@@ -244,7 +251,7 @@ class SraIdentityAuthTest {
     }
 
     @Test
-    void s3PayloadSigningOnByDefault() {
+    void sraS3PayloadSigningOnByDefault() {
         S3Client sraS3Client =
             S3Client.builder()
                     .authSchemeProvider(new PayloadSigningEnabledS3AuthSchemeProvider())
@@ -254,7 +261,6 @@ class SraIdentityAuthTest {
     }
 
     private class PayloadSigningEnabledS3AuthSchemeProvider implements S3AuthSchemeProvider {
-
         S3AuthSchemeProvider defaultS3AuthSchemeProvider = S3AuthSchemeProvider.defaultProvider();
 
         @Override
@@ -294,6 +300,119 @@ class SraIdentityAuthTest {
         @Override
         public CompletableFuture<? extends AwsCredentialsIdentity> resolveIdentity(ResolveIdentityRequest request) {
             return null;
+        }
+    }
+
+    @Test
+    void overrideSigningNameForGammaAsAttributeDirectly() {
+        // This probably doesn't work pre-SRA too, because AwsExecutionContextBuilder sets it explicitly to "acm".
+        // Before
+        ClientOverrideConfiguration config =
+            ClientOverrideConfiguration.builder()
+                                       .putExecutionAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, // (Internal API)
+                                                              "acm-gamma")
+                                       .build();
+
+        AcmClient client =
+            AcmClient.builder()
+                     .endpointOverride(URI.create("https://acm-gamma.us-east-1.amazonaws.com"))
+                     .overrideConfiguration(config)
+                     .build();
+
+        client.listCertificates();
+    }
+
+    @Test
+    void overrideSigningNameForGammaAsAttributeViaInterceptor() {
+        // Before
+        ClientOverrideConfiguration config =
+            ClientOverrideConfiguration.builder()
+                                       .addExecutionInterceptor(new ExecutionInterceptor() {
+                                           @Override
+                                           public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+                                               executionAttributes.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, "acm-gamma");
+                                           }
+                                       }).build();
+
+        AcmClient client =
+            AcmClient.builder()
+                     .endpointOverride(URI.create("https://acm-gamma.us-east-1.amazonaws.com"))
+                     .overrideConfiguration(config)
+                     .build();
+
+        client.listCertificates();
+    }
+
+
+    @Test // Similar to useDifferentSigner()
+    void overrideSigningNameForGammaAsAttributeViaSigner() {
+        // Before
+        ClientOverrideConfiguration config =
+            ClientOverrideConfiguration.builder()
+                                       .putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                          new CustomServiceNameSigner("acm-gamma"))
+                                       .build();
+
+        AcmClient client =
+            AcmClient.builder()
+                     .endpointOverride(URI.create("https://acm-gamma.us-east-1.amazonaws.com"))
+                     .overrideConfiguration(config)
+                     .build();
+
+        client.listCertificates();
+    }
+
+    // From https://code.amazon.com/packages/AthenaMinionFarmAdministratorLambda/blobs/2f3a1fe727be55e04d7cd324c208a1173ec4e241/--/src/main/java/com/amazonaws/athena/minionfarmadministrator/awssdk/CustomServiceNameSigner.java#L16
+    private static final class CustomServiceNameSigner implements Signer {
+        private final String serviceSigningName;
+        private final Signer delegate;
+
+        public CustomServiceNameSigner(String serviceSigningName) {
+            this.serviceSigningName = Objects.requireNonNull(serviceSigningName);
+            delegate = Aws4Signer.create();
+        }
+
+        @Override
+        public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+            ExecutionAttributes newExecAttrs =
+                executionAttributes.toBuilder()
+                                   .put(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, serviceSigningName)
+                                   .build();
+            return delegate.sign(request, newExecAttrs);
+        }
+    }
+
+    @Test // Similar to sraS3PayloadSigningOnByDefault()
+    void sraOverrideSigningNameForGammaViaSignerProperty() {
+        AcmClient sraClient =
+            AcmClient.builder()
+                     .endpointOverride(URI.create("https://acm-gamma.us-east-1.amazonaws.com"))
+                     .authSchemeProvider(new CustomServiceNameAcmAuthSchemeProvider())
+                     .build();
+
+        sraClient.listCertificates();
+    }
+
+    // TODO: If we wanted the auth scheme provider to be smarter and change the service_signing_name only when the endpoint was
+    //  gamma (say matches *gamma*), that would not be possible via AuthSchemeProvider, as it happens before endpoint resolution.
+    private class CustomServiceNameAcmAuthSchemeProvider implements AcmAuthSchemeProvider {
+        AcmAuthSchemeProvider defaultAcmAuthSchemeProvider = AcmAuthSchemeProvider.defaultProvider();
+
+        @Override
+        public List<AuthSchemeOption> resolveAuthScheme(AcmAuthSchemeParams authSchemeParams) {
+            return defaultAcmAuthSchemeProvider
+                .resolveAuthScheme(authSchemeParams)
+                .stream()
+                .map(authSchemeOption -> {
+                    if (authSchemeOption.schemeId().equals(AwsV4AuthScheme.SCHEME_ID)) {
+                        return authSchemeOption
+                            .toBuilder()
+                            .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "acm-gamma")
+                            .build();
+                    }
+                    return authSchemeOption;
+                })
+                .collect(Collectors.toList());
         }
     }
 }
