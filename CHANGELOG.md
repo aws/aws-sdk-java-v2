@@ -1,3 +1,24 @@
+# __2.20.149__ __2023-09-15__
+## __AWS DataSync__
+  - ### Features
+    - Documentation-only updates for AWS DataSync.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release introduces app block builder, allowing customers to provision a resource to package applications into an app block
+
+## __Amazon Connect Service__
+  - ### Features
+    - New rule type (OnMetricDataUpdate) has been added
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release introduces Skip Model Validation for Model Packages
+
 # __2.20.148__ __2023-09-14__
 ## __AWS CloudFormation__
   - ### Features
