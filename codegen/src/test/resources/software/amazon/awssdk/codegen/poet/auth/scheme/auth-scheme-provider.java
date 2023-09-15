@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeProvider;
 
 /**

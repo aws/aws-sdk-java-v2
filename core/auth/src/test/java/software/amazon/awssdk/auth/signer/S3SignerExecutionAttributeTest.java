@@ -25,10 +25,10 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.http.auth.aws.AwsV4FamilyHttpSigner;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.Identity;
 
 class S3SignerExecutionAttributeTest {

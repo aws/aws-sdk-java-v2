@@ -38,11 +38,11 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
-import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
