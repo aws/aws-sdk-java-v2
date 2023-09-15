@@ -6,7 +6,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
@@ -17,7 +16,7 @@ import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonClientBuilder, JsonClient> implements
-                                                                                                         JsonClientBuilder {
+        JsonClientBuilder {
     @Override
     public DefaultJsonClientBuilder endpointProvider(JsonEndpointProvider endpointProvider) {
         clientConfiguration.option(SdkClientOption.ENDPOINT_PROVIDER, endpointProvider);
@@ -41,13 +40,11 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
 
     private JsonServiceClientConfiguration initializeServiceClientConfig(SdkClientConfiguration clientConfig) {
         URI endpointOverride = null;
-        EndpointProvider endpointProvider = clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER);
-        if (clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
-            && Boolean.TRUE.equals(clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
+        if (Boolean.TRUE.equals(clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
             endpointOverride = clientConfig.option(SdkClientOption.ENDPOINT);
         }
         return JsonServiceClientConfiguration.builder().overrideConfiguration(overrideConfiguration())
-                                             .region(clientConfig.option(AwsClientOption.AWS_REGION)).endpointOverride(endpointOverride)
-                                             .endpointProvider(endpointProvider).build();
+                .region(clientConfig.option(AwsClientOption.AWS_REGION)).endpointOverride(endpointOverride)
+                .endpointProvider(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER)).build();
     }
 }

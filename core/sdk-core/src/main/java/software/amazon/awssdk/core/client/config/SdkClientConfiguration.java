@@ -113,6 +113,13 @@ public final class SdkClientConfiguration
             return this;
         }
 
+        /**
+         * Retrieve the value of a specific option.
+         */
+        public <T> T option(ClientOption<T> option) {
+            return this.attributes.get(option);
+        }
+
         @Override
         public SdkClientConfiguration build() {
             return new SdkClientConfiguration(attributes.build());
