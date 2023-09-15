@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.fromChecksumAlgorithm;
-import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.readAll;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.getBinaryRequestPayloadStream;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.fromChecksumAlgorithm;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.readAll;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.getBinaryRequestPayloadStream;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -29,9 +29,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.io.ChecksumInputStream;
-import software.amazon.awssdk.http.auth.aws.internal.io.ChecksumSubscriber;
+import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
+import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
+import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumSubscriber;
 
 /**
  * A "flexible" implementation of a checksummer. It takes a map of checksums and their header names, computes them efficiently by

@@ -26,15 +26,15 @@ import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSigned
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.UNSIGNED_PAYLOAD;
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC;
+import static software.amazon.awssdk.http.auth.aws.TestUtils.AnonymousCredentialsIdentity;
+import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRequest;
+import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.AuthLocation;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.CHUNK_ENCODING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.PAYLOAD_SIGNING_ENABLED;
-import static software.amazon.awssdk.http.auth.aws.TestUtils.AnonymousCredentialsIdentity;
-import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRequest;
-import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;

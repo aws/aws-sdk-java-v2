@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.OptionalDependencyLoaderUtil.getDefaultAwsCrtV4aHttpSigner;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.OptionalDependencyLoaderUtil.getDefaultAwsCrtV4aHttpSigner;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
