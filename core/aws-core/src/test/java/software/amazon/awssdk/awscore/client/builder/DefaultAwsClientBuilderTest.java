@@ -223,7 +223,7 @@ public class DefaultAwsClientBuilderTest {
     public void clientBuilderFieldsHaveBeanEquivalents() throws Exception {
         // Mutating properties might not have bean equivalents. This is probably fine, since very few customers require
         // bean-equivalent methods and it's not clear what they'd expect them to be named anyway. Ignore these methods for now.
-        Set<String> NON_BEAN_EQUIVALENT_METHODS = ImmutableSet.of("putAuthScheme");
+        Set<String> NON_BEAN_EQUIVALENT_METHODS = ImmutableSet.of("putAuthScheme", "addPlugin");
 
         AwsClientBuilder<TestClientBuilder, TestClient> builder = testClientBuilder();
 
@@ -247,7 +247,6 @@ public class DefaultAwsClientBuilderTest {
                 assertThat(property.getWriteMethod()).as(propertyName + " setter").isNotNull();
             });
         });
-
     }
 
     private AwsClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {

@@ -73,7 +73,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         if (identityProvider != null) {
             IdentityProviders identityProviders = config.option(SdkClientOption.IDENTITY_PROVIDERS);
             builder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders.toBuilder()
-                                                                                     .putIdentityProvider(identityProvider).build());
+                                                                                .putIdentityProvider(identityProvider).build());
         }
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         return builder.build();
@@ -101,6 +101,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     public B putAuthScheme(AuthScheme<?> authScheme) {
         additionalAuthSchemes.put(authScheme.schemeId(), authScheme);
         return thisBuilder();
+    }
+
+    @Override
+    protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
+        return config;
     }
 
     private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {

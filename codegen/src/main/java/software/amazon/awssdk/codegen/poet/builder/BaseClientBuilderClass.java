@@ -131,6 +131,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(authSchemeProviderMethod());
         builder.addMethod(defaultAuthSchemeProviderMethod());
         builder.addMethod(putAuthSchemeMethod());
+        builder.addMethod(invokePluginsMethod());
 
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
@@ -605,6 +606,19 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addParameter(GENERIC_AUTH_SCHEME_TYPE, "authScheme")
                          .addStatement("additionalAuthSchemes.put(authScheme.schemeId(), authScheme)")
                          .addStatement("return thisBuilder()")
+                         .build();
+    }
+
+    private MethodSpec invokePluginsMethod() {
+        // TODO(sra-plugins): Implement this method properly when #4438 is merged since we need the new interfaces to be able
+        // to convert the service specific ServiceClientConfiguration instance back and forth to an SdkClientConfiguration
+        // instance.
+        return MethodSpec.methodBuilder("invokePlugins")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PROTECTED)
+                         .returns(SdkClientConfiguration.class)
+                         .addParameter(SdkClientConfiguration.class, "config")
+                         .addStatement("return config")
                          .build();
     }
 

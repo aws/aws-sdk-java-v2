@@ -78,7 +78,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         if (identityProvider != null) {
             IdentityProviders identityProviders = config.option(SdkClientOption.IDENTITY_PROVIDERS);
             builder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders.toBuilder()
-                                                                                     .putIdentityProvider(identityProvider).build());
+                                                                                .putIdentityProvider(identityProvider).build());
         }
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.CLIENT_CONTEXT_PARAMS,
                                                                                     clientContextParams.build());
@@ -107,6 +107,11 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     public B putAuthScheme(AuthScheme<?> authScheme) {
         additionalAuthSchemes.put(authScheme.schemeId(), authScheme);
         return thisBuilder();
+    }
+
+    @Override
+    protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
+        return config;
     }
 
     public B booleanContextParam(Boolean booleanContextParam) {

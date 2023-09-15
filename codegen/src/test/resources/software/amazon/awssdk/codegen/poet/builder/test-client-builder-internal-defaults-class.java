@@ -99,6 +99,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return thisBuilder();
     }
 
+    @Override
+    protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
+        return config;
+    }
+
     private Map<String, AuthScheme<?>> authSchemes() {
         Map<String, AuthScheme<?>> schemes = new HashMap<>(2 + this.additionalAuthSchemes.size());
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
