@@ -1,8 +1,8 @@
 package software.amazon.awssdk.http.auth.aws;
 
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.REGION_NAME;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
-import static software.amazon.awssdk.http.auth.spi.HttpSigner.SIGNING_CLOCK;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -15,8 +15,8 @@ import java.time.ZoneOffset;
 import java.util.function.Consumer;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
