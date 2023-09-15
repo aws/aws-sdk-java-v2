@@ -24,7 +24,6 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.AfterAll;
@@ -76,13 +75,13 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                      .source(smallFile)
                                                      .build();
-        FileUpload fileUpload = tm.uploadFile(request);
+        FileUpload fileUpload = tmCrt.uploadFile(request);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
 
         validateEmptyResumeToken(resumableFileUpload);
 
-        FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
+        FileUpload resumedUpload = tmCrt.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
     }
 
@@ -93,7 +92,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
                                                      .addTransferListener(LoggingTransferListener.create())
                                                      .source(largeFile)
                                                      .build();
-        FileUpload fileUpload = tm.uploadFile(request);
+        FileUpload fileUpload = tmCrt.uploadFile(request);
         waitUntilMultipartUploadExists();
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
@@ -104,7 +103,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
         verifyMultipartUploadIdExists(resumableFileUpload);
 
-        FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
+        FileUpload resumedUpload = tmCrt.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
     }
 
@@ -114,13 +113,13 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
                                                    .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                    .source(largeFile)
                                                    .build();
-        FileUpload fileUpload = tm.uploadFile(request);
+        FileUpload fileUpload = tmCrt.uploadFile(request);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
 
         validateEmptyResumeToken(resumableFileUpload);
 
-        FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
+        FileUpload resumedUpload = tmCrt.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
     }
 
@@ -130,7 +129,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                      .source(largeFile)
                                                      .build();
-        FileUpload fileUpload = tm.uploadFile(request);
+        FileUpload fileUpload = tmCrt.uploadFile(request);
         waitUntilMultipartUploadExists();
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
@@ -143,7 +142,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         byte[] bytes = "helloworld".getBytes(StandardCharsets.UTF_8);
         Files.write(largeFile.toPath(), bytes);
 
-        FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
+        FileUpload resumedUpload = tmCrt.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
         verifyMultipartUploadIdNotExist(resumableFileUpload);
         assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(bytes.length);

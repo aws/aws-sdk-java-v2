@@ -80,9 +80,9 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     @Test
     void uploadDirectory_filesSentCorrectly() {
         String prefix = "yolo";
-        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
-                                                                   .bucket(TEST_BUCKET)
-                                                                   .s3Prefix(prefix));
+        DirectoryUpload uploadDirectory = tmCrt.uploadDirectory(u -> u.source(directory)
+                                                                      .bucket(TEST_BUCKET)
+                                                                      .s3Prefix(prefix));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
         assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 
@@ -98,9 +98,9 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     @Test
     void uploadDirectory_nonExistsBucket_shouldAddFailedRequest() {
         String prefix = "yolo";
-        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
-                                                                   .bucket("nonExistingTestBucket" + UUID.randomUUID())
-                                                                   .s3Prefix(prefix));
+        DirectoryUpload uploadDirectory = tmCrt.uploadDirectory(u -> u.source(directory)
+                                                                      .bucket("nonExistingTestBucket" + UUID.randomUUID())
+                                                                      .s3Prefix(prefix));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
         assertThat(completedDirectoryUpload.failedTransfers()).hasSize(3).allSatisfy(f ->
             assertThat(f.exception()).isInstanceOf(NoSuchBucketException.class));
@@ -110,10 +110,10 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     void uploadDirectory_withDelimiter_filesSentCorrectly() {
         String prefix = "hello";
         String delimiter = "0";
-        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
-                                                                          .bucket(TEST_BUCKET)
-                                                                          .s3Delimiter(delimiter)
-                                                                          .s3Prefix(prefix));
+        DirectoryUpload uploadDirectory = tmCrt.uploadDirectory(u -> u.source(directory)
+                                                                      .bucket(TEST_BUCKET)
+                                                                      .s3Delimiter(delimiter)
+                                                                      .s3Prefix(prefix));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
         assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 
@@ -134,12 +134,12 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         Path newSourceForEachUpload = Paths.get(directory.toString(), "bar.txt");
 
         CompletedDirectoryUpload result =
-            tm.uploadDirectory(r -> r.source(directory)
-                                     .bucket(TEST_BUCKET)
-                                     .s3Prefix(prefix)
-                                     .uploadFileRequestTransformer(f -> f.source(newSourceForEachUpload)))
-              .completionFuture()
-              .get(10, TimeUnit.SECONDS);
+            tmCrt.uploadDirectory(r -> r.source(directory)
+                                        .bucket(TEST_BUCKET)
+                                        .s3Prefix(prefix)
+                                        .uploadFileRequestTransformer(f -> f.source(newSourceForEachUpload)))
+                 .completionFuture()
+                 .get(10, TimeUnit.SECONDS);
         assertThat(result.failedTransfers()).isEmpty();
 
         s3.listObjectsV2Paginator(b -> b.bucket(TEST_BUCKET).prefix(prefix)).contents().forEach(object -> {
@@ -179,8 +179,8 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
             testDirectory = createLocalTestDirectory(directoryPrefix);
 
             Path finalTestDirectory = testDirectory;
-            DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(finalTestDirectory)
-                                                                       .bucket(TEST_BUCKET));
+            DirectoryUpload uploadDirectory = tmCrt.uploadDirectory(u -> u.source(finalTestDirectory)
+                                                                          .bucket(TEST_BUCKET));
             CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
             assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 

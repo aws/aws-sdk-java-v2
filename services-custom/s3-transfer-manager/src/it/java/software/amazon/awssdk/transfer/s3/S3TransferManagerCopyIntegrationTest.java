@@ -73,7 +73,7 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     }
 
     private void copyObject(String original, String destination) {
-        Copy copy = tm.copy(c -> c
+        Copy copy = tmCrt.copy(c -> c
             .copyObjectRequest(r -> r
                 .sourceBucket(BUCKET)
                 .sourceKey(original)
