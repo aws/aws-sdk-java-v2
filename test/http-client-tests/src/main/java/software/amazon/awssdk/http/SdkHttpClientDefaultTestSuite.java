@@ -185,7 +185,9 @@ public abstract class SdkHttpClientDefaultTestSuite {
                                                                       .putHeader("Host", uri.getHost())
                                                                       .putHeader("User-Agent", "hello-world!");
         if (method != SdkHttpMethod.HEAD) {
-            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)));
+            byte[] content = "Body".getBytes(StandardCharsets.UTF_8);
+            requestBuilder.putHeader("Content-Length", Integer.toString(content.length));
+            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(content));
         }
 
         return requestBuilder.build();

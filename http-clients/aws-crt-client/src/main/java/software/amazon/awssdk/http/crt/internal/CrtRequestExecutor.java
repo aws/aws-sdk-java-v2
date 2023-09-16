@@ -27,7 +27,9 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import javax.net.ssl.SSLHandshakeException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.CrtErrorInfo;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
@@ -38,6 +40,7 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -84,7 +87,19 @@ public final class CrtRequestExecutor {
 
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
-                requestFuture.completeExceptionally(new IOException("An exception occurred when acquiring a connection", throwable));
+                Throwable toThrow = null;
+                if (throwable instanceof HttpException) {
+                    HttpException httpException = (HttpException) throwable;
+
+                    if (httpException.getErrorInfo() == CrtErrorInfo.TLSNegotiationFailure) {
+                        toThrow = new SSLHandshakeException(httpException.getMessage());
+                    } else {
+                        toThrow = new IOException(httpException.getMessage(), httpException);
+                    }
+                } else {
+                    toThrow = new IOException("An exception occurred when acquiring a connection", throwable);
+                }
+                requestFuture.completeExceptionally(toThrow);
                 return;
             }
 
@@ -126,11 +141,23 @@ public final class CrtRequestExecutor {
 
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
+                if (throwable instanceof HttpException) {
+                    HttpException httpException = (HttpException) throwable;
+
+                    if (httpException.getErrorInfo() == CrtErrorInfo.TLSNegotiationFailure) {
+                        reportAsyncFailure(crtConn,
+                                           new SSLHandshakeException(httpException.getMessage()),
+                                           requestFuture,
+                                           asyncRequest.responseHandler());
+                    }
+
+                    return;
+                }
+
                 reportAsyncFailure(crtConn,
-                              new IOException("An exception occurred when acquiring a connection", throwable),
-                              requestFuture,
-                              asyncRequest.responseHandler());
-                return;
+                                       new IOException("An exception occurred when acquiring a connection", throwable),
+                                       requestFuture,
+                                       asyncRequest.responseHandler());
             }
 
             executeRequest(executionContext, requestFuture, crtConn, asyncRequest);
@@ -228,6 +255,11 @@ public final class CrtRequestExecutor {
 
         @Override
         public void onResponseComplete(HttpStream stream, int errorCode) {
+            // always close the connection on a 5XX response code.
+            if (HttpStatusFamily.of(stream.getResponseStatusCode()) == HttpStatusFamily.SERVER_ERROR) {
+                crtConn.shutdown();
+            }
+
             if (errorCode == 0) {
                 requestCompletionFuture.complete(responseBuilder.build());
             } else {

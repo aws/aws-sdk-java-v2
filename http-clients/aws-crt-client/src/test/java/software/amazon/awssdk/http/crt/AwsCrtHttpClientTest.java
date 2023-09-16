@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
+import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
@@ -43,12 +44,18 @@ public class AwsCrtHttpClientTest extends SdkHttpClientTestSuite {
 
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
+        boolean trustAllCerts = options.trustAll();
         return AwsCrtHttpClient.builder()
-                               .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
+                               .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, trustAllCerts).build());
     }
 
     // Empty test; behavior not supported when using custom factory
     @Override
     public void testCustomTlsTrustManagerAndTrustAllFails() {
+    }
+
+    // Empty test; behavior not supported when using custom factory
+    @Override
+    public void testCustomTlsTrustManager() {
     }
 }

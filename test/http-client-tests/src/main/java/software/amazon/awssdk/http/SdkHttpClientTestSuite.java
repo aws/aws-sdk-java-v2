@@ -34,6 +34,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -138,7 +139,12 @@ public abstract class SdkHttpClientTestSuite {
             response.responseBody().ifPresent(IoUtils::drainInputStream);
         }
 
-        assertThat(CONNECTION_COUNTER.openedConnections()).isEqualTo(initialOpenedConnections + 1);
+        // connection pool growth strategies vary across client implementations. Some, such as the CRT grow connection counts
+        // by a factor of 2, while some grow strictly as requested. Mainly we want to test that it kicks in at some point and
+        // doesn't create a new connection for all 5 requests. This proves that while allowing variance in this behavior.
+        assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections + 1);
+        assertThat(CONNECTION_COUNTER.openedConnections()).isLessThanOrEqualTo(initialOpenedConnections + 2);
+
     }
 
     @Test
@@ -162,7 +168,10 @@ public abstract class SdkHttpClientTestSuite {
             response.responseBody().ifPresent(IoUtils::drainInputStream);
         }
 
-        assertThat(CONNECTION_COUNTER.openedConnections()).isEqualTo(initialOpenedConnections + 5);
+        // don't couple this test to connection manager behaviors we don't have to. We want to make sure that the connection count
+        // increased by at least as many connections as we got 5xx errors back on. But the connection manager also predictively
+        // creates connections and we need to take those into account in a way that lets it remain a dynamic behavior.
+        assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections + 5);
     }
 
     @Test
@@ -285,7 +294,9 @@ public abstract class SdkHttpClientTestSuite {
                                                             .putHeader("Host", uri.getHost())
                                                             .putHeader("User-Agent", "hello-world!");
         if (method != SdkHttpMethod.HEAD) {
-            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)));
+            byte[] content = "Body".getBytes(StandardCharsets.UTF_8);
+            requestBuilder.putHeader("Content-Length", Integer.toString(content.length));
+            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(content));
         }
 
         return requestBuilder.build();
