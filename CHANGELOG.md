@@ -1,3 +1,20 @@
+# __2.20.150__ __2023-09-18__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Add sensitive protection for customer information
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Do not instruct the CRT Sigv4a signer to do path normalization to avoid signature mismatch errors
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release changes the default managedDataIdentifierSelector setting for new classification jobs to RECOMMENDED. By default, new classification jobs now use the recommended set of managed data identifiers.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release includes four new APIs UpdateUser, UpdateGroup, ListGroupsForEntity and DescribeEntity, along with RemoteUsers and some enhancements to existing APIs.
+
 # __2.20.149__ __2023-09-15__
 ## __AWS DataSync__
   - ### Features
@@ -1831,7 +1848,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
