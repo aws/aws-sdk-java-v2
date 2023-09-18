@@ -15,16 +15,16 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_CONTENT_SHA256;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.addHostHeader;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.deriveSigningKey;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.hashCanonicalRequest;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addHostHeader;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.deriveSigningKey;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.hashCanonicalRequest;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant;
-import software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 

@@ -17,15 +17,15 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getCanonicalHeaders;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getSignedHeadersString;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.addDateHeader;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.formatDateTime;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addDateHeader;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.formatDateTime;
 
 import java.time.Duration;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.Pair;
 
