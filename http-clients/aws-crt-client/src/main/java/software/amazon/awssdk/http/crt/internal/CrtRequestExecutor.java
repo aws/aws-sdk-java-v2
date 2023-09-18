@@ -26,10 +26,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import javax.net.ssl.SSLHandshakeException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.CrtErrorInfo;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
@@ -56,6 +54,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 @SdkInternalApi
 public final class CrtRequestExecutor {
     private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
+    public static final int CRT_TLS_NEGOTIATION_ERROR_CODE = 1029;
 
     public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext) {
         // go ahead and get a reference to the metricCollector since multiple futures will
@@ -91,7 +90,7 @@ public final class CrtRequestExecutor {
                 if (throwable instanceof HttpException) {
                     HttpException httpException = (HttpException) throwable;
 
-                    if (httpException.getErrorInfo() == CrtErrorInfo.TLSNegotiationFailure) {
+                    if (httpException.getErrorCode() == CRT_TLS_NEGOTIATION_ERROR_CODE) {
                         toThrow = new SSLHandshakeException(httpException.getMessage());
                     } else {
                         toThrow = new IOException(httpException.getMessage(), httpException);
@@ -141,23 +140,17 @@ public final class CrtRequestExecutor {
 
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
+                Throwable toThrow = new IOException("An exception occurred when acquiring a connection", throwable);
                 if (throwable instanceof HttpException) {
                     HttpException httpException = (HttpException) throwable;
 
-                    if (httpException.getErrorInfo() == CrtErrorInfo.TLSNegotiationFailure) {
-                        reportAsyncFailure(crtConn,
-                                           new SSLHandshakeException(httpException.getMessage()),
-                                           requestFuture,
-                                           asyncRequest.responseHandler());
+                    if (httpException.getErrorCode() == CRT_TLS_NEGOTIATION_ERROR_CODE) {
+                        toThrow = new SSLHandshakeException(httpException.getMessage());
                     }
-
-                    return;
                 }
 
-                reportAsyncFailure(crtConn,
-                                       new IOException("An exception occurred when acquiring a connection", throwable),
-                                       requestFuture,
-                                       asyncRequest.responseHandler());
+                reportAsyncFailure(crtConn, toThrow, requestFuture, asyncRequest.responseHandler());
+                return;
             }
 
             executeRequest(executionContext, requestFuture, crtConn, asyncRequest);
