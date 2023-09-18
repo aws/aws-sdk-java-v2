@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
+package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.hash;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.hash;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
 import java.nio.charset.StandardCharsets;

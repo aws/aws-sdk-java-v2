@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.io;
+package software.amazon.awssdk.http.auth.aws.internal.signer.io;
 
 import java.io.IOException;
 import java.io.InputStream;

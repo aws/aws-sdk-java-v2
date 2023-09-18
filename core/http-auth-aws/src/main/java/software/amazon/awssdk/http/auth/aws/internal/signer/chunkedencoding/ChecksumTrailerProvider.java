@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.chunkedencoding;
+package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
+import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi

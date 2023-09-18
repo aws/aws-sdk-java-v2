@@ -17,8 +17,8 @@ package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChunkExtensionProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChunkExtensionProvider;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi

@@ -15,14 +15,14 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.checksumHeaderName;
-import static software.amazon.awssdk.http.auth.aws.internal.util.ChecksumUtil.fromChecksumAlgorithm;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_CONTENT_SHA256;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerConstant.X_AMZ_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.moveContentLength;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.fromChecksumAlgorithm;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.moveContentLength;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -33,14 +33,14 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChecksumTrailerProvider;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.ChunkedEncodedInputStream;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.SigV4ChunkExtensionProvider;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.SigV4TrailerProvider;
-import software.amazon.awssdk.http.auth.aws.internal.chunkedencoding.TrailerProvider;
-import software.amazon.awssdk.http.auth.aws.internal.io.ChecksumInputStream;
-import software.amazon.awssdk.http.auth.aws.internal.io.ResettableContentStreamProvider;
+import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChecksumTrailerProvider;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChunkedEncodedInputStream;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.SigV4ChunkExtensionProvider;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.SigV4TrailerProvider;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.TrailerProvider;
+import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
+import software.amazon.awssdk.http.auth.aws.internal.signer.io.ResettableContentStreamProvider;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
@@ -84,7 +84,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         switch (checksum) {
             case STREAMING_SIGNED_PAYLOAD: {
                 RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
-                setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
+                chunkedEncodedInputStreamBuilder.addExtension(new SigV4ChunkExtensionProvider(rollingSigner, credentialScope));
                 break;
             }
             case STREAMING_UNSIGNED_PAYLOAD_TRAILER:
@@ -92,9 +92,11 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
                 break;
             case STREAMING_SIGNED_PAYLOAD_TRAILER: {
                 RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
-                setupSigExt(chunkedEncodedInputStreamBuilder, rollingSigner);
+                chunkedEncodedInputStreamBuilder.addExtension(new SigV4ChunkExtensionProvider(rollingSigner, credentialScope));
                 setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder, request);
-                setupSigTrailer(chunkedEncodedInputStreamBuilder, rollingSigner);
+                chunkedEncodedInputStreamBuilder.addTrailer(
+                    new SigV4TrailerProvider(chunkedEncodedInputStreamBuilder.trailers(), rollingSigner, credentialScope)
+                );
                 break;
             }
             default:
@@ -107,27 +109,6 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     @Override
     public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4Context v4Context) {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Add the chunk signature as a chunk-extension.
-     * <p>
-     * An instance of a rolling-signer is required, since each chunk's signature is dependent on the last. The first chunk
-     * signature is dependent on the request signature ("seed" signature).
-     */
-    private void setupSigExt(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
-        builder.addExtension(new SigV4ChunkExtensionProvider(rollingSigner, credentialScope));
-    }
-
-    /**
-     * Add the trailer signature as a chunk-trailer.
-     * <p>
-     * In order for this to work, the instance of the rolling-signer MUST be the same instance used to provide a chunk signature
-     * chunk-extension. The trailer signature depends on the rolling calculation of all previous chunks.
-     */
-    private void setupSigTrailer(ChunkedEncodedInputStream.Builder builder, RollingSigner rollingSigner) {
-        List<TrailerProvider> trailers = builder.trailers();
-        builder.addTrailer(new SigV4TrailerProvider(trailers, rollingSigner, credentialScope));
     }
 
     /**
