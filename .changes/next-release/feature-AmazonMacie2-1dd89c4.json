@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Macie 2",
-    "contributor": "",
-    "description": "This release changes the default managedDataIdentifierSelector setting for new classification jobs to RECOMMENDED. By default, new classification jobs now use the recommended set of managed data identifiers."
-}

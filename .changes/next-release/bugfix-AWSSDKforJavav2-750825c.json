@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Do not instruct the CRT Sigv4a signer to do path normalization to avoid signature mismatch errors"
-}
