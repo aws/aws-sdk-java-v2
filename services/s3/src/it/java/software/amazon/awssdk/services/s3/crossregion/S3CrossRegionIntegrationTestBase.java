@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.crossregion;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -111,7 +112,7 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
                  );
         ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder().bucket(bucketName()).maxKeys(maxKeys).build();
         List<S3Object> s3ObjectList = paginatedAPICall(listObjectsV2Request);
-        assertThat(s3ObjectList).hasSize(totalKeys);
+        assertThat(s3ObjectList.stream().filter( g -> g.key().contains(KEY+ "_")).collect(Collectors.toList())).hasSize(totalKeys);
         IntStream.range(0, totalKeys ).forEach(i -> s3.deleteObject(p -> p.bucket(bucketName()).key(KEY + "_" + i)));
     }
 

@@ -22,6 +22,7 @@ import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossReg
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.successHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CHANGED_CROSS_REGION;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CROSS_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CROSS_REGION_BUCKET;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.OVERRIDE_CONFIGURED_REGION;
 
 import java.util.Arrays;
@@ -77,9 +78,51 @@ class S3CrossRegionSyncClientTest {
         Consumer<MockSyncHttpClient> successStubConsumer = mockSyncHttpClient ->
             mockSyncHttpClient.stubResponses(successHttpResponse(), successHttpResponse());
 
+        Consumer<MockSyncHttpClient> malFormerAuthError = mockSyncHttpClient ->
+            mockSyncHttpClient.stubResponses(
+                customHttpResponse(400, "AuthorizationHeaderMalformed",null ),
+                customHttpResponse(400, "AuthorizationHeaderMalformed",CROSS_REGION_BUCKET ),
+                successHttpResponse());
+
         return Stream.of(
             Arguments.of(redirectStubConsumer, BucketEndpointProvider.class),
-            Arguments.of(successStubConsumer, DefaultS3EndpointProvider.class)
+            Arguments.of(successStubConsumer, DefaultS3EndpointProvider.class),
+            Arguments.of(malFormerAuthError, BucketEndpointProvider.class)
+        );
+    }
+
+    public static Stream<Arguments> stubFailureResponses() {
+
+        List<SdkHttpMethod> noRegionOnHeadHttp = Arrays.asList(SdkHttpMethod.GET, SdkHttpMethod.HEAD);
+        List<SdkHttpMethod> regionOnHeadBucketHttp = Arrays.asList(SdkHttpMethod.GET, SdkHttpMethod.HEAD, SdkHttpMethod.GET);
+        List<String> noRegionOnHeadBucket = Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                                          OVERRIDE_CONFIGURED_REGION.toString());
+
+        List<String> regionOnHeadBucket = Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                                        OVERRIDE_CONFIGURED_REGION.toString(),
+                                                        CROSS_REGION.id());
+
+        Consumer<MockSyncHttpClient> redirectFailedWithNoRegionFailure = mockSyncHttpClient ->
+            mockSyncHttpClient.stubResponses(customHttpResponse(301, null),
+                                              customHttpResponse(301, null),
+                                              successHttpResponse(), successHttpResponse());
+
+        Consumer<MockSyncHttpClient> authMalformedWithNoRegion = mockSyncHttpClient ->
+            mockSyncHttpClient.stubResponses(customHttpResponse(400, "AuthorizationHeaderMalformed", null),
+                                              customHttpResponse(400, "AuthorizationHeaderMalformed", null));
+
+        Consumer<MockSyncHttpClient> authMalformedAuthorizationFailureAfterRegionRetrieval = mockSyncHttpClient ->
+            mockSyncHttpClient.stubResponses(customHttpResponse(400, "AuthorizationHeaderMalformed", null),
+                                              customHttpResponse(400, "AuthorizationHeaderMalformed", CROSS_REGION.id()),
+                                              customHttpResponse(400, "AuthorizationHeaderMalformed", CROSS_REGION.id()));
+
+
+        return Stream.of(
+            Arguments.of(redirectFailedWithNoRegionFailure, 301, 2, noRegionOnHeadBucket, noRegionOnHeadHttp),
+            Arguments.of(authMalformedWithNoRegion, 400, 2, noRegionOnHeadBucket, noRegionOnHeadHttp),
+            Arguments.of(authMalformedAuthorizationFailureAfterRegionRetrieval, 400, 3, regionOnHeadBucket,
+                         regionOnHeadBucketHttp)
+
         );
     }
 
@@ -290,28 +333,31 @@ class S3CrossRegionSyncClientTest {
                                      SdkHttpMethod.GET, SdkHttpMethod.HEAD, SdkHttpMethod.GET));
     }
 
-    @Test
-    void crossRegionClient_CallsHeadObjectErrors_shouldTerminateTheAPI() {
-        mockSyncHttpClient.stubResponses(customHttpResponse(301,  null ),
-                                         customHttpResponse(400,  null ),
-                                         successHttpResponse(), successHttpResponse());
+    @ParameterizedTest
+    @MethodSource("stubFailureResponses")
+    void crossRegionClient_CallsHeadObjectErrors_shouldTerminateTheAPI(
+        Consumer<MockSyncHttpClient> stubFailureResponses,
+        Integer statusCode, Integer numberOfRequest,
+        List<String> redirectedBucketRegions,
+        List<SdkHttpMethod> sdkHttpMethods) {
+
+        stubFailureResponses.accept(mockSyncHttpClient);
         S3Client crossRegionClient =
             clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).crossRegionAccessEnabled(true).build();
 
+        String description = String.format("Status Code: %d", statusCode);
         assertThatExceptionOfType(S3Exception.class)
             .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY)))
-            .withMessageContaining("Status Code: 400");
+            .withMessageContaining(description);
 
         List<SdkHttpRequest> requests = mockSyncHttpClient.getRequests();
-        assertThat(requests).hasSize(2);
+        assertThat(requests).hasSize(numberOfRequest);
 
         assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
-                                     OVERRIDE_CONFIGURED_REGION.toString()));
+            .isEqualTo(redirectedBucketRegions);
 
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(SdkHttpMethod.GET,
-                                     SdkHttpMethod.HEAD));
+            .isEqualTo(sdkHttpMethods);
     }
 
     @Test
