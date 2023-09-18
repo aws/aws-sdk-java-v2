@@ -81,6 +81,7 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
             .totalSegments(this.request.totalSegments())
             .exclusiveStartKey(this.request.exclusiveStartKey())
             .consistentRead(this.request.consistentRead())
+            .returnConsumedCapacity(this.request.returnConsumedCapacity())
             .expressionAttributeValues(expressionValues)
             .expressionAttributeNames(expressionNames)
             .projectionExpression(projectionExpressionAsString);
@@ -107,7 +108,10 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
                                                                   context,
                                                                   dynamoDbEnhancedClientExtension,
                                                                   ScanResponse::items,
-                                                                  ScanResponse::lastEvaluatedKey);
+                                                                  ScanResponse::lastEvaluatedKey,
+                                                                  ScanResponse::count,
+                                                                  ScanResponse::scannedCount,
+                                                                  ScanResponse::consumedCapacity);
     }
 
     @Override

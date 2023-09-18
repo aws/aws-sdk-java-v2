@@ -31,6 +31,9 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -53,6 +56,7 @@ public final class QueryEnhancedRequest {
     private final Boolean consistentRead;
     private final Expression filterExpression;
     private final List<NestedAttributeName> attributesToProject;
+    private final String returnConsumedCapacity;
 
     private QueryEnhancedRequest(Builder builder) {
         this.queryConditional = builder.queryConditional;
@@ -61,6 +65,7 @@ public final class QueryEnhancedRequest {
         this.limit = builder.limit;
         this.consistentRead = builder.consistentRead;
         this.filterExpression = builder.filterExpression;
+        this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.attributesToProject = builder.attributesToProject != null
                 ? Collections.unmodifiableList(builder.attributesToProject)
                 : null;
@@ -78,12 +83,13 @@ public final class QueryEnhancedRequest {
      */
     public Builder toBuilder() {
         return builder().queryConditional(queryConditional)
-                .exclusiveStartKey(exclusiveStartKey)
-                .scanIndexForward(scanIndexForward)
-                .limit(limit)
-                .consistentRead(consistentRead)
-                .filterExpression(filterExpression)
-                .addNestedAttributesToProject(attributesToProject);
+                        .exclusiveStartKey(exclusiveStartKey)
+                        .scanIndexForward(scanIndexForward)
+                        .limit(limit)
+                        .consistentRead(consistentRead)
+                        .filterExpression(filterExpression)
+                        .returnConsumedCapacity(returnConsumedCapacity)
+                        .addNestedAttributesToProject(attributesToProject);
     }
 
     /**
@@ -149,6 +155,26 @@ public final class QueryEnhancedRequest {
         return attributesToProject;
     }
 
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     *
+     * @see ScanRequest#returnConsumedCapacity()
+     */
+    public ReturnConsumedCapacity returnConsumedCapacity() {
+        return ReturnConsumedCapacity.fromValue(returnConsumedCapacity);
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     * <p>
+     * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the
+     * value is not defined in {@link ReturnConsumedCapacity}.
+     */
+    public String returnConsumedCapacityAsString() {
+        return returnConsumedCapacity;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -182,6 +208,10 @@ public final class QueryEnhancedRequest {
                 ? !attributesToProject.equals(query.attributesToProject) : query.attributesToProject != null) {
             return false;
         }
+        if (returnConsumedCapacity != null
+            ? !returnConsumedCapacity.equals(query.returnConsumedCapacity) : query.returnConsumedCapacity != null) {
+            return false;
+        }
         return filterExpression != null ? filterExpression.equals(query.filterExpression) : query.filterExpression == null;
     }
 
@@ -194,6 +224,7 @@ public final class QueryEnhancedRequest {
         result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
+        result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         return result;
     }
 
@@ -211,6 +242,7 @@ public final class QueryEnhancedRequest {
         private Boolean consistentRead;
         private Expression filterExpression;
         private List<NestedAttributeName> attributesToProject;
+        private String returnConsumedCapacity;
 
         private Builder() {
         }
@@ -416,6 +448,27 @@ public final class QueryEnhancedRequest {
             if (nestedAttributeName != null) {
                 addNestedAttributesToProject(Arrays.asList(nestedAttributeName));
             }
+            return this;
+        }
+
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see QueryRequest.Builder#returnConsumedCapacity(ReturnConsumedCapacity)
+         */
+        public Builder returnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity == null ? null : returnConsumedCapacity.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see QueryRequest.Builder#returnConsumedCapacity(String)
+         */
+        public Builder returnConsumedCapacity(String returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity;
             return this;
         }
 

@@ -33,6 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
 @SdkInternalApi
 public final class EnhancedClientUtils {
@@ -110,28 +111,29 @@ public final class EnhancedClientUtils {
         OperationContext operationContext,
         DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension,
         Function<ResponseT, List<Map<String, AttributeValue>>> getItems,
-        Function<ResponseT, Map<String, AttributeValue>> getLastEvaluatedKey) {
+        Function<ResponseT, Map<String, AttributeValue>> getLastEvaluatedKey,
+        Function<ResponseT, Integer> count,
+        Function<ResponseT, Integer> scannedCount,
+        Function<ResponseT, ConsumedCapacity> consumedCapacity) {
 
-        if (getLastEvaluatedKey.apply(response) == null || getLastEvaluatedKey.apply(response).isEmpty()) {
-            // Last page
-            return Page.create(getItems.apply(response)
-                                   .stream()
-                                   .map(itemMap -> readAndTransformSingleItem(itemMap,
-                                                                              tableSchema,
-                                                                              operationContext,
-                                                                              dynamoDbEnhancedClientExtension))
-                                   .collect(Collectors.toList()));
-        } else {
-            // More pages to come; add the lastEvaluatedKey
-            return Page.create(getItems.apply(response)
-                                   .stream()
-                                   .map(itemMap -> readAndTransformSingleItem(itemMap,
-                                                                              tableSchema,
-                                                                              operationContext,
-                                                                              dynamoDbEnhancedClientExtension))
-                                   .collect(Collectors.toList()),
-                           getLastEvaluatedKey.apply(response));
+        List<ItemT> collect = getItems.apply(response)
+                                      .stream()
+                                      .map(itemMap -> readAndTransformSingleItem(itemMap,
+                                                                                 tableSchema,
+                                                                                 operationContext,
+                                                                                 dynamoDbEnhancedClientExtension))
+                                      .collect(Collectors.toList());
+
+        Page.Builder<ItemT> pageBuilder = Page.builder(tableSchema.itemType().rawClass())
+                                              .items(collect)
+                                              .count(count.apply(response))
+                                              .scannedCount(scannedCount.apply(response))
+                                              .consumedCapacity(consumedCapacity.apply(response));
+
+        if (getLastEvaluatedKey.apply(response) != null && !getLastEvaluatedKey.apply(response).isEmpty()) {
+            pageBuilder.lastEvaluatedKey(getLastEvaluatedKey.apply(response));
         }
+        return pageBuilder.build();
     }
 
     public static <T> Key createKeyFromItem(T item, TableSchema<T> tableSchema, String indexName) {
