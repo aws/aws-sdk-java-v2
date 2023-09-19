@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,6 +51,8 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
     private final List<Pair<HttpExecuteResponse, Duration>> responses = new LinkedList<>();
     private final AtomicInteger responseIndex = new AtomicInteger(0);
     private final ExecutorService executor;
+    private Integer asyncRequestBodyLength;
+    private byte[] streamingPayload;
 
     public MockAsyncHttpClient() {
         this.executor = Executors.newFixedThreadPool(3);
@@ -66,6 +69,11 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
 
         request.responseHandler().onHeaders(nextResponse.httpResponse());
         CompletableFuture.runAsync(() -> request.responseHandler().onStream(new ResponsePublisher(content, index)), executor);
+
+        if (asyncRequestBodyLength != null && asyncRequestBodyLength > 0) {
+            captureStreamingPayload(request.requestContentPublisher());
+        }
+
         return CompletableFuture.completedFuture(null);
     }
 
@@ -122,7 +130,29 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
         this.responseIndex.set(0);
     }
 
-    private class ResponsePublisher implements SdkHttpContentPublisher {
+    /**
+     * Enable capturing the streaming payload by setting the length of the AsyncRequestBody.
+     */
+    public void setAsyncRequestBodyLength(int asyncRequestBodyLength) {
+        this.asyncRequestBodyLength = asyncRequestBodyLength;
+    }
+
+    private void captureStreamingPayload(SdkHttpContentPublisher publisher) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(asyncRequestBodyLength);
+        Subscriber<ByteBuffer> subscriber = new CapturingSubscriber(byteBuffer);
+        publisher.subscribe(subscriber);
+        streamingPayload = byteBuffer.array();
+    }
+
+    /**
+     * Returns the streaming payload byte array, if the asyncRequestBodyLength was set correctly. Otherwise, returns empty
+     * Optional.
+     */
+    public Optional<byte[]> getStreamingPayload() {
+        return streamingPayload != null ? Optional.of(streamingPayload.clone()) : Optional.empty();
+    }
+
+    private final class ResponsePublisher implements SdkHttpContentPublisher {
         private final byte[] content;
         private final int index;
 
@@ -163,6 +193,37 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
                     running = false;
                 }
             });
+        }
+    }
+
+    private static class CapturingSubscriber implements Subscriber<ByteBuffer> {
+        private ByteBuffer byteBuffer;
+        private CountDownLatch done = new CountDownLatch(1);
+
+        CapturingSubscriber(ByteBuffer byteBuffer) {
+            this.byteBuffer = byteBuffer;
+        }
+
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            subscription.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(ByteBuffer buffer) {
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            byteBuffer.put(bytes);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            done.countDown();
+        }
+
+        @Override
+        public void onComplete() {
+            done.countDown();
         }
     }
 }

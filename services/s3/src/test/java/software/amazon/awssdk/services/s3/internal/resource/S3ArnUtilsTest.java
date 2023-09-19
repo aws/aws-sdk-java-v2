@@ -122,7 +122,7 @@ public class S3ArnUtilsTest {
     @Test
     public void parseOutpostArn_malformedArnEmptyOutpostId_shouldThrowException() {
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Invalid format for S3 outpost ARN, missing outpostId");
+        exception.expectMessage("resource must not be blank or empty");
 
         S3ArnUtils.parseOutpostArn(Arn.builder()
                                       .partition("aws")

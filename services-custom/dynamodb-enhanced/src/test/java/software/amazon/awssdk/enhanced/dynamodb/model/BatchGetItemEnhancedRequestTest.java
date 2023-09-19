@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Collections;
@@ -29,6 +31,8 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BatchGetItemEnhancedRequestTest {
@@ -53,6 +57,8 @@ public class BatchGetItemEnhancedRequestTest {
         BatchGetItemEnhancedRequest builtObject = BatchGetItemEnhancedRequest.builder().build();
 
         assertThat(builtObject.readBatches(), is(nullValue()));
+        assertThat(builtObject.returnConsumedCapacity(), is(nullValue()));
+        assertThat(builtObject.returnConsumedCapacityAsString(), is(nullValue()));
     }
 
     @Test
@@ -64,9 +70,12 @@ public class BatchGetItemEnhancedRequestTest {
 
         BatchGetItemEnhancedRequest builtObject = BatchGetItemEnhancedRequest.builder()
                                                                              .readBatches(readBatch)
+                                                                             .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                                                              .build();
 
         assertThat(builtObject.readBatches(), is(Collections.singletonList(readBatch)));
+        assertThat(builtObject.returnConsumedCapacity(), equalTo(ReturnConsumedCapacity.TOTAL));
+        assertThat(builtObject.returnConsumedCapacityAsString(), equalTo(ReturnConsumedCapacity.TOTAL.toString()));
     }
 
     @Test
@@ -90,6 +99,60 @@ public class BatchGetItemEnhancedRequestTest {
         BatchGetItemEnhancedRequest copiedObject = builtObject.toBuilder().build();
 
         assertThat(copiedObject, is(builtObject));
+        assertThat(copiedObject.hashCode(), equalTo(builtObject.hashCode()));
+    }
+
+    @Test
+    public void toBuilder_maximal() {
+        ReadBatch readBatch = ReadBatch.builder(FakeItem.class)
+                                       .mappedTableResource(fakeItemMappedTable)
+                                       .addGetItem(r -> r.key(k -> k.partitionValue("key")))
+                                       .build();
+
+        BatchGetItemEnhancedRequest builtObject = BatchGetItemEnhancedRequest.builder()
+                                                                             .readBatches(readBatch)
+                                                                             .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                             .build();
+
+        BatchGetItemEnhancedRequest copiedObject = builtObject.toBuilder().build();
+        assertThat(copiedObject, is(builtObject));
+        assertThat(copiedObject.hashCode(), equalTo(builtObject.hashCode()));
+    }
+
+    @Test
+    public void hashCode_includes_readBatches() {
+        BatchGetItemEnhancedRequest request1 = BatchGetItemEnhancedRequest.builder().build();
+
+        ReadBatch readBatch = ReadBatch.builder(FakeItem.class)
+                                       .mappedTableResource(fakeItemMappedTable)
+                                       .addGetItem(r -> r.key(k -> k.partitionValue("key")))
+                                       .build();
+        BatchGetItemEnhancedRequest request2 = BatchGetItemEnhancedRequest.builder()
+                                                                          .readBatches(readBatch)
+                                                                          .build();
+
+        assertThat(request1, not(equalTo(request2)));
+        assertThat(request1.hashCode(), not(equalTo(request2)));
+    }
+
+    @Test
+    public void hashCode_includes_consumedCapacity() {
+        BatchGetItemEnhancedRequest request1 = BatchGetItemEnhancedRequest.builder().build();
+        BatchGetItemEnhancedRequest request2 = BatchGetItemEnhancedRequest.builder()
+                                                                          .returnConsumedCapacity(ReturnConsumedCapacity.INDEXES)
+                                                                          .build();
+
+        assertThat(request1, not(equalTo(request2)));
+        assertThat(request1.hashCode(), not(equalTo(request2)));
+    }
+
+    @Test
+    public void returnConsumedCapacity_unknownToSdkVersion() {
+        BatchGetItemEnhancedRequest builtObject = BatchGetItemEnhancedRequest.builder()
+                                                                             .returnConsumedCapacity("abcdefg")
+                                                                             .build();
+        assertThat(builtObject.returnConsumedCapacity(), is(ReturnConsumedCapacity.UNKNOWN_TO_SDK_VERSION));
+        assertThat(builtObject.returnConsumedCapacityAsString(), equalTo("abcdefg"));
     }
 
 }

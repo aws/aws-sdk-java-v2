@@ -1,0 +1,42 @@
+{
+    "version": "2.20.146",
+    "date": "2023-09-12",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT-based S3 Client",
+            "contributor": "",
+            "description": "Improved CRT client uploads by directly passing requestPath, eliminating unnecessary file I/O in the Java SDK Transfer Manager."
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now supports confidence score buckets for retrieved passage results using the Retrieve API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "psnilesh",
+            "description": "This commit introduces DynamoDbTable#getItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnConsumedCapacity to get additional information the service response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for restricting public sharing of AMIs through AMI Block Public Access"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Adds sensitive trait to various shapes in Jetstream Connections API model."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

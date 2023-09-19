@@ -111,10 +111,10 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
                            .effect(getString(statementObject, "Effect"))
                            .principals(readPrincipals(statementObject, "Principal"))
                            .notPrincipals(readPrincipals(statementObject, "NotPrincipal"))
-                           .actionIds(readStringArray(statementObject, "Action"))
-                           .notActionIds(readStringArray(statementObject, "NotAction"))
-                           .resourceIds(readStringArray(statementObject, "Resource"))
-                           .notResourceIds(readStringArray(statementObject, "NotResource"))
+                           .actionIds(readStringOrArrayAsList(statementObject, "Action"))
+                           .notActionIds(readStringOrArrayAsList(statementObject, "NotAction"))
+                           .resourceIds(readStringOrArrayAsList(statementObject, "Resource"))
+                           .notResourceIds(readStringOrArrayAsList(statementObject, "NotResource"))
                            .conditions(readConditions(statementObject.get("Condition")))
                            .build();
     }
@@ -132,9 +132,10 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
 
         if (principalsNode.isObject()) {
             List<IamPrincipal> result = new ArrayList<>();
-            principalsNode.asObject().forEach((id, value) -> {
-                result.add(IamPrincipal.create(id, expectString(value, name + " entry value")));
-            });
+            Map<String, JsonNode> principalsNodeObject = principalsNode.asObject();
+            principalsNodeObject.keySet().forEach(
+                k -> result.addAll(IamPrincipal.createAll(k, readStringOrArrayAsList(principalsNodeObject, k)))
+            );
             return result;
         }
 
@@ -170,7 +171,7 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
         return result;
     }
 
-    private List<String> readStringArray(Map<String, JsonNode> statementObject, String nodeKey) {
+    private List<String> readStringOrArrayAsList(Map<String, JsonNode> statementObject, String nodeKey) {
         JsonNode node = statementObject.get(nodeKey);
 
         if (node == null) {

@@ -22,6 +22,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -58,11 +60,13 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
+    public static final ExecutionAttribute<Path> OBJECT_FILE_PATH = new ExecutionAttribute<>("objectFilePath");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
 
@@ -74,6 +78,19 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),
                                                      partSizeInBytes,
                                                      thresholdInBytes);
+    }
+
+    @Override
+    public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, Path sourcePath) {
+        AwsRequestOverrideConfiguration overrideConfig =
+            putObjectRequest.overrideConfiguration()
+                            .map(config -> config.toBuilder().putExecutionAttribute(OBJECT_FILE_PATH, sourcePath))
+                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                            .putExecutionAttribute(OBJECT_FILE_PATH, sourcePath))
+                            .build();
+
+        return putObject(putObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(),
+                         new CrtContentLengthOnlyAsyncFileRequestBody(sourcePath));
     }
 
     @Override
@@ -308,6 +325,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
                        .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
                        .put(SIGNING_REGION, executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
+                       .put(S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH,
+                            executionAttributes.getAttribute(OBJECT_FILE_PATH))
                        .build();
 
             // For putObject and getObject, we rely on CRT to perform checksum validation

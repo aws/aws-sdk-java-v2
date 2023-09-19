@@ -1,0 +1,78 @@
+{
+    "version": "2.20.147",
+    "date": "2023-09-13",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "faucct",
+            "description": "Fix `InputStreamSubscriber` to return 0 when reading a length of 0."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Allow IamPolicy to read json policies where the principal value is itself an array"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud9",
+            "contributor": "",
+            "description": "Update to include information on Ubuntu 18 deprecation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SimSpace Weaver",
+            "contributor": "",
+            "description": "Edited the introductory text for the API reference."
+        },
+        {
+            "type": "feature",
+            "category": "AWS X-Ray",
+            "contributor": "",
+            "description": "Add StartTime field in GetTraceSummaries API response for each TraceSummary."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Internet Monitor",
+            "contributor": "",
+            "description": "This release updates the Amazon CloudWatch Internet Monitor API domain name."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "psnilesh",
+            "description": "This commit introduces returnConsumedCapacity input to BatchGetItemEnhancedRequest that allows customers to find out exactly how much read units were consumed by the operation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Add `managementType` field to ListCoverage API response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service RealTime",
+            "contributor": "",
+            "description": "Doc only update that changes description for ParticipantToken."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Firehose",
+            "contributor": "",
+            "description": "DocumentIdOptions has been added for the Amazon OpenSearch destination."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Updated existing APIs and added new ones to support using AWS Elastic Disaster Recovery post-launch actions. Added support for new regions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

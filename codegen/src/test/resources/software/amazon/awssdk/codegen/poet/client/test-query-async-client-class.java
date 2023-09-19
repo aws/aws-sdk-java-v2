@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
 import software.amazon.awssdk.core.signer.Signer;
@@ -52,6 +53,8 @@ import software.amazon.awssdk.services.query.model.OperationWithContextParamRequ
 import software.amazon.awssdk.services.query.model.OperationWithContextParamResponse;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeRequest;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeResponse;
+import software.amazon.awssdk.services.query.model.OperationWithRequestCompressionRequest;
+import software.amazon.awssdk.services.query.model.OperationWithRequestCompressionResponse;
 import software.amazon.awssdk.services.query.model.OperationWithStaticContextParamsRequest;
 import software.amazon.awssdk.services.query.model.OperationWithStaticContextParamsResponse;
 import software.amazon.awssdk.services.query.model.PutOperationWithChecksumRequest;
@@ -69,6 +72,7 @@ import software.amazon.awssdk.services.query.transform.GetOperationWithChecksumR
 import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithNoneAuthTypeRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.OperationWithRequestCompressionRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithStaticContextParamsRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.PutOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
@@ -484,6 +488,63 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
                              .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
+            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
+     * Invokes the OperationWithRequestCompression operation asynchronously.
+     *
+     * @param operationWithRequestCompressionRequest
+     * @return A Java Future containing the result of the OperationWithRequestCompression operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>QueryException Base class for all service exceptions. Unknown exceptions will be thrown as an
+     *         instance of this type.</li>
+     *         </ul>
+     * @sample QueryAsyncClient.OperationWithRequestCompression
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithRequestCompression"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithRequestCompressionResponse> operationWithRequestCompression(
+        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) {
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithRequestCompression");
+
+            HttpResponseHandler<OperationWithRequestCompressionResponse> responseHandler = protocolFactory
+                .createResponseHandler(OperationWithRequestCompressionResponse::builder);
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+
+            CompletableFuture<OperationWithRequestCompressionResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
+                             .withOperationName("OperationWithRequestCompression")
+                             .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+                                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
+                             .withInput(operationWithRequestCompressionRequest));
+            CompletableFuture<OperationWithRequestCompressionResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
