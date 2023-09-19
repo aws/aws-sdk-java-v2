@@ -248,7 +248,7 @@ public final class JsonProtocolUnmarshaller {
                 Optional<AbortableInputStream> responseContent = context.response().content();
                 if (responseContent.isPresent()) {
                     InputStream is = responseContent.get();
-                    String payload = new String(SdkBytes.fromInputStream(is).asByteArray());
+                    String payload = SdkBytes.fromInputStream(is).asUtf8String();
                     field.set(sdkPojo, payload);
                 } else {
                     field.set(sdkPojo, "");
