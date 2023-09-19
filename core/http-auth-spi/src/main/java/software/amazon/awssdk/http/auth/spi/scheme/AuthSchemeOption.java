@@ -63,16 +63,14 @@ public interface AuthSchemeOption extends ToCopyableBuilder<AuthSchemeOption.Bui
     /**
      * A method to operate on all {@link IdentityProperty} values of this AuthSchemeOption.
      * @param consumer The method to apply to each IdentityProperty.
-     * @param <T> To represent the type for each IdentityProperty. Note the actual type can be different for each property.
      */
-    <T> void forEachIdentityProperty(IdentityPropertyConsumer consumer);
+    void forEachIdentityProperty(IdentityPropertyConsumer consumer);
 
     /**
      * A method to operate on all {@link SignerProperty} values of this AuthSchemeOption.
      * @param consumer The method to apply to each SignerProperty.
-     * @param <T> To represent the type for each SignerProperty. Note the actual type can be different for each property.
      */
-    <T> void forEachSignerProperty(SignerPropertyConsumer consumer);
+    void forEachSignerProperty(SignerPropertyConsumer consumer);
 
     /**
      * Interface for operating on an {@link IdentityProperty} value.

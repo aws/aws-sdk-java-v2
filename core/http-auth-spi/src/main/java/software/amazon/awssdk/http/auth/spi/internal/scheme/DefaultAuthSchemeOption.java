@@ -60,26 +60,22 @@ public final class DefaultAuthSchemeOption implements AuthSchemeOption {
         return (T) signerProperties.get(property);
     }
 
-    @SuppressWarnings("unchecked") // Cast added to use type <T> so the property and property value types match
     @Override
-    public <T> void forEachIdentityProperty(IdentityPropertyConsumer consumer) {
-        for (IdentityProperty<?> p : identityProperties.keySet()) {
-            // Note, <T> is added to this method signature to facilitate this cast below which is just to define a type, so that
-            // this.identityProperty() can rely on that type too, and consumer.accept relies on the matching type.
-            IdentityProperty<T> property = (IdentityProperty<T>) p;
-            consumer.accept(property, this.identityProperty(property));
-        }
+    public void forEachIdentityProperty(IdentityPropertyConsumer consumer) {
+        identityProperties.keySet().forEach(property -> consumeProperty(property, consumer));
     }
 
-    @SuppressWarnings("unchecked") // Cast added to use type <T> so the property and property value types match
+    private <T> void consumeProperty(IdentityProperty<T> property, IdentityPropertyConsumer consumer) {
+        consumer.accept(property, this.identityProperty(property));
+    }
+
     @Override
-    public <T> void forEachSignerProperty(SignerPropertyConsumer consumer) {
-        for (SignerProperty<?> p : signerProperties.keySet()) {
-            // Note, <T> is added to this method signature to facilitate this cast below which is just to define a type, so that
-            // this.identityProperty() can rely on that type too, and consumer.accept relies on the matching type.
-            SignerProperty<T> property = (SignerProperty<T>) p;
-            consumer.accept(property, this.signerProperty(property));
-        }
+    public void forEachSignerProperty(SignerPropertyConsumer consumer) {
+        signerProperties.keySet().forEach(property -> consumeProperty(property, consumer));
+    }
+
+    private <T> void consumeProperty(SignerProperty<T> property, SignerPropertyConsumer consumer) {
+        consumer.accept(property, this.signerProperty(property));
     }
 
     @Override
