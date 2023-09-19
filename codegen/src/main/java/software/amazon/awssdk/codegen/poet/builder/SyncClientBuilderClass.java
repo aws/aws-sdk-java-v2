@@ -159,6 +159,7 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .build();
     }
 
+    // TODO(sra-plugins) Move this method to a commons class or move it to the base class
     public static MethodSpec initializeServiceClientConfigMethod(ClassName serviceConfigClassName) {
         return MethodSpec.methodBuilder("initializeServiceClientConfig").addModifiers(Modifier.PRIVATE)
                          .addParameter(SdkClientConfiguration.class, "clientConfig")
