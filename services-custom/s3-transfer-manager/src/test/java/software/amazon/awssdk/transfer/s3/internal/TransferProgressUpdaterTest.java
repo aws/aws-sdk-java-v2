@@ -23,12 +23,14 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -58,14 +60,10 @@ class TransferProgressUpdaterTest {
     private CaptureTransferListener captureTransferListener;
 
     private static Stream<Arguments> contentLength() {
-
         return Stream.of(
-            // When bytesTransfer ration reaches 1.0
-            Arguments.of(OBJ_SIZE),
-            // When bytesTransfer ration reaches  more than1.0
-            Arguments.of(OBJ_SIZE / 2),
-            // When mbytesTransfer ratio never reaches 100 , but subscription competes
-            Arguments.of(OBJ_SIZE * 2));
+            Arguments.of(OBJ_SIZE, "Total bytes equals transferred, future complete through subscriberOnNext()"),
+            Arguments.of(OBJ_SIZE / 2, "Total bytes less than transferred, future complete through subscriberOnNext()"),
+            Arguments.of(OBJ_SIZE * 2, "Total bytes more than transferred, future complete through subscriberOnComplete()"));
     }
 
     private static CompletableFuture<CompletedObjectTransfer> completedObjectResponse(long millis) {
@@ -94,9 +92,10 @@ class TransferProgressUpdaterTest {
         captureTransferListener = new CaptureTransferListener();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{index} - {1}, total bytes = {0}")
     @MethodSource("contentLength")
-    void transferCompleteBasedOnBytesRatioWhenCompleted(Long adjustedContentLength) throws Exception {
+    void registerCompletion_differentTransferredByteRatios_alwaysCompletesOnce(Long givenContentLength, String description)
+        throws Exception {
         TransferObjectRequest transferRequest = Mockito.mock(TransferObjectRequest.class);
         CaptureTransferListener mockListener = Mockito.mock(CaptureTransferListener.class);
         when(transferRequest.transferListeners()).thenReturn(Arrays.asList(LoggingTransferListener.create(), mockListener,
@@ -104,7 +103,7 @@ class TransferProgressUpdaterTest {
 
         sourceFile = new RandomTempFile(OBJ_SIZE);
         AsyncRequestBody requestBody = AsyncRequestBody.fromFile(sourceFile);
-        TransferProgressUpdater transferProgressUpdater = new TransferProgressUpdater(transferRequest, adjustedContentLength);
+        TransferProgressUpdater transferProgressUpdater = new TransferProgressUpdater(transferRequest, givenContentLength);
         AsyncRequestBody asyncRequestBody = transferProgressUpdater.wrapRequestBody(requestBody);
 
         CompletableFuture<CompletedObjectTransfer> completionFuture = completedObjectResponse(10);

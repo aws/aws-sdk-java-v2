@@ -111,7 +111,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     @ParameterizedTest
     @MethodSource("transferManagers")
-    void upload_asyncRequestBody_SentCorrectly(S3TransferManager transferManager) throws IOException {
+    void upload_asyncRequestBodyFromString_SentCorrectly(S3TransferManager transferManager) throws IOException {
         String content = UUID.randomUUID().toString();
         CaptureTransferListener transferListener = new CaptureTransferListener();
 
