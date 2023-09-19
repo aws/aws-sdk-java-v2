@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This release adds support for C7i, and R7a instance types."
+}
