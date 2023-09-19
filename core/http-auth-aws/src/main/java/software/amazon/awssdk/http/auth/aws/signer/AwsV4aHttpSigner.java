@@ -29,7 +29,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html">here</a>.
  */
 @SdkPublicApi
-public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner, HttpSigner<AwsCredentialsIdentity> {
+public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner<AwsCredentialsIdentity> {
     /**
      * The AWS region name to be used for computing the signature. This property is required.
      * TODO(sra-identity-and-auth): Should this be a list or rename to SIGNING_SCOPE?
