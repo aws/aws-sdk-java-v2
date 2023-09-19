@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SDK_BYTES;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -187,7 +188,10 @@ public final class JsonProtocolUnmarshaller {
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response) throws IOException {
-        if (hasPayloadMembersOnUnmarshall(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo) && response.content().isPresent()) {
+        if (hasPayloadMembersOnUnmarshall(sdkPojo)
+            && !hasExplicitBlobPayloadMember(sdkPojo)
+            && !hasExplicitStringPayloadMember(sdkPojo)
+            && response.content().isPresent()) {
             JsonNode jsonNode = parser.parse(response.content().get());
             return unmarshall(sdkPojo, response, jsonNode);
         } else {
@@ -199,6 +203,12 @@ public final class JsonProtocolUnmarshaller {
         return sdkPojo.sdkFields()
                       .stream()
                       .anyMatch(f -> isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.SDK_BYTES);
+    }
+
+    private boolean hasExplicitStringPayloadMember(SdkPojo sdkPojo) {
+        return sdkPojo.sdkFields()
+                      .stream()
+                      .anyMatch(f -> isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.STRING);
     }
 
     private static boolean isExplicitPayloadMember(SdkField<?> f) {
@@ -233,6 +243,15 @@ public final class JsonProtocolUnmarshaller {
                     field.set(sdkPojo, SdkBytes.fromInputStream(responseContent.get()));
                 } else {
                     field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
+                }
+            } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.STRING) {
+                Optional<AbortableInputStream> responseContent = context.response().content();
+                if (responseContent.isPresent()) {
+                    InputStream is = responseContent.get();
+                    String payload = new String(SdkBytes.fromInputStream(is).asByteArray());
+                    field.set(sdkPojo, payload);
+                } else {
+                    field.set(sdkPojo, "");
                 }
             } else {
                 JsonNode jsonFieldContent = getJsonNode(jsonContent, field);

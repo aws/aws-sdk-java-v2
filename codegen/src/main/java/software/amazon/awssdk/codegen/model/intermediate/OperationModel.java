@@ -48,6 +48,8 @@ public class OperationModel extends DocumentationModel {
 
     private boolean hasBlobMemberAsPayload;
 
+    private boolean hasStringMemberAsPayload;
+
     private boolean isAuthenticated = true;
 
     private AuthType authType;
@@ -209,6 +211,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setHasBlobMemberAsPayload(boolean hasBlobMemberAsPayload) {
         this.hasBlobMemberAsPayload = hasBlobMemberAsPayload;
+    }
+
+    public boolean getHasStringMemberAsPayload() {
+        return this.hasStringMemberAsPayload;
+    }
+
+    public void setHasStringMemberAsPayload(boolean hasStringMemberAsPayload) {
+        this.hasStringMemberAsPayload = hasStringMemberAsPayload;
     }
 
     public boolean hasStreamingInput() {

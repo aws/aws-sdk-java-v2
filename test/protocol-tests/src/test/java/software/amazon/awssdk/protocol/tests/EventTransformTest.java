@@ -33,13 +33,16 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.services.protocolrestjson.model.InputEvent;
+import software.amazon.awssdk.services.protocolrestjson.model.InputEventStringPayload;
 import software.amazon.awssdk.services.protocolrestjson.transform.InputEventMarshaller;
+import software.amazon.awssdk.services.protocolrestjson.transform.InputEventStringPayloadMarshaller;
 
 /**
  * Marshalling and Unmarshalling tests for events.
  */
 public class EventTransformTest {
-    private static final String EXPLICIT_PAYLOAD = "{\"ExplicitPayloadMember\": \"bar\"}";
+    private static final String EXPLICIT_PAYLOAD_JSON = "{\"ExplicitPayloadMember\": \"bar\"}";
+    private static final String EXPLICIT_PAYLOAD_NON_JSON = "bar";
     private static final String HEADER_MEMBER_NAME = "HeaderMember";
     private static final String HEADER_MEMBER = "foo";
     private static AwsJsonProtocolFactory protocolFactory;
@@ -56,33 +59,126 @@ public class EventTransformTest {
     }
 
     @Test
-    public void testUnmarshalling() throws Exception {
+    public void testUnmarshalling_JsonBlobPayload() throws Exception {
         HttpResponseHandler<SdkPojo> responseHandler = protocolFactory
                 .createResponseHandler(JsonOperationMetadata.builder().build(), InputEvent::builder);
 
         InputEvent unmarshalled = (InputEvent) responseHandler.handle(SdkHttpFullResponse.builder()
-                        .content(AbortableInputStream.create(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD).asInputStream()))
+                        .content(AbortableInputStream.create(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_JSON).asInputStream()))
                         .putHeader(HEADER_MEMBER_NAME, HEADER_MEMBER)
                         .build(),
                 new ExecutionAttributes());
 
         assertThat(unmarshalled.headerMember()).isEqualTo(HEADER_MEMBER);
-        assertThat(unmarshalled.explicitPayloadMember().asUtf8String()).isEqualTo(EXPLICIT_PAYLOAD);
+        assertThat(unmarshalled.explicitPayloadMember().asUtf8String()).isEqualTo(EXPLICIT_PAYLOAD_JSON);
     }
 
     @Test
-    public void testMarshalling() {
+    public void testUnmarshalling_NonJsonBlobPayload() throws Exception {
+        HttpResponseHandler<SdkPojo> responseHandler = protocolFactory
+            .createResponseHandler(JsonOperationMetadata.builder().build(), InputEvent::builder);
+
+        InputEvent unmarshalled = (InputEvent) responseHandler.handle(SdkHttpFullResponse.builder()
+                                                                                         .content(AbortableInputStream.create(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_NON_JSON).asInputStream()))
+                                                                                         .putHeader(HEADER_MEMBER_NAME, HEADER_MEMBER)
+                                                                                         .build(),
+                                                                      new ExecutionAttributes());
+
+        assertThat(unmarshalled.headerMember()).isEqualTo(HEADER_MEMBER);
+        assertThat(unmarshalled.explicitPayloadMember().asUtf8String()).isEqualTo(EXPLICIT_PAYLOAD_NON_JSON);
+    }
+
+    @Test
+    public void testUnmarshalling_JsonStringPayload() throws Exception {
+        HttpResponseHandler<SdkPojo> responseHandler = protocolFactory
+            .createResponseHandler(JsonOperationMetadata.builder().build(), InputEventStringPayload::builder);
+
+        InputEventStringPayload unmarshalled = (InputEventStringPayload) responseHandler.handle(SdkHttpFullResponse.builder()
+                                                                                         .content(AbortableInputStream.create(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_JSON).asInputStream()))
+                                                                                         .putHeader(HEADER_MEMBER_NAME, HEADER_MEMBER)
+                                                                                         .build(),
+                                                                      new ExecutionAttributes());
+
+        assertThat(unmarshalled.headerMember()).isEqualTo(HEADER_MEMBER);
+        assertThat(unmarshalled.explicitPayloadStringMember()).isEqualTo(EXPLICIT_PAYLOAD_JSON);
+    }
+
+    @Test
+    public void testUnmarshalling_NonJsonStringPayload() throws Exception {
+        HttpResponseHandler<SdkPojo> responseHandler = protocolFactory
+            .createResponseHandler(JsonOperationMetadata.builder().build(), InputEventStringPayload::builder);
+
+        InputEventStringPayload unmarshalled = (InputEventStringPayload) responseHandler.handle(SdkHttpFullResponse.builder()
+                                                                                                                   .content(AbortableInputStream.create(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_NON_JSON).asInputStream()))
+                                                                                                                   .putHeader(HEADER_MEMBER_NAME, HEADER_MEMBER)
+                                                                                                                   .build(),
+                                                                                                new ExecutionAttributes());
+
+        assertThat(unmarshalled.headerMember()).isEqualTo(HEADER_MEMBER);
+        assertThat(unmarshalled.explicitPayloadStringMember()).isEqualTo(EXPLICIT_PAYLOAD_NON_JSON);
+    }
+
+    @Test
+    public void testMarshalling_JsonBlobPayload() {
         InputEventMarshaller marshaller = new InputEventMarshaller(protocolFactory);
 
         InputEvent e = InputEvent.builder()
                 .headerMember(HEADER_MEMBER)
-                .explicitPayloadMember(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD))
+                .explicitPayloadMember(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_JSON))
                 .build();
 
         SdkHttpFullRequest marshalled = marshaller.marshall(e);
 
         assertThat(marshalled.headers().get(HEADER_MEMBER_NAME)).containsExactly(HEADER_MEMBER);
         assertThat(marshalled.contentStreamProvider().get().newStream())
-                .hasSameContentAs(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD).asInputStream());
+                .hasSameContentAs(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_JSON).asInputStream());
+    }
+
+    @Test
+    public void testMarshalling_NonJsonBlobPayload() {
+        InputEventMarshaller marshaller = new InputEventMarshaller(protocolFactory);
+
+        InputEvent e = InputEvent.builder()
+                                 .headerMember(HEADER_MEMBER)
+                                 .explicitPayloadMember(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_NON_JSON))
+                                 .build();
+
+        SdkHttpFullRequest marshalled = marshaller.marshall(e);
+
+        assertThat(marshalled.headers().get(HEADER_MEMBER_NAME)).containsExactly(HEADER_MEMBER);
+        assertThat(marshalled.contentStreamProvider().get().newStream())
+            .hasSameContentAs(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_NON_JSON).asInputStream());
+    }
+
+    @Test
+    public void testMarshalling_JsonStringPayload() {
+        InputEventStringPayloadMarshaller marshaller = new InputEventStringPayloadMarshaller(protocolFactory);
+
+        InputEventStringPayload e = InputEventStringPayload.builder()
+                                                           .headerMember(HEADER_MEMBER)
+                                                           .explicitPayloadStringMember(EXPLICIT_PAYLOAD_JSON)
+                                                           .build();
+
+        SdkHttpFullRequest marshalled = marshaller.marshall(e);
+
+        assertThat(marshalled.headers().get(HEADER_MEMBER_NAME)).containsExactly(HEADER_MEMBER);
+        assertThat(marshalled.contentStreamProvider().get().newStream())
+            .hasSameContentAs(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_JSON).asInputStream());
+    }
+
+    @Test
+    public void testMarshalling_NonJsonStringPayload() {
+        InputEventStringPayloadMarshaller marshaller = new InputEventStringPayloadMarshaller(protocolFactory);
+
+        InputEventStringPayload e = InputEventStringPayload.builder()
+                                                           .headerMember(HEADER_MEMBER)
+                                                           .explicitPayloadStringMember(EXPLICIT_PAYLOAD_NON_JSON)
+                                                           .build();
+
+        SdkHttpFullRequest marshalled = marshaller.marshall(e);
+
+        assertThat(marshalled.headers().get(HEADER_MEMBER_NAME)).containsExactly(HEADER_MEMBER);
+        assertThat(marshalled.contentStreamProvider().get().newStream())
+            .hasSameContentAs(SdkBytes.fromUtf8String(EXPLICIT_PAYLOAD_NON_JSON).asInputStream());
     }
 }
