@@ -484,6 +484,11 @@
                 <artifactId>plexus-utils</artifactId>
                 <version>3.0.24</version>
             </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${bytebuddy.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

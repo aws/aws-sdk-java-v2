@@ -266,4 +266,11 @@
         <Method name="fromFile"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+
+
+    <!-- New flags as of spotbogs 4.7.3.5 -->
+    <!-- TODO: Fix or explicitly exclude each occurrence -->
+     <Match>
+        <Bug pattern="EI_EXPOSE_REP2,EI_EXPOSE_REP,MS_EXPOSE_REP,MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR,SA_FIELD_SELF_ASSIGNMENT,DCN_NULLPOINTER_EXCEPTION"/>
+    </Match>
 </FindBugsFilter>
