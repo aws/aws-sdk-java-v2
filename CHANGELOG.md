@@ -1,3 +1,20 @@
+# __2.20.151__ __2023-09-19__
+## __AWS Outposts__
+  - ### Features
+    - This release adds the InstanceFamilies field to the ListAssets response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for C7i, and R7a instance types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for one-time model monitoring schedules that are executed immediately without delay, explicit data analysis windows for model monitoring schedules and exclude features attributes to remove features from model monitor analysis.
+
 # __2.20.150__ __2023-09-18__
 ## __AWS Application Discovery Service__
   - ### Features
@@ -1848,7 +1865,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
