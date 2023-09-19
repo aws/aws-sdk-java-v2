@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.util.SignerUtils.computeSignature;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.computeSignature;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
 import java.util.function.Function;

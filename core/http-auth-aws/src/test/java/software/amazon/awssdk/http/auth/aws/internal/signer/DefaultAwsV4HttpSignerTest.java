@@ -18,26 +18,26 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.AUTH_LOCATION;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.CHUNK_ENCODING_ENABLED;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.EXPIRATION_DURATION;
-import static software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncRequest;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.AUTH_LOCATION;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.CHUNK_ENCODING_ENABLED;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.EXPIRATION_DURATION;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.Header;
-import software.amazon.awssdk.http.auth.aws.AwsV4FamilyHttpSigner.AuthLocation;
 import software.amazon.awssdk.http.auth.aws.TestUtils;
 import software.amazon.awssdk.http.auth.aws.eventstream.internal.io.SigV4DataFramePublisher;
-import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
-import software.amazon.awssdk.http.auth.spi.SignRequest;
-import software.amazon.awssdk.http.auth.spi.SignedRequest;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.AuthLocation;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.ClassLoaderHelper;
 
@@ -155,7 +155,7 @@ public class DefaultAwsV4HttpSignerTest {
                 false)
             ).thenThrow(new ClassNotFoundException("boom!"));
             Exception e = assertThrows(RuntimeException.class, () -> signer.sign(request));
-            assertThat(e).hasMessageContaining("http-auth-aws-event-stream");
+            assertThat(e).hasMessageContaining("http-auth-aws-eventstream");
         }
     }
 
