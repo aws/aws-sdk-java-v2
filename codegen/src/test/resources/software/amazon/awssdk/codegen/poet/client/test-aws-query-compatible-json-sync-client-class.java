@@ -2,13 +2,10 @@ package software.amazon.awssdk.services.querytojsoncompatible;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -17,7 +14,6 @@ import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.metrics.CoreMetric;
-import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -30,7 +26,6 @@ import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperatio
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationResponse;
 import software.amazon.awssdk.services.querytojsoncompatible.model.InvalidInputException;
 import software.amazon.awssdk.services.querytojsoncompatible.model.QueryToJsonCompatibleException;
-import software.amazon.awssdk.services.querytojsoncompatible.model.QueryToJsonCompatibleRequest;
 import software.amazon.awssdk.services.querytojsoncompatible.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.Logger;
@@ -51,9 +46,13 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultQueryToJsonCompatibleClient(SdkClientConfiguration clientConfiguration) {
+    private final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultQueryToJsonCompatibleClient(QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration,
+                                                 SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -110,15 +109,6 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
         }
     }
 
-    private <T extends QueryToJsonCompatibleRequest> T applyPaginatorUserAgent(T request) {
-        Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
-                                                                                                      .version(VersionInfo.SDK_VERSION).name("PAGINATED").build());
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
-    }
-
     @Override
     public final String serviceName() {
         return SERVICE_NAME;
@@ -154,6 +144,11 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
             .registerModeledException(
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+    }
+
+    @Override
+    public final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

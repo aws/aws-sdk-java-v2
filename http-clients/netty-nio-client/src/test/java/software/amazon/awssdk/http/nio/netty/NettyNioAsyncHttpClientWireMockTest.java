@@ -18,19 +18,17 @@ package software.amazon.awssdk.http.nio.netty;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.RandomStringUtils.randomAscii;
 import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,8 +38,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestUtils.assertCanReceiveBasicRequest;
+import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestUtils.createProvider;
+import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestUtils.createRequest;
+import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestUtils.makeSimpleRequest;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.Channel;
@@ -49,6 +52,8 @@ import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.util.AttributeKey;
@@ -57,17 +62,13 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 import javax.net.ssl.TrustManagerFactory;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
@@ -78,17 +79,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.HttpTestUtils;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SimpleHttpContentPublisher;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
@@ -183,7 +182,8 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                                                  .maxConcurrency(1)
                                                                  .maxPendingConnectionAcquires(0)
                                                                  .build()) {
-            assertThatThrownBy(() -> makeSimpleRequest(customClient)).hasMessageContaining("java.lang.IllegalArgumentException: maxPendingAcquires: 0 (expected: >= 1)");
+            assertThatThrownBy(() -> makeSimpleRequest(customClient, mockServer)).hasMessageContaining("java.lang"
+                                                                                              + ".IllegalArgumentException: maxPendingAcquires: 0 (expected: >= 1)");
         }
     }
 
@@ -196,7 +196,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                                                            .threadFactory(threadFactory))
                                    .build();
 
-        makeSimpleRequest(customClient);
+        makeSimpleRequest(customClient, mockServer);
         customClient.close();
 
         Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
@@ -208,7 +208,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                  NettyNioAsyncHttpClient.builder()
                                         .sslProvider(SslProvider.OPENSSL)
                                         .build()) {
-            makeSimpleRequest(customClient);
+            makeSimpleRequest(customClient, mockServer);
         }
     }
 
@@ -218,7 +218,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                  NettyNioAsyncHttpClient.builder()
                                         .sslProvider(SslProvider.JDK)
                                         .build()) {
-            makeSimpleRequest(customClient);
+            makeSimpleRequest(customClient, mockServer);
             customClient.close();
         }
     }
@@ -226,7 +226,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
     @Test
     public void defaultThreadFactoryUsesHelpfulName() throws Exception {
         // Make a request to ensure a thread is primed
-        makeSimpleRequest(client);
+        makeSimpleRequest(client, mockServer);
 
         String expectedPattern = "aws-java-sdk-NettyEventLoop-\\d+-\\d+";
         assertThat(Thread.getAllStackTraces().keySet())
@@ -247,7 +247,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         // Have to make enough requests to prime the threads
         for (int i = 0; i < threadCount + 1; i++) {
-            makeSimpleRequest(customClient);
+            makeSimpleRequest(customClient, mockServer);
         }
         customClient.close();
 
@@ -267,7 +267,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                        .eventLoopGroup(SdkEventLoopGroup.create(eventLoopGroup, NioSocketChannel::new))
                                        .build();
 
-        makeSimpleRequest(customClient);
+        makeSimpleRequest(customClient, mockServer);
         customClient.close();
 
         Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
@@ -287,7 +287,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                    .eventLoopGroup(SdkEventLoopGroup.create(customEventLoopGroup, channelFactory))
                                    .build();
 
-        makeSimpleRequest(customClient);
+        makeSimpleRequest(customClient, mockServer);
         customClient.close();
 
         Mockito.verify(channelFactory, atLeastOnce()).newChannel();
@@ -335,7 +335,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                                              .maxConcurrency(1)
                                                              .build();
 
-        makeSimpleRequest(customClient);
+        makeSimpleRequest(customClient, mockServer);
         verifyChannelRelease(channel);
         assertThat(channel.isShutdown()).isFalse();
 
@@ -446,27 +446,12 @@ public class NettyNioAsyncHttpClientWireMockTest {
         }
     }
 
-    /**
-     * Make a simple async request and wait for it to fiish.
-     *
-     * @param client Client to make request with.
-     */
-    private void makeSimpleRequest(SdkAsyncHttpClient client) throws Exception {
-        String body = randomAlphabetic(10);
-        URI uri = URI.create("http://localhost:" + mockServer.port());
-        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)));
-        SdkHttpRequest request = createRequest(uri);
-        RecordingResponseHandler recorder = new RecordingResponseHandler();
-        client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
-        recorder.completeFuture.get(5, TimeUnit.SECONDS);
-    }
-
     @Test
     public void canMakeBasicRequestOverHttp() throws Exception {
         String smallBody = randomAlphabetic(10);
         URI uri = URI.create("http://localhost:" + mockServer.port());
 
-        assertCanReceiveBasicRequest(uri, smallBody);
+        assertCanReceiveBasicRequest(client, uri, smallBody);
     }
 
     @Test
@@ -474,7 +459,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         String smallBody = randomAlphabetic(10);
         URI uri = URI.create("https://localhost:" + mockServer.httpsPort());
 
-        assertCanReceiveBasicRequest(uri, smallBody);
+        assertCanReceiveBasicRequest(client, uri, smallBody);
     }
 
     @Test
@@ -483,7 +468,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         URI uri = URI.create("http://localhost:" + mockServer.port());
 
-        assertCanReceiveBasicRequest(uri, largishBody);
+        assertCanReceiveBasicRequest(client, uri, largishBody);
     }
 
     @Test
@@ -492,7 +477,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         URI uri = URI.create("https://localhost:" + mockServer.httpsPort());
 
-        assertCanReceiveBasicRequest(uri, largishBody);
+        assertCanReceiveBasicRequest(client, uri, largishBody);
     }
 
     @Test
@@ -579,86 +564,23 @@ public class NettyNioAsyncHttpClientWireMockTest {
         assertThat(channelClosedFuture.get(5, TimeUnit.SECONDS)).isTrue();
     }
 
-    private void assertCanReceiveBasicRequest(URI uri, String body) throws Exception {
-        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withHeader("Some-Header", "With Value").withBody(body)));
+    @Test
+    public void execute_requestByteBufferWithNonZeroPosition_shouldHonor() throws Exception {
+        String body = randomAlphabetic(70);
+        byte[] content = randomAscii(100).getBytes();
+        ByteBuffer requestContent = ByteBuffer.wrap(content);
+        requestContent.position(95);
+        String expected = new String(content, 95, 5);
 
-        SdkHttpRequest request = createRequest(uri);
-
+        URI uri = URI.create("http://localhost:" + mockServer.port());
+        stubFor(post(urlPathEqualTo("/"))
+                    .withRequestBody(equalTo(expected)).willReturn(aResponse().withBody(body)));
+        SdkHttpRequest request = createRequest(uri, "/", expected, SdkHttpMethod.POST, emptyMap());
         RecordingResponseHandler recorder = new RecordingResponseHandler();
-        client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
 
+        client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(new SimpleHttpContentPublisher(requestContent)).responseHandler(recorder).build());
         recorder.completeFuture.get(5, TimeUnit.SECONDS);
-
-        assertThat(recorder.responses).hasOnlyOneElementSatisfying(
-                headerResponse -> {
-                    assertThat(headerResponse.headers()).containsKey("Some-Header");
-                    assertThat(headerResponse.statusCode()).isEqualTo(200);
-                });
-
-        assertThat(recorder.fullResponseAsString()).isEqualTo(body);
-        verify(1, getRequestedFor(urlMatching("/")));
-    }
-
-    private SdkHttpContentPublisher createProvider(String body) {
-        Stream<ByteBuffer> chunks = splitStringBySize(body).stream()
-                                                           .map(chunk -> ByteBuffer.wrap(chunk.getBytes(UTF_8)));
-        return new SdkHttpContentPublisher() {
-
-            @Override
-            public Optional<Long> contentLength() {
-                return Optional.of(Long.valueOf(body.length()));
-            }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                s.onSubscribe(new Subscription() {
-                    @Override
-                    public void request(long n) {
-                        chunks.forEach(s::onNext);
-                        s.onComplete();
-                    }
-
-                    @Override
-                    public void cancel() {
-
-                    }
-                });
-            }
-        };
-    }
-
-    private SdkHttpFullRequest createRequest(URI uri) {
-        return createRequest(uri, "/", null, SdkHttpMethod.GET, emptyMap());
-    }
-
-    private SdkHttpFullRequest createRequest(URI uri,
-                                         String resourcePath,
-                                         String body,
-                                         SdkHttpMethod method,
-                                         Map<String, String> params) {
-        String contentLength = body == null ? null : String.valueOf(body.getBytes(UTF_8).length);
-        return SdkHttpFullRequest.builder()
-                                 .uri(uri)
-                                 .method(method)
-                                 .encodedPath(resourcePath)
-                                 .applyMutation(b -> params.forEach(b::putRawQueryParameter))
-                                 .applyMutation(b -> {
-                                     b.putHeader("Host", uri.getHost());
-                                     if (contentLength != null) {
-                                         b.putHeader("Content-Length", contentLength);
-                                     }
-                                 }).build();
-    }
-
-    private static Collection<String> splitStringBySize(String str) {
-        if (isBlank(str)) {
-            return Collections.emptyList();
-        }
-        ArrayList<String> split = new ArrayList<>();
-        for (int i = 0; i <= str.length() / 1000; i++) {
-            split.add(str.substring(i * 1000, Math.min((i + 1) * 1000, str.length())));
-        }
-        return split;
+        verify(postRequestedFor(urlPathEqualTo("/")).withRequestBody(equalTo(expected)));
     }
 
     // Needs to be a non-anon class in order to spy
@@ -719,7 +641,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                 .writeTimeout(Duration.ZERO)
                 .build();
 
-        makeSimpleRequest(customClient);
+        makeSimpleRequest(customClient, mockServer);
 
         customClient.close();
     }

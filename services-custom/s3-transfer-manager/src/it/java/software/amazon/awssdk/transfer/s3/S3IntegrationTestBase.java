@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
@@ -117,7 +118,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
             if (e.awsErrorDetails().errorCode().equals("BucketAlreadyOwnedByYou")) {
                 System.err.printf("%s bucket already exists, likely leaked by a previous run\n", bucketName);
             } else if (e.awsErrorDetails().errorCode().equals("TooManyBuckets")) {
-                System.err.println("Printing all buckets for debug:");
+                System.err.println("Error: TooManyBuckets. Printing all buckets for debug:");
                 s3.listBuckets().buckets().forEach(System.err::println);
                 if (retryCount < 2) {
                     System.err.println("Retrying...");
@@ -141,6 +142,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
             }
             for (S3Object objectSummary : response.contents()) {
                 s3.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build());
+                s3.waiter().waitUntilObjectNotExists(HeadObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build());
             }
 
             if (response.isTruncated()) {

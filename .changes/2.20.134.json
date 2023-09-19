@@ -1,0 +1,78 @@
+{
+    "version": "2.20.134",
+    "date": "2023-08-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release includes additional audio channel tags in Quicktime outputs, support for film grain synthesis for AV1 outputs, ability to create audio-only FLAC outputs, and ability to specify Amazon S3 destination storage class."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "MediaLive now supports passthrough of KLV data to a HLS output group with a TS container. MediaLive now supports setting an attenuation mode for AC3 audio when the coding mode is 3/2 LFE. MediaLive now supports specifying whether to include filler NAL units in RTMP output group settings."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Added API attributes that help in the monitoring of sessions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Adds new source location AUTODETECT_SIGV4 access type."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Updates to endpoint ruleset tests to address Smithy validation issues and standardize the capitalization of DualStack."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Amazon EC2 M7a instances, powered by 4th generation AMD EPYC processors, deliver up to 50% higher performance compared to M6a instances. Amazon EC2 Hpc7a instances, powered by 4th Gen AMD EPYC processors, deliver up to 2.5x better performance compared to Amazon EC2 Hpc6a instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Excel support in Snapshot Export APIs. Removed Required trait for some insight Computations. Namespace-shared Folders support. Global Filters support. Table pin Column support."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release updates the supported versions for Percona XtraBackup in Aurora MySQL."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Add support for presigned `DeleteObject` in `S3Presigner`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Updates to endpoint ruleset tests to address Smithy validation issues."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Verified Permissions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

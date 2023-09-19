@@ -1,0 +1,36 @@
+{
+    "version": "2.20.149",
+    "date": "2023-09-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Documentation-only updates for AWS DataSync."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "This release introduces app block builder, allowing customers to provision a resource to package applications into an app block"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "New rule type (OnMetricDataUpdate) has been added"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release introduces Skip Model Validation for Model Packages"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

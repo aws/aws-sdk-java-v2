@@ -187,6 +187,15 @@
       },
       "input":{"shape":"StructureWithStreamingMember"}
     },
+    "StreamingInputOperationChunkedEncoding":{
+      "name":"StreamingInputOperationChunkedEncoding",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/streamingInputOperationChunkedEncoding"
+      },
+      "input":{"shape":"StructureWithStreamingMemberChunkedEncoding"},
+      "authtype":"v4-unsigned-body"
+    },
     "StreamingOutputOperation":{
       "name":"StreamingOutputOperation",
       "http":{
@@ -392,6 +401,10 @@
     "IsoTimestamp":{
       "type":"timestamp",
       "timestampFormat":"iso8601"
+    },
+    "UnixTimestamp":{
+      "type":"timestamp",
+      "timestampFormat":"unixTimestamp"
     },
     "JsonValuesStructure":{
       "type":"structure",
@@ -742,6 +755,11 @@
       "streaming":true,
       "requiresLength":true
     },
+    "StreamTypeChunkedEncoding":{
+      "type":"blob",
+      "streaming":true,
+      "requiresLength":false
+    },
     "String":{"type":"string"},
     "StructWithNestedBlobType":{
       "type":"structure",
@@ -762,6 +780,13 @@
       },
       "payload":"StreamingMember"
     },
+    "StructureWithStreamingMemberChunkedEncoding":{
+      "type":"structure",
+      "members":{
+        "StreamingMember":{"shape":"StreamTypeChunkedEncoding"}
+      },
+      "payload":"StreamingMember"
+    },
     "SubTypeOne":{
       "type":"structure",
       "members":{
@@ -771,12 +796,12 @@
     "Timestamp":{"type":"timestamp"},
     "ListOfTimeStamp":{
       "type":"list",
-      "member":{"shape":"Timestamp"}
+      "member":{"shape":"UnixTimestamp"}
     },
     "MapOfTimeStamp":{
       "type":"map",
       "key":{"shape":"String"},
-      "value":{"shape":"Timestamp"}
+      "value":{"shape":"UnixTimestamp"}
     },
     "EventStreamOperationRequest": {
       "type": "structure",

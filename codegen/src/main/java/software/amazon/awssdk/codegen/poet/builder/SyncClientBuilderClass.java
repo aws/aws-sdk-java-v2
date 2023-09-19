@@ -19,17 +19,20 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.net.URI;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 
 public class SyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -38,6 +41,7 @@ public class SyncClientBuilderClass implements ClassSpec {
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
     private final ClassName builderBaseClassName;
+    private final ClassName serviceConfigClassName;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public SyncClientBuilderClass(IntermediateModel model) {
@@ -49,6 +53,7 @@ public class SyncClientBuilderClass implements ClassSpec {
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getSyncBuilder());
         this.builderBaseClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        this.serviceConfigClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -75,7 +80,10 @@ public class SyncClientBuilderClass implements ClassSpec {
             builder.addMethod(tokenProviderMethodImpl());
         }
 
-        return builder.addMethod(buildClientMethod()).build();
+        builder.addMethod(buildClientMethod());
+        builder.addMethod(initializeServiceClientConfigMethod());
+
+        return builder.build();
     }
 
     private MethodSpec endpointDiscoveryEnabled() {
@@ -115,15 +123,26 @@ public class SyncClientBuilderClass implements ClassSpec {
 
 
     private MethodSpec buildClientMethod() {
-        return MethodSpec.methodBuilder("buildClient")
-                             .addAnnotation(Override.class)
-                             .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                             .returns(clientInterfaceName)
-                             .addStatement("$T clientConfiguration = super.syncClientConfiguration()",
-                                           SdkClientConfiguration.class)
-                             .addStatement("this.validateClientOptions(clientConfiguration)")
-                             .addCode("return new $T(clientConfiguration);", clientClassName)
-                             .build();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("buildClient")
+                                         .addAnnotation(Override.class)
+                                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                                         .returns(clientInterfaceName)
+                                         .addStatement("$T clientConfiguration = super.syncClientConfiguration()",
+                                                       SdkClientConfiguration.class)
+                                         .addStatement("this.validateClientOptions(clientConfiguration)")
+                                         .addStatement("$T serviceClientConfiguration = initializeServiceClientConfig"
+                                                       + "(clientConfiguration)",
+                                                       serviceConfigClassName);
+
+        builder.addStatement("$1T client = new $2T(serviceClientConfiguration, clientConfiguration)",
+                             clientInterfaceName, clientClassName);
+        if (model.syncClientDecoratorClassName().isPresent()) {
+            builder.addStatement("return new $T().decorate(client, clientConfiguration, clientContextParams.copy().build())",
+                                 PoetUtils.classNameFromFqcn(model.syncClientDecoratorClassName().get()));
+        } else {
+            builder.addStatement("return client");
+        }
+        return builder.build();
     }
 
     private MethodSpec tokenProviderMethodImpl() {
@@ -134,6 +153,29 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .addStatement("clientConfiguration.option($T.TOKEN_PROVIDER, tokenProvider)",
                                        AwsClientOption.class)
                          .addStatement("return this")
+                         .build();
+    }
+
+    private MethodSpec initializeServiceClientConfigMethod() {
+        return MethodSpec.methodBuilder("initializeServiceClientConfig").addModifiers(Modifier.PRIVATE)
+                         .addParameter(SdkClientConfiguration.class, "clientConfig")
+                         .returns(serviceConfigClassName)
+                         .addStatement("$T endpointOverride = null", URI.class)
+                         .addStatement("$T endpointProvider = clientConfig.option($T.ENDPOINT_PROVIDER)",
+                                       EndpointProvider.class,
+                                       SdkClientOption.class)
+                         .addCode("if (clientConfig.option($T.ENDPOINT_OVERRIDDEN) != null"
+                                  + "&& $T.TRUE.equals(clientConfig.option($T.ENDPOINT_OVERRIDDEN))) {"
+                                  + "endpointOverride = clientConfig.option($T.ENDPOINT);"
+                                  + "}",
+                                  SdkClientOption.class, Boolean.class, SdkClientOption.class, SdkClientOption.class)
+                         .addStatement("return $T.builder()"
+                                       + ".overrideConfiguration(overrideConfiguration())"
+                                       + ".region(clientConfig.option($T.AWS_REGION))"
+                                       + ".endpointOverride(endpointOverride)"
+                                       + ".endpointProvider(endpointProvider)"
+                                       + ".build()",
+                                       serviceConfigClassName, AwsClientOption.class)
                          .build();
     }
 

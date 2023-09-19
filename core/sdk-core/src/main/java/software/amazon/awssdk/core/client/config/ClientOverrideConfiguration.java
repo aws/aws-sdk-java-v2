@@ -23,9 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
+import software.amazon.awssdk.core.CompressionConfiguration;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -61,6 +64,8 @@ public final class ClientOverrideConfiguration
     private final String defaultProfileName;
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final CompressionConfiguration compressionConfiguration;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -76,6 +81,8 @@ public final class ClientOverrideConfiguration
         this.defaultProfileName = builder.defaultProfileName();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
+        this.scheduledExecutorService = builder.scheduledExecutorService();
+        this.compressionConfiguration = builder.compressionConfiguration();
     }
 
     @Override
@@ -91,7 +98,9 @@ public final class ClientOverrideConfiguration
             .defaultProfileFile(defaultProfileFile)
             .defaultProfileName(defaultProfileName)
             .executionAttributes(executionAttributes)
-            .metricPublishers(metricPublishers);
+            .metricPublishers(metricPublishers)
+            .scheduledExecutorService(scheduledExecutorService)
+            .compressionConfiguration(compressionConfiguration);
     }
 
     /**
@@ -138,6 +147,17 @@ public final class ClientOverrideConfiguration
      */
     public List<ExecutionInterceptor> executionInterceptors() {
         return executionInterceptors;
+    }
+
+    /**
+     * The optional scheduled executor service that should be used for scheduling tasks such as async retry attempts
+     * and timeout task.
+     * <p>
+     * <b>The SDK will not automatically close the executor when the client is closed. It is the responsibility of the
+     * user to manually close the executor once all clients utilizing it have been closed.</b>
+     */
+    public Optional<ScheduledExecutorService> scheduledExecutorService() {
+        return Optional.ofNullable(scheduledExecutorService);
     }
 
     /**
@@ -214,18 +234,30 @@ public final class ClientOverrideConfiguration
         return executionAttributes;
     }
 
+    /**
+     * The compression configuration object, which includes options to enable/disable compression and set the minimum
+     * compression threshold.
+     *
+     * @see Builder#compressionConfiguration(CompressionConfiguration)
+     */
+    public Optional<CompressionConfiguration> compressionConfiguration() {
+        return Optional.ofNullable(compressionConfiguration);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ClientOverrideConfiguration")
-                .add("headers", headers)
-                .add("retryPolicy", retryPolicy)
-                .add("apiCallTimeout", apiCallTimeout)
-                .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
-                .add("executionInterceptors", executionInterceptors)
-                .add("advancedOptions", advancedOptions)
-                .add("profileFile", defaultProfileFile)
-                .add("profileName", defaultProfileName)
-                .build();
+                       .add("headers", headers)
+                       .add("retryPolicy", retryPolicy)
+                       .add("apiCallTimeout", apiCallTimeout)
+                       .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
+                       .add("executionInterceptors", executionInterceptors)
+                       .add("advancedOptions", advancedOptions)
+                       .add("profileFile", defaultProfileFile)
+                       .add("profileName", defaultProfileName)
+                       .add("scheduledExecutorService", scheduledExecutorService)
+                       .add("compressionConfiguration", compressionConfiguration)
+                       .build();
     }
 
     /**
@@ -338,6 +370,20 @@ public final class ClientOverrideConfiguration
         List<ExecutionInterceptor> executionInterceptors();
 
         /**
+         * Configure the scheduled executor service that should be used for scheduling tasks such as async retry attempts
+         * and timeout task.
+         *
+         * <p>
+         * <b>The SDK will not automatically close the executor when the client is closed. It is the responsibility of the
+         * user to manually close the executor once all clients utilizing it have been closed.</b>
+         *
+         * @see ClientOverrideConfiguration#scheduledExecutorService()
+         */
+        Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService);
+
+        ScheduledExecutorService scheduledExecutorService();        
+
+        /**
          * Configure an advanced override option. These values are used very rarely, and the majority of SDK customers can ignore
          * them.
          *
@@ -372,6 +418,10 @@ public final class ClientOverrideConfiguration
          * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
          *
+         * <p>
+         * You can also configure it on a per-request basis via
+         * {@link RequestOverrideConfiguration.Builder#apiCallTimeout(Duration)}.
+         * Note that request-level timeout takes precedence.
          *
          * @see ClientOverrideConfiguration#apiCallTimeout()
          */
@@ -393,6 +443,11 @@ public final class ClientOverrideConfiguration
          *
          * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+         *
+         * <p>
+         * You can also configure it on a per-request basis via
+         * {@link RequestOverrideConfiguration.Builder#apiCallAttemptTimeout(Duration)}.
+         * Note that request-level timeout takes precedence.
          *
          * @see ClientOverrideConfiguration#apiCallAttemptTimeout()
          */
@@ -473,6 +528,22 @@ public final class ClientOverrideConfiguration
         <T> Builder putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
         ExecutionAttributes executionAttributes();
+
+        /**
+         * Sets the {@link CompressionConfiguration} for this client.
+         */
+        Builder compressionConfiguration(CompressionConfiguration compressionConfiguration);
+
+        /**
+         * Sets the {@link CompressionConfiguration} for this client.
+         */
+        default Builder compressionConfiguration(Consumer<CompressionConfiguration.Builder> compressionConfiguration) {
+            return compressionConfiguration(CompressionConfiguration.builder()
+                                                                    .applyMutation(compressionConfiguration)
+                                                                    .build());
+        }
+
+        CompressionConfiguration compressionConfiguration();
     }
 
     /**
@@ -489,6 +560,8 @@ public final class ClientOverrideConfiguration
         private String defaultProfileName;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder();
+        private ScheduledExecutorService scheduledExecutorService;
+        private CompressionConfiguration compressionConfiguration;
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -549,6 +622,18 @@ public final class ClientOverrideConfiguration
         @Override
         public List<ExecutionInterceptor> executionInterceptors() {
             return Collections.unmodifiableList(executionInterceptors);
+        }
+
+        @Override
+        public ScheduledExecutorService scheduledExecutorService()
+        {
+            return scheduledExecutorService;
+        }
+
+        @Override
+        public Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService) {
+            this.scheduledExecutorService = scheduledExecutorService;
+            return this;
         }
 
         @Override
@@ -669,6 +754,21 @@ public final class ClientOverrideConfiguration
         @Override
         public ExecutionAttributes executionAttributes() {
             return executionAttributes.build();
+        }
+
+        @Override
+        public Builder compressionConfiguration(CompressionConfiguration compressionConfiguration) {
+            this.compressionConfiguration = compressionConfiguration;
+            return this;
+        }
+
+        public void setRequestCompressionEnabled(CompressionConfiguration compressionConfiguration) {
+            compressionConfiguration(compressionConfiguration);
+        }
+
+        @Override
+        public CompressionConfiguration compressionConfiguration() {
+            return compressionConfiguration;
         }
 
         @Override

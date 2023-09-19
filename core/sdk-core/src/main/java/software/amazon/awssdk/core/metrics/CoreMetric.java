@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.metrics;
 
+import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -49,6 +50,12 @@ public final class CoreMetric {
      */
     public static final SdkMetric<Integer> RETRY_COUNT =
         metric("RetryCount", Integer.class, MetricLevel.ERROR);
+
+    /**
+     * The endpoint for the service.
+     */
+    public static final SdkMetric<URI> SERVICE_ENDPOINT =
+        metric("ServiceEndpoint", URI.class, MetricLevel.ERROR);
 
     /**
      * The duration of the API call. This includes all call attempts made.
@@ -117,6 +124,22 @@ public final class CoreMetric {
      */
     public static final SdkMetric<String> AWS_EXTENDED_REQUEST_ID =
         metric("AwsExtendedRequestId", String.class, MetricLevel.INFO);
+
+    /**
+     * The type of error that occurred for a call attempt.
+     * <p>
+     * The following are possible values:
+     * <ul>
+     * <li>Throttling - The service responded with a throttling error.</li>
+     * <li>ServerError - The service responded with an error other than throttling.</li>
+     * <li>ClientTimeout - A client timeout occurred, either at the API call level, or API call attempt level.</li>
+     * <li>IO - An I/O error occurred.</li>
+     * <li>Other - Catch-all for other errors that don't fall into the above categories.</li>
+     * </ul>
+     * <p>
+     */
+    public static final SdkMetric<String> ERROR_TYPE =
+        metric("ErrorType", String.class, MetricLevel.INFO);
 
     private CoreMetric() {
     }

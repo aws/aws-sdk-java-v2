@@ -33,6 +33,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Validate;
 
 public class EndpointProviderSpec implements ClassSpec {
     private static final String RULE_SET_FIELD_NAME = "ENDPOINT_RULE_SET";
@@ -132,6 +133,8 @@ public class EndpointProviderSpec implements ClassSpec {
                                          .addAnnotation(Override.class)
                                          .addParameter(endpointRulesSpecUtils.parametersClassName(), paramsName);
 
+        b.addCode(validateRequiredParams());
+
         b.addStatement("$T res = new $T().evaluate($N, toIdentifierValueMap($N))",
                        endpointRulesSpecUtils.rulesRuntimeClassName("Value"),
                        endpointRulesSpecUtils.rulesRuntimeClassName("DefaultRuleEngine"),
@@ -159,6 +162,23 @@ public class EndpointProviderSpec implements ClassSpec {
                                          .addStatement("return $L", ruleSetCreationSpec.ruleSetCreationExpr());
 
         ruleSetCreationSpec.helperMethods().forEach(classBuilder::addMethod);
+        return b.build();
+    }
+
+    private CodeBlock validateRequiredParams() {
+        CodeBlock.Builder b = CodeBlock.builder();
+
+        Map<String, ParameterModel> parameters = intermediateModel.getEndpointRuleSetModel().getParameters();
+        parameters.entrySet().stream()
+                             .filter(e -> Boolean.TRUE.equals(e.getValue().isRequired()))
+                             .forEach(e -> {
+                                 b.addStatement("$T.notNull($N.$N(), $S)",
+                                                Validate.class,
+                                                "endpointParams",
+                                                endpointRulesSpecUtils.paramMethodName(e.getKey()),
+                                                String.format("Parameter '%s' must not be null", e.getKey()));
+                             });
+
         return b.build();
     }
 }

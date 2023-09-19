@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -40,6 +41,7 @@ public final class AsyncApiCallMetricCollectionStage<OutputT> implements Request
     @Override
     public CompletableFuture<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
         MetricCollector metricCollector = context.executionContext().metricCollector();
+        MetricUtils.collectServiceEndpointMetrics(metricCollector, input);
 
         CompletableFuture<OutputT> future = new CompletableFuture<>();
 

@@ -1,14 +1,13 @@
-head -c 1B </dev/urandom >/dev/shm/1B
-head -c 8388607B </dev/urandom >/dev/shm/8MB-1
-head -c 8388609B </dev/urandom >/dev/shm/8MB+1
-head -c 128M </dev/urandom >/dev/shm/128MB
-head -c 4B </dev/urandom >/dev/shm/4GB
-head -c 30GB </dev/urandom >/dev/shm/30GB
+head -c 1 </dev/urandom >/dev/shm/1B
+head -c $((8*1024*1024-1)) </dev/urandom >/dev/shm/8MB-1
+head -c $((8*1024*1024+1)) </dev/urandom >/dev/shm/8MB+1
+head -c $((128*1024*1024)) </dev/urandom >/dev/shm/128MB
+head -c $((4*1024*1024*1024)) </dev/urandom >/dev/shm/4GB
+head -c $((30*1024*1024*1024)) </dev/urandom >/dev/shm/30GB
 
-head -c 1B </dev/urandom >/1B
-head -c 8388607B </dev/urandom >/8MB-1
-head -c 8388609B </dev/urandom >/8MB+1
-head -c 128M </dev/urandom >/128MB
-head -c 4B </dev/urandom >/4GB
-head -c 30GB </dev/urandom >/30GB
-
+head -c 1 </dev/urandom >/1B
+head -c $((8*1024*1024-1)) </dev/urandom >/8MB-1
+head -c $((8*1024*1024+1)) </dev/urandom >/8MB+1
+head -c $((128*1024*1024)) </dev/urandom >/128MB
+head -c $((4*1024*1024*1024)) </dev/urandom >/4GB
+head -c $((30*1024*1024*1024)) </dev/urandom >/30GB

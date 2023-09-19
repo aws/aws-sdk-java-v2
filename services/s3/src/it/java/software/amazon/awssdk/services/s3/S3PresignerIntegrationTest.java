@@ -50,6 +50,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
@@ -198,6 +199,38 @@ public class S3PresignerIntegrationTest {
         try (InputStream responseStream = response.responseBody().get()) {
             assertThat(IoUtils.toUtf8String(responseStream)).isEqualTo(testObjectContent);
         }
+    }
+
+    @Test
+    public void deleteObject_PresignedHttpRequestCanBeInvokedDirectlyBySdk() throws IOException {
+        String objectKey = generateRandomObjectKey();
+        S3TestUtils.addCleanupTask(S3PresignerIntegrationTest.class,
+                                   () -> client.deleteObject(r -> r.bucket(testBucket).key(objectKey)));
+        client.putObject(r -> r.bucket(testBucket).key(objectKey), RequestBody.fromString("DeleteObjectPresignRequestTest"));
+
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .deleteObjectRequest(delo -> delo.bucket(testBucket)
+                                                                         .key(testGetObjectKey)
+                                                                         .requestPayer(RequestPayer.REQUESTER)));
+
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+
+        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+
+        ContentStreamProvider requestPayload = presigned.signedPayload()
+                                                        .map(SdkBytes::asContentStreamProvider)
+                                                        .orElse(null);
+
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(presigned.httpRequest())
+                                                       .contentStreamProvider(requestPayload)
+                                                       .build();
+
+        HttpExecuteResponse response = httpClient.prepareRequest(request).call();
+
+        assertThat(response.responseBody()).isEmpty();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(204);
     }
 
     @Test

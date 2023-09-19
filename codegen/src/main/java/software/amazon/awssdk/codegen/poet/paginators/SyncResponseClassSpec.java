@@ -104,7 +104,10 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
                          .addParameter(getClientInterfaceName(), CLIENT_MEMBER)
                          .addParameter(requestType(), REQUEST_MEMBER)
                          .addStatement("this.$L = $L", CLIENT_MEMBER, CLIENT_MEMBER)
-                         .addStatement("this.$L = $L", REQUEST_MEMBER, REQUEST_MEMBER)
+                         .addStatement("this.$L = $T.applyPaginatorUserAgent($L)",
+                                       REQUEST_MEMBER,
+                                       poetExtensions.getUserAgentClass(),
+                                       REQUEST_MEMBER)
                          .addStatement("this.$L = new $L()", NEXT_PAGE_FETCHER_MEMBER, nextPageFetcherClassName())
                 .build();
     }

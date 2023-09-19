@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.sso.internal;
 
-import static java.time.temporal.ChronoUnit.MINUTES;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -81,7 +79,7 @@ public final class SsoAccessTokenProvider implements SdkTokenProvider {
     }
 
     private boolean tokenIsInvalid(String expirationTime) {
-        return Instant.now().isAfter(Instant.parse(expirationTime).minus(15, MINUTES));
+        return Instant.now().isAfter(Instant.parse(expirationTime));
     }
 
 }

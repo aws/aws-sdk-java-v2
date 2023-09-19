@@ -18,7 +18,6 @@ import software.amazon.awssdk.services.query.QueryAsyncClient;
 import software.amazon.awssdk.services.query.QueryAsyncClientBuilder;
 import software.amazon.awssdk.services.query.QueryClient;
 import software.amazon.awssdk.services.query.QueryClientBuilder;
-import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.ChecksumStructure;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 
@@ -47,26 +46,6 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
 
     private static List<SyncTestCase> syncTestCases() {
         return Arrays.asList(
-            new SyncTestCase("test case 1", () -> {
-                QueryClientBuilder builder = QueryClient.builder();
-                builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
-                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
-                builder.httpClient(getSyncHttpClient());
-                builder.region(Region.of("us-east-1"));
-                APostOperationRequest request = APostOperationRequest.builder().build();
-                builder.build().aPostOperation(request);
-            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://foo-myservice.aws")).build()).build()),
-            new SyncTestCase("test case 2", () -> {
-                QueryClientBuilder builder = QueryClient.builder();
-                builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
-                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
-                builder.httpClient(getSyncHttpClient());
-                builder.region(Region.of("us-east-1"));
-                builder.booleanContextParam(true);
-                builder.stringContextParam("this is a test");
-                APostOperationRequest request = APostOperationRequest.builder().build();
-                builder.build().aPostOperation(request);
-            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://foo-myservice.aws")).build()).build()),
             new SyncTestCase("test case 3", () -> {
                 QueryClientBuilder builder = QueryClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
@@ -88,14 +67,6 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 builder.build().operationWithContextParam(request);
             }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build(),
                              "Does not work"),
-            new SyncTestCase("For region us-iso-west-1 with FIPS enabled and DualStack enabled", () -> {
-                QueryClientBuilder builder = QueryClient.builder();
-                builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
-                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
-                builder.httpClient(getSyncHttpClient());
-                APostOperationRequest request = APostOperationRequest.builder().build();
-                builder.build().aPostOperation(request);
-            }, Expect.builder().error("Should have been skipped!").build(), "Client builder does the validation"),
             new SyncTestCase("Has complex operation input", () -> {
                 QueryClientBuilder builder = QueryClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
@@ -109,26 +80,6 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
 
     private static List<AsyncTestCase> asyncTestCases() {
         return Arrays.asList(
-            new AsyncTestCase("test case 1", () -> {
-                QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
-                builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
-                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
-                builder.httpClient(getAsyncHttpClient());
-                builder.region(Region.of("us-east-1"));
-                APostOperationRequest request = APostOperationRequest.builder().build();
-                return builder.build().aPostOperation(request);
-            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://foo-myservice.aws")).build()).build()),
-            new AsyncTestCase("test case 2", () -> {
-                QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
-                builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
-                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
-                builder.httpClient(getAsyncHttpClient());
-                builder.region(Region.of("us-east-1"));
-                builder.booleanContextParam(true);
-                builder.stringContextParam("this is a test");
-                APostOperationRequest request = APostOperationRequest.builder().build();
-                return builder.build().aPostOperation(request);
-            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://foo-myservice.aws")).build()).build()),
             new AsyncTestCase("test case 3", () -> {
                 QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
@@ -150,14 +101,6 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 return builder.build().operationWithContextParam(request);
             }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build(),
                               "Does not work"),
-            new AsyncTestCase("For region us-iso-west-1 with FIPS enabled and DualStack enabled", () -> {
-                QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
-                builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
-                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
-                builder.httpClient(getAsyncHttpClient());
-                APostOperationRequest request = APostOperationRequest.builder().build();
-                return builder.build().aPostOperation(request);
-            }, Expect.builder().error("Should have been skipped!").build(), "Client builder does the validation"),
             new AsyncTestCase("Has complex operation input", () -> {
                 QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);

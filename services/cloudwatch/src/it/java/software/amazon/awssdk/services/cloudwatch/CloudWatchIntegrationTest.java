@@ -39,8 +39,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
 import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest;
@@ -108,7 +111,6 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
     /**
      * Tests putting metrics and then getting them back.
      */
-
     @Test
     public void put_get_metricdata_list_metric_returns_success() throws
                                                                  InterruptedException {
@@ -148,6 +150,86 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         }
 
         ListMetricsResponse listResult = cloudwatch.listMetrics(ListMetricsRequest.builder().build());
+
+        boolean seenDimensions = false;
+        assertTrue(listResult.metrics().size() > 0);
+        for (Metric metric : listResult.metrics()) {
+            assertNotNull(metric.metricName());
+            assertNotNull(metric.namespace());
+
+            for (Dimension dimension : metric.dimensions()) {
+                seenDimensions = true;
+                assertNotNull(dimension.name());
+                assertNotNull(dimension.value());
+            }
+        }
+        assertTrue(seenDimensions);
+    }
+
+    /**
+     * Tests putting metrics with request compression and then getting them back.
+     * TODO: We can remove this test once CloudWatch adds "RequestCompression" trait to PutMetricData
+     */
+    @Test
+    public void put_get_metricdata_list_metric_withRequestCompression_returns_success() {
+
+        RequestCompression requestCompressionTrait = RequestCompression.builder()
+                                                                       .encodings("gzip")
+                                                                       .isStreaming(false)
+                                                                       .build();
+        CompressionConfiguration compressionConfiguration = CompressionConfiguration.builder()
+                                                                                    // uncompressed payload is 404 bytes
+                                                                                    .minimumCompressionThresholdInBytes(100)
+                                                                                    .build();
+
+        CloudWatchClient requestCompressionClient =
+            CloudWatchClient.builder()
+                            .credentialsProvider(getCredentialsProvider())
+                            .region(Region.US_WEST_2)
+                            .overrideConfiguration(c -> c.putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+                                                                                requestCompressionTrait))
+                            .build();
+
+        String measureName = this.getClass().getName() + System.currentTimeMillis();
+
+        MetricDatum datum = MetricDatum.builder().dimensions(
+                                           Dimension.builder().name("InstanceType").value("m1.small").build())
+                                       .metricName(measureName).timestamp(Instant.now())
+                                       .unit("Count").value(42.0).build();
+
+        requestCompressionClient.putMetricData(PutMetricDataRequest.builder()
+                                                                   .namespace("AWS.EC2")
+                                                                   .metricData(datum)
+                                                                   .overrideConfiguration(c -> c.compressionConfiguration(compressionConfiguration))
+                                                                   .build());
+
+        GetMetricStatisticsResponse result =
+            Waiter.run(() -> requestCompressionClient
+                      .getMetricStatistics(r -> r.startTime(Instant.now().minus(Duration.ofDays(7)))
+                                                 .namespace("AWS.EC2")
+                                                 .period(60 * 60)
+                                                 .dimensions(Dimension.builder().name("InstanceType")
+                                                                      .value("m1.small").build())
+                                                 .metricName(measureName)
+                                                 .statisticsWithStrings("Average", "Maximum", "Minimum", "Sum")
+                                                 .endTime(Instant.now())))
+                  .until(r -> r.datapoints().size() == 1)
+                  .orFailAfter(Duration.ofMinutes(2));
+
+        assertNotNull(result.label());
+        assertEquals(measureName, result.label());
+
+        assertEquals(1, result.datapoints().size());
+        for (Datapoint datapoint : result.datapoints()) {
+            assertEquals(datum.value(), datapoint.average());
+            assertEquals(datum.value(), datapoint.maximum());
+            assertEquals(datum.value(), datapoint.minimum());
+            assertEquals(datum.value(), datapoint.sum());
+            assertNotNull(datapoint.timestamp());
+            assertEquals(datum.unit(), datapoint.unit());
+        }
+
+        ListMetricsResponse listResult = requestCompressionClient.listMetrics(ListMetricsRequest.builder().build());
 
         boolean seenDimensions = false;
         assertTrue(listResult.metrics().size() > 0);

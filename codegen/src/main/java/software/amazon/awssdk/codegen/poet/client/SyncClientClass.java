@@ -21,7 +21,6 @@ import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
 import com.squareup.javapoet.ClassName;
@@ -34,10 +33,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -50,7 +49,6 @@ import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
-import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -69,6 +67,7 @@ public class SyncClientClass extends SyncClientInterface {
     private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private final ClassName serviceClientConfigurationClassName;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         super(taskParams.getModel());
@@ -76,6 +75,7 @@ public class SyncClientClass extends SyncClientInterface {
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -105,15 +105,12 @@ public class SyncClientClass extends SyncClientInterface {
         type.addField(logger())
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
     }
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-
-        if (model.hasPaginators()) {
-            type.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
-        }
 
         if (model.containsRequestSigners()) {
             type.addMethod(applySignerOverrideMethod(poetExtensions, model));
@@ -148,17 +145,29 @@ public class SyncClientClass extends SyncClientInterface {
     }
 
     @Override
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(serviceClientConfigurationClassName)
+                         .addStatement("return this.serviceClientConfiguration")
+                         .build();
+    }
+
+    @Override
     public ClassName className() {
         return className;
     }
 
     private MethodSpec constructor() {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                                               .addModifiers(PROTECTED)
-                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                                               .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                                             protocolSpec.getClientHandlerClass())
-                                               .addStatement("this.clientConfiguration = clientConfiguration");
+        MethodSpec.Builder builder
+            = MethodSpec.constructorBuilder()
+                        .addModifiers(PROTECTED)
+                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
+                        .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                        .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
+                        .addStatement("this.clientConfiguration = clientConfiguration")
+                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -195,14 +204,17 @@ public class SyncClientClass extends SyncClientInterface {
         return model.getOperations().values().stream()
                     .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
-                    .map(this::operationMethodSpecs)
-                    .flatMap(List::stream)
+                    .flatMap(this::operations)
                     .collect(Collectors.toList());
     }
 
-    private List<MethodSpec> operationMethodSpecs(OperationModel opModel) {
+    private Stream<MethodSpec> operations(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
+        methods.add(traditionalMethod(opModel));
+        return methods.stream();
+    }
 
+    private MethodSpec traditionalMethod(OperationModel opModel) {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
                                                        .addAnnotation(Override.class)
                                                        .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
@@ -282,34 +294,7 @@ public class SyncClientClass extends SyncClientInterface {
               .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
               .endControlFlow();
 
-        methods.add(method.build());
-
-        methods.addAll(paginatedMethods(opModel));
-
-        return methods;
-    }
-
-    @Override
-    protected List<MethodSpec> paginatedMethods(OperationModel opModel) {
-        List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
-
-        if (opModel.isPaginated()) {
-            paginatedMethodSpecs.add(SyncClientInterface.operationMethodSignature(model,
-                                                                                  opModel,
-                                                                                  SimpleMethodOverload.PAGINATED,
-                                                                                  PaginatorUtils.getPaginatedMethodName(
-                                                                                      opModel.getMethodName()))
-                                                        .addAnnotation(Override.class)
-                                                        .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
-                                                            opModel.getOperationName()))
-                                                        .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
-                                                                      poetExtensions.getResponseClassForPaginatedSyncOperation(
-                                                                          opModel.getOperationName()),
-                                                                      opModel.getInput().getVariableName())
-                                                        .build());
-        }
-
-        return paginatedMethodSpecs;
+        return method.build();
     }
 
     @Override
