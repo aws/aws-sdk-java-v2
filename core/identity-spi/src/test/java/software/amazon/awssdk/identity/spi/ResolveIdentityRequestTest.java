@@ -23,8 +23,10 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.identity.spi.internal.DefaultResolveIdentityRequest;
 
 public class ResolveIdentityRequestTest {
-    private static final IdentityProperty<String> PROPERTY_1 = IdentityProperty.create(String.class, "key_1");
-    private static final IdentityProperty<String> PROPERTY_2 = IdentityProperty.create(String.class, "key_2");
+    private static final IdentityProperty<String> PROPERTY_1 =
+        IdentityProperty.create(ResolveIdentityRequestTest.class, "key_1");
+    private static final IdentityProperty<String> PROPERTY_2 =
+        IdentityProperty.create(ResolveIdentityRequestTest.class, "key_2");
 
     @Test
     public void equalsHashcode() {

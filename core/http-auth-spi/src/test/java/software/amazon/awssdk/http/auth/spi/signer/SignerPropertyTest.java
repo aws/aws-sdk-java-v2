@@ -23,7 +23,7 @@ public class SignerPropertyTest {
     @Test
     public void equalsHashcode() {
         EqualsVerifier.forClass(SignerProperty.class)
-                      .withNonnullFields("clazz", "name")
+                      .withNonnullFields("namespace", "name")
                       .verify();
     }
 }

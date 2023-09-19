@@ -23,10 +23,10 @@ import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
 
 class AuthSchemeOptionTest {
-    private static final IdentityProperty<String> IDENTITY_PROPERTY_1 = IdentityProperty.create(String.class, "identityKey1");
-    private static final SignerProperty<String> SIGNER_PROPERTY_1 = SignerProperty.create(String.class, "signingKey1");
-    private static final IdentityProperty<String> IDENTITY_PROPERTY_2 = IdentityProperty.create(String.class, "identityKey2");
-    private static final SignerProperty<String> SIGNER_PROPERTY_2 = SignerProperty.create(String.class, "signingKey2");
+    private static final IdentityProperty<String> IDENTITY_PROPERTY_1 = IdentityProperty.create(AuthSchemeOptionTest.class, "identityKey1");
+    private static final SignerProperty<String> SIGNER_PROPERTY_1 = SignerProperty.create(AuthSchemeOptionTest.class, "signingKey1");
+    private static final IdentityProperty<String> IDENTITY_PROPERTY_2 = IdentityProperty.create(AuthSchemeOptionTest.class, "identityKey2");
+    private static final SignerProperty<String> SIGNER_PROPERTY_2 = SignerProperty.create(AuthSchemeOptionTest.class, "signingKey2");
 
     @Test
     public void emptyBuilder_isNotSuccessful() {

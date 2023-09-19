@@ -37,7 +37,7 @@ public interface HttpSigner<IdentityT extends Identity> {
      *
      * <p>Note, signing time may not be relevant to some signers.
      */
-    SignerProperty<Clock> SIGNING_CLOCK = SignerProperty.create(Clock.class, "SigningClock");
+    SignerProperty<Clock> SIGNING_CLOCK = SignerProperty.create(HttpSigner.class, "SigningClock");
 
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.

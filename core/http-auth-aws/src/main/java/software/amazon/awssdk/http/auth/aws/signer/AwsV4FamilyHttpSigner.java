@@ -32,54 +32,54 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
      * The name of the AWS service. This property is required.
      */
     SignerProperty<String> SERVICE_SIGNING_NAME =
-        SignerProperty.create(String.class, "ServiceSigningName");
+        SignerProperty.create(AwsV4FamilyHttpSigner.class, "ServiceSigningName");
 
     /**
      * A boolean to indicate whether to double url-encode the resource path when constructing the canonical request. This property
      * defaults to true.
      */
     SignerProperty<Boolean> DOUBLE_URL_ENCODE =
-        SignerProperty.create(Boolean.class, "DoubleUrlEncode");
+        SignerProperty.create(AwsV4FamilyHttpSigner.class, "DoubleUrlEncode");
 
     /**
      * A boolean to indicate whether the resource path should be "normalized" according to RFC3986 when constructing the canonical
      * request. This property defaults to true.
      */
     SignerProperty<Boolean> NORMALIZE_PATH =
-        SignerProperty.create(Boolean.class, "NormalizePath");
+        SignerProperty.create(AwsV4FamilyHttpSigner.class, "NormalizePath");
 
     /**
      * The location where auth-related data is inserted, as a result of signing. This property defaults to HEADER.
      */
     SignerProperty<AuthLocation> AUTH_LOCATION =
-        SignerProperty.create(AuthLocation.class, "AuthLocation");
+        SignerProperty.create(AwsV4FamilyHttpSigner.class, "AuthLocation");
 
     /**
      * The duration for the request to be valid. This property defaults to null. This can be set to presign the request for
      * later use. The maximum allowed value for this property is 7 days. This is only supported when AuthLocation=QUERY.
      */
     SignerProperty<Duration> EXPIRATION_DURATION =
-        SignerProperty.create(Duration.class, "ExpirationDuration");
+        SignerProperty.create(AwsV4FamilyHttpSigner.class, "ExpirationDuration");
 
     /**
      * Whether to indicate that a payload is signed or not. This property defaults to true. This can be set false to disable
      * payload signing.
      */
     SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
-        SignerProperty.create(Boolean.class, "PayloadSigningEnabled");
+        SignerProperty.create(AwsV4FamilyHttpSigner.class, "PayloadSigningEnabled");
 
     /**
      * Whether to indicate that a payload is chunk-encoded or not. This property defaults to false. This can be set true to
      * enable the `aws-chunk` content-encoding
      */
     SignerProperty<Boolean> CHUNK_ENCODING_ENABLED =
-        SignerProperty.create(Boolean.class, "ChunkEncodingEnabled");
+        SignerProperty.create(AwsV4FamilyHttpSigner.class, "ChunkEncodingEnabled");
 
     /**
      * The algorithm to use for calculating a "flexible" checksum. This property is optional.
      */
     SignerProperty<ChecksumAlgorithm> CHECKSUM_ALGORITHM =
-        SignerProperty.create(ChecksumAlgorithm.class, "ChecksumAlgorithm");
+        SignerProperty.create(AwsV4FamilyHttpSigner.class, "ChecksumAlgorithm");
 
     /**
      * This enum represents where auth-related data is inserted, as a result of signing.
