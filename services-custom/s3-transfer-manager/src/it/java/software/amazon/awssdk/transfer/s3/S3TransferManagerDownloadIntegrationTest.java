@@ -70,7 +70,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     void download_toFile() throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         FileDownload download =
-            tm.downloadFile(DownloadFileRequest.builder()
+            tmCrt.downloadFile(DownloadFileRequest.builder()
                                                .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                .destination(path)
                                                .addTransferListener(LoggingTransferListener.create())
@@ -86,11 +86,11 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
         Files.write(path, RandomStringUtils.random(1024).getBytes(StandardCharsets.UTF_8));
         assertThat(path).exists();
         FileDownload download =
-            tm.downloadFile(DownloadFileRequest.builder()
-                                               .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                               .destination(path)
-                                               .addTransferListener(LoggingTransferListener.create())
-                                               .build());
+            tmCrt.downloadFile(DownloadFileRequest.builder()
+                                                  .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                                  .destination(path)
+                                                  .addTransferListener(LoggingTransferListener.create())
+                                                  .build());
         CompletedFileDownload completedFileDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(completedFileDownload.response().responseMetadata().requestId()).isNotNull();
@@ -99,11 +99,11 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     @Test
     void download_toBytes() throws Exception {
         Download<ResponseBytes<GetObjectResponse>> download =
-            tm.download(DownloadRequest.builder()
-                                       .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                       .responseTransformer(AsyncResponseTransformer.toBytes())
-                                       .addTransferListener(LoggingTransferListener.create())
-                                       .build());
+            tmCrt.download(DownloadRequest.builder()
+                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                          .responseTransformer(AsyncResponseTransformer.toBytes())
+                                          .addTransferListener(LoggingTransferListener.create())
+                                          .build());
         CompletedDownload<ResponseBytes<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponseBytes<GetObjectResponse> result = completedDownload.result();
         assertThat(Md5Utils.md5AsBase64(result.asByteArray())).isEqualTo(Md5Utils.md5AsBase64(file));
@@ -113,11 +113,11 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     @Test
     void download_toPublisher() throws Exception {
         Download<ResponsePublisher<GetObjectResponse>> download =
-            tm.download(DownloadRequest.builder()
-                                       .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                       .responseTransformer(AsyncResponseTransformer.toPublisher())
-                                       .addTransferListener(LoggingTransferListener.create())
-                                       .build());
+            tmCrt.download(DownloadRequest.builder()
+                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                          .responseTransformer(AsyncResponseTransformer.toPublisher())
+                                          .addTransferListener(LoggingTransferListener.create())
+                                          .build());
         CompletedDownload<ResponsePublisher<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponsePublisher<GetObjectResponse> responsePublisher = completedDownload.result();
         ByteBuffer buf = ByteBuffer.allocate(Math.toIntExact(responsePublisher.response().contentLength()));
