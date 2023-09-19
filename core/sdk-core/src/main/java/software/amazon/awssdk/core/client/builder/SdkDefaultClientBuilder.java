@@ -41,7 +41,6 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,14 +56,18 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.CompressionConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.InternalizeExternalConfiguration;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationMirror;
+import software.amazon.awssdk.core.client.config.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
@@ -96,8 +99,7 @@ import software.amazon.awssdk.utils.Validate;
  * just implement the configuration they wish to add.
  *
  * <p>By implementing both the sync and async interface's methods, service-specific builders can share code between their sync
- * and
- * async variants without needing one to extend the other. Note: This only defines the methods in the sync and async builder
+ * and async variants without needing one to extend the other. Note: This only defines the methods in the sync and async builder
  * interfaces. It does not implement the interfaces themselves. This is because the sync and async client builder interfaces both
  * require a type-constrained parameter for use in fluent chaining, and a generic type parameter conflict is introduced into the
  * class hierarchy by this interface extending the builder interfaces themselves.</p>
@@ -124,6 +126,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     private SdkHttpClient.Builder httpClientBuilder;
     private SdkAsyncHttpClient.Builder asyncHttpClientBuilder;
+    private final List<SdkPlugin> registeredPlugins = new ArrayList<>();
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
@@ -179,6 +182,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = finalizeChildConfiguration(configuration);
         configuration = finalizeSyncConfiguration(configuration);
         configuration = finalizeConfiguration(configuration);
+        configuration = invokePluginsIfNeeded(configuration);
 
         return configuration;
     }
@@ -207,6 +211,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = finalizeChildConfiguration(configuration);
         configuration = finalizeAsyncConfiguration(configuration);
         configuration = finalizeConfiguration(configuration);
+        configuration = invokePluginsIfNeeded(configuration);
 
         return configuration;
     }
@@ -215,12 +220,14 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         if (clientOverrideConfiguration == null) {
             return configuration;
         }
-        return clientOverrideConfiguration.addOverridesToConfiguration(configuration.toBuilder()).build();
+        return SdkClientConfigurationMirror.copyOverridesToConfiguration(clientOverrideConfiguration,
+                                                                         configuration.toBuilder())
+                                           .build();
     }
 
     /**
-     * Optionally overridden by child implementations to apply implementation-specific default configuration.
-     * (eg. AWS's default credentials providers)
+     * Optionally overridden by child implementations to apply implementation-specific default configuration. (eg. AWS's default
+     * credentials providers)
      */
     protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
         return configuration;
@@ -245,7 +252,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                   .option(USER_AGENT_SUFFIX, "")
                                                   .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                                   .option(IDENTITY_PROVIDERS, IdentityProviders.builder().build()));
-        
+
 
         return addCompressionConfigGlobalDefaults(configuration);
     }
@@ -317,8 +324,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Optionally overridden by child implementations to derive implementation-specific configuration from the
-     * default-applied configuration. (eg. AWS's endpoint, derived from the region).
+     * Optionally overridden by child implementations to derive implementation-specific configuration from the default-applied
+     * configuration. (eg. AWS's endpoint, derived from the region).
      */
     protected SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
         return configuration;
@@ -356,6 +363,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .option(RETRY_POLICY, retryPolicy)
                      .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
                      .build();
+    }
+
+    /**
+     * Invoke all the registered plugins and return the configuration.
+     */
+    protected SdkClientConfiguration invokePluginsIfNeeded(SdkClientConfiguration config) {
+        return SdkClientConfigurationMirror.invokePlugins(config, registeredPlugins);
     }
 
     private String resolveClientUserAgent(SdkClientConfiguration config, RetryPolicy retryPolicy) {
@@ -413,6 +427,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     /**
      * Optionally overridden by child implementations to provide implementation-specific default HTTP configuration.
+     *
      * @deprecated use {@link #childHttpConfig(SdkClientConfiguration)} instead
      */
     @Deprecated
@@ -421,9 +436,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Finalize which async executor service will be used for the created client. The default async executor
-     * service has at least 8 core threads and can scale up to at least 64 threads when needed depending
-     * on the number of processors available.
+     * Finalize which async executor service will be used for the created client. The default async executor service has at least
+     * 8 core threads and can scale up to at least 64 threads when needed depending on the number of processors available.
      */
     private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
         Supplier<Executor> defaultExecutor = () -> {
@@ -445,8 +459,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Finalize the internal SDK scheduled executor service that is used for scheduling tasks such
-     * as async retry attempts and timeout task.
+     * Finalize the internal SDK scheduled executor service that is used for scheduling tasks such as async retry attempts and
+     * timeout task.
      */
     private ScheduledExecutorService resolveScheduledExecutorService(SdkClientConfiguration config) {
         Supplier<ScheduledExecutorService> defaultScheduledExecutor = () -> {
@@ -457,8 +471,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         };
 
         return Optional.ofNullable(config.option(SCHEDULED_EXECUTOR_SERVICE))
-            .map(ScheduledExecutorUtils::unmanagedScheduledExecutor)
-            .orElseGet(defaultScheduledExecutor);
+                       .map(ScheduledExecutorUtils::unmanagedScheduledExecutor)
+                       .orElseGet(defaultScheduledExecutor);
     }
 
     /**
@@ -476,9 +490,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * The set of interceptors that should be included with all services.
      */
     private List<ExecutionInterceptor> sdkInterceptors() {
-        return Collections.unmodifiableList(Arrays.asList(
-            new HttpChecksumValidationInterceptor()
-        ));
+        return Collections.singletonList(new HttpChecksumValidationInterceptor());
     }
 
     @Override
@@ -554,6 +566,12 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return thisBuilder();
     }
 
+    @Override
+    public final B addPlugin(SdkPlugin plugin) {
+        registeredPlugins.add(Validate.paramNotNull(plugin, "plugin"));
+        return thisBuilder();
+    }
+
     /**
      * Return "this" for method chaining.
      */
@@ -563,8 +581,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Wrapper around {@link SdkHttpClient} to prevent it from being closed. Used when the customer provides
-     * an already built client in which case they are responsible for the lifecycle of it.
+     * Wrapper around {@link SdkHttpClient} to prevent it from being closed. Used when the customer provides an already built
+     * client in which case they are responsible for the lifecycle of it.
      */
     @SdkTestInternalApi
     public static final class NonManagedSdkHttpClient implements SdkHttpClient {
@@ -592,8 +610,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Wrapper around {@link SdkAsyncHttpClient} to prevent it from being closed. Used when the customer provides
-     * an already built client in which case they are responsible for the lifecycle of it.
+     * Wrapper around {@link SdkAsyncHttpClient} to prevent it from being closed. Used when the customer provides an already built
+     * client in which case they are responsible for the lifecycle of it.
      */
     @SdkTestInternalApi
     public static final class NonManagedSdkAsyncHttpClient implements SdkAsyncHttpClient {

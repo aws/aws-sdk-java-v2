@@ -99,7 +99,7 @@ public final class AwsClientOption<T> extends ClientOption<T> {
     public static final AwsClientOption<SdkTokenProvider> TOKEN_PROVIDER = new AwsClientOption<>(SdkTokenProvider.class);
 
     /**
-     * Option to specific the {@link SdkTokenProvider} to use for bearer token authorization.
+     * Option to specific the {@link IdentityProvider} to use for bearer token authorization.
      */
     public static final AwsClientOption<IdentityProvider<? extends TokenIdentity>> TOKEN_IDENTITY_PROVIDER =
         new AwsClientOption<>(new UnsafeValueType(IdentityProvider.class));

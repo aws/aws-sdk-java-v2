@@ -89,8 +89,6 @@ public class AsyncClientBuilderClass implements ClassSpec {
         }
 
         builder.addMethod(buildClientMethod());
-        builder.addMethod(SyncClientBuilderClass.initializeServiceClientConfigMethod(serviceConfigClassName));
-
         return builder.build();
     }
 

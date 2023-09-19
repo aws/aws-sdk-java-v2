@@ -108,10 +108,16 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Sets the configured {@link IdentityProvider}.
+         */
         default Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Returns the configured {@link IdentityProvider}.
+         */
         default IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
             throw new UnsupportedOperationException();
         }
@@ -168,5 +174,4 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
             return credentialsProvider;
         }
     }
-
 }

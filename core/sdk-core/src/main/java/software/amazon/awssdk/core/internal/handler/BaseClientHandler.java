@@ -15,18 +15,23 @@
 
 package software.amazon.awssdk.core.internal.handler;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNALIZE_EXTERNAL_CONFIG;
+
 import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationMirror;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -65,8 +70,8 @@ public abstract class BaseClientHandler {
     static <InputT extends SdkRequest, OutputT> InterceptorContext finalizeSdkHttpFullRequest(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext, InputT inputT,
-        SdkClientConfiguration clientConfiguration) {
-
+        SdkClientConfiguration clientConfiguration
+    ) {
         runBeforeMarshallingInterceptors(executionContext);
 
         Pair<SdkHttpFullRequest, Duration> measuredMarshall = MetricUtils.measureDuration(() ->
@@ -192,6 +197,27 @@ public abstract class BaseClientHandler {
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(
         ClientExecutionParams<InputT, OutputT> params) {
+        SdkClientConfiguration newClientConfiguration = invokePlugins(params, clientConfiguration);
+        return invokeInterceptorsAndCreateExecutionContext(params, newClientConfiguration);
+    }
+
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> SdkClientConfiguration
+        invokePlugins(
+            ClientExecutionParams<InputT, OutputT> params,
+            SdkClientConfiguration clientConfiguration
+    ) {
+        SdkRequest originalRequest = params.getInput();
+        List<SdkPlugin> plugins = originalRequest.registeredPlugins();
+        return SdkClientConfigurationMirror.invokePlugins(clientConfiguration, plugins);
+    }
+
+
+    // classes in aws-core override it.
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
+        invokeInterceptorsAndCreateExecutionContext(
+            ClientExecutionParams<InputT, OutputT> params,
+            SdkClientConfiguration clientConfiguration
+    ) {
         SdkRequest originalRequest = params.getInput();
 
         ExecutionAttributes executionAttributes = params.executionAttributes();

@@ -20,7 +20,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
-import java.net.URI;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -60,12 +59,12 @@ public class SyncClientBuilderClass implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder builder =
-            PoetUtils.createClassBuilder(builderClassName)
-                     .addAnnotation(SdkInternalApi.class)
-                     .addModifiers(Modifier.FINAL)
-                     .superclass(ParameterizedTypeName.get(builderBaseClassName, builderInterfaceName, clientInterfaceName))
-                     .addSuperinterface(builderInterfaceName)
-                     .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
+                PoetUtils.createClassBuilder(builderClassName)
+                         .addAnnotation(SdkInternalApi.class)
+                         .addModifiers(Modifier.FINAL)
+                         .superclass(ParameterizedTypeName.get(builderBaseClassName, builderInterfaceName, clientInterfaceName))
+                         .addSuperinterface(builderInterfaceName)
+                         .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
 
         if (model.getEndpointOperation().isPresent()) {
             builder.addMethod(endpointDiscoveryEnabled());
@@ -82,8 +81,6 @@ public class SyncClientBuilderClass implements ClassSpec {
         }
 
         builder.addMethod(buildClientMethod());
-        builder.addMethod(initializeServiceClientConfigMethod(serviceConfigClassName));
-
         return builder.build();
     }
 
@@ -156,26 +153,6 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .addStatement("clientConfiguration.option($T.TOKEN_IDENTITY_PROVIDER, tokenProvider)",
                                        AwsClientOption.class)
                          .addStatement("return this")
-                         .build();
-    }
-
-    // TODO(sra-plugins) Move this method to a commons class or move it to the base class
-    public static MethodSpec initializeServiceClientConfigMethod(ClassName serviceConfigClassName) {
-        return MethodSpec.methodBuilder("initializeServiceClientConfig").addModifiers(Modifier.PRIVATE)
-                         .addParameter(SdkClientConfiguration.class, "clientConfig")
-                         .returns(serviceConfigClassName)
-                         .addStatement("$T endpointOverride = null", URI.class)
-                         .beginControlFlow("if ($T.TRUE.equals(clientConfig.option($T.ENDPOINT_OVERRIDDEN)))", Boolean.class,
-                                           SdkClientOption.class)
-                         .addStatement("endpointOverride = clientConfig.option($T.ENDPOINT)", SdkClientOption.class)
-                         .endControlFlow()
-                         .addStatement("return $T.builder()"
-                                       + ".overrideConfiguration(overrideConfiguration())"
-                                       + ".region(clientConfig.option($T.AWS_REGION))"
-                                       + ".endpointOverride(endpointOverride)"
-                                       + ".endpointProvider(clientConfig.option($T.ENDPOINT_PROVIDER))"
-                                       + ".build()",
-                                       serviceConfigClassName, AwsClientOption.class, SdkClientOption.class)
                          .build();
     }
 

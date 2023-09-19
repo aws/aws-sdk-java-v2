@@ -24,7 +24,9 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.CompressionConfiguration;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.ServiceConfiguration;
+import software.amazon.awssdk.core.client.config.internal.InternalizeExternalConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -216,6 +218,12 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<CompressionConfiguration> COMPRESSION_CONFIGURATION =
         new SdkClientOption<>(CompressionConfiguration.class);
+
+    /**
+     * Option to create a {@link SdkServiceClientConfiguration.Builder} from a SdkClientConfiguration.Builder.
+     */
+    public static final SdkClientOption<InternalizeExternalConfiguration>
+        INTERNALIZE_EXTERNAL_CONFIG = new SdkClientOption<>(InternalizeExternalConfiguration.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

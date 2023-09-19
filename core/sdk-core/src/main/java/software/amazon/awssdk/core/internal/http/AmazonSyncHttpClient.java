@@ -15,12 +15,17 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNALIZE_EXTERNAL_CONFIG;
+
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.internal.InternalizeExternalConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -80,7 +85,8 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
      * @return A builder used to configure and execute a HTTP request.
      */
     public RequestExecutionBuilder requestExecutionBuilder() {
-        return new RequestExecutionBuilderImpl();
+        return new RequestExecutionBuilderImpl()
+            .httpClientDependencies(httpClientDependencies);
     }
 
     /**
@@ -106,6 +112,8 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
          */
         RequestExecutionBuilder executionContext(ExecutionContext executionContext);
 
+        RequestExecutionBuilder httpClientDependencies(HttpClientDependencies httpClientDependencies);
+
         /**
          * Executes the request with the given configuration.
          *
@@ -129,8 +137,9 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         }
     }
 
-    private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
+    private static class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
+        private HttpClientDependencies httpClientDependencies;
         private SdkHttpFullRequest request;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
@@ -155,13 +164,28 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         }
 
         @Override
+        public RequestExecutionBuilder httpClientDependencies(HttpClientDependencies httpClientDependencies) {
+            this.httpClientDependencies = httpClientDependencies;
+            return this;
+        }
+
+        @Override
         public <OutputT> OutputT execute(HttpResponseHandler<Response<OutputT>> responseHandler) {
             // TODO: We currently have two ways of passing messages to the HTTP client: through the request or through the
             // execution interceptor context. We should combine these two methods when we refactor the way request execution
             // contexts work.
-            if (request != null && executionContext != null) {
-                executionContext.interceptorContext(
-                    executionContext.interceptorContext().copy(ib -> ib.httpRequest(request)));
+            if (request != null) {
+                if (executionContext != null) {
+                    executionContext.interceptorContext(
+                        executionContext.interceptorContext().copy(ib -> ib.httpRequest(request)));
+                }
+                List<SdkPlugin> plugins = originalRequest.registeredPlugins();
+                if (!plugins.isEmpty()) {
+                    SdkClientConfiguration clientConfig = httpClientDependencies.clientConfiguration();
+                    httpClientDependencies = httpClientDependencies.toBuilder()
+                                                                   .clientConfiguration(invokePlugins(clientConfig, plugins))
+                                                                   .build();
+                }
             }
 
             try {
@@ -203,13 +227,21 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
             }
         }
 
+        private SdkClientConfiguration invokePlugins(SdkClientConfiguration clientConfig, List<SdkPlugin> plugins) {
+            SdkClientConfiguration.Builder configBuilder = clientConfig.toBuilder();
+            InternalizeExternalConfiguration handler = clientConfig.option(INTERNALIZE_EXTERNAL_CONFIG);
+            return handler.updateUsing(builder -> {
+                for (SdkPlugin plugin : plugins) {
+                    plugin.configureClient(builder);
+                }
+            }, configBuilder);
+        }
+
         private RequestExecutionContext createRequestExecutionDependencies() {
             return RequestExecutionContext.builder()
                                           .originalRequest(originalRequest)
                                           .executionContext(executionContext)
                                           .build();
         }
-
     }
-
 }

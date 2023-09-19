@@ -65,7 +65,10 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
 
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
-        invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams) {
+        invokeInterceptorsAndCreateExecutionContext(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            SdkClientConfiguration clientConfiguration
+    ) {
         return AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration);
     }
 

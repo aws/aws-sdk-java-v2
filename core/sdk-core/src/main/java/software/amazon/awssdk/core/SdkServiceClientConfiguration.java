@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 
 /**
@@ -65,7 +66,6 @@ public abstract class SdkServiceClientConfiguration {
     public Optional<EndpointProvider> endpointProvider() {
         return Optional.ofNullable(this.endpointProvider);
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -135,5 +135,9 @@ public abstract class SdkServiceClientConfiguration {
          * Build the service client configuration using the configuration on this builder
          */
         SdkServiceClientConfiguration build();
+
+        default SdkClientConfiguration.Builder toSdkClientConfigurationBuilder() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

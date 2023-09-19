@@ -31,6 +31,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -42,7 +43,8 @@ import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.internal.SdkInternalAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationMirror;
+import software.amazon.awssdk.core.client.config.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -59,23 +61,33 @@ public class ServiceClientConfigurationClass implements ClassSpec {
         String serviceId = model.getMetadata().getServiceName();
         this.defaultClientMetadataClassName = ClassName.get(basePackage, serviceId + "ServiceClientConfiguration");
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
-
     }
 
     @Override
     public TypeSpec poetSpec() {
-        return PoetUtils.createClassBuilder(defaultClientMetadataClassName)
-                        .superclass(AwsServiceClientConfiguration.class)
-                        .addJavadoc("Class to expose the service client settings to the user. Implementation of {@link $T}",
-                                    AwsServiceClientConfiguration.class)
-                        .addMethod(constructor())
-                        .addMethod(builderMethod())
-                        .addMethod(builderFromSdkClientConfiguration())
-                        .addModifiers(PUBLIC, FINAL)
-                        .addAnnotation(SdkPublicApi.class)
-                        .addType(builderInterfaceSpec())
-                        .addType(builderImplSpec())
-                        .build();
+        TypeSpec.Builder builder = PoetUtils.createClassBuilder(defaultClientMetadataClassName)
+                                            .superclass(AwsServiceClientConfiguration.class)
+                                            .addJavadoc("Class to expose the service client settings to the user. "
+                                                        + "Implementation of {@link $T}",
+                                                        AwsServiceClientConfiguration.class);
+
+        builder.addMethod(constructor());
+        for (Field field : serviceClientConfigurationFields()) {
+            addLocalFieldForDataIfNeeded(field, builder);
+            if (!field.isInherited) {
+                builder.addMethod(getterForDataField(field));
+            }
+        }
+
+        return builder.addMethod(toBuilderMethod())
+                      .addMethod(builderMethod())
+                      .addMethod(builderFromSdkClientConfiguration())
+                      .addModifiers(PUBLIC, FINAL)
+                      .addAnnotation(SdkPublicApi.class)
+                      .addType(builderInterfaceSpec())
+                      .addType(builderInternalInterfaceSpec())
+                      .addType(builderImplSpec())
+                      .build();
     }
 
     @Override
@@ -84,10 +96,25 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     }
 
     private MethodSpec constructor() {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(PRIVATE)
-                         .addParameter(className().nestedClass("Builder"), "builder")
-                         .addStatement("super(builder)")
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(className().nestedClass("Builder"), "builder");
+        builder.addStatement("super(builder)");
+        for (Field field : serviceClientConfigurationFields()) {
+            if (!field.isInherited) {
+                builder.addStatement("this.$L = builder.$L()", field.name, field.name);
+            }
+        }
+        return builder.build();
+    }
+
+    private MethodSpec toBuilderMethod() {
+        return MethodSpec.methodBuilder("toBuilder")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC)
+                         .addStatement("return new BuilderImpl(this)")
+                         .returns(className().nestedClass("Builder"))
+                         .addJavadoc("")
                          .build();
     }
 
@@ -105,7 +132,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                          .addModifiers(PUBLIC, STATIC)
                          .addParameter(SdkClientConfiguration.Builder.class, "builder")
                          .addStatement("return new BuilderImpl(builder)")
-                         .returns(className().nestedClass("Builder"))
+                         .returns(className().nestedClass("BuilderInternal"))
                          .addJavadoc("")
                          .build();
     }
@@ -132,12 +159,26 @@ public class ServiceClientConfigurationClass implements ClassSpec {
         return builder.build();
     }
 
+    private TypeSpec builderInternalInterfaceSpec() {
+        TypeSpec.Builder builder = TypeSpec.interfaceBuilder("BuilderInternal")
+                                           .addModifiers(PUBLIC)
+                                           .addSuperinterface(className().nestedClass("Builder"))
+                                           .addJavadoc("A builder for creating a {@link $T}", className());
+
+        builder.addMethod(MethodSpec.methodBuilder("buildSdkClientConfiguration")
+                                    .addModifiers(PUBLIC, ABSTRACT)
+                                    .returns(SdkClientConfiguration.class)
+                                    .build());
+        return builder.build();
+    }
+
     private TypeSpec builderImplSpec() {
         TypeSpec.Builder builder = TypeSpec.classBuilder("BuilderImpl")
                                            .addModifiers(PRIVATE, STATIC, FINAL)
-                                           .addSuperinterface(className().nestedClass("Builder"));
+                                           .addSuperinterface(className().nestedClass("BuilderInternal"));
 
         builder.addField(SdkClientConfiguration.Builder.class, "builder", PRIVATE, FINAL);
+
         builder.addMethod(MethodSpec.constructorBuilder()
                                     .addModifiers(PRIVATE)
                                     .addStatement("this.builder = $T.builder()", SdkClientConfiguration.class)
@@ -149,10 +190,12 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                     .addStatement("this.builder = builder", SdkClientConfiguration.class)
                                     .build());
 
+        builder.addMethod(constructorFromDataInstance());
+
         for (Field field : serviceClientConfigurationFields()) {
-            addLocalFieldIfNeeded(field, builder);
+            addLocalFieldForBuilderIfNeeded(field, builder);
             builder.addMethod(setterForField(field));
-            builder.addMethod(getterForField(field));
+            builder.addMethod(getterForBuilderField(field));
         }
 
         builder.addMethod(MethodSpec.methodBuilder("build")
@@ -164,18 +207,51 @@ public class ServiceClientConfigurationClass implements ClassSpec {
 
         builder.addMethod(MethodSpec.methodBuilder("buildSdkClientConfiguration")
                                     .addModifiers(PUBLIC)
+                                    .addAnnotation(Override.class)
                                     .returns(SdkClientConfiguration.class)
                                     .beginControlFlow("if (overrideConfiguration != null)")
-                                    .addStatement("overrideConfiguration.addOverridesToConfiguration(builder)")
+                                    .addStatement("$T.copyOverridesToConfiguration(overrideConfiguration, builder)",
+                                                  SdkClientConfigurationMirror.class)
                                     .endControlFlow()
                                     .addStatement("return builder.build()")
                                     .build());
         return builder.build();
     }
 
-    private void addLocalFieldIfNeeded(Field field, TypeSpec.Builder builder) {
+    private MethodSpec constructorFromDataInstance() {
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(className(), "that");
+        builder.addStatement("this.builder = $T.builder()", SdkClientConfiguration.class);
+        for (Field field : serviceClientConfigurationFields()) {
+            if (field.optionClass == null) {
+                if (field.dataGetterUsesOptional) {
+                    builder.addStatement("this.$L = that.$L().orElse(null)", field.name, field.name);
+                } else {
+                    builder.addStatement("this.$L = that.$L()", field.name, field.name);
+                }
+            } else {
+                if (field.dataGetterUsesOptional) {
+                    builder.addStatement("this.builder.option($T.$L, that.$L().orElse(null))", field.optionClass,
+                                         field.optionName, field.name);
+                } else {
+                    builder.addStatement("this.builder.option($T.$L, that.$L())", field.optionClass, field.optionName,
+                                         field.name);
+                }
+            }
+        }
+        return builder.build();
+    }
+
+    private void addLocalFieldForBuilderIfNeeded(Field field, TypeSpec.Builder builder) {
         if (field.optionClass == null) {
             builder.addField(field.type, field.name, PRIVATE);
+        }
+    }
+
+    private void addLocalFieldForDataIfNeeded(Field field, TypeSpec.Builder builder) {
+        if (!field.isInherited) {
+            builder.addField(field.type, field.name, PRIVATE, FINAL);
         }
     }
 
@@ -208,28 +284,63 @@ public class ServiceClientConfigurationClass implements ClassSpec {
         return builder;
     }
 
-    private MethodSpec getterForField(Field field) {
+    private MethodSpec getterForBuilderField(Field field) {
+        return getterForField(field, "builder", false);
+    }
+
+    private MethodSpec getterForDataField(Field field) {
+        return getterForField(field, "config", true);
+    }
+
+    private MethodSpec getterForField(Field field, String config, boolean forDataGetter) {
         MethodSpec.Builder builder = baseGetterForField(field);
-        if (!field.isInherited) {
+        if (!forDataGetter && !field.isInherited) {
             builder.addAnnotation(Override.class);
         }
+        boolean returnsOptional = forDataGetter && field.dataGetterUsesOptional;
+        if (returnsOptional) {
+            builder.returns(ParameterizedTypeName.get(ClassName.get(Optional.class), field.type));
+        }
+        if (forDataGetter && !field.isInherited) {
+            if (returnsOptional) {
+                return builder.addStatement("return $T.ofNullable($L)", Optional.class, field.name)
+                              .build();
+            }
+            return builder.addStatement("return $L", field.name)
+                          .build();
+        }
         if (field.optionClass == null) {
+            if (returnsOptional) {
+                return builder.addStatement("return $T.ofNullable($L)", Optional.class, field.name)
+                              .build();
+            }
             return builder.addStatement("return $L", field.name)
                           .build();
         }
         if (field.baseType != null) {
-            return builder.addStatement("$T result = builder.option($T.$L)",
-                                        field.baseType, field.optionClass, field.optionName)
-                          .beginControlFlow("if (result == null)")
-                          .addStatement("return null")
-                          .endControlFlow()
-                          .addStatement("return $T.isInstanceOf($T.class, result, $S + $T.class.getSimpleName())",
-                                        Validate.class, field.type,
-                                        "Expected an instance of ", field.type)
-                          .build();
+            builder.addStatement("$T result = $L.option($T.$L)",
+                                 field.baseType, config, field.optionClass, field.optionName)
+                   .beginControlFlow("if (result == null)")
+                   .addStatement("return null")
+                   .endControlFlow();
 
+            if (returnsOptional) {
+                builder.addStatement("return $T.ofNullable($T.isInstanceOf($T.class, result, $S + $T.class.getSimpleName()))",
+                                     Optional.class, Validate.class, field.type,
+                                     "Expected an instance of ", field.type);
+            } else {
+                builder.addStatement("return $T.isInstanceOf($T.class, result, $S + $T.class.getSimpleName())",
+                                     Validate.class, field.type,
+                                     "Expected an instance of ", field.type);
+            }
+            return builder.build();
         }
-        return builder.addStatement("return builder.option($T.$L)", field.optionClass, field.optionName)
+        if (returnsOptional) {
+            return builder.addStatement("return $T.ofNullable($L.option($T.$L))", Optional.class, config, field.optionClass,
+                                        field.optionName)
+                          .build();
+        }
+        return builder.addStatement("return $L.option($T.$L)", config, field.optionClass, field.optionName)
                       .build();
     }
 
@@ -283,6 +394,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                  .type(URI.class)
                  .optionClass(SdkInternalAdvancedClientOption.class)
                  .optionName("ENDPOINT_OVERRIDE_VALUE")
+                 .dataGetterUsesOptional(true)
                  .build(),
             Field.builder()
                  .name("endpointProvider")
@@ -290,6 +402,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                  .doc("endpoint provider")
                  .optionClass(SdkClientOption.class)
                  .optionName("ENDPOINT_PROVIDER")
+                 .dataGetterUsesOptional(true)
                  .build(),
             Field.builder()
                  .name("credentialsProvider")
@@ -298,6 +411,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                  .doc("credentials provider")
                  .optionClass(AwsClientOption.class)
                  .optionName("CREDENTIALS_IDENTITY_PROVIDER")
+                 .isInherited(true)
                  .build()
         );
     }
@@ -310,6 +424,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
         private final String doc;
         private final boolean isInherited;
         private final TypeName baseType;
+        private final boolean dataGetterUsesOptional;
 
         Field(Builder builder) {
             this.name = Validate.paramNotNull(builder.name, "name");
@@ -319,6 +434,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
             this.optionName = builder.optionName;
             this.isInherited = builder.isInherited;
             this.baseType = builder.baseType;
+            this.dataGetterUsesOptional = builder.dataGetterUsesOptional;
         }
 
         public static Builder builder() {
@@ -333,6 +449,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
             private String optionName;
             private boolean isInherited = true;
             private TypeName baseType;
+            private boolean dataGetterUsesOptional;
 
             public Field.Builder name(String name) {
                 this.name = name;
@@ -371,6 +488,11 @@ public class ServiceClientConfigurationClass implements ClassSpec {
 
             public Field.Builder baseType(TypeName baseType) {
                 this.baseType = baseType;
+                return this;
+            }
+
+            public Field.Builder dataGetterUsesOptional(boolean dataGetterUsesOptional) {
+                this.dataGetterUsesOptional = dataGetterUsesOptional;
                 return this;
             }
 

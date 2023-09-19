@@ -28,6 +28,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
@@ -78,6 +80,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final String basePackage;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final ClassName serviceConfigClassName;
 
     public BaseClientBuilderClass(IntermediateModel model) {
         this.model = model;
@@ -86,6 +89,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+        this.serviceConfigClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -153,6 +157,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addMethod(defaultBearerTokenProviderMethod());
         }
         builder.addMethod(authSchemesMethod());
+        builder.addMethod(initializeServiceClientConfigMethod());
 
         addServiceHttpConfigIfNeeded(builder, model);
 
@@ -208,7 +213,6 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
         builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
         builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
-
         builder.addCode(".option($T.CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)\n",
                         SdkClientOption.class, crc32FromCompressedDataEnabled);
 
@@ -221,8 +225,14 @@ public class BaseClientBuilderClass implements ClassSpec {
         if (AuthUtils.usesBearerAuth(model)) {
             builder.addCode(".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
         }
-
-        builder.addCode(");");
+        builder.addCode(".option($T.INTERNALIZE_EXTERNAL_CONFIG,  (consumer, configBuilder) -> {\n$>",
+                        SdkClientOption.class);
+        builder.addCode("$T builder = $T.builder(configBuilder);\n",
+                        serviceConfigClassName.nestedClass("BuilderInternal"),
+                        serviceConfigClassName);
+        builder.addCode("consumer.accept(builder);\n");
+        builder.addCode("return builder.buildSdkClientConfiguration();\n");
+        builder.addCode("$<}));");
         return builder.build();
     }
 
@@ -652,6 +662,24 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addStatement("schemes.putAll(this.additionalAuthSchemes)");
         builder.addStatement("return $T.unmodifiableMap(schemes)", Collections.class);
         return builder.build();
+    }
+
+    public MethodSpec initializeServiceClientConfigMethod() {
+        return MethodSpec.methodBuilder("initializeServiceClientConfig")
+                         .addModifiers(PROTECTED)
+                         .addParameter(SdkClientConfiguration.class, "clientConfig")
+                         .returns(serviceConfigClassName)
+                         .addStatement("$T endpointOverride = null", URI.class)
+                         .beginControlFlow("if ($T.TRUE.equals(clientConfig.option($T.ENDPOINT_OVERRIDDEN)))", Boolean.class,
+                                           SdkClientOption.class)
+                         .addStatement("endpointOverride = clientConfig.option($T.ENDPOINT)", SdkClientOption.class)
+                         .endControlFlow()
+                         .addStatement("return $T.builder(clientConfig.toBuilder())"
+                                       + "\n.overrideConfiguration(overrideConfiguration())"
+                                       + "\n.endpointOverride(endpointOverride)"
+                                       + "\n.build()",
+                                       serviceConfigClassName)
+                         .build();
     }
 
     @Override

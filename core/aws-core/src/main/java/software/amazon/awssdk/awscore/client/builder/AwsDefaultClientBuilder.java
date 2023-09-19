@@ -500,5 +500,4 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
         return Pair.of(region, Optional.empty());
     }
-
 }
