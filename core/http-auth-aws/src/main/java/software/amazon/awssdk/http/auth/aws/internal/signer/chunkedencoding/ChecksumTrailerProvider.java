@@ -15,23 +15,33 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
 import software.amazon.awssdk.utils.Pair;
 
-/**
- * A functional interface for defining a trailer, where the trailer is a header pair.
- * <p>
- * A trailer usually depends on the chunk-data itself (checksum, signature, etc.), but is not required to. Per <a
- * href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1.2">RFC-7230</a>, the chunked trailer section is defined as:
- * <pre>
- *     trailer-part   = *( header-field CRLF )
- * </pre>
- * An implementation of this interface is specifically an element of the {@code trailer-part}. Therefore, all occurrences of
- * {@code TrailerProvider}'s make up the {@code trailer-part}.
- */
-@FunctionalInterface
 @SdkInternalApi
-public interface TrailerProvider extends Resettable {
-    Pair<String, List<String>> get();
+public class ChecksumTrailerProvider implements TrailerProvider {
+
+    private final SdkChecksum checksum;
+    private final String checksumName;
+
+    public ChecksumTrailerProvider(SdkChecksum checksum, String checksumName) {
+        this.checksum = checksum;
+        this.checksumName = checksumName;
+    }
+
+    @Override
+    public void reset() {
+        checksum.reset();
+    }
+
+    @Override
+    public Pair<String, List<String>> get() {
+        return Pair.of(
+            checksumName,
+            Collections.singletonList(checksum.getChecksum())
+        );
+    }
 }

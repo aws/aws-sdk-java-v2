@@ -188,15 +188,18 @@ public final class ChunkedEncodedInputStream extends InputStream {
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
-        // TODO(sra-identity-and-auth): Implement this, likely needed for retries
-        throw new UnsupportedOperationException();
+    public void reset() throws IOException {
+        trailers.forEach(TrailerProvider::reset);
+        extensions.forEach(ChunkExtensionProvider::reset);
+        header.reset();
+        inputStream.reset();
+        isFinished = false;
+        currentChunk = null;
     }
 
     @Override
-    public synchronized void reset() {
-        // TODO(sra-identity-and-auth): Implement this, likely needed for retries
-        throw new UnsupportedOperationException();
+    public void close() throws IOException {
+        inputStream.close();
     }
 
     public static class Builder {

@@ -269,6 +269,36 @@ public class AwsChunkedV4aPayloadSignerTest {
         assertThrows(IllegalArgumentException.class, () -> signer.sign(PAYLOAD, v4aContext));
     }
 
+    @Test
+    public void sign_shouldReturnResettableContentStreamProvider() throws IOException {
+        AwsSigningConfig signingConfig = basicSigningConfig();
+        signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD);
+        V4aContext v4aContext = new V4aContext(
+            requestBuilder,
+            "sig".getBytes(StandardCharsets.UTF_8),
+            signingConfig
+        );
+        AwsChunkedV4aPayloadSigner signer = AwsChunkedV4aPayloadSigner.builder()
+                                                                      .credentialScope(CREDENTIAL_SCOPE)
+                                                                      .chunkSize(CHUNK_SIZE)
+                                                                      .build();
+
+        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, v4aContext);
+
+        assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
+
+        byte[] tmp = new byte[2048];
+        int expectedBytes = expectedByteCount(DATA, CHUNK_SIZE);
+
+        // successive calls to newStream() should return a stream with the same data every time - this makes sure that state
+        // isn't carried over to the new streams returned by newStream()
+        for (int i = 0; i < 2; i++) {
+            int actualBytes = readAll(signedPayload.newStream(), tmp);
+            assertEquals(expectedBytes, actualBytes);
+        }
+    }
+
     private int readAll(InputStream src, byte[] dst) throws IOException {
         int read = 0;
         int offset = 0;

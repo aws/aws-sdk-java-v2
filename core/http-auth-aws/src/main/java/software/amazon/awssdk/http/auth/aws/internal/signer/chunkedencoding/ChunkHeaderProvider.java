@@ -26,6 +26,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @FunctionalInterface
 @SdkInternalApi
-public interface ChunkHeaderProvider {
+public interface ChunkHeaderProvider extends Resettable {
     byte[] get(byte[] chunk);
 }

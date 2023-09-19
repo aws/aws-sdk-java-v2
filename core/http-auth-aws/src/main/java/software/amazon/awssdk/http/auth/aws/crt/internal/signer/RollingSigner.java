@@ -73,7 +73,7 @@ public final class RollingSigner {
 
     public byte[] sign(Map<String, List<String>> headerMap) {
         AwsSigningResult result = signTrailerHeaders(headerMap, previousSignature, signingConfig);
-        return result != null ? result.getSignature() : null;
+        return result != null ? result.getSignature() : new byte[0];
     }
 
     public void reset() {

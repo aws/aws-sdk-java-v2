@@ -13,15 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.crt;
+package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-/**
- * This is a place-holder class for this module, http-auth-aws-crt. In the event that we decide to move CRT-v4a signer
- * logic back to this dedicated module, no issues will arise. This module should be an optional dependency in consumers
- * (http-auth-aws), and should bring in the required dependencies (aws-crt).
- */
-@SdkProtectedApi
-public final class HttpAuthAwsCrt {
+@SdkInternalApi
+public interface Resettable {
+    default void reset() {
+    }
 }
