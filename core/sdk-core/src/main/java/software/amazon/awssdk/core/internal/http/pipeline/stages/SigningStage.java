@@ -29,7 +29,6 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.SignerOverrideUtils;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
@@ -64,13 +63,11 @@ public class SigningStage implements RequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
-        if (shouldDoSraSigning(context)) {
-            SelectedAuthScheme<?> selectedAuthScheme = context
-                .executionAttributes()
-                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-            return sraSignRequest(request,
-                                  context,
-                                  selectedAuthScheme);
+
+        SelectedAuthScheme<?> selectedAuthScheme =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (shouldDoSraSigning(context, selectedAuthScheme)) {
+            return sraSignRequest(request, context, selectedAuthScheme);
         }
         return signRequest(request, context);
     }
@@ -169,9 +166,8 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     /**
-     * We sign if a signer is provided is not null.
-     *
-     * @return True if request should be signed, false if not.
+     * We sign if it isn't auth=none. This attribute is no longer set in the SRA, so this exists only for old clients. In
+     * addition to this, old clients only set this to false, never true. So, we have to treat null as true.
      */
     private boolean shouldSign(ExecutionAttributes attributes, Signer signer) {
         return signer != null &&
@@ -180,13 +176,9 @@ public class SigningStage implements RequestToRequestPipeline {
 
     /**
      * Returns true if we should use SRA signing logic.
-     * If there is a SELECTED_AUTH_SCHEME, it implies it's a newly (with SRA) generated clients.
-     * If Signer is overridden, with either old or new clients, it still means it's using pre SRA interfaces, so falls back to
-     * pre SRA signing logic.
      */
-    private boolean shouldDoSraSigning(RequestExecutionContext context) {
-        return !SignerOverrideUtils.isSignerOverridden(context)
-               && context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null;
+    private boolean shouldDoSraSigning(RequestExecutionContext context, SelectedAuthScheme<?> selectedAuthScheme) {
+        return context.signer() == null && selectedAuthScheme != null;
     }
 
     /**

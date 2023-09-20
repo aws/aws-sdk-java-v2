@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SIGNER_OVERRIDDEN;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.TIME_OFFSET;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 import static software.amazon.awssdk.core.metrics.CoreMetric.SIGNING_DURATION;
@@ -37,18 +36,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
@@ -58,13 +55,13 @@ import software.amazon.awssdk.core.signer.AsyncSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import utils.ValidSdkObjects;
@@ -78,7 +75,7 @@ public class AsyncSigningStageTest {
     private Identity identity;
 
     @Mock
-    private HttpSigner<Identity> signer;
+    private HttpSigner<Identity> httpSigner;
 
     @Mock
     private Signer oldSigner;
@@ -107,19 +104,19 @@ public class AsyncSigningStageTest {
     }
 
     @Test
-    public void execute_selectedAuthScheme_doesSraSign() throws Exception {
+    public void execute_selectedAuthScheme_nullSigner_doesSraSign() throws Exception {
         // Set up a scheme with a signer property
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
-            signer,
+            httpSigner,
             AuthSchemeOption.builder()
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
                             .build());
-        RequestExecutionContext context = createContext(selectedAuthScheme, (Signer) null);
+        RequestExecutionContext context = createContext(selectedAuthScheme, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.sign(Mockito.<SignRequest<? extends Identity>>any()))
+        when(httpSigner.sign(ArgumentMatchers.<SignRequest<? extends Identity>>any()))
             .thenReturn(SignedRequest.builder()
                                      .request(signedRequest)
                                      .build());
@@ -132,7 +129,7 @@ public class AsyncSigningStageTest {
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).sign(signRequestCaptor.capture());
+        verify(httpSigner).sign(signRequestCaptor.capture());
         SignRequest<? extends Identity> signRequest = signRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
@@ -150,12 +147,12 @@ public class AsyncSigningStageTest {
     }
 
     @Test
-    public void execute_selectedAuthSchemeAndTimeOffsetSet_doesSraSignAndAdjustTheSigningClock() throws Exception {
+    public void execute_selectedAuthScheme_nullSigner_timeOffsetSet_doesSraSignAndAdjustTheSigningClock() throws Exception {
         AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
         // Set up a scheme with a signer property
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
-            signer,
+            httpSigner,
             AuthSchemeOption.builder()
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
@@ -164,7 +161,7 @@ public class AsyncSigningStageTest {
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");
-        when(signer.signAsync(Mockito.<AsyncSignRequest<? extends Identity>>any()))
+        when(httpSigner.signAsync(ArgumentMatchers.<AsyncSignRequest<? extends Identity>>any()))
             .thenReturn(
                 CompletableFuture.completedFuture(AsyncSignedRequest.builder()
                                                                     .request(signedRequest)
@@ -181,7 +178,7 @@ public class AsyncSigningStageTest {
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).signAsync(asyncSignRequestCaptor.capture());
+        verify(httpSigner).signAsync(asyncSignRequestCaptor.capture());
         AsyncSignRequest<? extends Identity> signRequest = asyncSignRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
@@ -200,13 +197,13 @@ public class AsyncSigningStageTest {
     }
 
     @Test
-    public void execute_selectedAuthScheme_doesSraSignAndDoesNotOverrideAuthSchemeOptionClock() throws Exception {
+    public void execute_selectedAuthScheme_nullSigner_doesSraSignAndDoesNotOverrideAuthSchemeOptionClock() throws Exception {
         AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
         // Set up a scheme with a signer property and the signing clock set
         Clock clock = SigningStageTest.testClock();
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
-            signer,
+            httpSigner,
             AuthSchemeOption.builder()
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
@@ -217,7 +214,7 @@ public class AsyncSigningStageTest {
         RequestExecutionContext context = createContext(selectedAuthScheme, asyncPayload, null);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        when(signer.signAsync(Mockito.<AsyncSignRequest<? extends Identity>>any()))
+        when(httpSigner.signAsync(ArgumentMatchers.<AsyncSignRequest<? extends Identity>>any()))
             .thenReturn(
                 CompletableFuture.completedFuture(AsyncSignedRequest.builder()
                                          .request(signedRequest)
@@ -231,7 +228,7 @@ public class AsyncSigningStageTest {
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).signAsync(asyncSignRequestCaptor.capture());
+        verify(httpSigner).signAsync(asyncSignRequestCaptor.capture());
         AsyncSignRequest<? extends Identity> signRequest = asyncSignRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
@@ -258,7 +255,7 @@ public class AsyncSigningStageTest {
         // Set up a scheme with a signer property
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
-            signer,
+            httpSigner,
             AuthSchemeOption.builder()
                             .schemeId("my.auth#myAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
@@ -267,7 +264,7 @@ public class AsyncSigningStageTest {
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");
-        when(signer.signAsync(Mockito.<AsyncSignRequest<? extends Identity>>any()))
+        when(httpSigner.signAsync(ArgumentMatchers.<AsyncSignRequest<? extends Identity>>any()))
             .thenReturn(
                 CompletableFuture.completedFuture(AsyncSignedRequest.builder()
                                           .request(signedRequest)
@@ -284,7 +281,7 @@ public class AsyncSigningStageTest {
         assertThat(context.requestProvider()).isSameAs(signedPayload);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).signAsync(asyncSignRequestCaptor.capture());
+        verify(httpSigner).signAsync(asyncSignRequestCaptor.capture());
         AsyncSignRequest<? extends Identity> signRequest = asyncSignRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
@@ -303,12 +300,12 @@ public class AsyncSigningStageTest {
     }
 
     @Test
-    public void execute_selectedNoAuthAuthScheme_doesSraSignAsync() throws Exception {
+    public void execute_selectedNoAuthAuthScheme_nullSigner_doesSraSign() throws Exception {
         AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
         // Set up a scheme with smithy.api#noAuth
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
-            signer,
+            httpSigner,
             AuthSchemeOption.builder()
                             .schemeId("smithy.api#noAuth")
                             .putSignerProperty(SIGNER_PROPERTY, "value")
@@ -317,7 +314,7 @@ public class AsyncSigningStageTest {
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         Publisher<ByteBuffer> signedPayload = AsyncRequestBody.fromString("signed async request body");
-        when(signer.signAsync(Mockito.<AsyncSignRequest<? extends Identity>>any()))
+        when(httpSigner.signAsync(ArgumentMatchers.<AsyncSignRequest<? extends Identity>>any()))
             .thenReturn(
                 CompletableFuture.completedFuture(AsyncSignedRequest.builder()
                                                                     .request(signedRequest)
@@ -334,7 +331,7 @@ public class AsyncSigningStageTest {
         assertThat(context.requestProvider()).isSameAs(signedPayload);
 
         // assert that the input to the signer is as expected, including that signer properties are set
-        verify(signer).signAsync(asyncSignRequestCaptor.capture());
+        verify(httpSigner).signAsync(asyncSignRequestCaptor.capture());
         AsyncSignRequest<? extends Identity> signRequest = asyncSignRequestCaptor.getValue();
         assertThat(signRequest.identity()).isSameAs(identity);
         assertThat(signRequest.request()).isSameAs(request);
@@ -353,7 +350,7 @@ public class AsyncSigningStageTest {
     }
 
     @Test
-    public void execute_noSelectedAuthScheme_doesPreSraSign() throws Exception {
+    public void execute_nullSelectedAuthScheme_signer_doesPreSraSign() throws Exception {
         RequestExecutionContext context = createContext(null, oldSigner);
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
@@ -371,11 +368,11 @@ public class AsyncSigningStageTest {
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
 
-        verifyNoInteractions(signer);
+        verifyNoInteractions(httpSigner);
     }
 
     @Test
-    public void execute_noSelectedAuthScheme_AsyncRequestBodySigner_doesPreSraSignAsyncRequestBody() throws Exception {
+    public void execute_nullSelectedAuthScheme_AsyncRequestBodySigner_doesPreSraSignAsyncRequestBody() throws Exception {
         AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
         AsyncRequestBody signedPayload = AsyncRequestBody.fromString("signed async request body");
 
@@ -404,11 +401,11 @@ public class AsyncSigningStageTest {
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
 
-        verifyNoInteractions(signer);
+        verifyNoInteractions(httpSigner);
     }
 
     @Test
-    public void execute_noSelectedAuthScheme_AsyncSigner_doesPreSraSignAsync() throws Exception {
+    public void execute_nullSelectedAuthScheme_AsyncSigner_doesPreSraSignAsync() throws Exception {
         AsyncRequestBody asyncPayload = AsyncRequestBody.fromString("async request body");
 
         TestAsyncSigner asyncSigner = mock(TestAsyncSigner.class);
@@ -441,13 +438,12 @@ public class AsyncSigningStageTest {
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
 
-        verifyNoInteractions(signer);
+        verifyNoInteractions(httpSigner);
     }
 
     @Test
-    public void execute_noSelectedAuthScheme_nullSigner_skipsSigning() throws Exception {
-        Signer oldSigner = null;
-        RequestExecutionContext context = createContext(null, oldSigner);
+    public void execute_nullSelectedAuthScheme_nullSigner_skipsSigning() throws Exception {
+        RequestExecutionContext context = createContext(null, null);
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
@@ -460,11 +456,11 @@ public class AsyncSigningStageTest {
 
         verifyNoInteractions(metricCollector);
 
-        verifyNoInteractions(signer);
+        verifyNoInteractions(httpSigner);
     }
 
     @Test
-    public void execute_noSelectedAuthScheme_signerUsesTimeOffset() throws Exception {
+    public void execute_nullSelectedAuthScheme_signer_usesTimeOffset() throws Exception {
         httpClientDependencies.updateTimeOffset(100);
 
         RequestExecutionContext context = createContext(null, oldSigner);
@@ -484,18 +480,18 @@ public class AsyncSigningStageTest {
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
 
-        verifyNoInteractions(signer);
+        verifyNoInteractions(httpSigner);
     }
 
     @Test
-    public void execute_selectedAuthScheme_OldSignerOverridden_doesPreSraSign() throws Exception {
+    public void execute_selectedAuthScheme_signer_doesPreSraSign() throws Exception {
         // Set up a scheme
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
-            signer,
+            httpSigner,
             AuthSchemeOption.builder().schemeId("my.auth#myAuth").build());
 
-        RequestExecutionContext context = createContext(selectedAuthScheme, oldSigner, true);
+        RequestExecutionContext context = createContext(selectedAuthScheme, oldSigner);
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
 
@@ -512,49 +508,7 @@ public class AsyncSigningStageTest {
         // assert that metrics are collected
         verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
 
-        verifyNoInteractions(signer);
-    }
-
-    @Test
-    public void execute_selectedAuthScheme_OldSignerRequestOverridden_doesPreSraSign() throws Exception {
-        // Set up a scheme
-        SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
-            CompletableFuture.completedFuture(identity),
-            signer,
-            AuthSchemeOption.builder().schemeId("my.auth#myAuth").build());
-
-        SdkRequest sdkRequest =
-            NoopTestRequest.builder()
-                           .overrideConfiguration(SdkRequestOverrideConfiguration.builder().signer(oldSigner).build())
-                           .build();
-
-        RequestExecutionContext context = createContext(selectedAuthScheme, oldSigner, false, sdkRequest);
-
-        SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
-
-        SdkHttpFullRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
-        // Creating a copy because original executionAttributes may be directly mutated by SigningStage, e.g., timeOffset
-        when(oldSigner.sign(request, context.executionAttributes().copy().putAttribute(TIME_OFFSET, 0))).thenReturn(signedRequest);
-
-        SdkHttpFullRequest result = stage.execute(request, context).join();
-
-        assertThat(result).isSameAs(signedRequest);
-        // assert that interceptor context is updated with result
-        assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
-
-        // assert that metrics are collected
-        verify(metricCollector).reportMetric(eq(SIGNING_DURATION), any());
-
-        verifyNoInteractions(signer);
-    }
-
-    private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme) {
-        return createContext(selectedAuthScheme, oldSigner);
-    }
-
-    private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme,
-                                                  AsyncRequestBody requestProvider) {
-        return createContext(selectedAuthScheme, requestProvider, oldSigner);
+        verifyNoInteractions(httpSigner);
     }
 
     private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme, Signer oldSigner) {
@@ -564,27 +518,7 @@ public class AsyncSigningStageTest {
     private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme,
                                                   AsyncRequestBody requestProvider,
                                                   Signer oldSigner) {
-        return createContext(selectedAuthScheme, requestProvider, oldSigner, false, ValidSdkObjects.sdkRequest());
-    }
-
-    private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme,
-                                                  Signer oldSigner,
-                                                  boolean isSignerOverridden) {
-        return createContext(selectedAuthScheme, oldSigner, isSignerOverridden, ValidSdkObjects.sdkRequest());
-    }
-
-    private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme,
-                                                  Signer oldSigner,
-                                                  boolean isSignerOverridden,
-                                                  SdkRequest sdkRequest) {
-        return createContext(selectedAuthScheme, null, oldSigner, isSignerOverridden, sdkRequest);
-    }
-
-    private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme,
-                                                  AsyncRequestBody requestProvider,
-                                                  Signer oldSigner,
-                                                  boolean isSignerOverridden,
-                                                  SdkRequest sdkRequest) {
+        SdkRequest sdkRequest = ValidSdkObjects.sdkRequest();
         InterceptorContext interceptorContext =
             InterceptorContext.builder()
                               .request(sdkRequest)
@@ -595,7 +529,6 @@ public class AsyncSigningStageTest {
 
         ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
                                                                      .put(SELECTED_AUTH_SCHEME, selectedAuthScheme)
-                                                                     .put(SIGNER_OVERRIDDEN, isSignerOverridden)
                                                                      .build();
 
         ExecutionContext executionContext = ExecutionContext.builder()
