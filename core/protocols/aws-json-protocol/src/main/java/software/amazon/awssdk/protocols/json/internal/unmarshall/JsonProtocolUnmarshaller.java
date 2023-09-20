@@ -18,7 +18,6 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SDK_BYTES;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.HashMap;
