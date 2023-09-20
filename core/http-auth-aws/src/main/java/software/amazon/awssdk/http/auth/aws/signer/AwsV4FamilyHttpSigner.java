@@ -18,14 +18,16 @@ package software.amazon.awssdk.http.auth.aws.signer;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
+import software.amazon.awssdk.identity.spi.Identity;
 
 /**
  * An interface shared by {@link AwsV4HttpSigner} and {@link AwsV4aHttpSigner} for defining signer properties that are common
  * across both signers.
  */
 @SdkPublicApi
-public interface AwsV4FamilyHttpSigner {
+public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T> {
     /**
      * The name of the AWS service. This property is required.
      */
