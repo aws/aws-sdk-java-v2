@@ -127,7 +127,7 @@ class AwsSignerExecutionAttributeTest {
                                 new SelectedAuthScheme<>(EMPTY_SELECTED_AUTH_SCHEME.identity(),
                                                          EMPTY_SELECTED_AUTH_SCHEME.signer(),
                                                          newOption));
-        assertThrows(UnsupportedOperationException.class, () -> attributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE));
+        assertThrows(IllegalArgumentException.class, () -> attributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE));
     }
 
     @Test
