@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -75,6 +76,8 @@ public class TransferProgressUpdater {
         return AsyncRequestBodyListener.wrap(
             requestBody,
             new AsyncRequestBodyListener() {
+                final AtomicBoolean done = new AtomicBoolean(false);
+
                 @Override
                 public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
                     resetBytesTransferred();
@@ -83,6 +86,11 @@ public class TransferProgressUpdater {
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
                     incrementBytesTransferred(byteBuffer.limit());
+                    progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
+                        if (Double.compare(ratioTransferred, 1.0) == 0) {
+                            endOfStreamFutureCompleted();
+                        }
+                    });
                 }
 
                 @Override
@@ -92,7 +100,13 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnComplete() {
-                    endOfStreamFuture.complete(null);
+                    endOfStreamFutureCompleted();
+                }
+
+                private void endOfStreamFutureCompleted() {
+                    if (done.compareAndSet(false, true)) {
+                        endOfStreamFuture.complete(null);
+                    }
                 }
             });
     }

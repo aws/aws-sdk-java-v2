@@ -58,12 +58,12 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         createBucket(TEST_BUCKET_CUSTOM_DELIMITER);
         sourceDirectory = createLocalTestDirectory();
 
-        tm.uploadDirectory(u -> u.source(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();
+        tmCrt.uploadDirectory(u -> u.source(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();
 
-        tm.uploadDirectory(u -> u.source(sourceDirectory)
-                                 .s3Delimiter(CUSTOM_DELIMITER)
-                                 .bucket(TEST_BUCKET_CUSTOM_DELIMITER))
-          .completionFuture().join();
+        tmCrt.uploadDirectory(u -> u.source(sourceDirectory)
+                                    .s3Delimiter(CUSTOM_DELIMITER)
+                                    .bucket(TEST_BUCKET_CUSTOM_DELIMITER))
+             .completionFuture().join();
     }
 
     @BeforeEach
@@ -96,7 +96,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
             log.warn(() -> "Failed to delete s3 bucket " + TEST_BUCKET_CUSTOM_DELIMITER, exception);
         }
 
-        closeQuietly(tm, log.logger());
+        closeQuietly(tmCrt, log.logger());
     }
 
     /**
@@ -118,8 +118,8 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      */
     @Test
     public void downloadDirectory() throws Exception {
-        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
-                                                                         .bucket(TEST_BUCKET));
+        DirectoryDownload downloadDirectory = tmCrt.downloadDirectory(u -> u.destination(directory)
+                                                                            .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertTwoDirectoriesHaveSameStructure(sourceDirectory, directory);
@@ -128,9 +128,9 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     @ParameterizedTest
     @ValueSource(strings = {"notes/2021", "notes/2021/"})
     void downloadDirectory_withPrefix(String prefix) throws Exception {
-        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
-                                                                         .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
-                                                                         .bucket(TEST_BUCKET));
+        DirectoryDownload downloadDirectory = tmCrt.downloadDirectory(u -> u.destination(directory)
+                                                                            .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
+                                                                            .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
@@ -155,9 +155,9 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     @Test
     void downloadDirectory_containsObjectWithPrefixInTheKey_shouldResolveCorrectly() throws Exception {
         String prefix = "notes";
-        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
-                                                                         .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
-                                                                         .bucket(TEST_BUCKET));
+        DirectoryDownload downloadDirectory = tmCrt.downloadDirectory(u -> u.destination(directory)
+                                                                            .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
+                                                                            .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
@@ -186,10 +186,10 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     public void downloadDirectory_withPrefixAndDelimiter() throws Exception {
         String prefix = "notes-2021";
         DirectoryDownload downloadDirectory =
-            tm.downloadDirectory(u -> u.destination(directory)
-                                       .listObjectsV2RequestTransformer(r -> r.delimiter(CUSTOM_DELIMITER)
+            tmCrt.downloadDirectory(u -> u.destination(directory)
+                                          .listObjectsV2RequestTransformer(r -> r.delimiter(CUSTOM_DELIMITER)
                                                                               .prefix(prefix))
-                                       .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
+                                          .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve("notes").resolve("2021"), directory);
@@ -208,7 +208,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      */
     @Test
     public void downloadDirectory_withFilter() throws Exception {
-        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u
+        DirectoryDownload downloadDirectory = tmCrt.downloadDirectory(u -> u
             .destination(directory)
             .bucket(TEST_BUCKET)
             .filter(s3Object -> s3Object.key().startsWith("notes/2021/2")));
