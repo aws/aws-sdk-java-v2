@@ -91,7 +91,7 @@ public final class S3SignerExecutionAttribute extends SdkExecutionAttribute {
         if (authScheme == null) {
             // This is an unusual use-case.
             // Let's assume they're setting chunked-encoding so that they can call the signer directly. If that's true, then it
-            // doesn't really matter what we store other than normalize-path.
+            // doesn't really matter what we store other than chunked-encoding.
             return new SelectedAuthScheme<>(CompletableFuture.completedFuture(new UnsetIdentity()),
                                             new UnsetHttpSigner(),
                                             AuthSchemeOption.builder()
