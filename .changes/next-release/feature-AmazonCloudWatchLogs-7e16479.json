@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Logs",
-    "contributor": "",
-    "description": "Add ClientToken to QueryDefinition CFN Handler in CWL"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SSO OIDC",
-    "contributor": "",
-    "description": "Update FIPS endpoints in aws-us-gov."
-}

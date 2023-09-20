@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "contributor": "deki",
-    "description": "Update aws-lambda-java-core version to 1.2.3"
-}
