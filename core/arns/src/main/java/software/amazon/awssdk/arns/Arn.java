@@ -178,7 +178,7 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
 
         int regionColonIndex = arn.indexOf(':', serviceColonIndex + 1);
         if (regionColonIndex < 0) {
-            throw new IllegalArgumentException("No AWS region partition specified");
+            throw new IllegalArgumentException("No AWS region specified");
         }
         String region = arn.substring(serviceColonIndex + 1, regionColonIndex);
 
