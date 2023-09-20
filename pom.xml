@@ -630,9 +630,8 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <exclude>software.amazon.awssdk.utils.async.InputStreamSubscriber</exclude>
-                            <!-- exclude S3CrtAsyncClientBuilder temporarily TODO: re-enable -->
-                            <exclude>software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder</exclude>
+                            <!-- exclude ObjectPart size change TODO: re-enable -->
+                            <exclude>software.amazon.awssdk.services.s3.model.ObjectPart</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
