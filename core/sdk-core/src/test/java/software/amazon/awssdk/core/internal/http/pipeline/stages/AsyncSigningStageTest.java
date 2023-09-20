@@ -541,12 +541,9 @@ public class AsyncSigningStageTest {
                               // .httpRequest(request)
                               .build();
 
-        ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder()
-                                                                             .put(SELECTED_AUTH_SCHEME, selectedAuthScheme);
-        if (selectedAuthScheme != null) {
-            // Doesn't matter that it is empty, just needs to non-null, which implies SRA path.
-            executionAttributes.put(SdkInternalExecutionAttribute.AUTH_SCHEMES, new HashMap<>());
-        }
+        ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
+                                                                     .put(SELECTED_AUTH_SCHEME, selectedAuthScheme)
+                                                                     .build();
 
         ExecutionContext executionContext = ExecutionContext.builder()
                                                             .executionAttributes(executionAttributes.build())

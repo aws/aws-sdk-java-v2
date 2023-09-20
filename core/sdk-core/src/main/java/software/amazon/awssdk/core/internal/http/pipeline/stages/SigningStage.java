@@ -65,11 +65,10 @@ public class SigningStage implements RequestToRequestPipeline {
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
 
-        updateHttpRequestInInterceptorContext(request, context.executionContext());
-
-        // Whether pre / post SRA, if old Signer is setup in context, that's the one to use
-        if (context.signer() != null) {
-            return signRequest(request, context);
+        SelectedAuthScheme<?> selectedAuthScheme =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (shouldDoSraSigning(context, selectedAuthScheme)) {
+            return sraSignRequest(request, context, selectedAuthScheme);
         }
         // else if AUTH_SCHEMES != null (implies SRA), use SelectedAuthScheme
         if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES) != null) {
@@ -156,6 +155,22 @@ public class SigningStage implements RequestToRequestPipeline {
      */
     private void updateHttpRequestInInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
         executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.httpRequest(request)));
+    }
+
+    /**
+     * We sign if it isn't auth=none. This attribute is no longer set in the SRA, so this exists only for old clients. In
+     * addition to this, old clients only set this to false, never true. So, we have to treat null as true.
+     */
+    private boolean shouldSign(ExecutionAttributes attributes, Signer signer) {
+        return signer != null &&
+               !Boolean.FALSE.equals(attributes.getAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST));
+    }
+
+    /**
+     * Returns true if we should use SRA signing logic.
+     */
+    private boolean shouldDoSraSigning(RequestExecutionContext context, SelectedAuthScheme<?> selectedAuthScheme) {
+        return context.signer() == null && selectedAuthScheme != null;
     }
 
     /**
