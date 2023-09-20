@@ -22,15 +22,16 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 /**
- * A bean with a local secondary index and a global secondary index.
+ * A bean with a global secondary index that uses the same partition key as the table.
  */
 @DynamoDbBean
-public class SecondaryIndexBean {
+public class SecondaryIndexMatchingTableKeyBean {
     private String id;
     private Integer sort;
     private String attribute;
 
     @DynamoDbPartitionKey
+    @DynamoDbSecondaryPartitionKey(indexNames = "gsi")
     public String getId() {
         return this.id;
     }
@@ -40,7 +41,6 @@ public class SecondaryIndexBean {
     }
 
     @DynamoDbSortKey
-    @DynamoDbSecondaryPartitionKey(indexNames = "gsi")
     public Integer getSort() {
         return sort;
     }
@@ -49,7 +49,7 @@ public class SecondaryIndexBean {
         this.sort = sort;
     }
 
-    @DynamoDbSecondarySortKey(indexNames = {"lsi", "gsi"})
+    @DynamoDbSecondarySortKey(indexNames = "gsi")
     public String getAttribute() {
         return attribute;
     }
