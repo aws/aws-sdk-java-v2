@@ -247,9 +247,7 @@ public final class JsonProtocolUnmarshaller {
             } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.STRING) {
                 Optional<AbortableInputStream> responseContent = context.response().content();
                 if (responseContent.isPresent()) {
-                    InputStream is = responseContent.get();
-                    String payload = SdkBytes.fromInputStream(is).asUtf8String();
-                    field.set(sdkPojo, payload);
+                    field.set(sdkPojo, SdkBytes.fromInputStream(responseContent.get()).asUtf8String());
                 } else {
                     field.set(sdkPojo, "");
                 }

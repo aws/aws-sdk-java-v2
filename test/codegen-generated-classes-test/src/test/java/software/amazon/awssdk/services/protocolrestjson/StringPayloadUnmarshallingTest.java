@@ -35,6 +35,8 @@ import software.amazon.awssdk.regions.Region;
 
 @WireMockTest
 public class StringPayloadUnmarshallingTest {
+    private static final String TEST_PAYLOAD = "X";
+
     private static List<Arguments> testParameters() {
         List<Arguments> testCases = new ArrayList<>();
         for (ClientType clientType : ClientType.values()) {
@@ -66,7 +68,7 @@ public class StringPayloadUnmarshallingTest {
 
     private enum ContentLength {
         ZERO,
-        CHUNKED_ZERO
+        NOT_PRESENT
     }
 
     @ParameterizedTest
@@ -78,7 +80,7 @@ public class StringPayloadUnmarshallingTest {
                                                            WireMockRuntimeInfo wm) {
         if (contentLength == ContentLength.ZERO) {
             stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Length", "0").withBody("")));
-        } else if (contentLength == ContentLength.CHUNKED_ZERO) {
+        } else if (contentLength == ContentLength.NOT_PRESENT) {
             stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody("")));
         }
 
@@ -104,16 +106,16 @@ public class StringPayloadUnmarshallingTest {
             stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200)
                                                          .withHeader("Content-Length", Integer.toString(responsePayload.length()))
                                                          .withBody(responsePayload)));
-        } else if (contentLength == ContentLength.CHUNKED_ZERO) {
+        } else if (contentLength == ContentLength.NOT_PRESENT) {
             stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responsePayload)));
         }
 
-        assertThat(callService(wm, clientType, protocol, stringLoc)).isEqualTo("X");
+        assertThat(callService(wm, clientType, protocol, stringLoc)).isEqualTo(TEST_PAYLOAD);
     }
 
     private String presentStringResponse(Protocol protocol, StringLocation stringLoc) {
         switch (stringLoc) {
-            case PAYLOAD: return "X";
+            case PAYLOAD: return TEST_PAYLOAD;
             case FIELD:
                 switch (protocol) {
                     case JSON: return "{\"StringMember\": \"X\"}";
