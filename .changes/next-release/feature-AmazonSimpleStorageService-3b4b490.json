@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "Fix an issue where the SDK can fail to unmarshall response due to NumberFormatException"
+}
