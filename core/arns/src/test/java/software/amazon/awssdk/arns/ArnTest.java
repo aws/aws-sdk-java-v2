@@ -245,13 +245,13 @@ public class ArnTest {
     @Test
     public void arnWithoutPartition_ThrowsIllegalArgumentException() {
         String arnString = "arn::s3:us-east-1:12345678910:myresource";
-        assertThatThrownBy(() -> Arn.fromString(arnString)).getCause().hasMessageContaining("partition must not be blank or empty.");
+        assertThatThrownBy(() -> Arn.fromString(arnString)).hasMessageContaining("partition must not be blank or empty.");
     }
 
     @Test
     public void arnWithoutService_ThrowsIllegalArgumentException() {
         String arnString = "arn:aws::us-east-1:12345678910:myresource";
-        assertThatThrownBy(() -> Arn.fromString(arnString)).getCause().hasMessageContaining("service must not be blank or empty");
+        assertThatThrownBy(() -> Arn.fromString(arnString)).hasMessageContaining("service must not be blank or empty");
     }
 
     @Test
@@ -307,4 +307,5 @@ public class ArnTest {
         String arnString = "";
         assertThatThrownBy(() -> Arn.fromString(arnString)).hasMessageContaining("arn must not be blank or empty.");
     }
+
 }

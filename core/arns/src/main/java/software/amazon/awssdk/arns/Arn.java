@@ -154,7 +154,7 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
         try {
             return parseString(arn);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Malformed ARN: " + arn, e);
+            throw new IllegalArgumentException(String.format("Malformed ARN: %s - %s", arn, e.getMessage()));
         }
     }
 
@@ -189,9 +189,6 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
         String accountId = arn.substring(regionColonIndex + 1, accountColonIndex);
 
         String resource = arn.substring(accountColonIndex + 1);
-        if (resource.isEmpty()) {
-            throw new IllegalArgumentException("No resource specified");
-        }
 
         return Arn.builder()
                   .partition(partition)
