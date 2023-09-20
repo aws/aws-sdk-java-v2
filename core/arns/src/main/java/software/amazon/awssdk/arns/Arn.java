@@ -158,7 +158,7 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
         }
     }
 
-    public static Arn parseString(String arn) {
+    private static Arn parseString(String arn) {
         int arnColonIndex = arn.indexOf(':');
         if (arnColonIndex < 0 || !"arn".equals(arn.substring(0, arnColonIndex))) {
             throw new IllegalArgumentException("Does not start with 'arn:'");
