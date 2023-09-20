@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.query.auth.scheme.internal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -13,6 +14,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
@@ -68,15 +70,13 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                                                                               "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s", authScheme.getClass()
                                                                                                                                                                           .getName());
                     List<String> signingRegionSet = sigv4aAuthScheme.signingRegionSet();
-                    if (signingRegionSet.size() == 0) {
+                    RegionSet regionSet = RegionSet.create(signingRegionSet.stream().collect(Collectors.joining(",")));
+                    if (regionSet.toString().isEmpty()) {
                         throw SdkClientException.create("Signing region set is empty");
-                    }
-                    if (signingRegionSet.size() > 1) {
-                        throw SdkClientException.create("Don't know how to set scope of > 1 region");
                     }
                     options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4a")
                                                 .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())
-                                                .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, signingRegionSet.get(0))
+                                                .putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet)
                                                 .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !sigv4aAuthScheme.disableDoubleEncoding()).build());
                     break;
                 default:

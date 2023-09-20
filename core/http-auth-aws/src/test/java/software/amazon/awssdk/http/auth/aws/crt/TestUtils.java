@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.http.auth.aws.crt;
 
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.REGION_SET;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.TickingClock;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtHttpRequestConverter.toRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.sanitizeRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
-import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.REGION_NAME;
-import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
 
 import java.io.ByteArrayInputStream;
@@ -33,6 +33,7 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
@@ -60,7 +61,7 @@ public final class TestUtils {
                                                      .build()
                                                      .copy(requestOverrides))
                           .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-                          .putProperty(REGION_NAME, "aws-global")
+                          .putProperty(REGION_SET, RegionSet.create("aws-global"))
                           .putProperty(SERVICE_SIGNING_NAME, "demo")
                           .putProperty(SIGNING_CLOCK, new TickingClock(Instant.ofEpochMilli(1596476903000L)))
                           .build()

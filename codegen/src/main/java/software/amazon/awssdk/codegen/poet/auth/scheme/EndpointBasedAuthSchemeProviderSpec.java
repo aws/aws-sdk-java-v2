@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -42,6 +43,7 @@ import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -175,17 +177,17 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
 
         spec.addStatement("$T signingRegionSet = sigv4aAuthScheme.signingRegionSet()", ParameterizedTypeName.get(List.class,
                                                                                                                  String.class));
-        spec.beginControlFlow("if (signingRegionSet.size() == 0)")
-            .addStatement("throw $T.create($S)", SdkClientException.class, "Signing region set is empty")
-            .endControlFlow();
+        spec.addStatement("$1T regionSet = $1T.create(signingRegionSet.stream().collect($2T.joining(\",\")))",
+                          RegionSet.class, Collectors.class
+        );
 
-        spec.beginControlFlow("if (signingRegionSet.size() > 1)")
-            .addStatement("throw $T.create($S)", SdkClientException.class, "Don't know how to set scope of > 1 region")
+        spec.beginControlFlow("if (regionSet.toString().isEmpty())")
+            .addStatement("throw $T.create($S)", SdkClientException.class, "Signing region set is empty")
             .endControlFlow();
 
         spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4aAuthScheme.SCHEME_ID)
             .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())", AwsV4aHttpSigner.class)
-            .addCode(".putSignerProperty($T.REGION_NAME, signingRegionSet.get(0))", AwsV4aHttpSigner.class)
+            .addCode(".putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class)
             .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4aAuthScheme.disableDoubleEncoding())",
                      AwsV4aHttpSigner.class)
             .addCode(".build());");

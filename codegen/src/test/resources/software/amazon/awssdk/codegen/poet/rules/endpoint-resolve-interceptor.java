@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.query.endpoints.internal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
@@ -147,7 +149,9 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                     option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding());
                 }
                 if (v4aAuthScheme.signingRegionSet() != null) {
-                    option.putSignerProperty(AwsV4aHttpSigner.REGION_NAME, String.join(",", v4aAuthScheme.signingRegionSet()));
+                    RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet().stream()
+                                                                        .collect(Collectors.joining(",")));
+                    option.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                 }
                 if (v4aAuthScheme.signingName() != null) {
                     option.putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, v4aAuthScheme.signingName());
