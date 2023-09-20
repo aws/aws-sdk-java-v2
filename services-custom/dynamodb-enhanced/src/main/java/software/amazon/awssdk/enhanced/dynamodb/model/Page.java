@@ -98,6 +98,31 @@ public final class Page<T> {
         return lastEvaluatedKey;
     }
 
+    /**
+     * The count of the returned items from the last page query or scan, after any filters were applied.
+     */
+    public Integer count() {
+        return count;
+    }
+
+    /**
+     * The scanned count of the returned items from the last page query or scan, before any filters were applied.
+     * This number will be equal or greater than the count.
+     */
+    public Integer scannedCount() {
+        return scannedCount;
+    }
+
+    /**
+     * Returns the capacity units consumed by the last page query or scan. Will only be returned if it has been
+     * explicitly requested by the user when calling the operation.
+     *
+     * @return The 'consumedCapacity' from the last query or scan operation or null if it was not requested.
+     */
+    public ConsumedCapacity consumedCapacity() {
+        return consumedCapacity;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -140,18 +165,6 @@ public final class Page<T> {
                        .add("lastEvaluatedKey", lastEvaluatedKey)
                        .add("items", items)
                        .build();
-    }
-
-    public Integer count() {
-        return count;
-    }
-
-    public Integer scannedCount() {
-        return scannedCount;
-    }
-
-    public ConsumedCapacity consumedCapacity() {
-        return consumedCapacity;
     }
 
     public static <T> Builder<T> builder(Class<T> itemClass) {
