@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fix [3839](https://github.com/aws/aws-sdk-java-v2/issues/3839) S3 Transfer Manager issue with transferComplete() not called for AsyncRequestBody.fromFile()"
-}

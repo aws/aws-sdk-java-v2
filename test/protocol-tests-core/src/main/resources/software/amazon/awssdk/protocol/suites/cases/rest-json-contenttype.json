@@ -139,6 +139,33 @@
   }
 },
 {
+  "description": "TestStringPayload",
+  "given": {
+    "input": {
+      "data": "1234",
+      "contentType": "text/plain"
+    }
+  },
+  "when": {
+    "action": "marshall",
+    "operation": "TestStringPayload"
+  },
+  "then": {
+    "serializedAs": {
+      "uri": "/string-payload",
+      "method": "POST",
+      "headers": {
+        "contains": {
+          "Content-Type": "text/plain"
+        }
+      },
+      "body": {
+        "equals": "1234"
+      }
+    }
+  }
+},
+{
   "description": "TestBlobPayloadNoParams",
   "given": {
     "input": {
@@ -151,6 +178,31 @@
   "then": {
     "serializedAs": {
       "uri": "/blob-payload",
+      "method": "POST",
+      "headers": {
+        "doesNotContain": [
+          "Content-Type"
+        ]
+      },
+      "body": {
+        "equals": ""
+      }
+    }
+  }
+},
+{
+  "description": "TestStringPayloadNoParams",
+  "given": {
+    "input": {
+    }
+  },
+  "when": {
+    "action": "marshall",
+    "operation": "TestStringPayload"
+  },
+  "then": {
+    "serializedAs": {
+      "uri": "/string-payload",
       "method": "POST",
       "headers": {
         "doesNotContain": [

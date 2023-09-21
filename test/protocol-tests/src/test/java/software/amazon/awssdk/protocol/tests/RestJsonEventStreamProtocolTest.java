@@ -32,9 +32,11 @@ import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.Headers
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.ImplicitPayloadAndHeadersEvent;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.InputEventStream;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.ProtocolRestJsonContentTypeException;
+import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.StringAndHeadersEvent;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.BlobAndHeadersEventMarshaller;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.HeadersOnlyEventMarshaller;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.ImplicitPayloadAndHeadersEventMarshaller;
+import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.StringAndHeadersEventMarshaller;
 
 public class RestJsonEventStreamProtocolTest {
     private static final String EVENT_CONTENT_TYPE_HEADER = ":content-type";
@@ -85,6 +87,22 @@ public class RestJsonEventStreamProtocolTest {
 
         assertThat(marshalledEvent.headers().get(EVENT_CONTENT_TYPE_HEADER)).containsExactly("application/octet-stream");
 
+        String content = contentAsString(marshalledEvent);
+        assertThat(content).isEqualTo("hello rest-json");
+    }
+
+    @Test
+    public void stringAndHeadersEvent() {
+        StringAndHeadersEventMarshaller marshaller = new StringAndHeadersEventMarshaller(protocolFactory());
+
+        StringAndHeadersEvent event = InputEventStream.stringAndHeadersEventBuilder()
+                                                      .headerMember("hello rest-json")
+                                                      .stringPayloadMember("hello rest-json")
+                                                      .build();
+
+        SdkHttpFullRequest marshalledEvent = marshaller.marshall(event);
+
+        assertThat(marshalledEvent.headers().get(EVENT_CONTENT_TYPE_HEADER)).containsExactly("text/plain");
         String content = contentAsString(marshalledEvent);
         assertThat(content).isEqualTo("hello rest-json");
     }

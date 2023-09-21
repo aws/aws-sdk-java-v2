@@ -23,10 +23,14 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaAttributeTags;
 
 /**
- * Denotes an optional sort key for a global or local secondary index. You must also specify the index name which in the
- * case of a global secondary index must match the index name supplied with the secondary partition key for the same
- * index. This name is only referenced internally by the enhanced client to disambiguate the index and does not actually
- * need to match the real name of the index.
+ * Denotes an optional sort key for a global or local secondary index.
+ *
+ * <p>You must also specify at least one index name. For global secondary indices, this must match an index name specified in
+ * a {@link DynamoDbSecondaryPartitionKey}. Any index names specified that do not have an associated
+ * {@link DynamoDbSecondaryPartitionKey} are treated as local secondary indexes.
+ *
+ * <p>The index name will be used if a table is created from this bean. For data-oriented operations like reads and writes, this
+ * name does not need to match the service-side name of the index.
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})
@@ -35,6 +39,10 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaA
 public @interface DynamoDbSecondarySortKey {
     /**
      * The names of one or more local or global secondary indices that this sort key should participate in.
+     *
+     * <p>For global secondary indices, this must match an index name specified in a {@link DynamoDbSecondaryPartitionKey}. Any
+     * index names specified that do not have an associated {@link DynamoDbSecondaryPartitionKey} are treated as local
+     * secondary indexes.
      */
     String[] indexNames();
 }

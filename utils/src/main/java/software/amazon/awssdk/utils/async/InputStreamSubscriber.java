@@ -45,6 +45,8 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
     private final AtomicBoolean drainingCallQueue = new AtomicBoolean(false);
     private final Queue<QueueEntry> callQueue = new ConcurrentLinkedQueue<>();
 
+    private final Object subscribeLock = new Object();
+
     private Subscription subscription;
 
     private boolean done = false;
@@ -55,13 +57,15 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
 
     @Override
     public void onSubscribe(Subscription s) {
-        if (!inputStreamState.compareAndSet(State.UNINITIALIZED, State.READABLE)) {
-            close();
-            return;
-        }
+        synchronized (subscribeLock) {
+            if (!inputStreamState.compareAndSet(State.UNINITIALIZED, State.READABLE)) {
+                close();
+                return;
+            }
 
-        this.subscription = new CancelWatcher(s);
-        delegate.onSubscribe(subscription);
+            this.subscription = new CancelWatcher(s);
+            delegate.onSubscribe(subscription);
+        }
     }
 
     @Override
@@ -120,12 +124,14 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
 
     @Override
     public void close() {
-        if (inputStreamState.compareAndSet(State.UNINITIALIZED, State.CLOSED)) {
-            delegate.onSubscribe(new NoOpSubscription());
-            delegate.onError(new CancellationException());
-        } else if (inputStreamState.compareAndSet(State.READABLE, State.CLOSED)) {
-            subscription.cancel();
-            onError(new CancellationException());
+        synchronized (subscribeLock) {
+            if (inputStreamState.compareAndSet(State.UNINITIALIZED, State.CLOSED)) {
+                delegate.onSubscribe(new NoOpSubscription());
+                delegate.onError(new CancellationException());
+            } else if (inputStreamState.compareAndSet(State.READABLE, State.CLOSED)) {
+                subscription.cancel();
+                onError(new CancellationException());
+            }
         }
     }
 

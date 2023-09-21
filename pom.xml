@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.20.152-SNAPSHOT</version>
+    <version>2.20.153-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -91,7 +91,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.20.151</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.20.152</awsjavasdk.previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
@@ -630,9 +630,8 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <exclude>software.amazon.awssdk.utils.async.InputStreamSubscriber</exclude>
-                            <!-- exclude S3CrtAsyncClientBuilder temporarily TODO: re-enable -->
-                            <exclude>software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder</exclude>
+                            <!-- exclude ObjectPart size change TODO: re-enable -->
+                            <exclude>software.amazon.awssdk.services.s3.model.ObjectPart</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
@@ -1003,9 +1002,8 @@
                             <show>public</show>
                             <author>false</author>
                             <version>true</version>
-                            <!-- Disable index because jquery-ui version used is old -->
-                            <!-- Re-enable it when it's fixed in newer versions of JDK -->
-                            <noindex>true</noindex>
+                            <!-- Whether to enable search button -->
+                            <noindex>false</noindex>
                             <use>false</use>
                             <source>8</source>
                             <notree>true</notree>
