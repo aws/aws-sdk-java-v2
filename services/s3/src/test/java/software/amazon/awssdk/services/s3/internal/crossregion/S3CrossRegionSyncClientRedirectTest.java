@@ -49,7 +49,6 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTest
         when(mockDelegateClient.headBucket(any(HeadBucketRequest.class)))
             .thenThrow(redirectException(500, null, "InternalError", null));
     }
-
     @Override
     protected void stubHeadBucketRedirectWithAuthorizationHeaderMalformed() {
         when(mockDelegateClient.headBucket(any(HeadBucketRequest.class)))

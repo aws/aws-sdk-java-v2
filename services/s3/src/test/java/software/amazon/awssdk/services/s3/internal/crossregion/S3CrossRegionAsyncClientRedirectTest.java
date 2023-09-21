@@ -77,8 +77,7 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectTes
     @Override
     protected void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse(Integer redirect) {
         when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
-           .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect, CROSS_REGION.id(), null,
-                                                                                                     null))))
+           .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect, CROSS_REGION.id(), null, null))))
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()
             ));
     }
