@@ -34,9 +34,12 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SecondaryIndexBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SecondaryIndexMatchingTableKeyBean;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
@@ -161,6 +164,42 @@ public class DefaultDynamoDbTableTest {
                                                  .map(EnhancedGlobalSecondaryIndex::indexName)
                                                  .collect(Collectors.toList());
         assertThat(globalIndicesNames, containsInAnyOrder("gsi_1", "gsi_2"));
+    }
+
+    @Test
+    public void createTable_groupsSecondaryIndexesExistingInTableSchema_fromBeanTableSchema() {
+        DefaultDynamoDbTable<SecondaryIndexBean> dynamoDbMappedIndex =
+            Mockito.spy(new DefaultDynamoDbTable<>(mockDynamoDbClient,
+                                                   mockDynamoDbEnhancedClientExtension,
+                                                   TableSchema.fromBean(SecondaryIndexBean.class),
+                                                   "test_table"));
+
+        dynamoDbMappedIndex.createTable();
+
+        CreateTableEnhancedRequest request = captureCreateTableRequest(dynamoDbMappedIndex);
+
+        assertThat(request.localSecondaryIndices().size(), is(1));
+        assertThat(request.localSecondaryIndices().iterator().next().indexName(), is("lsi"));
+
+        assertThat(request.globalSecondaryIndices().size(), is(1));
+        assertThat(request.globalSecondaryIndices().iterator().next().indexName(), is("gsi"));
+    }
+
+    @Test
+    public void createTable_allowsGsiWithSamePartitionKeyAsDefaultPartitionKey_fromBeanTableSchema() {
+        DefaultDynamoDbTable<SecondaryIndexMatchingTableKeyBean> dynamoDbMappedIndex =
+            Mockito.spy(new DefaultDynamoDbTable<>(mockDynamoDbClient,
+                                                   mockDynamoDbEnhancedClientExtension,
+                                                   TableSchema.fromBean(SecondaryIndexMatchingTableKeyBean.class),
+                                                   "test_table"));
+
+        dynamoDbMappedIndex.createTable();
+
+        CreateTableEnhancedRequest request = captureCreateTableRequest(dynamoDbMappedIndex);
+
+        assertThat(request.localSecondaryIndices().size(), is(0));
+        assertThat(request.globalSecondaryIndices().size(), is(1));
+        assertThat(request.globalSecondaryIndices().iterator().next().indexName(), is("gsi"));
     }
 
     private static <T> CreateTableEnhancedRequest captureCreateTableRequest(DefaultDynamoDbTable<T> index) {

@@ -23,9 +23,12 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaAttributeTags;
 
 /**
- * Denotes a partition key for a global secondary index. You must also specify at least one index name, although this
- * name is only referenced internally by the enhanced client to disambiguate the index and does not actually need to
- * match the real name of the index.
+ * Denotes a partition key for a global secondary index.
+ *
+ * <p>You must also specify at least one index name.
+ *
+ * <p>The index name will be used if a table is created from this bean. For data-oriented operations like reads and writes, this
+ * name does not need to match the service-side name of the index.
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})

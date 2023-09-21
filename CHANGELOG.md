@@ -1,3 +1,53 @@
+# __2.20.152__ __2023-09-20__
+## __AWS App Runner__
+  - ### Features
+    - This release adds improvements for managing App Runner auto scaling configuration resources. New APIs: UpdateDefaultAutoScalingConfiguration and ListServicesForAutoScalingConfiguration. Updated API: DeleteAutoScalingConfiguration.
+
+## __AWS Cloud Map__
+  - ### Features
+    - Adds a new DiscoverInstancesRevision API and also adds InstanceRevision field to the DiscoverInstances API response.
+
+## __AWS Lambda__
+  - ### Features
+    - Update aws-lambda-java-core version to 1.2.3
+        - Contributed by: [@deki](https://github.com/deki)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Update FIPS endpoints in aws-us-gov.
+
+## __Amazon AppConfig__
+  - ### Features
+    - Enabling boto3 paginators for list APIs and adding documentation around ServiceQuotaExceededException errors
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Add ClientToken to QueryDefinition CFN Handler in CWL
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Updated DescribeMediaStorageConfiguration, StartEdgeConfigurationUpdate, ImageGenerationConfiguration$SamplingInterval, and UpdateMediaStorageConfiguration to match AWS Docs.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Fix an issue where the SDK can fail to unmarshall response due to NumberFormatException
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the Swift package format.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix [3839](https://github.com/aws/aws-sdk-java-v2/issues/3839) S3 Transfer Manager issue with transferComplete() not called for AsyncRequestBody.fromFile()
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@deki](https://github.com/deki)
 # __2.20.151__ __2023-09-19__
 ## __AWS Outposts__
   - ### Features
@@ -124,7 +174,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes

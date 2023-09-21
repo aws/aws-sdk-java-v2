@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
@@ -59,7 +60,8 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
                                 Throwable throwable) {
         Throwable cause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
 
-        if (cause instanceof Error) {
+        if (cause instanceof Error || cause instanceof SdkException) {
+            cause.addSuppressed(SdkClientException.create(message.get()));
             returnFuture.completeExceptionally(cause);
         } else {
             SdkClientException exception = SdkClientException.create(message.get(), cause);
