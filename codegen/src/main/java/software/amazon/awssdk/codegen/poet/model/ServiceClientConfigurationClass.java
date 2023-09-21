@@ -38,11 +38,13 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.internal.SdkInternalAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
+import software.amazon.awssdk.core.client.config.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -59,23 +61,32 @@ public class ServiceClientConfigurationClass implements ClassSpec {
         String serviceId = model.getMetadata().getServiceName();
         this.defaultClientMetadataClassName = ClassName.get(basePackage, serviceId + "ServiceClientConfiguration");
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
-
     }
 
     @Override
     public TypeSpec poetSpec() {
-        return PoetUtils.createClassBuilder(defaultClientMetadataClassName)
-                        .superclass(AwsServiceClientConfiguration.class)
-                        .addJavadoc("Class to expose the service client settings to the user. Implementation of {@link $T}",
-                                    AwsServiceClientConfiguration.class)
-                        .addMethod(constructor())
-                        .addMethod(builderMethod())
-                        .addMethod(builderFromSdkClientConfiguration())
-                        .addModifiers(PUBLIC, FINAL)
-                        .addAnnotation(SdkPublicApi.class)
-                        .addType(builderInterfaceSpec())
-                        .addType(builderImplSpec())
-                        .build();
+        TypeSpec.Builder builder = PoetUtils.createClassBuilder(defaultClientMetadataClassName)
+                                            .superclass(AwsServiceClientConfiguration.class)
+                                            .addJavadoc("Class to expose the service client settings to the user. "
+                                                        + "Implementation of {@link $T}",
+                                                        AwsServiceClientConfiguration.class);
+
+        builder.addMethod(constructor());
+        for (Field field : serviceClientConfigurationFields()) {
+            addLocalFieldForDataIfNeeded(field, builder);
+            if (field.isLocalField()) {
+                builder.addMethod(getterForDataField(field));
+            }
+        }
+
+        return builder.addMethod(builderMethod())
+                      .addMethod(builderFromSdkClientConfiguration())
+                      .addModifiers(PUBLIC, FINAL)
+                      .addAnnotation(SdkPublicApi.class)
+                      .addType(builderInterfaceSpec())
+                      .addType(builderInternalInterfaceSpec())
+                      .addType(builderImplSpec())
+                      .build();
     }
 
     @Override
@@ -84,11 +95,16 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     }
 
     private MethodSpec constructor() {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(PRIVATE)
-                         .addParameter(className().nestedClass("Builder"), "builder")
-                         .addStatement("super(builder)")
-                         .build();
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(className().nestedClass("Builder"), "builder");
+        builder.addStatement("super(builder)");
+        for (Field field : serviceClientConfigurationFields()) {
+            if (field.isLocalField()) {
+                builder.addStatement("this.$L = builder.$L()", field.name, field.name);
+            }
+        }
+        return builder.build();
     }
 
     private MethodSpec builderMethod() {
@@ -104,9 +120,8 @@ public class ServiceClientConfigurationClass implements ClassSpec {
         return MethodSpec.methodBuilder("builder")
                          .addModifiers(PUBLIC, STATIC)
                          .addParameter(SdkClientConfiguration.Builder.class, "builder")
+                         .returns(className().nestedClass("BuilderInternal"))
                          .addStatement("return new BuilderImpl(builder)")
-                         .returns(className().nestedClass("Builder"))
-                         .addJavadoc("")
                          .build();
     }
 
@@ -132,12 +147,26 @@ public class ServiceClientConfigurationClass implements ClassSpec {
         return builder.build();
     }
 
+    private TypeSpec builderInternalInterfaceSpec() {
+        TypeSpec.Builder builder = TypeSpec.interfaceBuilder("BuilderInternal")
+                                           .addModifiers(PUBLIC)
+                                           .addSuperinterface(className().nestedClass("Builder"))
+                                           .addJavadoc("An internal builder for creating a {@link $T}", className());
+
+        builder.addMethod(MethodSpec.methodBuilder("buildSdkClientConfiguration")
+                                    .addModifiers(PUBLIC, ABSTRACT)
+                                    .returns(SdkClientConfiguration.class)
+                                    .build());
+        return builder.build();
+    }
+
     private TypeSpec builderImplSpec() {
         TypeSpec.Builder builder = TypeSpec.classBuilder("BuilderImpl")
                                            .addModifiers(PRIVATE, STATIC, FINAL)
-                                           .addSuperinterface(className().nestedClass("Builder"));
+                                           .addSuperinterface(className().nestedClass("BuilderInternal"));
 
         builder.addField(SdkClientConfiguration.Builder.class, "builder", PRIVATE, FINAL);
+
         builder.addMethod(MethodSpec.constructorBuilder()
                                     .addModifiers(PRIVATE)
                                     .addStatement("this.builder = $T.builder()", SdkClientConfiguration.class)
@@ -148,11 +177,10 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                     .addParameter(SdkClientConfiguration.Builder.class, "builder")
                                     .addStatement("this.builder = builder", SdkClientConfiguration.class)
                                     .build());
-
         for (Field field : serviceClientConfigurationFields()) {
-            addLocalFieldIfNeeded(field, builder);
+            addLocalFieldForBuilderIfNeeded(field, builder);
             builder.addMethod(setterForField(field));
-            builder.addMethod(getterForField(field));
+            builder.addMethod(getterForBuilderField(field));
         }
 
         builder.addMethod(MethodSpec.methodBuilder("build")
@@ -164,24 +192,34 @@ public class ServiceClientConfigurationClass implements ClassSpec {
 
         builder.addMethod(MethodSpec.methodBuilder("buildSdkClientConfiguration")
                                     .addModifiers(PUBLIC)
+                                    .addAnnotation(Override.class)
                                     .returns(SdkClientConfiguration.class)
+                                    .addStatement("$T overrideConfiguration = overrideConfiguration()",
+                                                  ClientOverrideConfiguration.class)
                                     .beginControlFlow("if (overrideConfiguration != null)")
-                                    .addStatement("overrideConfiguration.addOverridesToConfiguration(builder)")
+                                    .addStatement("$T.copyOverridesToConfiguration(overrideConfiguration, builder)",
+                                                  SdkClientConfigurationUtil.class)
                                     .endControlFlow()
                                     .addStatement("return builder.build()")
                                     .build());
         return builder.build();
     }
 
-    private void addLocalFieldIfNeeded(Field field, TypeSpec.Builder builder) {
+    private void addLocalFieldForBuilderIfNeeded(Field field, TypeSpec.Builder builder) {
         if (field.optionClass == null) {
             builder.addField(field.type, field.name, PRIVATE);
         }
     }
 
+    private void addLocalFieldForDataIfNeeded(Field field, TypeSpec.Builder builder) {
+        if (field.isLocalField()) {
+            builder.addField(field.type, field.name, PRIVATE, FINAL);
+        }
+    }
+
     private MethodSpec setterForField(Field field) {
         MethodSpec.Builder builder = baseSetterForField(field);
-        if (!field.isInherited) {
+        if (field.isLocalField()) {
             builder.addAnnotation(Override.class);
         }
         if (field.optionClass == null) {
@@ -202,24 +240,36 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                                .addParameter(field.type, field.name)
                                                .addJavadoc("Sets the value for " + field.doc)
                                                .returns(className().nestedClass("Builder"));
-        if (field.isInherited) {
+        if (!field.isLocalField()) {
             builder.addAnnotation(Override.class);
         }
         return builder;
     }
 
-    private MethodSpec getterForField(Field field) {
+    private MethodSpec getterForBuilderField(Field field) {
+        return getterForField(field, "builder", false);
+    }
+
+    private MethodSpec getterForDataField(Field field) {
+        return getterForField(field, "config", true);
+    }
+
+    private MethodSpec getterForField(Field field, String fieldName, boolean forDataGetter) {
         MethodSpec.Builder builder = baseGetterForField(field);
-        if (!field.isInherited) {
+        if (!forDataGetter && field.isLocalField()) {
             builder.addAnnotation(Override.class);
+        }
+        if (forDataGetter && field.isLocalField()) {
+            return builder.addStatement("return $L", field.name)
+                          .build();
         }
         if (field.optionClass == null) {
             return builder.addStatement("return $L", field.name)
                           .build();
         }
         if (field.baseType != null) {
-            return builder.addStatement("$T result = builder.option($T.$L)",
-                                        field.baseType, field.optionClass, field.optionName)
+            return builder.addStatement("$T result = $L.option($T.$L)",
+                                        field.baseType, fieldName, field.optionClass, field.optionName)
                           .beginControlFlow("if (result == null)")
                           .addStatement("return null")
                           .endControlFlow()
@@ -227,9 +277,8 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                         Validate.class, field.type,
                                         "Expected an instance of ", field.type)
                           .build();
-
         }
-        return builder.addStatement("return builder.option($T.$L)", field.optionClass, field.optionName)
+        return builder.addStatement("return $L.option($T.$L)", fieldName, field.optionClass, field.optionName)
                       .build();
     }
 
@@ -238,7 +287,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                                .addModifiers(PUBLIC)
                                                .addJavadoc("Gets the value for " + field.doc)
                                                .returns(field.type);
-        if (field.isInherited) {
+        if (!field.isLocalField()) {
             builder.addAnnotation(Override.class);
         }
         return builder;
@@ -251,13 +300,10 @@ public class ServiceClientConfigurationClass implements ClassSpec {
      */
     private List<Field> serviceClientConfigurationFields() {
         List<Field> fields = new ArrayList<>(baseServiceClientConfigurationFields());
-        fields.add(Field.builder()
-                        .name("authSchemeProvider")
-                        .type(authSchemeSpecUtils.providerInterfaceName())
+        fields.add(Field.builder("authSchemeProvider", authSchemeSpecUtils.providerInterfaceName())
                         .doc("auth scheme provider")
                         .optionClass(SdkClientOption.class)
-                        .optionName("AUTH_SCHEME_PROVIDER")
-                        .isInherited(false)
+                        .optionValue(SdkClientOption.AUTH_SCHEME_PROVIDER)
                         .baseType(ClassName.get(AuthSchemeProvider.class))
                         .build());
         return fields;
@@ -265,39 +311,37 @@ public class ServiceClientConfigurationClass implements ClassSpec {
 
     private static List<Field> baseServiceClientConfigurationFields() {
         return Arrays.asList(
-            Field.builder()
+            Field.builder("overrideConfiguration", ClientOverrideConfiguration.class)
                  .doc("client override configuration")
-                 .name("overrideConfiguration")
-                 .type(ClientOverrideConfiguration.class)
-                 .build(),
-            Field.builder()
-                 .doc("AWS region")
-                 .name("region")
-                 .type(Region.class)
-                 .optionClass(AwsClientOption.class)
-                 .optionName("AWS_REGION")
-                 .build(),
-            Field.builder()
-                 .doc("endpoint override")
-                 .name("endpointOverride")
-                 .type(URI.class)
+                 .definingClass(SdkServiceClientConfiguration.class)
                  .optionClass(SdkInternalAdvancedClientOption.class)
-                 .optionName("ENDPOINT_OVERRIDE_VALUE")
+                 .optionValue(SdkInternalAdvancedClientOption.CLIENT_OVERRIDE_CONFIGURATION)
                  .build(),
-            Field.builder()
-                 .name("endpointProvider")
-                 .type(EndpointProvider.class)
+            Field.builder("endpointOverride", URI.class)
+                 .doc("endpoint override")
+                 .definingClass(SdkServiceClientConfiguration.class)
+                 .optionClass(SdkInternalAdvancedClientOption.class)
+                 .optionValue(SdkInternalAdvancedClientOption.ENDPOINT_OVERRIDE_VALUE)
+                 .build(),
+            Field.builder("endpointProvider", EndpointProvider.class)
                  .doc("endpoint provider")
+                 .definingClass(SdkServiceClientConfiguration.class)
                  .optionClass(SdkClientOption.class)
-                 .optionName("ENDPOINT_PROVIDER")
+                 .optionValue(SdkClientOption.ENDPOINT_PROVIDER)
                  .build(),
-            Field.builder()
-                 .name("credentialsProvider")
-                 .type(ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
-                                                 WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class)))
-                 .doc("credentials provider")
+            Field.builder("region", Region.class)
+                 .doc("AWS region")
+                 .definingClass(AwsServiceClientConfiguration.class)
                  .optionClass(AwsClientOption.class)
-                 .optionName("CREDENTIALS_IDENTITY_PROVIDER")
+                 .optionValue(AwsClientOption.AWS_REGION)
+                 .build(),
+            Field.builder("credentialsProvider",
+                          ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
+                                                    WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class)))
+                 .doc("credentials provider")
+                 .definingClass(AwsServiceClientConfiguration.class)
+                 .optionClass(AwsClientOption.class)
+                 .optionValue(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER)
                  .build()
         );
     }
@@ -305,33 +349,50 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     static class Field {
         private final String name;
         private final TypeName type;
+        private final Class<? extends SdkServiceClientConfiguration> definingClass;
         private final Class<? extends ClientOption> optionClass;
         private final String optionName;
         private final String doc;
-        private final boolean isInherited;
         private final TypeName baseType;
 
         Field(Builder builder) {
             this.name = Validate.paramNotNull(builder.name, "name");
             this.type = Validate.paramNotNull(builder.type, "type");
+            this.definingClass = builder.definingClass;
             this.doc = Validate.paramNotNull(builder.doc, "doc");
             this.optionClass = builder.optionClass;
             this.optionName = builder.optionName;
-            this.isInherited = builder.isInherited;
             this.baseType = builder.baseType;
+        }
+
+        public boolean isLocalField() {
+            return definingClass == null;
         }
 
         public static Builder builder() {
             return new Builder();
         }
 
+        public static Builder builder(String name, TypeName type) {
+            return new Builder()
+                .name(name)
+                .type(type);
+        }
+
+        public static Builder builder(String name, Class<?> type) {
+            return new Builder()
+                .name(name)
+                .type(type);
+        }
+
         static class Builder {
             private String name;
             private TypeName type;
             private String doc;
+            private Class<? extends SdkServiceClientConfiguration> definingClass;
             private Class<? extends ClientOption> optionClass;
+            private ClientOption<?> value;
             private String optionName;
-            private boolean isInherited = true;
             private TypeName baseType;
 
             public Field.Builder name(String name) {
@@ -359,13 +420,8 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                 return this;
             }
 
-            public Field.Builder optionName(String optionName) {
-                this.optionName = optionName;
-                return this;
-            }
-
-            public Field.Builder isInherited(boolean isInherited) {
-                this.isInherited = isInherited;
+            public Field.Builder optionValue(ClientOption<?> value) {
+                this.value = value;
                 return this;
             }
 
@@ -374,9 +430,50 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                 return this;
             }
 
+            public Field.Builder definingClass(Class<? extends SdkServiceClientConfiguration> definingClass) {
+                this.definingClass = definingClass;
+                return this;
+            }
+
             public Field build() {
+                if (value != null && optionClass != null) {
+                    optionName = getFieldName(value, optionClass);
+                }
                 return new Field(this);
             }
+        }
+
+        // This method resolves an static reference to its name, for instance, when called with
+        //
+        // getFieldName(AwsClientOption.AWS_REGION, AwsClientOption.class)
+        //
+        // it will return the string "AWS_REGION" that we can use for codegen.
+        // Using the value directly avoid typo bugs and allows the compiler and the IDE to know about this relationship.
+        //
+        // This method uses the fully qualified names in the reflection package to avoid polluting this class imports.
+        // Adapted from https://stackoverflow.com/a/35416606
+        private static String getFieldName(Object fieldObject, Class<?> parent) {
+            java.lang.reflect.Field[] allFields = parent.getFields();
+            for (java.lang.reflect.Field field : allFields) {
+                int modifiers = field.getModifiers();
+                if (!java.lang.reflect.Modifier.isStatic(modifiers)) {
+                    continue;
+                }
+                Object currentFieldObject;
+                try {
+                    // For static fields you can pass a null to get back its value.
+                    currentFieldObject = field.get(null);
+                } catch (Exception e) {
+                    throw new IllegalArgumentException(e);
+                }
+                boolean isWantedField = fieldObject.equals(currentFieldObject);
+                if (isWantedField) {
+                    return field.getName();
+                }
+            }
+            throw new java.util.NoSuchElementException(String.format("cannot find constant %s in class %s",
+                                                                     fieldObject,
+                                                                     parent.getClass().getName()));
         }
     }
 }

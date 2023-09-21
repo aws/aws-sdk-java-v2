@@ -13,11 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal;
+package software.amazon.awssdk.core.client.config.internal;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOption;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 
@@ -26,7 +28,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
  * class <b>are not guaranteed to be backwards compatible</b>.
  */
 @SdkInternalApi
-public class SdkInternalAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
+public class SdkInternalAdvancedClientOption<T> extends ClientOption<T> {
     /**
      * The endpoint override is not currently reflected in the client options. We set its value using this internal option to
      * allow to reconstruct the {@link SdkServiceClientConfiguration} with the same set of values without having to branch on
@@ -35,6 +37,15 @@ public class SdkInternalAdvancedClientOption<T> extends SdkAdvancedClientOption<
     @SdkInternalApi
     public static final SdkInternalAdvancedClientOption<URI> ENDPOINT_OVERRIDE_VALUE =
         new SdkInternalAdvancedClientOption<>(URI.class);
+
+    /**
+     * The client override configuration is not currently reflected in the client options. We set its value using this internal
+     * option to allow to reconstruct the {@link SdkServiceClientConfiguration} with the same set of values without having to
+     * branch on whether the different options are set.
+     */
+    @SdkInternalApi
+    public static final SdkInternalAdvancedClientOption<ClientOverrideConfiguration> CLIENT_OVERRIDE_CONFIGURATION =
+        new SdkInternalAdvancedClientOption<>(ClientOverrideConfiguration.class);
 
     protected SdkInternalAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);

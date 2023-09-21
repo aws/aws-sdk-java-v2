@@ -8,7 +8,8 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.internal.SdkInternalAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
+import software.amazon.awssdk.core.client.config.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -23,15 +24,25 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 public final class JsonProtocolTestsServiceClientConfiguration extends AwsServiceClientConfiguration {
+    private final JsonProtocolTestsAuthSchemeProvider authSchemeProvider;
+
     private JsonProtocolTestsServiceClientConfiguration(Builder builder) {
         super(builder);
+        this.authSchemeProvider = builder.authSchemeProvider();
+    }
+
+    /**
+     * Gets the value for auth scheme provider
+     */
+    public JsonProtocolTestsAuthSchemeProvider authSchemeProvider() {
+        return authSchemeProvider;
     }
 
     public static Builder builder() {
         return new BuilderImpl();
     }
 
-    public static Builder builder(SdkClientConfiguration.Builder builder) {
+    public static BuilderInternal builder(SdkClientConfiguration.Builder builder) {
         return new BuilderImpl(builder);
     }
 
@@ -50,18 +61,6 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
          */
         @Override
         ClientOverrideConfiguration overrideConfiguration();
-
-        /**
-         * Sets the value for AWS region
-         */
-        @Override
-        Builder region(Region region);
-
-        /**
-         * Gets the value for AWS region
-         */
-        @Override
-        Region region();
 
         /**
          * Sets the value for endpoint override
@@ -86,6 +85,18 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
          */
         @Override
         EndpointProvider endpointProvider();
+
+        /**
+         * Sets the value for AWS region
+         */
+        @Override
+        Builder region(Region region);
+
+        /**
+         * Gets the value for AWS region
+         */
+        @Override
+        Region region();
 
         /**
          * Sets the value for credentials provider
@@ -113,10 +124,15 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
         JsonProtocolTestsServiceClientConfiguration build();
     }
 
-    private static final class BuilderImpl implements Builder {
-        private final SdkClientConfiguration.Builder builder;
+    /**
+     * An internal builder for creating a {@link JsonProtocolTestsServiceClientConfiguration}
+     */
+    public interface BuilderInternal extends Builder {
+        SdkClientConfiguration buildSdkClientConfiguration();
+    }
 
-        private ClientOverrideConfiguration overrideConfiguration;
+    private static final class BuilderImpl implements BuilderInternal {
+        private final SdkClientConfiguration.Builder builder;
 
         private BuilderImpl() {
             this.builder = SdkClientConfiguration.builder();
@@ -131,7 +147,7 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
          */
         @Override
         public Builder overrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
-            this.overrideConfiguration = overrideConfiguration;
+            builder.option(SdkInternalAdvancedClientOption.CLIENT_OVERRIDE_CONFIGURATION, overrideConfiguration);
             return this;
         }
 
@@ -140,24 +156,7 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
          */
         @Override
         public ClientOverrideConfiguration overrideConfiguration() {
-            return overrideConfiguration;
-        }
-
-        /**
-         * Sets the value for AWS region
-         */
-        @Override
-        public Builder region(Region region) {
-            builder.option(AwsClientOption.AWS_REGION, region);
-            return this;
-        }
-
-        /**
-         * Gets the value for AWS region
-         */
-        @Override
-        public Region region() {
-            return builder.option(AwsClientOption.AWS_REGION);
+            return builder.option(SdkInternalAdvancedClientOption.CLIENT_OVERRIDE_CONFIGURATION);
         }
 
         /**
@@ -192,6 +191,23 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
         @Override
         public EndpointProvider endpointProvider() {
             return builder.option(SdkClientOption.ENDPOINT_PROVIDER);
+        }
+
+        /**
+         * Sets the value for AWS region
+         */
+        @Override
+        public Builder region(Region region) {
+            builder.option(AwsClientOption.AWS_REGION, region);
+            return this;
+        }
+
+        /**
+         * Gets the value for AWS region
+         */
+        @Override
+        public Region region() {
+            return builder.option(AwsClientOption.AWS_REGION);
         }
 
         /**
@@ -238,9 +254,11 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
             return new JsonProtocolTestsServiceClientConfiguration(this);
         }
 
+        @Override
         public SdkClientConfiguration buildSdkClientConfiguration() {
+            ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
             if (overrideConfiguration != null) {
-                overrideConfiguration.addOverridesToConfiguration(builder);
+                SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, builder);
             }
             return builder.build();
         }

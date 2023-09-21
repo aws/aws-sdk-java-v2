@@ -32,14 +32,11 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -261,49 +258,6 @@ public final class ClientOverrideConfiguration
                        .add("scheduledExecutorService", scheduledExecutorService)
                        .add("compressionConfiguration", compressionConfiguration)
                        .build();
-    }
-
-    /**
-     * Adds the overridden values to the client configuration builder.
-     */
-    public SdkClientConfiguration.Builder addOverridesToConfiguration(SdkClientConfiguration.Builder builder) {
-        // misc
-        builder.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, this.headers());
-        builder.option(SdkClientOption.RETRY_POLICY, this.retryPolicy().orElse(null));
-        builder.option(SdkClientOption.API_CALL_TIMEOUT, this.apiCallTimeout().orElse(null));
-        builder.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT, this.apiCallAttemptTimeout().orElse(null));
-        builder.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE, this.scheduledExecutorService().orElse(null));
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, this.executionInterceptors());
-        builder.option(SdkClientOption.EXECUTION_ATTRIBUTES, this.executionAttributes());
-
-        // advanced option
-        Signer signer = this.advancedOption(SdkAdvancedClientOption.SIGNER).orElse(null);
-        builder.option(SdkAdvancedClientOption.SIGNER, signer);
-        builder.option(SdkClientOption.SIGNER_OVERRIDDEN, signer != null);
-        builder.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX,
-                       this.advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX).orElse(null));
-        builder.option(SdkAdvancedClientOption.USER_AGENT_PREFIX,
-                       this.advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX).orElse(null));
-        builder.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION,
-                       this.advancedOption(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION).orElse(null));
-
-        // profile
-        builder.option(SdkClientOption.PROFILE_FILE_SUPPLIER, this.defaultProfileFile()
-                                                                  .map(ProfileFileSupplier::fixedProfileFile)
-                                                                  .orElse(null));
-        builder.option(SdkClientOption.PROFILE_NAME, this.defaultProfileName().orElse(null));
-
-        // misc
-        builder.option(SdkClientOption.METRIC_PUBLISHERS, this.metricPublishers());
-        builder.option(SdkAdvancedClientOption.TOKEN_SIGNER,
-                       this.advancedOption(SdkAdvancedClientOption.TOKEN_SIGNER).orElse(null));
-        builder.option(SdkClientOption.COMPRESSION_CONFIGURATION, this.compressionConfiguration().orElse(null));
-
-        this.advancedOption(SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
-            builder.option(SdkClientOption.ENDPOINT_OVERRIDDEN, value);
-        });
-
-        return builder;
     }
 
     /**

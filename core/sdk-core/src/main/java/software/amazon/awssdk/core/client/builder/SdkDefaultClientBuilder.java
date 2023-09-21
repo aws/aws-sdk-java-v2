@@ -62,9 +62,10 @@ import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
+import software.amazon.awssdk.core.client.config.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
@@ -215,7 +216,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         if (clientOverrideConfiguration == null) {
             return configuration;
         }
-        return clientOverrideConfiguration.addOverridesToConfiguration(configuration.toBuilder()).build();
+        return SdkClientConfigurationUtil.copyOverridesToConfiguration(clientOverrideConfiguration, configuration.toBuilder())
+                                         .build();
     }
 
     /**
