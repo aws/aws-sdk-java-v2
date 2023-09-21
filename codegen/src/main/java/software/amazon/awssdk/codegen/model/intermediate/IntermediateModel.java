@@ -286,4 +286,14 @@ public final class IntermediateModel {
     public boolean hasWaiters() {
         return waiters.size() > 0;
     }
+
+    public boolean containsRequestSigners() {
+        return getShapes().values().stream()
+                          .anyMatch(ShapeModel::isRequestSignerAware);
+    }
+
+    public boolean containsRequestEventStreams() {
+        return getOperations().values().stream()
+                              .anyMatch(OperationModel::hasEventStreamInput);
+    }
 }
