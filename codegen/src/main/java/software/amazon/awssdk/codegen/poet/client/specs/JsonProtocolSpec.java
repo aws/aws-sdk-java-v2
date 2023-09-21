@@ -142,7 +142,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
             CodeBlock.builder()
                      .add("$T operationMetadata = $T.builder()\n", JsonOperationMetadata.class, JsonOperationMetadata.class)
                      .add(".hasStreamingSuccessResponse($L)\n", opModel.hasStreamingOutput())
-                     .add(".isPayloadJson($L)\n", !opModel.getHasBlobMemberAsPayload())
+                     .add(".isPayloadJson($L)\n", !opModel.getHasBlobMemberAsPayload() && !opModel.getHasStringMemberAsPayload())
                      .add(".build();");
 
         if (opModel.hasEventStreamOutput()) {

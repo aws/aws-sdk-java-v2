@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -182,6 +183,11 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 if (val != null) {
                     request.contentStreamProvider(((SdkBytes) val)::asInputStream);
                 }
+            } else if (isExplicitStringPayload(field)) {
+                if (val != null) {
+                    byte[] content = ((String) val).getBytes(StandardCharsets.UTF_8);
+                    request.contentStreamProvider(() -> new ByteArrayInputStream(content));
+                }
             } else if (isExplicitPayloadMember(field)) {
                 marshallExplicitJsonPayload(field, val);
             } else {
@@ -192,6 +198,10 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
 
     private boolean isExplicitBinaryPayload(SdkField<?> field) {
         return isExplicitPayloadMember(field) && MarshallingType.SDK_BYTES.equals(field.marshallingType());
+    }
+
+    private boolean isExplicitStringPayload(SdkField<?> field) {
+        return isExplicitPayloadMember(field) && MarshallingType.STRING.equals(field.marshallingType());
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
