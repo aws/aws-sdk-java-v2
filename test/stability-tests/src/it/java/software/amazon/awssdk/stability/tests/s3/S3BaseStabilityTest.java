@@ -115,7 +115,7 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
         File randomTempFile = RandomTempFile.randomUncreatedFile();
 
         StabilityTestRunner.newRunner(allowedPeakThreads)
-                .testName("S3AsyncStabilityTest.downloadLargeObjectToFile")
+                .testName("S3StabilityTest.downloadLargeObjectToFile")
             .futures(CompletableFuture.supplyAsync(() -> {
                     testClient.getObject(b -> b.bucket(getTestBucketName())
                                                       .key(LARGEST_KEY_NAME), ResponseTransformer.toFile(randomTempFile));
@@ -140,7 +140,7 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
             try {
                 String md5 = Md5Utils.md5AsBase64(file);
                 StabilityTestRunner.newRunner(allowedPeakThreads)
-                                   .testName("S3AsyncStabilityTest.uploadLargeObjectFromFile")
+                                   .testName("S3StabilityTest.uploadLargeObjectFromFile")
                                    .futures(CompletableFuture.supplyAsync(() -> {
                                        testClient.putObject(b -> b.bucket(getTestBucketName()).key(LARGEST_KEY_NAME), file.toPath());
 
@@ -167,7 +167,7 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
         }, futureThreadPool);
 
         StabilityTestRunner.newRunner(allowedPeakThreads)
-                .testName("S3AsyncStabilityTest.putObject")
+                .testName("S3StabilityTest.putObject")
                 .futureFactory(future)
                 .requestCountPerRun(CONCURRENCY)
                 .totalRuns(TOTAL_RUNS)
@@ -185,7 +185,7 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
         }, futureThreadPool);
 
         StabilityTestRunner.newRunner(allowedPeakThreads)
-                .testName("S3AsyncStabilityTest.getObject")
+                .testName("S3StabilityTest.getObject")
                 .futureFactory(future)
                 .requestCountPerRun(CONCURRENCY)
                 .totalRuns(TOTAL_RUNS)
