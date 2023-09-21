@@ -48,6 +48,7 @@ import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmar
 import software.amazon.awssdk.benchmark.utils.MockServer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 
@@ -59,7 +60,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
+public class CrtHttpClientBenchmark implements SdkHttpClientBenchmark {
 
     private MockServer mockServer;
     private SdkHttpClient sdkHttpClient;
@@ -70,12 +71,12 @@ public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
     public void setup() throws Exception {
         mockServer = new MockServer();
         mockServer.start();
-        sdkHttpClient = ApacheHttpClient.builder()
+        sdkHttpClient = AwsCrtHttpClient.builder()
                                         .buildWithDefaults(trustAllTlsAttributeMapBuilder().build());
         client = ProtocolRestJsonClient.builder()
                                        .endpointOverride(mockServer.getHttpsUri())
-                                       .httpClient(sdkHttpClient)
                                        .region(Region.US_EAST_1)
+                                       .httpClient(sdkHttpClient)
                                        .build();
         executorService = Executors.newFixedThreadPool(CONCURRENT_CALLS);
 
@@ -112,7 +113,7 @@ public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
     public static void main(String... args) throws Exception {
 
         Options opt = new OptionsBuilder()
-            .include(ApacheHttpClientBenchmark.class.getSimpleName() + ".concurrentApiCall")
+            .include(CrtHttpClientBenchmark.class.getSimpleName() + ".concurrentApiCall")
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();

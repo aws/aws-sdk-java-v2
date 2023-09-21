@@ -263,7 +263,6 @@ public final class CrtRequestExecutor {
 
             if (simplePublisher != null) {
                 simplePublisher.complete();
-                inputStreamSubscriber.close();
             }
         }
 

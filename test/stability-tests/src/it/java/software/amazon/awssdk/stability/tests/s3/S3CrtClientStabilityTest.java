@@ -15,28 +15,44 @@
 
 package software.amazon.awssdk.stability.tests.s3;
 
+import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.SystemInfo;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 
 /**
  * Stability tests for {@link S3CrtAsyncClient}
  */
-public class S3CrtAsyncClientStabilityTest extends S3AsyncBaseStabilityTest {
-    private static final String BUCKET_NAME = "s3crtasyncclinetstabilitytests" + System.currentTimeMillis();
-    private static S3AsyncClient s3CrtAsyncClient;
+public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
+    private static final String BUCKET_NAME = "s3crthttpclientstabilitytests" + System.currentTimeMillis();
+
+    private static final int CRT_CLIENT_THREAD_COUNT;
+
+    private static S3Client s3Client;
+
 
     static {
-        s3CrtAsyncClient = S3CrtAsyncClient.builder()
-                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                           .build();
+        s3Client = S3Client.builder()
+                           .httpClientBuilder(AwsCrtHttpClient.builder()
+                                                  .maxConcurrency(CONCURRENCY))
+                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                           .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10)))
+                           .build();
+
+        // The underlying client has a thread per processor in its default configuration along with a DNS resolver thread.
+        CRT_CLIENT_THREAD_COUNT = SystemInfo.getProcessorCount() + 1;
     }
 
-    public S3CrtAsyncClientStabilityTest() {
-        super(s3CrtAsyncClient);
+    public S3CrtClientStabilityTest() {
+        super(s3Client, CRT_CLIENT_THREAD_COUNT);
     }
 
     @BeforeAll
@@ -54,7 +70,7 @@ public class S3CrtAsyncClientStabilityTest extends S3AsyncBaseStabilityTest {
                                      .build()) {
             deleteBucketAndAllContents(s3NettyClient, BUCKET_NAME);
         }
-        s3CrtAsyncClient.close();
+        s3Client.close();
         s3ApacheClient.close();
         CrtResource.waitForNoResources();
     }
