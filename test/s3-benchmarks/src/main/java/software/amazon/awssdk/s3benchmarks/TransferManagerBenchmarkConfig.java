@@ -17,6 +17,7 @@ package software.amazon.awssdk.s3benchmarks;
 
 import java.time.Duration;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
+import software.amazon.awssdk.utils.ToString;
 
 public final class TransferManagerBenchmarkConfig {
     private final String filePath;
@@ -28,6 +29,10 @@ public final class TransferManagerBenchmarkConfig {
     private final Integer iteration;
     private final Long contentLengthInMb;
     private final Duration timeout;
+    private final Long memoryUsageInMb;
+    private final Long connectionAcquisitionTimeoutInSec;
+    private final Boolean forceCrtHttpClient;
+    private final Integer maxConcurrency;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -46,6 +51,10 @@ public final class TransferManagerBenchmarkConfig {
         this.prefix = builder.prefix;
         this.contentLengthInMb = builder.contentLengthInMb;
         this.timeout = builder.timeout;
+        this.memoryUsageInMb = builder.memoryUsage;
+        this.connectionAcquisitionTimeoutInSec = builder.connectionAcquisitionTimeoutInSec;
+        this.forceCrtHttpClient = builder.forceCrtHttpClient;
+        this.maxConcurrency = builder.maxConcurrency;
     }
 
     public String filePath() {
@@ -96,25 +105,46 @@ public final class TransferManagerBenchmarkConfig {
         return this.timeout;
     }
 
+    public Long memoryUsageInMb() {
+        return this.memoryUsageInMb;
+    }
+
+    public Long connectionAcquisitionTimeoutInSec() {
+        return this.connectionAcquisitionTimeoutInSec;
+    }
+
+    public boolean forceCrtHttpClient() {
+        return this.forceCrtHttpClient;
+    }
+
+    public Integer maxConcurrency() {
+        return this.maxConcurrency;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
 
     @Override
     public String toString() {
-        return "{" +
-               "filePath: '" + filePath + '\'' +
-               ", bucket: '" + bucket + '\'' +
-               ", key: '" + key + '\'' +
-               ", targetThroughput: " + targetThroughput +
-               ", partSizeInMb: " + partSizeInMb +
-               ", checksumAlgorithm: " + checksumAlgorithm +
-               ", iteration: " + iteration +
-               ", readBufferSizeInMb: " + readBufferSizeInMb +
-               ", operation: " + operation +
-               ", contentLengthInMb: " + contentLengthInMb +
-               ", timeout:" + timeout +
-               '}';
+        return ToString.builder("TransferManagerBenchmarkConfig")
+                       .add("filePath", filePath)
+                       .add("bucket", bucket)
+                       .add("key", key)
+                       .add("targetThroughput", targetThroughput)
+                       .add("partSizeInMb", partSizeInMb)
+                       .add("checksumAlgorithm", checksumAlgorithm)
+                       .add("iteration", iteration)
+                       .add("contentLengthInMb", contentLengthInMb)
+                       .add("timeout", timeout)
+                       .add("memoryUsageInMb", memoryUsageInMb)
+                       .add("connectionAcquisitionTimeoutInSec", connectionAcquisitionTimeoutInSec)
+                       .add("forceCrtHttpClient", forceCrtHttpClient)
+                       .add("maxConcurrency", maxConcurrency)
+                       .add("readBufferSizeInMb", readBufferSizeInMb)
+                       .add("operation", operation)
+                       .add("prefix", prefix)
+                       .build();
     }
 
     static final class Builder {
@@ -126,6 +156,10 @@ public final class TransferManagerBenchmarkConfig {
         private Double targetThroughput;
         private Long partSizeInMb;
         private Long contentLengthInMb;
+        private Long memoryUsage;
+        private Long connectionAcquisitionTimeoutInSec;
+        private Boolean forceCrtHttpClient;
+        private Integer maxConcurrency;
 
         private Integer iteration;
         private BenchmarkRunner.TransferManagerOperation operation;
@@ -190,6 +224,26 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder timeout(Duration timeout) {
             this.timeout = timeout;
+            return this;
+        }
+
+        public Builder memoryUsageInMb(Long memoryUsage) {
+            this.memoryUsage = memoryUsage;
+            return this;
+        }
+
+        public Builder connectionAcquisitionTimeoutInSec(Long connectionAcquisitionTimeoutInSec) {
+            this.connectionAcquisitionTimeoutInSec = connectionAcquisitionTimeoutInSec;
+            return this;
+        }
+
+        public Builder forceCrtHttpClient(Boolean forceCrtHttpClient) {
+            this.forceCrtHttpClient = forceCrtHttpClient;
+            return this;
+        }
+
+        public Builder maxConcurrency(Integer maxConcurrency) {
+            this.maxConcurrency = maxConcurrency;
             return this;
         }
 

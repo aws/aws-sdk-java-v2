@@ -20,8 +20,8 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.CONTENT_SHA_256_F
 import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
 import static software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE;
-import static software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength;
-import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumContentLength;
+import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumTrailerLength;
+import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateStreamContentLength;
 import static software.amazon.awssdk.core.internal.util.HttpChecksumResolver.getResolvedChecksumSpecs;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
@@ -179,7 +179,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             }
         }
 
-        long checksumContentLength = calculateChecksumContentLength(checksumSpecs.algorithm(), checksumSpecs.headerName());
+        long checksumContentLength = calculateChecksumTrailerLength(checksumSpecs.algorithm(), checksumSpecs.headerName());
         long contentLen = checksumContentLength + calculateStreamContentLength(originalContentLength, chunkSize);
 
         request.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksumSpecs.headerName())

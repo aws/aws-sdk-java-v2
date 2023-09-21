@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -87,7 +88,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
                                                                .build();
 
 
-        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(Path.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
 
         CompletedFileUpload completedFileUpload = tm.resumeUploadFile(r -> r.fileLength(fileLength)
@@ -112,7 +113,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
                                                                .build();
 
 
-        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(Path.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
 
         when(mockS3Crt.abortMultipartUpload(any(AbortMultipartUploadRequest.class)))
@@ -151,8 +152,9 @@ class S3TransferManagerUploadPauseAndResumeTest {
                                                                .build();
 
 
-        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(Path.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
+
 
         String multipartId = "someId";
         long totalParts = 10L;
@@ -169,7 +171,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
 
         ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor =
             ArgumentCaptor.forClass(PutObjectRequest.class);
-        verify(mockS3Crt).putObject(putObjectRequestArgumentCaptor.capture(), any(AsyncRequestBody.class));
+       verify(mockS3Crt).putObject(putObjectRequestArgumentCaptor.capture(), any(Path.class));
         PutObjectRequest actualRequest = putObjectRequestArgumentCaptor.getValue();
         AwsRequestOverrideConfiguration awsRequestOverrideConfiguration = actualRequest.overrideConfiguration().get();
         SdkHttpExecutionAttributes attribute =
@@ -185,7 +187,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
     private void verifyActualPutObjectRequestNotResumed() {
         ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor =
             ArgumentCaptor.forClass(PutObjectRequest.class);
-        verify(mockS3Crt).putObject(putObjectRequestArgumentCaptor.capture(), any(AsyncRequestBody.class));
+        verify(mockS3Crt).putObject(putObjectRequestArgumentCaptor.capture(), any(Path.class));
         PutObjectRequest actualRequest = putObjectRequestArgumentCaptor.getValue();
         AwsRequestOverrideConfiguration awsRequestOverrideConfiguration = actualRequest.overrideConfiguration().get();
         SdkHttpExecutionAttributes attribute =

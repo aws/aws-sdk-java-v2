@@ -841,6 +841,42 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "chadlwilson",
+      "name": "Chad Wilson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29788154?v=4",
+      "profile": "https://www.buymeacoffee.com/chadwilson",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ManishDait",
+      "name": "Manish Dait",
+      "avatar_url": "https://avatars.githubusercontent.com/u/90558243?v=4",
+      "profile": "https://github.com/ManishDait",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "deki",
+      "name": "Dennis Kieselhorst",
+      "avatar_url": "https://avatars.githubusercontent.com/u/858827?v=4",
+      "profile": "http://www.dekies.de",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "psnilesh",
+      "name": "Nilesh PS",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12656997?v=4",
+      "profile": "https://github.com/psnilesh",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

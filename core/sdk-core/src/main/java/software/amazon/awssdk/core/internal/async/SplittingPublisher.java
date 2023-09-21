@@ -24,6 +24,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
@@ -41,18 +42,24 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 @SdkInternalApi
 public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
     private static final Logger log = Logger.loggerFor(SplittingPublisher.class);
-    private static final long DEFAULT_CHUNK_SIZE = 2 * 1024 * 1024L;
-    private static final long DEFAULT_BUFFER_SIZE = DEFAULT_CHUNK_SIZE * 4;
     private final AsyncRequestBody upstreamPublisher;
     private final SplittingSubscriber splittingSubscriber;
     private final SimplePublisher<AsyncRequestBody> downstreamPublisher = new SimplePublisher<>();
     private final long chunkSizeInBytes;
     private final long bufferSizeInBytes;
 
-    private SplittingPublisher(Builder builder) {
-        this.upstreamPublisher = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
-        this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
-        this.bufferSizeInBytes = builder.bufferSizeInBytes == null ? DEFAULT_BUFFER_SIZE : builder.bufferSizeInBytes;
+    public SplittingPublisher(AsyncRequestBody asyncRequestBody,
+                              AsyncRequestBodySplitConfiguration splitConfiguration) {
+        this.upstreamPublisher = Validate.paramNotNull(asyncRequestBody, "asyncRequestBody");
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        this.chunkSizeInBytes = splitConfiguration.chunkSizeInBytes() == null ?
+                                AsyncRequestBodySplitConfiguration.defaultConfiguration().chunkSizeInBytes() :
+                                splitConfiguration.chunkSizeInBytes();
+
+        this.bufferSizeInBytes = splitConfiguration.bufferSizeInBytes() == null ?
+                                 AsyncRequestBodySplitConfiguration.defaultConfiguration().bufferSizeInBytes() :
+                                 splitConfiguration.bufferSizeInBytes();
+
         this.splittingSubscriber = new SplittingSubscriber(upstreamPublisher.contentLength().orElse(null));
 
         if (!upstreamPublisher.contentLength().isPresent()) {
@@ -60,10 +67,6 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
                             "bufferSizeInBytes must be larger than or equal to " +
                             "chunkSizeInBytes if the content length is unknown");
         }
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     @Override
@@ -301,31 +304,6 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
                     maybeRequestMoreUpstreamData();
                 }
             }
-        }
-    }
-
-    public static final class Builder {
-        private AsyncRequestBody asyncRequestBody;
-        private Long chunkSizeInBytes;
-        private Long bufferSizeInBytes;
-
-        public Builder asyncRequestBody(AsyncRequestBody asyncRequestBody) {
-            this.asyncRequestBody = asyncRequestBody;
-            return this;
-        }
-
-        public Builder chunkSizeInBytes(Long chunkSizeInBytes) {
-            this.chunkSizeInBytes = chunkSizeInBytes;
-            return this;
-        }
-
-        public Builder bufferSizeInBytes(Long bufferSizeInBytes) {
-            this.bufferSizeInBytes = bufferSizeInBytes;
-            return this;
-        }
-
-        public SplittingPublisher build() {
-            return new SplittingPublisher(this);
         }
     }
 }

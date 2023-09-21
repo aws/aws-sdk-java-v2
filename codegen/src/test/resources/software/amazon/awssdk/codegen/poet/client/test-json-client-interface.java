@@ -27,6 +27,8 @@ import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.json.model.OperationWithRequestCompressionRequest;
+import software.amazon.awssdk.services.json.model.OperationWithRequestCompressionResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -98,7 +100,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param aPostOperationRequest
-     *        A {@link Consumer} that will call methods on {@link APostOperationRequest.Builder} to create a request.
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.APostOperationRequest.Builder} to create a request.
      * @return Result of the APostOperation operation returned by the service.
      * @throws InvalidInputException
      *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
@@ -158,7 +161,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param aPostOperationWithOutputRequest
-     *        A {@link Consumer} that will call methods on {@link APostOperationWithOutputRequest.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest.Builder} to create a
      *        request.
      * @return Result of the APostOperationWithOutput operation returned by the service.
      * @throws InvalidInputException
@@ -210,8 +214,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param bearerAuthOperationRequest
-     *        A {@link Consumer} that will call methods on {@link BearerAuthOperationRequest.Builder} to create a
-     *        request.
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.BearerAuthOperationRequest.Builder} to create a request.
      * @return Result of the BearerAuthOperation operation returned by the service.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
@@ -260,7 +264,9 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param getOperationWithChecksumRequest
-     *        A {@link Consumer} that will call methods on {@link ChecksumStructure.Builder} to create a request.
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.GetOperationWithChecksumRequest.Builder} to create a
+     *        request.
      * @return Result of the GetOperationWithChecksum operation returned by the service.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
@@ -317,7 +323,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param getWithoutRequiredMembersRequest
-     *        A {@link Consumer} that will call methods on {@link GetWithoutRequiredMembersRequest.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest.Builder} to create a
      *        request.
      * @return Result of the GetWithoutRequiredMembers operation returned by the service.
      * @throws InvalidInputException
@@ -370,8 +377,9 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param operationWithChecksumRequiredRequest
-     *        A {@link Consumer} that will call methods on {@link OperationWithChecksumRequiredRequest.Builder} to
-     *        create a request.
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest.Builder} to create
+     *        a request.
      * @return Result of the OperationWithChecksumRequired operation returned by the service.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
@@ -389,6 +397,58 @@ public interface JsonClient extends AwsClient {
         throws AwsServiceException, SdkClientException, JsonException {
         return operationWithChecksumRequired(OperationWithChecksumRequiredRequest.builder()
                                                                                  .applyMutation(operationWithChecksumRequiredRequest).build());
+    }
+
+    /**
+     * Invokes the OperationWithRequestCompression operation.
+     *
+     * @param operationWithRequestCompressionRequest
+     * @return Result of the OperationWithRequestCompression operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.OperationWithRequestCompression
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithRequestCompression"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default OperationWithRequestCompressionResponse operationWithRequestCompression(
+        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
+                                                                                              SdkClientException, JsonException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the OperationWithRequestCompression operation.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link OperationWithRequestCompressionRequest.Builder}
+     * avoiding the need to create one manually via {@link OperationWithRequestCompressionRequest#builder()}
+     * </p>
+     *
+     * @param operationWithRequestCompressionRequest
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.OperationWithRequestCompressionRequest.Builder} to
+     *        create a request.
+     * @return Result of the OperationWithRequestCompression operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.OperationWithRequestCompression
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithRequestCompression"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default OperationWithRequestCompressionResponse operationWithRequestCompression(
+        Consumer<OperationWithRequestCompressionRequest.Builder> operationWithRequestCompressionRequest)
+        throws AwsServiceException, SdkClientException, JsonException {
+        return operationWithRequestCompression(OperationWithRequestCompressionRequest.builder()
+                                                                                     .applyMutation(operationWithRequestCompressionRequest).build());
     }
 
     /**
@@ -421,7 +481,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param paginatedOperationWithResultKeyRequest
-     *        A {@link Consumer} that will call methods on {@link PaginatedOperationWithResultKeyRequest.Builder} to
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest.Builder} to
      *        create a request.
      * @return Result of the PaginatedOperationWithResultKey operation returned by the service.
      * @throws SdkException
@@ -679,7 +740,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param paginatedOperationWithResultKeyRequest
-     *        A {@link Consumer} that will call methods on {@link PaginatedOperationWithResultKeyRequest.Builder} to
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest.Builder} to
      *        create a request.
      * @return A custom iterable that can be used to iterate through all the response pages.
      * @throws SdkException
@@ -730,7 +792,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param paginatedOperationWithoutResultKeyRequest
-     *        A {@link Consumer} that will call methods on {@link PaginatedOperationWithoutResultKeyRequest.Builder} to
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest.Builder} to
      *        create a request.
      * @return Result of the PaginatedOperationWithoutResultKey operation returned by the service.
      * @throws SdkException
@@ -891,7 +954,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param paginatedOperationWithoutResultKeyRequest
-     *        A {@link Consumer} that will call methods on {@link PaginatedOperationWithoutResultKeyRequest.Builder} to
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest.Builder} to
      *        create a request.
      * @return A custom iterable that can be used to iterate through all the response pages.
      * @throws SdkException
@@ -968,7 +1032,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param putOperationWithChecksumRequest
-     *        A {@link Consumer} that will call methods on {@link ChecksumStructureWithStreaming.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.PutOperationWithChecksumRequest.Builder} to create a
      *        request.
      * @param requestBody
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
@@ -1066,7 +1131,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param putOperationWithChecksumRequest
-     *        A {@link Consumer} that will call methods on {@link ChecksumStructureWithStreaming.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.PutOperationWithChecksumRequest.Builder} to create a
      *        request.
      * @param sourcePath
      *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
@@ -1147,7 +1213,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param streamingInputOperationRequest
-     *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.StreamingInputOperationRequest.Builder} to create a
      *        request.
      * @param requestBody
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
@@ -1215,7 +1282,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param streamingInputOperationRequest
-     *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.StreamingInputOperationRequest.Builder} to create a
      *        request.
      * @param sourcePath
      *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
@@ -1291,8 +1359,9 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param streamingInputOutputOperationRequest
-     *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
-     *        request.
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.StreamingInputOutputOperationRequest.Builder} to create
+     *        a request.
      * @param requestBody
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
@@ -1374,8 +1443,9 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param streamingInputOutputOperationRequest
-     *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
-     *        request.
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.StreamingInputOutputOperationRequest.Builder} to create
+     *        a request.
      * @param sourcePath
      *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
      *        multiple times in the event of a retry. If the file does not exist or the current user does not have
@@ -1444,7 +1514,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param streamingOutputOperationRequest
-     *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest.Builder} to create a
      *        request.
      * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
@@ -1508,7 +1579,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param streamingOutputOperationRequest
-     *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest.Builder} to create a
      *        request.
      * @param destinationPath
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
@@ -1570,7 +1642,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param streamingOutputOperationRequest
-     *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest.Builder} to create a
      *        request.
      * @return A {@link ResponseInputStream} containing data streamed from service. Note that this is an unmanaged
      *         reference to the underlying HTTP connection so great care must be taken to ensure all data if fully read
@@ -1631,7 +1704,8 @@ public interface JsonClient extends AwsClient {
      * </p>
      *
      * @param streamingOutputOperationRequest
-     *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
+     *        A {@link Consumer} that will call methods on
+     *        {@link software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest.Builder} to create a
      *        request.
      * @return A {@link ResponseBytes} that loads the data streamed from the service into memory and exposes it in
      *         convenient in-memory representations like a byte buffer or string. The unmarshalled response object can

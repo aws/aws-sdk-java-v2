@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -116,7 +117,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(".withMetricCollector(apiCallMetricCollector)")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel))
-                     .add(NoneAuthTypeRequestTrait.create(opModel));
+                     .add(NoneAuthTypeRequestTrait.create(opModel))
+                     .add(RequestCompressionTrait.create(opModel, intermediateModel));
 
 
         if (opModel.hasStreamingInput()) {
@@ -151,7 +153,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(".withMetricCollector(apiCallMetricCollector)\n")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel))
-                     .add(NoneAuthTypeRequestTrait.create(opModel));
+                     .add(NoneAuthTypeRequestTrait.create(opModel))
+                     .add(RequestCompressionTrait.create(opModel, intermediateModel));
 
 
         builder.add(hostPrefixExpression(opModel) + asyncRequestBody + ".withInput($L)$L);",

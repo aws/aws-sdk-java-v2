@@ -51,8 +51,8 @@ public abstract class RequestOverrideConfiguration {
     private final Signer signer;
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
-
     private final EndpointProvider endpointProvider;
+    private final CompressionConfiguration compressionConfiguration;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -64,6 +64,7 @@ public abstract class RequestOverrideConfiguration {
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
         this.endpointProvider = builder.endpointProvider();
+        this.compressionConfiguration = builder.compressionConfiguration();
     }
 
     /**
@@ -165,6 +166,15 @@ public abstract class RequestOverrideConfiguration {
         return Optional.ofNullable(endpointProvider);
     }
 
+    /**
+     * Returns the compression configuration object, if present, which includes options to enable/disable compression and set
+     * the minimum compression threshold. This compression config object supersedes the compression config object set on the
+     * client.
+     */
+    public Optional<CompressionConfiguration> compressionConfiguration() {
+        return Optional.ofNullable(compressionConfiguration);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -182,7 +192,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(signer, that.signer) &&
                Objects.equals(metricPublishers, that.metricPublishers) &&
                Objects.equals(executionAttributes, that.executionAttributes) &&
-               Objects.equals(endpointProvider, that.endpointProvider);
+               Objects.equals(endpointProvider, that.endpointProvider) &&
+               Objects.equals(compressionConfiguration, that.compressionConfiguration);
     }
 
     @Override
@@ -197,6 +208,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
         hashCode = 31 * hashCode + Objects.hashCode(executionAttributes);
         hashCode = 31 * hashCode + Objects.hashCode(endpointProvider);
+        hashCode = 31 * hashCode + Objects.hashCode(compressionConfiguration);
         return hashCode;
     }
 
@@ -439,6 +451,26 @@ public abstract class RequestOverrideConfiguration {
         EndpointProvider endpointProvider();
 
         /**
+         * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest,
+         * for this setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
+         *
+         * @param compressionConfiguration Request compression configuration object for this request.
+         */
+        B compressionConfiguration(CompressionConfiguration compressionConfiguration);
+
+        /**
+         * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest,
+         * for this setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
+         *
+         * @param compressionConfigurationConsumer A {@link Consumer} that accepts a {@link CompressionConfiguration.Builder}
+         *
+         * @return This object for method chaining
+         */
+        B compressionConfiguration(Consumer<CompressionConfiguration.Builder> compressionConfigurationConsumer);
+
+        CompressionConfiguration compressionConfiguration();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -455,9 +487,8 @@ public abstract class RequestOverrideConfiguration {
         private Signer signer;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
-
         private EndpointProvider endpointProvider;
-
+        private CompressionConfiguration compressionConfiguration;
 
         protected BuilderImpl() {
         }
@@ -472,6 +503,7 @@ public abstract class RequestOverrideConfiguration {
             metricPublishers(sdkRequestOverrideConfig.metricPublishers());
             executionAttributes(sdkRequestOverrideConfig.executionAttributes());
             endpointProvider(sdkRequestOverrideConfig.endpointProvider);
+            compressionConfiguration(sdkRequestOverrideConfig.compressionConfiguration);
         }
 
         @Override
@@ -626,7 +658,6 @@ public abstract class RequestOverrideConfiguration {
             executionAttributes(executionAttributes);
         }
 
-
         @Override
         public B endpointProvider(EndpointProvider endpointProvider) {
             this.endpointProvider = endpointProvider;
@@ -640,6 +671,25 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public EndpointProvider endpointProvider() {
             return endpointProvider;
+        }
+
+        @Override
+        public B compressionConfiguration(CompressionConfiguration compressionConfiguration) {
+            this.compressionConfiguration = compressionConfiguration;
+            return (B) this;
+        }
+
+        @Override
+        public B compressionConfiguration(Consumer<CompressionConfiguration.Builder> compressionConfigurationConsumer) {
+            CompressionConfiguration.Builder b = CompressionConfiguration.builder();
+            compressionConfigurationConsumer.accept(b);
+            compressionConfiguration(b.build());
+            return (B) this;
+        }
+
+        @Override
+        public CompressionConfiguration compressionConfiguration() {
+            return compressionConfiguration;
         }
     }
 }

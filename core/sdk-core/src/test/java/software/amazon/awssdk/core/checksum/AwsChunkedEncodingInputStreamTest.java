@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.checksum;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumTrailerLength;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream;
+import software.amazon.awssdk.core.internal.util.ChunkContentUtils;
 
 public class AwsChunkedEncodingInputStreamTest {
 
@@ -55,10 +57,9 @@ public class AwsChunkedEncodingInputStreamTest {
     public void lengthsOfCalculateByChecksumCalculatingInputStream(){
 
         String initialString = "Hello world";
-        long calculateChunkLength = AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength(initialString.length(),
-                                                                                                       AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE);
-        long checksumContentLength = AwsUnsignedChunkedEncodingInputStream.calculateChecksumContentLength(
-                SHA256_ALGORITHM, SHA256_HEADER_NAME);
+        long calculateChunkLength = ChunkContentUtils.calculateStreamContentLength(initialString.length(),
+                                                                                   AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE);
+        long checksumContentLength = calculateChecksumTrailerLength(SHA256_ALGORITHM, SHA256_HEADER_NAME);
         assertThat(calculateChunkLength).isEqualTo(19);
         assertThat(checksumContentLength).isEqualTo(71);
     }

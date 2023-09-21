@@ -38,6 +38,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -61,6 +62,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
+import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -97,7 +99,12 @@ public class UploadObjectHelperTest {
     @BeforeEach
     public void beforeEach() {
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        uploadHelper = new UploadObjectHelper(s3AsyncClient, PART_SIZE, THRESHOLD, PART_SIZE * 2);
+        uploadHelper = new UploadObjectHelper(s3AsyncClient,
+                                              new MultipartConfigurationResolver(MultipartConfiguration.builder()
+                                                                                                       .minimumPartSizeInBytes(PART_SIZE)
+                                                                                                       .thresholdInBytes(THRESHOLD)
+                                                                                                       .thresholdInBytes(PART_SIZE * 2)
+                                                                                                       .build()));
     }
 
     @ParameterizedTest
@@ -187,7 +194,8 @@ public class UploadObjectHelperTest {
         CompletableFuture<PutObjectResponse> future = uploadHelper.uploadObject(putObjectRequest,
                                                                                 asyncRequestBody);
 
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart upload requests").hasRootCause(exception);
+        assertThatThrownBy(() -> future.get(100, TimeUnit.MILLISECONDS))
+            .hasStackTraceContaining("Failed to send multipart upload requests").hasCause(exception);
 
         verify(s3AsyncClient, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
 
@@ -197,10 +205,10 @@ public class UploadObjectHelperTest {
         assertThat(actualRequest.uploadId()).isEqualTo(UPLOAD_ID);
 
         try {
-            ongoingRequest.get(1, TimeUnit.MILLISECONDS);
+            ongoingRequest.get(100, TimeUnit.MILLISECONDS);
             fail("no exception thrown");
         } catch (Exception e) {
-            assertThat(e.getCause()).hasMessageContaining("Failed to send multipart upload requests").hasRootCause(exception);
+            assertThat(e.getCause()).isEqualTo(exception);
         }
     }
 
@@ -241,9 +249,17 @@ public class UploadObjectHelperTest {
         CompletableFuture<PutObjectResponse> future =
             uploadHelper.uploadObject(putObjectRequest, AsyncRequestBody.fromFile(testFile));
 
+        when(s3AsyncClient.abortMultipartUpload(any(AbortMultipartUploadRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(AbortMultipartUploadResponse.builder().build()));
+
         future.cancel(true);
 
-        assertThat(ongoingRequest).isCancelled();
+        try {
+            ongoingRequest.join();
+            fail("no exception");
+        } catch (Exception exception) {
+            assertThat(ongoingRequest).isCancelled();
+        }
     }
 
     @ParameterizedTest
@@ -261,8 +277,8 @@ public class UploadObjectHelperTest {
 
         CompletableFuture<PutObjectResponse> future = uploadHelper.uploadObject(putObjectRequest,
                                                                                 asyncRequestBody);
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to initiate multipart upload")
-                                        .hasRootCause(exception);
+        assertThatThrownBy(future::join).hasStackTraceContaining("Failed to initiate multipart upload")
+                                        .hasCause(exception);
     }
 
     @ParameterizedTest
@@ -286,8 +302,8 @@ public class UploadObjectHelperTest {
 
         CompletableFuture<PutObjectResponse> future = uploadHelper.uploadObject(putObjectRequest,
                                                                                 asyncRequestBody);
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart requests")
-                                        .hasRootCause(exception);
+        assertThatThrownBy(future::join).hasCause(exception)
+                                        .hasStackTraceContaining("Failed to send multipart requests");
     }
 
     @ParameterizedTest()

@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.20.126-SNAPSHOT</version>
+        <version>2.20.153-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>bom</artifactId>
@@ -165,6 +165,11 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>aws-crt-client</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>auth-crt</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
@@ -1936,6 +1941,16 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>managedblockchainquery</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>pcaconnectorad</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>neptunedata</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
         </dependencies>

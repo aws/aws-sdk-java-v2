@@ -58,13 +58,6 @@ public class PoetClientFunctionalTests {
     }
 
     @Test
-    public void simpleMethodsIntegClass() throws Exception {
-        ClientSimpleMethodsIntegrationTests simpleMethodsClass = new ClientSimpleMethodsIntegrationTests(
-            ClientTestModels.restJsonServiceModels());
-        assertThat(simpleMethodsClass, generatesTo("test-simple-methods-integ-class.java"));
-    }
-
-    @Test
     public void syncClientClassRestJson() throws Exception {
         SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(syncClientClass, generatesTo("test-json-client-class.java"));

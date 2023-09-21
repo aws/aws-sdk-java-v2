@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.io;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
@@ -38,48 +37,6 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * Calculates the content length for a given Algorithm and header name.
-     *
-     * @param algorithm  Algorithm used.
-     * @param headerName Header name.
-     * @return Content length of the trailer that will be appended at the end.
-     */
-    public static long calculateChecksumContentLength(Algorithm algorithm, String headerName) {
-        return headerName.length()
-               + HEADER_COLON_SEPARATOR.length()
-               + algorithm.base64EncodedLength().longValue()
-               + CRLF.length() + CRLF.length();
-    }
-
-    /**
-     *
-     * @param originalContentLength Original Content length.
-     * @return Calculatec Chunk Length with the chunk encoding format.
-     */
-    private static long calculateChunkLength(long originalContentLength) {
-        return Long.toHexString(originalContentLength).length()
-                + CRLF.length()
-                + originalContentLength
-                + CRLF.length();
-    }
-
-    public static long calculateStreamContentLength(long originalLength, long defaultChunkSize) {
-        if (originalLength < 0 || defaultChunkSize == 0) {
-            throw new IllegalArgumentException(originalLength + ", " + defaultChunkSize + "Args <= 0 not expected");
-        }
-
-        long maxSizeChunks = originalLength / defaultChunkSize;
-        long remainingBytes = originalLength % defaultChunkSize;
-
-        long allChunks = maxSizeChunks * calculateChunkLength(defaultChunkSize);
-        long remainingInChunk = remainingBytes > 0 ? calculateChunkLength(remainingBytes) : 0;
-        // last byte is composed of a "0" and "\r\n"
-        long lastByteSize = 1 + (long) CRLF.length();
-
-        return allChunks +  remainingInChunk + lastByteSize;
     }
 
     @Override

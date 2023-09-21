@@ -131,6 +131,15 @@
       "input":{"shape":"OperationWithExplicitPayloadBlobInput"},
       "output":{"shape":"OperationWithExplicitPayloadBlobInput"}
     },
+    "OperationWithExplicitPayloadString":{
+      "name":"OperationWithExplicitPayloadString",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/operationWithExplicitPayloadString"
+      },
+      "input":{"shape":"OperationWithExplicitPayloadStringInput"},
+      "output":{"shape":"OperationWithExplicitPayloadStringInput"}
+    },
     "OperationWithExplicitPayloadStructure":{
       "name":"OperationWithExplicitPayloadStructure",
       "http":{
@@ -212,6 +221,19 @@
       },
       "input": {
         "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
+    },
+    "EventStreamStringPayloadOperation": {
+      "name": "EventStreamStringPayloadOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamStringPayloadOperation"
+      },
+      "input": {
+        "shape": "EventStreamStringPayloadOperationRequest"
       },
       "output": {
         "shape": "EventStreamOutput"
@@ -669,6 +691,13 @@
       },
       "payload":"PayloadMember"
     },
+    "OperationWithExplicitPayloadStringInput":{
+      "type":"structure",
+      "members":{
+        "PayloadMember":{"shape":"String"}
+      },
+      "payload":"PayloadMember"
+    },
     "OperationWithExplicitPayloadStructureInput":{
       "type":"structure",
       "members":{
@@ -815,6 +844,18 @@
       },
       "payload":"InputEventStream"
     },
+    "EventStreamStringPayloadOperationRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStream"
+      ],
+      "members": {
+        "InputEventStreamStringPayload": {
+          "shape": "InputEventStreamStringPayload"
+        }
+      },
+      "payload":"InputEventStreamStringPayload"
+    },
     "EventStreamOutput": {
       "type": "structure",
       "required": [
@@ -835,11 +876,34 @@
       },
       "eventstream": true
     },
+    "InputEventStreamStringPayload": {
+      "type": "structure",
+      "members": {
+        "InputEvent": {
+          "shape": "InputEventStringPayload"
+        }
+      },
+      "eventstream": true
+    },
     "InputEvent": {
       "type": "structure",
       "members": {
         "ExplicitPayloadMember": {
           "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        },
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "InputEventStringPayload": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadStringMember": {
+          "shape":"String",
           "eventpayload":true
         },
         "HeaderMember": {

@@ -93,13 +93,19 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     public interface Builder extends CopyableBuilder<Builder, MultipartConfiguration> {
 
         /**
-         * Configures the minimum number of bytes of the body of the request required for requests to be converted to their
-         * multipart equivalent. Only taken into account when converting {@code putObject} and {@code copyObject} requests.
-         * Any request whose size is less than the  configured value will not use multipart operation,
-         * even if multipart is enabled via {@link S3AsyncClientBuilder#multipartEnabled(Boolean)}.
-         * <p>
+         * Configure the size threshold, in bytes, for when to use multipart upload. Uploads/copies over this size will
+         * automatically use a multipart upload strategy, while uploads/copies smaller than this threshold will use a single
+         * connection to upload/copy the whole object.
          *
-         * Default value: 8 Mib
+         * <p>
+         * Multipart uploads are easier to recover from and also potentially faster than single part uploads, especially when the
+         * upload parts can be uploaded in parallel. Because there are additional network API calls, small objects are still
+         * recommended to use a single connection for the upload. See
+         * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html">Uploading and copying objects using
+         * multipart upload</a>.
+         *
+         * <p>
+         * By default, it is the same as {@link #minimumPartSizeInBytes(Long)}.
          *
          * @param thresholdInBytes the value of the threshold to set.
          * @return an instance of this builder.

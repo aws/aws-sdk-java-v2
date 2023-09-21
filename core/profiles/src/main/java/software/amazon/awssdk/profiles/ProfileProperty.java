@@ -141,6 +141,18 @@ public final class ProfileProperty {
 
     public static final String EC2_METADATA_SERVICE_ENDPOINT = "ec2_metadata_service_endpoint";
 
+    /**
+     * Whether request compression is disabled for operations marked with the RequestCompression trait. The default value is
+     * false, i.e., request compression is enabled.
+     */
+    public static final String DISABLE_REQUEST_COMPRESSION = "disable_request_compression";
+
+    /**
+     * The minimum compression size in bytes, inclusive, for a request to be compressed. The default value is 10_240.
+     * The value must be non-negative and no greater than 10_485_760.
+     */
+    public static final String REQUEST_MIN_COMPRESSION_SIZE_BYTES = "request_min_compression_size_bytes";
+
     private ProfileProperty() {
     }
 }

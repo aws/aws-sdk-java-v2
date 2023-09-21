@@ -68,6 +68,7 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
         }
 
         successResponseHandler.onError(error);
+        errorResponseHandler.onError(error);
     }
 
     @Override

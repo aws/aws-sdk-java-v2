@@ -35,16 +35,19 @@ import software.amazon.awssdk.services.s3.internal.signing.DefaultS3Presigner;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.AbortMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
@@ -338,6 +341,50 @@ public interface S3Presigner extends SdkPresigner {
         request.accept(builder);
         return presignPutObject(builder.build());
     }
+
+    /**
+     * Presign a {@link DeleteObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p>
+     * <b>Example Usage</b>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Create a DeleteObjectRequest to be pre-signed
+     *     DeleteObjectRequest deleteObjectRequest = ...;
+     *
+     *     // Create a PutObjectPresignRequest to specify the signature duration
+     *     DeleteObjectPresignRequest deleteObjectPresignRequest =
+     *         DeleteObjectPresignRequest.builder()
+     *                                   .signatureDuration(Duration.ofMinutes(10))
+     *                                   .deleteObjectRequest(deleteObjectRequest)
+     *                                   .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedDeleteObjectRequest presignedDeleteObjectRequest =
+     *         presigner.presignDeleteObject(deleteObjectPresignRequest);
+     * }
+     * </pre>
+     */
+    PresignedDeleteObjectRequest presignDeleteObject(DeleteObjectPresignRequest request);
+
+    /**
+     * Presign a {@link DeleteObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p>
+     * This is a shorter method of invoking {@link #presignDeleteObject(DeleteObjectPresignRequest)} without needing
+     * to call {@code DeleteObjectPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignDeleteObject(PresignedDeleteObjectRequest)
+     */
+    default PresignedDeleteObjectRequest presignDeleteObject(Consumer<DeleteObjectPresignRequest.Builder> request) {
+        DeleteObjectPresignRequest.Builder builder = DeleteObjectPresignRequest.builder();
+        request.accept(builder);
+        return presignDeleteObject(builder.build());
+    }
+
 
     /**
      * Presign a {@link CreateMultipartUploadRequest} so that it can be executed at a later time without requiring additional

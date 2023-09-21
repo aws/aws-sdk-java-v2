@@ -18,13 +18,17 @@ package software.amazon.awssdk.core.internal.util;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADERS;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -63,6 +67,23 @@ public final class MetricUtils {
         T result = c.call();
         Duration d = Duration.ofNanos(System.nanoTime() - start);
         return Pair.of(result, d);
+    }
+
+    /**
+     * Collect the SERVICE_ENDPOINT metric for this request.
+     */
+    public static void collectServiceEndpointMetrics(MetricCollector metricCollector, SdkHttpFullRequest httpRequest) {
+        if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector) && httpRequest != null) {
+            // Only interested in the service endpoint so don't include any path, query, or fragment component
+            URI requestUri = httpRequest.getUri();
+            try {
+                URI serviceEndpoint = new URI(requestUri.getScheme(), requestUri.getAuthority(), null, null, null);
+                metricCollector.reportMetric(CoreMetric.SERVICE_ENDPOINT, serviceEndpoint);
+            } catch (URISyntaxException e) {
+                // This should not happen since getUri() should return a valid URI
+                throw SdkClientException.create("Unable to collect SERVICE_ENDPOINT metric", e);
+            }
+        }
     }
 
     public static void collectHttpMetrics(MetricCollector metricCollector, SdkHttpFullResponse httpResponse) {

@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.FileRequestBodyConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
@@ -112,14 +113,44 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
 
     /**
      * Creates an {@link AsyncRequestBody} that produces data from the contents of a file. See
-     * {@link FileAsyncRequestBody#builder} to create a customized body implementation.
+     * {@link #fromFile(FileRequestBodyConfiguration)} to create a customized body implementation.
      *
      * @param file The file to read from.
      * @return Implementation of {@link AsyncRequestBody} that reads data from the specified file.
-     * @see FileAsyncRequestBody
      */
     static AsyncRequestBody fromFile(File file) {
         return FileAsyncRequestBody.builder().path(file.toPath()).build();
+    }
+
+    /**
+     * Creates an {@link AsyncRequestBody} that produces data from the contents of a file.
+     *
+     * @param configuration configuration for how the SDK should read the file
+     * @return Implementation of {@link AsyncRequestBody} that reads data from the specified file.
+     */
+    static AsyncRequestBody fromFile(FileRequestBodyConfiguration configuration) {
+        Validate.notNull(configuration, "configuration");
+        return FileAsyncRequestBody.builder()
+                                   .path(configuration.path())
+                                   .position(configuration.position())
+                                   .chunkSizeInBytes(configuration.chunkSizeInBytes())
+                                   .numBytesToRead(configuration.numBytesToRead())
+                                   .build();
+    }
+
+    /**
+     * Creates an {@link AsyncRequestBody} that produces data from the contents of a file.
+     *
+     * <p>
+     * This is a convenience method that creates an instance of the {@link FileRequestBodyConfiguration} builder,
+     * avoiding the need to create one manually via {@link FileRequestBodyConfiguration#builder()}.
+     *
+     * @param configuration configuration for how the SDK should read the file
+     * @return Implementation of {@link AsyncRequestBody} that reads data from the specified file.
+     */
+    static AsyncRequestBody fromFile(Consumer<FileRequestBodyConfiguration.Builder> configuration) {
+        Validate.notNull(configuration, "configuration");
+        return fromFile(FileRequestBodyConfiguration.builder().applyMutation(configuration).build());
     }
 
     /**
@@ -410,22 +441,18 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * is 2MB and the default buffer size is 8MB.
      *
      * <p>
-     * If content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is delivered to the
-     * subscriber right after it's initialized.
-     * <p>
-     * If content length is null, it is sent after the entire content for that chunk is buffered.
-     * In this case, the configured {@code maxMemoryUsageInBytes} must be larger than or equal to {@code chunkSizeInBytes}.
+     * By default, if content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is
+     * delivered to the subscriber right after it's initialized. On the other hand, if content length is null, it is sent after
+     * the entire content for that chunk is buffered. In this case, the configured {@code maxMemoryUsageInBytes} must be larger
+     * than or equal to {@code chunkSizeInBytes}. Note that this behavior may be different if a specific implementation of this
+     * interface overrides this method.
      *
      * @see AsyncRequestBodySplitConfiguration
      */
     default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
 
-        return SplittingPublisher.builder()
-                                 .asyncRequestBody(this)
-                                 .chunkSizeInBytes(splitConfiguration.chunkSizeInBytes())
-                                 .bufferSizeInBytes(splitConfiguration.bufferSizeInBytes())
-                                 .build();
+        return new SplittingPublisher(this, splitConfiguration);
     }
 
     /**

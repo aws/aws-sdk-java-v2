@@ -32,6 +32,7 @@ import software.amazon.awssdk.regions.RegionScope;
 public class SigningConfigProvider {
 
     private static final Boolean DEFAULT_DOUBLE_URL_ENCODE = Boolean.TRUE;
+    private static final Boolean DEFAULT_PATH_NORMALIZATION = Boolean.TRUE;
 
     public SigningConfigProvider() {
     }
@@ -89,13 +90,20 @@ public class SigningConfigProvider {
     private AwsSigningConfig createDefaultRequestConfig(ExecutionAttributes executionAttributes) {
         AwsSigningConfig signingConfig = createStringToSignConfig(executionAttributes);
 
-        signingConfig.setShouldNormalizeUriPath(true);
+        if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_NORMALIZE_PATH) != null) {
+            signingConfig.setShouldNormalizeUriPath(
+                executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_NORMALIZE_PATH));
+        } else {
+            signingConfig.setShouldNormalizeUriPath(DEFAULT_PATH_NORMALIZATION);
+        }
+
         if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE) != null) {
-            signingConfig.setUseDoubleUriEncode(executionAttributes
-                                                    .getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
+            signingConfig.setUseDoubleUriEncode(
+                executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
         } else {
             signingConfig.setUseDoubleUriEncode(DEFAULT_DOUBLE_URL_ENCODE);
         }
+
         return signingConfig;
     }
 
