@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTestBase {
+public class S3CrossRegionSyncClientRedirectTest extends S3CrossRegionRedirectTestBase {
 
     private static S3Client mockDelegateClient;
     private S3Client decoratedS3Client;

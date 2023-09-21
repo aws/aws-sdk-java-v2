@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
-public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectTestBase {
+public class S3CrossRegionAsyncClientRedirectTest extends S3CrossRegionRedirectTestBase {
     private static S3AsyncClient mockDelegateAsyncClient;
     private S3AsyncClient decoratedS3AsyncClient;
 

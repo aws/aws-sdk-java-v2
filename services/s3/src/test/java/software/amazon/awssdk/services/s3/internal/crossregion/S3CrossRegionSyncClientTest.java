@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponseWithUnknownErrorCode;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.successHttpResponse;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CHANGED_CROSS_REGION;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CROSS_REGION;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CROSS_REGION_BUCKET;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.OVERRIDE_CONFIGURED_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CHANGED_CROSS_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CROSS_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CROSS_REGION_BUCKET;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.OVERRIDE_CONFIGURED_REGION;
 
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +64,7 @@ class S3CrossRegionSyncClientTest {
     private S3Client defaultS3Client;
 
     @BeforeEach
-    void before() {
+    void setUp() {
         mockSyncHttpClient = new MockSyncHttpClient();
         captureInterceptor = new CaptureInterceptor();
         defaultS3Client = clientBuilder().build();
@@ -163,9 +163,10 @@ class S3CrossRegionSyncClientTest {
 
     @ParameterizedTest(name = "{index} - {2}.")
     @MethodSource("stubSuccessfulRedirectResponses")
-    void standardOp_crossRegionClient_noOverrideConfig_SuccessfullyIntercepts(Consumer<MockSyncHttpClient> stubConsumer,
-                                                                              Class<?> endpointProviderType,
-                                                                              String testCaseName) {
+    void given_CrossRegionClientWithNoOverrideConfig_when_StandardOperationIsPerformed_then_SuccessfullyIntercepts(
+        Consumer<MockSyncHttpClient> stubConsumer,
+        Class<?> endpointProviderType,
+        String testCaseName) {
         stubConsumer.accept(mockSyncHttpClient);
         S3Client crossRegionClient = new S3CrossRegionSyncClient(defaultS3Client);
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
@@ -174,9 +175,10 @@ class S3CrossRegionSyncClientTest {
 
     @ParameterizedTest(name = "{index} - {2}.")
     @MethodSource("stubSuccessfulRedirectResponses")
-    void standardOp_crossRegionClient_existingOverrideConfig_SuccessfullyIntercepts(Consumer<MockSyncHttpClient> stubConsumer,
-                                                                                    Class<?> endpointProviderType,
-                                                                                    String testCaseName) {
+    void given_CrossRegionClientWithExistingOverrideConfig_when_StandardOperationIsPerformed_then_SuccessfullyIntercepts(
+        Consumer<MockSyncHttpClient> stubConsumer,
+        Class<?> endpointProviderType,
+        String testCaseName) {
         stubConsumer.accept(mockSyncHttpClient);
         S3Client crossRegionClient = new S3CrossRegionSyncClient(defaultS3Client);
         GetObjectRequest request = GetObjectRequest.builder()
@@ -191,7 +193,7 @@ class S3CrossRegionSyncClientTest {
 
     @ParameterizedTest(name = "{index} - {2}.")
     @MethodSource("stubSuccessfulRedirectResponses")
-    void paginatedOp_crossRegionClient_DoesNotIntercept(Consumer<MockSyncHttpClient> stubConsumer,
+    void given_CrossRegionClient_when_PaginatedOperationIsPerformed_then_DoesNotIntercept(Consumer<MockSyncHttpClient> stubConsumer,
                                                         Class<?> endpointProviderType,
                                                         String testCaseName)  {
         stubConsumer.accept(mockSyncHttpClient);
@@ -204,12 +206,12 @@ class S3CrossRegionSyncClientTest {
 
     @ParameterizedTest(name = "{index} - {2}.")
     @MethodSource("stubSuccessfulRedirectResponses")
-    void crossRegionClient_createdWithWrapping_SuccessfullyIntercepts(Consumer<MockSyncHttpClient> stubConsumer,
+    void given_CrossRegionClientCreatedWithWrapping_when_OperationIsPerformed_then_SuccessfullyIntercepts(Consumer<MockSyncHttpClient> stubConsumer,
                                                                       Class<?> endpointProviderType,
                                                                       String testCaseName) {
         stubConsumer.accept(mockSyncHttpClient);
-        
-        
+
+
         S3Client crossRegionClient = clientBuilder().crossRegionAccessEnabled(true).build();
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(endpointProviderType);
@@ -217,7 +219,7 @@ class S3CrossRegionSyncClientTest {
 
     @ParameterizedTest(name = "{index} - {3}.")
     @MethodSource("stubOverriddenEndpointProviderResponses")
-    void standardOp_crossRegionClient_takesCustomEndpointProviderInRequest(Consumer<MockSyncHttpClient> stubConsumer,
+    void given_CrossRegionClientWithCustomEndpointProvider_when_StandardOperationIsPerformed_then_UsesCustomEndpoint(Consumer<MockSyncHttpClient> stubConsumer,
                                                                            Class<?> endpointProviderType,
                                                                            Region region,
                                                                            String testCaseName) {
@@ -241,7 +243,7 @@ class S3CrossRegionSyncClientTest {
 
     @ParameterizedTest(name = "{index} - {3}.")
     @MethodSource("stubOverriddenEndpointProviderResponses")
-    void standardOp_crossRegionClient_takesCustomEndpointProviderInClient(Consumer<MockSyncHttpClient> stubConsumer,
+    void given_CrossRegionClientWithCustomEndpointProvider_when_StandardOperationIsPerformed_then_UsesCustomEndpointInClient(Consumer<MockSyncHttpClient> stubConsumer,
                                                                           Class<?> endpointProviderType,
                                                                           Region region,
                                                                           String testCaseName) {
@@ -263,7 +265,7 @@ class S3CrossRegionSyncClientTest {
     }
 
     @Test
-    void crossRegionClient_CallsHeadObject_when_regionNameNotPresentInFallBackCall() {
+    void given_CrossRegionClientWithFallbackCall_when_RegionNameNotPresent_then_CallsHeadObject() {
         mockSyncHttpClient.stubResponses(customHttpResponseWithUnknownErrorCode(301,  null ),
                                          customHttpResponseWithUnknownErrorCode(301,  CROSS_REGION.id() ),
                                          successHttpResponse(), successHttpResponse());
@@ -302,7 +304,7 @@ class S3CrossRegionSyncClientTest {
     }
 
     @Test
-    void crossRegionClient_when_redirectsAfterCaching() {
+    void given_crossRegionClient_when_redirectError_then_redirectsAfterCaching() {
         mockSyncHttpClient.stubResponses(customHttpResponseWithUnknownErrorCode(301, CROSS_REGION.id()),
                                          successHttpResponse(),
                                          successHttpResponse(),
@@ -330,7 +332,7 @@ class S3CrossRegionSyncClientTest {
     }
 
     @Test
-    void crossRegionClient_when_redirectsAfterCaching_withFallBackRedirectWithNoRegion() {
+    void given_CrossRegionClient_when_noRegionInHeader_thenFallBackToRegionInHeadBucket() {
         mockSyncHttpClient.stubResponses(customHttpResponseWithUnknownErrorCode(301,  null ),
                                          customHttpResponseWithUnknownErrorCode(301,  CROSS_REGION.id() ),
                                          successHttpResponse(),
@@ -363,7 +365,7 @@ class S3CrossRegionSyncClientTest {
 
     @ParameterizedTest(name = "{index} - Status code = {1} with HeadBucket bucket regions {3}.")
     @MethodSource("stubFailureResponses")
-    void crossRegionClient_CallsHeadObjectErrors_shouldTerminateTheAPI(
+    void given_CrossRegionClient_when_CallsHeadObjectErrors_then_ShouldTerminateTheAPI(
         Consumer<MockSyncHttpClient> stubFailureResponses,
         Integer statusCode, Integer numberOfRequests,
         List<String> redirectedBucketRegions,
@@ -389,7 +391,7 @@ class S3CrossRegionSyncClientTest {
     }
 
     @Test
-    void crossRegionClient_CallsHeadObjectWithNoRegion_shouldTerminateHeadBucketAPI() {
+    void given_CrossRegionClient_when_CallsHeadObjectWithNoRegion_then_ShouldTerminateHeadBucketAPI() {
         mockSyncHttpClient.stubResponses(customHttpResponseWithUnknownErrorCode(301,  null ),
                                          customHttpResponseWithUnknownErrorCode(301,  null ),
                                          successHttpResponse(), successHttpResponse());
@@ -414,7 +416,7 @@ class S3CrossRegionSyncClientTest {
 
 
     @Test
-    void standardOp_crossRegionClient_containUserAgent() {
+    void given_CrossRegionClient_when_StandardOperation_then_ContainsUserAgent() {
         mockSyncHttpClient.stubResponses(successHttpResponse());
         S3Client crossRegionClient = clientBuilder().crossRegionAccessEnabled(true).build();
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
@@ -422,7 +424,7 @@ class S3CrossRegionSyncClientTest {
     }
 
     @Test
-    void standardOp_simpleClient_doesNotContainCrossRegionUserAgent() {
+    void given_SimpleClient_when_StandardOperation_then_DoesNotContainCrossRegionUserAgent() {
         mockSyncHttpClient.stubResponses(successHttpResponse());
         S3Client crossRegionClient = clientBuilder().crossRegionAccessEnabled(false).build();
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
