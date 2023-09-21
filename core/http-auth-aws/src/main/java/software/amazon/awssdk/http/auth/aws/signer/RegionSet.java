@@ -45,7 +45,7 @@ public final class RegionSet {
     private static final Pattern REGION_SCOPE_PATTERN;
 
     static {
-        REGION_SCOPE_PATTERN = Pattern.compile("^([a-z0-9-])*|([*])$");
+        REGION_SCOPE_PATTERN = Pattern.compile("^(\\*|([a-zA-Z0-9-]+)(\\s*,\\s*[a-zA-Z0-9-]+)*)$");
         GLOBAL = create("*");
     }
 
@@ -93,13 +93,11 @@ public final class RegionSet {
     }
 
     private void validateFormat(String regionScope) {
-        for (String region : regionScope.split(",")) {
-            Matcher matcher = REGION_SCOPE_PATTERN.matcher(region);
-            if (!matcher.matches()) {
-                throw new IllegalArgumentException("Invalid region '" + region + "'. A region within the region-set must "
-                                                   + "be a complete region, such as 'us-east-1', or the wildcard ('*') to "
-                                                   + "represent all regions.");
-            }
+        Matcher matcher = REGION_SCOPE_PATTERN.matcher(regionScope.trim());
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Invalid region '" + regionScope + "'. A region within the region-set must "
+                                               + "be a complete region, such as 'us-east-1', or the wildcard ('*') to "
+                                               + "represent all regions.");
         }
     }
 }
