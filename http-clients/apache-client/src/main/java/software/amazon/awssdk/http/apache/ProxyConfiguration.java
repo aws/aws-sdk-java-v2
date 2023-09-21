@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.apache;
 
 import static software.amazon.awssdk.utils.StringUtils.isEmpty;
-import static software.amazon.awssdk.utils.http.SdkHttpUtils.parseNonProxyHostsProperty;
 
 import java.net.URI;
 import java.util.Collections;
@@ -24,7 +23,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.LocalProxyConfiguration;
 import software.amazon.awssdk.utils.ProxySystemSetting;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -45,6 +46,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final Set<String> nonProxyHosts;
     private final Boolean preemptiveBasicAuthenticationEnabled;
     private final Boolean useSystemPropertyValues;
+    private final Boolean useEnvironmentVariablesValues;
     private final String host;
     private final int port;
     private final String scheme;
@@ -54,18 +56,35 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      */
     private ProxyConfiguration(DefaultClientProxyConfigurationBuilder builder) {
         this.endpoint = builder.endpoint;
-        this.username = builder.username;
-        this.password = builder.password;
+        this.scheme = resolveScheme();
+
+        LocalProxyConfiguration proxyConfiguration = getProxyConfig(builder);
+        this.username = !StringUtils.isEmpty(builder.username) || proxyConfiguration == null ? builder.username :
+                        proxyConfiguration.userName().orElseGet(() -> builder.username);
+        this.password = !StringUtils.isEmpty(builder.password) || proxyConfiguration == null ? builder.password :
+                        proxyConfiguration.password().orElseGet(() -> builder.password);
         this.ntlmDomain = builder.ntlmDomain;
         this.ntlmWorkstation = builder.ntlmWorkstation;
-        this.nonProxyHosts = builder.nonProxyHosts;
+        this.nonProxyHosts = builder.nonProxyHosts != null || proxyConfiguration == null ? builder.nonProxyHosts :
+                             proxyConfiguration.nonProxyHosts();
         this.preemptiveBasicAuthenticationEnabled = builder.preemptiveBasicAuthenticationEnabled == null ? Boolean.FALSE :
                 builder.preemptiveBasicAuthenticationEnabled;
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
-        this.scheme = resolveScheme();
-        this.host = resolveHost(scheme);
-        this.port = resolvePort(scheme);
+        this.useEnvironmentVariablesValues = builder.useEnvironmentVariableValues;
+        this.host = resolveHost(scheme , proxyConfiguration);
+        this.port = resolvePort(proxyConfiguration);
     }
+
+    private LocalProxyConfiguration getProxyConfig(DefaultClientProxyConfigurationBuilder builder) {
+        if (builder.useSystemPropertyValues) {
+            return LocalProxyConfiguration.fromSystemPropertySettings(scheme());
+        } else if (builder.useEnvironmentVariableValues) {
+            return LocalProxyConfiguration.fromEnvironmentSettings(scheme());
+        } else {
+            return null;
+        }
+    }
+
 
     /**
      * Returns the proxy host name from the configured endpoint if set, else from the "https.proxyHost" or "http.proxyHost" system
@@ -142,10 +161,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * @see Builder#nonProxyHosts(Set)
      */
     public Set<String> nonProxyHosts() {
-        Set<String> hosts = nonProxyHosts == null && useSystemPropertyValues ? parseNonProxyHostsProperty()
-                                                                             : nonProxyHosts;
-
-        return Collections.unmodifiableSet(hosts != null ? hosts : Collections.emptySet());
+        return Collections.unmodifiableSet(nonProxyHosts != null ? nonProxyHosts : Collections.emptySet());
     }
 
     /**
@@ -190,7 +206,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
 
-    private String resolveHost(String scheme) {
+    private String resolveHost(String scheme, LocalProxyConfiguration localProxyConfiguration) {
         if (endpoint != null) {
             return endpoint.getHost();
         }
@@ -198,26 +214,17 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         if (Objects.equals(scheme, HTTPS)) {
             return resolveValue(null, ProxySystemSetting.HTTPS_PROXY_HOST);
         }
-        return resolveValue(null, ProxySystemSetting.PROXY_HOST);
+        return localProxyConfiguration != null ? localProxyConfiguration.host() : null;
     }
 
-    private int resolvePort(String scheme) {
+    private int resolvePort(LocalProxyConfiguration localProxyConfiguration) {
         int port = 0;
 
         if (endpoint != null) {
             port = endpoint.getPort();
-        } else if (useSystemPropertyValues) {
-            if (Objects.equals(scheme, HTTPS)) {
-                port = ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue()
-                                                          .map(Integer::parseInt)
-                                                          .orElse(0);
-            } else {
-                port = ProxySystemSetting.PROXY_PORT.getStringValue()
-                                                    .map(Integer::parseInt)
-                                                    .orElse(0);
-            }
+        } else if(localProxyConfiguration != null){
+            return localProxyConfiguration.port();
         }
-
         return port;
     }
 
@@ -307,6 +314,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private Set<String> nonProxyHosts;
         private Boolean preemptiveBasicAuthenticationEnabled;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
+        private Boolean useEnvironmentVariableValues = Boolean.TRUE;
 
         @Override
         public Builder endpoint(URI endpoint) {

@@ -17,7 +17,9 @@ package software.amazon.awssdk.crtcore;
 
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.LocalProxyConfiguration;
 import software.amazon.awssdk.utils.ProxySystemSetting;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * The base class for AWS CRT proxy configuration
@@ -32,14 +34,22 @@ public abstract class CrtProxyConfiguration {
     private final String username;
     private final String password;
     private final Boolean useSystemPropertyValues;
+    private final Boolean useEnvironmentVariableValues;
 
     protected CrtProxyConfiguration(DefaultBuilder<?> builder) {
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
+        this.useEnvironmentVariableValues = builder.useEnvironmentVariableValues;
         this.scheme = builder.scheme;
-        this.host = resolveHost(builder.host);
-        this.port = resolvePort(builder.port);
-        this.username = builder.username;
-        this.password = builder.password;
+
+        LocalProxyConfiguration localProxyConfiguration = useSystemPropertyValues ?
+                                                          LocalProxyConfiguration.fromSystemPropertySettings(builder.scheme) : null;
+
+        this.host = builder.host != null || localProxyConfiguration == null ? builder.host : localProxyConfiguration.host();
+        this.port = builder.port != 0 || localProxyConfiguration == null ? builder.port : localProxyConfiguration.port();
+        this.username = ! StringUtils.isEmpty(builder.username) || localProxyConfiguration == null ? builder.username :
+                        localProxyConfiguration.userName().orElseGet(() -> builder.username);
+        this.password = ! StringUtils.isEmpty(builder.password) || localProxyConfiguration == null ? builder.password :
+                        localProxyConfiguration.password().orElseGet(() -> builder.password);
     }
 
     /**
@@ -114,7 +124,11 @@ public abstract class CrtProxyConfiguration {
         if (!Objects.equals(password, that.password)) {
             return false;
         }
-        return Objects.equals(useSystemPropertyValues, that.useSystemPropertyValues);
+
+        if (!Objects.equals(useSystemPropertyValues, that.useSystemPropertyValues)) {
+            return false;
+        }
+        return Objects.equals(useEnvironmentVariableValues, that.useEnvironmentVariableValues);
     }
 
     @Override
@@ -125,6 +139,7 @@ public abstract class CrtProxyConfiguration {
         result = 31 * result + (username != null ? username.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (useSystemPropertyValues != null ? useSystemPropertyValues.hashCode() : 0);
+        result = 31 * result + (useEnvironmentVariableValues != null ? useEnvironmentVariableValues.hashCode() : 0);
         return result;
     }
 
@@ -188,25 +203,13 @@ public abstract class CrtProxyConfiguration {
          */
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
+        Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues);
+
+
         CrtProxyConfiguration build();
     }
 
-    private String resolveHost(String host) {
-        if (Objects.equals(scheme(), HTTPS)) {
-            return resolveValue(host, ProxySystemSetting.HTTPS_PROXY_HOST);
-        }
-        return resolveValue(host, ProxySystemSetting.PROXY_HOST);
-    }
 
-    private int resolvePort(int port) {
-        if (port == 0 && Boolean.TRUE.equals(useSystemPropertyValues)) {
-            if (Objects.equals(scheme(), HTTPS)) {
-                return ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
-            }
-            return ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
-        }
-        return port;
-    }
 
     /**
      * Uses the configuration options, system setting property and returns the final value of the given member.
@@ -223,12 +226,14 @@ public abstract class CrtProxyConfiguration {
         private String username;
         private String password;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
+        private Boolean useEnvironmentVariableValues = Boolean.TRUE;
 
         protected DefaultBuilder() {
         }
 
         protected DefaultBuilder(CrtProxyConfiguration proxyConfiguration) {
             this.useSystemPropertyValues = proxyConfiguration.useSystemPropertyValues;
+            this.useEnvironmentVariableValues = proxyConfiguration.useEnvironmentVariableValues;
             this.scheme = proxyConfiguration.scheme;
             this.host = proxyConfiguration.host;
             this.port = proxyConfiguration.port;
@@ -271,6 +276,19 @@ public abstract class CrtProxyConfiguration {
             this.useSystemPropertyValues = useSystemPropertyValues;
             return (B) this;
         }
+
+        @Override
+        public B useEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
+            this.useEnvironmentVariableValues = useEnvironmentVariableValues;
+            return (B) this;
+        }
+
+        public B setUseEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
+            this.useEnvironmentVariableValues = useEnvironmentVariableValues;
+            return (B) this;
+        }
+
+
 
         public void setUseSystemPropertyValues(Boolean useSystemPropertyValues) {
             useSystemPropertyValues(useSystemPropertyValues);
