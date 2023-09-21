@@ -15,16 +15,20 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNALIZE_EXTERNAL_CONFIG;
 import static software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder.async;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.internal.InternalizeExternalConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
@@ -77,14 +81,14 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
      * @return A builder used to configure and execute a HTTP request.
      */
     public RequestExecutionBuilder requestExecutionBuilder() {
-        return new RequestExecutionBuilderImpl();
+        return new RequestExecutionBuilderImpl()
+            .httpClientDependencies(httpClientDependencies);
     }
 
     /**
      * Interface to configure a request execution and execute the request.
      */
     public interface RequestExecutionBuilder {
-
         /**
          * Fluent setter for {@link AsyncRequestBody}
          *
@@ -128,12 +132,18 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler);
     }
 
-    private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
+    private static class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
+        private HttpClientDependencies httpClientDependencies;
         private AsyncRequestBody requestProvider;
         private SdkHttpFullRequest request;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
+
+        public RequestExecutionBuilder httpClientDependencies(HttpClientDependencies httpClientDependencies) {
+            this.httpClientDependencies = httpClientDependencies;
+            return this;
+        }
 
         @Override
         public RequestExecutionBuilder requestProvider(AsyncRequestBody requestProvider) {
@@ -163,6 +173,16 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         @Override
         public <OutputT> CompletableFuture<OutputT> execute(
             TransformingAsyncResponseHandler<Response<OutputT>> responseHandler) {
+
+            if (originalRequest != null) {
+                List<SdkPlugin> plugins = originalRequest.registeredPlugins();
+                if (!plugins.isEmpty()) {
+                    SdkClientConfiguration clientConfig = httpClientDependencies.clientConfiguration();
+                    httpClientDependencies = httpClientDependencies.toBuilder()
+                                                                   .clientConfiguration(invokePlugins(clientConfig, plugins))
+                                                                   .build();
+                }
+            }
 
             try {
                 return RequestPipelineBuilder
@@ -195,6 +215,16 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
             }
         }
 
+        private static SdkClientConfiguration invokePlugins(SdkClientConfiguration clientConfig, List<SdkPlugin> plugins) {
+            SdkClientConfiguration.Builder configBuilder = clientConfig.toBuilder();
+            InternalizeExternalConfiguration handler = clientConfig.option(INTERNALIZE_EXTERNAL_CONFIG);
+            return handler.updateUsing(builder -> {
+                for (SdkPlugin plugin : plugins) {
+                    plugin.configureClient(builder);
+                }
+            }, configBuilder);
+        }
+
         private RequestExecutionContext createRequestExecutionDependencies() {
             return RequestExecutionContext.builder()
                                           .requestProvider(requestProvider)
@@ -202,6 +232,5 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                           .executionContext(executionContext)
                                           .build();
         }
-
     }
 }

@@ -75,6 +75,10 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
         SdkGlobalTime.setGlobalTimeOffset(timeOffset);
     }
 
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     @Override
     public void close() {
         this.clientConfiguration.close();
@@ -88,6 +92,11 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
         private SdkClientConfiguration clientConfiguration;
 
         private Builder() {
+        }
+
+        private Builder(HttpClientDependencies from) {
+            this.clientConfiguration = from.clientConfiguration;
+            this.clockSkewAdjuster = from.clockSkewAdjuster;
         }
 
         public Builder clockSkewAdjuster(ClockSkewAdjuster clockSkewAdjuster) {

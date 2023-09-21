@@ -11,6 +11,7 @@ import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -24,7 +25,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTestsRequest implements
                                                                                          ToCopyableBuilder<OperationWithDeprecatedMemberRequest.Builder, OperationWithDeprecatedMemberRequest> {
-    private static final SdkField<String> MEMBER_MODELED_AS_DEPRECATED_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+    private static final SdkField<String> MEMBER_MODELED_AS_DEPRECATED_FIELD = SdkField.<String>builder(MarshallingType.STRING)
                                                                                        .memberName("MemberModeledAsDeprecated")
                                                                                        .getter(getter(OperationWithDeprecatedMemberRequest::memberModeledAsDeprecated))
                                                                                        .setter(setter(Builder::memberModeledAsDeprecated))
@@ -32,14 +33,14 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
                                                                                        .build();
 
     private static final SdkField<String> MEMBER_MODIFIED_AS_DEPRECATED_FIELD = SdkField
-        .<String> builder(MarshallingType.STRING)
+        .<String>builder(MarshallingType.STRING)
         .memberName("MemberModifiedAsDeprecated")
         .getter(getter(OperationWithDeprecatedMemberRequest::memberModifiedAsDeprecated))
         .setter(setter(Builder::memberModifiedAsDeprecated))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MemberModifiedAsDeprecated").build())
         .build();
 
-    private static final SdkField<String> UNDEPRECATED_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+    private static final SdkField<String> UNDEPRECATED_MEMBER_FIELD = SdkField.<String>builder(MarshallingType.STRING)
                                                                               .memberName("UndeprecatedMember").getter(getter(OperationWithDeprecatedMemberRequest::undeprecatedMember))
                                                                               .setter(setter(Builder::undeprecatedMember))
                                                                               .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("UndeprecatedMember").build())
@@ -138,14 +139,15 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
     }
 
     /**
-     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
-     * redacted from this string using a placeholder value.
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be redacted
+     * from this string using a placeholder value.
      */
     @Override
     public final String toString() {
         return ToString.builder("OperationWithDeprecatedMemberRequest")
                        .add("MemberModeledAsDeprecated", memberModeledAsDeprecated())
-                       .add("MemberModifiedAsDeprecated", memberModifiedAsDeprecated()).add("UndeprecatedMember", undeprecatedMember())
+                       .add("MemberModifiedAsDeprecated", memberModifiedAsDeprecated()).add("UndeprecatedMember",
+                                                                                            undeprecatedMember())
                        .build();
     }
 
@@ -180,8 +182,7 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         /**
          * Sets the value of the MemberModeledAsDeprecated property for this object.
          *
-         * @param memberModeledAsDeprecated
-         *        The new value for the MemberModeledAsDeprecated property for this object.
+         * @param memberModeledAsDeprecated The new value for the MemberModeledAsDeprecated property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          * @deprecated This field is modeled as deprecated.
          */
@@ -191,8 +192,7 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         /**
          * Sets the value of the MemberModifiedAsDeprecated property for this object.
          *
-         * @param memberModifiedAsDeprecated
-         *        The new value for the MemberModifiedAsDeprecated property for this object.
+         * @param memberModifiedAsDeprecated The new value for the MemberModifiedAsDeprecated property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          * @deprecated This field is modified as deprecated.
          */
@@ -202,8 +202,7 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         /**
          * Sets the value of the UndeprecatedMember property for this object.
          *
-         * @param undeprecatedMember
-         *        The new value for the UndeprecatedMember property for this object.
+         * @param undeprecatedMember The new value for the UndeprecatedMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder undeprecatedMember(String undeprecatedMember);
@@ -213,6 +212,9 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
 
         @Override
         Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
+
+        @Override
+        Builder addPlugin(SdkPlugin plugin);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
@@ -289,6 +291,12 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         @Override
         public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
             super.overrideConfiguration(builderConsumer);
+            return this;
+        }
+
+        @Override
+        public Builder addPlugin(SdkPlugin plugin) {
+            super.addPlugin(plugin);
             return this;
         }
 

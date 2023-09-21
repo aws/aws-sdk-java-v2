@@ -101,4 +101,3 @@ public final class StreamDeathsResponse extends SharedEventStreamResponse implem
         }
     }
 }
-

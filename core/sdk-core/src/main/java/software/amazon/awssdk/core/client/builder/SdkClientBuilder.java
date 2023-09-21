@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.client.builder;
 import java.net.URI;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -63,4 +64,12 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
      * addressing.
      */
     B endpointOverride(URI endpointOverride);
+
+    /**
+     * Adds a plugin to the client builder. The plugins will be invoked when building the client to allow them to change the
+     * configuration of the built client.
+     */
+    default B addPlugin(SdkPlugin plugin) {
+        throw new UnsupportedOperationException();
+    }
 }

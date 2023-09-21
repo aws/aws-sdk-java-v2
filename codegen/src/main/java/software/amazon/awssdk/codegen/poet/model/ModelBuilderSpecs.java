@@ -41,6 +41,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
@@ -112,6 +113,14 @@ class ModelBuilderSpecs {
                             "builderConsumer")
                     .addModifiers(PUBLIC, Modifier.ABSTRACT)
                     .build());
+
+            builder.addMethod(MethodSpec.methodBuilder("addPlugin")
+                                        .addAnnotation(Override.class)
+                                        .returns(builderInterfaceName())
+                                        .addParameter(SdkPlugin.class , "plugin")
+                                        .addModifiers(PUBLIC, Modifier.ABSTRACT)
+                                        .build());
+
         }
 
         return builder.build();
@@ -270,6 +279,15 @@ class ModelBuilderSpecs {
                     .addStatement("super.overrideConfiguration(builderConsumer)")
                     .addStatement("return this")
                     .build());
+
+            accessors.add(MethodSpec.methodBuilder("addPlugin")
+                                    .addAnnotation(Override.class)
+                                    .returns(builderInterfaceName())
+                                    .addParameter(SdkPlugin.class, "plugin")
+                                    .addModifiers(PUBLIC)
+                                    .addStatement("super.addPlugin(plugin)")
+                                    .addStatement("return this")
+                                    .build());
         }
 
         return accessors;
