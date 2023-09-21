@@ -272,11 +272,11 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
             return null;
         }
         RegionSet regionSet = authScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET);
-        if (regionSet == null || regionSet.toString().isEmpty()) {
+        if (regionSet == null || regionSet.id().isEmpty()) {
             return null;
         }
 
-        return RegionScope.create(regionSet.toString());
+        return RegionScope.create(regionSet.id());
     }
 
     private static <T extends Identity> SelectedAuthScheme<?> signingRegionScopeWriteMapping(SelectedAuthScheme<T> authScheme,

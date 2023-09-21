@@ -10,7 +10,6 @@ import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
@@ -71,9 +70,6 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                                                                                                                                                                           .getName());
                     List<String> signingRegionSet = sigv4aAuthScheme.signingRegionSet();
                     RegionSet regionSet = RegionSet.create(signingRegionSet.stream().collect(Collectors.joining(",")));
-                    if (regionSet.toString().isEmpty()) {
-                        throw SdkClientException.create("Signing region set is empty");
-                    }
                     options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4a")
                                                 .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())
                                                 .putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet)

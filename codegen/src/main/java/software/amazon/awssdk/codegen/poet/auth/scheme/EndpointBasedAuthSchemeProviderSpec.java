@@ -37,7 +37,6 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
@@ -180,10 +179,6 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.addStatement("$1T regionSet = $1T.create(signingRegionSet.stream().collect($2T.joining(\",\")))",
                           RegionSet.class, Collectors.class
         );
-
-        spec.beginControlFlow("if (regionSet.toString().isEmpty())")
-            .addStatement("throw $T.create($S)", SdkClientException.class, "Signing region set is empty")
-            .endControlFlow();
 
         spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4aAuthScheme.SCHEME_ID)
             .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())", AwsV4aHttpSigner.class)

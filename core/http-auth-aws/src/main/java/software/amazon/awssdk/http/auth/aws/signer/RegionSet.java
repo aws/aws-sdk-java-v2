@@ -59,8 +59,7 @@ public final class RegionSet {
     /**
      * Gets the string representation of this RegionSet.
      */
-    @Override
-    public String toString() {
+    public String id() {
         return this.regionSet;
     }
 
