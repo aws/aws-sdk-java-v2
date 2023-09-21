@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -41,6 +42,8 @@ public class ClientBuilderTest {
 
         assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
             .isInstanceOf(DefaultAwsTokenProvider.class);
+        assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
+            .isInstanceOf(BearerTokenSigner.class);
     }
 
     @Test
@@ -87,6 +90,8 @@ public class ClientBuilderTest {
 
         assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
             .isInstanceOf(DefaultAwsTokenProvider.class);
+        assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
+            .isInstanceOf(BearerTokenSigner.class);
     }
 
     @Test
