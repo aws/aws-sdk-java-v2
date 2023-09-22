@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -135,6 +136,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                .add(".withInput($L)", opModel.getInput().getVariableName())
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                                                .add(HttpChecksumTrait.create(opModel))
+                                               .add(NoneAuthTypeRequestTrait.create(opModel))
                                                .add(RequestCompressionTrait.create(opModel, model));
 
         s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
@@ -212,6 +214,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                .add(asyncRequestBody(opModel))
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel))
+               .add(NoneAuthTypeRequestTrait.create(opModel))
                .add(RequestCompressionTrait.create(opModel, model));
 
         s3ArnableFields(opModel, model).ifPresent(builder::add);

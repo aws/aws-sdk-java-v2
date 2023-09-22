@@ -413,6 +413,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithNoneAuthType").withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler).withInput(operationWithNoneAuthTypeRequest)
                              .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
