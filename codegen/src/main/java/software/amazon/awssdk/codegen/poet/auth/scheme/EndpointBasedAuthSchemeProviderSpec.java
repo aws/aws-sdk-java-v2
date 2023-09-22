@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -174,11 +173,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                           SigV4aAuthScheme.class, Validate.class, SigV4aAuthScheme.class,
                           "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s");
 
-        spec.addStatement("$T signingRegionSet = sigv4aAuthScheme.signingRegionSet()", ParameterizedTypeName.get(List.class,
-                                                                                                                 String.class));
-        spec.addStatement("$1T regionSet = $1T.create(signingRegionSet.stream().collect($2T.joining(\",\")))",
-                          RegionSet.class, Collectors.class
-        );
+        spec.addStatement("$1T regionSet = $1T.create(sigv4aAuthScheme.signingRegionSet())", RegionSet.class);
 
         spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4aAuthScheme.SCHEME_ID)
             .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())", AwsV4aHttpSigner.class)

@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -598,9 +597,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         code.endControlFlow();
 
         code.beginControlFlow("if (v4aAuthScheme.signingRegionSet() != null)");
-        code.addStatement("$1T regionSet = $1T.create(v4aAuthScheme.signingRegionSet().stream().collect($2T.joining(\",\")))",
-                          RegionSet.class, Collectors.class
-        );
+        code.addStatement("$1T regionSet = $1T.create(v4aAuthScheme.signingRegionSet())", RegionSet.class);
 
         code.addStatement("option.putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class);
         code.endControlFlow();

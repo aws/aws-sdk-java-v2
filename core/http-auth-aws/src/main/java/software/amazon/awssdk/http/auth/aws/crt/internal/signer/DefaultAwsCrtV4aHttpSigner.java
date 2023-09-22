@@ -67,7 +67,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
         RegionSet regionSet = request.requireProperty(REGION_SET, RegionSet.GLOBAL);
         String serviceSigningName = request.requireProperty(SERVICE_SIGNING_NAME);
-        CredentialScope credentialScope = new CredentialScope(regionSet.id(), serviceSigningName, signingInstant);
+        CredentialScope credentialScope = new CredentialScope(regionSet.asString(), serviceSigningName, signingInstant);
         boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
         boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
 

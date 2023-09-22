@@ -20,8 +20,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 
@@ -31,28 +29,20 @@ import software.amazon.awssdk.utils.Validate;
  * A region-set can contain one or more comma-separated AWS regions, or a single wildcard to represent all regions ("global").
  * Whitespace is trimmed from entries of the set.
  * <p>
- * Examples of a valid region-set:
+ * Examples of region-sets:
  * <ul>
  *     <li>'*' - Represents all regions, global</li>
  *     <li>'eu-west-1' - Represents a single region, eu-west-1</li>
  *     <li>'us-west-2,us-east-1' - Represents 2 regions, us-west-2 and us-east-1</li>
  * </ul>
  * <p>
- * Example of an invalid region set:
- * <ul>
- *     <li>'*, us-west-2' - A wildcard should be the only entry.</li>
- *     <li>'us-*-1,eu-west-1' - A wildcard must be its own item.</li>
- * </ul>
  */
 @SdkPublicApi
 public final class RegionSet {
 
     public static final RegionSet GLOBAL;
 
-    private static final Pattern REGION_SET_PATTERN;
-
     static {
-        REGION_SET_PATTERN = Pattern.compile("^(\\*|([a-zA-Z0-9-]+)(\\s*,\\s*[a-zA-Z0-9-]+)*)$");
         GLOBAL = create(Collections.singleton("*"));
     }
 
@@ -61,27 +51,22 @@ public final class RegionSet {
 
     private RegionSet(Collection<String> regions) {
         Validate.paramNotNull(regions, "regions");
-        regionSet = new HashSet<>(regions.size());
-        fillRegionSet(regionSet, regions);
+        this.regionSet = Collections.unmodifiableSet(new HashSet<>(regions));
         this.regionSetString = String.join(",", regionSet);
-        validateFormat(regionSetString);
-    }
-
-    private static void fillRegionSet(Set<String> regionSet, Collection<String> regions) {
-        for (String region : regions) {
-            String regionTrimmed = region.trim();
-            if (regionSet.contains(regionTrimmed)) {
-                throw new IllegalArgumentException("A region may not appear more than once!");
-            }
-            regionSet.add(regionTrimmed);
-        }
     }
 
     /**
-     * Gets the stringified identifier for this RegionSet.
+     * Gets the string representation of this RegionSet.
      */
-    public String id() {
+    public String asString() {
         return regionSetString;
+    }
+
+    /**
+     * Gets the set of strings that represent this RegionSet.
+     */
+    public Set<String> asSet() {
+        return regionSet;
     }
 
     /**
@@ -90,7 +75,7 @@ public final class RegionSet {
      * @param value See class documentation {@link RegionSet} for the expected format.
      */
     public static RegionSet create(String value) {
-        return create(Arrays.asList(value.split(",", -1)));
+        return create(Arrays.asList(value.split(",")));
     }
 
     /**
@@ -119,14 +104,5 @@ public final class RegionSet {
     @Override
     public int hashCode() {
         return 31 * (1 + (regionSet != null ? regionSet.hashCode() : 0));
-    }
-
-    private static void validateFormat(String regionSet) {
-        Matcher matcher = REGION_SET_PATTERN.matcher(regionSet.trim());
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Invalid region-set '" + regionSet + "'. The region-set must be one or more "
-                                               + "complete regions, such as 'us-east-1' or 'us-west-2, us-east-1', or the "
-                                               + "wildcard ('*') to represent all regions.");
-        }
     }
 }

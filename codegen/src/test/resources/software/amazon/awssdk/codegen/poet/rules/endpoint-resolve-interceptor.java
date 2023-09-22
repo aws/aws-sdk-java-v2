@@ -3,7 +3,6 @@ package software.amazon.awssdk.services.query.endpoints.internal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -149,8 +148,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                     option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding());
                 }
                 if (v4aAuthScheme.signingRegionSet() != null) {
-                    RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet().stream()
-                                                                        .collect(Collectors.joining(",")));
+                    RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet());
                     option.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                 }
                 if (v4aAuthScheme.signingName() != null) {
