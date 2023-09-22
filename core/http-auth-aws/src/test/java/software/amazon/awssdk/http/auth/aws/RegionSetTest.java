@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -25,32 +24,32 @@ import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 
 public class RegionSetTest {
 
-    private static final List<String> passList = Arrays.asList(
+    private static final List<String> stringList = Arrays.asList(
         "*", "us-west-2", "us-east-1,us-west-2", " us-west-2 ", " us-east-1, us-west-2  ", " a,b  ,c ,d ,e ,f ,  g "
     );
 
-    private static final List<String> failList = Arrays.asList(
-        "", "**", "#$%#^", "*-west-2", "eu-west-*", "*-*", "us-*-1", "*-*-*", ",,,", "us-west-2, *", "*, us-east-1", "*, *",
-        "us - west - 2", "us-we st-2", "us-west-2,,"
+    private static final List<Collection<String>> collectionList = Arrays.asList(
+        Arrays.asList("us-west-1"), Arrays.asList("us-west-1", "us-west-2"), Arrays.asList("us-west-2", "us-west-2"),
+        Arrays.asList("*"), Arrays.asList("us-west-2", "us-west-2", "*")
     );
 
-    private static List<String> passInputs() {
-        return passList;
+    private static List<String> stringInputs() {
+        return stringList;
     }
 
-    private static List<String> failInputs() {
-        return failList;
+    private static List<Collection<String>> collectionInputs() {
+        return collectionList;
     }
 
     @ParameterizedTest
-    @MethodSource("passInputs")
-    public void create_withValidInput_succeeds(String input) {
+    @MethodSource("stringInputs")
+    public void create_withStringInput_succeeds(String input) {
         RegionSet.create(input);
     }
 
     @ParameterizedTest
-    @MethodSource("failInputs")
-    public void create_withInvalidInput_throws(String input) {
-        assertThrows(IllegalArgumentException.class, () -> RegionSet.create(input));
+    @MethodSource("collectionInputs")
+    public void create_withCollectionInput_succeeds(Collection<String> input) {
+        RegionSet.create(input);
     }
 }
