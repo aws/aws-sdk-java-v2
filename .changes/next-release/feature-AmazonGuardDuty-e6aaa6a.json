@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Add `EKS_CLUSTER_NAME` to filter and sort key."
-}
