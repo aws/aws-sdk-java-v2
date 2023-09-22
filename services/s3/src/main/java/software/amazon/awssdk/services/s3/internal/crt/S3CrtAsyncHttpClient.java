@@ -77,6 +77,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                s3NativeClientConfiguration.endpointOverride().toString())
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
+                                 .withTlsContext(s3NativeClientConfiguration.tlsContext())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withMultipartUploadThreshold(s3NativeClientConfiguration.thresholdInBytes())
                                  .withComputeContentMd5(false)
