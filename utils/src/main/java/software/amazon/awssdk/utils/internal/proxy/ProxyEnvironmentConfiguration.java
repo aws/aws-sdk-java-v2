@@ -49,8 +49,8 @@ public class ProxyEnvironmentConfiguration implements LocalProxyConfiguration {
 
 
     private Optional<URL> silentlyGetURL(){
-        String stringURL = Objects.equals(this.scheme, HTTPS) ? ProxyEnvironmentSetting.HTTPS_PROXY.environmentVariable()
-                                                           : ProxyEnvironmentSetting.HTTP_PROXY.environmentVariable();
+        String stringURL = Objects.equals(this.scheme, HTTPS) ? ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue().orElse(null)
+                                                           : ProxyEnvironmentSetting.HTTP_PROXY.getStringValue().orElse(null);
         if(StringUtils.isNotBlank(stringURL)){
             try {
                 return Optional.of(new URL(stringURL));

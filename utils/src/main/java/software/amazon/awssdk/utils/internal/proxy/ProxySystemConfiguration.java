@@ -23,6 +23,7 @@ import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.LocalProxyConfiguration;
 import software.amazon.awssdk.utils.ProxySystemSetting;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * The system properties related to http and https proxies
@@ -39,26 +40,26 @@ public class ProxySystemConfiguration implements LocalProxyConfiguration {
     @Override
     public int port() {
         return Objects.equals(this.scheme, HTTPS) ?
-               ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0) :
-               ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
+               ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue().filter(StringUtils::isNotBlank).map(Integer::parseInt).orElse(0) :
+               ProxySystemSetting.PROXY_PORT.getStringValue().filter(StringUtils::isNotBlank).map(Integer::parseInt).orElse(0);
     }
 
     @Override
     public Optional<String> userName() {
-        return Objects.equals(this.scheme, HTTPS) ? ProxySystemSetting.HTTPS_PROXY_USERNAME.getStringValue():
-               ProxySystemSetting.PROXY_USERNAME.getStringValue();
+        return Objects.equals(this.scheme, HTTPS) ? ProxySystemSetting.HTTPS_PROXY_USERNAME.getStringValue().filter(StringUtils::isNotBlank):
+               ProxySystemSetting.PROXY_USERNAME.getStringValue().filter(StringUtils::isNotBlank);
     }
 
     @Override
     public Optional<String>  password() {
-        return Objects.equals(scheme, HTTPS) ? ProxySystemSetting.HTTPS_PROXY_PASSWORD.getStringValue() :
-               ProxySystemSetting.PROXY_PASSWORD.getStringValue();
+        return Objects.equals(scheme, HTTPS) ? ProxySystemSetting.HTTPS_PROXY_PASSWORD.getStringValue().filter(StringUtils::isNotBlank) :
+               ProxySystemSetting.PROXY_PASSWORD.getStringValue().filter(StringUtils::isNotBlank);
     }
 
     @Override
     public String host() {
-        return Objects.equals(scheme, HTTPS) ? ProxySystemSetting.HTTPS_PROXY_HOST.getStringValue().orElse(null) :
-               ProxySystemSetting.PROXY_HOST.getStringValue().orElse(null);
+        return Objects.equals(scheme, HTTPS) ? ProxySystemSetting.HTTPS_PROXY_HOST.getStringValue().filter(StringUtils::isNotBlank).orElse(null) :
+               ProxySystemSetting.PROXY_HOST.getStringValue().filter(StringUtils::isNotBlank).orElse(null);
     }
 
     @Override
