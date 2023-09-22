@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Adds count, scanned count and returned consumed capacity to Page, used by Scan and Query operations"
-}
