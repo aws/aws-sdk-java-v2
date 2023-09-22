@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon Simple Storage Servic",
+    "contributor": "",
+    "description": "Fix for Cross-region calls failure due to AuthorizationHeaderMalformed errors while using clients with configured region as us-east-1."
+}
