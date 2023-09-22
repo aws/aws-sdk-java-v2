@@ -16,48 +16,53 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.xmlServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.Test;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class SyncClientClassTest {
     @Test
     public void syncClientClassRestJson() {
-        SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.restJsonServiceModels());
+        SyncClientClass syncClientClass = createSyncClientClass(restJsonServiceModels());
         assertThat(syncClientClass, generatesTo("test-json-client-class.java"));
     }
 
     @Test
     public void syncClientClassQuery() {
-        SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.queryServiceModels());
+        SyncClientClass syncClientClass = createSyncClientClass(queryServiceModels());
         assertThat(syncClientClass, generatesTo("test-query-client-class.java"));
     }
 
     @Test
     public void syncClientClassAwsQueryCompatibleJson() {
-        SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.awsQueryCompatibleJsonServiceModels());
+        SyncClientClass syncClientClass = createSyncClientClass(awsQueryCompatibleJsonServiceModels());
         assertThat(syncClientClass, generatesTo("test-aws-query-compatible-json-sync-client-class.java"));
     }
 
     @Test
     public void syncClientClassXml() {
-        SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.xmlServiceModels());
+        SyncClientClass syncClientClass = createSyncClientClass(xmlServiceModels());
         assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
     }
 
     @Test
     public void syncClientEndpointDiscovery() {
-        ClassSpec syncClientEndpointDiscovery = createSyncClientClass(ClientTestModels.endpointDiscoveryModels());
+        ClassSpec syncClientEndpointDiscovery = createSyncClientClass(endpointDiscoveryModels());
         assertThat(syncClientEndpointDiscovery, generatesTo("test-endpoint-discovery-sync.java"));
     }
 
     @Test
     public void syncClientCustomServiceMetaData() {
-        ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(ClientTestModels.customContentTypeModels());
+        ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(customContentTypeModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
     }
 

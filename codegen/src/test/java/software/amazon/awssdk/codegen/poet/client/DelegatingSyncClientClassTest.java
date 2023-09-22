@@ -16,16 +16,16 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.Test;
-import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class DelegatingSyncClientClassTest {
     @Test
     public void delegatingSyncClientClass() {
         DelegatingSyncClientClass syncClientDecoratorAbstractClass =
-            new DelegatingSyncClientClass(ClientTestModels.restJsonServiceModels());
+            new DelegatingSyncClientClass(restJsonServiceModels());
         assertThat(syncClientDecoratorAbstractClass, generatesTo("test-abstract-sync-client-class.java"));
     }
 }
