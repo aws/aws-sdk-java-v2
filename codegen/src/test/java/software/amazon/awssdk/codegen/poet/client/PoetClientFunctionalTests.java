@@ -26,81 +26,81 @@ import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class PoetClientFunctionalTests {
     @Test
-    public void asyncClientClassRestJson() throws Exception {
+    public void asyncClientClassRestJson() {
         AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(asyncClientClass, generatesTo("test-json-async-client-class.java"));
     }
 
     @Test
-    public void asyncClientInterface() throws Exception {
+    public void asyncClientInterface() {
         ClassSpec asyncClientInterface = new AsyncClientInterface(ClientTestModels.restJsonServiceModels());
         assertThat(asyncClientInterface, generatesTo("test-json-async-client-interface.java"));
     }
 
     @Test
-    public void delegatingAsyncClientClass() throws Exception {
+    public void delegatingAsyncClientClass() {
         DelegatingAsyncClientClass asyncClientDecoratorAbstractClass =
             new DelegatingAsyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(asyncClientDecoratorAbstractClass, generatesTo("test-abstract-async-client-class.java"));
     }
 
     @Test
-    public void syncClientInterface() throws Exception {
+    public void syncClientInterface() {
         ClassSpec syncClientInterface = new SyncClientInterface(ClientTestModels.restJsonServiceModels());
         assertThat(syncClientInterface, generatesTo("test-json-client-interface.java"));
     }
 
     @Test
-    public void delegatingSyncClientClass() throws Exception {
+    public void delegatingSyncClientClass() {
         DelegatingSyncClientClass syncClientDecoratorAbstractClass =
             new DelegatingSyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(syncClientDecoratorAbstractClass, generatesTo("test-abstract-sync-client-class.java"));
     }
 
     @Test
-    public void syncClientClassRestJson() throws Exception {
+    public void syncClientClassRestJson() {
         SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(syncClientClass, generatesTo("test-json-client-class.java"));
     }
 
     @Test
-    public void syncClientClassQuery() throws Exception {
+    public void syncClientClassQuery() {
         SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.queryServiceModels());
         assertThat(syncClientClass, generatesTo("test-query-client-class.java"));
     }
 
     @Test
-    public void asyncClientClassQuery() throws Exception {
+    public void asyncClientClassQuery() {
         AsyncClientClass syncClientClass = createAsyncClientClass(ClientTestModels.queryServiceModels());
         assertThat(syncClientClass, generatesTo("test-query-async-client-class.java"));
     }
 
     @Test
-    public void asyncClientClassAwsJson() throws Exception {
+    public void asyncClientClassAwsJson() {
         AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.awsJsonServiceModels());
         assertThat(asyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
     }
 
     @Test
-    public void asyncClientClassAwsQueryCompatibleJson() throws Exception {
+    public void asyncClientClassAwsQueryCompatibleJson() {
         AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.awsQueryCompatibleJsonServiceModels());
         assertThat(asyncClientClass, generatesTo("test-aws-query-compatible-json-async-client-class.java"));
     }
 
     @Test
-    public void syncClientClassAwsQueryCompatibleJson() throws Exception {
+    public void syncClientClassAwsQueryCompatibleJson() {
         SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.awsQueryCompatibleJsonServiceModels());
         assertThat(syncClientClass, generatesTo("test-aws-query-compatible-json-sync-client-class.java"));
     }
 
     @Test
-    public void syncClientClassXml() throws Exception {
+    public void syncClientClassXml() {
         SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.xmlServiceModels());
         assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
     }
 
     @Test
-    public void asyncClientClassXml() throws Exception {
+    public void asyncClientClassXml() {
         AsyncClientClass syncClientClass = createAsyncClientClass(ClientTestModels.xmlServiceModels());
         assertThat(syncClientClass, generatesTo("test-xml-async-client-class.java"));
     }
@@ -114,27 +114,27 @@ public class PoetClientFunctionalTests {
     }
 
     @Test
-    public void syncClientEndpointDiscovery() throws Exception {
+    public void syncClientEndpointDiscovery() {
         ClassSpec syncClientEndpointDiscovery = createSyncClientClass(ClientTestModels.endpointDiscoveryModels());
         assertThat(syncClientEndpointDiscovery, generatesTo("test-endpoint-discovery-sync.java"));
     }
 
     @Test
-    public void asyncClientEndpointDiscovery() throws Exception {
+    public void asyncClientEndpointDiscovery() {
         ClassSpec asyncClientEndpointDiscovery = new AsyncClientClass(
             GeneratorTaskParams.create(ClientTestModels.endpointDiscoveryModels(), "sources/", "tests/", "resources/"));
         assertThat(asyncClientEndpointDiscovery, generatesTo("test-endpoint-discovery-async.java"));
     }
 
     @Test
-    public void asyncClientCustomServiceMetaData() throws Exception {
+    public void asyncClientCustomServiceMetaData() {
         ClassSpec asyncClientCustomServiceMetaData = new AsyncClientClass(
             GeneratorTaskParams.create(ClientTestModels.customContentTypeModels(), "sources/", "tests/", "resources/"));
         assertThat(asyncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-async.java"));
     }
 
     @Test
-    public void syncClientCustomServiceMetaData() throws Exception {
+    public void syncClientCustomServiceMetaData() {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(ClientTestModels.customContentTypeModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
     }

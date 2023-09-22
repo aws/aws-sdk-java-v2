@@ -29,42 +29,42 @@ import software.amazon.awssdk.codegen.poet.ClientTestModels;
  */
 public class BuilderClassTest {
     @Test
-    public void baseClientBuilderInterface() throws Exception {
+    public void baseClientBuilderInterface() {
         validateGeneration(BaseClientBuilderInterface::new, "test-client-builder-interface.java");
     }
 
     @Test
-    public void baseClientBuilderClass() throws Exception {
+    public void baseClientBuilderClass() {
         validateGeneration(BaseClientBuilderClass::new, "test-client-builder-class.java");
     }
 
     @Test
-    public void baseClientBuilderInterfaceWithBearerAuth() throws Exception {
+    public void baseClientBuilderInterfaceWithBearerAuth() {
         validateBearerAuthGeneration(BaseClientBuilderInterface::new, "test-bearer-auth-client-builder-interface.java");
     }
 
     @Test
-    public void baseClientBuilderClassWithBearerAuth() throws Exception {
+    public void baseClientBuilderClassWithBearerAuth() {
         validateBearerAuthGeneration(BaseClientBuilderClass::new, "test-bearer-auth-client-builder-class.java");
     }
 
     @Test
-    public void baseClientBuilderClassWithNoAuthOperation() throws Exception {
+    public void baseClientBuilderClassWithNoAuthOperation() {
         validateNoAuthOperationAuthGeneration(BaseClientBuilderClass::new, "test-no-auth-ops-client-builder-class.java");
     }
 
     @Test
-    public void baseClientBuilderClassWithNoAuthService() throws Exception {
+    public void baseClientBuilderClassWithNoAuthService() {
         validateNoAuthServiceAuthGeneration(BaseClientBuilderClass::new, "test-no-auth-service-client-builder-class.java");
     }
 
     @Test
-    public void baseClientBuilderClassWithInternalUserAgent() throws Exception {
+    public void baseClientBuilderClassWithInternalUserAgent() {
         assertThat(new BaseClientBuilderClass(ClientTestModels.internalConfigModels()), generatesTo("test-client-builder-internal-defaults-class.java"));
     }
 
     @Test
-    public void baseQueryClientBuilderClass() throws Exception {
+    public void baseQueryClientBuilderClass() {
         validateQueryGeneration(BaseClientBuilderClass::new, "test-query-client-builder-class.java");
     }
 
@@ -74,43 +74,43 @@ public class BuilderClassTest {
     }
 
     @Test
-    public void syncClientBuilderInterface() throws Exception {
+    public void syncClientBuilderInterface() {
         validateGeneration(SyncClientBuilderInterface::new, "test-sync-client-builder-interface.java");
     }
 
     @Test
-    public void syncClientBuilderClass() throws Exception {
+    public void syncClientBuilderClass() {
         validateGeneration(SyncClientBuilderClass::new, "test-sync-client-builder-class.java");
     }
 
     @Test
-    public void syncComposedClientBuilderClass() throws Exception {
+    public void syncComposedClientBuilderClass() {
         validateComposedClientGeneration(SyncClientBuilderClass::new, "test-composed-sync-client-builder-class.java");
     }
 
     @Test
-    public void syncComposedDefaultClientBuilderClass() throws Exception {
+    public void syncComposedDefaultClientBuilderClass() {
         validateComposedClientGeneration(BaseClientBuilderClass::new, "test-composed-sync-default-client-builder.java");
     }
 
     @Test
-    public void syncHasCrossRegionAccessEnabledPropertyBuilderClass() throws Exception {
+    public void syncHasCrossRegionAccessEnabledPropertyBuilderClass() {
         validateComposedClientGeneration(BaseClientBuilderInterface::new, "test-customcontextparams-sync-client-builder-class.java");
     }
 
 
     @Test
-    public void asyncClientBuilderInterface() throws Exception {
+    public void asyncClientBuilderInterface() {
         validateGeneration(AsyncClientBuilderInterface::new, "test-async-client-builder-interface.java");
     }
 
     @Test
-    public void asyncClientBuilderClass() throws Exception {
+    public void asyncClientBuilderClass() {
         validateGeneration(AsyncClientBuilderClass::new, "test-async-client-builder-class.java");
     }
 
     @Test
-    public void asyncComposedClientBuilderClass() throws Exception {
+    public void asyncComposedClientBuilderClass() {
         validateComposedClientGeneration(AsyncClientBuilderClass::new, "test-composed-async-client-builder-class.java");
     }
 
