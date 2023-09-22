@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.builder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.bearerAuthServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.composedClientJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.internalConfigModels;
@@ -24,30 +23,18 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceM
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithNoAuth;
-import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
+import static software.amazon.awssdk.codegen.poet.builder.BuilderClassTestUtils.validateGeneration;
 
-import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.poet.ClassSpec;
 
 /**
- * Validate client builder generation.
+ * Validate BaseClientBuilderClass generation.
  */
-public class BuilderClassTest {
-    @Test
-    public void baseClientBuilderInterface() {
-        validateBaseClientBuilderInterfaceGeneration(restJsonServiceModels(), "test-client-builder-interface.java");
-    }
-
+public class BaseClientBuilderClassTest {
     @Test
     public void baseClientBuilderClass() {
         validateBaseClientBuilderClassGeneration(restJsonServiceModels(), "test-client-builder-class.java");
-    }
-
-    @Test
-    public void baseClientBuilderInterfaceWithBearerAuth() {
-        validateBaseClientBuilderInterfaceGeneration(bearerAuthServiceModels(), "test-bearer-auth-client-builder-interface.java");
     }
 
     @Test
@@ -82,61 +69,12 @@ public class BuilderClassTest {
     }
 
     @Test
-    public void syncClientBuilderInterface() {
-        validateGeneration(SyncClientBuilderInterface::new, restJsonServiceModels(), "test-sync-client-builder-interface.java");
-    }
-
-    @Test
-    public void syncClientBuilderClass() {
-        validateGeneration(SyncClientBuilderClass::new, restJsonServiceModels(), "test-sync-client-builder-class.java");
-    }
-
-    @Test
-    public void syncComposedClientBuilderClass() {
-        validateGeneration(SyncClientBuilderClass::new, composedClientJsonServiceModels(),
-                           "test-composed-sync-client-builder-class.java");
-    }
-
-    @Test
     public void syncComposedDefaultClientBuilderClass() {
         validateBaseClientBuilderClassGeneration(composedClientJsonServiceModels(),
                                                  "test-composed-sync-default-client-builder.java");
     }
 
-    @Test
-    public void syncHasCrossRegionAccessEnabledPropertyBuilderClass() {
-        validateBaseClientBuilderInterfaceGeneration(composedClientJsonServiceModels(),
-                                                     "test-customcontextparams-sync-client-builder-class.java");
-    }
-
-
-    @Test
-    public void asyncClientBuilderInterface() {
-        validateGeneration(AsyncClientBuilderInterface::new, restJsonServiceModels(), "test-async-client-builder-interface.java");
-    }
-
-    @Test
-    public void asyncClientBuilderClass() {
-        validateGeneration(AsyncClientBuilderClass::new, restJsonServiceModels(), "test-async-client-builder-class.java");
-    }
-
-    @Test
-    public void asyncComposedClientBuilderClass() {
-        validateGeneration(AsyncClientBuilderClass::new, composedClientJsonServiceModels(),
-                           "test-composed-async-client-builder-class.java");
-    }
-
-    private void validateBaseClientBuilderInterfaceGeneration(IntermediateModel model, String expectedClassName) {
-        validateGeneration(BaseClientBuilderInterface::new, model, expectedClassName);
-    }
-
     private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {
         validateGeneration(BaseClientBuilderClass::new, model, expectedClassName);
-    }
-
-    private void validateGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
-                                    IntermediateModel model,
-                                    String expectedClassName) {
-        assertThat(generatorConstructor.apply(model), generatesTo(expectedClassName));
     }
 }
