@@ -283,8 +283,8 @@ public class EndpointInterceptorTests {
             .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
             .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
                                                                    .schemeId("aws.auth#sigv4a")
-                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_SET,
-                                                                                      RegionSet.create("us-east-1"))
+                                                                   .putSignerProperty(
+                                                                       AwsV4aHttpSigner.REGION_SET, RegionSet.create("us-east-1"))
                                                                    .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, "Y")
                                                                    .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, true)
                                                                    .build()))

@@ -23,13 +23,13 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * This class represents the concept of a set of regions.
  * <p>
- * A Re
+ * A region-set can contain one or more comma-separated AWS regions, or a single wildcard to represent all regions ("global").
  * <p>
- * Examples of a valid region set:
+ * Examples of a valid region-set:
  * <ul>
- *     <li>'*' - Represents all regions, i.e. a global scope</li>
- *     <li>'us-west-2,us-east-1' - Represents 2 regions, us-west-2 and us-east-1</li>
+ *     <li>'*' - Represents all regions, global</li>
  *     <li>'eu-west-1' - Represents a single region, eu-west-1</li>
+ *     <li>'us-west-2,us-east-1' - Represents 2 regions, us-west-2 and us-east-1</li>
  * </ul>
  * <p>
  * Example of an invalid region set:
@@ -91,12 +91,12 @@ public final class RegionSet {
         return 31 * (1 + (regionSet != null ? regionSet.hashCode() : 0));
     }
 
-    private void validateFormat(String regionScope) {
-        Matcher matcher = REGION_SCOPE_PATTERN.matcher(regionScope.trim());
+    private void validateFormat(String regionSet) {
+        Matcher matcher = REGION_SCOPE_PATTERN.matcher(regionSet.trim());
         if (!matcher.matches()) {
-            throw new IllegalArgumentException("Invalid region '" + regionScope + "'. A region within the region-set must "
-                                               + "be a complete region, such as 'us-east-1', or the wildcard ('*') to "
-                                               + "represent all regions.");
+            throw new IllegalArgumentException("Invalid region-set '" + regionSet + "'. The region-set must be one or more "
+                                               + "complete regions, such as 'us-east-1' or 'us-west-2, us-east-1', or the " 
+                                               + "wildcard ('*') to represent all regions.");
         }
     }
 }
