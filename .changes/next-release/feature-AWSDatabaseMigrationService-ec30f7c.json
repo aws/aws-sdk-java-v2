@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "new vendors for DMS CSF: MongoDB, MariaDB, DocumentDb and Redshift"
+}
