@@ -1,0 +1,90 @@
+{
+    "version": "2.20.153",
+    "date": "2023-09-22",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue in `InputStreamSubscriber` that could cause NPE to be thrown when close and onSubscribed get invoked concurrently. See [#4081](https://github.com/aws/aws-sdk-java-v2/issues/4081)"
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Fixed a bug in DynamoDbTable.createTable, where global secondary indices with a partition key matching the default partition key of the table would be created as local secondary indices."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed the issue where SdkException is unnecessarily re-wrapped with SdkClientException in S3 multipart client and AWS CRT-based S3 client. See[#4356](https://github.com/aws/aws-sdk-java-v2/issues/4356)"
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon Simple Storage Servic",
+            "contributor": "",
+            "description": "Fix for Cross-region calls failure due to AuthorizationHeaderMalformed errors while using clients with configured region as us-east-1."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "new vendors for DMS CSF: MongoDB, MariaDB, DocumentDb and Redshift"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release supports the creation of of audio-only tracks in CMAF output groups."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adds support for non-Json String payloads"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "contributor": "",
+            "description": "Adds sensitive trait to various shapes in Jetstream Connections API model."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "EC2 M2 Pro Mac instances are powered by Apple M2 Pro Mac Mini computers featuring 12 core CPU, 19 core GPU, 32 GiB of memory, and 16 core Apple Neural Engine and uniquely enabled by the AWS Nitro System through high-speed Thunderbolt connections."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "contributor": "",
+            "description": "Documentation updates for Elastic File System"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Add `EKS_CLUSTER_NAME` to filter and sort key."
+        },
+        {
+            "type": "feature",
+            "category": "Braket",
+            "contributor": "",
+            "description": "This release adds support to view the device queue depth (the number of queued quantum tasks and hybrid jobs on a device) and queue position for a quantum task and hybrid job."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Adds count, scanned count and returned consumed capacity to Page, used by Scan and Query operations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
