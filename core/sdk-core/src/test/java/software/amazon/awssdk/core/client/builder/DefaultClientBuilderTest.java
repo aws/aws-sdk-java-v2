@@ -41,6 +41,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_PO
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE;
 
+import com.google.common.collect.ImmutableSet;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
@@ -367,6 +369,9 @@ public class DefaultClientBuilderTest {
 
     @Test
     public void clientBuilderFieldsHaveBeanEquivalents() throws Exception {
+        // Mutating properties might not have bean equivalents. This is probably fine, since very few customers require
+        // bean-equivalent methods and it's not clear what they'd expect them to be named anyway. Ignore these methods for now.
+        Set<String> NON_BEAN_EQUIVALENT_METHODS = ImmutableSet.of("addPlugin");
         SdkClientBuilder<TestClientBuilder, TestClient> builder = testClientBuilder();
 
         BeanInfo beanInfo = Introspector.getBeanInfo(builder.getClass());
@@ -375,10 +380,14 @@ public class DefaultClientBuilderTest {
         Arrays.stream(clientBuilderMethods).filter(m -> !m.isSynthetic()).forEach(builderMethod -> {
             String propertyName = builderMethod.getName();
 
+            if (NON_BEAN_EQUIVALENT_METHODS.contains(propertyName)) {
+                return;
+            }
+
             Optional<PropertyDescriptor> propertyForMethod =
-                    Arrays.stream(beanInfo.getPropertyDescriptors())
-                          .filter(property -> property.getName().equals(propertyName))
-                          .findFirst();
+                Arrays.stream(beanInfo.getPropertyDescriptors())
+                      .filter(property -> property.getName().equals(propertyName))
+                      .findFirst();
 
             assertThat(propertyForMethod).as(propertyName + " property").hasValueSatisfying(property -> {
                 assertThat(property.getReadMethod()).as(propertyName + " getter").isNull();
@@ -386,7 +395,6 @@ public class DefaultClientBuilderTest {
             });
         });
     }
-
 
     @Test
     public void defaultProfileFileSupplier_isStaticOrHasIdentityCaching() {
