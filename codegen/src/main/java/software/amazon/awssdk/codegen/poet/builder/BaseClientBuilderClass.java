@@ -599,6 +599,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             case S3V4:
                 return Optional.of(s3SignerDefinitionMethodBody());
             case BEARER:
+            case NONE:
                 return Optional.empty();
             default:
                 throw new UnsupportedOperationException("Unsupported signer type: " + authType);
