@@ -28,7 +28,7 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 public class HttpSignerTest {
 
-    private static final SignerProperty<String> KEY = SignerProperty.create(String.class, "key");
+    private static final SignerProperty<String> KEY = SignerProperty.create(HttpSignerTest.class, "key");
     private static final String VALUE = "value";
     private static final TokenIdentity IDENTITY = TokenIdentity.create("token");
 

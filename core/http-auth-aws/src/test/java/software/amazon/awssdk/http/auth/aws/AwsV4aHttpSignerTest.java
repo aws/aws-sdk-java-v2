@@ -29,7 +29,7 @@ public class AwsV4aHttpSignerTest {
     @Test
     public void create_WithoutHttpAuthAwsCrtModule_throws() {
         try (MockedStatic<ClassLoaderHelper> utilities = Mockito.mockStatic(ClassLoaderHelper.class)) {
-            utilities.when(() ->ClassLoaderHelper.loadClass(
+            utilities.when(() -> ClassLoaderHelper.loadClass(
                 "software.amazon.awssdk.http.auth.aws.crt.HttpAuthAwsCrt",
                 false)
             ).thenThrow(new ClassNotFoundException("boom!"));

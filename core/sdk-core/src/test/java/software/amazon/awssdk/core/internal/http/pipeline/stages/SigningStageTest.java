@@ -63,7 +63,8 @@ import utils.ValidSdkObjects;
 public class SigningStageTest {
 
     private static final int TEST_TIME_OFFSET = 17;
-    private static final SignerProperty<String> SIGNER_PROPERTY = SignerProperty.create(String.class, "SigningStageTest.key");
+    private static final SignerProperty<String> SIGNER_PROPERTY =
+        SignerProperty.create(SigningStageTest.class, "key");
 
     @Mock
     private Identity identity;

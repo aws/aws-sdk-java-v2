@@ -33,7 +33,7 @@ public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner<AwsCredentialsId
     /**
      * The AWS region-set to be used for computing the signature. This property is required.
      */
-    SignerProperty<RegionSet> REGION_SET = SignerProperty.create("RegionSet");
+    SignerProperty<RegionSet> REGION_SET = SignerProperty.create(AwsV4aHttpSigner.class, "RegionSet");
 
     /**
      * Get a default implementation of a {@link AwsV4aHttpSigner}

@@ -30,36 +30,32 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @ThreadSafe
 public final class SignerProperty<T> {
-    private final Class<T> clazz;
+    private final String namespace;
     private final String name;
 
-    private SignerProperty(Class<T> clazz, String name) {
-        Validate.paramNotNull(clazz, "clazz");
+    private SignerProperty(String namespace, String name) {
+        Validate.paramNotBlank(namespace, "namespace");
         Validate.paramNotBlank(name, "name");
 
-        this.clazz = clazz;
+        this.namespace = namespace;
         this.name = name;
     }
 
     /**
-     * Create an instance of a property with a given type and name.
+     * Create a property.
+     *
+     * @param <T> the type of the property.
+     * @param namespace the class *where* the property is being defined
+     * @param name the name for the propety
      */
-    public static <T> SignerProperty<T> create(Class<T> clazz, String name) {
-        return new SignerProperty<>(clazz, name);
-    }
-
-    /**
-     * Create an instance of a property with a given type and name.
-     * TODO(sra-identity-auth): replace useage of other create method with this one
-     */
-    public static <T> SignerProperty<T> create(String name) {
-        return new SignerProperty<>((Class<T>) Object.class, name);
+    public static <T> SignerProperty<T> create(Class<?> namespace, String name) {
+        return new SignerProperty<>(namespace.getName(), name);
     }
 
     @Override
     public String toString() {
         return ToString.builder("SignerProperty")
-                       .add("clazz", clazz)
+                       .add("namespace", namespace)
                        .add("name", name)
                        .build();
     }
@@ -75,14 +71,14 @@ public final class SignerProperty<T> {
 
         SignerProperty<?> that = (SignerProperty<?>) o;
 
-        return Objects.equals(clazz, that.clazz) &&
+        return Objects.equals(namespace, that.namespace) &&
                Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + Objects.hashCode(clazz);
+        hashCode = 31 * hashCode + Objects.hashCode(namespace);
         hashCode = 31 * hashCode + Objects.hashCode(name);
         return hashCode;
     }

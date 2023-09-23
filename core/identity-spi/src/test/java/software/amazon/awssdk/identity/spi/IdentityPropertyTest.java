@@ -23,7 +23,7 @@ public class IdentityPropertyTest {
     @Test
     public void equalsHashcode() {
         EqualsVerifier.forClass(IdentityProperty.class)
-                      .withNonnullFields("clazz", "name")
+                      .withNonnullFields("namespace", "name")
                       .verify();
     }
 }

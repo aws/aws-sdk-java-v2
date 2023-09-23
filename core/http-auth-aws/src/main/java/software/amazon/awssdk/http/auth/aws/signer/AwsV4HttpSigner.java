@@ -33,7 +33,7 @@ public interface AwsV4HttpSigner extends AwsV4FamilyHttpSigner<AwsCredentialsIde
      * The AWS region name to be used for computing the signature. This property is required.
      */
     SignerProperty<String> REGION_NAME =
-        SignerProperty.create(String.class, "RegionName");
+        SignerProperty.create(AwsV4HttpSigner.class, "RegionName");
 
     /**
      * Get a default implementation of a {@link AwsV4HttpSigner}
