@@ -41,6 +41,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonServiceClientConfiguration;
 import software.amazon.awssdk.services.protocolrestjson.auth.scheme.ProtocolRestJsonAuthSchemeProvider;
+import software.amazon.awssdk.services.protocolrestjson.internal.ProtocolRestJsonServiceClientConfigurationBuilder;
 
 public class CodegenServiceClientConfigurationTest {
     private static final EndpointProvider MOCK_ENDPOINT_PROVIDER = mock(EndpointProvider.class);
@@ -53,8 +54,8 @@ public class CodegenServiceClientConfigurationTest {
     @ParameterizedTest
     @MethodSource("testCases")
     <T> void fromExternalToInternal(TestCase<T> testCase) {
-        ProtocolRestJsonServiceClientConfiguration.BuilderInternal builder =
-            ProtocolRestJsonServiceClientConfiguration.builder(SdkClientConfiguration.builder());
+        ProtocolRestJsonServiceClientConfigurationBuilder.BuilderInternal builder =
+            ProtocolRestJsonServiceClientConfigurationBuilder.builder(SdkClientConfiguration.builder());
 
         // Verify that initially the value is null for properties with direct mapping.
         if (testCase.hasDirectMapping) {
@@ -77,8 +78,8 @@ public class CodegenServiceClientConfigurationTest {
         SdkClientConfiguration clientConfig = builder.buildSdkClientConfiguration();
 
         // Build a new builder with the created client config
-        ProtocolRestJsonServiceClientConfiguration.BuilderInternal anotherBuilder =
-            ProtocolRestJsonServiceClientConfiguration.builder(clientConfig.toBuilder());
+        ProtocolRestJsonServiceClientConfigurationBuilder.BuilderInternal anotherBuilder =
+            ProtocolRestJsonServiceClientConfigurationBuilder.builder(clientConfig.toBuilder());
 
         // Assert that we can retrieve the same value
         assertThat(testCase.getter.apply(anotherBuilder)).isEqualTo(testCase.value);

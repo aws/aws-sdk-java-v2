@@ -63,7 +63,6 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
-import software.amazon.awssdk.core.client.config.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
@@ -487,12 +486,10 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     public final B endpointOverride(URI endpointOverride) {
         if (endpointOverride == null) {
             clientConfiguration.option(SdkClientOption.ENDPOINT, null);
-            clientConfiguration.option(SdkInternalAdvancedClientOption.ENDPOINT_OVERRIDE_VALUE, null);
             clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, false);
         } else {
             Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
             clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
-            clientConfiguration.option(SdkInternalAdvancedClientOption.ENDPOINT_OVERRIDE_VALUE, endpointOverride);
             clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
         }
         return thisBuilder();

@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.core.client.config.internal;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -31,14 +35,13 @@ public final class SdkClientConfigurationUtil {
 
     /**
      * Copies the {@link ClientOverrideConfiguration} values to the configuration builder.
+     * <p>
+     * <b>NOTE</b> make sure to mirror the properties in the method below or create a new abstraction to avoid this coupling.
      */
     public static SdkClientConfiguration.Builder copyOverridesToConfiguration(
         ClientOverrideConfiguration overrides,
         SdkClientConfiguration.Builder builder
     ) {
-        // Save the ClientOverrideConfiguration instance
-        builder.option(SdkInternalAdvancedClientOption.CLIENT_OVERRIDE_CONFIGURATION, overrides);
-
         // misc
         builder.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, overrides.headers());
         builder.option(SdkClientOption.RETRY_POLICY, overrides.retryPolicy().orElse(null));
@@ -75,5 +78,56 @@ public final class SdkClientConfigurationUtil {
         builder.option(SdkClientOption.COMPRESSION_CONFIGURATION, overrides.compressionConfiguration().orElse(null));
 
         return builder;
+    }
+
+    /**
+     * Copies the {@link SdkClientConfiguration} values to the {@link ClientOverrideConfiguration.Builder} builder
+     * <p>
+     * <b>NOTE</b> make sure to mirror the properties in the method above or create a new abstraction to avoid this coupling.
+     */
+    public static ClientOverrideConfiguration.Builder copyConfigurationToOverrides(
+        ClientOverrideConfiguration.Builder clientOverrides,
+        SdkClientConfiguration.Builder clientConfiguration
+    ) {
+        // misc
+        Map<String, List<String>> additionalHeaders =clientConfiguration.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS);
+        if (additionalHeaders != null) {
+            clientOverrides.headers(additionalHeaders);
+        }
+        clientOverrides.retryPolicy(clientConfiguration.option(SdkClientOption.RETRY_POLICY));
+        clientOverrides.apiCallTimeout(clientConfiguration.option(SdkClientOption.API_CALL_TIMEOUT));
+        clientOverrides.apiCallAttemptTimeout(clientConfiguration.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT));
+        clientOverrides.scheduledExecutorService(clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE));
+        clientOverrides.executionInterceptors(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+        clientOverrides.executionAttributes(clientConfiguration.option(SdkClientOption.EXECUTION_ATTRIBUTES));
+
+        // advanced option
+        if (Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN))) {
+            Signer signer = clientConfiguration.option(SdkAdvancedClientOption.SIGNER);
+            clientOverrides.putAdvancedOption(SdkAdvancedClientOption.SIGNER, signer);
+        }
+
+        clientOverrides.putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX,
+                                          clientConfiguration.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX));
+        clientOverrides.putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX,
+                                          clientConfiguration.option(SdkAdvancedClientOption.USER_AGENT_PREFIX));
+        clientOverrides.putAdvancedOption(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION,
+                                          clientConfiguration.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION));
+        clientOverrides.putAdvancedOption(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION,
+                                          clientConfiguration.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION));
+        clientOverrides.putAdvancedOption(SdkAdvancedClientOption.TOKEN_SIGNER,
+                                          clientConfiguration.option(SdkAdvancedClientOption.TOKEN_SIGNER));
+
+        // profile
+        Optional.ofNullable(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .map(Supplier::get)
+                .ifPresent(clientOverrides::defaultProfileFile);
+
+        // misc
+        clientOverrides.defaultProfileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
+        clientOverrides.metricPublishers(clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS));
+        clientOverrides.compressionConfiguration(clientConfiguration.option(SdkClientOption.COMPRESSION_CONFIGURATION));
+
+        return clientOverrides;
     }
 }
