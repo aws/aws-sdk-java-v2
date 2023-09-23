@@ -148,7 +148,7 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_singleExecutionContext_resolvesChecksumSpecsOnce() {
+    public void invokeInterceptorsAndCreateExecutionContext_singleExecutionContext_resolvesEqualChecksumSpecs() {
         HttpChecksum httpCrc32Checksum =
             HttpChecksum.builder().requestAlgorithm("crc32").isRequestStreaming(true).build();
         ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams()
@@ -162,11 +162,11 @@ public class AwsExecutionContextBuilderTest {
         ChecksumSpecs checksumSpecs1 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).get();
         ChecksumSpecs checksumSpecs2 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).get();
 
-        assertThat(checksumSpecs1).isSameAs(checksumSpecs2);
+        assertThat(checksumSpecs1).isEqualTo(checksumSpecs2);
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_multipleExecutionContexts_resolvesChecksumSpecsOncePerContext() {
+    public void invokeInterceptorsAndCreateExecutionContext_multipleExecutionContexts_resolvesEqualChecksumSpecs() {
         HttpChecksum httpCrc32Checksum = HttpChecksum.builder().requestAlgorithm("crc32").isRequestStreaming(true).build();
         ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams()
             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, httpCrc32Checksum);
@@ -185,8 +185,8 @@ public class AwsExecutionContextBuilderTest {
         ChecksumSpecs checksumSpecs2 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes2).get();
         ChecksumSpecs checksumSpecs3 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes2).get();
 
-        assertThat(checksumSpecs1).isNotSameAs(checksumSpecs2);
-        assertThat(checksumSpecs2).isSameAs(checksumSpecs3);
+        assertThat(checksumSpecs1).isEqualTo(checksumSpecs2);
+        assertThat(checksumSpecs2).isEqualTo(checksumSpecs3);
     }
 
     @Test
