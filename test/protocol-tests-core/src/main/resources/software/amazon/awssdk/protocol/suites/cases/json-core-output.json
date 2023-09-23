@@ -702,4 +702,23 @@
       }
     }
   }
+,
+  {
+    "description": "Ignores an unrecognized __type property",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"UnionMember\": {\"StringMember\":\"foobar\", \"__type\": \"aws.protocoltests.json10#MyUnion\"}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "UnionMember": {"StringMember":"foobar"}
+      }
+    }
+  }
 ]
