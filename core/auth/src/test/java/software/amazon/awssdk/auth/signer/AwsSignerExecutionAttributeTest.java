@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.signer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
@@ -110,9 +112,22 @@ class AwsSignerExecutionAttributeTest {
     @Test
     public void signingRegionScope_oldAndNewAttributeAreMirrored() {
         assertOldAndNewAttributesAreMirrored(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE,
-                                             AwsV4aHttpSigner.REGION_NAME,
+                                             AwsV4aHttpSigner.REGION_SET,
                                              RegionScope.create("foo"),
-                                             "foo");
+                                             RegionSet.create("foo")
+        );
+    }
+
+    @Test
+    public void signingRegionScope_mappingToOldWithMoreThanOneRegionScopeThrows() {
+        RegionSet regionSet = RegionSet.create("foo1,foo2");
+        AuthSchemeOption newOption =
+            EMPTY_SELECTED_AUTH_SCHEME.authSchemeOption().copy(o -> o.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet));
+        attributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                new SelectedAuthScheme<>(EMPTY_SELECTED_AUTH_SCHEME.identity(),
+                                                         EMPTY_SELECTED_AUTH_SCHEME.signer(),
+                                                         newOption));
+        assertThrows(IllegalArgumentException.class, () -> attributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE));
     }
 
     @Test

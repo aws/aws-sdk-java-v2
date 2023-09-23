@@ -36,6 +36,7 @@ import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
@@ -270,16 +271,17 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
         if (authScheme == null) {
             return null;
         }
-        String regionScope = authScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_NAME);
-        if (regionScope == null) {
+        RegionSet regionSet = authScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET);
+        if (regionSet == null || regionSet.asString().isEmpty()) {
             return null;
         }
-        return RegionScope.create(regionScope);
+
+        return RegionScope.create(regionSet.asString());
     }
 
     private static <T extends Identity> SelectedAuthScheme<?> signingRegionScopeWriteMapping(SelectedAuthScheme<T> authScheme,
                                                                                              RegionScope regionScope) {
-        String regionScopeString = regionScope == null ? null : regionScope.id();
+        RegionSet regionSet = regionScope != null ? RegionSet.create(regionScope.id()) : null;
 
         if (authScheme == null) {
             // This is an unusual use-case.
@@ -289,15 +291,14 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                             new UnsetHttpSigner(),
                                             AuthSchemeOption.builder()
                                                             .schemeId("unset")
-                                                            .putSignerProperty(AwsV4aHttpSigner.REGION_NAME,
-                                                                               regionScopeString)
+                                                            .putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet)
                                                             .build());
         }
 
         return new SelectedAuthScheme<>(authScheme.identity(),
                                         authScheme.signer(),
-                                        authScheme.authSchemeOption().copy(o -> o.putSignerProperty(AwsV4aHttpSigner.REGION_NAME,
-                                                                                                    regionScopeString)));
+                                        authScheme.authSchemeOption().copy(o -> o.putSignerProperty(AwsV4aHttpSigner.REGION_SET,
+                                                                                                    regionSet)));
     }
 
     private static String serviceSigningNameReadMapping(SelectedAuthScheme<?> authScheme) {

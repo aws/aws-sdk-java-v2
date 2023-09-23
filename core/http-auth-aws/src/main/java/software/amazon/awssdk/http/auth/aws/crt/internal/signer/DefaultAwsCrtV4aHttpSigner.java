@@ -25,6 +25,7 @@ import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignin
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtHttpRequestConverter.toRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.sanitizeRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.isAnonymous;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
@@ -41,8 +42,8 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
@@ -64,9 +65,9 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
-        String regionName = request.requireProperty(REGION_NAME);
+        RegionSet regionSet = request.requireProperty(REGION_SET, RegionSet.GLOBAL);
         String serviceSigningName = request.requireProperty(SERVICE_SIGNING_NAME);
-        CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, signingInstant);
+        CredentialScope credentialScope = new CredentialScope(regionSet.asString(), serviceSigningName, signingInstant);
         boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
         boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
 
@@ -183,7 +184,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     private static SignedRequest doSign(SignRequest<? extends AwsCredentialsIdentity> request,
                                         AwsSigningConfig signingConfig,
                                         V4aPayloadSigner payloadSigner) {
-        if (CredentialUtils.isAnonymous(request.identity())) {
+        if (isAnonymous(request.identity())) {
             return SignedRequest.builder()
                                 .request(request.request())
                                 .payload(request.payload().orElse(null))

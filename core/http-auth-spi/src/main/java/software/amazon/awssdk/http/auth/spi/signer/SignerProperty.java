@@ -48,6 +48,14 @@ public final class SignerProperty<T> {
         return new SignerProperty<>(clazz, name);
     }
 
+    /**
+     * Create an instance of a property with a given type and name.
+     * TODO(sra-identity-auth): replace useage of other create method with this one
+     */
+    public static <T> SignerProperty<T> create(String name) {
+        return new SignerProperty<>((Class<T>) Object.class, name);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("SignerProperty")

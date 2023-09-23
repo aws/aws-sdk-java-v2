@@ -64,6 +64,7 @@ import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -596,8 +597,9 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         code.endControlFlow();
 
         code.beginControlFlow("if (v4aAuthScheme.signingRegionSet() != null)");
-        code.addStatement("option.putSignerProperty($T.REGION_NAME, $T.join(\",\", v4aAuthScheme.signingRegionSet()))",
-                          AwsV4aHttpSigner.class, String.class);
+        code.addStatement("$1T regionSet = $1T.create(v4aAuthScheme.signingRegionSet())", RegionSet.class);
+
+        code.addStatement("option.putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class);
         code.endControlFlow();
 
         code.beginControlFlow("if (v4aAuthScheme.signingName() != null)");

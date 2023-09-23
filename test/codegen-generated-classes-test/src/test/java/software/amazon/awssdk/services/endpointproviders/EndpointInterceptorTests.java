@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
@@ -282,7 +283,8 @@ public class EndpointInterceptorTests {
             .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
             .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
                                                                    .schemeId("aws.auth#sigv4a")
-                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, "X")
+                                                                   .putSignerProperty(
+                                                                       AwsV4aHttpSigner.REGION_SET, RegionSet.create("us-east-1"))
                                                                    .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, "Y")
                                                                    .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, true)
                                                                    .build()))
@@ -291,7 +293,7 @@ public class EndpointInterceptorTests {
         assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}))
             .hasMessageContaining("stop");
 
-        assertThat(signer.request.property(AwsV4aHttpSigner.REGION_NAME)).isEqualTo("region-1-from-ep");
+        assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET)).isEqualTo(RegionSet.create("region-1-from-ep"));
         assertThat(signer.request.property(AwsV4aHttpSigner.SERVICE_SIGNING_NAME)).isEqualTo("name-from-ep");
         assertThat(signer.request.property(AwsV4aHttpSigner.DOUBLE_URL_ENCODE)).isEqualTo(false);
     }
@@ -318,7 +320,8 @@ public class EndpointInterceptorTests {
             .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
             .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
                                                                    .schemeId("aws.auth#sigv4a")
-                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, "X")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_SET,
+                                                                                      RegionSet.create("us-east-1"))
                                                                    .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, "Y")
                                                                    .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, true)
                                                                    .build()))
@@ -327,7 +330,7 @@ public class EndpointInterceptorTests {
         assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}).join())
             .hasMessageContaining("stop");
 
-        assertThat(signer.request.property(AwsV4aHttpSigner.REGION_NAME)).isEqualTo("region-1-from-ep");
+        assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET)).isEqualTo(RegionSet.create("region-1-from-ep"));
         assertThat(signer.request.property(AwsV4aHttpSigner.SERVICE_SIGNING_NAME)).isEqualTo("name-from-ep");
         assertThat(signer.request.property(AwsV4aHttpSigner.DOUBLE_URL_ENCODE)).isEqualTo(false);
     }
@@ -405,7 +408,8 @@ public class EndpointInterceptorTests {
             .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
             .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
                                                                    .schemeId("aws.auth#sigv4a")
-                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, "region-from-ap")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_SET,
+                                                                                      RegionSet.create("region-from-ap"))
                                                                    .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, "Y")
                                                                    .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, true)
                                                                    .build()))
@@ -445,7 +449,8 @@ public class EndpointInterceptorTests {
                                                                            .build()))
             .authSchemeProvider(p -> singletonList(AuthSchemeOption.builder()
                                                                    .schemeId("aws.auth#sigv4a")
-                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_NAME, "X")
+                                                                   .putSignerProperty(AwsV4aHttpSigner.REGION_SET,
+                                                                                      RegionSet.create("us-east-1"))
                                                                    .putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, "Y")
                                                                    .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, false)
                                                                    .build()))

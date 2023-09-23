@@ -31,10 +31,9 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 @SdkPublicApi
 public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner<AwsCredentialsIdentity> {
     /**
-     * The AWS region name to be used for computing the signature. This property is required.
-     * TODO(sra-identity-and-auth): Should this be a list or rename to SIGNING_SCOPE?
+     * The AWS region-set to be used for computing the signature. This property is required.
      */
-    SignerProperty<String> REGION_NAME = SignerProperty.create(String.class, "SigningScope");
+    SignerProperty<RegionSet> REGION_SET = SignerProperty.create("RegionSet");
 
     /**
      * Get a default implementation of a {@link AwsV4aHttpSigner}
@@ -42,4 +41,5 @@ public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner<AwsCredentialsId
     static AwsV4aHttpSigner create() {
         return getDefaultAwsCrtV4aHttpSigner();
     }
+
 }
