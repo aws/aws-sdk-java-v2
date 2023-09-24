@@ -66,12 +66,14 @@ public final class SignerOverrideUtils {
      * @deprecated No longer used by modern clients after migration to reference architecture
      */
     @Deprecated
+    // TODO(sra-identity-and-auth): These used to be used by EndpointsAuthSchemeInterceptor, which has now been removed, but
+    //  this method is still used  from AwsExecutionContextBuilder. Should @Deprecated be removed?
     public static boolean isSignerOverridden(SdkRequest request, ExecutionAttributes executionAttributes) {
-        Optional<Boolean> isClientSignerOverridden = Optional.ofNullable(
-            executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
+        boolean isClientSignerOverridden =
+            Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
         Optional<Signer> requestSigner = request.overrideConfiguration()
                                                 .flatMap(RequestOverrideConfiguration::signer);
-        return isClientSignerOverridden.isPresent() || requestSigner.isPresent();
+        return isClientSignerOverridden || requestSigner.isPresent();
     }
 
     /**
