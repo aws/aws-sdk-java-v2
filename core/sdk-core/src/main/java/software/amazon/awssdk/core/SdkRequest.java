@@ -40,6 +40,7 @@ public abstract class SdkRequest implements SdkPojo {
      * Returns the list of {@link SdkPlugin} instances registered.
      */
     public List<SdkPlugin> registeredPlugins() {
+        // This method cannot be abstract and we cannot throw or return null at this point.
         return Collections.emptyList();
     }
 
