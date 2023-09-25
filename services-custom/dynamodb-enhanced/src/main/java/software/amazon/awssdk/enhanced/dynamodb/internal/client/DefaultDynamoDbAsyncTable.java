@@ -41,6 +41,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
@@ -156,8 +157,11 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<T> getItem(GetItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, T> operation = GetItemOperation.create(request);
-        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(request);
+        CompletableFuture<GetItemEnhancedResponse<T>> future = operation.executeOnPrimaryIndexAsync(
+            tableSchema, tableName, extension, dynamoDbClient
+        );
+        return future.thenApply(GetItemEnhancedResponse::attributes);
     }
 
     @Override
@@ -175,6 +179,20 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     @Override
     public CompletableFuture<T> getItem(T keyItem) {
         return getItem(keyFrom(keyItem));
+    }
+
+    @Override
+    public CompletableFuture<GetItemEnhancedResponse<T>> getItemWithResponse(GetItemEnhancedRequest request) {
+        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public CompletableFuture<GetItemEnhancedResponse<T>> getItemWithResponse(
+        Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
+        GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return getItemWithResponse(builder.build());
     }
 
     @Override

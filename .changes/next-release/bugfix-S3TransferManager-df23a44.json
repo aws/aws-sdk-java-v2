@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3TransferManager",
+    "contributor": "graebm",
+    "description": "Fix [aws-crt-java issue [#686](https://github.com/aws/aws-sdk-java-v2/issues/686)](https://github.com/awslabs/aws-crt-java/issues/686) S3AsyncClient ignoring trustAllCertificatesEnabled setting"
+}

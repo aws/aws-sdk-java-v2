@@ -24,8 +24,10 @@ import org.junit.jupiter.api.Test;
 
 class IamPolicyReaderTest {
     private static final IamPrincipal PRINCIPAL_1 = IamPrincipal.create("P1", "*");
+    private static final IamPrincipal PRINCIPAL_1B = IamPrincipal.create("P1", "B");
     private static final IamPrincipal PRINCIPAL_2 = IamPrincipal.create("P2", "*");
     private static final IamPrincipal NOT_PRINCIPAL_1 = IamPrincipal.create("NP1", "*");
+    private static final IamPrincipal NOT_PRINCIPAL_1B = IamPrincipal.create("NP1", "B");
     private static final IamPrincipal NOT_PRINCIPAL_2 = IamPrincipal.create("NP2", "*");
     private static final IamResource RESOURCE_1 = IamResource.create("R1");
     private static final IamResource RESOURCE_2 = IamResource.create("R2");
@@ -85,6 +87,20 @@ class IamPolicyReaderTest {
         IamPolicy.builder()
                  .version("Version")
                  .statements(singletonList(ONE_ELEMENT_LISTS_STATEMENT))
+                 .build();
+
+    private static final IamStatement COMPOUND_PRINCIPAL_STATEMENT =
+        IamStatement.builder()
+                    .effect(ALLOW)
+                    .sid("Sid")
+                    .principals(asList(PRINCIPAL_1, PRINCIPAL_1B))
+                    .notPrincipals(asList(NOT_PRINCIPAL_1, NOT_PRINCIPAL_1B))
+                    .build();
+
+    private static final IamPolicy COMPOUND_PRINCIPAL_POLICY =
+        IamPolicy.builder()
+                 .version("Version")
+                 .statements(singletonList(COMPOUND_PRINCIPAL_STATEMENT))
                  .build();
 
     private static final IamPolicyReader READER = IamPolicyReader.create();
@@ -156,6 +172,31 @@ class IamPolicyReaderTest {
                                + "  }\n"
                                + "}"))
             .isEqualTo(MINIMAL_POLICY);
+    }
+
+    @Test
+    public void readCompoundPrincipalsWorks() {
+        assertThat(READER.read("{\n" +
+                           "    \"Version\": \"Version\",\n" +
+                           "    \"Statement\": [\n" +
+                           "        {\n" +
+                           "            \"Sid\": \"Sid\",\n" +
+                           "            \"Effect\": \"Allow\",\n" +
+                           "            \"Principal\": {\n" +
+                           "                \"P1\": [\n" +
+                           "                    \"*\",\n" +
+                           "                    \"B\"\n" +
+                           "                ]\n" +
+                           "            },\n" +
+                           "            \"NotPrincipal\": {\n" +
+                           "                \"NP1\": [\n" +
+                           "                    \"*\",\n" +
+                           "                    \"B\"\n" +
+                           "                ]\n" +
+                           "            }\n" +
+                           "        }\n" +
+                           "    ]\n" +
+                           "}")).isEqualTo(COMPOUND_PRINCIPAL_POLICY);
     }
 
     @Test

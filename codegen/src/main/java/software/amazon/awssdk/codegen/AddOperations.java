@@ -75,6 +75,17 @@ final class AddOperations {
      * If there is a member in the output shape that is explicitly marked as the payload (with the payload trait) this method
      * returns the target shape of that member. Otherwise this method returns null.
      *
+     * @return True if shape is a String type. False otherwise
+     */
+    private static boolean isStringShape(Shape shape) {
+        return shape != null && "String".equals(shape.getType());
+    }
+
+    /**
+     * If there is a member in the output shape that is explicitly marked as the payload (with the
+     * payload trait) this method returns the target shape of that member. Otherwise this method
+     * returns null.
+     *
      * @param c2jShapes   All C2J shapes
      * @param outputShape Output shape of operation that may contain a member designated as the payload
      */
@@ -191,6 +202,9 @@ final class AddOperations {
                     new ReturnTypeModel(responseClassName).withDocumentation(documentation));
                 if (isBlobShape(getPayloadShape(c2jShapes, outputShape))) {
                     operationModel.setHasBlobMemberAsPayload(true);
+                }
+                if (isStringShape(getPayloadShape(c2jShapes, outputShape))) {
+                    operationModel.setHasStringMemberAsPayload(true);
                 }
             }
 

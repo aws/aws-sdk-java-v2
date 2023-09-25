@@ -144,6 +144,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return credentialsProvider;
     }
 
+    public TlsContext tlsContext() {
+        return tlsContext;
+    }
+
     public long partSizeBytes() {
         return partSizeInBytes;
     }

@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,6 +31,8 @@ import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;
 import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
@@ -59,6 +63,16 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
     public void getBucketLocationReturnsAResult() {
         GetBucketLocationRequest request = GetBucketLocationRequest.builder().bucket(bucketName).build();
         assertThat(s3.getBucketLocation(request).locationConstraint()).isEqualTo(BucketLocationConstraint.US_WEST_2);
+    }
+
+    @Test
+    public void getBucketLocation_withArn_throwsErrorMessageToUseBucketNameInstead() {
+        String bucketArn = "arn:aws:s3:::mybucket";
+        SdkClientException exception = assertThrows(SdkClientException.class,
+                                                    () -> s3.getBucketLocation(b-> b.bucket(bucketArn).build()));
+
+        assertEquals(exception.getMessage(), "Invalid ARN: Unrecognized format: arn:aws:s3:::mybucket (type: mybucket). "
+                                             + "Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest.");
     }
 
 
