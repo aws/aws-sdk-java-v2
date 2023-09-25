@@ -19,7 +19,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 
@@ -35,11 +38,14 @@ import software.amazon.awssdk.utils.Validate;
  *     <li>'eu-west-1' - Represents a single region, eu-west-1</li>
  *     <li>'us-west-2,us-east-1' - Represents 2 regions, us-west-2 and us-east-1</li>
  * </ul>
- * <p>
  */
 @SdkPublicApi
+@Immutable
 public final class RegionSet {
 
+    /**
+     * The "Global" region, which is represented with a single wildcard character: "*".
+     */
     public static final RegionSet GLOBAL;
 
     static {
@@ -50,7 +56,6 @@ public final class RegionSet {
     private final String regionSetString;
 
     private RegionSet(Collection<String> regions) {
-        Validate.paramNotNull(regions, "regions");
         this.regionSet = Collections.unmodifiableSet(new HashSet<>(regions));
         this.regionSetString = String.join(",", regionSet);
     }
@@ -75,7 +80,8 @@ public final class RegionSet {
      * @param value See class documentation {@link RegionSet} for the expected format.
      */
     public static RegionSet create(String value) {
-        return create(Arrays.asList(value.split(",")));
+        Validate.notEmpty(value, "value");
+        return create(Arrays.asList(value.trim().split(",")));
     }
 
     /**
@@ -84,7 +90,10 @@ public final class RegionSet {
      * @param regions A collection of regions.
      */
     public static RegionSet create(Collection<String> regions) {
-        return new RegionSet(regions);
+        Validate.notEmpty(regions, "regions");
+        return new RegionSet(
+            regions.stream().map(s -> Validate.notEmpty(s, "region").trim()).collect(Collectors.toList())
+        );
     }
 
     @Override
@@ -103,6 +112,6 @@ public final class RegionSet {
 
     @Override
     public int hashCode() {
-        return 31 * (1 + (regionSet != null ? regionSet.hashCode() : 0));
+        return Objects.hashCode(regionSet);
     }
 }

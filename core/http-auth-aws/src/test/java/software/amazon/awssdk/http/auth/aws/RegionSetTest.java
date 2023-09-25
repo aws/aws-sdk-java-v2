@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.http.auth.aws;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static software.amazon.awssdk.http.auth.aws.RegionSetTest.Case.tc;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -24,32 +29,100 @@ import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 
 public class RegionSetTest {
 
-    private static final List<String> stringList = Arrays.asList(
-        "*", "us-west-2", "us-east-1,us-west-2", " us-west-2 ", " us-east-1, us-west-2  ", " a,b  ,c ,d ,e ,f ,  g "
+    private static final List<Case<String>> stringCaseList = Arrays.asList(
+        tc("*", "*", Arrays.asList("*")),
+        tc("us-west-2", "us-west-2", Arrays.asList("us-west-2")),
+        tc("us-east-1,us-west-2", "us-east-1,us-west-2", Arrays.asList("us-east-1", "us-west-2")),
+        tc(" us-west-2 ", "us-west-2", Arrays.asList("us-west-2")),
+        tc(" us-east-1, us-west-2  ", "us-east-1,us-west-2", Arrays.asList("us-east-1", "us-west-2")),
+        tc(" a,b  ,c ,d ,e ,f ,  g ", "a,b,c,d,e,f,g", Arrays.asList("a", "b", "c", "d", "e", "f", "g"))
     );
 
-    private static final List<Collection<String>> collectionList = Arrays.asList(
-        Arrays.asList("us-west-1"), Arrays.asList("us-west-1", "us-west-2"), Arrays.asList("us-west-2", "us-west-2"),
-        Arrays.asList("*"), Arrays.asList("us-west-2", "us-west-2", "*")
+    private static final List<String> stringFailList = Arrays.asList(
+        null,
+        "",
+        " ",
+        ", ,",
+        ",,,"
     );
 
-    private static List<String> stringInputs() {
-        return stringList;
+    private static final List<Case<Collection<String>>> collectionCaseList = Arrays.asList(
+        tc(Arrays.asList("*"), "*", Arrays.asList("*")),
+        tc(Arrays.asList("us-west-2"), "us-west-2", Arrays.asList("us-west-2")),
+        tc(Arrays.asList("us-east-1", "us-west-2"), "us-east-1,us-west-2", Arrays.asList("us-east-1", "us-west-2")),
+        tc(Arrays.asList(" us-west-2 "), "us-west-2", Arrays.asList("us-west-2")),
+        tc(Arrays.asList(" us-east-1", " us-west-2  "), "us-east-1,us-west-2", Arrays.asList("us-east-1", "us-west-2")),
+        tc(Arrays.asList(" a", "b  ", "c ", "d ", "e ", "f ", "  g "),
+           "a,b,c,d,e,f,g",
+           Arrays.asList("a", "b", "c", "d", "e", "f", "g")
+        )
+    );
+
+    private static final List<Collection<String>> collectionFailList = Arrays.asList(
+        null,
+        Arrays.asList(),
+        Arrays.asList(""),
+        Arrays.asList(" ", ""),
+        Arrays.asList("", "", "")
+    );
+
+    private static List<Case<String>> stringCases() {
+        return stringCaseList;
     }
 
-    private static List<Collection<String>> collectionInputs() {
-        return collectionList;
+    private static List<String> stringFailures() {
+        return stringFailList;
+    }
+
+    private static List<Case<Collection<String>>> collectionCases() {
+        return collectionCaseList;
+    }
+
+    private static List<Collection<String>> collectionFailures() {
+        return collectionFailList;
     }
 
     @ParameterizedTest
-    @MethodSource("stringInputs")
-    public void create_withStringInput_succeeds(String input) {
-        RegionSet.create(input);
+    @MethodSource("stringCases")
+    public void create_withStringInput_succeeds(Case<String> stringCase) {
+        RegionSet regionSet = RegionSet.create(stringCase.input);
+        assertEquals(stringCase.asString, regionSet.asString());
+        assertIterableEquals(stringCase.asSet, regionSet.asSet());
     }
 
     @ParameterizedTest
-    @MethodSource("collectionInputs")
-    public void create_withCollectionInput_succeeds(Collection<String> input) {
-        RegionSet.create(input);
+    @MethodSource("stringFailures")
+    public void create_withInvalidStringInput_throws(String input) {
+        assertThrows(Exception.class, () -> RegionSet.create(input));
+    }
+
+    @ParameterizedTest
+    @MethodSource("collectionCases")
+    public void create_withCollectionInput_succeeds(Case<Collection<String>> collectionCase) {
+        RegionSet regionSet = RegionSet.create(collectionCase.input);
+        assertEquals(collectionCase.asString, regionSet.asString());
+        assertIterableEquals(collectionCase.asSet, regionSet.asSet());
+    }
+
+    @ParameterizedTest
+    @MethodSource("collectionFailures")
+    public void create_withInvalidCollectionInput_throws(Collection<String> input) {
+        assertThrows(Exception.class, () -> RegionSet.create(input));
+    }
+
+    static final class Case<T> {
+        final T input;
+        final String asString;
+        final Collection<String> asSet;
+
+        private Case(T input, String asString, Collection<String> asSet) {
+            this.input = input;
+            this.asString = asString;
+            this.asSet = asSet;
+        }
+
+        static <T> Case<T> tc(T input, String asString, Collection<String> asSet) {
+            return new Case<>(input, asString, asSet);
+        }
     }
 }
