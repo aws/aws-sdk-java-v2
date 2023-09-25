@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify UI Builder",
+    "contributor": "",
+    "description": "Support for generating code that is compatible with future versions of amplify project dependencies."
+}
