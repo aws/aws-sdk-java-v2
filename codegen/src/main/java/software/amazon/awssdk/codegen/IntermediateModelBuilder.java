@@ -37,6 +37,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -161,6 +162,7 @@ public class IntermediateModelBuilder {
 
         linkMembersToShapes(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);
+        linkCustomAuthorizationToRequestShapes(trimmedModel);
 
         setSimpleMethods(trimmedModel);
 
@@ -199,6 +201,44 @@ public class IntermediateModelBuilder {
                     model.getShapeByNameAndC2jName(entry.getValue().getReturnType().getReturnType(), outputShapeName);
                 entry.getValue().setOutputShape(outputShape);
             }
+        }
+    }
+
+    private void linkCustomAuthorizationToRequestShapes(IntermediateModel model) {
+        model.getOperations().values().stream()
+             .filter(OperationModel::isAuthenticated)
+             .forEach(operation -> {
+                 Operation c2jOperation = service.getOperation(operation.getOperationName());
+
+                 ShapeModel shape = operation.getInputShape();
+                 if (shape == null) {
+                     throw new RuntimeException(String.format("Operation %s has unknown input shape",
+                                                              operation.getOperationName()));
+                 }
+
+                 linkAuthorizationToRequestShapeForAwsProtocol(c2jOperation.getAuthtype(), shape);
+             });
+    }
+
+    private void linkAuthorizationToRequestShapeForAwsProtocol(AuthType authType, ShapeModel shape) {
+        if (authType == null) {
+            return;
+        }
+
+        switch (authType) {
+            case V4:
+                shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4Signer");
+                break;
+            case V4_UNSIGNED_BODY:
+                shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner");
+                break;
+            case BEARER:
+                shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner");
+                break;
+            case NONE:
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported authtype for AWS Request: " + authType);
         }
     }
 

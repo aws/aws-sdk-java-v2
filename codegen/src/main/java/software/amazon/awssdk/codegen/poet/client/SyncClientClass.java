@@ -21,6 +21,7 @@ import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -114,6 +115,10 @@ public class SyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
+
+        if (model.containsRequestSigners()) {
+            type.addMethod(applySignerOverrideMethod(poetExtensions, model));
+        }
 
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
@@ -216,6 +221,7 @@ public class SyncClientClass extends SyncClientInterface {
     private MethodSpec traditionalMethod(OperationModel opModel) {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
                                                        .addAnnotation(Override.class)
+                                                       .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
                                                        .addCode(protocolSpec.responseHandler(model, opModel));
 
         protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);

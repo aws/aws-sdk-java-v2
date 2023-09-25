@@ -7,11 +7,14 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
@@ -22,6 +25,7 @@ import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvid
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal base class for {@link DefaultDatabaseClientBuilder} and {@link DefaultDatabaseAsyncClientBuilder}.
@@ -45,9 +49,9 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                                  .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                .option(SdkClientOption.AUTH_SCHEMES, authSchemes()).option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
@@ -66,6 +70,10 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         SdkClientConfiguration.Builder builder = config.toBuilder();
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         return builder.build();
+    }
+
+    private Signer defaultSigner() {
+        return Aws4Signer.create();
     }
 
     @Override
@@ -105,5 +113,7 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
+        Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
+                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
     }
 }

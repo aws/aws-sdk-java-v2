@@ -2,8 +2,11 @@ package software.amazon.awssdk.services.xml;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.CredentialType;
@@ -21,6 +24,7 @@ import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -51,6 +55,7 @@ import software.amazon.awssdk.services.xml.model.StreamingInputOperationResponse
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.xml.model.XmlException;
+import software.amazon.awssdk.services.xml.model.XmlRequest;
 import software.amazon.awssdk.services.xml.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.BearerAuthOperationRequestMarshaller;
@@ -199,6 +204,8 @@ final class DefaultXmlClient implements XmlClient {
     @Override
     public BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
         throws AwsServiceException, SdkClientException, XmlException {
+        bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
+
         HttpResponseHandler<Response<BearerAuthOperationResponse>> responseHandler = protocolFactory
             .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
                                            new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
@@ -351,6 +358,7 @@ final class DefaultXmlClient implements XmlClient {
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
                              .withOperationName("OperationWithNoneAuthType").withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector).withInput(operationWithNoneAuthTypeRequest)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -592,6 +600,17 @@ final class DefaultXmlClient implements XmlClient {
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
+    }
+
+    private <T extends XmlRequest> T applySignerOverride(T request, Signer signer) {
+        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
+            return request;
+        }
+        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
     @Override
