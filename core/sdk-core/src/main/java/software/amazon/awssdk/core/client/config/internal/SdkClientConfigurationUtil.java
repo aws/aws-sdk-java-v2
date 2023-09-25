@@ -90,7 +90,7 @@ public final class SdkClientConfigurationUtil {
         SdkClientConfiguration.Builder clientConfiguration
     ) {
         // misc
-        Map<String, List<String>> additionalHeaders =clientConfiguration.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS);
+        Map<String, List<String>> additionalHeaders = clientConfiguration.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS);
         if (additionalHeaders != null) {
             clientOverrides.headers(additionalHeaders);
         }

@@ -53,7 +53,7 @@ public class CodegenServiceClientConfigurationTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    <T> void fromExternalToInternal(TestCase<T> testCase) {
+    <T> void externalInternalTransforms_preserves_propertyValues(TestCase<T> testCase) {
         ProtocolRestJsonServiceClientConfigurationBuilder.BuilderInternal builder =
             ProtocolRestJsonServiceClientConfigurationBuilder.builder(SdkClientConfiguration.builder());
 
@@ -168,7 +168,6 @@ public class CodegenServiceClientConfigurationTest {
         public static <T> Builder<T> builder() {
             return new Builder();
         }
-
 
         static class Builder<T> {
             private ClientOption<T> option;
