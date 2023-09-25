@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "You can now perform an exact match against the web request's JA3 fingerprint."
+}
