@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Media Pipelines",
+    "contributor": "",
+    "description": "Adds support for sending WebRTC audio to Amazon Kineses Video Streams."
+}
