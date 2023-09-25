@@ -133,7 +133,8 @@ public class MultipartDownloadHelper<T> {
         return returnFuture;
     }
 
-    // send upload and buffer the response body until the response buffer is full, then completes the future once all parts are
+    // send Get Object Requests for individual parts and buffer the response body until the response buffer is full, or until all
+    // individual part requests are sent.
     private void sendUploadRequestsUntilBufferIsFull() {
         log.info(() -> String.format(
             "Buffering request: current part: %d, memBufferSizeInBytes: %d, individualPartContentLength: %d",
