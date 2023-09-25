@@ -76,8 +76,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         // throw new UnsupportedOperationException(
         //     "Multipart download is not yet supported. Instead use the CRT based S3 client for multipart download.");
         MultipartDownloadHelper<ReturnT> downloadHelper = new MultipartDownloadHelper<>((S3AsyncClient) delegate());
-        downloadHelper.getObject(getObjectRequest, asyncResponseTransformer);
-        return downloadHelper.future();
+        return downloadHelper.getObject(getObjectRequest, asyncResponseTransformer);
     }
 
     @Override
