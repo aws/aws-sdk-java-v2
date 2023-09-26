@@ -76,6 +76,7 @@ public class SigningStage implements RequestToRequestPipeline {
                                                                    RequestExecutionContext context,
                                                                    SelectedAuthScheme<T> selectedAuthScheme) {
         updateHttpRequestInInterceptorContext(request, context.executionContext());
+        adjustForClockSkew(context.executionAttributes());
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
 
