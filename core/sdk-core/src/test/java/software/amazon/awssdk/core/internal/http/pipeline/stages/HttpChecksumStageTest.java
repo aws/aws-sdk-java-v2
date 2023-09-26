@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.core.HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
 import static software.amazon.awssdk.core.internal.signer.SigningMethod.UNSIGNED_PAYLOAD;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_MD5;
 
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -87,14 +89,12 @@ public class HttpChecksumStageTest {
     }
 
     @Test
-    public void async_streaming_md5Required_throws_IllegalArgumentException() throws Exception {
+    public void async_streaming_md5Required_throws_IllegalArgumentException() {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
         boolean isAsyncStreaming = true;
         RequestExecutionContext ctx = md5RequiredRequestContext(isAsyncStreaming);
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            asyncStage.execute(requestBuilder, ctx);
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> asyncStage.execute(requestBuilder, ctx));
 
         assertThat(exception.getMessage()).isEqualTo("This operation requires a content-MD5 checksum, but one cannot be "
                                                      + "calculated for non-blocking content.");
@@ -164,6 +164,22 @@ public class HttpChecksumStageTest {
 
         assertThat(requestBuilder.headers().get(CHECKSUM_SPECS_HEADER)).containsExactly("/T5YuTxNWthvWXg+TJMwl60XKcAnLMrrOZe/jA9Y+eI=");
 
+        assertThat(requestBuilder.firstMatchingHeader(HEADER_FOR_TRAILER_REFERENCE)).isEmpty();
+        assertThat(requestBuilder.firstMatchingHeader("Content-encoding")).isEmpty();
+        assertThat(requestBuilder.firstMatchingHeader("x-amz-content-sha256")).isEmpty();
+        assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).isEmpty();
+        assertThat(requestBuilder.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
+        assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
+    }
+
+    @Test
+    public void execute_whenSraCodepath_doesNotAddChecksumOrChunkEncode() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+        RequestExecutionContext ctx = sraRequestContext();
+
+        asyncStage.execute(requestBuilder, ctx);
+
+        assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader(HEADER_FOR_TRAILER_REFERENCE)).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader("Content-encoding")).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader("x-amz-content-sha256")).isEmpty();
@@ -243,6 +259,21 @@ public class HttpChecksumStageTest {
         }
 
         return createRequestExecutionContext(executionAttributes, interceptorContextBuilder.build(), isStreaming);
+    }
+
+    private RequestExecutionContext sraRequestContext() {
+        ExecutionAttributes executionAttributes =
+            ExecutionAttributes.builder()
+                               .put(AUTH_SCHEMES, Collections.emptyMap())
+                               .build();
+
+        InterceptorContext.Builder interceptorContextBuilder =
+            InterceptorContext.builder()
+                              .request(NoopTestRequest.builder().build())
+                              .httpRequest(ValidSdkObjects.sdkHttpFullRequest().build())
+                              .requestBody(REQUEST_BODY);
+
+        return createRequestExecutionContext(executionAttributes, interceptorContextBuilder.build(), false);
     }
 
     private RequestExecutionContext createRequestExecutionContext(ExecutionAttributes executionAttributes,
