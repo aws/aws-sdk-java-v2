@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -35,6 +37,14 @@ public abstract class SdkRequest implements SdkPojo {
     public abstract Optional<? extends RequestOverrideConfiguration> overrideConfiguration();
 
     /**
+     * Returns the list of {@link SdkPlugin} instances registered.
+     */
+    public List<SdkPlugin> registeredPlugins() {
+        // This method cannot be abstract and we cannot throw or return null at this point.
+        return Collections.emptyList();
+    }
+
+    /**
     * Used to retrieve the value of a field from any class that extends {@link SdkRequest}. The field name
     * specified should match the member name from the corresponding service-2.json model specified in the
     * codegen-resources folder for a given service. The class specifies what class to cast the returned value to.
@@ -53,6 +63,22 @@ public abstract class SdkRequest implements SdkPojo {
 
     public interface Builder {
         RequestOverrideConfiguration overrideConfiguration();
+
+        /**
+         * Returns the list of {@link SdkPlugin} instances registered.
+         */
+        default List<SdkPlugin> registeredPlugins() {
+            return Collections.emptyList();
+        }
+
+        /**
+         * Adds a {@link SdkPlugin} to be used to update the internal configuration.
+         *
+         * @param plugin A {@link SdkPlugin} to to be added.
+         */
+        default Builder addPlugin(SdkPlugin plugin) {
+            throw new UnsupportedOperationException();
+        }
 
         SdkRequest build();
     }
