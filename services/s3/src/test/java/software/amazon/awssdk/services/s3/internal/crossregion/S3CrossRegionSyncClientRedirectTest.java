@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTestBase {
+public class S3CrossRegionSyncClientRedirectTest extends S3CrossRegionRedirectTestBase {
 
     private static S3Client mockDelegateClient;
     private S3Client decoratedS3Client;
@@ -42,6 +42,25 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTest
     public void setup() {
         mockDelegateClient = Mockito.mock(S3Client.class);
         decoratedS3Client = new S3CrossRegionSyncClient(mockDelegateClient);
+    }
+
+    @Override
+    protected void stubApiWithAuthorizationHeaderWithInternalSoftwareError() {
+        when(mockDelegateClient.headBucket(any(HeadBucketRequest.class)))
+            .thenThrow(redirectException(500, null, "InternalError", null));
+    }
+    @Override
+    protected void stubHeadBucketRedirectWithAuthorizationHeaderMalformed() {
+        when(mockDelegateClient.headBucket(any(HeadBucketRequest.class)))
+            .thenThrow(redirectException(400, CROSS_REGION.id(), "AuthorizationHeaderMalformed", null))
+            .thenReturn(HeadBucketResponse.builder().build());
+    }
+
+    @Override
+    protected void stubApiWithAuthorizationHeaderMalformedError() {
+        when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
+            .thenThrow(redirectException(400, null, "AuthorizationHeaderMalformed", null))
+            .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
     }
 
     @Override

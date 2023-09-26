@@ -281,7 +281,8 @@
         "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
         "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
         "MapOfTimeStamp":{"shape":"MapOfTimeStamp"},
-        "MyDocument":{"shape":"MyDocument"}
+        "MyDocument":{"shape":"MyDocument"},
+        "UnionMember":{"shape":"AllTypesUnionStructure"}
       }
     },
     "BaseType":{
@@ -952,6 +953,93 @@
       "type":"structure",
       "members":{
         "DocumentMember":{"shape":"MyDocument"}
+      }
+    },
+    "AllTypesUnionStructure": {
+      "type": "structure",
+      "union": true,
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "BooleanMember": {
+          "shape": "Boolean"
+        },
+        "FloatMember": {
+          "shape": "Float"
+        },
+        "DoubleMember": {
+          "shape": "Double"
+        },
+        "LongMember": {
+          "shape": "Long"
+        },
+        "ShortMember": {
+          "shape": "Short"
+        },
+        "EnumMember": {
+          "shape": "EnumType"
+        },
+        "SimpleList": {
+          "shape": "ListOfStrings"
+        },
+        "ListOfEnums": {
+          "shape": "ListOfEnums"
+        },
+        "ListOfMaps": {
+          "shape": "ListOfMapStringToString"
+        },
+        "ListOfStructs": {
+          "shape": "ListOfSimpleStructs"
+        },
+        "MapOfStringToIntegerList": {
+          "shape": "MapOfStringToIntegerList"
+        },
+        "MapOfStringToString": {
+          "shape": "MapOfStringToString"
+        },
+        "MapOfStringToStruct": {
+          "shape": "MapOfStringToSimpleStruct"
+        },
+        "MapOfEnumToEnum": {
+          "shape": "MapOfEnumToEnum"
+        },
+        "TimestampMember": {
+          "shape": "Timestamp"
+        },
+        "StructWithNestedTimestampMember": {
+          "shape": "StructWithTimestamp"
+        },
+        "BlobArg": {
+          "shape": "BlobType"
+        },
+        "StructWithNestedBlob": {
+          "shape": "StructWithNestedBlobType"
+        },
+        "BlobMap": {
+          "shape": "BlobMapType"
+        },
+        "ListOfBlobs": {
+          "shape": "ListOfBlobsType"
+        },
+        "RecursiveStruct": {
+          "shape": "RecursiveStructType"
+        },
+        "PolymorphicTypeWithSubTypes": {
+          "shape": "BaseType"
+        },
+        "PolymorphicTypeWithoutSubTypes": {
+          "shape": "SubTypeOne"
+        },
+        "SetPrefixedMember": {
+          "shape": "String"
+        },
+        "UnionMember": {
+          "shape": "AllTypesUnionStructure"
+        }
       }
     }
   }
