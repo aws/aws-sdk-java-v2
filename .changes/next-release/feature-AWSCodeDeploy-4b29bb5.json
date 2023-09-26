@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeDeploy",
+    "contributor": "",
+    "description": "CodeDeploy now supports In-place and Blue/Green EC2 deployments with multiple Classic Load Balancers and multiple Target Groups."
+}
