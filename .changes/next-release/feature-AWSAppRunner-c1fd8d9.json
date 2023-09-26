@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS App Runner",
-    "contributor": "",
-    "description": "This release allows an App Runner customer to specify a custom source directory to run the build & start command. This change allows App Runner to support monorepo based repositories"
-}

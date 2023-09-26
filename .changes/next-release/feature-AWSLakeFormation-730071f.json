@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lake Formation",
-    "contributor": "",
-    "description": "This release adds three new API support \"CreateLakeFormationOptIn\", \"DeleteLakeFormationOptIn\" and \"ListLakeFormationOptIns\", and also updates the corresponding documentation."
-}
