@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.AddingTrailingDataSubscriber;
 import software.amazon.awssdk.utils.internal.MappingSubscriber;
 import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
@@ -60,20 +62,23 @@ public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
         Validate.paramNotNull(builder.signature, "Signature");
         Validate.paramNotNull(builder.signingClock, "SigningClock");
 
-
-        // Adapt the publisher with a trailing-empty frame publisher
-        Publisher<ByteBuffer> trailingPublisher = new TrailingDataFramePublisher(builder.publisher);
+        Function<ByteBuffer, ByteBuffer> dataFrameSigner = getDataFrameSigner(
+            builder.credentials,
+            builder.credentialScope,
+            builder.signature,
+            builder.signingClock
+        );
 
         // Map publisher with signing function
         this.sigv4Publisher = subscriber -> {
-            Subscriber<ByteBuffer> adaptedSubscriber =
-                MappingSubscriber.create(subscriber, getDataFrameSigner(builder.credentials,
-                                                                        builder.credentialScope,
-                                                                        builder.signature,
-                                                                        builder.signingClock
-                                         )
-                );
-            trailingPublisher.subscribe(adaptedSubscriber);
+            Subscriber<ByteBuffer> signedSubscriber = MappingSubscriber.create(subscriber, dataFrameSigner);
+
+            Subscriber<ByteBuffer> trailingSubscriber = new AddingTrailingDataSubscriber<>(
+                signedSubscriber,
+                () -> Collections.singletonList(ByteBuffer.wrap(new byte[] {}))
+            );
+
+            builder.publisher.subscribe(trailingSubscriber);
         };
     }
 
