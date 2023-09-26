@@ -24,8 +24,10 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 
 @SdkInternalApi
@@ -98,8 +100,10 @@ public final class SdkClientConfigurationUtil {
         clientOverrides.apiCallTimeout(clientConfiguration.option(SdkClientOption.API_CALL_TIMEOUT));
         clientOverrides.apiCallAttemptTimeout(clientConfiguration.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT));
         clientOverrides.scheduledExecutorService(clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE));
-        clientOverrides.executionInterceptors(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        clientOverrides.executionAttributes(clientConfiguration.option(SdkClientOption.EXECUTION_ATTRIBUTES));
+        List<ExecutionInterceptor> executionInterceptors = clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS);
+        if (executionInterceptors != null) {
+            clientOverrides.executionInterceptors(executionInterceptors);
+        }
 
         // advanced option
         if (Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN))) {
@@ -125,7 +129,10 @@ public final class SdkClientConfigurationUtil {
 
         // misc
         clientOverrides.defaultProfileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
-        clientOverrides.metricPublishers(clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS));
+        List<MetricPublisher> metricPublishers = clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS);
+        if (metricPublishers != null) {
+            clientOverrides.metricPublishers(metricPublishers);
+        }
         clientOverrides.compressionConfiguration(clientConfiguration.option(SdkClientOption.COMPRESSION_CONFIGURATION));
 
         return clientOverrides;

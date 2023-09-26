@@ -119,7 +119,7 @@ public class ServiceClientConfigurationUtils {
                                      .definingClass(SdkServiceClientConfiguration.class);
         builder.constructFromConfiguration(
             CodeBlock.builder()
-                     .beginControlFlow("if (!Boolean.TRUE.equals(internalBuilder.option($T.$L)))",
+                     .beginControlFlow("if (Boolean.TRUE.equals(internalBuilder.option($T.$L)))",
                                        SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT_OVERRIDDEN,
                                                                         SdkClientOption.class))
                      .addStatement("this.endpointOverride = internalBuilder.option($T.$L)",
