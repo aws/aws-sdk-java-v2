@@ -19,6 +19,7 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.AWS_CHUNKED_HEADE
 import static software.amazon.awssdk.core.HttpChecksumConstant.CONTENT_SHA_256_FOR_UNSIGNED_TRAILER;
 import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
 import static software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumTrailerLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateStreamContentLength;
@@ -64,6 +65,11 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             throws Exception {
         if (md5ChecksumRequired(request, context)) {
             addMd5ChecksumInHeader(request);
+            return request;
+        }
+
+        // Check for SRA code-path
+        if (context.executionAttributes().getAttribute(AUTH_SCHEMES) != null) {
             return request;
         }
 
