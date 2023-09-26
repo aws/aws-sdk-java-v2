@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint",
+    "contributor": "",
+    "description": "Update documentation for RemoveAttributes to more accurately reflect its behavior when attributes are deleted."
+}
