@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.http.auth.aws;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.http.auth.aws.RegionSetTest.Case.tc;
 
 import java.util.Arrays;
@@ -62,6 +64,7 @@ public class RegionSetTest {
         null,
         Arrays.asList(),
         Arrays.asList(""),
+        Arrays.asList(" "),
         Arrays.asList(" ", ""),
         Arrays.asList("", "", "")
     );
@@ -93,7 +96,14 @@ public class RegionSetTest {
     @ParameterizedTest
     @MethodSource("stringFailures")
     public void create_withInvalidStringInput_throws(String input) {
-        assertThrows(Exception.class, () -> RegionSet.create(input));
+        Exception ex = assertThrows(Exception.class, () -> RegionSet.create(input));
+        if (ex instanceof NullPointerException) {
+            assertThat(ex.getMessage()).contains("must not be");
+        } else if (ex instanceof IllegalArgumentException) {
+            assertThat(ex.getMessage()).contains("must not be");
+        } else {
+            fail();
+        }
     }
 
     @ParameterizedTest
@@ -107,7 +117,14 @@ public class RegionSetTest {
     @ParameterizedTest
     @MethodSource("collectionFailures")
     public void create_withInvalidCollectionInput_throws(Collection<String> input) {
-        assertThrows(Exception.class, () -> RegionSet.create(input));
+        Exception ex = assertThrows(Exception.class, () -> RegionSet.create(input));
+        if (ex instanceof NullPointerException) {
+            assertThat(ex.getMessage()).contains("must not be");
+        } else if (ex instanceof IllegalArgumentException) {
+            assertThat(ex.getMessage()).contains("must not be");
+        } else {
+            fail();
+        }
     }
 
     static final class Case<T> {
@@ -123,6 +140,11 @@ public class RegionSetTest {
 
         static <T> Case<T> tc(T input, String asString, Collection<String> asSet) {
             return new Case<>(input, asString, asSet);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s => %s :: %s", input, asString, asSet);
         }
     }
 }

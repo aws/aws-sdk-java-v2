@@ -80,7 +80,7 @@ public final class RegionSet {
      * @param value See class documentation {@link RegionSet} for the expected format.
      */
     public static RegionSet create(String value) {
-        Validate.notEmpty(value, "value");
+        Validate.notBlank(value, "value must not be blank!");
         return create(Arrays.asList(value.trim().split(",")));
     }
 
@@ -90,9 +90,9 @@ public final class RegionSet {
      * @param regions A collection of regions.
      */
     public static RegionSet create(Collection<String> regions) {
-        Validate.notEmpty(regions, "regions");
+        Validate.notEmpty(regions, "regions must not be empty!");
         return new RegionSet(
-            regions.stream().map(s -> Validate.notEmpty(s, "region").trim()).collect(Collectors.toList())
+            regions.stream().map(s -> Validate.notBlank(s, "region must not be empty!").trim()).collect(Collectors.toList())
         );
     }
 
