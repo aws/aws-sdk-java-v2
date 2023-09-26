@@ -76,6 +76,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
                                                                                       RequestExecutionContext context,
                                                                                       SelectedAuthScheme<T> selectedAuthScheme) {
         updateHttpRequestInInterceptorContext(request, context.executionContext());
+        adjustForClockSkew(context.executionAttributes());
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         return identityFuture.thenCompose(identity -> {
             CompletableFuture<SdkHttpFullRequest> signedRequestFuture = MetricUtils.reportDuration(
