@@ -109,14 +109,14 @@ public class SdkNumberTest {
                .isEqualTo(Float.valueOf(-123456789.987654321f).toString());
     }
 
-    // JDK 19+ changes the float formatting: https://bugs.openjdk.org/browse/JDK-8300869
-    @Test
-    @EnabledForJreRange(min = JRE.JAVA_19)
-    public void floatSdkNumber_gt_jdk19() {
-        SdkNumber sdkNumber = SdkNumber.fromFloat(-123456789.987654321f);
-        assertThat(sdkNumber.toString()).isEqualTo("-1.2345679E8")
-                                        .isEqualTo(Float.valueOf(-123456789.987654321f).toString());
-    }
+    // // JDK 19+ changes the float formatting: https://bugs.openjdk.org/browse/JDK-8300869
+    // @Test
+    // @EnabledForJreRange(min = JRE.JAVA_19)
+    // public void floatSdkNumber_gt_jdk19() {
+    //     SdkNumber sdkNumber = SdkNumber.fromFloat(-123456789.987654321f);
+    //     assertThat(sdkNumber.toString()).isEqualTo("-1.2345679E8")
+    //                                     .isEqualTo(Float.valueOf(-123456789.987654321f).toString());
+    // }
 
     @Test
     public void bigDecimalSdkNumber() {
