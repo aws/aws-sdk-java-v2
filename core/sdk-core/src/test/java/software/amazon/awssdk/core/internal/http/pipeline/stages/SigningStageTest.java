@@ -45,6 +45,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.signer.Signer;
@@ -115,6 +116,8 @@ public class SigningStageTest {
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context);
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that interceptor context is updated with result
@@ -159,6 +162,8 @@ public class SigningStageTest {
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context);
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // Assert that interceptor context is updated with result
@@ -206,6 +211,8 @@ public class SigningStageTest {
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context);
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that interceptor context is updated with result
@@ -247,6 +254,8 @@ public class SigningStageTest {
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context);
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that interceptor context is updated with result

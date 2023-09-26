@@ -123,6 +123,8 @@ public class AsyncSigningStageTest {
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that interceptor context is updated with result
@@ -172,6 +174,8 @@ public class AsyncSigningStageTest {
         httpClientDependencies.updateTimeOffset(TEST_TIME_OFFSET);
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that interceptor context is updated with result
@@ -222,6 +226,8 @@ public class AsyncSigningStageTest {
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that interceptor context is updated with result
@@ -273,6 +279,8 @@ public class AsyncSigningStageTest {
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that contexts are updated with result
@@ -323,6 +331,8 @@ public class AsyncSigningStageTest {
 
         SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         SdkHttpFullRequest result = stage.execute(request, context).join();
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that contexts are updated with result
@@ -472,6 +482,8 @@ public class AsyncSigningStageTest {
         when(oldSigner.sign(request, context.executionAttributes().copy().putAttribute(TIME_OFFSET, 100))).thenReturn(signedRequest);
 
         SdkHttpFullRequest result = stage.execute(request, context).join();
+        assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
+            .isEqualTo(httpClientDependencies.timeOffset());
 
         assertThat(result).isSameAs(signedRequest);
         // assert that interceptor context is updated with result
