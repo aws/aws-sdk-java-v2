@@ -16,9 +16,12 @@
 package software.amazon.awssdk.identity.spi;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -30,6 +33,8 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @ThreadSafe
 public final class IdentityProperty<T> {
+    private static final ConcurrentMap<Pair<String, String>, IdentityProperty<?>> NAME_HISTORY = new ConcurrentHashMap<>();
+
     private final String namespace;
     private final String name;
 
@@ -39,6 +44,7 @@ public final class IdentityProperty<T> {
 
         this.namespace = namespace;
         this.name = name;
+        ensureUnique();
     }
 
     /**
@@ -46,10 +52,23 @@ public final class IdentityProperty<T> {
      *
      * @param <T> the type of the property.
      * @param namespace the class *where* the property is being defined
-     * @param name the name for the propety
+     * @param name the name for the property
+     * @throws IllegalArgumentException if a property with this namespace and name already exist
      */
     public static <T> IdentityProperty<T> create(Class<?> namespace, String name) {
         return new IdentityProperty<>(namespace.getName(), name);
+    }
+
+    private void ensureUnique() {
+        IdentityProperty<?> prev = NAME_HISTORY.putIfAbsent(Pair.of(namespace, name), this);
+        Validate.isTrue(prev == null,
+                        "No duplicate IdentityProperty names allowed but both IdentityProperties %s and %s have the same "
+                        + "namespace (%s) and name (%s). IdentityProperty should be referenced from a shared static constant to "
+                        + "protect against erroneous or unexpected collisions.",
+                        Integer.toHexString(System.identityHashCode(prev)),
+                        Integer.toHexString(System.identityHashCode(this)),
+                        namespace,
+                        name);
     }
 
     @Override

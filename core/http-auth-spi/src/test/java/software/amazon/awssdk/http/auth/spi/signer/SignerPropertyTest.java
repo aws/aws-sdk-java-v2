@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.http.auth.spi.signer;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.UUID;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
@@ -25,5 +28,16 @@ public class SignerPropertyTest {
         EqualsVerifier.forClass(SignerProperty.class)
                       .withNonnullFields("namespace", "name")
                       .verify();
+    }
+
+    @Test
+    public void namesMustBeUnique() {
+        String propertyName = UUID.randomUUID().toString();
+
+        SignerProperty.create(getClass(), propertyName);
+        assertThatThrownBy(() -> SignerProperty.create(getClass(), propertyName))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining(getClass().getName())
+            .hasMessageContaining(propertyName);
     }
 }
