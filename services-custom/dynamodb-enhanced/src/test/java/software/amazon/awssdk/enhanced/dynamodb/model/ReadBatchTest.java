@@ -19,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThrows;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
 import java.util.Collections;
@@ -95,4 +96,13 @@ public class ReadBatchTest {
         assertThat(builtObject.keysAndAttributes().keys(), containsInAnyOrder(Collections.singletonList(fakeItemMap).toArray()));
     }
 
+    @Test
+    public void builder_missing_mapped_table_resource_error_message() {
+        FakeItem fakeItem = createUniqueFakeItem();
+
+        ReadBatch.Builder<FakeItem> builder = ReadBatch.builder(FakeItem.class);
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> builder.addGetItem(fakeItem));
+        assertThat(exception.getMessage(), is("A mappedTableResource (table) is required when building a ReadBatch"));
+    }
 }
