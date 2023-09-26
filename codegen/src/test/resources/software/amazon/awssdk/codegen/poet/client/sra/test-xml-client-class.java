@@ -351,7 +351,6 @@ final class DefaultXmlClient implements XmlClient {
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
                              .withOperationName("OperationWithNoneAuthType").withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector).withInput(operationWithNoneAuthTypeRequest)
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
