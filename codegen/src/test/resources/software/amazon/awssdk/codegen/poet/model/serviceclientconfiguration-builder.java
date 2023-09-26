@@ -33,22 +33,22 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
     }
 
     public static class BuilderImpl implements BuilderInternal {
-        private final SdkClientConfiguration.Builder builder;
+        private final SdkClientConfiguration.Builder internalBuilder;
 
         private ClientOverrideConfiguration overrideConfiguration;
 
         private URI endpointOverride;
 
         private BuilderImpl() {
-            this.builder = SdkClientConfiguration.builder();
+            this.internalBuilder = SdkClientConfiguration.builder();
         }
 
-        private BuilderImpl(SdkClientConfiguration.Builder builder) {
-            this.builder = builder;
+        private BuilderImpl(SdkClientConfiguration.Builder internalBuilder) {
+            this.internalBuilder = internalBuilder;
             this.overrideConfiguration = SdkClientConfigurationUtil.copyConfigurationToOverrides(
-                    ClientOverrideConfiguration.builder(), builder).build();
-            if (!Boolean.TRUE.equals(builder.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
-                this.endpointOverride = builder.option(SdkClientOption.ENDPOINT);
+                    ClientOverrideConfiguration.builder(), internalBuilder).build();
+            if (!Boolean.TRUE.equals(internalBuilder.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
+                this.endpointOverride = internalBuilder.option(SdkClientOption.ENDPOINT);
             }
         }
 
@@ -92,7 +92,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
          */
         @Override
         public JsonProtocolTestsServiceClientConfiguration.Builder endpointProvider(EndpointProvider endpointProvider) {
-            builder.option(SdkClientOption.ENDPOINT_PROVIDER, endpointProvider);
+            internalBuilder.option(SdkClientOption.ENDPOINT_PROVIDER, endpointProvider);
             return this;
         }
 
@@ -101,7 +101,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
          */
         @Override
         public EndpointProvider endpointProvider() {
-            return builder.option(SdkClientOption.ENDPOINT_PROVIDER);
+            return internalBuilder.option(SdkClientOption.ENDPOINT_PROVIDER);
         }
 
         /**
@@ -109,7 +109,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
          */
         @Override
         public JsonProtocolTestsServiceClientConfiguration.Builder region(Region region) {
-            builder.option(AwsClientOption.AWS_REGION, region);
+            internalBuilder.option(AwsClientOption.AWS_REGION, region);
             return this;
         }
 
@@ -118,7 +118,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
          */
         @Override
         public Region region() {
-            return builder.option(AwsClientOption.AWS_REGION);
+            return internalBuilder.option(AwsClientOption.AWS_REGION);
         }
 
         /**
@@ -127,7 +127,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
         @Override
         public JsonProtocolTestsServiceClientConfiguration.Builder credentialsProvider(
                 IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-            builder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, credentialsProvider);
+            internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, credentialsProvider);
             return this;
         }
 
@@ -136,7 +136,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
          */
         @Override
         public IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
-            return builder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
+            return internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
         }
 
         /**
@@ -145,7 +145,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
         @Override
         public JsonProtocolTestsServiceClientConfiguration.Builder authSchemeProvider(
                 JsonProtocolTestsAuthSchemeProvider authSchemeProvider) {
-            builder.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
+            internalBuilder.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
             return this;
         }
 
@@ -154,7 +154,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
          */
         @Override
         public JsonProtocolTestsAuthSchemeProvider authSchemeProvider() {
-            AuthSchemeProvider result = builder.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
+            AuthSchemeProvider result = internalBuilder.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
             if (result == null) {
                 return null;
             }
@@ -170,13 +170,13 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
         @Override
         public SdkClientConfiguration buildSdkClientConfiguration() {
             if (overrideConfiguration != null) {
-                SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, builder);
+                SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, internalBuilder);
             }
             if (endpointOverride != null) {
-                builder.option(SdkClientOption.ENDPOINT, endpointOverride);
-                builder.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
+                internalBuilder.option(SdkClientOption.ENDPOINT, endpointOverride);
+                internalBuilder.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
             }
-            return builder.build();
+            return internalBuilder.build();
         }
     }
 }

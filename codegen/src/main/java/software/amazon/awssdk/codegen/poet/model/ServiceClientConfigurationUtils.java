@@ -119,10 +119,10 @@ public class ServiceClientConfigurationUtils {
                                      .definingClass(SdkServiceClientConfiguration.class);
         builder.constructFromConfiguration(
             CodeBlock.builder()
-                     .beginControlFlow("if (!Boolean.TRUE.equals(builder.option($T.$L)))",
+                     .beginControlFlow("if (!Boolean.TRUE.equals(internalBuilder.option($T.$L)))",
                                        SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT_OVERRIDDEN,
                                                                         SdkClientOption.class))
-                     .addStatement("this.endpointOverride = builder.option($T.$L)",
+                     .addStatement("this.endpointOverride = internalBuilder.option($T.$L)",
                                    SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT,
                                                                     SdkClientOption.class))
                      .endControlFlow()
@@ -132,9 +132,9 @@ public class ServiceClientConfigurationUtils {
         builder.copyToConfiguration(
             CodeBlock.builder()
                      .beginControlFlow("if (endpointOverride != null)")
-                     .addStatement("builder.option($T.$L, endpointOverride)",
+                     .addStatement("internalBuilder.option($T.$L, endpointOverride)",
                                    SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT, SdkClientOption.class))
-                     .addStatement("builder.option($T.$L, true)",
+                     .addStatement("internalBuilder.option($T.$L, true)",
                                    SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT_OVERRIDDEN, SdkClientOption.class))
                      .endControlFlow()
                      .build()
@@ -151,7 +151,7 @@ public class ServiceClientConfigurationUtils {
         builder.constructFromConfiguration(
             CodeBlock.builder()
                      .addStatement("this.overrideConfiguration = $T.copyConfigurationToOverrides("
-                                   + "$T.builder(), builder).build()", SdkClientConfigurationUtil.class,
+                                   + "$T.builder(), internalBuilder).build()", SdkClientConfigurationUtil.class,
                                    ClientOverrideConfiguration.class)
                      .build()
         );
@@ -159,7 +159,7 @@ public class ServiceClientConfigurationUtils {
         builder.copyToConfiguration(
             CodeBlock.builder()
                      .beginControlFlow("if (overrideConfiguration != null)")
-                     .addStatement("$T.copyOverridesToConfiguration(overrideConfiguration, builder)",
+                     .addStatement("$T.copyOverridesToConfiguration(overrideConfiguration, internalBuilder)",
                                    SdkClientConfigurationUtil.class)
                      .endControlFlow()
                      .build()

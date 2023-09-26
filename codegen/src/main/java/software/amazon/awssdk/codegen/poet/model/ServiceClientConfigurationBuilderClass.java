@@ -95,11 +95,11 @@ public class ServiceClientConfigurationBuilderClass implements ClassSpec {
                                            .addModifiers(PUBLIC, STATIC)
                                            .addSuperinterface(className().nestedClass("BuilderInternal"));
 
-        builder.addField(SdkClientConfiguration.Builder.class, "builder", PRIVATE, FINAL);
+        builder.addField(SdkClientConfiguration.Builder.class, "internalBuilder", PRIVATE, FINAL);
 
         builder.addMethod(MethodSpec.constructorBuilder()
                                     .addModifiers(PRIVATE)
-                                    .addStatement("this.builder = $T.builder()", SdkClientConfiguration.class)
+                                    .addStatement("this.internalBuilder = $T.builder()", SdkClientConfiguration.class)
                                     .build());
         builder.addMethod(constructorFromSdkClientConfiguration());
 
@@ -136,15 +136,15 @@ public class ServiceClientConfigurationBuilderClass implements ClassSpec {
             }
         }
         return builder
-            .addStatement("return builder.build()")
+            .addStatement("return internalBuilder.build()")
             .build();
     }
 
     private MethodSpec constructorFromSdkClientConfiguration() {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                                                .addModifiers(PRIVATE)
-                                               .addParameter(SdkClientConfiguration.Builder.class, "builder")
-                                               .addStatement("this.builder = builder");
+                                               .addParameter(SdkClientConfiguration.Builder.class, "internalBuilder")
+                                               .addStatement("this.internalBuilder = internalBuilder");
 
         for (Field field : utils.serviceClientConfigurationFields()) {
             if (field.optionClass() == null) {
@@ -175,7 +175,7 @@ public class ServiceClientConfigurationBuilderClass implements ClassSpec {
                           .build();
 
         }
-        return builder.addStatement("builder.option($T.$L, $L)",
+        return builder.addStatement("internalBuilder.option($T.$L, $L)",
                                     field.optionClass(), field.optionName(), field.name())
                       .addStatement("return this")
                       .build();
@@ -194,7 +194,7 @@ public class ServiceClientConfigurationBuilderClass implements ClassSpec {
     }
 
     private MethodSpec getterForBuilderField(Field field) {
-        return getterForField(field, "builder", false);
+        return getterForField(field, "internalBuilder", false);
     }
 
 
