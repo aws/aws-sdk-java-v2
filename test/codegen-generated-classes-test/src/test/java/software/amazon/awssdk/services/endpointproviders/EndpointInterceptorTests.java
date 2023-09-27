@@ -524,6 +524,8 @@ public class EndpointInterceptorTests {
     }
 
     private RestJsonEndpointProvidersClientBuilder syncClientBuilder() {
+        // TODO(sra-identity-auth): The service is currently using useSraAuth=true.
+        //  Need to have tests for useSraAuth=false that work too - needs codegen changes I think.
         return RestJsonEndpointProvidersClient.builder()
                                               .region(Region.US_WEST_2)
                                               .credentialsProvider(

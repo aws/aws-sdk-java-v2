@@ -52,12 +52,8 @@ public final class OptionalDependencyLoaderUtil {
             ClassLoaderHelper.loadClass(classPath, false);
         } catch (ClassNotFoundException e) {
             LOG.debug(() -> "Cannot find the " + classPath + " class: ", e);
-            String msg = String.format(
-                "Could not load class. You must add a dependency on the '%s' module to enable the %s feature: ",
-                feature,
-                module
-            );
-
+            String msg = String.format("Could not load class. You must add a dependency on the '%s' module to enable the %s "
+                                       + "feature: ", module, feature);
             throw new RuntimeException(msg, e);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load class (%s): ", classPath), e);

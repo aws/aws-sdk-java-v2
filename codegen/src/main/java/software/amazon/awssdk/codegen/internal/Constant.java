@@ -70,7 +70,6 @@ public final class Constant {
 
     public static final String PACKAGE_NAME_RULES_PATTERN = "%s.endpoints";
 
-    // TODO: reviewer: maybe just auth instead of authscheme? or auth.scheme?
     public static final String PACKAGE_NAME_AUTH_SCHEME_PATTERN = "%s.auth.scheme";
 
     public static final String PACKAGE_NAME_SMOKE_TEST_PATTERN = "%s.smoketests";

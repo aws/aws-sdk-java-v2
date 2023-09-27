@@ -34,18 +34,27 @@ public class AsyncClientClassTest {
     public void asyncClientClassRestJson() {
         AsyncClientClass asyncClientClass = createAsyncClientClass(restJsonServiceModels());
         assertThat(asyncClientClass, generatesTo("test-json-async-client-class.java"));
+
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(restJsonServiceModels(), true);
+        assertThat(sraAsyncClientClass, generatesTo("sra/test-json-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassQuery() {
-        AsyncClientClass syncClientClass = createAsyncClientClass(queryServiceModels());
-        assertThat(syncClientClass, generatesTo("test-query-async-client-class.java"));
+        AsyncClientClass asyncClientClass = createAsyncClientClass(queryServiceModels());
+        assertThat(asyncClientClass, generatesTo("test-query-async-client-class.java"));
+
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(queryServiceModels(), true);
+        assertThat(sraAsyncClientClass, generatesTo("sra/test-query-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassAwsJson() {
         AsyncClientClass asyncClientClass = createAsyncClientClass(awsJsonServiceModels());
         assertThat(asyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
+
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(awsJsonServiceModels(), true);
+        assertThat(sraAsyncClientClass, generatesTo("sra/test-aws-json-async-client-class.java"));
     }
 
     @Test
@@ -56,8 +65,11 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientClassXml() {
-        AsyncClientClass syncClientClass = createAsyncClientClass(xmlServiceModels());
-        assertThat(syncClientClass, generatesTo("test-xml-async-client-class.java"));
+        AsyncClientClass asyncClientClass = createAsyncClientClass(xmlServiceModels());
+        assertThat(asyncClientClass, generatesTo("test-xml-async-client-class.java"));
+
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(xmlServiceModels(), true);
+        assertThat(sraAsyncClientClass, generatesTo("sra/test-xml-async-client-class.java"));
     }
 
     @Test
@@ -74,5 +86,10 @@ public class AsyncClientClassTest {
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
         return new AsyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
+    }
+
+    private AsyncClientClass createAsyncClientClass(IntermediateModel model, boolean useSraAuth) {
+        model.getCustomizationConfig().setUseSraAuth(useSraAuth);
+        return createAsyncClientClass(model);
     }
 }

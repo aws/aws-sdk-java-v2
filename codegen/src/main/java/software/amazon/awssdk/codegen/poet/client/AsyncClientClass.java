@@ -66,6 +66,7 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -95,6 +96,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
+    private final boolean useSraAuth;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
         super(dependencies.getModel());
@@ -103,6 +105,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
+        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -156,9 +159,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod());
 
-        if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
-            type.addMethod(applySignerOverrideMethod(poetExtensions, model));
-            type.addMethod(isSignerOverriddenOnClientMethod());
+        if (!useSraAuth) {
+            if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
+                type.addMethod(applySignerOverrideMethod(poetExtensions, model));
+                type.addMethod(isSignerOverriddenOnClientMethod());
+            }
         }
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
@@ -328,10 +333,12 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "pair");
         }
 
-        if (shouldUseAsyncWithBodySigner(opModel)) {
-            builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
-        } else {
-            builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
+        if (!useSraAuth) {
+            if (shouldUseAsyncWithBodySigner(opModel)) {
+                builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
+            } else {
+                builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
+            }
         }
 
         builder.addCode(protocolSpec.responseHandler(model, opModel));

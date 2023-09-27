@@ -76,5 +76,8 @@ public class BaseClientBuilderClassTest {
 
     private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {
         validateGeneration(BaseClientBuilderClass::new, model, expectedClassName);
+
+        model.getCustomizationConfig().setUseSraAuth(true);
+        validateGeneration(BaseClientBuilderClass::new, model, "sra/" + expectedClassName);
     }
 }

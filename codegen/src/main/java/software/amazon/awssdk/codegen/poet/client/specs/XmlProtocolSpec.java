@@ -135,9 +135,13 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                .add(credentialType(opModel, model))
                                                .add(".withInput($L)", opModel.getInput().getVariableName())
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-                                               .add(HttpChecksumTrait.create(opModel))
-                                               .add(NoneAuthTypeRequestTrait.create(opModel))
-                                               .add(RequestCompressionTrait.create(opModel, model));
+                                               .add(HttpChecksumTrait.create(opModel));
+
+        if (!useSraAuth) {
+            codeBlock.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
+
+        codeBlock.add(RequestCompressionTrait.create(opModel, model));
 
         s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
 
@@ -213,9 +217,13 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(asyncRequestBody(opModel))
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-               .add(HttpChecksumTrait.create(opModel))
-               .add(NoneAuthTypeRequestTrait.create(opModel))
-               .add(RequestCompressionTrait.create(opModel, model));
+               .add(HttpChecksumTrait.create(opModel));
+
+        if (!useSraAuth) {
+            builder.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
+
+        builder.add(RequestCompressionTrait.create(opModel, model));
 
         s3ArnableFields(opModel, model).ifPresent(builder::add);
 

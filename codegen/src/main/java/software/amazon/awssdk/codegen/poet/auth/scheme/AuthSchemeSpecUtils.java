@@ -41,12 +41,14 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 public final class AuthSchemeSpecUtils {
     private static final Set<String> DEFAULT_AUTH_SCHEME_PARAMS = Collections.unmodifiableSet(setOf("region", "operation"));
     private final IntermediateModel intermediateModel;
+    private final boolean useSraAuth;
     private final Set<String> allowedEndpointAuthSchemeParams;
     private final boolean allowedEndpointAuthSchemeParamsConfigured;
 
     public AuthSchemeSpecUtils(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         CustomizationConfig customization = intermediateModel.getCustomizationConfig();
+        this.useSraAuth = customization.useSraAuth();
         if (customization.getAllowedEndpointAuthSchemeParamsConfigured()) {
             this.allowedEndpointAuthSchemeParams = Collections.unmodifiableSet(
                 new HashSet<>(customization.getAllowedEndpointAuthSchemeParams()));
@@ -55,6 +57,10 @@ public final class AuthSchemeSpecUtils {
             this.allowedEndpointAuthSchemeParams = Collections.emptySet();
             this.allowedEndpointAuthSchemeParamsConfigured = false;
         }
+    }
+
+    public boolean useSraAuth() {
+        return useSraAuth;
     }
 
     private String basePackage() {
