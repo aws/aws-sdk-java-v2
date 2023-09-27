@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
  * An interface for defining how to sign a payload via SigV4.
@@ -41,4 +42,10 @@ public interface V4PayloadSigner {
      * Given a payload and v4-context, sign the payload via the SigV4 process.
      */
     Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4Context v4Context);
+
+    /**
+     * Modify a request before it is signed, such as changing headers or query-parameters.
+     */
+    default void beforeSigning(SdkHttpRequest.Builder request, ContentStreamProvider payload) {
+    }
 }

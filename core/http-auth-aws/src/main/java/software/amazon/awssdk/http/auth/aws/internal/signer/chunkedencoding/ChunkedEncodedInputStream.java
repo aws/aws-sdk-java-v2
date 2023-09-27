@@ -182,7 +182,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
             Pair<String, List<String>> tlr = trailer.get();
             outputStream.write(tlr.left().getBytes(StandardCharsets.UTF_8));
             outputStream.write((byte) ':');
-            outputStream.write(String.join(", ", tlr.right()).getBytes(StandardCharsets.UTF_8));
+            outputStream.write(String.join(",", tlr.right()).getBytes(StandardCharsets.UTF_8));
             outputStream.write(CRLF);
         }
     }

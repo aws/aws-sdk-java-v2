@@ -27,6 +27,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.EXPIRA
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 
 import java.time.Duration;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -173,7 +174,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("194");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
 
@@ -192,7 +193,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("315");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
@@ -213,7 +214,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("63");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }

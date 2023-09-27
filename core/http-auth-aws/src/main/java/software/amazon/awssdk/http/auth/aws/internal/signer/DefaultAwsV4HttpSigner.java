@@ -100,7 +100,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
         boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
@@ -142,7 +142,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4Properties properties) {
 
-        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
 
@@ -210,6 +210,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         checksummer.checksum(request.payload().orElse(null), requestBuilder);
 
+        payloadSigner.beforeSigning(requestBuilder, request.payload().orElse(null));
+
         V4Context v4Context = requestSigner.sign(requestBuilder);
 
         ContentStreamProvider payload = payloadSigner.sign(request.payload().orElse(null), v4Context);
@@ -256,6 +258,10 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             );
         }
         return expirationDuration;
+    }
+
+    private static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        return request.requireProperty(PAYLOAD_SIGNING_ENABLED, true) || !"https".equals(request.request().protocol());
     }
 
     private static boolean isEventStreaming(SdkHttpRequest request) {

@@ -46,8 +46,12 @@ public final class RollingSigner {
     }
 
     private static byte[] signChunk(byte[] chunkBody, byte[] previousSignature, AwsSigningConfig signingConfig) {
+        // All the config remains the same as signing config except the Signature Type.
+        AwsSigningConfig configCopy = signingConfig.clone();
+        configCopy.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_CHUNK);
+
         HttpRequestBodyStream crtBody = new CrtInputStream(() -> new ByteArrayInputStream(chunkBody));
-        return CompletableFutureUtils.joinLikeSync(AwsSigner.signChunk(crtBody, previousSignature, signingConfig));
+        return CompletableFutureUtils.joinLikeSync(AwsSigner.signChunk(crtBody, previousSignature, configCopy));
     }
 
     private static AwsSigningResult signTrailerHeaders(Map<String, List<String>> headerMap, byte[] previousSignature,
