@@ -46,6 +46,6 @@ public interface V4PayloadSigner {
     /**
      * Modify a request before it is signed, such as changing headers or query-parameters.
      */
-    default void beforeSigning(SdkHttpRequest.Builder request) {
+    default void beforeSigning(SdkHttpRequest.Builder request, ContentStreamProvider payload) {
     }
 }

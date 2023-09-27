@@ -183,7 +183,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         checksummer.checksum(request.payload().orElse(null), requestBuilder);
 
-        payloadSigner.beforeSigning(requestBuilder);
+        payloadSigner.beforeSigning(requestBuilder, request.payload().orElse(null));
 
         V4Context v4Context = requestSigner.sign(requestBuilder);
 
