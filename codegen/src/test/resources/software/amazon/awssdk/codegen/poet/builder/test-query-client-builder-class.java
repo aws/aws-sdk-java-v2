@@ -2,9 +2,7 @@ package software.amazon.awssdk.services.query;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -18,16 +16,10 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
-import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
-import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
-import software.amazon.awssdk.services.query.auth.scheme.internal.QueryAuthSchemeInterceptor;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryRequestSetEndpointInterceptor;
@@ -41,8 +33,6 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
-    private final Map<String, AuthScheme<?>> additionalAuthSchemes = new HashMap<>();
-
     @Override
     protected final String serviceEndpointPrefix() {
         return "query-service";
@@ -56,8 +46,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
                 .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                 .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                 .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
@@ -67,7 +55,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
-        endpointInterceptors.add(new QueryAuthSchemeInterceptor());
         endpointInterceptors.add(new QueryResolveEndpointInterceptor());
         endpointInterceptors.add(new QueryRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
@@ -104,21 +91,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return QueryEndpointProvider.defaultProvider();
     }
 
-    public B authSchemeProvider(QueryAuthSchemeProvider authSchemeProvider) {
-        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
-        return thisBuilder();
-    }
-
-    private QueryAuthSchemeProvider defaultAuthSchemeProvider() {
-        return QueryAuthSchemeProvider.defaultProvider();
-    }
-
-    @Override
-    public B putAuthScheme(AuthScheme<?> authScheme) {
-        additionalAuthSchemes.put(authScheme.schemeId(), authScheme);
-        return thisBuilder();
-    }
-
     public B booleanContextParam(Boolean booleanContextParam) {
         clientContextParams.put(QueryClientContextParams.BOOLEAN_CONTEXT_PARAM, booleanContextParam);
         return thisBuilder();
@@ -135,18 +107,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private Signer defaultTokenSigner() {
         return BearerTokenSigner.create();
-    }
-
-    private Map<String, AuthScheme<?>> authSchemes() {
-        Map<String, AuthScheme<?>> schemes = new HashMap<>(3 + this.additionalAuthSchemes.size());
-        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
-        schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
-        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
-        schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
-        NoAuthAuthScheme noAuthAuthScheme = NoAuthAuthScheme.create();
-        schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
-        schemes.putAll(this.additionalAuthSchemes);
-        return Collections.unmodifiableMap(schemes);
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

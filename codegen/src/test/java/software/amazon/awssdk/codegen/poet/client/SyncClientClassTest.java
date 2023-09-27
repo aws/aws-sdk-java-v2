@@ -34,12 +34,18 @@ public class SyncClientClassTest {
     public void syncClientClassRestJson() {
         SyncClientClass syncClientClass = createSyncClientClass(restJsonServiceModels());
         assertThat(syncClientClass, generatesTo("test-json-client-class.java"));
+
+        SyncClientClass sraSyncClientClass = createSyncClientClass(restJsonServiceModels(), true);
+        assertThat(sraSyncClientClass, generatesTo("sra/test-json-client-class.java"));
     }
 
     @Test
     public void syncClientClassQuery() {
         SyncClientClass syncClientClass = createSyncClientClass(queryServiceModels());
         assertThat(syncClientClass, generatesTo("test-query-client-class.java"));
+
+        SyncClientClass sraSyncClientClass = createSyncClientClass(queryServiceModels(), true);
+        assertThat(sraSyncClientClass, generatesTo("sra/test-query-client-class.java"));
     }
 
     @Test
@@ -52,6 +58,9 @@ public class SyncClientClassTest {
     public void syncClientClassXml() {
         SyncClientClass syncClientClass = createSyncClientClass(xmlServiceModels());
         assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
+
+        SyncClientClass sraSyncClientClass = createSyncClientClass(xmlServiceModels(), true);
+        assertThat(sraSyncClientClass, generatesTo("sra/test-xml-client-class.java"));
     }
 
     @Test
@@ -68,5 +77,10 @@ public class SyncClientClassTest {
 
     private SyncClientClass createSyncClientClass(IntermediateModel model) {
         return new SyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
+    }
+
+    private SyncClientClass createSyncClientClass(IntermediateModel model, boolean useSraAuth) {
+        model.getCustomizationConfig().setUseSraAuth(useSraAuth);
+        return createSyncClientClass(model);
     }
 }
