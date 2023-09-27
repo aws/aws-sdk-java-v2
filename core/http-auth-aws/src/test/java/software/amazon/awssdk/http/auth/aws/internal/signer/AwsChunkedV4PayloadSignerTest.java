@@ -89,6 +89,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .chunkSize(chunkSize)
                                                                     .build();
 
+        signer.beforeSigning(requestBuilder);
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
@@ -131,6 +132,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .checksumAlgorithm(CRC32)
                                                                     .build();
 
+        signer.beforeSigning(requestBuilder);
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
@@ -173,6 +175,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .checksumAlgorithm(SHA256)
                                                                     .build();
 
+        signer.beforeSigning(requestBuilder);
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
@@ -222,6 +225,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .chunkSize(chunkSize)
                                                                     .build();
 
+        signer.beforeSigning(requestBuilder);
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
@@ -275,6 +279,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .checksumAlgorithm(CRC32)
                                                                     .build();
 
+        signer.beforeSigning(requestBuilder);
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
@@ -330,6 +335,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .checksumAlgorithm(CRC32)
                                                                     .build();
 
+        signer.beforeSigning(requestBuilder);
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
         assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();

@@ -26,6 +26,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.CHUNK_
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 
+import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -290,5 +291,20 @@ public class DefaultAwsV4HttpSignerTest {
         );
 
         assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(request));
+    }
+
+    @Test
+    public void sign_WithPayloadSigningFalseAndHttp_FallsBackToPayloadSigning() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2");
     }
 }

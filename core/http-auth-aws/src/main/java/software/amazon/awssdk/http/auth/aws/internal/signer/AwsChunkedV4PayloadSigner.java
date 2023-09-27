@@ -26,6 +26,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUt
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.reactivestreams.Publisher;
@@ -54,6 +55,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     private final CredentialScope credentialScope;
     private final int chunkSize;
     private final ChecksumAlgorithm checksumAlgorithm;
+    private final List<Pair<String, List<String>>> preExistingTrailers = new ArrayList<>();
 
     private AwsChunkedV4PayloadSigner(Builder builder) {
         this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
@@ -68,7 +70,6 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     @Override
     public ContentStreamProvider sign(ContentStreamProvider payload, V4Context v4Context) {
         SdkHttpRequest.Builder request = v4Context.getSignedRequest();
-        moveContentLength(request);
 
         String checksum = request.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
             () -> new IllegalArgumentException(X_AMZ_CONTENT_SHA256 + " must be set!")
@@ -79,7 +80,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
             .inputStream(payload.newStream())
             .chunkSize(chunkSize)
             .header(chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8));
-        setupPreExistingTrailers(chunkedEncodedInputStreamBuilder, request);
+
+        preExistingTrailers.forEach(trailer -> chunkedEncodedInputStreamBuilder.addTrailer(() -> trailer));
 
         switch (checksum) {
             case STREAMING_SIGNED_PAYLOAD: {
@@ -88,12 +90,12 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
                 break;
             }
             case STREAMING_UNSIGNED_PAYLOAD_TRAILER:
-                setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder, request);
+                setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder);
                 break;
             case STREAMING_SIGNED_PAYLOAD_TRAILER: {
                 RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
                 chunkedEncodedInputStreamBuilder.addExtension(new SigV4ChunkExtensionProvider(rollingSigner, credentialScope));
-                setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder, request);
+                setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder);
                 chunkedEncodedInputStreamBuilder.addTrailer(
                     new SigV4TrailerProvider(chunkedEncodedInputStreamBuilder.trailers(), rollingSigner, credentialScope)
                 );
@@ -111,47 +113,53 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void beforeSigning(SdkHttpRequest.Builder request) {
+        moveContentLength(request);
+        setupPreExistingTrailers(request);
+
+        if (checksumAlgorithm != null) {
+            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+            request.appendHeader(X_AMZ_TRAILER, checksumHeaderName);
+        }
+    }
+
     /**
-     * Add the checksum as a chunk-trailer and add it to the request's trailer header.
+     * Set up a map of pre-existing trailer (headers) for the given request to be used when chunk-encoding the payload.
      * <p>
-     * The checksum-algorithm MUST be set if this is called, otherwise it will throw.
+     * However, we need to validate that these are valid trailers. Since aws-chunked encoding adds the checksum as a trailer, it
+     * isn't part of the request headers, but other trailers MUST be present in the request-headers.
      */
-    private void setupChecksumTrailerIfNeeded(ChunkedEncodedInputStream.Builder builder, SdkHttpRequest.Builder request) {
+    private void setupPreExistingTrailers(SdkHttpRequest.Builder request) {
+        for (String header : request.matchingHeaders(X_AMZ_TRAILER)) {
+            List<String> values = request.matchingHeaders(header);
+            if (values.isEmpty()) {
+                throw new IllegalArgumentException(header + " must be present in the request headers to be a valid trailer.");
+            }
+            preExistingTrailers.add(Pair.of(header, values));
+            request.removeHeader(header);
+        }
+    }
+
+    /**
+     * Add the checksum as a trailer to the chunk-encoded stream.
+     * <p>
+     * If the checksum-algorithm is not present, then nothing is done.
+     */
+    private void setupChecksumTrailerIfNeeded(ChunkedEncodedInputStream.Builder builder) {
         if (checksumAlgorithm == null) {
             return;
         }
+        String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
         SdkChecksum sdkChecksum = fromChecksumAlgorithm(checksumAlgorithm);
         ChecksumInputStream checksumInputStream = new ChecksumInputStream(
             builder.inputStream(),
             Collections.singleton(sdkChecksum)
         );
-        String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
 
         TrailerProvider checksumTrailer = new ChecksumTrailerProvider(sdkChecksum, checksumHeaderName);
 
-        request.appendHeader(X_AMZ_TRAILER, checksumHeaderName);
         builder.inputStream(checksumInputStream).addTrailer(checksumTrailer);
-    }
-
-    /**
-     * Create chunk-trailers for each pre-existing trailer given in the request.
-     * <p>
-     * However, we need to validate that these are valid trailers. Since aws-chunked encoding adds the checksum as a trailer, it
-     * isn't part of the request headers, but other trailers MUST be present in the request-headers.
-     */
-    private void setupPreExistingTrailers(ChunkedEncodedInputStream.Builder builder, SdkHttpRequest.Builder request) {
-        List<String> trailerHeaders = request.matchingHeaders(X_AMZ_TRAILER);
-
-        for (String header : trailerHeaders) {
-            List<String> values = request.matchingHeaders(header);
-            if (values.isEmpty()) {
-                throw new IllegalArgumentException(header + " must be present in the request headers to be a valid trailer.");
-            }
-
-            // Add the trailer to the aws-chunked stream-builder, and remove it from the request headers
-            builder.addTrailer(() -> Pair.of(header, values));
-            request.removeHeader(header);
-        }
     }
 
     static class Builder {
