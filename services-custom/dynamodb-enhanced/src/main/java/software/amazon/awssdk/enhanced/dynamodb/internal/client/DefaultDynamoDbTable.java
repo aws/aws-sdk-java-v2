@@ -134,13 +134,12 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     private Map<IndexType, List<IndexMetadata>> splitSecondaryIndicesToLocalAndGlobalOnes() {
-        String primaryPartitionKeyName = tableSchema.tableMetadata().primaryPartitionKey();
         Collection<IndexMetadata> indices = tableSchema.tableMetadata().indices();
         return indices.stream()
                       .filter(index -> !TableMetadata.primaryIndexName().equals(index.name()))
                       .collect(Collectors.groupingBy(metadata -> {
                           String partitionKeyName = metadata.partitionKey().map(KeyAttributeMetadata::name).orElse(null);
-                          if (partitionKeyName == null || primaryPartitionKeyName.equals(partitionKeyName)) {
+                          if (partitionKeyName == null) {
                               return IndexType.LSI;
                           }
                           return IndexType.GSI;

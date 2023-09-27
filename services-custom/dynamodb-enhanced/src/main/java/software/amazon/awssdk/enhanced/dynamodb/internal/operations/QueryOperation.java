@@ -83,6 +83,7 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
                                                         .limit(this.request.limit())
                                                         .exclusiveStartKey(this.request.exclusiveStartKey())
                                                         .consistentRead(this.request.consistentRead())
+                                                        .returnConsumedCapacity(this.request.returnConsumedCapacity())
                                                         .projectionExpression(projectionExpressionAsString);
 
         if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
@@ -117,7 +118,10 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
                                                                   context,
                                                                   dynamoDbEnhancedClientExtension,
                                                                   QueryResponse::items,
-                                                                  QueryResponse::lastEvaluatedKey);
+                                                                  QueryResponse::lastEvaluatedKey,
+                                                                  QueryResponse::count,
+                                                                  QueryResponse::scannedCount,
+                                                                  QueryResponse::consumedCapacity);
     }
 
 }

@@ -1,3 +1,270 @@
+# __2.20.155__ __2023-09-26__
+## __AWS App Runner__
+  - ### Features
+    - This release allows an App Runner customer to specify a custom source directory to run the build & start command. This change allows App Runner to support monorepo based repositories
+
+## __AWS CodeDeploy__
+  - ### Features
+    - CodeDeploy now supports In-place and Blue/Green EC2 deployments with multiple Classic Load Balancers and multiple Target Groups.
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds three new API support "CreateLakeFormationOptIn", "DeleteLakeFormationOptIn" and "ListLakeFormationOptIns", and also updates the corresponding documentation.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - The Amazon AppIntegrations service adds a set of APIs (in preview) to manage third party applications to be used in Amazon Connect agent workspace.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates a set of Amazon Connect APIs that provides the ability to integrate third party applications in the Amazon Connect agent workspace.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Amazon DynamoDB now supports Incremental Export as an enhancement to the existing Export Table
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Provides a clearer exception message when building a ReadBatch or WriteBatch without setting the mappedTableResource (table)
+        - Contributed by: [@swar8080](https://github.com/swar8080)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The release includes AWS verified access to support FIPs compliance in North America regions
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Update documentation for RemoveAttributes to more accurately reflect its behavior when attributes are deleted.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release adds a new field COMPLETED to the ReplicationStatus Enum. You can now use this field to validate the replication status of S3 objects using the AWS SDK.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@swar8080](https://github.com/swar8080)
+# __2.20.154__ __2023-09-25__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - Support for generating code that is compatible with future versions of amplify project dependencies.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now perform an exact match against the web request's JA3 fingerprint.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - Adds support for sending WebRTC audio to Amazon Kineses Video Streams.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added ability to tag users upon creation.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release updates the enum values for ResourceType in SSM DescribeInstanceInformation input and ConnectionStatus in GetConnectionStatus output.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for application-wide default job configurations.
+
+## __FinSpace Public API__
+  - ### Features
+    - Adding sensitive trait to attributes. Change max SessionDuration from 720 to 60. Correct "ApiAccess" attribute to "apiAccess" to maintain consistency between APIs.
+
+## __S3TransferManager__
+  - ### Bugfixes
+    - Fix [aws-crt-java issue [#686](https://github.com/aws/aws-sdk-java-v2/issues/686)](https://github.com/awslabs/aws-crt-java/issues/686) S3AsyncClient ignoring trustAllCertificatesEnabled setting
+        - Contributed by: [@graebm](https://github.com/graebm)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@graebm](https://github.com/graebm)
+# __2.20.153__ __2023-09-22__
+## __AWS Database Migration Service__
+  - ### Features
+    - new vendors for DMS CSF: MongoDB, MariaDB, DocumentDb and Redshift
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release supports the creation of of audio-only tracks in CMAF output groups.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds support for non-Json String payloads
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in `InputStreamSubscriber` that could cause NPE to be thrown when close and onSubscribed get invoked concurrently. See [#4081](https://github.com/aws/aws-sdk-java-v2/issues/4081)
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Adds sensitive trait to various shapes in Jetstream Connections API model.
+
+## __Amazon DynamoDB__
+  - ### Bugfixes
+    - Fixed a bug in DynamoDbTable.createTable, where global secondary indices with a partition key matching the default partition key of the table would be created as local secondary indices.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 M2 Pro Mac instances are powered by Apple M2 Pro Mac Mini computers featuring 12 core CPU, 19 core GPU, 32 GiB of memory, and 16 core Apple Neural Engine and uniquely enabled by the AWS Nitro System through high-speed Thunderbolt connections.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for Elastic File System
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add `EKS_CLUSTER_NAME` to filter and sort key.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed the issue where SdkException is unnecessarily re-wrapped with SdkClientException in S3 multipart client and AWS CRT-based S3 client. See[#4356](https://github.com/aws/aws-sdk-java-v2/issues/4356)
+
+## __Amazon Simple Storage Servic__
+  - ### Bugfixes
+    - Fix for Cross-region calls failure due to AuthorizationHeaderMalformed errors while using clients with configured region as us-east-1.
+
+## __Braket__
+  - ### Features
+    - This release adds support to view the device queue depth (the number of queued quantum tasks and hybrid jobs on a device) and queue position for a quantum task and hybrid job.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adds count, scanned count and returned consumed capacity to Page, used by Scan and Query operations
+
+# __2.20.152__ __2023-09-20__
+## __AWS App Runner__
+  - ### Features
+    - This release adds improvements for managing App Runner auto scaling configuration resources. New APIs: UpdateDefaultAutoScalingConfiguration and ListServicesForAutoScalingConfiguration. Updated API: DeleteAutoScalingConfiguration.
+
+## __AWS Cloud Map__
+  - ### Features
+    - Adds a new DiscoverInstancesRevision API and also adds InstanceRevision field to the DiscoverInstances API response.
+
+## __AWS Lambda__
+  - ### Features
+    - Update aws-lambda-java-core version to 1.2.3
+        - Contributed by: [@deki](https://github.com/deki)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Update FIPS endpoints in aws-us-gov.
+
+## __Amazon AppConfig__
+  - ### Features
+    - Enabling boto3 paginators for list APIs and adding documentation around ServiceQuotaExceededException errors
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Add ClientToken to QueryDefinition CFN Handler in CWL
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Updated DescribeMediaStorageConfiguration, StartEdgeConfigurationUpdate, ImageGenerationConfiguration$SamplingInterval, and UpdateMediaStorageConfiguration to match AWS Docs.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Fix an issue where the SDK can fail to unmarshall response due to NumberFormatException
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the Swift package format.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix [3839](https://github.com/aws/aws-sdk-java-v2/issues/3839) S3 Transfer Manager issue with transferComplete() not called for AsyncRequestBody.fromFile()
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@deki](https://github.com/deki)
+# __2.20.151__ __2023-09-19__
+## __AWS Outposts__
+  - ### Features
+    - This release adds the InstanceFamilies field to the ListAssets response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for C7i, and R7a instance types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for one-time model monitoring schedules that are executed immediately without delay, explicit data analysis windows for model monitoring schedules and exclude features attributes to remove features from model monitor analysis.
+
+# __2.20.150__ __2023-09-18__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Add sensitive protection for customer information
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Do not instruct the CRT Sigv4a signer to do path normalization to avoid signature mismatch errors
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release changes the default managedDataIdentifierSelector setting for new classification jobs to RECOMMENDED. By default, new classification jobs now use the recommended set of managed data identifiers.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release includes four new APIs UpdateUser, UpdateGroup, ListGroupsForEntity and DescribeEntity, along with RemoteUsers and some enhancements to existing APIs.
+
+# __2.20.149__ __2023-09-15__
+## __AWS DataSync__
+  - ### Features
+    - Documentation-only updates for AWS DataSync.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release introduces app block builder, allowing customers to provision a resource to package applications into an app block
+
+## __Amazon Connect Service__
+  - ### Features
+    - New rule type (OnMetricDataUpdate) has been added
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release introduces Skip Model Validation for Model Packages
+
+# __2.20.148__ __2023-09-14__
+## __AWS CloudFormation__
+  - ### Features
+    - Documentation updates for AWS CloudFormation
+
+## __AWS EntityResolution__
+  - ### Features
+    - Changed "ResolutionTechniques" and "MappedInputFields" in workflow and schema mapping operations to be required fields.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release introduces multi-session fleets, allowing customers to provision more than one user session on a single fleet instance.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release adds APIs for the new scheduled retraining feature.
+
 # __2.20.147__ __2023-09-13__
 ## __AWS Cloud9__
   - ### Features
@@ -48,7 +315,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -1789,7 +2056,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

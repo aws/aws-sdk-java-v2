@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 public class CaptureTransferListener implements TransferListener {
@@ -32,12 +33,17 @@ public class CaptureTransferListener implements TransferListener {
         return ratioTransferredList;
     }
 
+    public CompletableFuture<Void> getCompletionFuture() {
+        return completionFuture;
+    }
+
     public Throwable getExceptionCaught() {
         return exceptionCaught;
     }
 
     private Boolean transferInitiated = false;
     private Boolean transferComplete = false;
+    CompletableFuture<Void> completionFuture = new CompletableFuture<>();
 
     private List<Double> ratioTransferredList = new ArrayList<>();
     private Throwable exceptionCaught;
@@ -58,10 +64,12 @@ public class CaptureTransferListener implements TransferListener {
     public void transferComplete(Context.TransferComplete context) {
         context.progressSnapshot().ratioTransferred().ifPresent(ratioTransferredList::add);
         transferComplete = true;
+        completionFuture.complete(null);
     }
 
     @Override
     public void transferFailed(Context.TransferFailed context) {
         exceptionCaught = context.exception();
+        completionFuture.completeExceptionally(exceptionCaught);
     }
 }

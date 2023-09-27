@@ -195,7 +195,7 @@ public class UploadObjectHelperTest {
                                                                                 asyncRequestBody);
 
         assertThatThrownBy(() -> future.get(100, TimeUnit.MILLISECONDS))
-            .hasMessageContaining("Failed to send multipart upload requests").hasRootCause(exception);
+            .hasStackTraceContaining("Failed to send multipart upload requests").hasCause(exception);
 
         verify(s3AsyncClient, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
 
@@ -277,8 +277,8 @@ public class UploadObjectHelperTest {
 
         CompletableFuture<PutObjectResponse> future = uploadHelper.uploadObject(putObjectRequest,
                                                                                 asyncRequestBody);
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to initiate multipart upload")
-                                        .hasRootCause(exception);
+        assertThatThrownBy(future::join).hasStackTraceContaining("Failed to initiate multipart upload")
+                                        .hasCause(exception);
     }
 
     @ParameterizedTest
@@ -302,8 +302,8 @@ public class UploadObjectHelperTest {
 
         CompletableFuture<PutObjectResponse> future = uploadHelper.uploadObject(putObjectRequest,
                                                                                 asyncRequestBody);
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart requests")
-                                        .hasRootCause(exception);
+        assertThatThrownBy(future::join).hasCause(exception)
+                                        .hasStackTraceContaining("Failed to send multipart requests");
     }
 
     @ParameterizedTest()

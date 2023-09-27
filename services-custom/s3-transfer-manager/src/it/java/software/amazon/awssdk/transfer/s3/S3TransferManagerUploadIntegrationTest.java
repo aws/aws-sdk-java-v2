@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
@@ -26,11 +25,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -63,17 +66,24 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         deleteBucketAndAllContents(TEST_BUCKET);
     }
 
-   @Test
-    void upload_file_SentCorrectly() throws IOException {
+    private static Stream<Arguments> transferManagers() {
+        return Stream.of(
+            Arguments.of(tmCrt),
+            Arguments.of(tmJava));
+    }
+
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void upload_file_SentCorrectly(S3TransferManager transferManager) throws IOException {
         Map<String, String> metadata = new HashMap<>();
        CaptureTransferListener transferListener = new CaptureTransferListener();
        metadata.put("x-amz-meta-foobar", "FOO BAR");
         FileUpload fileUpload =
-            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata).checksumAlgorithm(ChecksumAlgorithm.CRC32))
-                                .source(testFile.toPath())
-                                .addTransferListener(LoggingTransferListener.create())
-                .addTransferListener(transferListener)
-                                .build());
+            transferManager.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata).checksumAlgorithm(ChecksumAlgorithm.CRC32))
+                                   .source(testFile.toPath())
+                                   .addTransferListener(LoggingTransferListener.create())
+                                   .addTransferListener(transferListener)
+                                   .build());
 
         CompletedFileUpload completedFileUpload = fileUpload.completionFuture().join();
         assertThat(completedFileUpload.response().responseMetadata().requestId()).isNotNull();
@@ -92,25 +102,26 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     private static void assertListenerForSuccessfulTransferComplete(CaptureTransferListener transferListener) {
         assertThat(transferListener.isTransferInitiated()).isTrue();
-        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.getRatioTransferredList()).isNotEmpty();
         assertThat(transferListener.getRatioTransferredList().contains(0.0));
         assertThat(transferListener.getRatioTransferredList().contains(100.0));
         assertThat(transferListener.getExceptionCaught()).isNull();
     }
 
-    @Test
-    void upload_asyncRequestBody_SentCorrectly() throws IOException {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void upload_asyncRequestBodyFromString_SentCorrectly(S3TransferManager transferManager) throws IOException {
         String content = UUID.randomUUID().toString();
         CaptureTransferListener transferListener = new CaptureTransferListener();
 
         Upload upload =
-            tm.upload(UploadRequest.builder()
-                                   .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
-                                   .requestBody(AsyncRequestBody.fromString(content))
-                                   .addTransferListener(LoggingTransferListener.create())
-                                   .addTransferListener(transferListener)
-                                   .build());
+            transferManager.upload(UploadRequest.builder()
+                                      .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
+                                      .requestBody(AsyncRequestBody.fromString(content))
+                                      .addTransferListener(LoggingTransferListener.create())
+                                      .addTransferListener(transferListener)
+                                      .build());
 
         CompletedUpload completedUpload = upload.completionFuture().join();
         assertThat(completedUpload.response().responseMetadata().requestId()).isNotNull();
@@ -127,17 +138,47 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     }
 
-    @Test
-    void upload_file_Interupted_CancelsTheListener() throws IOException, InterruptedException {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void upload_asyncRequestBodyFromFile_SentCorrectly(S3TransferManager transferManager) throws IOException {
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+
+        Upload upload =
+            transferManager.upload(UploadRequest.builder()
+                                                .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
+                                                .requestBody(FileAsyncRequestBody.builder().chunkSizeInBytes(1024).path(testFile.toPath()).build())
+                                                .addTransferListener(LoggingTransferListener.create())
+                                                .addTransferListener(transferListener)
+                                                .build());
+
+        CompletedUpload completedUpload = upload.completionFuture().join();
+        assertThat(completedUpload.response().responseMetadata().requestId()).isNotNull();
+        assertThat(completedUpload.response().sdkHttpResponse()).isNotNull();
+
+        ResponseInputStream<GetObjectResponse> obj = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                  ResponseTransformer.toInputStream());
+
+        assertThat(ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath())))
+            .isEqualTo(ChecksumUtils.computeCheckSum(obj));
+        assertThat(obj.response().responseMetadata().requestId()).isNotNull();
+        assertThat(upload.progress().snapshot().sdkResponse()).isPresent();
+        assertListenerForSuccessfulTransferComplete(transferListener);
+
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void upload_file_Interupted_CancelsTheListener(S3TransferManager transferManager) throws IOException, InterruptedException {
         Map<String, String> metadata = new HashMap<>();
         CaptureTransferListener transferListener = new CaptureTransferListener();
         metadata.put("x-amz-meta-foobar", "FOO BAR");
         FileUpload fileUpload =
-            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata).checksumAlgorithm(ChecksumAlgorithm.CRC32))
-                                .source(testFile.toPath())
-                                .addTransferListener(LoggingTransferListener.create())
-                                .addTransferListener(transferListener)
-                                .build());
+            transferManager.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata).checksumAlgorithm(ChecksumAlgorithm.CRC32))
+                                   .source(testFile.toPath())
+                                   .addTransferListener(LoggingTransferListener.create())
+                                   .addTransferListener(transferListener)
+                                   .build());
 
         fileUpload.completionFuture().cancel(true);
         assertThat(transferListener.isTransferInitiated()).isTrue();

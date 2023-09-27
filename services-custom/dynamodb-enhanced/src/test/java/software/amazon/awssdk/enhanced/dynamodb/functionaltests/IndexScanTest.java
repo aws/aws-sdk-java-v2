@@ -17,7 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
@@ -49,6 +51,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 public class IndexScanTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
@@ -198,7 +201,8 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
     public void scanAllRecordsDefaultSettings() {
         insertRecords();
 
-        Iterator<Page<Record>> results = keysOnlyMappedIndex.scan(ScanEnhancedRequest.builder().build()).iterator();
+        Iterator<Page<Record>> results = keysOnlyMappedIndex.scan(r -> r.returnConsumedCapacity(ReturnConsumedCapacity.INDEXES))
+                                                            .iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -206,6 +210,13 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
 
         assertThat(page.items(), is(KEYS_ONLY_RECORDS));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+
+        assertThat(page.consumedCapacity(), is(notNullValue()));
+        assertThat(page.consumedCapacity().capacityUnits(), is(notNullValue()));
+        assertThat(page.consumedCapacity().globalSecondaryIndexes(), is(notNullValue()));
+
+        assertThat(page.count(), equalTo(10));
+        assertThat(page.scannedCount(), equalTo(10));
     }
 
     @Test
@@ -220,7 +231,9 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
                                           .build();
 
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.scan(ScanEnhancedRequest.builder().filterExpression(expression).build()).iterator();
+            keysOnlyMappedIndex.scan(ScanEnhancedRequest.builder().filterExpression(expression)
+                                                        .returnConsumedCapacity(ReturnConsumedCapacity.INDEXES).build())
+                               .iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -229,6 +242,13 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(page.items(),
                    is(KEYS_ONLY_RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+
+        assertThat(page.consumedCapacity(), is(notNullValue()));
+        assertThat(page.consumedCapacity().capacityUnits(), is(notNullValue()));
+        assertThat(page.consumedCapacity().globalSecondaryIndexes(), is(notNullValue()));
+
+        assertThat(page.count(), equalTo(3));
+        assertThat(page.scannedCount(), equalTo(10));
     }
 
     @Test
@@ -244,11 +264,20 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
 
         assertThat(page1.items(), is(KEYS_ONLY_RECORDS.subList(0, 5)));
+        assertThat(page1.consumedCapacity(), is(nullValue()));
         assertThat(page1.lastEvaluatedKey(), is(getKeyMap(4)));
+        assertThat(page1.count(), equalTo(5));
+        assertThat(page1.scannedCount(), equalTo(5));
+
         assertThat(page2.items(), is(KEYS_ONLY_RECORDS.subList(5, 10)));
         assertThat(page2.lastEvaluatedKey(), is(getKeyMap(9)));
+        assertThat(page2.count(), equalTo(5));
+        assertThat(page2.scannedCount(), equalTo(5));
+
         assertThat(page3.items(), is(empty()));
         assertThat(page3.lastEvaluatedKey(), is(nullValue()));
+        assertThat(page3.count(), equalTo(0));
+        assertThat(page3.scannedCount(), equalTo(0));
     }
 
     @Test
@@ -259,6 +288,8 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(empty()));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+        assertThat(page.count(), equalTo(0));
+        assertThat(page.scannedCount(), equalTo(0));
     }
 
     @Test
@@ -272,6 +303,8 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(false));
         assertThat(page.items(), is(KEYS_ONLY_RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+        assertThat(page.count(), equalTo(2));
+        assertThat(page.scannedCount(), equalTo(2));
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {
