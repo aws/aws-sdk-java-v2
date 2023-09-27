@@ -1,3 +1,70 @@
+# __2.20.156__ __2023-09-27__
+## __AWS IoT__
+  - ### Features
+    - Added support for IoT Rules Engine Kafka Action Headers
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - The UserPoolType Status field is no longer used.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Features : Adding support for new data ingestion source to Kinesis Firehose - AWS Managed Services Kafka.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds new feature - Layout to Analyze Document API which can automatically extract layout elements such as titles, paragraphs, headers, section headers, lists, page numbers, footers, table areas, key-value areas and figure areas and order the elements as a human would read.
+
+# __2.20.155__ __2023-09-26__
+## __AWS App Runner__
+  - ### Features
+    - This release allows an App Runner customer to specify a custom source directory to run the build & start command. This change allows App Runner to support monorepo based repositories
+
+## __AWS CodeDeploy__
+  - ### Features
+    - CodeDeploy now supports In-place and Blue/Green EC2 deployments with multiple Classic Load Balancers and multiple Target Groups.
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds three new API support "CreateLakeFormationOptIn", "DeleteLakeFormationOptIn" and "ListLakeFormationOptIns", and also updates the corresponding documentation.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - The Amazon AppIntegrations service adds a set of APIs (in preview) to manage third party applications to be used in Amazon Connect agent workspace.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates a set of Amazon Connect APIs that provides the ability to integrate third party applications in the Amazon Connect agent workspace.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Amazon DynamoDB now supports Incremental Export as an enhancement to the existing Export Table
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Provides a clearer exception message when building a ReadBatch or WriteBatch without setting the mappedTableResource (table)
+        - Contributed by: [@swar8080](https://github.com/swar8080)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The release includes AWS verified access to support FIPs compliance in North America regions
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Update documentation for RemoveAttributes to more accurately reflect its behavior when attributes are deleted.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release adds a new field COMPLETED to the ReplicationStatus Enum. You can now use this field to validate the replication status of S3 objects using the AWS SDK.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@swar8080](https://github.com/swar8080)
 # __2.20.154__ __2023-09-25__
 ## __AWS Amplify UI Builder__
   - ### Features
@@ -269,7 +336,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2010,7 +2077,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
