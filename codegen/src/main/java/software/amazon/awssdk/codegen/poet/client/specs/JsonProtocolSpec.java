@@ -39,8 +39,10 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -63,10 +65,12 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private final PoetExtension poetExtensions;
     private final IntermediateModel model;
+    private final boolean useSraAuth;
 
     public JsonProtocolSpec(PoetExtension poetExtensions, IntermediateModel model) {
         this.poetExtensions = poetExtensions;
         this.model = model;
+        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -186,8 +190,13 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-                     .add(HttpChecksumTrait.create(opModel))
-                     .add(RequestCompressionTrait.create(opModel, model));
+                     .add(HttpChecksumTrait.create(opModel));
+
+        if (!useSraAuth) {
+            codeBlock.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
+
+        codeBlock.add(RequestCompressionTrait.create(opModel, model));
 
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
@@ -256,8 +265,13 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(credentialType(opModel, model))
                .add(asyncRequestBody)
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-               .add(HttpChecksumTrait.create(opModel))
-               .add(RequestCompressionTrait.create(opModel, model))
+               .add(HttpChecksumTrait.create(opModel));
+
+        if (!useSraAuth) {
+            builder.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
+
+        builder.add(RequestCompressionTrait.create(opModel, model))
                .add(".withInput($L)$L)",
                     opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel))
                .add(opModel.getEndpointDiscovery() != null ? ");" : ";");

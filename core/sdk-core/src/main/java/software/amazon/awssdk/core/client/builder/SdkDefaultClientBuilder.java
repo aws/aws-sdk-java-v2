@@ -57,14 +57,15 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.CompressionConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.SdkInternalAdvancedClientOption;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
@@ -124,6 +125,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     private SdkHttpClient.Builder httpClientBuilder;
     private SdkAsyncHttpClient.Builder asyncHttpClientBuilder;
+    private final List<SdkPlugin> registeredPlugins = new ArrayList<>();
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
@@ -215,7 +217,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         if (clientOverrideConfiguration == null) {
             return configuration;
         }
-        return clientOverrideConfiguration.addOverridesToConfiguration(configuration.toBuilder()).build();
+        return SdkClientConfigurationUtil.copyOverridesToConfiguration(clientOverrideConfiguration, configuration.toBuilder())
+                                         .build();
     }
 
     /**
@@ -485,12 +488,10 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     public final B endpointOverride(URI endpointOverride) {
         if (endpointOverride == null) {
             clientConfiguration.option(SdkClientOption.ENDPOINT, null);
-            clientConfiguration.option(SdkInternalAdvancedClientOption.ENDPOINT_OVERRIDE_VALUE, null);
             clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, false);
         } else {
             Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
             clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
-            clientConfiguration.option(SdkInternalAdvancedClientOption.ENDPOINT_OVERRIDE_VALUE, endpointOverride);
             clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
         }
         return thisBuilder();
@@ -551,6 +552,12 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     public final B metricPublishers(List<MetricPublisher> metricPublishers) {
         clientConfiguration.option(METRIC_PUBLISHERS, metricPublishers);
+        return thisBuilder();
+    }
+
+    @Override
+    public final B addPlugin(SdkPlugin plugin) {
+        registeredPlugins.add(Validate.paramNotNull(plugin, "plugin"));
         return thisBuilder();
     }
 

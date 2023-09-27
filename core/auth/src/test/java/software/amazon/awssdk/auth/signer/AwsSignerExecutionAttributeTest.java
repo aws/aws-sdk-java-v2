@@ -124,7 +124,7 @@ class AwsSignerExecutionAttributeTest {
     }
 
     @Test
-    public void signingRegionScope_mappingToOldWithMoreThanOneRegionScopeThrows() {
+    public void signingRegionScope_mappingToOldWithMoreThanOneRegionThrows() {
         RegionSet regionSet = RegionSet.create("foo1,foo2");
         AuthSchemeOption newOption =
             EMPTY_SELECTED_AUTH_SCHEME.authSchemeOption().copy(o -> o.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet));

@@ -82,6 +82,7 @@
         "http-clients": { "skipImport": true },
         "metric-publishers": { "skipImport": true },
         "module-path-tests": { "skipImport": true },
+        "old-client-version-compatibility-test": { "skipImport": true },
         "protocol-tests": { "skipImport": true },
         "protocol-tests-core": { "skipImport": true },
         "protocols": { "skipImport": true },
