@@ -1,3 +1,24 @@
+# __2.20.156__ __2023-09-27__
+## __AWS IoT__
+  - ### Features
+    - Added support for IoT Rules Engine Kafka Action Headers
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - The UserPoolType Status field is no longer used.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Features : Adding support for new data ingestion source to Kinesis Firehose - AWS Managed Services Kafka.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds new feature - Layout to Analyze Document API which can automatically extract layout elements such as titles, paragraphs, headers, section headers, lists, page numbers, footers, table areas, key-value areas and figure areas and order the elements as a human would read.
+
 # __2.20.155__ __2023-09-26__
 ## __AWS App Runner__
   - ### Features
@@ -315,7 +336,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2056,7 +2077,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT",
-    "contributor": "",
-    "description": "Added support for IoT Rules Engine Kafka Action Headers"
-}
