@@ -15,6 +15,8 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.Logger;
 
+// TODO(sra-identity-auth): seems like this can be SdkInternalApi, similar to other .resource files in this folder,
+//  since they are generated in each service module
 @SdkProtectedApi
 public final class AuthSchemeUtils {
     private static final Logger LOG = Logger.loggerFor(AuthSchemeUtils.class);

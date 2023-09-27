@@ -31,13 +31,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
+import java.util.function.Supplier;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
+import software.amazon.awssdk.auth.signer.SignerLoader;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
@@ -58,6 +63,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
@@ -76,6 +82,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final PoetExtension poetExtension;
     private final boolean dependsOnHttpAuthAws;
+    private final boolean useSraAuth;
 
     public EndpointResolverInterceptorSpec(IntermediateModel model) {
         this.model = model;
@@ -87,6 +94,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         Set<Class<?>> supportedAuthSchemes = new AuthSchemeSpecUtils(model).allServiceConcreteAuthSchemeClasses();
         this.dependsOnHttpAuthAws = supportedAuthSchemes.contains(AwsV4AuthScheme.class) ||
                                     supportedAuthSchemes.contains(AwsV4aAuthScheme.class);
+
+        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -113,6 +122,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         }
 
         b.addMethod(hostPrefixMethod());
+
+        if (!useSraAuth) {
+            b.addMethod(signerProviderMethod());
+        }
 
         return b.build();
     }
@@ -156,7 +169,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.endControlFlow();
 
 
-        // If the endpoint resolver returns auth settings, use them as signer properties
+        // If the endpoint resolver returns auth settings, use them as signer properties.
+        // This effectively works to set the preSRA Signer ExecutionAttributes, so it is not conditional on useSraAuth.
         b.addStatement("$T<$T> endpointAuthSchemes = endpoint.attribute($T.AUTH_SCHEMES)",
                        List.class, EndpointAuthScheme.class, AwsEndpointAttribute.class);
         b.addStatement("$T<?> selectedAuthScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
@@ -167,6 +181,17 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
                        SdkInternalExecutionAttribute.class);
         b.endControlFlow();
+
+        // For pre SRA client, use Signer as determined by endpoint resolved auth scheme
+        if (!useSraAuth) {
+            b.beginControlFlow("if (endpointAuthSchemes != null)");
+            b.addStatement("$T chosenAuthScheme = $T.chooseAuthScheme(endpointAuthSchemes)", EndpointAuthScheme.class,
+                           endpointRulesSpecUtils.rulesRuntimeClassName("AuthSchemeUtils"));
+            b.addStatement("$T<$T> signerProvider = signerProvider(chosenAuthScheme)", Supplier.class, Signer.class);
+            b.addStatement("result = $T.overrideSignerIfNotOverridden(result, executionAttributes, signerProvider)",
+                           SignerOverrideUtils.class);
+            b.endControlFlow();
+        }
 
         b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint)");
         b.addStatement("return result");
@@ -606,5 +631,37 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                           SelectedAuthScheme.class);
         code.endControlFlow();
         return code.build();
+    }
+
+    private MethodSpec signerProviderMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("signerProvider")
+                                               .addModifiers(Modifier.PRIVATE)
+                                               .addParameter(EndpointAuthScheme.class, "authScheme")
+                                               .returns(ParameterizedTypeName.get(Supplier.class, Signer.class));
+
+        builder.beginControlFlow("switch (authScheme.name())");
+        builder.addCode("case $S:", "sigv4");
+        if (endpointRulesSpecUtils.isS3() || endpointRulesSpecUtils.isS3Control()) {
+            builder.addStatement("return $T::create", AwsS3V4Signer.class);
+        } else {
+            builder.addStatement("return $T::create", Aws4Signer.class);
+        }
+
+        builder.addCode("case $S:", "sigv4a");
+        if (endpointRulesSpecUtils.isS3() || endpointRulesSpecUtils.isS3Control()) {
+            builder.addStatement("return $T::getS3SigV4aSigner", SignerLoader.class);
+        } else {
+            builder.addStatement("return $T::getSigV4aSigner", SignerLoader.class);
+        }
+
+        builder.addCode("default:");
+        builder.addStatement("break");
+        builder.endControlFlow();
+
+        builder.addStatement("throw $T.create($S + authScheme.name())",
+                             SdkClientException.class,
+                             "Don't know how to create signer for auth scheme: ");
+
+        return builder.build();
     }
 }
