@@ -60,10 +60,8 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-import software.amazon.awssdk.utils.Logger;
 
 public class AwsCrtAsyncHttpClientSpiVerificationTest {
-    private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpClientSpiVerificationTest.class);
     private static final int TEST_BODY_LEN = 1024;
 
     @Rule
@@ -106,7 +104,7 @@ public class AwsCrtAsyncHttpClientSpiVerificationTest {
             }
         };
 
-        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(URI.create("http://localhost:" + mockServer.port()));
+        SdkHttpRequest request = createRequest(URI.create("http://localhost:" + mockServer.port()));
 
         CompletableFuture<Void> executeFuture = client.execute(AsyncExecuteRequest.builder()
                 .request(request)
@@ -172,7 +170,7 @@ public class AwsCrtAsyncHttpClientSpiVerificationTest {
             }
         };
 
-        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(URI.create("http://localhost:" + mockServer.port()));
+        SdkHttpRequest request = createRequest(URI.create("http://localhost:" + mockServer.port()));
 
         CompletableFuture<Void> future = client.execute(AsyncExecuteRequest.builder()
                 .request(request)
@@ -220,13 +218,13 @@ public class AwsCrtAsyncHttpClientSpiVerificationTest {
         };
 
         URI uri = URI.create("http://localhost:" + mockServer.port());
-        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(uri, path, null, SdkHttpMethod.GET, emptyMap());
+        SdkHttpRequest request = createRequest(uri, path, null, SdkHttpMethod.GET, emptyMap());
 
-        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
-                .request(request)
-                .responseHandler(handler)
-                .requestContentPublisher(new EmptyPublisher())
-                .build());
+        CompletableFuture<Void> future = client.execute(AsyncExecuteRequest.builder()
+                                                                           .request(request)
+                                                                           .responseHandler(handler)
+                                                                           .requestContentPublisher(new EmptyPublisher())
+                                                                           .build());
 
         future.get(60, TimeUnit.SECONDS);
         assertThat(error.get()).isNull();
@@ -248,13 +246,13 @@ public class AwsCrtAsyncHttpClientSpiVerificationTest {
                 streamReceived, error, subscriber);
 
         URI uri = URI.create("http://localhost:" + mockServer.port());
-        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(uri, path, reqBody, SdkHttpMethod.PUT, emptyMap());
+        SdkHttpRequest request = createRequest(uri, path, reqBody, SdkHttpMethod.PUT, emptyMap());
 
-        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
-                                            .request(request)
-                                            .responseHandler(handler)
-                                            .requestContentPublisher(new SdkTestHttpContentPublisher(reqBody))
-                                            .build());
+        CompletableFuture<Void> future = client.execute(AsyncExecuteRequest.builder()
+                                                                           .request(request)
+                                                                           .responseHandler(handler)
+                                                                           .requestContentPublisher(new SdkTestHttpContentPublisher(reqBody))
+                                                                           .build());
         future.get(60, TimeUnit.SECONDS);
         assertThat(error.get()).isNull();
         assertThat(streamReceived.get(60, TimeUnit.SECONDS)).isTrue();

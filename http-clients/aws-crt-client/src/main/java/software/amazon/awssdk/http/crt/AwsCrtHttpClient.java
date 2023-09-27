@@ -19,8 +19,8 @@ import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
@@ -87,7 +87,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * In particular, this returns a ref-counted object and calling getOrCreateConnectionPool
          * increments the ref count by one.  We add a try-with-resources to release our ref
          * once we have successfully submitted a request.  In this way, we avoid a race condition
-         * when close/shutdown is called from another thread while this function is executing (ie.
+         * when close/shutdown is called from another thread while this function is executing (i.e.
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
@@ -98,7 +98,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
                                                          .request(request)
                                                          .build();
             return new ExecutableHttpRequest() {
-                Future<SdkHttpFullResponse> responseFuture;
+                volatile CompletableFuture<SdkHttpFullResponse> responseFuture;
 
                 @Override
                 public HttpExecuteResponse call() throws IOException {

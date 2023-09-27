@@ -23,9 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.Collections.emptyMap;
-import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import com.github.tomakehurst.wiremock.http.Fault;
@@ -52,10 +50,8 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.utils.Logger;
 
 public class AwsCrtHttpClientSpiVerificationTest {
-    private static final Logger log = Logger.loggerFor(AwsCrtHttpClientSpiVerificationTest.class);
     private static final int TEST_BODY_LEN = 1024;
 
     @Rule
@@ -96,7 +92,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
             executeRequestBuilder.request(request);
             ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
 
-            HttpExecuteResponse response = executableRequest.call();
+            executableRequest.call();
         }
     }
 
@@ -119,7 +115,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
             executeRequestBuilder.request(request);
             executeRequestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]));
             ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
-            HttpExecuteResponse response = executableRequest.call();
+            executableRequest.call();
         }
     }
 

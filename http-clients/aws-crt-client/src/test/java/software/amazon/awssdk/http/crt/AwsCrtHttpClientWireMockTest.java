@@ -64,7 +64,7 @@ public class AwsCrtHttpClientWireMockTest {
     }
 
     @Test
-    public void closeClient_reuse_throwException() throws Exception {
+    public void closeClient_reuse_throwException() {
         SdkHttpClient client = AwsCrtHttpClient.create();
 
         client.close();
@@ -85,7 +85,7 @@ public class AwsCrtHttpClientWireMockTest {
 
         try (SdkHttpClient client = AwsCrtHttpClient.builder().maxConcurrency(10).build()) {
             MetricCollector collector = MetricCollector.create("test");
-            HttpExecuteResponse response = makeSimpleRequest(client, collector);
+            makeSimpleRequest(client, collector);
             MetricCollection metrics = collector.collect();
 
             assertThat(metrics.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("AwsCommonRuntime");

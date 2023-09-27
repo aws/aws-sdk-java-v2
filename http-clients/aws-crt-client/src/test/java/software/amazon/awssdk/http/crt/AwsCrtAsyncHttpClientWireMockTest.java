@@ -63,7 +63,7 @@ public class AwsCrtAsyncHttpClientWireMockTest {
     }
 
     @Test
-    public void closeClient_reuse_throwException() throws Exception {
+    public void closeClient_reuse_throwException() {
         SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.create();
 
         client.close();

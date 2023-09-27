@@ -33,6 +33,7 @@ import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpStream;
@@ -81,12 +82,12 @@ public final class CrtRequestExecutor {
 
         httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
             if (shouldPublishMetrics) {
-                reportSyncMetrics(executionContext, metricCollector, finalAcquireStartTime);
+                reportMetrics(executionContext.crtConnPool(), metricCollector, finalAcquireStartTime);
             }
 
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
-                Throwable toThrow = null;
+                Throwable toThrow;
                 if (throwable instanceof HttpException) {
                     HttpException httpException = (HttpException) throwable;
 
@@ -135,7 +136,7 @@ public final class CrtRequestExecutor {
             AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
 
             if (shouldPublishMetrics) {
-                reportAsyncMetrics(executionContext, metricCollector, finalAcquireStartTime);
+                reportMetrics(executionContext.crtConnPool(), metricCollector, finalAcquireStartTime);
             }
 
             // If we didn't get a connection for some reason, fail the request
@@ -159,27 +160,11 @@ public final class CrtRequestExecutor {
         return requestFuture;
     }
 
-    private static void reportAsyncMetrics(CrtAsyncRequestContext executionContext, MetricCollector metricCollector,
+    private static void reportMetrics(HttpClientConnectionManager connManager, MetricCollector metricCollector,
                                       long acquireStartTime) {
         long acquireCompletionTime = System.nanoTime();
         Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - acquireStartTime);
         metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
-        HttpClientConnectionManager connManager = executionContext.crtConnPool();
-        HttpManagerMetrics managerMetrics = connManager.getManagerMetrics();
-        // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
-        // connections. When H2 is added, this code needs to be updated to handle stream multiplexing
-        metricCollector.reportMetric(MAX_CONCURRENCY, connManager.getMaxConnections());
-        metricCollector.reportMetric(AVAILABLE_CONCURRENCY, saturatedCast(managerMetrics.getAvailableConcurrency()));
-        metricCollector.reportMetric(LEASED_CONCURRENCY, saturatedCast(managerMetrics.getLeasedConcurrency()));
-        metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, saturatedCast(managerMetrics.getPendingConcurrencyAcquires()));
-    }
-
-    private static void reportSyncMetrics(CrtRequestContext executionContext, MetricCollector metricCollector,
-                                          long acquireStartTime) {
-        long acquireCompletionTime = System.nanoTime();
-        Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - acquireStartTime);
-        metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
-        HttpClientConnectionManager connManager = executionContext.crtConnPool();
         HttpManagerMetrics managerMetrics = connManager.getManagerMetrics();
         // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
         // connections. When H2 is added, this code needs to be updated to handle stream multiplexing
@@ -236,8 +221,10 @@ public final class CrtRequestExecutor {
         @Override
         public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType,
                                       HttpHeader[] nextHeaders) {
-            for (HttpHeader header : nextHeaders) {
-                responseBuilder.putHeader(header.getName(), header.getValue());
+            if (blockType == HttpHeaderBlock.MAIN.getValue()) {
+                for (HttpHeader h : nextHeaders) {
+                    responseBuilder.appendHeader(h.getName(), h.getValue());
+                }
             }
 
             if (responseBuilder.statusCode() == 0) {
@@ -249,14 +236,17 @@ public final class CrtRequestExecutor {
         @Override
         public void onResponseComplete(HttpStream stream, int errorCode) {
             // always close the connection on a 5XX response code.
-            if (HttpStatusFamily.of(stream.getResponseStatusCode()) == HttpStatusFamily.SERVER_ERROR) {
+            if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
                 crtConn.shutdown();
             }
 
             if (errorCode == 0) {
                 requestCompletionFuture.complete(responseBuilder.build());
             } else {
-                requestCompletionFuture.completeExceptionally(new HttpException(errorCode));
+                HttpException rootException = new HttpException(errorCode);
+                Throwable toThrow = HttpClientConnection.isErrorRetryable(rootException) ? rootException :
+                                    new IOException(rootException);
+                requestCompletionFuture.completeExceptionally(toThrow);
             }
             stream.close();
             crtConn.close();

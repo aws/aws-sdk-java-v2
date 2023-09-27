@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
-import org.junit.Test;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;

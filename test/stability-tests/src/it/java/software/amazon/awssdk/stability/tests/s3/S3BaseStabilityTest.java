@@ -24,7 +24,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.IntFunction;
@@ -71,7 +70,11 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
                                  .build();
     }
 
-    public S3BaseStabilityTest(S3Client testClient, int testClientThreadsUsed) {
+    protected S3BaseStabilityTest() {
+        this(null, 0);
+    }
+
+    protected S3BaseStabilityTest(S3Client testClient, int testClientThreadsUsed) {
         // use the passed in known thread count for testClient, plus CONCURRENCY for the sync executor,
         // and some room for the JVM to do weird things.
         this.allowedPeakThreads = testClientThreadsUsed + CONCURRENCY + ALLOWED_THREAD_OVERHEAD;
@@ -135,7 +138,7 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
 
     protected String uploadLargeObjectFromFile() {
         try {
-            final RandomTempFile file = new RandomTempFile((long) 16 * 1024 * 1024);
+            RandomTempFile file = new RandomTempFile(16L * 1024 * 1024);
 
             try {
                 String md5 = Md5Utils.md5AsBase64(file);

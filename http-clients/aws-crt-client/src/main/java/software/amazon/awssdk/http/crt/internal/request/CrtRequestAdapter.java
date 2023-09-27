@@ -15,10 +15,6 @@
 
 package software.amazon.awssdk.http.crt.internal.request;
 
-import static java.lang.Math.min;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,9 +116,7 @@ public final class CrtRequestAdapter {
         }
 
         // Add the rest of the Headers
-        sdkRequest.forEachHeader((key, value) -> {
-            value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add);
-        });
+        sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add));
 
         return crtHeaderList;
     }
@@ -145,9 +139,7 @@ public final class CrtRequestAdapter {
         // We assume content length was set by the caller if a stream was present, so don't set it here.
 
         // Add the rest of the Headers
-        sdkRequest.forEachHeader((key, value) -> {
-            value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add);
-        });
+        sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add));
 
         return crtHeaderList;
     }

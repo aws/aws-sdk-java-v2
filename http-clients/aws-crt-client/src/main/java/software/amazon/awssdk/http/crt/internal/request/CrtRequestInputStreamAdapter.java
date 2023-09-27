@@ -38,7 +38,7 @@ final class CrtRequestInputStreamAdapter implements HttpRequestBodyStream {
 
     @Override
     public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
-        int read = 0;
+        int read;
 
         try {
             if (providerStream == null) {

@@ -20,7 +20,6 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.awaitCountdo
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.countDownUponCompletion;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
 
-import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -40,14 +39,12 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.profile.StackProfiler;
-import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockServer;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -116,6 +113,6 @@ public class CrtHttpClientBenchmark implements SdkHttpClientBenchmark {
             .include(CrtHttpClientBenchmark.class.getSimpleName() + ".concurrentApiCall")
             .addProfiler(StackProfiler.class)
             .build();
-        Collection<RunResult> run = new Runner(opt).run();
+        new Runner(opt).run();
     }
 }

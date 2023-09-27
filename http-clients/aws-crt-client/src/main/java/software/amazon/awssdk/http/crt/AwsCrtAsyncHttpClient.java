@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.time.Duration;

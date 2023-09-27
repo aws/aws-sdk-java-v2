@@ -20,23 +20,21 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.SystemInfo;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 
 /**
  * Stability tests for {@link S3CrtAsyncClient}
  */
 public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
-    private static final String BUCKET_NAME = "s3crthttpclientstabilitytests" + System.currentTimeMillis();
+    private static final String BUCKET_NAME = String.format("s3crthttpclientstabilitytests%d", System.currentTimeMillis());
 
     private static final int CRT_CLIENT_THREAD_COUNT;
 
-    private static S3Client s3Client;
+    private static final S3Client s3Client;
 
 
     static {

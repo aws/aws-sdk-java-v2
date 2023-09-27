@@ -66,7 +66,7 @@ public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
-    public AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
+    protected AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
         if (config.get(PROTOCOL) == Protocol.HTTP2) {
             throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtAsyncHttpClient yet. Use "
                                                + "NettyNioAsyncHttpClient instead.");

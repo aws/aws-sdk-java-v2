@@ -54,7 +54,7 @@ public final class CrtRequestContext {
         return metricCollector;
     }
 
-    public static class Builder {
+    public static final class Builder {
         private HttpExecuteRequest request;
         private long readBufferSize;
         private HttpClientConnectionManager crtConnPool;
