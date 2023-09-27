@@ -62,7 +62,8 @@ import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
 /**
- * Ensure that attributes set in execution interceptors are passed to custom signers.
+ * Ensure that attributes set in execution interceptors are passed to custom signers. These are protected APIs, but code
+ * searches show that customers are using them as if they aren't. We should push customers onto supported paths.
  */
 public class InterceptorSignerAttributeTest {
     private static final AwsCredentials CREDS = AwsBasicCredentials.create("akid", "skid");
