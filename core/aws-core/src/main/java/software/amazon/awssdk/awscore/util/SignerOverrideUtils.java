@@ -30,11 +30,8 @@ import software.amazon.awssdk.core.signer.Signer;
 /**
  * Utility to override a given {@link SdkRequest}'s {@link Signer}. Typically used by {@link ExecutionInterceptor}s that wish to
  * dynamically enable particular signing methods, like SigV4a for multi-region endpoints.
- *
- * @deprecated No longer used by modern clients after migration to reference architecture
  */
 @SdkProtectedApi
-@Deprecated
 public final class SignerOverrideUtils {
     private SignerOverrideUtils() {
     }
@@ -62,16 +59,12 @@ public final class SignerOverrideUtils {
         return overrideSigner(request, signer.get());
     }
 
-    /**
-     * @deprecated No longer used by modern clients after migration to reference architecture
-     */
-    @Deprecated
     public static boolean isSignerOverridden(SdkRequest request, ExecutionAttributes executionAttributes) {
-        Optional<Boolean> isClientSignerOverridden = Optional.ofNullable(
-            executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
+        boolean isClientSignerOverridden =
+            Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
         Optional<Signer> requestSigner = request.overrideConfiguration()
                                                 .flatMap(RequestOverrideConfiguration::signer);
-        return isClientSignerOverridden.isPresent() || requestSigner.isPresent();
+        return isClientSignerOverridden || requestSigner.isPresent();
     }
 
     /**
