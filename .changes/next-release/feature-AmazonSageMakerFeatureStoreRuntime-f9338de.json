@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Feature Store Runtime",
-    "contributor": "",
-    "description": "Feature Store supports read/write of records with collection type features."
-}
