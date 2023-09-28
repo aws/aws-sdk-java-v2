@@ -68,6 +68,13 @@
             <version>${awscrt.version}</version>
         </dependency>
 
+        <!-- Ensure that users that depend on auth-crt also get a dependency on the new signers -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws-crt</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
