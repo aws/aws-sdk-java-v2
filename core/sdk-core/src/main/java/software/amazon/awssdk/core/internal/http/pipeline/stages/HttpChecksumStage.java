@@ -19,6 +19,7 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.AWS_CHUNKED_HEADE
 import static software.amazon.awssdk.core.HttpChecksumConstant.CONTENT_SHA_256_FOR_UNSIGNED_TRAILER;
 import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
 import static software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumTrailerLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateStreamContentLength;
@@ -71,6 +72,11 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
 
         if (flexibleChecksumInTrailerRequired(context, resolvedChecksumSpecs)) {
             addFlexibleChecksumInTrailer(request, context, resolvedChecksumSpecs);
+            return request;
+        }
+
+        // If SRA is enabled, we skip flexible checksum in header
+        if (sraSigningEnabled(context)) {
             return request;
         }
 
@@ -128,6 +134,13 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
     }
 
     private boolean flexibleChecksumInTrailerRequired(RequestExecutionContext context, ChecksumSpecs checksumSpecs) {
+
+        // If SRA is enabled and it's sync client,
+        // skip it since flexible checksum trailer is handled in SRA signer
+        if (sraSigningEnabled(context) && clientType == ClientType.SYNC) {
+            return false;
+        }
+
         boolean hasRequestBody = true;
         if (clientType == ClientType.SYNC) {
             hasRequestBody = context.executionContext().interceptorContext().requestBody().isPresent();
@@ -144,6 +157,10 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
                    context.executionAttributes(),
                    context.executionContext().interceptorContext().httpRequest(),
                    clientType, checksumSpecs, hasRequestBody, isContentStreaming);
+    }
+
+    private static boolean sraSigningEnabled(RequestExecutionContext context) {
+        return context.executionAttributes().getAttribute(AUTH_SCHEMES) != null;
     }
 
     /**

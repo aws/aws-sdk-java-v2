@@ -168,6 +168,33 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return V4PayloadSigner.create();
     }
 
+    private static V4PayloadSigner v4PayloadAsyncSigner(
+        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+        V4Properties properties) {
+
+        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isEventStreaming = isEventStreaming(request.request());
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+
+        if (isEventStreaming) {
+            if (isPayloadSigning) {
+                return getEventStreamV4PayloadSigner(
+                    properties.getCredentials(),
+                    properties.getCredentialScope(),
+                    properties.getSigningClock()
+                );
+            }
+            throw new UnsupportedOperationException("Unsigned payload is not supported with event-streaming.");
+        }
+
+        if (isChunkEncoding && isPayloadSigning) {
+            throw new UnsupportedOperationException("Chunked encoding and payload signing is not supported in async client. Use"
+                                                    + " sync client instead");
+        }
+
+        return V4PayloadSigner.create();
+    }
+
     private static SignedRequest doSign(SignRequest<? extends AwsCredentialsIdentity> request,
                                         Checksummer checksummer,
                                         V4RequestSigner requestSigner,
@@ -250,7 +277,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         Checksummer checksummer = checksummer(request);
         V4Properties v4Properties = v4Properties(request);
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
-        V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
+        V4PayloadSigner payloadSigner = v4PayloadAsyncSigner(request, v4Properties);
 
         return doSign(request, checksummer, v4RequestSigner, payloadSigner);
     }
