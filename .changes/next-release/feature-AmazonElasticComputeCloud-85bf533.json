@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Adds support for Customer Managed Key encryption for Amazon Verified Access resources"
+}
