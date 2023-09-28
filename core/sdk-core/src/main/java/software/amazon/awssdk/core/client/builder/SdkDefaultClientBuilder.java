@@ -58,11 +58,13 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -177,10 +179,14 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
 
+        // Invoke the plugins after defaults and before finalizing the configuration.
+        configuration = invokePluginsIfNeeded(configuration);
+
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
         configuration = finalizeSyncConfiguration(configuration);
         configuration = finalizeConfiguration(configuration);
+
 
         return configuration;
     }
@@ -204,6 +210,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         // Apply defaults
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
+
+        // Invoke the plugins after defaults and before finalizing the configuration.
+        configuration = invokePluginsIfNeeded(configuration);
 
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
@@ -359,6 +368,14 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .option(RETRY_POLICY, retryPolicy)
                      .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
                      .build();
+    }
+
+    /**
+     * Invoke all the registered plugins and return the configuration.
+     */
+    protected SdkClientConfiguration invokePluginsIfNeeded(SdkClientConfiguration config) {
+        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = defaultConfigurationUpdater();
+        return SdkClientConfigurationUtil.invokePlugins(config, registeredPlugins, configurationUpdater);
     }
 
     private String resolveClientUserAgent(SdkClientConfiguration config, RetryPolicy retryPolicy) {
@@ -559,6 +576,12 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     public final B addPlugin(SdkPlugin plugin) {
         registeredPlugins.add(Validate.paramNotNull(plugin, "plugin"));
         return thisBuilder();
+    }
+
+    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> defaultConfigurationUpdater() {
+        // No-op by default, service specific codegen classes will extend this method will have a proper
+        // implementation of it.
+        return (consumer, configBuilder) -> configBuilder.build();
     }
 
     /**
