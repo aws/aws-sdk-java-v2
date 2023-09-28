@@ -6,15 +6,18 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseResolveEndpointInterceptor;
+import software.amazon.awssdk.services.database.internal.DatabaseServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -70,6 +73,15 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
 
     private DatabaseEndpointProvider defaultEndpointProvider() {
         return DatabaseEndpointProvider.defaultProvider();
+    }
+
+    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> defaultConfigurationUpdater() {
+        return (consumer, configBuilder) -> {
+            DatabaseServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = DatabaseServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

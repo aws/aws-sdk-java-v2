@@ -10,9 +10,11 @@ import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
@@ -24,6 +26,7 @@ import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
+import software.amazon.awssdk.services.query.internal.QueryServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -107,6 +110,15 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private Signer defaultTokenSigner() {
         return BearerTokenSigner.create();
+    }
+
+    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> defaultConfigurationUpdater() {
+        return (consumer, configBuilder) -> {
+            QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
