@@ -50,11 +50,14 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -83,6 +86,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final String basePackage;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final ServiceClientConfigurationUtils configurationUtils;
 
     public BaseClientBuilderClass(IntermediateModel model) {
         this.model = model;
@@ -91,6 +95,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+        this.configurationUtils = new ServiceClientConfigurationUtils(model);
     }
 
     @Override
@@ -168,7 +173,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                 builder.addMethod(defaultTokenAuthSignerMethod());
             }
         }
-
+        builder.addMethod(defaultConfigUpdaterMethod());
         addServiceHttpConfigIfNeeded(builder, model);
 
         builder.addMethod(validateClientOptionsMethod());
@@ -720,6 +725,22 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
         builder.addStatement("schemes.putAll(this.additionalAuthSchemes)");
         builder.addStatement("return $T.unmodifiableMap(schemes)", Collections.class);
+        return builder.build();
+    }
+
+    private MethodSpec defaultConfigUpdaterMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("defaultConfigurationUpdater")
+                                               .addModifiers(PROTECTED)
+                                               .returns(ParameterizedTypeName.get(ConfigurationUpdater.class,
+                                                                                  SdkServiceClientConfiguration.Builder.class));
+
+        builder.addCode("return (consumer, configBuilder) -> {\n")
+               .addCode("$>")
+               .addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(configBuilder)",
+                             configurationUtils.serviceClientConfigurationBuilderClassName())
+               .addStatement("consumer.accept(serviceConfigBuilder)")
+               .addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()")
+               .addCode("$<};\n");
         return builder.build();
     }
 

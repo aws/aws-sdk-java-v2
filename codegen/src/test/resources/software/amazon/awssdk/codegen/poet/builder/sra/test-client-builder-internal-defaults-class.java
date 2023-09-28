@@ -8,8 +8,10 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -21,6 +23,7 @@ import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeI
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
@@ -107,6 +110,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
         schemes.putAll(this.additionalAuthSchemes);
         return Collections.unmodifiableMap(schemes);
+    }
+
+    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> defaultConfigurationUpdater() {
+        return (consumer, configBuilder) -> {
+            JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
