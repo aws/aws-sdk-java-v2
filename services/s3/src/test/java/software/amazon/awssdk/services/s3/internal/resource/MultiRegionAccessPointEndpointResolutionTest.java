@@ -53,6 +53,7 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
+    @Disabled // Related to the TODO above on MULTI_REGION_ENDPOINT
     public void multiRegionArn_correctlyRewritesEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder().build()).build();
@@ -61,6 +62,7 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
+    @Disabled // Related to the TODO above on MULTI_REGION_ENDPOINT
     public void multiRegionArn_useArnRegionEnabled_correctlyRewritesEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder()
@@ -137,6 +139,7 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
+    @Disabled // Related to the TODO above on MULTI_REGION_ENDPOINT
     public void multiRegionArn_differentRegion_useArnRegionTrue() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().build();

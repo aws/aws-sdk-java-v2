@@ -269,7 +269,10 @@ public final class ExecutionAttribute<T> {
 
         @Override
         public void setIfAbsent(Map<ExecutionAttribute<?>, Object> attributes, T value) {
-            attributes.computeIfAbsent(realAttribute, k -> writeMapping.apply(null, value));
+            T currentValue = get(attributes);
+            if (currentValue == null) {
+                set(attributes, value);
+            }
         }
     }
 
