@@ -194,7 +194,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         long remainingBytes = contentLength % chunkSize;
         if (remainingBytes > 0) {
             long remainingChunkHeaderLength = Long.toHexString(remainingBytes).length();
-            lengthInBytes += remainingChunkHeaderLength + 1 + extensionsLength + 2 + remainingBytes + 2;
+            lengthInBytes += remainingChunkHeaderLength + extensionsLength + 2 + remainingBytes + 2;
         }
 
         // final chunk

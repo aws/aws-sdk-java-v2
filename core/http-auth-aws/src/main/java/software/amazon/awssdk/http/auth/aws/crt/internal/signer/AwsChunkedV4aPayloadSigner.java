@@ -113,7 +113,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
 
         switch (checksum) {
             case STREAMING_ECDSA_SIGNED_PAYLOAD: {
-                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 64 bytes>
+                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 144 bytes>
                 encodedContentLength += calculateChunksLength(contentLength, extensionsLength);
                 break;
             }
@@ -124,12 +124,12 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
                 encodedContentLength += calculateChunksLength(contentLength, 0);
                 break;
             case STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER: {
-                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 64 bytes>
+                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 144 bytes>
                 encodedContentLength += calculateChunksLength(contentLength, extensionsLength);
                 if (checksumAlgorithm != null) {
                     encodedContentLength += calculateChecksumTrailerLength(checksumHeaderName(checksumAlgorithm));
                 }
-                encodedContentLength += 170; // x-amz-trailer-signature:<sigv4a-ecsda hex signature, 64 bytes>\r\n
+                encodedContentLength += 170; // x-amz-trailer-signature:<sigv4a-ecsda hex signature, 144 bytes>\r\n
                 break;
             }
             default:
@@ -177,7 +177,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
         long remainingBytes = contentLength % chunkSize;
         if (remainingBytes > 0) {
             long remainingChunkHeaderLength = Long.toHexString(remainingBytes).length();
-            lengthInBytes += remainingChunkHeaderLength + 1 + extensionsLength + 2 + remainingBytes + 2;
+            lengthInBytes += remainingChunkHeaderLength + extensionsLength + 2 + remainingBytes + 2;
         }
 
         // final chunk
