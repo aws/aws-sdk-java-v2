@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "Run Inference: Added support to run the inference on models. Includes set of APIs for running inference in streaming and non-streaming mode."
+}
