@@ -31,7 +31,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
-import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SraIdentityResolutionTest {
@@ -44,7 +44,7 @@ public class SraIdentityResolutionTest {
         when(credsProvider.identityType()).thenReturn(AwsCredentialsIdentity.class);
         when(credsProvider.resolveIdentity(any(ResolveIdentityRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(AwsBasicCredentials.create("akid1", "skid2")));
-        ProtocolRestJsonClient syncClient = ProtocolRestJsonClient
+        ProtocolQueryClient syncClient = ProtocolQueryClient
             .builder()
             .credentialsProvider(credsProvider)
             // Below is necessary to create the test case where, addCredentialsToExecutionAttributes was getting called before
@@ -52,7 +52,7 @@ public class SraIdentityResolutionTest {
             .build();
 
         try {
-            syncClient.allTypes();
+            syncClient.allTypes(builder -> {});
         } catch (Exception expected) {
         }
 
