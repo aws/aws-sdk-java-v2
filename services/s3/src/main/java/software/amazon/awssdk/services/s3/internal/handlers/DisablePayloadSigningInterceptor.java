@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -23,8 +24,9 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 /**
  * Disables payload signing for all S3 operations.
  *
- * <p>TODO: After S3's migration to the SRA, we should use signer properties in the auth scheme resolver.
+ * <p>TODO(sra-identity-auth): After S3's migration to the SRA, we should use signer properties in the auth scheme resolver.
  */
+@SdkInternalApi
 public class DisablePayloadSigningInterceptor implements ExecutionInterceptor {
     @Override
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
