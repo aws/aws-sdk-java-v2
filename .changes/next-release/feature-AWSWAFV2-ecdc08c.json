@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "Correct and improve the documentation for the FieldToMatch option JA3 fingerprint."
+}
