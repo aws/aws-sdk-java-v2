@@ -10,8 +10,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
@@ -27,6 +29,7 @@ import software.amazon.awssdk.services.json.endpoints.JsonClientContextParams;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -142,6 +145,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
         return DefaultAwsTokenProvider.create();
+    }
+
+    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> defaultConfigurationUpdater() {
+        return (consumer, configBuilder) -> {
+            JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
