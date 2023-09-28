@@ -125,9 +125,6 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private <T extends Identity> SelectedAuthScheme<T> authSchemeWithEndpointSignerProperties(
         List<EndpointAuthScheme> endpointAuthSchemes, SelectedAuthScheme<T> selectedAuthScheme) {
         for (EndpointAuthScheme endpointAuthScheme : endpointAuthSchemes) {
-            if (!endpointAuthScheme.schemeId().equals(selectedAuthScheme.authSchemeOption().schemeId())) {
-                continue;
-            }
             AuthSchemeOption.Builder option = selectedAuthScheme.authSchemeOption().toBuilder();
             if (endpointAuthScheme instanceof SigV4AuthScheme) {
                 SigV4AuthScheme v4AuthScheme = (SigV4AuthScheme) endpointAuthScheme;
