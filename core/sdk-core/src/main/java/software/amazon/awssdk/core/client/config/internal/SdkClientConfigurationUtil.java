@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -55,8 +57,10 @@ public final class SdkClientConfigurationUtil {
 
         // advanced option
         Signer signer = overrides.advancedOption(SdkAdvancedClientOption.SIGNER).orElse(null);
-        builder.option(SdkAdvancedClientOption.SIGNER, signer);
-        builder.option(SdkClientOption.SIGNER_OVERRIDDEN, signer != null);
+        if (signer != null) {
+            builder.option(SdkAdvancedClientOption.SIGNER, signer);
+            builder.option(SdkClientOption.SIGNER_OVERRIDDEN, true);
+        }
         builder.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX,
                        overrides.advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX).orElse(null));
         builder.option(SdkAdvancedClientOption.USER_AGENT_PREFIX,
@@ -136,5 +140,22 @@ public final class SdkClientConfigurationUtil {
         clientOverrides.compressionConfiguration(clientConfiguration.option(SdkClientOption.COMPRESSION_CONFIGURATION));
 
         return clientOverrides;
+    }
+
+    /**
+     * Executes the given list of plugins and returns the updated configuration.
+     */
+    public static SdkClientConfiguration invokePlugins(SdkClientConfiguration clientConfiguration,
+                                                       List<SdkPlugin> plugins,
+                                                       ConfigurationUpdater<SdkServiceClientConfiguration.Builder> updater
+    ) {
+        if (plugins.isEmpty()) {
+            return clientConfiguration;
+        }
+        return updater.update(builder -> {
+            for (SdkPlugin plugin : plugins) {
+                plugin.configureClient(builder);
+            }
+        }, clientConfiguration.toBuilder());
     }
 }
