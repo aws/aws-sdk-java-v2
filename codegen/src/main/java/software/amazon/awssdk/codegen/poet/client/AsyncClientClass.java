@@ -71,12 +71,14 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
@@ -207,7 +209,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
                         .addModifiers(PROTECTED)
                         .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                        .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
+                        .addParameter(ParameterizedTypeName.get(ConfigurationUpdater.class,
+                                                                SdkServiceClientConfiguration.Builder.class),
+                                      "configurationUpdater")
+                        .addStatement("this.clientHandler = new $T(clientConfiguration, configurationUpdater)",
+                                      AwsAsyncClientHandler.class)
                         .addStatement("this.clientConfiguration = clientConfiguration")
                         .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);

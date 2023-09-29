@@ -142,7 +142,8 @@ public class AsyncClientBuilderClass implements ClassSpec {
                                                              + "(clientConfiguration)",
                                                              serviceConfigClassName);
 
-        builder.addStatement("$1T client = new $2T(serviceClientConfiguration, clientConfiguration)",
+        builder.addStatement("$1T client = new $2T(serviceClientConfiguration, clientConfiguration, "
+                             + "defaultConfigurationUpdater())",
                              clientInterfaceName, clientClassName);
         if (model.asyncClientDecoratorClassName().isPresent()) {
             builder.addStatement("return  new $T().decorate(client, clientConfiguration, clientContextParams.copy().build())",

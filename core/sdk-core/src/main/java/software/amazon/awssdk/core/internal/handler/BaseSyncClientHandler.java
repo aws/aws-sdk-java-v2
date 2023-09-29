@@ -44,13 +44,11 @@ import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
 public abstract class BaseSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
-    private final SdkClientConfiguration clientConfiguration;
     private final AmazonSyncHttpClient client;
 
     protected BaseSyncClientHandler(SdkClientConfiguration clientConfiguration,
                                     AmazonSyncHttpClient client) {
         super(clientConfiguration);
-        this.clientConfiguration = clientConfiguration;
         this.client = client;
     }
 
@@ -61,11 +59,12 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
 
         return measureApiCallSuccess(executionParams, () -> {
             // Running beforeExecution interceptors and modifyRequest interceptors.
-            ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
+            SdkClientConfiguration clientConfiguration = createRequestConfiguration(executionParams);
+            ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration);
 
             CombinedResponseHandler<ReturnT> streamingCombinedResponseHandler =
                 createStreamingCombinedResponseHandler(executionParams, responseTransformer, executionContext);
-            return doExecute(executionParams, executionContext, streamingCombinedResponseHandler);
+            return doExecute(clientConfiguration, executionParams, executionContext, streamingCombinedResponseHandler);
         });
     }
 
@@ -75,11 +74,12 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
 
         return measureApiCallSuccess(executionParams, () -> {
             // Running beforeExecution interceptors and modifyRequest interceptors.
-            ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
+            SdkClientConfiguration clientConfiguration = createRequestConfiguration(executionParams);
+            ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration);
 
             HttpResponseHandler<Response<OutputT>> combinedResponseHandler =
                 createCombinedResponseHandler(executionParams, executionContext);
-            return doExecute(executionParams, executionContext, combinedResponseHandler);
+            return doExecute(clientConfiguration, executionParams, executionContext, combinedResponseHandler);
         });
     }
 
@@ -89,15 +89,17 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
     }
 
     /**
-     * Invoke the request using the http client. Assumes credentials (or lack thereof) have been
-     * configured in the OldExecutionContext beforehand.
+     * Invoke the request using the http client. Assumes credentials (or lack thereof) have been configured in the
+     * OldExecutionContext beforehand.
      **/
-    private <OutputT> OutputT invoke(SdkHttpFullRequest request,
-                                       SdkRequest originalRequest,
-                                       ExecutionContext executionContext,
-                                       HttpResponseHandler<Response<OutputT>> responseHandler) {
+    private <OutputT> OutputT invoke(SdkClientConfiguration clientConfiguration,
+                                     SdkHttpFullRequest request,
+                                     SdkRequest originalRequest,
+                                     ExecutionContext executionContext,
+                                     HttpResponseHandler<Response<OutputT>> responseHandler) {
         return client.requestExecutionBuilder()
                      .request(request)
+                     .httpClientDependencies(b -> b.clientConfiguration(clientConfiguration))
                      .originalRequest(originalRequest)
                      .executionContext(executionContext)
                      .execute(responseHandler);
@@ -142,6 +144,7 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
     }
 
     private <InputT extends SdkRequest, OutputT, ReturnT> ReturnT doExecute(
+        SdkClientConfiguration clientConfiguration,
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext,
         HttpResponseHandler<Response<ReturnT>> responseHandler) {
@@ -168,7 +171,8 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
                                    .build();
         }
 
-        return invoke(marshalled,
+        return invoke(clientConfiguration,
+                      marshalled,
                       inputT,
                       executionContext,
                       responseHandler);

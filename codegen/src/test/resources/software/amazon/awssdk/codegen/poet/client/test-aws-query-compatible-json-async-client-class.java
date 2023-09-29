@@ -12,8 +12,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -53,8 +55,9 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
     private final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration;
 
     protected DefaultQueryToJsonCompatibleAsyncClient(QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration,
-                                                      SdkClientConfiguration clientConfiguration) {
-        this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
+            SdkClientConfiguration clientConfiguration,
+            ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater) {
+        this.clientHandler = new AwsAsyncClientHandler(clientConfiguration, configurationUpdater);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();

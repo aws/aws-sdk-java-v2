@@ -23,8 +23,10 @@ import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.client.config.AwsClientOptionValidation;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
@@ -38,12 +40,27 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 @SdkProtectedApi
 public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implements AsyncClientHandler {
 
-    private final SdkClientConfiguration clientConfiguration;
+    private final ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater;
 
     public AwsAsyncClientHandler(SdkClientConfiguration clientConfiguration) {
         super(clientConfiguration);
-        this.clientConfiguration = clientConfiguration;
+        this.configurationUpdater = null;
         AwsClientOptionValidation.validateAsyncClientOptions(clientConfiguration);
+    }
+
+    public AwsAsyncClientHandler(SdkClientConfiguration clientConfiguration,
+                                 ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater) {
+        super(clientConfiguration);
+        this.configurationUpdater = configurationUpdater;
+        AwsClientOptionValidation.validateAsyncClientOptions(clientConfiguration);
+    }
+
+    @Override
+    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater() {
+        if (configurationUpdater == null) {
+            return super.configurationUpdater();
+        }
+        return configurationUpdater;
     }
 
     @Override
@@ -61,7 +78,10 @@ public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implement
 
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
-        invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams) {
+        invokeInterceptorsAndCreateExecutionContext(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            SdkClientConfiguration clientConfiguration
+    ) {
         return AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration);
     }
 }

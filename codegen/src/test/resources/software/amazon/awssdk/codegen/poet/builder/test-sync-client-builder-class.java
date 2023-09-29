@@ -34,7 +34,7 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
         SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
         JsonServiceClientConfiguration serviceClientConfiguration = initializeServiceClientConfig(clientConfiguration);
-        JsonClient client = new DefaultJsonClient(serviceClientConfiguration, clientConfiguration);
+        JsonClient client = new DefaultJsonClient(serviceClientConfiguration, clientConfiguration, defaultConfigurationUpdater());
         return client;
     }
 

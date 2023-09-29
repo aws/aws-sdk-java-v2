@@ -53,8 +53,10 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
@@ -173,7 +175,11 @@ public class SyncClientClass extends SyncClientInterface {
                         .addModifiers(PROTECTED)
                         .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                        .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
+                        .addParameter(ParameterizedTypeName.get(ConfigurationUpdater.class,
+                                                                SdkServiceClientConfiguration.Builder.class),
+                                      "configurationUpdater")
+                        .addStatement("this.clientHandler = new $T(clientConfiguration, configurationUpdater)",
+                                      protocolSpec.getClientHandlerClass())
                         .addStatement("this.clientConfiguration = clientConfiguration")
                         .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
