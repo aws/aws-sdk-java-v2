@@ -175,7 +175,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
-        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("194");
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("193");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
 
@@ -194,7 +194,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
-        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("315");
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("314");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
@@ -215,7 +215,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
-        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("63");
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("62");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }

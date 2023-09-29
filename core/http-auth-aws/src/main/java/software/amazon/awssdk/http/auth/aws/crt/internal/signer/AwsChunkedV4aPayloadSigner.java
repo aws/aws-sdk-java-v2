@@ -17,6 +17,8 @@ package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.fromChecksumAlgorithm;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AWS_CHUNKED;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.CONTENT_ENCODING;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
@@ -40,6 +42,7 @@ import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.Chun
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.TrailerProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ResettableContentStreamProvider;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
@@ -113,7 +116,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
 
         switch (checksum) {
             case STREAMING_ECDSA_SIGNED_PAYLOAD: {
-                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 64 bytes>
+                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 144 bytes>
                 encodedContentLength += calculateChunksLength(contentLength, extensionsLength);
                 break;
             }
@@ -124,12 +127,12 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
                 encodedContentLength += calculateChunksLength(contentLength, 0);
                 break;
             case STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER: {
-                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 64 bytes>
+                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 144 bytes>
                 encodedContentLength += calculateChunksLength(contentLength, extensionsLength);
                 if (checksumAlgorithm != null) {
                     encodedContentLength += calculateChecksumTrailerLength(checksumHeaderName(checksumAlgorithm));
                 }
-                encodedContentLength += 170; // x-amz-trailer-signature:<sigv4a-ecsda hex signature, 64 bytes>\r\n
+                encodedContentLength += 170; // x-amz-trailer-signature:<sigv4a-ecsda hex signature, 144 bytes>\r\n
                 break;
             }
             default:
@@ -144,6 +147,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
             request.appendHeader(X_AMZ_TRAILER, checksumHeaderName);
         }
         request.putHeader(Header.CONTENT_LENGTH, Long.toString(encodedContentLength));
+        request.appendHeader(CONTENT_ENCODING, AWS_CHUNKED);
     }
 
     /**
@@ -177,7 +181,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
         long remainingBytes = contentLength % chunkSize;
         if (remainingBytes > 0) {
             long remainingChunkHeaderLength = Long.toHexString(remainingBytes).length();
-            lengthInBytes += remainingChunkHeaderLength + 1 + extensionsLength + 2 + remainingBytes + 2;
+            lengthInBytes += remainingChunkHeaderLength + extensionsLength + 2 + remainingBytes + 2;
         }
 
         // final chunk
@@ -220,8 +224,8 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
 
         // get the base checksum for the algorithm
         SdkChecksum sdkChecksum = fromChecksumAlgorithm(checksumAlgorithm);
-        // size of checksum value as hex-string
-        lengthInBytes += sdkChecksum.getChecksum().length();
+        // size of checksum value as encoded-string
+        lengthInBytes += BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()).length();
 
         // terminating \r\n
         return lengthInBytes + 2;

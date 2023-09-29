@@ -255,6 +255,10 @@ public final class SignerUtils {
         return hash(text.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Consume entire stream and return the number of bytes - the stream will NOT be reset upon completion, so if it needs to
+     * be read again, the caller MUST reset the stream.
+     */
     private static int readAll(InputStream inputStream) {
         try {
             byte[] buffer = new byte[4096];

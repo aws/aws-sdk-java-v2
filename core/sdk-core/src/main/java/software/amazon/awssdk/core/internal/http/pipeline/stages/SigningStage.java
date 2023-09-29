@@ -107,9 +107,7 @@ public class SigningStage implements RequestToRequestPipeline {
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SignedRequest signedRequest) {
         SdkHttpRequest request = signedRequest.request();
-        if (request instanceof SdkHttpFullRequest) {
-            return (SdkHttpFullRequest) request;
-        }
+
         return SdkHttpFullRequest.builder()
                                  .contentStreamProvider(signedRequest.payload().orElse(null))
                                  .protocol(request.protocol())
