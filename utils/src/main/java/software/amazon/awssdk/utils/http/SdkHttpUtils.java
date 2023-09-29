@@ -39,6 +39,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -430,6 +431,18 @@ public final class SdkHttpUtils {
      */
     public static Set<String> parseNonProxyHostsProperty() {
         String systemNonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
+
+        if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
+            return Arrays.stream(systemNonProxyHosts.split("\\|"))
+                         .map(String::toLowerCase)
+                         .map(s -> StringUtils.replace(s, "*", ".*?"))
+                         .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
+    }
+
+    public static Set<String> parseNonProxyHostsEnvironmentVariable() {
+        String systemNonProxyHosts = ProxyEnvironmentSetting.NO_PROXY.getStringValue().orElse(null);
 
         if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
             return Arrays.stream(systemNonProxyHosts.split("\\|"))

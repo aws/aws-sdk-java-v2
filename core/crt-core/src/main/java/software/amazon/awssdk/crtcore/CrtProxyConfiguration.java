@@ -15,9 +15,14 @@
 
 package software.amazon.awssdk.crtcore;
 
+import static software.amazon.awssdk.utils.ProxyConfigProvider.getProxyConfig;
+
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.LocalProxyConfiguration;
+import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -41,15 +46,14 @@ public abstract class CrtProxyConfiguration {
         this.useEnvironmentVariableValues = builder.useEnvironmentVariableValues;
         this.scheme = builder.scheme;
 
-        LocalProxyConfiguration localProxyConfiguration = useSystemPropertyValues ?
-                                                          LocalProxyConfiguration.fromSystemPropertySettings(builder.scheme) : null;
-
-        this.host = builder.host != null || localProxyConfiguration == null ? builder.host : localProxyConfiguration.host();
-        this.port = builder.port != 0 || localProxyConfiguration == null ? builder.port : localProxyConfiguration.port();
-        this.username = ! StringUtils.isEmpty(builder.username) || localProxyConfiguration == null ? builder.username :
-                        localProxyConfiguration.userName().orElseGet(() -> builder.username);
-        this.password = ! StringUtils.isEmpty(builder.password) || localProxyConfiguration == null ? builder.password :
-                        localProxyConfiguration.password().orElseGet(() -> builder.password);
+        ProxyConfigProvider proxyConfigProvider = getProxyConfig(builder.useSystemPropertyValues,
+                                                                 builder.useEnvironmentVariableValues ,builder.scheme);
+        this.host = builder.host != null || proxyConfigProvider == null ? builder.host : proxyConfigProvider.host();
+        this.port = builder.port != 0 || proxyConfigProvider == null ? builder.port : proxyConfigProvider.port();
+        this.username = ! StringUtils.isEmpty(builder.username) || proxyConfigProvider == null ? builder.username :
+                        proxyConfigProvider.userName().orElseGet(() -> builder.username);
+        this.password = ! StringUtils.isEmpty(builder.password) || proxyConfigProvider == null ? builder.password :
+                        proxyConfigProvider.password().orElseGet(() -> builder.password);
     }
 
     /**
@@ -80,10 +84,7 @@ public abstract class CrtProxyConfiguration {
      * property, based on the scheme used, if {@link Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public final String username() {
-        if (Objects.equals(scheme(), HTTPS)) {
-            return resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME);
-        }
-        return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
+        return username;
     }
 
     /**
@@ -92,10 +93,7 @@ public abstract class CrtProxyConfiguration {
      * to true
      * */
     public final String password() {
-        if (Objects.equals(scheme(), HTTPS)) {
-            return resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD);
-        }
-        return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
+        return password;
     }
 
     @Override
@@ -209,15 +207,6 @@ public abstract class CrtProxyConfiguration {
         CrtProxyConfiguration build();
     }
 
-
-
-    /**
-     * Uses the configuration options, system setting property and returns the final value of the given member.
-     */
-    private String resolveValue(String value, ProxySystemSetting systemSetting) {
-        return value == null && Boolean.TRUE.equals(useSystemPropertyValues) ?
-               systemSetting.getStringValue().orElse(null) : value;
-    }
 
     protected abstract static class DefaultBuilder<B extends Builder> implements Builder {
         private String scheme;

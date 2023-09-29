@@ -29,7 +29,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-import software.amazon.awssdk.utils.LocalProxyConfiguration;
+import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.Pair;
 
 
@@ -37,7 +37,7 @@ public class ProxyConfigurationTest {
 
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
-    public static Stream<Arguments> stubResponses() {
+    public static Stream<Arguments> proxyConfigurationSetting() {
         return Stream.of(
             Arguments.of(Arrays.asList(
                              Pair.of("%s.proxyHost", "foo.com"),
@@ -49,7 +49,10 @@ public class ProxyConfigurationTest {
                              Pair.of("%s_proxy", "http://UserOne:passwordSecret@foo.com:555/"),
                              Pair.of("no_proxy", "bar.com")
                          ),
-                         new ExpectedProxySetting().host("foo.com").port(555).userName("UserOne").password("passwordSecret").nonProxyHost("bar.com"),
+                         new ExpectedProxySetting().host("foo.com")
+                                                   .port(555).userName("UserOne")
+                                                   .password("passwordSecret")
+                                                   .nonProxyHost("bar.com"),
                          "All Proxy Parameters are Set"),
 
             Arguments.of(Arrays.asList(
@@ -61,31 +64,22 @@ public class ProxyConfigurationTest {
                          new ExpectedProxySetting().host("foo.com").port(555),
                          "Optional Parameters are not set"),
 
-
-            Arguments.of(Arrays.asList(
-                             Pair.of("%s.proxyHost", ""),
-                             Pair.of("%s.proxyPort", ""),
-                             Pair.of("%s.nonProxyHosts", ""),
-                             Pair.of("%s.proxyUser", ""),
-                             Pair.of("%s.nonProxyHosts", ""),
-                             Pair.of("%s.proxyPassword", "")),
+            Arguments.of(Collections.singletonList(
+                             Pair.of("proxy", "")),
                          Arrays.asList(
                              Pair.of("%s_proxy", ""),
                              Pair.of("no_proxy", "")
-
                          ),
                          new ExpectedProxySetting().port(0),
                          "All parameters are Blank"),
 
-
             Arguments.of(Collections.singletonList(
-                             Pair.of("%s.nonProxyHosts", "")),
+                             Pair.of("http.nonProxyHosts", "one,two,three")),
                          Collections.singletonList(
-                             Pair.of("no_proxy", "")
+                             Pair.of("no_proxy", "one,two,three")
                          ),
-                         new ExpectedProxySetting().port(0),
+                         new ExpectedProxySetting().port(0).nonProxyHost("one,two,three"),
                          "Only Non Proxy Hosts are set with multiple value"),
-
 
             Arguments.of(Arrays.asList(
                              Pair.of("%s.proxyVaildHost", "foo.com"),
@@ -94,54 +88,66 @@ public class ProxyConfigurationTest {
                              Pair.of("%s_proxy", "http://foo:com:Incorrects:555/")
                          ),
                          new ExpectedProxySetting().port(0),
-                         "Incorrect local Setting")
+                         "Incorrect local Setting"),
+
+
+            Arguments.of(Arrays.asList(
+                             Pair.of("%s.proxyHost", "foo.com"),
+                             Pair.of("%s.proxyPort", "555"),
+                             Pair.of("http.nonProxyHosts", "bar.com"),
+                             Pair.of("%s.proxyUser", ""),
+
+                             Pair.of("%s.proxyPassword", "passwordSecret")),
+                         Arrays.asList(
+                             Pair.of("%s_proxy", "http://:passwordSecret@foo.com:555/"),
+                             Pair.of("no_proxy", "bar.com")
+                         ),
+                         new ExpectedProxySetting().host("foo.com").userName("").port(555).password("passwordSecret").nonProxyHost("bar.com"),
+                         "No User is left empty"),
+
+            Arguments.of(Arrays.asList(
+                             Pair.of("%s.proxyHost", "foo.com"),
+                             Pair.of("%s.proxyPort", "555"),
+                             Pair.of("http.nonProxyHosts", "bar.com"),
+                             Pair.of("%s.proxyUser", "UserOne")
+                         ),
+                         Arrays.asList(
+                             Pair.of("%s_proxy", "http://UserOne@foo.com:555/"),
+                             Pair.of("no_proxy", "bar.com")
+                         ),
+                         new ExpectedProxySetting().host("foo.com").port(555).userName("UserOne").nonProxyHost("bar.com"),
+                         "Password not present"),
+
+
+            Arguments.of(Arrays.asList(
+                             Pair.of("%s.proxyHost", "555"),
+                             Pair.of("%s.proxyPort", "-1"),
+
+                             Pair.of("http.nonProxyHosts", "bar.com")
+                         ),
+                         Arrays.asList(
+                             Pair.of("%s_proxy", "http://555/"),
+                             Pair.of("no_proxy", "bar.com")
+                         ),
+                         new ExpectedProxySetting().host("555").port(-1).nonProxyHost("bar.com"),
+                         "Host name is just a number"),
+
+            Arguments.of(Arrays.asList(
+                             Pair.of("%s.proxyHost", "foo.com"),
+                             Pair.of("%s.proxyPort", "abcde"),
+                             Pair.of("http.nonProxyHosts", "bar.com"),
+                             Pair.of("%s.proxyUser", "UserOne"),
+                             Pair.of("%s.proxyPassword", "passwordSecret")),
+                         Arrays.asList(
+                             Pair.of("%s_proxy", "http://UserOne:passwordSecret@foo.com:0/"),
+                             Pair.of("no_proxy", "bar.com")
+                         ),
+                         new ExpectedProxySetting().host("foo.com").port(0).userName("UserOne").password("passwordSecret").nonProxyHost("bar.com"),
+                         "Number format exception for SystemProperty is handled by defaulting it to 0")
         );
     }
 
-
-    @BeforeEach
-    void setUp() {
-        Stream.of("http", "https").forEach(protocol ->
-                                               Stream.of("%s.proxyHost", "%s.proxyPort", "%s.nonProxyHosts", "%s.proxyUser",
-                                                         "%s.proxyPassword")
-                                                     .forEach(property -> System.clearProperty(String.format(property, protocol)))
-        );
-
-        ENVIRONMENT_VARIABLE_HELPER.reset();
-
-    }
-
-    @ParameterizedTest(name = "{index} - {3}.")
-    @MethodSource("stubResponses")
-    void given_LocalSetting_when_httpProtocol_then_correctProxyConfiguration(List<Pair<String, String>> systemSettingsPair,
-                                                                             List<Pair<String, String>> envSystemSetting,
-                                                                             ExpectedProxySetting expectedProxySetting,
-                                                                             String testCaseName) {
-
-        setSystemProperties(systemSettingsPair, "http");
-        setEnvironmentProperties(envSystemSetting, "http");
-
-        assertProxyEquals(LocalProxyConfiguration.fromSystemPropertySettings("http"), expectedProxySetting);
-        assertProxyEquals(LocalProxyConfiguration.fromEnvironmentSettings("http"), expectedProxySetting);
-
-    }
-
-    @ParameterizedTest(name = "{index} - {3}.")
-    @MethodSource("stubResponses")
-    void given_LocalSetting_when_httpsProtocol_then_correctProxyConfiguration(List<Pair<String, String>> systemSettingsPair,
-                                                                              List<Pair<String, String>> envSystemSetting,
-                                                                              ExpectedProxySetting expectedProxySetting,
-                                                                              String testCaseName) {
-
-        setSystemProperties(systemSettingsPair, "https");
-        setEnvironmentProperties(envSystemSetting, "https");
-
-        assertProxyEquals(LocalProxyConfiguration.fromSystemPropertySettings("https"), expectedProxySetting);
-        assertProxyEquals(LocalProxyConfiguration.fromEnvironmentSettings("https"), expectedProxySetting);
-
-    }
-
-    private static void assertProxyEquals(LocalProxyConfiguration actualConfiguration,
+    private static void assertProxyEquals(ProxyConfigProvider actualConfiguration,
                                           ExpectedProxySetting expectedProxySetting) {
         assertThat(actualConfiguration.port()).isEqualTo(expectedProxySetting.port);
         assertThat(actualConfiguration.host()).isEqualTo(expectedProxySetting.host);
@@ -157,17 +163,48 @@ public class ProxyConfigurationTest {
     }
 
     static void setEnvironmentProperties(List<Pair<String, String>> settingsPairs, String protocol) {
-
-
         settingsPairs.forEach(settingsPair -> ENVIRONMENT_VARIABLE_HELPER.set(String.format(settingsPair.left(), protocol),
                                                                               settingsPair.right()));
     }
 
-    static void clearProperties(List<Pair<String, String>> settingsPairs, String protocol) {
-        settingsPairs.forEach(settingsPair -> System.setProperty(String.format(settingsPair.left(), protocol),
-                                                                 settingsPair.right()));
+    @BeforeEach
+    void setUp() {
+        Stream.of("http", "https").forEach(protocol ->
+                                               Stream.of("%s.proxyHost", "%s.proxyPort", "%s.nonProxyHosts", "%s.proxyUser",
+                                                         "%s.proxyPassword")
+                                                     .forEach(property -> System.clearProperty(String.format(property, protocol)))
+        );
+
+        ENVIRONMENT_VARIABLE_HELPER.reset();
+
     }
 
+    @ParameterizedTest(name = "{index} - {3}.")
+    @MethodSource("proxyConfigurationSetting")
+    void given_LocalSetting_when_httpProtocol_then_correctProxyConfiguration(List<Pair<String, String>> systemSettingsPair,
+                                                                             List<Pair<String, String>> envSystemSetting,
+                                                                             ExpectedProxySetting expectedProxySetting,
+                                                                             String testCaseName) {
+
+        setSystemProperties(systemSettingsPair, "http");
+        setEnvironmentProperties(envSystemSetting, "http");
+        assertProxyEquals(ProxyConfigProvider.fromSystemPropertySettings("http"), expectedProxySetting);
+        assertProxyEquals(ProxyConfigProvider.fromEnvironmentSettings("http"), expectedProxySetting);
+
+    }
+
+    @ParameterizedTest(name = "{index} - {3}.")
+    @MethodSource("proxyConfigurationSetting")
+    void given_LocalSetting_when_httpsProtocol_then_correctProxyConfiguration(List<Pair<String, String>> systemSettingsPair,
+                                                                              List<Pair<String, String>> envSystemSetting,
+                                                                              ExpectedProxySetting expectedProxySetting,
+                                                                              String testCaseName) {
+        setSystemProperties(systemSettingsPair, "https");
+        setEnvironmentProperties(envSystemSetting, "https");
+        assertProxyEquals(ProxyConfigProvider.fromSystemPropertySettings("https"), expectedProxySetting);
+        assertProxyEquals(ProxyConfigProvider.fromEnvironmentSettings("https"), expectedProxySetting);
+
+    }
 
     private static class ExpectedProxySetting {
         private int port;
@@ -202,9 +239,5 @@ public class ProxyConfigurationTest {
                                                                .collect(Collectors.toSet()) : new HashSet<>();
             return this;
         }
-
-
     }
-
-
 }

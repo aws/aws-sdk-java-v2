@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils.internal.proxy;
 
+import static software.amazon.awssdk.utils.http.SdkHttpUtils.parseNonProxyHostsEnvironmentVariable;
 import static software.amazon.awssdk.utils.http.SdkHttpUtils.parseNonProxyHostsProperty;
 
 import java.net.MalformedURLException;
@@ -24,7 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.LocalProxyConfiguration;
+import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -33,17 +34,16 @@ import software.amazon.awssdk.utils.Validate;
  * The system properties related to http and https proxies
  */
 @SdkInternalApi
-public class ProxyEnvironmentConfiguration implements LocalProxyConfiguration {
+public class ProxyEnvironmentVariableConfigProvider implements ProxyConfigProvider {
 
-    private static final Logger log = Logger.loggerFor(ProxyEnvironmentConfiguration.class);
+    private static final Logger log = Logger.loggerFor(ProxyEnvironmentVariableConfigProvider.class);
 
     private final String scheme;
 
     private final URL proxyUrl;
 
-    public ProxyEnvironmentConfiguration(String scheme) {
-        Validate.notEmpty(scheme, "Scheme cannot be empty");
-        this.scheme = scheme;
+    public ProxyEnvironmentVariableConfigProvider(String scheme) {
+        this.scheme = scheme == null ? "http" : scheme;
         this.proxyUrl = silentlyGetURL().orElse(null);
     }
 
@@ -79,7 +79,10 @@ public class ProxyEnvironmentConfiguration implements LocalProxyConfiguration {
     public Optional<String> password() {
         return Optional.ofNullable(this.proxyUrl)
                        .map(URL::getUserInfo)
-                       .flatMap(userInfo -> Optional.ofNullable(userInfo.split(":", 2)[1]));
+                       .filter(userInfo -> userInfo.contains(":"))
+                       .map(userInfo -> userInfo.split(":", 2))
+                       .filter(parts -> parts.length > 1)
+                       .map(parts -> parts[1]);
     }
 
     @Override
@@ -89,6 +92,6 @@ public class ProxyEnvironmentConfiguration implements LocalProxyConfiguration {
 
     @Override
     public Set<String> nonProxyHosts() {
-        return parseNonProxyHostsProperty() ;
+        return parseNonProxyHostsEnvironmentVariable() ;
     }
 }

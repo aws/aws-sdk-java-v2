@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.LocalProxyConfiguration;
+import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -48,23 +48,19 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.useEnvironmentVariablesValues = builder.useEnvironmentVariablesValues;
         this.scheme = builder.scheme;
 
-        LocalProxyConfiguration localProxyConfiguration = proxyConfiguration(builder);
+        ProxyConfigProvider proxyConfigProvider = ProxyConfigProvider.getProxyConfig(builder.useSystemPropertyValues,
+                                                                                     builder.useEnvironmentVariablesValues,
+                                                                                     builder.scheme);
 
-        this.host = builder.host != null || localProxyConfiguration == null ? builder.host : localProxyConfiguration.host();
-        this.port = builder.port != 0 || localProxyConfiguration == null ? builder.port : localProxyConfiguration.port();
-        this.username = !StringUtils.isEmpty(builder.username) || localProxyConfiguration == null ? builder.username :
-                        localProxyConfiguration.userName().orElseGet(() -> builder.username);
-        this.password = !StringUtils.isEmpty(builder.password) || localProxyConfiguration == null ? builder.password :
-                        localProxyConfiguration.password().orElseGet(() -> builder.password);
+        this.host = builder.host != null || proxyConfigProvider == null ? builder.host : proxyConfigProvider.host();
+        this.port = builder.port != 0 || proxyConfigProvider == null ? builder.port : proxyConfigProvider.port();
+        this.username = !StringUtils.isEmpty(builder.username) || proxyConfigProvider == null ? builder.username :
+                        proxyConfigProvider.userName().orElseGet(() -> builder.username);
+        this.password = !StringUtils.isEmpty(builder.password) || proxyConfigProvider == null ? builder.password :
+                        proxyConfigProvider.password().orElseGet(() -> builder.password);
 
-        this.nonProxyHosts = builder.nonProxyHosts != null || localProxyConfiguration == null ? builder.nonProxyHosts :
-                             localProxyConfiguration.nonProxyHosts();
-    }
-
-    private static LocalProxyConfiguration proxyConfiguration(BuilderImpl builder) {
-        return builder.useSystemPropertyValues ?
-               LocalProxyConfiguration.fromSystemPropertySettings(builder.scheme) :
-               null;
+        this.nonProxyHosts = builder.nonProxyHosts != null || proxyConfigProvider == null ? builder.nonProxyHosts :
+                             proxyConfigProvider.nonProxyHosts();
     }
 
     public static Builder builder() {
@@ -243,19 +239,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
     }
 
-
-    //
-    // private Set<String> parseNonProxyHostsProperty() {
-    //     String nonProxyHostsSystem = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
-    //
-    //     if (nonProxyHostsSystem != null && !nonProxyHostsSystem.isEmpty()) {
-    //         return Arrays.stream(nonProxyHostsSystem.split("\\|"))
-    //                      .map(String::toLowerCase)
-    //                      .map(s -> StringUtils.replace(s, "*", ".*?"))
-    //                      .collect(Collectors.toSet());
-    //     }
-    //     return Collections.emptySet();
-    // }
 
     private static final class BuilderImpl implements Builder {
         private String scheme;
