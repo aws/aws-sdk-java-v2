@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -29,6 +31,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
@@ -41,21 +44,22 @@ public class SraIdentityResolutionTest {
 
     @Test
     public void testIdentityPropertyBasedResolutionIsUsedAndNotAnotherIdentityResolution() {
+        SdkHttpClient mockClient = mock(SdkHttpClient.class);
+        when(mockClient.prepareRequest(any())).thenThrow(new RuntimeException("boom"));
+
         when(credsProvider.identityType()).thenReturn(AwsCredentialsIdentity.class);
         when(credsProvider.resolveIdentity(any(ResolveIdentityRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(AwsBasicCredentials.create("akid1", "skid2")));
+
         ProtocolQueryClient syncClient = ProtocolQueryClient
             .builder()
+            .httpClient(mockClient)
             .credentialsProvider(credsProvider)
             // Below is necessary to create the test case where, addCredentialsToExecutionAttributes was getting called before
             .overrideConfiguration(ClientOverrideConfiguration.builder().build())
             .build();
 
-        try {
-            syncClient.allTypes(builder -> {});
-        } catch (Exception expected) {
-        }
-
+        assertThatThrownBy(() -> syncClient.allTypes(r -> {})).hasMessageContaining("boom");
         verify(credsProvider, times(2)).identityType();
 
         // This asserts that the identity used is the one from resolveIdentity() called by SRA AuthSchemeInterceptor and not from

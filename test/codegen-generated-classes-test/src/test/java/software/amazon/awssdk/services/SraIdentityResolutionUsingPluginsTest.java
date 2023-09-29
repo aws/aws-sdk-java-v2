@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -31,6 +33,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
@@ -45,24 +48,22 @@ public class SraIdentityResolutionUsingPluginsTest {
 
     @Test
     public void testIdentityBasedPluginsResolutionIsUsedAndNotAnotherIdentityResolution() {
+        SdkHttpClient mockClient = mock(SdkHttpClient.class);
+        when(mockClient.prepareRequest(any())).thenThrow(new RuntimeException("boom"));
+
         when(credentialsProvider.identityType()).thenReturn(AwsCredentialsIdentity.class);
         when(credentialsProvider.resolveIdentity(any(ResolveIdentityRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(AwsBasicCredentials.create("akid1", "skid2")));
 
         ProtocolQueryClient syncClient = ProtocolQueryClient
             .builder()
+            .httpClient(mockClient)
             .addPlugin(new TestPlugin(credentialsProvider))
             // Below is necessary to create the test case where, addCredentialsToExecutionAttributes was getting called before
             .overrideConfiguration(ClientOverrideConfiguration.builder().build())
             .build();
 
-        try {
-            syncClient.allTypes(builder -> {
-            });
-        } catch (Exception expected) {
-            expected.printStackTrace(System.out);
-        }
-
+        assertThatThrownBy(() -> syncClient.allTypes(r -> {})).hasMessageContaining("boom");
         verify(credentialsProvider, times(2)).identityType();
 
         // This asserts that the identity used is the one from resolveIdentity() called by SRA AuthSchemeInterceptor and not
