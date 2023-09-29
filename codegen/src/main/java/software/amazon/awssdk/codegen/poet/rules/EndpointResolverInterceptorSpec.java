@@ -561,6 +561,14 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         method.beginControlFlow("for ($T endpointAuthScheme : endpointAuthSchemes)", EndpointAuthScheme.class);
 
+        if (useSraAuth) {
+            // Don't include signer properties for auth options that don't match our selected auth scheme
+            method.beginControlFlow("if (!endpointAuthScheme.schemeId()"
+                                    + ".equals(selectedAuthScheme.authSchemeOption().schemeId()))");
+            method.addStatement("continue");
+            method.endControlFlow();
+        }
+
         method.addStatement("$T option = selectedAuthScheme.authSchemeOption().toBuilder()", AuthSchemeOption.Builder.class);
 
         if (dependsOnHttpAuthAws) {
