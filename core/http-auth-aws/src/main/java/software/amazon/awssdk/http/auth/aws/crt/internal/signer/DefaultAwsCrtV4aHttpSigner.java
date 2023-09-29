@@ -191,7 +191,11 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
                                 .build();
         }
 
-        SdkHttpRequest sanitizedRequest = sanitizeRequest(request.request());
+        SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
+
+        payloadSigner.beforeSigning(requestBuilder, request.payload().orElse(null), signingConfig.getSignedBodyValue());
+
+        SdkHttpRequest sanitizedRequest = sanitizeRequest(requestBuilder.build());
 
         HttpRequest crtRequest = toRequest(sanitizedRequest, request.payload().orElse(null));
 

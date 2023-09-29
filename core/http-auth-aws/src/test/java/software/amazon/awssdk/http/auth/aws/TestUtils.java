@@ -21,6 +21,10 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public final class TestUtils {
+
+    private TestUtils() {
+    }
+
     // Helpers for generating test requests
     public static <T extends AwsCredentialsIdentity> SignRequest<T> generateBasicRequest(
         T credentials,
@@ -33,7 +37,7 @@ public final class TestUtils {
                                                      .putHeader("Host", "demo.us-east-1.amazonaws.com")
                                                      .putHeader("x-amz-archive-description", "test  test")
                                                      .encodedPath("/")
-                                                     .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                                                     .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
                                                      .build()
                                                      .copy(requestOverrides))
                           .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
@@ -57,11 +61,12 @@ public final class TestUtils {
 
         return AsyncSignRequest.builder(credentials)
                                .request(SdkHttpRequest.builder()
+                                                      .protocol("https")
                                                       .method(SdkHttpMethod.POST)
                                                       .putHeader("Host", "demo.us-east-1.amazonaws.com")
                                                       .putHeader("x-amz-archive-description", "test  test")
                                                       .encodedPath("/")
-                                                      .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                                                      .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
                                                       .build()
                                                       .copy(requestOverrides))
                                .payload(publisher)

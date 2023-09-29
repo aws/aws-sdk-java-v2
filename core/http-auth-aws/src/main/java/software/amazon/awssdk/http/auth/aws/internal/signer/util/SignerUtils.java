@@ -185,22 +185,24 @@ public final class SignerUtils {
     }
 
     /**
-     * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If neither header is present, an exception
-     * is thrown.
+     * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, then
+     * the payload is read in its entirety to calculate the length.
      */
-    public static void moveContentLength(SdkHttpRequest.Builder request) {
+    public static long moveContentLength(SdkHttpRequest.Builder request, InputStream payload) {
         if (!request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH).isPresent()) {
             // if the decoded length isn't present, content-length must be there
-            String contentLength = request
-                .firstMatchingHeader(Header.CONTENT_LENGTH)
-                .orElseThrow(() -> new IllegalArgumentException(Header.CONTENT_LENGTH + " must be specified!"));
+            String contentLength = request.firstMatchingHeader(Header.CONTENT_LENGTH).orElseGet(
+                () -> String.valueOf(readAll(payload))
+            );
 
             request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, contentLength)
                    .removeHeader(Header.CONTENT_LENGTH);
-        } else {
-            // decoded header is already there, so remove content-length just to be sure it's gone
-            request.removeHeader(Header.CONTENT_LENGTH);
+            return Long.parseLong(contentLength);
         }
+
+        // decoded header is already there, so remove content-length just to be sure it's gone
+        request.removeHeader(Header.CONTENT_LENGTH);
+        return Long.parseLong(request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH).get());
     }
 
     private static MessageDigest getMessageDigestInstance() {
@@ -251,5 +253,26 @@ public final class SignerUtils {
 
     public static byte[] hash(String text) {
         return hash(text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Consume entire stream and return the number of bytes - the stream will NOT be reset upon completion, so if it needs to
+     * be read again, the caller MUST reset the stream.
+     */
+    private static int readAll(InputStream inputStream) {
+        try {
+            byte[] buffer = new byte[4096];
+            int read = 0;
+            int offset = 0;
+            while (read >= 0) {
+                read = inputStream.read(buffer);
+                if (read >= 0) {
+                    offset += read;
+                }
+            }
+            return offset;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not finish reading stream: ", e);
+        }
     }
 }

@@ -26,7 +26,9 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.CHUNK_
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 
+import java.net.URI;
 import java.time.Duration;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -173,7 +175,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("193");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
 
@@ -192,7 +194,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("314");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
@@ -213,7 +215,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("62");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
@@ -290,5 +292,35 @@ public class DefaultAwsV4HttpSignerTest {
         );
 
         assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(request));
+    }
+
+    @Test
+    public void sign_WithPayloadSigningFalseAndHttp_FallsBackToPayloadSigning() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2");
+    }
+
+    @Test
+    public void sign_WithPayloadSigningNullAndHttp_FallsBackToPayloadSigning() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, null)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2");
     }
 }
