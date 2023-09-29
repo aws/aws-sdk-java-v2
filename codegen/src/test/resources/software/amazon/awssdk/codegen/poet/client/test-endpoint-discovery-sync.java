@@ -11,8 +11,10 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
@@ -65,8 +67,9 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
 
     protected DefaultEndpointDiscoveryTestClient(EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration,
-                                                 SdkClientConfiguration clientConfiguration) {
-        this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
+            SdkClientConfiguration clientConfiguration,
+            ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater) {
+        this.clientHandler = new AwsSyncClientHandler(clientConfiguration, configurationUpdater);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();

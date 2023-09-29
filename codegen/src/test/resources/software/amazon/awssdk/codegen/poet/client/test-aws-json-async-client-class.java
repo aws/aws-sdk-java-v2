@@ -26,6 +26,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -133,8 +135,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     private final Executor executor;
 
     protected DefaultJsonAsyncClient(JsonServiceClientConfiguration serviceClientConfiguration,
-            SdkClientConfiguration clientConfiguration) {
-        this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
+            SdkClientConfiguration clientConfiguration,
+            ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater) {
+        this.clientHandler = new AwsAsyncClientHandler(clientConfiguration, configurationUpdater);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();

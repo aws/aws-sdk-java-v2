@@ -22,7 +22,9 @@ import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.client.config.AwsClientOptionValidation;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkSyncClientHandler;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -45,6 +47,13 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
 
     public AwsSyncClientHandler(SdkClientConfiguration clientConfiguration) {
         super(clientConfiguration);
+        this.clientConfiguration = clientConfiguration;
+        AwsClientOptionValidation.validateSyncClientOptions(clientConfiguration);
+    }
+
+    public AwsSyncClientHandler(SdkClientConfiguration clientConfiguration,
+                                ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater) {
+        super(clientConfiguration, configurationUpdater);
         this.clientConfiguration = clientConfiguration;
         AwsClientOptionValidation.validateSyncClientOptions(clientConfiguration);
     }

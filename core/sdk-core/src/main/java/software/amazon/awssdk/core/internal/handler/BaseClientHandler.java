@@ -24,9 +24,11 @@ import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -52,10 +54,18 @@ import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public abstract class BaseClientHandler {
-    private SdkClientConfiguration clientConfiguration;
+    private final SdkClientConfiguration clientConfiguration;
+    private final ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater;
 
     protected BaseClientHandler(SdkClientConfiguration clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
+        this.configurationUpdater = (consumer, builder) -> builder.build();
+    }
+
+    protected BaseClientHandler(SdkClientConfiguration clientConfiguration,
+                                ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater) {
+        this.clientConfiguration = clientConfiguration;
+        this.configurationUpdater = configurationUpdater;
     }
 
     /**
@@ -226,6 +236,10 @@ public abstract class BaseClientHandler {
                                .signer(clientConfiguration.option(SdkAdvancedClientOption.SIGNER))
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater() {
+        return configurationUpdater;
     }
 
     protected boolean isCalculateCrc32FromCompressedData() {

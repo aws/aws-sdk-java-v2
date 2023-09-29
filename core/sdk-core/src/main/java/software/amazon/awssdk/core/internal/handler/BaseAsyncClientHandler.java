@@ -25,9 +25,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -63,6 +65,15 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     protected BaseAsyncClientHandler(SdkClientConfiguration clientConfiguration,
                                      AmazonAsyncHttpClient client) {
         super(clientConfiguration);
+        this.clientConfiguration = clientConfiguration;
+        this.client = client;
+        this.crc32Validator = response -> Crc32Validation.validate(isCalculateCrc32FromCompressedData(), response);
+    }
+
+    protected BaseAsyncClientHandler(SdkClientConfiguration clientConfiguration,
+                                     ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater,
+                                     AmazonAsyncHttpClient client) {
+        super(clientConfiguration, configurationUpdater);
         this.clientConfiguration = clientConfiguration;
         this.client = client;
         this.crc32Validator = response -> Crc32Validation.validate(isCalculateCrc32FromCompressedData(), response);
