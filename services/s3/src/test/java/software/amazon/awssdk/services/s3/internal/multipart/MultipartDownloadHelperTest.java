@@ -48,7 +48,7 @@ class MultipartDownloadHelperTest {
         CompletableFuture<ResponseBytes<GetObjectResponse>> responseFuture =
             helper.getObject(req, AsyncResponseTransformer.toBytes());
         ResponseBytes<GetObjectResponse> res = responseFuture.join();
-        Thread.sleep(1000);
+        Thread.sleep(10000);
         System.out.println("response: " + res.response());
         System.out.println("bytes length: " + res.asByteArray().length);
         Thread.sleep(1000);
