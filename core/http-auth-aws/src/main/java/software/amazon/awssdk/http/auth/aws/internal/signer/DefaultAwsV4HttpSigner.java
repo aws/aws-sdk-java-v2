@@ -77,6 +77,11 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
         Duration expirationDuration = request.property(EXPIRATION_DURATION);
+        boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
+
+        if (isAnonymous) {
+            return V4RequestSigner.anonymous(v4Properties);
+        }
 
         Function<V4Properties, V4RequestSigner> requestSigner;
         switch (authLocation) {
@@ -99,12 +104,20 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return requestSigner.apply(v4Properties);
     }
 
+    // private static boolean test(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+    //     if (request.property(CHECKSUM_ALGORITHM)) {
+    //
+    //     }
+    // }
+
     private static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
         boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
         boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
         boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
+        // boolean isFlexibleChecksumHeaderPresent = request.property(CHECKSUM_ALGORITHM);
+        boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
 
         if (isEventStreaming) {
             return Checksummer.forPrecomputed256Checksum(STREAMING_EVENTS_PAYLOAD);
@@ -124,15 +137,18 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             return Checksummer.create();
         }
 
-        if (isChunkEncoding) {
-            if (isFlexible || isTrailing) {
+        if (isFlexible || isTrailing) {
+            if (isChunkEncoding) {
                 return Checksummer.forPrecomputed256Checksum(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
             }
-            throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
         }
 
         if (isFlexible) {
             return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
+        }
+
+        if (isAnonymous) {
+            return Checksummer.forNoOp();
         }
 
         return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
@@ -145,6 +161,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
 
         if (isEventStreaming) {
             if (isPayloadSigning) {
@@ -157,7 +175,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             throw new UnsupportedOperationException("Unsigned payload is not supported with event-streaming.");
         }
 
-        if (isChunkEncoding) {
+        if ((isChunkEncoding && isPayloadSigning) || (isChunkEncoding && (isTrailing || isFlexible))) {
             return AwsChunkedV4PayloadSigner.builder()
                                             .credentialScope(properties.getCredentialScope())
                                             .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
@@ -199,12 +217,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                                         Checksummer checksummer,
                                         V4RequestSigner requestSigner,
                                         V4PayloadSigner payloadSigner) {
-        if (CredentialUtils.isAnonymous(request.identity())) {
-            return SignedRequest.builder()
-                                .request(request.request())
-                                .payload(request.payload().orElse(null))
-                                .build();
-        }
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
@@ -226,14 +238,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                                                                 Checksummer checksummer,
                                                                 V4RequestSigner requestSigner,
                                                                 V4PayloadSigner payloadSigner) {
-        if (CredentialUtils.isAnonymous(request.identity())) {
-            return CompletableFuture.completedFuture(
-                AsyncSignedRequest.builder()
-                                  .request(request.request())
-                                  .payload(request.payload().orElse(null))
-                                  .build()
-            );
-        }
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
@@ -261,7 +265,11 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        return request.requireProperty(PAYLOAD_SIGNING_ENABLED, true) || !"https".equals(request.request().protocol());
+        boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
+        boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isEncrypted = "https".equals(request.request().protocol());
+
+        return !isAnonymous && (isPayloadSigningEnabled || !isEncrypted);
     }
 
     private static boolean isEventStreaming(SdkHttpRequest request) {

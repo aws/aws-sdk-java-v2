@@ -109,6 +109,15 @@ public interface V4RequestSigner {
     }
 
     /**
+     * Retrieve an implementation of a V4RequestSigner, which signs the request and adds authentication through query parameters,
+     * which includes an expiration param, signalling how long a request signature is valid.
+     */
+    static V4RequestSigner anonymous(V4Properties properties) {
+        return requestBuilder ->
+            new V4Context("", new byte[] {}, null, null, requestBuilder);
+    }
+
+    /**
      * Given a request builder, sign a request and return a v4-context containing the signed request and its properties.
      */
     V4Context sign(SdkHttpRequest.Builder requestBuilder);

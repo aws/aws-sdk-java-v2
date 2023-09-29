@@ -90,6 +90,10 @@ public interface Checksummer {
         throw new IllegalArgumentException("Checksum Algorithm cannot be null!");
     }
 
+    static Checksummer forNoOp() {
+        return new FlexibleChecksummer();
+    }
+
     /**
      * Given a payload, calculate a checksum and add it to the request.
      */
