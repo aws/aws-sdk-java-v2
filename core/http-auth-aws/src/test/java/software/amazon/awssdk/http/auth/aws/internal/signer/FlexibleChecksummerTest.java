@@ -18,19 +18,19 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer.option;
 
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 public class FlexibleChecksummerTest {
 
@@ -44,77 +44,81 @@ public class FlexibleChecksummerTest {
 
     @Test
     public void checksummer_withNoChecksums_shouldNotAddAnyChecksum() {
-        FlexibleChecksummer checksummer = new FlexibleChecksummer(Collections.emptyMap());
+        FlexibleChecksummer checksummer = new FlexibleChecksummer();
         SdkHttpRequest expectedRequest = request.build();
 
         checksummer.checksum(payload, request);
 
-        assertEquals(expectedRequest.toString(), request.build().toString());
+        assertEquals(expectedRequest.headers(), request.build().headers());
     }
 
     @Test
     public void checksummerAsync_withNoChecksums_shouldNotAddAnyChecksum() {
-        FlexibleChecksummer checksummer = new FlexibleChecksummer(Collections.emptyMap());
+        FlexibleChecksummer checksummer = new FlexibleChecksummer();
         SdkHttpRequest expectedRequest = request.build();
 
         checksummer.checksum(payloadAsync, request);
 
-        assertEquals(expectedRequest.toString(), request.build().toString());
+        assertEquals(expectedRequest.headers(), request.build().headers());
     }
 
     @Test
     public void checksummer_withOneChecksum_shouldAddOneChecksum() {
-        FlexibleChecksummer checksummer = new FlexibleChecksummer(ImmutableMap.of("sha256", SHA256));
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toHex).build()
+        );
         SdkHttpRequest expectedRequest = request
             .putHeader("sha256", "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae")
             .build();
 
         checksummer.checksum(payload, request);
 
-        assertEquals(expectedRequest.toString(), request.build().toString());
+        assertEquals(expectedRequest.headers(), request.build().headers());
     }
 
     @Test
     public void checksummerAsync_withOneChecksum_shouldAddOneChecksum() {
-        FlexibleChecksummer checksummer = new FlexibleChecksummer(Collections.emptyMap());
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build()
+        );
         SdkHttpRequest expectedRequest = request
-            .putHeader("sha256", "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae")
+            .putHeader("sha256", "LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564=")
             .build();
 
         checksummer.checksum(payloadAsync, request);
 
-        assertEquals(expectedRequest.toString(), request.build().toString());
+        assertEquals(expectedRequest.headers(), request.build().headers());
     }
 
     @Test
     public void checksummer_withTwoChecksums_shouldAddTwoChecksums() {
-        FlexibleChecksummer checksummer = new FlexibleChecksummer(ImmutableMap.of(
-            "sha256", SHA256,
-            "crc32", CRC32
-        ));
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toHex).build(),
+            option().headerName("crc32").algorithm(CRC32).formatter(BinaryUtils::toBase64).build()
+        );
         SdkHttpRequest expectedRequest = request
             .putHeader("sha256", "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae")
-            .putHeader("crc32", "8c736521")
+            .putHeader("crc32", "jHNlIQ==")
             .build();
 
         checksummer.checksum(payload, request);
 
-        assertEquals(expectedRequest.toString(), request.build().toString());
+        assertEquals(expectedRequest.headers(), request.build().headers());
     }
 
     @Test
     public void checksummerAsync_withTwoChecksums_shouldAddTwoChecksums() {
-        FlexibleChecksummer checksummer = new FlexibleChecksummer(ImmutableMap.of(
-            "sha256", SHA256,
-            "crc32", CRC32
-        ));
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build(),
+            option().headerName("crc32").algorithm(CRC32).formatter(BinaryUtils::toHex).build()
+        );
         SdkHttpRequest expectedRequest = request
-            .putHeader("sha256", "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae")
+            .putHeader("sha256", "LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564=")
             .putHeader("crc32", "8c736521")
             .build();
 
         checksummer.checksum(payloadAsync, request);
 
-        assertEquals(expectedRequest.toString(), request.build().toString());
+        assertEquals(expectedRequest.headers(), request.build().headers());
     }
 }
