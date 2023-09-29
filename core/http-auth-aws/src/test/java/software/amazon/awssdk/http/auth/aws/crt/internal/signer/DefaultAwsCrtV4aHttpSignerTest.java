@@ -29,6 +29,7 @@ import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignin
 import static software.amazon.awssdk.http.auth.aws.TestUtils.AnonymousCredentialsIdentity;
 import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.readAll;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.AuthLocation;
@@ -222,8 +223,11 @@ public class DefaultAwsCrtV4aHttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
                                .hasValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("353");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+
+        // Ensures that CRT runs correctly and without throwing an exception
+        readAll(signedRequest.payload().get().newStream());
     }
 
     @Test
@@ -241,9 +245,12 @@ public class DefaultAwsCrtV4aHttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
                                .hasValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("554");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
+
+        // Ensures that CRT runs correctly and without throwing an exception
+        readAll(signedRequest.payload().get().newStream());
     }
 
     @Test
@@ -262,9 +269,12 @@ public class DefaultAwsCrtV4aHttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
                                .hasValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("62");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
+
+        // Ensures that CRT runs correctly and without throwing an exception
+        readAll(signedRequest.payload().get().newStream());
     }
 
     @Test
