@@ -32,16 +32,16 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryServiceClientConfiguration;
+import software.amazon.awssdk.services.protocolquery.model.AllTypesRequest;
 import software.amazon.awssdk.utils.Validate;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SraIdentityResolutionUsingPluginsTest {
+public class SraIdentityResolutionUsingRequestPluginsTest {
 
     @Mock
     private AwsCredentialsProvider credentialsProvider;
@@ -58,14 +58,15 @@ public class SraIdentityResolutionUsingPluginsTest {
         ProtocolQueryClient syncClient = ProtocolQueryClient
             .builder()
             .httpClient(mockClient)
-            .addPlugin(new TestPlugin(credentialsProvider))
-            // Below is necessary to create the test case where, addCredentialsToExecutionAttributes was getting called before
-            .overrideConfiguration(ClientOverrideConfiguration.builder().build())
             .build();
 
-        assertThatThrownBy(() -> syncClient.allTypes(r -> {})).hasMessageContaining("boom");
-        verify(credentialsProvider, times(3)).identityType();
+        AllTypesRequest request = AllTypesRequest.builder()
+                                                 .overrideConfiguration(c -> c.addPlugin(new TestPlugin(credentialsProvider)))
+                                                 .build();
+        assertThatThrownBy(() -> syncClient.allTypes(request))
+            .hasMessageContaining("boom");
 
+        verify(credentialsProvider, times(2)).identityType();
         // This asserts that the identity used is the one from resolveIdentity() called by SRA AuthSchemeInterceptor and not
         // from another call like from AwsCredentialsAuthorizationStrategy.addCredentialsToExecutionAttributes, asserted by
         // combination of times(1) and verifyNoMoreInteractions.

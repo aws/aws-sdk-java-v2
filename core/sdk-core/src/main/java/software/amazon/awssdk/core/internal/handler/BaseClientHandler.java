@@ -192,6 +192,15 @@ public abstract class BaseClientHandler {
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(
         ClientExecutionParams<InputT, OutputT> params) {
+        SdkClientConfiguration clientConfiguration = resolveRequestConfiguration(params);
+        return invokeInterceptorsAndCreateExecutionContext(params, clientConfiguration);
+    }
+
+    // This method is only called from tests, since the subclasses in aws-core override it.
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
+        invokeInterceptorsAndCreateExecutionContext(
+        ClientExecutionParams<InputT, OutputT> params,
+        SdkClientConfiguration clientConfiguration) {
         SdkRequest originalRequest = params.getInput();
 
         ExecutionAttributes executionAttributes = params.executionAttributes();
@@ -245,6 +254,14 @@ public abstract class BaseClientHandler {
         if (!"https".equals(endpoint.getScheme())) {
             throw SdkClientException.create("Cannot use bearer token signer with a plaintext HTTP endpoint: " + endpoint);
         }
+    }
+
+    protected SdkClientConfiguration resolveRequestConfiguration(ClientExecutionParams<?, ?> params) {
+        SdkClientConfiguration config =  params.requestConfiguration();
+        if (config != null) {
+            return config;
+        }
+        return clientConfiguration;
     }
 
     /**

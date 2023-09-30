@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.query;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -11,8 +12,13 @@ import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -31,6 +37,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
+import software.amazon.awssdk.services.query.internal.QueryServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
@@ -91,11 +98,24 @@ final class DefaultQueryClient implements QueryClient {
 
     private final QueryServiceClientConfiguration serviceClientConfiguration;
 
+    private final BiFunction<SdkRequest, SdkClientConfiguration, SdkClientConfiguration> clientConfigurationForRequest;
+
     protected DefaultQueryClient(QueryServiceClientConfiguration serviceClientConfiguration,
-                                 SdkClientConfiguration clientConfiguration) {
+            SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
+        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
+            QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
+        this.clientConfigurationForRequest = (request, config) -> {
+            List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins())
+                    .orElse(Collections.emptyList());
+            return SdkClientConfigurationUtil.invokePlugins(config, plugins, configurationUpdater);
+        };
         this.protocolFactory = init();
     }
 
@@ -121,16 +141,18 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-                                                                                                     AwsServiceException, SdkClientException, QueryException {
+            AwsServiceException, SdkClientException, QueryException {
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
-            .createResponseHandler(APostOperationResponse::builder);
+                .createResponseHandler(APostOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(aPostOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
@@ -138,10 +160,11 @@ final class DefaultQueryClient implements QueryClient {
             String resolvedHostExpression = "foo-";
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withOperationName("APostOperation").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
-                                             .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                    .withOperationName("APostOperation").withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
+                    .withRequestConfiguration(clientConfiguration).withInput(aPostOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -169,27 +192,29 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public APostOperationWithOutputResponse aPostOperationWithOutput(
-        APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, AwsServiceException,
-                                                                                SdkClientException, QueryException {
+            APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, AwsServiceException,
+            SdkClientException, QueryException {
 
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory
-            .createResponseHandler(APostOperationWithOutputResponse::builder);
+                .createResponseHandler(APostOperationWithOutputResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(aPostOperationWithOutputRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
 
             return clientHandler
-                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationWithOutputRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                            .withOperationName("APostOperationWithOutput").withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(aPostOperationWithOutputRequest).withMetricCollector(apiCallMetricCollector)
+                            .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -213,26 +238,29 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
-        throws AwsServiceException, SdkClientException, QueryException {
+            throws AwsServiceException, SdkClientException, QueryException {
         bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
 
         HttpResponseHandler<BearerAuthOperationResponse> responseHandler = protocolFactory
-            .createResponseHandler(BearerAuthOperationResponse::builder);
+                .createResponseHandler(BearerAuthOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(bearerAuthOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
 
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                                             .withOperationName("BearerAuthOperation").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).credentialType(CredentialType.TOKEN)
-                                             .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
+                    .withOperationName("BearerAuthOperation").withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).credentialType(CredentialType.TOKEN)
+                    .withRequestConfiguration(clientConfiguration).withInput(bearerAuthOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -256,34 +284,37 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public GetOperationWithChecksumResponse getOperationWithChecksum(
-        GetOperationWithChecksumRequest getOperationWithChecksumRequest) throws AwsServiceException, SdkClientException,
-                                                                                QueryException {
+            GetOperationWithChecksumRequest getOperationWithChecksumRequest) throws AwsServiceException, SdkClientException,
+            QueryException {
 
         HttpResponseHandler<GetOperationWithChecksumResponse> responseHandler = protocolFactory
-            .createResponseHandler(GetOperationWithChecksumResponse::builder);
+                .createResponseHandler(GetOperationWithChecksumResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(getOperationWithChecksumRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetOperationWithChecksum");
 
             return clientHandler
-                .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
-                             .withOperationName("GetOperationWithChecksum")
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withInput(getOperationWithChecksumRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(
-                                 SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                 HttpChecksum.builder().requestChecksumRequired(true)
-                                             .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
-                                             .isRequestStreaming(false).build())
-                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
+                            .withOperationName("GetOperationWithChecksum")
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(getOperationWithChecksumRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(
+                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                    HttpChecksum.builder().requestChecksumRequired(true)
+                                            .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
+                                            .isRequestStreaming(false).build())
+                            .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -307,31 +338,34 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public OperationWithChecksumRequiredResponse operationWithChecksumRequired(
-        OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
-                                                                                          SdkClientException, QueryException {
+            OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
+            SdkClientException, QueryException {
 
         HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory
-            .createResponseHandler(OperationWithChecksumRequiredResponse::builder);
+                .createResponseHandler(OperationWithChecksumRequiredResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                operationWithChecksumRequiredRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
+                operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithChecksumRequired");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
-                             .withOperationName("OperationWithChecksumRequired")
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withInput(operationWithChecksumRequiredRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
-                                                    HttpChecksumRequired.create())
-                             .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
+                            .withOperationName("OperationWithChecksumRequired")
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(operationWithChecksumRequiredRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
+                                    HttpChecksumRequired.create())
+                            .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -355,27 +389,29 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public OperationWithContextParamResponse operationWithContextParam(
-        OperationWithContextParamRequest operationWithContextParamRequest) throws AwsServiceException, SdkClientException,
-                                                                                  QueryException {
+            OperationWithContextParamRequest operationWithContextParamRequest) throws AwsServiceException, SdkClientException,
+            QueryException {
 
         HttpResponseHandler<OperationWithContextParamResponse> responseHandler = protocolFactory
-            .createResponseHandler(OperationWithContextParamResponse::builder);
+                .createResponseHandler(OperationWithContextParamResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(operationWithContextParamRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithContextParamRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithContextParam");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OperationWithContextParamRequest, OperationWithContextParamResponse>()
-                             .withOperationName("OperationWithContextParam").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withInput(operationWithContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OperationWithContextParamRequest, OperationWithContextParamResponse>()
+                            .withOperationName("OperationWithContextParam").withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(operationWithContextParamRequest).withMetricCollector(apiCallMetricCollector)
+                            .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -399,28 +435,30 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public OperationWithNoneAuthTypeResponse operationWithNoneAuthType(
-        OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) throws AwsServiceException, SdkClientException,
-                                                                                  QueryException {
+            OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) throws AwsServiceException, SdkClientException,
+            QueryException {
 
         HttpResponseHandler<OperationWithNoneAuthTypeResponse> responseHandler = protocolFactory
-            .createResponseHandler(OperationWithNoneAuthTypeResponse::builder);
+                .createResponseHandler(OperationWithNoneAuthTypeResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(operationWithNoneAuthTypeRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithNoneAuthType");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withInput(operationWithNoneAuthTypeRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
-                             .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
+                            .withOperationName("OperationWithNoneAuthType").withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(operationWithNoneAuthTypeRequest).withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
+                            .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -444,31 +482,34 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public OperationWithRequestCompressionResponse operationWithRequestCompression(
-        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
-                                                                                              SdkClientException, QueryException {
+            OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
+            SdkClientException, QueryException {
 
         HttpResponseHandler<OperationWithRequestCompressionResponse> responseHandler = protocolFactory
-            .createResponseHandler(OperationWithRequestCompressionResponse::builder);
+                .createResponseHandler(OperationWithRequestCompressionResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                operationWithRequestCompressionRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
+                operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithRequestCompression");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
-                             .withOperationName("OperationWithRequestCompression")
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withInput(operationWithRequestCompressionRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
-                                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
-                             .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
+                            .withOperationName("OperationWithRequestCompression")
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(operationWithRequestCompressionRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
+                            .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -492,27 +533,29 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public OperationWithStaticContextParamsResponse operationWithStaticContextParams(
-        OperationWithStaticContextParamsRequest operationWithStaticContextParamsRequest) throws AwsServiceException,
-                                                                                                SdkClientException, QueryException {
+            OperationWithStaticContextParamsRequest operationWithStaticContextParamsRequest) throws AwsServiceException,
+            SdkClientException, QueryException {
 
         HttpResponseHandler<OperationWithStaticContextParamsResponse> responseHandler = protocolFactory
-            .createResponseHandler(OperationWithStaticContextParamsResponse::builder);
+                .createResponseHandler(OperationWithStaticContextParamsResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                operationWithStaticContextParamsRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithStaticContextParamsRequest.overrideConfiguration().orElse(null));
+                operationWithStaticContextParamsRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithStaticContextParams");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
-                             .withOperationName("OperationWithStaticContextParams").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withInput(operationWithStaticContextParamsRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
+                            .withOperationName("OperationWithStaticContextParams").withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(operationWithStaticContextParamsRequest).withMetricCollector(apiCallMetricCollector)
+                            .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -526,11 +569,11 @@ final class DefaultQueryClient implements QueryClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows '
      *        <p>
@@ -562,39 +605,42 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public <ReturnT> ReturnT putOperationWithChecksum(PutOperationWithChecksumRequest putOperationWithChecksumRequest,
-                                                      RequestBody requestBody, ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer)
-        throws AwsServiceException, SdkClientException, QueryException {
+            RequestBody requestBody, ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer)
+            throws AwsServiceException, SdkClientException, QueryException {
 
         HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory
-            .createResponseHandler(PutOperationWithChecksumResponse::builder);
+                .createResponseHandler(PutOperationWithChecksumResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(putOperationWithChecksumRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PutOperationWithChecksum");
 
             return clientHandler
-                .execute(new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
-                             .withOperationName("PutOperationWithChecksum")
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withInput(putOperationWithChecksumRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(
-                                 SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                 HttpChecksum.builder().requestChecksumRequired(false)
-                                             .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
-                                             .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
-                                             .build())
-                             .withRequestBody(requestBody)
-                             .withMarshaller(
-                                 StreamingRequestMarshaller.builder()
-                                                           .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
-                                                           .requestBody(requestBody).build()));
+                    .execute(new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
+                            .withOperationName("PutOperationWithChecksum")
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(putOperationWithChecksumRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(
+                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                    HttpChecksum.builder().requestChecksumRequired(false)
+                                            .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
+                                            .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
+                                            .build())
+                            .withRequestBody(requestBody)
+                            .withMarshaller(
+                                    StreamingRequestMarshaller.builder()
+                                            .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
+                                            .requestBody(requestBody).build()));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -608,11 +654,11 @@ final class DefaultQueryClient implements QueryClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.
@@ -629,32 +675,35 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public StreamingInputOperationResponse streamingInputOperation(StreamingInputOperationRequest streamingInputOperationRequest,
-                                                                   RequestBody requestBody) throws AwsServiceException, SdkClientException, QueryException {
+            RequestBody requestBody) throws AwsServiceException, SdkClientException, QueryException {
 
         HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory
-            .createResponseHandler(StreamingInputOperationResponse::builder);
+                .createResponseHandler(StreamingInputOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(streamingInputOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
 
             return clientHandler
-                .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                             .withOperationName("StreamingInputOperation")
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withInput(streamingInputOperationRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withRequestBody(requestBody)
-                             .withMarshaller(
-                                 StreamingRequestMarshaller.builder()
-                                                           .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                                           .requestBody(requestBody).build()));
+                    .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                            .withOperationName("StreamingInputOperation")
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(streamingInputOperationRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withRequestBody(requestBody)
+                            .withMarshaller(
+                                    StreamingRequestMarshaller.builder()
+                                            .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                            .requestBody(requestBody).build()));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -685,27 +734,29 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-                                                      ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
-                                                                                                                                                 SdkClientException, QueryException {
+            ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
+            SdkClientException, QueryException {
 
         HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory
-            .createResponseHandler(StreamingOutputOperationResponse::builder);
+                .createResponseHandler(StreamingOutputOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(streamingOutputOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
 
             return clientHandler.execute(
-                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation").withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler).withInput(streamingOutputOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
+                    new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                            .withOperationName("StreamingOutputOperation").withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(streamingOutputOperationRequest).withMetricCollector(apiCallMetricCollector)
+                            .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -730,8 +781,8 @@ final class DefaultQueryClient implements QueryClient {
         }
         Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
         AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+                .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
@@ -741,7 +792,7 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -757,11 +808,11 @@ final class DefaultQueryClient implements QueryClient {
 
     private AwsQueryProtocolFactory init() {
         return AwsQueryProtocolFactory
-            .builder()
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("InvalidInput")
-                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
-            .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
+                .builder()
+                .registerModeledException(
+                        ExceptionMetadata.builder().errorCode("InvalidInput")
+                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+                .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
     }
 
     @Override

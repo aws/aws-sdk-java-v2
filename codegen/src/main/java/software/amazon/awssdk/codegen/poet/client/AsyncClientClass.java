@@ -25,6 +25,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addConfigurationUpdater;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.reactivestreams.Publisher;
@@ -70,7 +72,9 @@ import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -96,6 +100,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
+    private final ServiceClientConfigurationUtils configurationUtils;
     private final boolean useSraAuth;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
@@ -106,6 +111,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
         this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
+        this.configurationUtils = new ServiceClientConfigurationUtils(model);
     }
 
     @Override
@@ -140,7 +146,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addField(AsyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
+            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL)
+            .addField(ParameterizedTypeName.get(BiFunction.class, SdkRequest.class,
+                                                SdkClientConfiguration.class, SdkClientConfiguration.class),
+                      "clientConfigurationForRequest", PRIVATE, FINAL);
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
@@ -210,6 +219,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
                         .addStatement("this.clientConfiguration = clientConfiguration")
                         .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
+        builder.addCode(addConfigurationUpdater(configurationUtils.serviceClientConfigurationBuilderClassName()));
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -294,7 +304,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         builder.addModifiers(PUBLIC)
                .addAnnotation(Override.class);
-
+        builder.addStatement("$T clientConfiguration = this.clientConfigurationForRequest.apply($L, this.clientConfiguration)",
+                            SdkClientConfiguration.class, opModel.getInput().getVariableName());
         builder.addStatement("$T<$T> metricPublishers = "
                              + "resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
                              List.class,

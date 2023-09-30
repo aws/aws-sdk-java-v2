@@ -24,9 +24,11 @@ import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3A
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -52,9 +55,15 @@ import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
@@ -73,6 +82,7 @@ public class SyncClientClass extends SyncClientInterface {
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
+    private final ServiceClientConfigurationUtils configurationUtils;
     private final boolean useSraAuth;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
@@ -82,6 +92,7 @@ public class SyncClientClass extends SyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
+        this.configurationUtils = new ServiceClientConfigurationUtils(model);
         this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
@@ -113,7 +124,10 @@ public class SyncClientClass extends SyncClientInterface {
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
+            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL)
+            .addField(ParameterizedTypeName.get(BiFunction.class, SdkRequest.class,
+                                                SdkClientConfiguration.class, SdkClientConfiguration.class),
+                      "clientConfigurationForRequest", PRIVATE, FINAL);
     }
 
     @Override
@@ -176,6 +190,8 @@ public class SyncClientClass extends SyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
                         .addStatement("this.clientConfiguration = clientConfiguration")
                         .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
+
+        builder.addCode(addConfigurationUpdater(configurationUtils.serviceClientConfigurationBuilderClassName()));
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -204,6 +220,26 @@ public class SyncClientClass extends SyncClientInterface {
             builder.endControlFlow();
         }
 
+        return builder.build();
+    }
+
+    static  CodeBlock addConfigurationUpdater(TypeName serviceClientConfigurationBuilderClassName) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("$T configurationUpdater = ",
+                    ParameterizedTypeName.get(ConfigurationUpdater.class, SdkServiceClientConfiguration.Builder.class));
+        builder.add("(consumer, configBuilder) -> {\n$>")
+               .addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(configBuilder)",
+                             serviceClientConfigurationBuilderClassName)
+               .addStatement("consumer.accept(serviceConfigBuilder)")
+               .addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()")
+               .add("$<};\n");
+        builder.add("this.clientConfigurationForRequest = (request, config) -> {\n$>");
+        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
+                    + ".map(c -> c.registeredPlugins()).orElse(Collections.emptyList())",
+                    ParameterizedTypeName.get(List.class, SdkPlugin.class));
+        builder.addStatement("return $T.invokePlugins(config, plugins, configurationUpdater)", SdkClientConfigurationUtil.class);
+
+        builder.add("$<};\n");
         return builder.build();
     }
 
@@ -289,6 +325,8 @@ public class SyncClientClass extends SyncClientInterface {
             method.endControlFlow();
         }
 
+        method.addStatement("$T clientConfiguration = this.clientConfigurationForRequest.apply($L, this.clientConfiguration)",
+                            SdkClientConfiguration.class, opModel.getInput().getVariableName());
         method.addStatement("$T<$T> metricPublishers = "
                             + "resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
                             List.class,

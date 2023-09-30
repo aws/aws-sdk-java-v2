@@ -2,13 +2,19 @@ package software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -21,6 +27,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.internal.ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.OneOperationRequest;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.OneOperationResponse;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.ProtocolRestJsonWithCustomContentTypeException;
@@ -45,12 +52,25 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
     private final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration;
 
+    private final BiFunction<SdkRequest, SdkClientConfiguration, SdkClientConfiguration> clientConfigurationForRequest;
+
     protected DefaultProtocolRestJsonWithCustomContentTypeClient(
-        ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration,
-        SdkClientConfiguration clientConfiguration) {
+            ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration,
+            SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
+        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
+            ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
+        this.clientConfigurationForRequest = (request, config) -> {
+            List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins())
+                    .orElse(Collections.emptyList());
+            return SdkClientConfigurationUtil.invokePlugins(config, plugins, configurationUpdater);
+        };
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -72,28 +92,30 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
      */
     @Override
     public OneOperationResponse oneOperation(OneOperationRequest oneOperationRequest) throws AwsServiceException,
-                                                                                             SdkClientException, ProtocolRestJsonWithCustomContentTypeException {
+            SdkClientException, ProtocolRestJsonWithCustomContentTypeException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                          OneOperationResponse::builder);
+                OneOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(oneOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, oneOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AmazonProtocolRestJsonWithCustomContentType");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OneOperation");
 
             return clientHandler.execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                                             .withOperationName("OneOperation").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).withInput(oneOperationRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
+                    .withOperationName("OneOperation").withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                    .withInput(oneOperationRequest).withMetricCollector(apiCallMetricCollector)
+                    .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -105,7 +127,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -120,14 +142,14 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
+            JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration)
-                      .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomContentTypeException::builder)
-                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1").contentType("application/json");
+                .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomContentTypeException::builder)
+                .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1").contentType("application/json");
     }
 
     @Override

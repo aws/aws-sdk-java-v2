@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.BiFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
@@ -14,11 +15,16 @@ import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -33,6 +39,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
+import software.amazon.awssdk.services.query.internal.QueryServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
@@ -93,13 +100,26 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final QueryServiceClientConfiguration serviceClientConfiguration;
 
+    private final BiFunction<SdkRequest, SdkClientConfiguration, SdkClientConfiguration> clientConfigurationForRequest;
+
     private final ScheduledExecutorService executorService;
 
     protected DefaultQueryAsyncClient(QueryServiceClientConfiguration serviceClientConfiguration,
-                                      SdkClientConfiguration clientConfiguration) {
+            SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
+        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
+            QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
+        this.clientConfigurationForRequest = (request, config) -> {
+            List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins())
+                    .orElse(Collections.emptyList());
+            return SdkClientConfigurationUtil.invokePlugins(config, plugins, configurationUpdater);
+        };
         this.protocolFactory = init();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
@@ -129,28 +149,30 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(aPostOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
-                .createResponseHandler(APostOperationResponse::builder);
+                    .createResponseHandler(APostOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
             String hostPrefix = "foo-";
             String resolvedHostExpression = "foo-";
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                             .withOperationName("APostOperation")
-                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
-                             .withInput(aPostOperationRequest));
+                    .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
+                            .withOperationName("APostOperation")
+                            .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                            .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
             CompletableFuture<APostOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -187,26 +209,29 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-        APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+            APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(aPostOperationWithOutputRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
 
             HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory
-                .createResponseHandler(APostOperationWithOutputResponse::builder);
+                    .createResponseHandler(APostOperationWithOutputResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput")
-                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest));
+                    .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                            .withOperationName("APostOperationWithOutput")
+                            .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                            .withInput(aPostOperationWithOutputRequest));
             CompletableFuture<APostOperationWithOutputResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -239,27 +264,29 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
-        BearerAuthOperationRequest bearerAuthOperationRequest) {
+            BearerAuthOperationRequest bearerAuthOperationRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(bearerAuthOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
 
             HttpResponseHandler<BearerAuthOperationResponse> responseHandler = protocolFactory
-                .createResponseHandler(BearerAuthOperationResponse::builder);
+                    .createResponseHandler(BearerAuthOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<BearerAuthOperationResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                             .withOperationName("BearerAuthOperation")
-                             .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .credentialType(CredentialType.TOKEN).withMetricCollector(apiCallMetricCollector)
-                             .withInput(bearerAuthOperationRequest));
+                    .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
+                            .withOperationName("BearerAuthOperation")
+                            .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
+                            .withMetricCollector(apiCallMetricCollector).withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -292,32 +319,35 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<GetOperationWithChecksumResponse> getOperationWithChecksum(
-        GetOperationWithChecksumRequest getOperationWithChecksumRequest) {
+            GetOperationWithChecksumRequest getOperationWithChecksumRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(getOperationWithChecksumRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetOperationWithChecksum");
 
             HttpResponseHandler<GetOperationWithChecksumResponse> responseHandler = protocolFactory
-                .createResponseHandler(GetOperationWithChecksumResponse::builder);
+                    .createResponseHandler(GetOperationWithChecksumResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<GetOperationWithChecksumResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
-                             .withOperationName("GetOperationWithChecksum")
-                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(
-                                 SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                 HttpChecksum.builder().requestChecksumRequired(true)
-                                             .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
-                                             .isRequestStreaming(false).build()).withInput(getOperationWithChecksumRequest));
+                    .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
+                            .withOperationName("GetOperationWithChecksum")
+                            .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(
+                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                    HttpChecksum.builder().requestChecksumRequired(true)
+                                            .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
+                                            .isRequestStreaming(false).build()).withInput(getOperationWithChecksumRequest));
             CompletableFuture<GetOperationWithChecksumResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -351,29 +381,32 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
-        OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
+            OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                operationWithChecksumRequiredRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
+                operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithChecksumRequired");
 
             HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory
-                .createResponseHandler(OperationWithChecksumRequiredResponse::builder);
+                    .createResponseHandler(OperationWithChecksumRequiredResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<OperationWithChecksumRequiredResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
-                             .withOperationName("OperationWithChecksumRequired")
-                             .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
-                                                    HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
+                    .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
+                            .withOperationName("OperationWithChecksumRequired")
+                            .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
+                                    HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -406,26 +439,29 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<OperationWithContextParamResponse> operationWithContextParam(
-        OperationWithContextParamRequest operationWithContextParamRequest) {
+            OperationWithContextParamRequest operationWithContextParamRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(operationWithContextParamRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithContextParamRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithContextParam");
 
             HttpResponseHandler<OperationWithContextParamResponse> responseHandler = protocolFactory
-                .createResponseHandler(OperationWithContextParamResponse::builder);
+                    .createResponseHandler(OperationWithContextParamResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<OperationWithContextParamResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<OperationWithContextParamRequest, OperationWithContextParamResponse>()
-                             .withOperationName("OperationWithContextParam")
-                             .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(operationWithContextParamRequest));
+                    .execute(new ClientExecutionParams<OperationWithContextParamRequest, OperationWithContextParamResponse>()
+                            .withOperationName("OperationWithContextParam")
+                            .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                            .withInput(operationWithContextParamRequest));
             CompletableFuture<OperationWithContextParamResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -458,27 +494,29 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<OperationWithNoneAuthTypeResponse> operationWithNoneAuthType(
-        OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) {
+            OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(operationWithNoneAuthTypeRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithNoneAuthType");
 
             HttpResponseHandler<OperationWithNoneAuthTypeResponse> responseHandler = protocolFactory
-                .createResponseHandler(OperationWithNoneAuthTypeResponse::builder);
+                    .createResponseHandler(OperationWithNoneAuthTypeResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType")
-                             .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withInput(operationWithNoneAuthTypeRequest));
+                    .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
+                            .withOperationName("OperationWithNoneAuthType")
+                            .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                            .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -512,30 +550,33 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<OperationWithRequestCompressionResponse> operationWithRequestCompression(
-        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) {
+            OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                operationWithRequestCompressionRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
+                operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithRequestCompression");
 
             HttpResponseHandler<OperationWithRequestCompressionResponse> responseHandler = protocolFactory
-                .createResponseHandler(OperationWithRequestCompressionResponse::builder);
+                    .createResponseHandler(OperationWithRequestCompressionResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<OperationWithRequestCompressionResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
-                             .withOperationName("OperationWithRequestCompression")
-                             .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
-                                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
-                             .withInput(operationWithRequestCompressionRequest));
+                    .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
+                            .withOperationName("OperationWithRequestCompression")
+                            .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
+                            .withInput(operationWithRequestCompressionRequest));
             CompletableFuture<OperationWithRequestCompressionResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -569,26 +610,29 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<OperationWithStaticContextParamsResponse> operationWithStaticContextParams(
-        OperationWithStaticContextParamsRequest operationWithStaticContextParamsRequest) {
+            OperationWithStaticContextParamsRequest operationWithStaticContextParamsRequest) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                operationWithStaticContextParamsRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithStaticContextParamsRequest.overrideConfiguration().orElse(null));
+                operationWithStaticContextParamsRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithStaticContextParams");
 
             HttpResponseHandler<OperationWithStaticContextParamsResponse> responseHandler = protocolFactory
-                .createResponseHandler(OperationWithStaticContextParamsResponse::builder);
+                    .createResponseHandler(OperationWithStaticContextParamsResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<OperationWithStaticContextParamsResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
-                             .withOperationName("OperationWithStaticContextParams")
-                             .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(operationWithStaticContextParamsRequest));
+                    .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
+                            .withOperationName("OperationWithStaticContextParams")
+                            .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                            .withInput(operationWithStaticContextParamsRequest));
             CompletableFuture<OperationWithStaticContextParamsResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -639,48 +683,51 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
-        PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
-        AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
+            PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
+            AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(putOperationWithChecksumRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PutOperationWithChecksum");
             Pair<AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT>, CompletableFuture<Void>> pair = AsyncResponseTransformerUtils
-                .wrapWithEndOfStreamFuture(asyncResponseTransformer);
+                    .wrapWithEndOfStreamFuture(asyncResponseTransformer);
             asyncResponseTransformer = pair.left();
             CompletableFuture<Void> endOfStreamFuture = pair.right();
 
             HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory
-                .createResponseHandler(PutOperationWithChecksumResponse::builder);
+                    .createResponseHandler(PutOperationWithChecksumResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
-                new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
-                    .withOperationName("PutOperationWithChecksum")
-                    .withMarshaller(
-                        AsyncStreamingRequestMarshaller.builder()
-                                                       .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
-                                                       .asyncRequestBody(requestBody).build())
-                    .withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .putExecutionAttribute(
-                        SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                        HttpChecksum.builder().requestChecksumRequired(false)
-                                    .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
-                                    .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
-                                    .build()).withAsyncRequestBody(requestBody)
-                    .withInput(putOperationWithChecksumRequest), asyncResponseTransformer);
+                    new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
+                            .withOperationName("PutOperationWithChecksum")
+                            .withMarshaller(
+                                    AsyncStreamingRequestMarshaller.builder()
+                                            .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
+                                            .asyncRequestBody(requestBody).build())
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .putExecutionAttribute(
+                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                    HttpChecksum.builder().requestChecksumRequired(false)
+                                            .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
+                                            .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
+                                            .build()).withAsyncRequestBody(requestBody)
+                            .withInput(putOperationWithChecksumRequest), asyncResponseTransformer);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
             AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                                   () -> finalAsyncResponseTransformer.exceptionOccurred(e));
+                            () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
                 endOfStreamFuture.whenComplete((r2, e2) -> {
                     metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -690,7 +737,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         } catch (Throwable t) {
             AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
+                    () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -722,29 +769,32 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-        StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(streamingInputOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
 
             HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory
-                .createResponseHandler(StreamingInputOperationResponse::builder);
+                    .createResponseHandler(StreamingInputOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                             .withOperationName("StreamingInputOperation")
-                             .withMarshaller(
-                                 AsyncStreamingRequestMarshaller.builder()
-                                                                .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                                                .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
-                             .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
+                    .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                            .withOperationName("StreamingInputOperation")
+                            .withMarshaller(
+                                    AsyncStreamingRequestMarshaller.builder()
+                                            .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                            .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withMetricCollector(apiCallMetricCollector).withAsyncRequestBody(requestBody)
+                            .withInput(streamingInputOperationRequest));
             CompletableFuture<StreamingInputOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -782,38 +832,40 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
-        StreamingOutputOperationRequest streamingOutputOperationRequest,
-        AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+            StreamingOutputOperationRequest streamingOutputOperationRequest,
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(streamingOutputOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
             Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair = AsyncResponseTransformerUtils
-                .wrapWithEndOfStreamFuture(asyncResponseTransformer);
+                    .wrapWithEndOfStreamFuture(asyncResponseTransformer);
             asyncResponseTransformer = pair.left();
             CompletableFuture<Void> endOfStreamFuture = pair.right();
 
             HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory
-                .createResponseHandler(StreamingOutputOperationResponse::builder);
+                    .createResponseHandler(StreamingOutputOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
-                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation")
-                    .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
-                asyncResponseTransformer);
+                    new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                            .withOperationName("StreamingOutputOperation")
+                            .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                            .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                                   () -> finalAsyncResponseTransformer.exceptionOccurred(e));
+                            () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
                 endOfStreamFuture.whenComplete((r2, e2) -> {
                     metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -823,7 +875,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         } catch (Throwable t) {
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> finalAsyncResponseTransformer.exceptionOccurred(t));
+                    () -> finalAsyncResponseTransformer.exceptionOccurred(t));
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -846,15 +898,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private AwsQueryProtocolFactory init() {
         return AwsQueryProtocolFactory
-            .builder()
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("InvalidInput")
-                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
-            .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
+                .builder()
+                .registerModeledException(
+                        ExceptionMetadata.builder().errorCode("InvalidInput")
+                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+                .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();

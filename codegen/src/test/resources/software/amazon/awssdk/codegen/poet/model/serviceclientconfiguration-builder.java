@@ -12,6 +12,7 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsServiceClientConfiguration;
 import software.amazon.awssdk.services.jsonprotocoltests.auth.scheme.JsonProtocolTestsAuthSchemeProvider;
@@ -39,6 +40,8 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
 
         private URI endpointOverride;
 
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
+
         private BuilderImpl() {
             this.internalBuilder = SdkClientConfiguration.builder();
         }
@@ -50,6 +53,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
             if (Boolean.TRUE.equals(internalBuilder.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
                 this.endpointOverride = internalBuilder.option(SdkClientOption.ENDPOINT);
             }
+            this.credentialsProvider = internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
         }
 
         /**
@@ -127,7 +131,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
         @Override
         public JsonProtocolTestsServiceClientConfiguration.Builder credentialsProvider(
                 IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-            internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, credentialsProvider);
+            this.credentialsProvider = credentialsProvider;
             return this;
         }
 
@@ -136,7 +140,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
          */
         @Override
         public IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
-            return internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
+            return credentialsProvider;
         }
 
         /**
@@ -175,6 +179,17 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
             if (endpointOverride != null) {
                 internalBuilder.option(SdkClientOption.ENDPOINT, endpointOverride);
                 internalBuilder.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
+            }
+            if (credentialsProvider != null
+                    && !credentialsProvider.equals(internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))) {
+                internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, credentialsProvider);
+                IdentityProviders identityProviders = internalBuilder.option(SdkClientOption.IDENTITY_PROVIDERS);
+                if (identityProviders == null) {
+                    identityProviders = IdentityProviders.builder().putIdentityProvider(credentialsProvider).build();
+                } else {
+                    identityProviders = identityProviders.toBuilder().putIdentityProvider(credentialsProvider).build();
+                }
+                internalBuilder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders);
             }
             return internalBuilder.build();
         }

@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -12,8 +13,13 @@ import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
+import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -35,6 +41,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -98,11 +105,24 @@ final class DefaultJsonClient implements JsonClient {
 
     private final JsonServiceClientConfiguration serviceClientConfiguration;
 
+    private final BiFunction<SdkRequest, SdkClientConfiguration, SdkClientConfiguration> clientConfigurationForRequest;
+
     protected DefaultJsonClient(JsonServiceClientConfiguration serviceClientConfiguration,
             SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
+        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
+            JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
+        this.clientConfigurationForRequest = (request, config) -> {
+            List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins())
+                    .orElse(Collections.emptyList());
+            return SdkClientConfigurationUtil.invokePlugins(config, plugins, configurationUpdater);
+        };
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -137,6 +157,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(aPostOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -152,7 +174,8 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                     .withOperationName("APostOperation").withResponseHandler(responseHandler)
                     .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
-                    .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
+                    .withRequestConfiguration(clientConfiguration).withInput(aPostOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -191,6 +214,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(aPostOperationWithOutputRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -202,8 +227,8 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler
                     .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
                             .withOperationName("APostOperationWithOutput").withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationWithOutputRequest)
-                            .withMetricCollector(apiCallMetricCollector)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(aPostOperationWithOutputRequest).withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -238,6 +263,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(bearerAuthOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -249,7 +276,8 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
                     .withOperationName("BearerAuthOperation").withResponseHandler(responseHandler)
                     .withErrorResponseHandler(errorResponseHandler).credentialType(CredentialType.TOKEN)
-                    .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
+                    .withRequestConfiguration(clientConfiguration).withInput(bearerAuthOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -284,6 +312,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(getOperationWithChecksumRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -297,6 +327,7 @@ final class DefaultJsonClient implements JsonClient {
                             .withOperationName("GetOperationWithChecksum")
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
                             .withInput(getOperationWithChecksumRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(
@@ -342,6 +373,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(getWithoutRequiredMembersRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getWithoutRequiredMembersRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -353,8 +386,8 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler
                     .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
                             .withOperationName("GetWithoutRequiredMembers").withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withInput(getWithoutRequiredMembersRequest)
-                            .withMetricCollector(apiCallMetricCollector)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(getWithoutRequiredMembersRequest).withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -389,6 +422,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                operationWithChecksumRequiredRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -402,6 +437,7 @@ final class DefaultJsonClient implements JsonClient {
                             .withOperationName("OperationWithChecksumRequired")
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
                             .withInput(operationWithChecksumRequiredRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
@@ -440,6 +476,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                operationWithRequestCompressionRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -453,6 +491,7 @@ final class DefaultJsonClient implements JsonClient {
                             .withOperationName("OperationWithRequestCompression")
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
                             .withInput(operationWithRequestCompressionRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
@@ -491,6 +530,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                paginatedOperationWithResultKeyRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 paginatedOperationWithResultKeyRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -502,8 +543,8 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler
                     .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
                             .withOperationName("PaginatedOperationWithResultKey").withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withInput(paginatedOperationWithResultKeyRequest)
-                            .withMetricCollector(apiCallMetricCollector)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(paginatedOperationWithResultKeyRequest).withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -538,6 +579,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                paginatedOperationWithoutResultKeyRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 paginatedOperationWithoutResultKeyRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -549,8 +592,8 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler
                     .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
                             .withOperationName("PaginatedOperationWithoutResultKey").withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withInput(paginatedOperationWithoutResultKeyRequest)
-                            .withMetricCollector(apiCallMetricCollector)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(paginatedOperationWithoutResultKeyRequest).withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -611,6 +654,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(putOperationWithChecksumRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -624,6 +669,7 @@ final class DefaultJsonClient implements JsonClient {
                             .withOperationName("PutOperationWithChecksum")
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
                             .withInput(putOperationWithChecksumRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(
@@ -680,6 +726,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(streamingInputOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -693,6 +741,7 @@ final class DefaultJsonClient implements JsonClient {
                             .withOperationName("StreamingInputOperation")
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
                             .withInput(streamingInputOperationRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             .withRequestBody(requestBody)
@@ -745,7 +794,7 @@ final class DefaultJsonClient implements JsonClient {
             ResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
             SdkClientException, JsonException {
         streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
-                                                                   Aws4UnsignedPayloadSigner.create());
+                Aws4UnsignedPayloadSigner.create());
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
                 .isPayloadJson(false).build();
 
@@ -754,6 +803,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
+                streamingInputOutputOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 streamingInputOutputOperationRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -767,6 +818,7 @@ final class DefaultJsonClient implements JsonClient {
                             .withOperationName("StreamingInputOutputOperation")
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
                             .withInput(streamingInputOutputOperationRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             .withRequestBody(requestBody)
@@ -816,6 +868,8 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
+        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(streamingOutputOperationRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -827,8 +881,8 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler.execute(
                     new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
                             .withOperationName("StreamingOutputOperation").withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler).withInput(streamingOutputOperationRequest)
-                            .withMetricCollector(apiCallMetricCollector)
+                            .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                            .withInput(streamingOutputOperationRequest).withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -849,8 +903,8 @@ final class DefaultJsonClient implements JsonClient {
         }
         Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
         AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+                .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 

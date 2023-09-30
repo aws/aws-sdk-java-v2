@@ -38,11 +38,8 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 @SdkProtectedApi
 public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implements AsyncClientHandler {
 
-    private final SdkClientConfiguration clientConfiguration;
-
     public AwsAsyncClientHandler(SdkClientConfiguration clientConfiguration) {
         super(clientConfiguration);
-        this.clientConfiguration = clientConfiguration;
         AwsClientOptionValidation.validateAsyncClientOptions(clientConfiguration);
     }
 
@@ -61,7 +58,8 @@ public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implement
 
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
-        invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams) {
+        invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
+                                                    SdkClientConfiguration clientConfiguration) {
         return AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration);
     }
 }
