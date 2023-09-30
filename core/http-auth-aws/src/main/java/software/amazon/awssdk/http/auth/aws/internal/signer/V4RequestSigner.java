@@ -109,8 +109,8 @@ public interface V4RequestSigner {
     }
 
     /**
-     * Retrieve an implementation of a V4RequestSigner, which signs the request and adds authentication through query parameters,
-     * which includes an expiration param, signalling how long a request signature is valid.
+     * Retrieve an implementation of a V4RequestSigner to handle the anonymous credentials case, where the request is not
+     * sigend at all.
      */
     static V4RequestSigner anonymous(V4Properties properties) {
         return requestBuilder ->
