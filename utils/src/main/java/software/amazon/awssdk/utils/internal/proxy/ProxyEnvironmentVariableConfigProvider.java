@@ -16,7 +16,6 @@
 package software.amazon.awssdk.utils.internal.proxy;
 
 import static software.amazon.awssdk.utils.http.SdkHttpUtils.parseNonProxyHostsEnvironmentVariable;
-import static software.amazon.awssdk.utils.http.SdkHttpUtils.parseNonProxyHostsProperty;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -28,10 +27,13 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.awssdk.utils.Validate;
 
 /**
- * The system properties related to http and https proxies
+ * An implementation of the {@link ProxyConfigProvider} interface that retrieves proxy configuration settings from environment
+ * variables. This class is responsible for extracting proxy host, port, username, and password settings from environment
+ * variables based on the specified proxy scheme (HTTP or HTTPS).
+ *
+ * @see ProxyConfigProvider
  */
 @SdkInternalApi
 public class ProxyEnvironmentVariableConfigProvider implements ProxyConfigProvider {
@@ -44,18 +46,18 @@ public class ProxyEnvironmentVariableConfigProvider implements ProxyConfigProvid
 
     public ProxyEnvironmentVariableConfigProvider(String scheme) {
         this.scheme = scheme == null ? "http" : scheme;
-        this.proxyUrl = silentlyGetURL().orElse(null);
+        this.proxyUrl = silentlyGetUrl().orElse(null);
     }
 
 
-    private Optional<URL> silentlyGetURL(){
-        String stringURL = Objects.equals(this.scheme, HTTPS) ? ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue().orElse(null)
-                                                           : ProxyEnvironmentSetting.HTTP_PROXY.getStringValue().orElse(null);
-        if(StringUtils.isNotBlank(stringURL)){
+    private Optional<URL> silentlyGetUrl() {
+        String stringUrl = Objects.equals(this.scheme, HTTPS) ? ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue().orElse(null)
+                                                              : ProxyEnvironmentSetting.HTTP_PROXY.getStringValue().orElse(null);
+        if (StringUtils.isNotBlank(stringUrl)) {
             try {
-                return Optional.of(new URL(stringURL));
+                return Optional.of(new URL(stringUrl));
             } catch (MalformedURLException e) {
-                log.error(()->"Malformed environment  url string " + stringURL, e);
+                log.error(() -> "Malformed environment  url string " + stringUrl, e);
             }
         }
         return Optional.empty();
@@ -92,6 +94,6 @@ public class ProxyEnvironmentVariableConfigProvider implements ProxyConfigProvid
 
     @Override
     public Set<String> nonProxyHosts() {
-        return parseNonProxyHostsEnvironmentVariable() ;
+        return parseNonProxyHostsEnvironmentVariable();
     }
 }

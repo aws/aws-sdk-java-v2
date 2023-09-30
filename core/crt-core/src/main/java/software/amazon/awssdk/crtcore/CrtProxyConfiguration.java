@@ -15,12 +15,9 @@
 
 package software.amazon.awssdk.crtcore;
 
-import static software.amazon.awssdk.utils.ProxyConfigProvider.getProxyConfig;
+import static software.amazon.awssdk.utils.ProxyConfigProvider.fromSystemEnvironmentSettings;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxySystemSetting;
@@ -46,8 +43,9 @@ public abstract class CrtProxyConfiguration {
         this.useEnvironmentVariableValues = builder.useEnvironmentVariableValues;
         this.scheme = builder.scheme;
 
-        ProxyConfigProvider proxyConfigProvider = getProxyConfig(builder.useSystemPropertyValues,
-                                                                 builder.useEnvironmentVariableValues ,builder.scheme);
+        ProxyConfigProvider proxyConfigProvider = fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
+                                                                                builder.useEnvironmentVariableValues ,
+                                                                                builder.scheme);
         this.host = builder.host != null || proxyConfigProvider == null ? builder.host : proxyConfigProvider.host();
         this.port = builder.port != 0 || proxyConfigProvider == null ? builder.port : proxyConfigProvider.port();
         this.username = ! StringUtils.isEmpty(builder.username) || proxyConfigProvider == null ? builder.username :
@@ -201,6 +199,15 @@ public abstract class CrtProxyConfiguration {
          */
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
+        /**
+         * The option whether to use environment variable values from {@link ProxySystemSetting} if any of the config options
+         * are missing. The value is set to "true" by default which means SDK will automatically use environment variable values
+         * if options are not provided during building the {@link CrtProxyConfiguration} object. To disable this behavior, set
+         * this value to false.
+         *
+         * @param useEnvironmentVariableValues The option whether to use environment variable values
+         * @return This object for method chaining.
+         */
         Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues);
 
 
@@ -276,8 +283,6 @@ public abstract class CrtProxyConfiguration {
             this.useEnvironmentVariableValues = useEnvironmentVariableValues;
             return (B) this;
         }
-
-
 
         public void setUseSystemPropertyValues(Boolean useSystemPropertyValues) {
             useSystemPropertyValues(useSystemPropertyValues);

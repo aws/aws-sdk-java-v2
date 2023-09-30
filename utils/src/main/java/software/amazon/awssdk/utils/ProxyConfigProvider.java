@@ -22,55 +22,104 @@ import software.amazon.awssdk.utils.internal.proxy.ProxyEnvironmentVariableConfi
 import software.amazon.awssdk.utils.internal.proxy.ProxySystemPropertyConfigProvider;
 
 
+/**
+ * Interface for providing proxy configuration settings. Implementations of this interface can retrieve proxy configuration
+ * from various sources such as system properties and environment variables.
+ **/
 @SdkProtectedApi
 public interface ProxyConfigProvider {
 
+    /**
+     * Constant representing the HTTPS scheme.
+     */
     String HTTPS = "https";
 
-    int port();
-
-    Optional<String> userName();
-
-    Optional<String> password();
-
-    String host();
 
 
-    Set<String> nonProxyHosts();
-
-    static ProxyConfigProvider fromSystemPropertySettings(String scheme){
+    /**
+     * Returns a new {@code ProxyConfigProvider} that retrieves proxy configuration from system properties.
+     *
+     * @param scheme The URI scheme for which the proxy configuration is needed (e.g., "http" or "https").
+     * @return A {@code ProxyConfigProvider} for system property-based proxy configuration.
+     */
+    static ProxyConfigProvider fromSystemPropertySettings(String scheme) {
         return new ProxySystemPropertyConfigProvider(scheme);
     }
 
-    static ProxyConfigProvider fromEnvironmentSettings(String scheme){
+
+    /**
+     * Returns a new {@code ProxyConfigProvider} that retrieves proxy configuration from environment variables.
+     *
+     * @param scheme The URI scheme for which the proxy configuration is needed (e.g., "http" or "https").
+     * @return A {@code ProxyConfigProvider} for environment variable-based proxy configuration.
+     */
+    static ProxyConfigProvider fromEnvironmentSettings(String scheme) {
         return new ProxyEnvironmentVariableConfigProvider(scheme);
     }
 
-
-    static ProxyConfigProvider getProxyConfig(
-        Boolean useSystemPropertyValues, Boolean useEnvironmentVariableValues
-        , String scheme) {
+    /**
+     * Returns a {@code ProxyConfigProvider} based on the specified settings for using system properties, environment
+     * variables, and the scheme.
+     *
+     * @param useSystemPropertyValues       A {@code Boolean} indicating whether to use system property values.
+     * @param useEnvironmentVariableValues  A {@code Boolean} indicating whether to use environment variable values.
+     * @param scheme                        The URI scheme for which the proxy configuration is needed (e.g., "http" or "https").
+     * @return A {@code ProxyConfigProvider} based on the specified settings.
+     */
+    static ProxyConfigProvider fromSystemEnvironmentSettings(Boolean useSystemPropertyValues,
+                                                             Boolean useEnvironmentVariableValues,
+                                                             String scheme) {
         ProxyConfigProvider resultProxyConfig = null;
-
         if (useSystemPropertyValues) {
             resultProxyConfig = fromSystemPropertySettings(scheme);
         } else if (useEnvironmentVariableValues) {
             return fromEnvironmentSettings(scheme);
         }
-        if (isDefaultProxyConfig(resultProxyConfig) && useEnvironmentVariableValues) {
+        boolean isProxyConfigurationNotSet = resultProxyConfig != null && resultProxyConfig.host() == null
+                                             && resultProxyConfig.port() == 0
+                                             && !resultProxyConfig.password().isPresent()
+                                             && !resultProxyConfig.userName().isPresent()
+                                             && CollectionUtils.isNullOrEmpty(resultProxyConfig.nonProxyHosts());
+
+        if (isProxyConfigurationNotSet && useEnvironmentVariableValues) {
             return fromEnvironmentSettings(scheme);
 
         }
         return resultProxyConfig;
     }
 
-    static boolean isDefaultProxyConfig(ProxyConfigProvider proxyConfig) {
-        return proxyConfig != null && proxyConfig.host() == null
-               && proxyConfig.port() == 0
-               && !proxyConfig.password().isPresent()
-               && !proxyConfig.userName().isPresent()
-               && CollectionUtils.isNullOrEmpty(proxyConfig.nonProxyHosts());
-    }
+    /**
+     * Gets the proxy port.
+     *
+     * @return The proxy port.
+     */
+    int port();
 
+    /**
+     * Gets the proxy username if available.
+     *
+     * @return An optional containing the proxy username, if available.
+     */
+    Optional<String> userName();
 
+    /**
+     * Gets the proxy password if available.
+     *
+     * @return An optional containing the proxy password, if available.
+     */
+    Optional<String> password();
+
+    /**
+     * Gets the proxy host.
+     *
+     * @return The proxy host.
+     */
+    String host();
+
+    /**
+     * Gets the set of non-proxy hosts.
+     *
+     * @return A set containing the non-proxy host names.
+     */
+    Set<String> nonProxyHosts();
 }

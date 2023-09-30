@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.stream.Stream;
@@ -33,58 +32,50 @@ public abstract class HttpProxyTestSuite {
 
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
-
     public static Stream<Arguments> proxyConfigurationSetting() {
         return ProxyConfigCommonTestData.proxyConfigurationSetting();
-
     }
 
     static void setSystemProperties(List<Pair<String, String>> settingsPairs, String protocol) {
-        settingsPairs.stream().filter(p -> StringUtils.isNotBlank(p.left())).forEach(settingsPair -> System.setProperty(String.format(settingsPair.left(),
-                                                                                                                                      protocol),
-                                                                                                                        settingsPair.right()));
+        settingsPairs.stream()
+                     .filter(p -> StringUtils.isNotBlank(p.left()))
+                     .forEach(settingsPair -> System.setProperty(String.format(settingsPair.left(), protocol),
+                                                                 settingsPair.right()));
     }
 
     static void setEnvironmentProperties(List<Pair<String, String>> settingsPairs, String protocol) {
-
-
         settingsPairs.forEach(settingsPair -> ENVIRONMENT_VARIABLE_HELPER.set(String.format(settingsPair.left(), protocol),
                                                                               settingsPair.right()));
     }
 
     @BeforeEach
     void setUp() {
-        Stream.of("http", "https").forEach(protocol ->
-                                               Stream.of("%s.proxyHost", "%s.proxyPort", "%s.nonProxyHosts", "%s.proxyUser",
-                                                         "%s.proxyPassword")
-                                                     .forEach(property -> System.clearProperty(String.format(property, protocol)))
-        );
+        Stream.of("http", "https")
+              .forEach(protocol -> Stream.of("%s.proxyHost", "%s.proxyPort",
+                                             "%s.nonProxyHosts", "%s.proxyUser", "%s.proxyPassword")
+                                         .forEach(property -> System.clearProperty(String.format(property, protocol))));
         ENVIRONMENT_VARIABLE_HELPER.reset();
     }
 
-    @ParameterizedTest(name = "{index} -{0}  useSystemProperty {4} useEnvironmentVariable {5}  userSetProxy {3} then expected "
-                              + "is {6}")
+    @ParameterizedTest(name =
+        "{index} -{0}  useSystemProperty {4} useEnvironmentVariable {5}  userSetProxy {3} then expected " + "is {6}")
     @MethodSource("proxyConfigurationSetting")
-    void given_LocalSetting_when_httpProtocol_then_correctProxyConfiguration(
-        String testCaseName,
-        List<Pair<String, String>> systemSettingsPair,
-        List<Pair<String, String>> envSystemSetting,
-        TestProxySetting userSetProxySettings,
-        Boolean useSystemProperty,
-        Boolean useEnvironmentVariable,
-        TestProxySetting expectedProxySettings) throws URISyntaxException {
+    void givenLocalSettingForHttpThenCorrectProxyConfig(String testCaseName,
+                                                        List<Pair<String, String>> systemSettingsPair,
+                                                        List<Pair<String, String>> envSystemSetting,
+                                                        TestProxySetting userSetProxySettings,
+                                                        Boolean useSystemProperty,
+                                                        Boolean useEnvironmentVariable,
+                                                        TestProxySetting expectedProxySettings) throws URISyntaxException {
         setSystemProperties(systemSettingsPair, "http");
         setEnvironmentProperties(envSystemSetting, "http");
-
         assertProxyConfiguration(userSetProxySettings, expectedProxySettings, useSystemProperty, useEnvironmentVariable, "http");
-
-
     }
 
     @ParameterizedTest(name = "{index} -{0}  useSystemProperty {4} useEnvironmentVariable {5}  userSetProxy {3} then expected "
                               + "is {6}")
     @MethodSource("proxyConfigurationSetting")
-    void given_LocalSetting_when_httpsProtocol_then_correctProxyConfiguration(
+    void givenLocalSettingForHttpsThenCorrectProxyConfig(
         String testCaseName,
         List<Pair<String, String>> systemSettingsPair,
         List<Pair<String, String>> envSystemSetting,
@@ -94,19 +85,13 @@ public abstract class HttpProxyTestSuite {
         TestProxySetting expectedProxySettings) throws URISyntaxException {
         setSystemProperties(systemSettingsPair, "https");
         setEnvironmentProperties(envSystemSetting, "https");
-
-        assertProxyConfiguration(userSetProxySettings, expectedProxySettings, useSystemProperty, useEnvironmentVariable, "https");
-
-
+        assertProxyConfiguration(userSetProxySettings, expectedProxySettings,
+                                 useSystemProperty, useEnvironmentVariable, "https");
     }
 
-
-
-    protected abstract void assertProxyConfiguration(TestProxySetting userSetProxySettings, TestProxySetting expectedProxySettings,
+    protected abstract void assertProxyConfiguration(TestProxySetting userSetProxySettings,
+                                                     TestProxySetting expectedProxySettings,
                                                      Boolean useSystemProperty,
                                                      Boolean useEnvironmentVariable,
                                                      String protocol) throws URISyntaxException;
-
-
-
 }

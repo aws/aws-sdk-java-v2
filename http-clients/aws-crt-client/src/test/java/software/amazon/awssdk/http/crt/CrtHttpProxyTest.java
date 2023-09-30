@@ -17,10 +17,7 @@ package software.amazon.awssdk.http.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Set;
-import software.amazon.awssdk.crtcore.CrtProxyConfiguration;
 import software.amazon.awssdk.http.HttpProxyTestSuite;
 import software.amazon.awssdk.http.proxy.TestProxySetting;
 
@@ -39,10 +36,10 @@ public class CrtHttpProxyTest extends HttpProxyTestSuite {
             String userName = userSetProxySettings.getUserName();
             String password = userSetProxySettings.getPassword();
 
-            if(hostName != null){
+            if (hostName != null) {
                 proxyBuilder.host(hostName);
             }
-            if(portNumber != null){
+            if (portNumber != null) {
                 proxyBuilder.port(portNumber);
             }
             if (userName != null) {
@@ -53,7 +50,7 @@ public class CrtHttpProxyTest extends HttpProxyTestSuite {
             }
         }
 
-        if(!"http".equals(protocol)){
+        if (!"http".equals(protocol)) {
             proxyBuilder.scheme(protocol);
         }
         if (useSystemProperty != null) {

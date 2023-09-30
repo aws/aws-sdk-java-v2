@@ -17,15 +17,16 @@ package software.amazon.awssdk.http.nio.netty;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.http.HttpProxyTestSuite;
 import software.amazon.awssdk.http.proxy.TestProxySetting;
 
 public class NettyProxyConfigurationTest extends HttpProxyTestSuite {
     @Override
-    protected void assertProxyConfiguration(TestProxySetting userSetProxySettings, TestProxySetting expectedProxySettings, Boolean useSystemProperty, Boolean useEnvironmentVariable, String protocol) throws URISyntaxException {
+    protected void assertProxyConfiguration(TestProxySetting userSetProxySettings, TestProxySetting expectedProxySettings,
+                                            Boolean useSystemProperty, Boolean useEnvironmentVariable, String protocol) throws URISyntaxException {
         ProxyConfiguration.Builder builder = ProxyConfiguration.builder();
 
         if (userSetProxySettings != null) {
@@ -34,27 +35,15 @@ public class NettyProxyConfigurationTest extends HttpProxyTestSuite {
             String userName = userSetProxySettings.getUserName();
             String password = userSetProxySettings.getPassword();
             Set<String> nonProxyHosts = userSetProxySettings.getNonProxyHosts();
-
-            if (hostName != null) {
-                builder.host(hostName);
-            }
-
-            if (portNumber != null) {
-                builder.port(portNumber);
-            }
-
-
-            if (userName != null) {
-                builder.username(userName);
-            }
-            if (password != null) {
-                builder.password(password);
-            }
+            Optional.ofNullable(hostName).ifPresent(builder::host);
+            Optional.ofNullable(portNumber).ifPresent(builder::port);
+            Optional.ofNullable(userName).ifPresent(builder::username);
+            Optional.ofNullable(password).ifPresent(builder::password);
             if (nonProxyHosts != null && !nonProxyHosts.isEmpty()) {
                 builder.nonProxyHosts(nonProxyHosts);
             }
         }
-        if(!"http".equals(protocol)){
+        if (!"http".equals(protocol)) {
             builder.scheme(protocol);
         }
         if (useSystemProperty != null) {
@@ -69,6 +58,5 @@ public class NettyProxyConfigurationTest extends HttpProxyTestSuite {
         assertThat(proxyConfiguration.username()).isEqualTo(expectedProxySettings.getUserName());
         assertThat(proxyConfiguration.password()).isEqualTo(expectedProxySettings.getPassword());
         assertThat(proxyConfiguration.nonProxyHosts()).isEqualTo(expectedProxySettings.getNonProxyHosts());
-
     }
 }

@@ -85,6 +85,4 @@ public class TestProxySetting {
                                                            .collect(Collectors.toSet()) : new HashSet<>();
         return this;
     }
-
-
 }

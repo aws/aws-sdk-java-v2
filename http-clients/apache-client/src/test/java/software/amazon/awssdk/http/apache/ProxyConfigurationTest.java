@@ -27,9 +27,7 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class ProxyConfigurationTest {
 
-
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
-
 
     @BeforeEach
     public void setup() {
@@ -40,10 +38,7 @@ public class ProxyConfigurationTest {
     public static void cleanup() {
         clearProxyProperties();
         ENVIRONMENT_VARIABLE_HELPER.reset();
-
-
     }
-
 
     @Test
     void testEndpointValues_Http_SystemPropertyEnabled() {
@@ -51,9 +46,7 @@ public class ProxyConfigurationTest {
         int port = 7777;
         System.setProperty("http.proxyHost", host);
         System.setProperty("http.proxyPort", Integer.toString(port));
-
         ENVIRONMENT_VARIABLE_HELPER.set("http_proxy", "http://UserOne:passwordSecret@bar.com:555/");
-
         ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(true).build();
 
         assertThat(config.host()).isEqualTo(host);
@@ -61,7 +54,6 @@ public class ProxyConfigurationTest {
         assertThat(config.scheme()).isNull();
 
     }
-
 
     @Test
     void testEndpointValues_Http_EnvironmentVariableEnabled() {
@@ -79,8 +71,6 @@ public class ProxyConfigurationTest {
         assertThat(config.port()).isEqualTo(port);
         assertThat(config.scheme()).isNull();
     }
-
-
 
     @Test
     void testEndpointValues_Https_SystemPropertyEnabled() {

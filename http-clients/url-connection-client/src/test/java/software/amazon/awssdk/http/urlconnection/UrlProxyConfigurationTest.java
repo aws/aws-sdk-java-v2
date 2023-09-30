@@ -19,13 +19,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.http.HttpProxyTestSuite;
 import software.amazon.awssdk.http.proxy.TestProxySetting;
 
 public class UrlProxyConfigurationTest extends HttpProxyTestSuite {
     @Override
-    protected void assertProxyConfiguration(TestProxySetting userSetProxySettings, TestProxySetting expectedProxySettings, Boolean useSystemProperty, Boolean useEnvironmentVariable, String protocol) throws URISyntaxException {
+    protected void assertProxyConfiguration(TestProxySetting userSetProxySettings, TestProxySetting expectedProxySettings,
+                                            Boolean useSystemProperty, Boolean useEnvironmentVariable, String protocol) throws URISyntaxException {
         ProxyConfiguration.Builder builder = ProxyConfiguration.builder();
 
         if (userSetProxySettings != null) {
@@ -42,20 +44,14 @@ public class UrlProxyConfigurationTest extends HttpProxyTestSuite {
                     throw new RuntimeException(e);
                 }
             }
-
-
-            if (userName != null) {
-                builder.username(userName);
-            }
-            if (password != null) {
-                builder.password(password);
-            }
+            Optional.ofNullable(userName).ifPresent(builder::username);
+            Optional.ofNullable(password).ifPresent(builder::password);
             if (nonProxyHosts != null && !nonProxyHosts.isEmpty()) {
                 builder.nonProxyHosts(nonProxyHosts);
             }
         }
-        if(!"http".equals(protocol)){
-           builder.scheme(protocol);
+        if (!"http".equals(protocol)) {
+            builder.scheme(protocol);
         }
         if (useSystemProperty != null) {
             builder.useSystemPropertyValues(useSystemProperty);

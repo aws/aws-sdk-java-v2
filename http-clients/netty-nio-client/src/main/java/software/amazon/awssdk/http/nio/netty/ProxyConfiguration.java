@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
+import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -48,9 +49,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.useEnvironmentVariablesValues = builder.useEnvironmentVariablesValues;
         this.scheme = builder.scheme;
 
-        ProxyConfigProvider proxyConfigProvider = ProxyConfigProvider.getProxyConfig(builder.useSystemPropertyValues,
-                                                                                     builder.useEnvironmentVariablesValues,
-                                                                                     builder.scheme);
+        ProxyConfigProvider proxyConfigProvider =
+            ProxyConfigProvider.fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
+                                                              builder.useEnvironmentVariablesValues,
+                                                              builder.scheme);
 
         this.host = builder.host != null || proxyConfigProvider == null ? builder.host : proxyConfigProvider.host();
         this.port = builder.port != 0 || proxyConfigProvider == null ? builder.port : proxyConfigProvider.port();
@@ -235,13 +237,21 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
 
+        /**
+         * Set the option whether to use environment variable values for {@link ProxyEnvironmentSetting} if any of the config
+         * options are missing. The value is set to "true" by default, enabling the SDK to automatically use environment variable
+         * values for proxy configuration options that are not provided during building the {@link ProxyConfiguration} object. To
+         * disable this behavior, set this value to "false".
+         *
+         * @param useEnvironmentVariablesValues The option whether to use environment variable values
+         * @return This object for method chaining.
+         */
         Builder useEnvironmentVariablesValues(Boolean useEnvironmentVariablesValues);
 
     }
 
-
     private static final class BuilderImpl implements Builder {
-        private String scheme;
+        private String scheme = "http";
         private String host;
         private int port = 0;
         private String username;
@@ -283,7 +293,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return this;
         }
 
-
         @Override
         public Builder nonProxyHosts(Set<String> nonProxyHosts) {
             if (nonProxyHosts != null) {
@@ -316,7 +325,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             useSystemPropertyValues(useSystemPropertyValues);
         }
 
-
         @Override
         public Builder useEnvironmentVariablesValues(Boolean useEnvironmentVariablesValues) {
             this.useEnvironmentVariablesValues = useEnvironmentVariablesValues;
@@ -326,7 +334,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         public void setUseEnvironmentVariablesValues(Boolean useEnvironmentVariablesValues) {
             useEnvironmentVariablesValues(useEnvironmentVariablesValues);
         }
-
 
         @Override
         public ProxyConfiguration build() {

@@ -32,7 +32,6 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.Pair;
 
-
 public class ProxyConfigurationTest {
 
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
@@ -118,11 +117,9 @@ public class ProxyConfigurationTest {
                          new ExpectedProxySetting().host("foo.com").port(555).userName("UserOne").nonProxyHost("bar.com"),
                          "Password not present"),
 
-
             Arguments.of(Arrays.asList(
                              Pair.of("%s.proxyHost", "555"),
                              Pair.of("%s.proxyPort", "-1"),
-
                              Pair.of("http.nonProxyHosts", "bar.com")
                          ),
                          Arrays.asList(
@@ -174,7 +171,6 @@ public class ProxyConfigurationTest {
                                                          "%s.proxyPassword")
                                                      .forEach(property -> System.clearProperty(String.format(property, protocol)))
         );
-
         ENVIRONMENT_VARIABLE_HELPER.reset();
 
     }

@@ -55,7 +55,4 @@ public enum ProxySystemSetting implements SystemSetting  {
     public String defaultValue() {
         return null;
     }
-
-
-
 }

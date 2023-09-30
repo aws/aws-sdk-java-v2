@@ -30,6 +30,7 @@ public class ApacheHttpProxyTest extends HttpProxyTestSuite {
                                             Boolean useSystemProperty,
                                             Boolean useEnvironmentVariable,
                                             String protocol) {
+
         ProxyConfiguration.Builder builder = ProxyConfiguration.builder();
 
         if (userSetProxySettings != null) {
@@ -56,7 +57,7 @@ public class ApacheHttpProxyTest extends HttpProxyTestSuite {
                 builder.nonProxyHosts(nonProxyHosts);
             }
         }
-        if(!"http".equals(protocol)){
+        if (!"http".equals(protocol)) {
             builder.scheme(protocol);
         }
         if (useSystemProperty != null) {
@@ -72,5 +73,4 @@ public class ApacheHttpProxyTest extends HttpProxyTestSuite {
         assertThat(proxyConfiguration.password()).isEqualTo(expectedProxySettings.getPassword());
         assertThat(proxyConfiguration.nonProxyHosts()).isEqualTo(expectedProxySettings.getNonProxyHosts());
     }
-
 }

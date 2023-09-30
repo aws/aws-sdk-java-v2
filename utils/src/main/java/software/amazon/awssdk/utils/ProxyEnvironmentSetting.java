@@ -22,7 +22,8 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * Environment variables used to set a proxy
+ * An enumeration representing environment settings related to proxy configuration. Instances of this enum are used to
+ * define and access proxy configuration settings obtained from environment variables.
  */
 @SdkProtectedApi
 public enum ProxyEnvironmentSetting implements SystemSetting {
