@@ -3,13 +3,17 @@ package software.amazon.awssdk.services.query.endpoints.internal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.SignerLoader;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -18,6 +22,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
@@ -57,6 +62,11 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+            }
+            if (endpointAuthSchemes != null) {
+                EndpointAuthScheme chosenAuthScheme = AuthSchemeUtils.chooseAuthScheme(endpointAuthSchemes);
+                Supplier<Signer> signerProvider = signerProvider(chosenAuthScheme);
+                result = SignerOverrideUtils.overrideSignerIfNotOverridden(result, executionAttributes, signerProvider);
             }
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint);
             return result;
@@ -125,9 +135,6 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private <T extends Identity> SelectedAuthScheme<T> authSchemeWithEndpointSignerProperties(
         List<EndpointAuthScheme> endpointAuthSchemes, SelectedAuthScheme<T> selectedAuthScheme) {
         for (EndpointAuthScheme endpointAuthScheme : endpointAuthSchemes) {
-            if (!endpointAuthScheme.schemeId().equals(selectedAuthScheme.authSchemeOption().schemeId())) {
-                continue;
-            }
             AuthSchemeOption.Builder option = selectedAuthScheme.authSchemeOption().toBuilder();
             if (endpointAuthScheme instanceof SigV4AuthScheme) {
                 SigV4AuthScheme v4AuthScheme = (SigV4AuthScheme) endpointAuthScheme;
@@ -178,5 +185,17 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             default:
                 return Optional.empty();
         }
+    }
+
+    private Supplier<Signer> signerProvider(EndpointAuthScheme authScheme) {
+        switch (authScheme.name()) {
+            case "sigv4":
+                return Aws4Signer::create;
+            case "sigv4a":
+                return SignerLoader::getSigV4aSigner;
+            default:
+                break;
+        }
+        throw SdkClientException.create("Don't know how to create signer for auth scheme: " + authScheme.name());
     }
 }

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,42 +30,64 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
+import software.amazon.awssdk.services.protocolquery.ProtocolQueryServiceClientConfiguration;
+import software.amazon.awssdk.utils.Validate;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SraIdentityResolutionTest {
+public class SraIdentityResolutionUsingPluginsTest {
 
     @Mock
-    private AwsCredentialsProvider credsProvider;
+    private AwsCredentialsProvider credentialsProvider;
 
     @Test
-    public void testIdentityPropertyBasedResolutionIsUsedAndNotAnotherIdentityResolution() {
+    public void testIdentityBasedPluginsResolutionIsUsedAndNotAnotherIdentityResolution() {
         SdkHttpClient mockClient = mock(SdkHttpClient.class);
         when(mockClient.prepareRequest(any())).thenThrow(new RuntimeException("boom"));
 
-        when(credsProvider.identityType()).thenReturn(AwsCredentialsIdentity.class);
-        when(credsProvider.resolveIdentity(any(ResolveIdentityRequest.class)))
+        when(credentialsProvider.identityType()).thenReturn(AwsCredentialsIdentity.class);
+        when(credentialsProvider.resolveIdentity(any(ResolveIdentityRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(AwsBasicCredentials.create("akid1", "skid2")));
 
         ProtocolQueryClient syncClient = ProtocolQueryClient
             .builder()
             .httpClient(mockClient)
-            .credentialsProvider(credsProvider)
+            .addPlugin(new TestPlugin(credentialsProvider))
             // Below is necessary to create the test case where, addCredentialsToExecutionAttributes was getting called before
             .overrideConfiguration(ClientOverrideConfiguration.builder().build())
             .build();
 
         assertThatThrownBy(() -> syncClient.allTypes(r -> {})).hasMessageContaining("boom");
-        verify(credsProvider, times(2)).identityType();
+        verify(credentialsProvider, times(2)).identityType();
 
-        // This asserts that the identity used is the one from resolveIdentity() called by SRA AuthSchemeInterceptor and not from
+        // This asserts that the identity used is the one from resolveIdentity() called by SRA AuthSchemeInterceptor and not
         // from another call like from AwsCredentialsAuthorizationStrategy.addCredentialsToExecutionAttributes, asserted by
         // combination of times(1) and verifyNoMoreInteractions.
-        verify(credsProvider, times(1)).resolveIdentity(any(ResolveIdentityRequest.class));
-        verifyNoMoreInteractions(credsProvider);
+        verify(credentialsProvider, times(1)).resolveIdentity(any(ResolveIdentityRequest.class));
+        verifyNoMoreInteractions(credentialsProvider);
+    }
+
+    static class TestPlugin implements SdkPlugin {
+        private final AwsCredentialsProvider credentialsProvider;
+
+        TestPlugin(AwsCredentialsProvider credentialsProvider) {
+            this.credentialsProvider = credentialsProvider;
+        }
+
+        @Override
+        public void configureClient(SdkServiceClientConfiguration.Builder config) {
+            ProtocolQueryServiceClientConfiguration.Builder builder =
+                Validate.isInstanceOf(ProtocolQueryServiceClientConfiguration.Builder.class,
+                                      config,
+                                      "Expecting an instance of " +
+                                      ProtocolQueryServiceClientConfiguration.class);
+            builder.credentialsProvider(credentialsProvider);
+        }
     }
 }
