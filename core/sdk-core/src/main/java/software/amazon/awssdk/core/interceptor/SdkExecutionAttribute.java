@@ -115,14 +115,9 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<String> PROFILE_NAME = new ExecutionAttribute<>("ProfileName");
 
     /**
-     * The checksums specs used to control checksum behavior in the signer.
-     *
-     * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the resolved-checksum-specs setting via the {@code
-     * AuthSchemeProvider} that is configured on the SDK client builder. If you're using it to call the SDK's signers, you
-     * should migrate to a subtype of {@code HttpSigner}.
+     * The checksum algorithm is resolved based on the Request member.
+     * The RESOLVED_CHECKSUM_SPECS holds the final checksum which will be used for checksum computation.
      */
-    @Deprecated
     public static final ExecutionAttribute<ChecksumSpecs> RESOLVED_CHECKSUM_SPECS =
         ExecutionAttribute.mappedBuilder("ResolvedChecksumSpecs",
                                          ChecksumSpecs.class,
