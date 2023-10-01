@@ -24,7 +24,6 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,16 +61,10 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
-import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
-import software.amazon.awssdk.services.s3.auth.scheme.internal.S3AuthSchemeInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3RequestSetEndpointInterceptor;
@@ -111,6 +104,9 @@ import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
+// TODO(sra-identity-auth): Move to SRA I&A. Note, until we expose ability configuration for the SRA interfaces, like
+//  AuthSchemeProvider (directly or via Plugins), there isn't any real customer benefit to moving to SRA, other than just getting
+//  off the old deprecated Signer interface.
 /**
  * The default implementation of the {@link S3Presigner} interface.
  */
@@ -209,7 +205,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         List<ExecutionInterceptor> s3Interceptors =
             interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
-        additionalInterceptors.add(new S3AuthSchemeInterceptor());
+        // TODO(sra-identity-auth): Uncomment when S3 swithces to useSraAuth=true
+        // additionalInterceptors.add(new S3AuthSchemeInterceptor());
         additionalInterceptors.add(new S3ResolveEndpointInterceptor());
         additionalInterceptors.add(new S3RequestSetEndpointInterceptor());
         s3Interceptors = mergeLists(s3Interceptors, additionalInterceptors);
@@ -370,13 +367,16 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, serviceConfiguration.dualstackEnabled())
             .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, useGlobalEndpointResolver.resolve(region()))
-            .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams)
+            .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams);
+        // TODO(sra-identity-auth): Uncomment when switching to useSraAuth=true
+        /*
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, S3AuthSchemeProvider.defaultProvider())
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS,
                           IdentityProviders.builder()
                                            .putIdentityProvider(credentialsProvider())
                                            .build());
+         */
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
 
@@ -386,6 +386,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         interceptorContext = AwsExecutionContextBuilder.runInitialInterceptors(interceptorContext,
                                                                                executionAttributes,
                                                                                executionInterceptorChain);
+
+
+        // TODO(sra-identity-auth): To move to SRA, use HttpSigner and Identity from SelectedAuthScheme
         AwsCredentialsAuthorizationStrategy authorizationContext =
             AwsCredentialsAuthorizationStrategy.builder()
                                                .request(interceptorContext.request())
@@ -404,6 +407,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                .build();
     }
 
+    // TODO(sra-identity-auth): Uncomment when S3 swithces to useSraAuth=true
+    /*
     private Map<String, AuthScheme<?>> authSchemes() {
         Map<String, AuthScheme<?>> schemes = new HashMap<>(2);
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
@@ -412,6 +417,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         schemes.put(awsV4aAuthScheme.schemeId(), awsV4aAuthScheme);
         return Collections.unmodifiableMap(schemes);
     }
+     */
 
     /**
      * Call the before-marshalling interceptor hooks.
@@ -512,6 +518,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     /**
      * Presign the provided HTTP request.
      */
+    // TODO(sra-identity-auth): Move to SRA HttpSigner
     private SdkHttpFullRequest presignRequest(ExecutionContext execCtx, SdkHttpFullRequest request) {
         Presigner presigner = Validate.isInstanceOf(Presigner.class, execCtx.signer(),
                                                     "Configured signer (%s) does not support presigning (must implement %s).",
