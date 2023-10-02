@@ -85,9 +85,12 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4aProperties v4aProperties) {
 
+        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
 
-        if (isChunkEncoding) {
+        if (useChunkEncoding(isPayloadSigning, isChunkEncoding, isTrailing || isFlexible)) {
             return AwsChunkedV4aPayloadSigner.builder()
                                              .credentialScope(v4aProperties.getCredentialScope())
                                              .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
@@ -96,6 +99,12 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         }
 
         return V4aPayloadSigner.create();
+    }
+
+    private static boolean useChunkEncoding(boolean payloadSigningEnabled, boolean chunkEncodingEnabled,
+                                            boolean isTrailingOrFlexible) {
+
+        return (payloadSigningEnabled && chunkEncodingEnabled) || (chunkEncodingEnabled && isTrailingOrFlexible);
     }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
@@ -158,27 +167,24 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         return signingConfig;
     }
 
-    private static void configureUnsignedPayload(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailing) {
-        if (isChunkEncoding) {
-            if (isTrailing) {
+    private static void configureUnsignedPayload(AwsSigningConfig signingConfig, boolean isChunkEncoding,
+                                                 boolean isTrailingOrFlexible) {
+        if (isChunkEncoding && isTrailingOrFlexible) {
                 signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
-            } else {
-                throw new UnsupportedOperationException("Chunk-Encoding without Payload-Signing must have a trailer!");
-            }
         } else {
             signingConfig.setSignedBodyValue(UNSIGNED_PAYLOAD);
         }
     }
 
-    private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailing) {
+    private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailingOrFlexible) {
         if (isChunkEncoding) {
-            if (isTrailing) {
+            if (isTrailingOrFlexible) {
                 signingConfig.setSignedBodyValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
             } else {
                 signingConfig.setSignedBodyValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
             }
         }
-        // if not chunked encoding, then signed-payload simply means the sha256 hash is included in the canonical request
+        // if it's non-streaming, crt should calcualte the SHA256 body-hash
     }
 
     private static SignedRequest doSign(SignRequest<? extends AwsCredentialsIdentity> request,
