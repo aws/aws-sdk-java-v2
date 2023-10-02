@@ -193,14 +193,6 @@ public abstract class BaseClientHandler {
         invokeInterceptorsAndCreateExecutionContext(
         ClientExecutionParams<InputT, OutputT> params) {
         SdkClientConfiguration clientConfiguration = resolveRequestConfiguration(params);
-        return invokeInterceptorsAndCreateExecutionContext(params, clientConfiguration);
-    }
-
-    // This method is only called from tests, since the subclasses in aws-core override it.
-    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
-        invokeInterceptorsAndCreateExecutionContext(
-        ClientExecutionParams<InputT, OutputT> params,
-        SdkClientConfiguration clientConfiguration) {
         SdkRequest originalRequest = params.getInput();
 
         ExecutionAttributes executionAttributes = params.executionAttributes();

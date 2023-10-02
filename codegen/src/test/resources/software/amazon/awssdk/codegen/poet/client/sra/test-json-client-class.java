@@ -905,7 +905,7 @@ final class DefaultJsonClient implements JsonClient {
             consumer.accept(serviceConfigBuilder);
             return serviceConfigBuilder.buildSdkClientConfiguration();
         };
-        List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins()).orElse(Collections.emptyList());
+        List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
         return SdkClientConfigurationUtil.invokePlugins(clientConfiguration, plugins, configurationUpdater);
     }
 

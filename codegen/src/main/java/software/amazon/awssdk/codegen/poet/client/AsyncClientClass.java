@@ -301,7 +301,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()")
                .addCode("$<};\n");
         builder.addStatement("$T plugins = request.overrideConfiguration()\n"
-                             + ".map(c -> c.registeredPlugins()).orElse(Collections.emptyList())",
+                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class));
         builder.addStatement("return $T.invokePlugins(clientConfiguration, plugins, configurationUpdater)",
                              SdkClientConfigurationUtil.class);

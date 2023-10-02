@@ -66,7 +66,7 @@ public abstract class RequestOverrideConfiguration {
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
         this.endpointProvider = builder.endpointProvider();
         this.compressionConfiguration = builder.compressionConfiguration();
-        this.plugins = builder.plugins();
+        this.plugins = Collections.unmodifiableList(new ArrayList<>(builder.plugins()));
     }
 
     /**
@@ -153,7 +153,7 @@ public abstract class RequestOverrideConfiguration {
     /**
      * Return the plugins that will be used to update the configuration used by the request.
      */
-    public List<SdkPlugin> registeredPlugins() {
+    public List<SdkPlugin> plugins() {
         return plugins;
     }
 
