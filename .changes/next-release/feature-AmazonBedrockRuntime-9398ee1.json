@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "Add model timeout exception for InvokeModelWithResponseStream API and update validator for invoke model identifier."
+}
