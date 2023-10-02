@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Adds DefaultCertificateForNewLaunches field in the DescribeCertificates API response."
-}

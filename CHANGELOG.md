@@ -1,3 +1,40 @@
+# __2.20.158__ __2023-10-02__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - STS API updates for assumeRole
+
+## __AWS Single Sign-On__
+  - ### Features
+    - Fix FIPS Endpoints in aws-us-gov.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __Amazon Bedrock__
+  - ### Features
+    - Provisioned throughput feature with Amazon and third-party base models, and update validators for model identifier and taggable resource ARNs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add model timeout exception for InvokeModelWithResponseStream API and update validator for invoke model identifier.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introducing Amazon EC2 R7iz instances with 3.9 GHz sustained all-core turbo frequency and deliver up to 20% better performance than previous generation z1d instances.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - Remove Rinkeby as option from Ethereum APIs
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds DefaultCertificateForNewLaunches field in the DescribeCertificates API response.
+
 # __2.20.157__ __2023-09-28__
 ## __AWS Budgets__
   - ### Features
@@ -373,7 +410,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2114,7 +2151,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
