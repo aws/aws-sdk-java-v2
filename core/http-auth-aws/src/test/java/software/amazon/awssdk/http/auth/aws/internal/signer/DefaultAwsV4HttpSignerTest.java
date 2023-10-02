@@ -221,7 +221,7 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueWithoutTrailer_Throws() {
+    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueWithoutTrailer_DelegatesToUnsignedPayload() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
@@ -231,7 +231,27 @@ public class DefaultAwsV4HttpSignerTest {
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
         );
 
-        assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
+        SignedRequest signedRequest = signer.sign(request);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
+    }
+
+    @Test
+    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueWithChecksumHeader_DelegatesToUnsignedPayload() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20")
+                .putHeader("x-amz-checksum-crc32", "bogus"),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("bogus");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
     }
 
     @Test
