@@ -173,9 +173,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                 .nonProxyHosts(nonProxyHosts)
                 .preemptiveBasicAuthenticationEnabled(preemptiveBasicAuthenticationEnabled)
                 .useSystemPropertyValues(useSystemPropertyValues)
+                .scheme(scheme)
                 .useEnvironmentVariableValues(useEnvironmentVariablesValues);
     }
-
     /**
      * Create a {@link Builder}, used to create a {@link ProxyConfiguration}.
      */
@@ -194,16 +194,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                        .add("preemptiveBasicAuthenticationEnabled", preemptiveBasicAuthenticationEnabled)
                        .add("useSystemPropertyValues", useSystemPropertyValues)
                        .add("useEnvironmentVariablesValues", useEnvironmentVariablesValues)
+                       .add("scheme", scheme)
                        .build();
     }
 
-    /**
-     * Uses the configuration options, system setting property and returns the final value of the given member.
-     */
-    private String resolveValue(String value, ProxySystemSetting systemSetting) {
-        return value == null && useSystemPropertyValues ? systemSetting.getStringValue().orElse(null)
-                                                        : value;
-    }
 
     /**
      * A builder for {@link ProxyConfiguration}.
@@ -423,4 +417,5 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return new ProxyConfiguration(this);
         }
     }
+
 }

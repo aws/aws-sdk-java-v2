@@ -136,6 +136,7 @@ public abstract class CrtProxyConfiguration {
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (useSystemPropertyValues != null ? useSystemPropertyValues.hashCode() : 0);
         result = 31 * result + (useEnvironmentVariableValues != null ? useEnvironmentVariableValues.hashCode() : 0);
+        result = 31 * result + (scheme != null ? scheme.hashCode() : 0);
         return result;
     }
 
