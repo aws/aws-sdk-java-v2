@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
@@ -41,7 +42,7 @@ public class ChecksumTrailerProvider implements TrailerProvider {
     public Pair<String, List<String>> get() {
         return Pair.of(
             checksumName,
-            Collections.singletonList(checksum.getChecksum())
+            Collections.singletonList(BinaryUtils.toBase64(checksum.getChecksumBytes()))
         );
     }
 }

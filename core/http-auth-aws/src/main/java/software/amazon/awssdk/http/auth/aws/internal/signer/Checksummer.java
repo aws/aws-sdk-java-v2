@@ -16,20 +16,20 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer.option;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.ConstantChecksumAlgorithm;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * An interface for defining how a checksum is formed from a payload synchronously and asynchronously.
@@ -43,7 +43,9 @@ public interface Checksummer {
      * x-amz-content-sha256 header.
      */
     static Checksummer create() {
-        return new FlexibleChecksummer(Collections.singletonMap(X_AMZ_CONTENT_SHA256, SHA256));
+        return new FlexibleChecksummer(
+            option().headerName(X_AMZ_CONTENT_SHA256).algorithm(SHA256).formatter(BinaryUtils::toHex).build()
+        );
     }
 
     /**
@@ -52,12 +54,12 @@ public interface Checksummer {
      */
     static Checksummer forFlexibleChecksum(ChecksumAlgorithm checksumAlgorithm) {
         if (checksumAlgorithm != null) {
-            Map<String, ChecksumAlgorithm> checksums = ImmutableMap.of(
-                X_AMZ_CONTENT_SHA256, SHA256,
-                checksumHeaderName(checksumAlgorithm), checksumAlgorithm
+            return new FlexibleChecksummer(
+                option().headerName(X_AMZ_CONTENT_SHA256).algorithm(SHA256).formatter(BinaryUtils::toHex)
+                        .build(),
+                option().headerName(checksumHeaderName(checksumAlgorithm)).algorithm(checksumAlgorithm)
+                        .formatter(BinaryUtils::toBase64).build()
             );
-
-            return new FlexibleChecksummer(checksums);
         }
 
         throw new IllegalArgumentException("Checksum Algorithm cannot be null!");
@@ -77,12 +79,12 @@ public interface Checksummer {
      */
     static Checksummer forFlexibleChecksum(String precomputedSha256, ChecksumAlgorithm checksumAlgorithm) {
         if (checksumAlgorithm != null) {
-            Map<String, ChecksumAlgorithm> checksums = ImmutableMap.of(
-                X_AMZ_CONTENT_SHA256, new ConstantChecksumAlgorithm(precomputedSha256),
-                checksumHeaderName(checksumAlgorithm), checksumAlgorithm
+            return new FlexibleChecksummer(
+                option().headerName(X_AMZ_CONTENT_SHA256).algorithm(new ConstantChecksumAlgorithm(precomputedSha256))
+                        .formatter(b -> new String(b, StandardCharsets.UTF_8)).build(),
+                option().headerName(checksumHeaderName(checksumAlgorithm)).algorithm(checksumAlgorithm)
+                        .formatter(BinaryUtils::toBase64).build()
             );
-
-            return new FlexibleChecksummer(checksums);
         }
 
         throw new IllegalArgumentException("Checksum Algorithm cannot be null!");

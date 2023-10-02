@@ -214,7 +214,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         V4Context v4Context = requestSigner.sign(requestBuilder);
 
-        ContentStreamProvider payload = payloadSigner.sign(request.payload().orElse(null), v4Context);
+        ContentStreamProvider payload = request.payload().map(p -> payloadSigner.sign(p, v4Context)).orElse(null);
 
         return SignedRequest.builder()
                             .request(v4Context.getSignedRequest().build())
