@@ -641,7 +641,6 @@ public class S3PresignerTest {
             .hasMessageContaining("Invalid configuration: region from ARN `us-east-1` does not match client region `us-west-2` and UseArnRegion is `false`");
     }
 
-    /*
     @Test
     // TODO(sra-identity-and-auth), this test fails with Expected :"AWS4-ECDSA-P256-SHA256", Actual :"AWS4-HMAC-SHA256"
     public void accessPointArn_multiRegion_useArnRegionTrue_correctEndpointAndSigner() {
@@ -662,7 +661,6 @@ public class S3PresignerTest {
             .isEqualTo("AWS4-ECDSA-P256-SHA256");
         assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
     }
-     */
 
     @Test
     public void outpostArn_usWest_calculatesCorrectSignature() {
