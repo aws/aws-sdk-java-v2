@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 class IdentityProvidersTest {
 
@@ -94,6 +95,23 @@ class IdentityProvidersTest {
 
         assertSame(awsCredentialsProvider, identityProviders.identityProvider(AwsCredentialsIdentity.class));
         assertSame(tokenProvider, identityProviders.identityProvider(TokenIdentity.class));
+    }
+
+    @Test
+    public void identityProviders_notTouched_untilNeeded() {
+        // TODO(sra-identity-auth): This should be removed once everything is on useSraAuth = true
+        IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = Mockito.mock(IdentityProvider.class);
+        IdentityProviders providers =
+            IdentityProviders.builder()
+                             .putIdentityProvider(awsCredentialsProvider)
+                             .build()
+                             .toBuilder()
+                             .putIdentityProvider(awsCredentialsProvider)
+                             .build()
+                             .toBuilder()
+                             .build();
+        providers.toString();
+        Mockito.verifyNoMoreInteractions(awsCredentialsProvider);
     }
 
     private static final class AwsCredentialsProvider implements IdentityProvider<AwsCredentialsIdentity> {
