@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
 
-import static software.amazon.awssdk.utils.BinaryUtils.toHex;
-
 import java.nio.ByteBuffer;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -96,13 +94,5 @@ public interface SdkChecksum extends Checksum {
             }
         }
         buffer.position(limit);
-    }
-
-    /**
-     * Return an encoded-string representation of the checksum. By default, this returns a String that is the lowercase, base16
-     * (hex) representation of the checksum.
-     */
-    default String getChecksum() {
-        return toHex(getChecksumBytes());
     }
 }
