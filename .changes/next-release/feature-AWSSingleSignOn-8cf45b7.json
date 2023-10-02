@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Single Sign-On",
+    "contributor": "",
+    "description": "Fix FIPS Endpoints in aws-us-gov."
+}
