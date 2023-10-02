@@ -170,13 +170,15 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     private static void configureUnsignedPayload(AwsSigningConfig signingConfig, boolean isChunkEncoding,
                                                  boolean isTrailingOrFlexible) {
         if (isChunkEncoding && isTrailingOrFlexible) {
-                signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
         } else {
             signingConfig.setSignedBodyValue(UNSIGNED_PAYLOAD);
         }
     }
 
-    private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailingOrFlexible) {
+    private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding,
+                                                boolean isTrailingOrFlexible) {
+
         if (isChunkEncoding) {
             if (isTrailingOrFlexible) {
                 signingConfig.setSignedBodyValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
