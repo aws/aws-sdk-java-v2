@@ -176,6 +176,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                 .scheme(scheme)
                 .useEnvironmentVariableValues(useEnvironmentVariablesValues);
     }
+
     /**
      * Create a {@link Builder}, used to create a {@link ProxyConfiguration}.
      */
