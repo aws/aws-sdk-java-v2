@@ -2,7 +2,6 @@ package software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
@@ -52,25 +51,12 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
     private final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration;
 
-    private final BiFunction<SdkRequest, SdkClientConfiguration, SdkClientConfiguration> clientConfigurationForRequest;
-
     protected DefaultProtocolRestJsonWithCustomContentTypeClient(
             ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration,
             SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
-        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
-            ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder
-                    .builder(configBuilder);
-            consumer.accept(serviceConfigBuilder);
-            return serviceConfigBuilder.buildSdkClientConfiguration();
-        };
-        this.clientConfigurationForRequest = (request, config) -> {
-            List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins())
-                    .orElse(Collections.emptyList());
-            return SdkClientConfigurationUtil.invokePlugins(config, plugins, configurationUpdater);
-        };
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -101,8 +87,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                 operationMetadata);
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(oneOperationRequest,
-                this.clientConfiguration);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(oneOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, oneOperationRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -144,6 +129,17 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
             JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
+    }
+
+    protected SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
+        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
+            ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
+        List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins()).orElse(Collections.emptyList());
+        return SdkClientConfigurationUtil.invokePlugins(clientConfiguration, plugins, configurationUpdater);
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {

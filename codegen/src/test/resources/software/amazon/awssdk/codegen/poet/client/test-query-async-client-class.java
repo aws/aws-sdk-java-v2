@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,8 +105,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final QueryServiceClientConfiguration serviceClientConfiguration;
 
-    private final BiFunction<SdkRequest, SdkClientConfiguration, SdkClientConfiguration> clientConfigurationForRequest;
-
     private final ScheduledExecutorService executorService;
 
     protected DefaultQueryAsyncClient(QueryServiceClientConfiguration serviceClientConfiguration,
@@ -115,17 +112,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
-        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
-            QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
-                    .builder(configBuilder);
-            consumer.accept(serviceConfigBuilder);
-            return serviceConfigBuilder.buildSdkClientConfiguration();
-        };
-        this.clientConfigurationForRequest = (request, config) -> {
-            List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins())
-                    .orElse(Collections.emptyList());
-            return SdkClientConfigurationUtil.invokePlugins(config, plugins, configurationUpdater);
-        };
         this.protocolFactory = init();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
@@ -155,8 +141,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(aPostOperationRequest,
-                this.clientConfiguration);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
                 .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -216,7 +201,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(aPostOperationWithOutputRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationWithOutputRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
                 .overrideConfiguration().orElse(null));
@@ -271,7 +256,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
             BearerAuthOperationRequest bearerAuthOperationRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(bearerAuthOperationRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(bearerAuthOperationRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
                 .overrideConfiguration().orElse(null));
@@ -327,7 +312,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<GetOperationWithChecksumResponse> getOperationWithChecksum(
             GetOperationWithChecksumRequest getOperationWithChecksumRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(getOperationWithChecksumRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getOperationWithChecksumRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
                 .overrideConfiguration().orElse(null));
@@ -389,8 +374,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
             OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
-                operationWithChecksumRequiredRequest, this.clientConfiguration);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithChecksumRequiredRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -447,7 +432,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<OperationWithContextParamResponse> operationWithContextParam(
             OperationWithContextParamRequest operationWithContextParamRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(operationWithContextParamRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithContextParamRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithContextParamRequest
                 .overrideConfiguration().orElse(null));
@@ -502,7 +487,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<OperationWithNoneAuthTypeResponse> operationWithNoneAuthType(
             OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(operationWithNoneAuthTypeRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithNoneAuthTypeRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
                 .overrideConfiguration().orElse(null));
@@ -559,8 +544,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<OperationWithRequestCompressionResponse> operationWithRequestCompression(
             OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
-                operationWithRequestCompressionRequest, this.clientConfiguration);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithRequestCompressionRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -619,8 +604,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<OperationWithStaticContextParamsResponse> operationWithStaticContextParams(
             OperationWithStaticContextParamsRequest operationWithStaticContextParamsRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
-                operationWithStaticContextParamsRequest, this.clientConfiguration);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithStaticContextParamsRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 operationWithStaticContextParamsRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -693,7 +678,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
             PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
             AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(putOperationWithChecksumRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putOperationWithChecksumRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
                 .overrideConfiguration().orElse(null));
@@ -781,7 +766,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(streamingInputOperationRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOperationRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
                 .overrideConfiguration().orElse(null));
@@ -848,7 +833,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest,
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(streamingOutputOperationRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingOutputOperationRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
                 .overrideConfiguration().orElse(null));
@@ -947,6 +932,17 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
         return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
+    }
+
+    protected SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
+        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
+            QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
+        List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins()).orElse(Collections.emptyList());
+        return SdkClientConfigurationUtil.invokePlugins(clientConfiguration, plugins, configurationUpdater);
     }
 
     @Override

@@ -53,7 +53,7 @@ public abstract class RequestOverrideConfiguration {
     private final ExecutionAttributes executionAttributes;
     private final EndpointProvider endpointProvider;
     private final CompressionConfiguration compressionConfiguration;
-    private final List<SdkPlugin> registeredPlugins;
+    private final List<SdkPlugin> plugins;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -66,7 +66,7 @@ public abstract class RequestOverrideConfiguration {
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
         this.endpointProvider = builder.endpointProvider();
         this.compressionConfiguration = builder.compressionConfiguration();
-        this.registeredPlugins = builder.registeredPlugins();
+        this.plugins = builder.plugins();
     }
 
     /**
@@ -154,7 +154,7 @@ public abstract class RequestOverrideConfiguration {
      * Return the plugins that will be used to update the configuration used by the request.
      */
     public List<SdkPlugin> registeredPlugins() {
-        return registeredPlugins;
+        return plugins;
     }
 
     /**
@@ -203,7 +203,7 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(executionAttributes, that.executionAttributes) &&
                Objects.equals(endpointProvider, that.endpointProvider) &&
                Objects.equals(compressionConfiguration, that.compressionConfiguration) &&
-               Objects.equals(registeredPlugins, that.registeredPlugins);
+               Objects.equals(plugins, that.plugins);
     }
 
     @Override
@@ -219,7 +219,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(executionAttributes);
         hashCode = 31 * hashCode + Objects.hashCode(endpointProvider);
         hashCode = 31 * hashCode + Objects.hashCode(compressionConfiguration);
-        hashCode = 31 * hashCode + Objects.hashCode(registeredPlugins);
+        hashCode = 31 * hashCode + Objects.hashCode(plugins);
         return hashCode;
     }
 
@@ -499,7 +499,7 @@ public abstract class RequestOverrideConfiguration {
         /**
          * Returns the list of registered plugins
          */
-        List<SdkPlugin> registeredPlugins();
+        List<SdkPlugin> plugins();
 
         /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
@@ -520,7 +520,7 @@ public abstract class RequestOverrideConfiguration {
         private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
         private EndpointProvider endpointProvider;
         private CompressionConfiguration compressionConfiguration;
-        private List<SdkPlugin> registeredPlugins = new ArrayList<>();
+        private List<SdkPlugin> plugins = new ArrayList<>();
 
 
         protected BuilderImpl() {
@@ -537,7 +537,7 @@ public abstract class RequestOverrideConfiguration {
             executionAttributes(sdkRequestOverrideConfig.executionAttributes());
             endpointProvider(sdkRequestOverrideConfig.endpointProvider);
             compressionConfiguration(sdkRequestOverrideConfig.compressionConfiguration);
-            plugins(sdkRequestOverrideConfig.registeredPlugins);
+            plugins(sdkRequestOverrideConfig.plugins);
         }
 
         @Override
@@ -728,19 +728,19 @@ public abstract class RequestOverrideConfiguration {
 
         @Override
         public B plugins(List<SdkPlugin> plugins) {
-            this.registeredPlugins = new ArrayList<>(plugins);
+            this.plugins = new ArrayList<>(plugins);
             return (B) this;
         }
 
         @Override
         public B addPlugin(SdkPlugin plugin) {
-            this.registeredPlugins.add(plugin);
+            this.plugins.add(plugin);
             return (B) this;
         }
 
         @Override
-        public List<SdkPlugin> registeredPlugins() {
-            return Collections.unmodifiableList(registeredPlugins);
+        public List<SdkPlugin> plugins() {
+            return Collections.unmodifiableList(plugins);
         }
     }
 }

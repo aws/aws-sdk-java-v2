@@ -6,7 +6,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
@@ -71,8 +70,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
     private final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration;
 
-    private final BiFunction<SdkRequest, SdkClientConfiguration, SdkClientConfiguration> clientConfigurationForRequest;
-
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
 
     protected DefaultEndpointDiscoveryTestAsyncClient(EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration,
@@ -80,17 +77,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.serviceClientConfiguration = serviceClientConfiguration;
-        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
-            EndpointDiscoveryTestServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = EndpointDiscoveryTestServiceClientConfigurationBuilder
-                    .builder(configBuilder);
-            consumer.accept(serviceConfigBuilder);
-            return serviceConfigBuilder.buildSdkClientConfiguration();
-        };
-        this.clientConfigurationForRequest = (request, config) -> {
-            List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins())
-                    .orElse(Collections.emptyList());
-            return SdkClientConfigurationUtil.invokePlugins(config, plugins, configurationUpdater);
-        };
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache
@@ -117,7 +103,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
      */
     @Override
     public CompletableFuture<DescribeEndpointsResponse> describeEndpoints(DescribeEndpointsRequest describeEndpointsRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(describeEndpointsRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(describeEndpointsRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, describeEndpointsRequest
                 .overrideConfiguration().orElse(null));
@@ -174,8 +160,8 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     @Override
     public CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> testDiscoveryIdentifiersRequired(
             TestDiscoveryIdentifiersRequiredRequest testDiscoveryIdentifiersRequiredRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(
-                testDiscoveryIdentifiersRequiredRequest, this.clientConfiguration);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(testDiscoveryIdentifiersRequiredRequest,
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                 testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -255,7 +241,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     @Override
     public CompletableFuture<TestDiscoveryOptionalResponse> testDiscoveryOptional(
             TestDiscoveryOptionalRequest testDiscoveryOptionalRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(testDiscoveryOptionalRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(testDiscoveryOptionalRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryOptionalRequest
                 .overrideConfiguration().orElse(null));
@@ -327,7 +313,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     @Override
     public CompletableFuture<TestDiscoveryRequiredResponse> testDiscoveryRequired(
             TestDiscoveryRequiredRequest testDiscoveryRequiredRequest) {
-        SdkClientConfiguration clientConfiguration = this.clientConfigurationForRequest.apply(testDiscoveryRequiredRequest,
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(testDiscoveryRequiredRequest,
                 this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, testDiscoveryRequiredRequest
                 .overrideConfiguration().orElse(null));
@@ -416,6 +402,17 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    protected SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
+        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = (consumer, configBuilder) -> {
+            EndpointDiscoveryTestServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = EndpointDiscoveryTestServiceClientConfigurationBuilder
+                    .builder(configBuilder);
+            consumer.accept(serviceConfigBuilder);
+            return serviceConfigBuilder.buildSdkClientConfiguration();
+        };
+        List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.registeredPlugins()).orElse(Collections.emptyList());
+        return SdkClientConfigurationUtil.invokePlugins(clientConfiguration, plugins, configurationUpdater);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
