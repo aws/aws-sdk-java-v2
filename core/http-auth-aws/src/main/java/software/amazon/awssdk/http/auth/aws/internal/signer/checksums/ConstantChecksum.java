@@ -55,9 +55,4 @@ public class ConstantChecksum implements SdkChecksum {
     @Override
     public void mark(int readLimit) {
     }
-
-    @Override
-    public String getChecksum() {
-        return value;
-    }
 }

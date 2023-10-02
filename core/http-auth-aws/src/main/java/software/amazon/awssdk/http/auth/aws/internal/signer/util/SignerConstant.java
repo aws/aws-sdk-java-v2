@@ -49,6 +49,8 @@ public final class SignerConstant {
 
     public static final String X_AMZ_TRAILER = "x-amz-trailer";
 
+    public static final String AWS_CHUNKED = "aws-chunked";
+
     public static final String HOST = "Host";
 
     public static final String LINE_SEPARATOR = "\n";
