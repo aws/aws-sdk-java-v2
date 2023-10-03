@@ -121,9 +121,9 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean hasChecksumHeader = hasChecksumHeader(request);
-        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false) && !hasChecksumHeader;
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
         boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
-        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM) && !hasChecksumHeader;
         boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
 
         if (isEventStreaming) {
@@ -150,7 +150,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             }
         }
 
-        if (isFlexible && !hasChecksumHeader) {
+        if (isFlexible) {
             return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
         }
 
@@ -161,15 +161,21 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
     }
 
+    private static boolean useChunkEncoding(boolean payloadSigningEnabled, boolean chunkEncodingEnabled,
+                                            boolean isTrailingOrFlexible) {
+
+        return (payloadSigningEnabled && chunkEncodingEnabled) || (chunkEncodingEnabled && isTrailingOrFlexible);
+    }
+
     private static V4PayloadSigner v4PayloadSigner(
         BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4Properties properties) {
 
         boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
-        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false) && !hasChecksumHeader(request);
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
         boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
-        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM) && !hasChecksumHeader(request);
 
         if (isEventStreaming) {
             if (isPayloadSigning) {
@@ -182,7 +188,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             throw new UnsupportedOperationException("Unsigned payload is not supported with event-streaming.");
         }
 
-        if ((isChunkEncoding && isPayloadSigning) || (isChunkEncoding && (isTrailing || isFlexible))) {
+        if (useChunkEncoding(isPayloadSigning, isChunkEncoding, isTrailing || isFlexible)) {
             return AwsChunkedV4PayloadSigner.builder()
                                             .credentialScope(properties.getCredentialScope())
                                             .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
