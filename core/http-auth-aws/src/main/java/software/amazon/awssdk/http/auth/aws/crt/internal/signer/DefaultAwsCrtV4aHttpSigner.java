@@ -25,6 +25,7 @@ import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignin
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtHttpRequestConverter.toRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.sanitizeRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.isAnonymous;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
@@ -35,6 +36,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
@@ -85,7 +87,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4aProperties v4aProperties) {
 
-        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isPayloadSigning = isPayloadSigning(request);
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
         boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
         boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
@@ -124,10 +126,10 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
         AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
         Duration expirationDuration = request.property(EXPIRATION_DURATION);
-        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isPayloadSigning = isPayloadSigning(request);
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
         boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
-        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM);
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM) && !hasChecksumHeader(request);
 
         AwsSigningConfig signingConfig = new AwsSigningConfig();
         signingConfig.setCredentials(toCredentials(v4aProperties.getCredentials()));
@@ -167,16 +169,26 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         return signingConfig;
     }
 
+    private static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        boolean isAnonymous = isAnonymous(request.identity());
+        boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isEncrypted = "https".equals(request.request().protocol());
+
+        return !isAnonymous && (isPayloadSigningEnabled || !isEncrypted);
+    }
+
     private static void configureUnsignedPayload(AwsSigningConfig signingConfig, boolean isChunkEncoding,
                                                  boolean isTrailingOrFlexible) {
         if (isChunkEncoding && isTrailingOrFlexible) {
-                signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
         } else {
             signingConfig.setSignedBodyValue(UNSIGNED_PAYLOAD);
         }
     }
 
-    private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding, boolean isTrailingOrFlexible) {
+    private static void configurePayloadSigning(AwsSigningConfig signingConfig, boolean isChunkEncoding,
+                                                boolean isTrailingOrFlexible) {
+
         if (isChunkEncoding) {
             if (isTrailingOrFlexible) {
                 signingConfig.setSignedBodyValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
@@ -185,6 +197,17 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
             }
         }
         // if it's non-streaming, crt should calcualte the SHA256 body-hash
+    }
+
+    private static boolean hasChecksumHeader(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
+
+        if (checksumAlgorithm != null) {
+            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+            return request.request().firstMatchingHeader(checksumHeaderName).isPresent();
+        }
+
+        return false;
     }
 
     private static SignedRequest doSign(SignRequest<? extends AwsCredentialsIdentity> request,
