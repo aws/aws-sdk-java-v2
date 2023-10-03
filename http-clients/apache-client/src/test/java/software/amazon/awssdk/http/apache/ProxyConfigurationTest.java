@@ -32,6 +32,7 @@ public class ProxyConfigurationTest {
     @BeforeEach
     public void setup() {
         clearProxyProperties();
+        ENVIRONMENT_VARIABLE_HELPER.reset();
     }
 
     @AfterAll
@@ -51,7 +52,7 @@ public class ProxyConfigurationTest {
 
         assertThat(config.host()).isEqualTo(host);
         assertThat(config.port()).isEqualTo(port);
-        assertThat(config.scheme()).isNull();
+        assertThat(config.scheme()).isEqualTo("http");
 
     }
 
@@ -69,7 +70,7 @@ public class ProxyConfigurationTest {
 
         assertThat(config.host()).isEqualTo(host);
         assertThat(config.port()).isEqualTo(port);
-        assertThat(config.scheme()).isNull();
+        assertThat(config.scheme()).isEqualTo("http");
     }
 
     @Test
