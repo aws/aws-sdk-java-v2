@@ -110,8 +110,8 @@ public class AwsChunkedV4PayloadSignerTest {
             "4;chunk-signature=aff22ddad9d4388233fe9bc47e9c552a6e9ba9285af79555d2ce7fdaab726320\r\n: \"f\r\n" +
             "4;chunk-signature=30e55f4e1c1fd444c06e9be42d9594b8fd7ead436bc67a58b5350ffd58b6aaa5\r\noo\"}\r\n" +
             "0;chunk-signature=825ad80195cae47f54984835543ff2179c2c5a53c324059cd632e50259384ee3\r\n" +
-            "x-amz-checksum-crc32:a0bf9afe\r\n" +
-            "x-amz-trailer-signature:6a0343202e883c7a91c5bfeeb18a564a0bc8f294089530b443dfb4a16a3cdc92\r\n\r\n";
+            "x-amz-checksum-crc32:oL+a/g==\r\n" +
+            "x-amz-trailer-signature:23457d04f4a8e279780cb91e28d4fbd1c6a2dd678d419705461a80514cea206c\r\n\r\n";
 
         requestBuilder.putHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
@@ -154,7 +154,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "4\r\n: \"f\r\n" +
             "4\r\noo\"}\r\n" +
             "0\r\n" +
-            "x-amz-checksum-sha256:a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2\r\n\r\n";
+            "x-amz-checksum-sha256:oVyCkrHRKru75BSGBfeHL732RWGP7lqw6AcqezTxVeI=\r\n\r\n";
 
         requestBuilder.putHeader("x-amz-content-sha256", "STREAMING-UNSIGNED-PAYLOAD-TRAILER");
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
@@ -251,7 +251,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "0\r\n" +
             "PreExistingHeader1:someValue1,someValue2\r\n" +
             "PreExistingHeader2:someValue3\r\n" +
-            "x-amz-checksum-crc32:a0bf9afe\r\n\r\n";
+            "x-amz-checksum-crc32:oL+a/g==\r\n\r\n";
 
         requestBuilder
             .putHeader("x-amz-content-sha256", "STREAMING-UNSIGNED-PAYLOAD-TRAILER")
@@ -307,8 +307,8 @@ public class AwsChunkedV4PayloadSignerTest {
             "0;chunk-signature=825ad80195cae47f54984835543ff2179c2c5a53c324059cd632e50259384ee3\r\n" +
             "zzz:123\r\n" +
             "PreExistingHeader1:someValue1\r\n" +
-            "x-amz-checksum-crc32:a0bf9afe\r\n" +
-            "x-amz-trailer-signature:6df1f5fff22281fd2e64ed859b0242a2651d06ec3f772a9f36c6bc6a1e006a3d\r\n\r\n";
+            "x-amz-checksum-crc32:oL+a/g==\r\n" +
+            "x-amz-trailer-signature:3f65ab57ede6a5fb7c77b14b35faf2d9dd2c6d89828bdae189a04f3677bc16f2\r\n\r\n";
 
         requestBuilder
             .putHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER")
@@ -359,7 +359,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "4\r\n: \"f\r\n" +
             "4\r\noo\"}\r\n" +
             "0\r\n" +
-            "x-amz-checksum-sha256:a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2\r\n\r\n";
+            "x-amz-checksum-sha256:oVyCkrHRKru75BSGBfeHL732RWGP7lqw6AcqezTxVeI=\r\n\r\n";
 
         requestBuilder.putHeader("x-amz-content-sha256", "STREAMING-UNSIGNED-PAYLOAD-TRAILER");
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
