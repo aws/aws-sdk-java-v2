@@ -278,7 +278,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueWithoutTrailer_Throws() {
+    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueWithoutTrailer_DelegatesToUnsignedPayload() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
@@ -288,6 +288,8 @@ public class DefaultAwsCrtV4aHttpSignerTest {
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
         );
 
-        assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
+        SignedRequest signedRequest = signer.sign(request);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
     }
 }
