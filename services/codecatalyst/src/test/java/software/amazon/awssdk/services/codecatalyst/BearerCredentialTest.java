@@ -18,13 +18,29 @@ package software.amazon.awssdk.services.codecatalyst;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import software.amazon.awssdk.auth.token.credentials.ProfileTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.codecatalyst.model.ListSpacesResponse;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
 public class BearerCredentialTest extends AwsIntegrationTestBase {
+
+    /*
+    The test is disabled because it requires a codecatalyst profile that requires a human to run:
+    `aws sso login --profile codecatalyst` before running this test. But leaving the test code here, so one can manually run it
+     locally if needed.
+     */
+    // @Test
+    public void realClientSucceeds() {
+        CodeCatalystClient client = CodeCatalystClient.builder()
+                                   .tokenProvider(ProfileTokenProvider.create("codecatalyst"))
+                                   .build();
+        ListSpacesResponse result = client.listSpaces(r -> {});
+        assertThat(result.items()).isNotNull();
+    }
     @Test
     public void syncClientSendsBearerToken() {
         try (MockSyncHttpClient httpClient = new MockSyncHttpClient();
