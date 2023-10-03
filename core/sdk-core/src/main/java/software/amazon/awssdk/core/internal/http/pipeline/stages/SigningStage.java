@@ -42,6 +42,7 @@ import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -50,6 +51,8 @@ import software.amazon.awssdk.utils.Pair;
 // TODO how does signing work with a request provider
 @SdkInternalApi
 public class SigningStage implements RequestToRequestPipeline {
+
+    private static final Logger log = Logger.loggerFor(SigningStage.class);
 
     private final HttpClientDependencies dependencies;
 
@@ -74,6 +77,7 @@ public class SigningStage implements RequestToRequestPipeline {
         if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES) != null) {
             SelectedAuthScheme<?> selectedAuthScheme =
                 context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            log.debug(() -> String.format("Using SelectedAuthScheme: %s", selectedAuthScheme.authSchemeOption().schemeId()));
             return sraSignRequest(request, context, selectedAuthScheme);
         }
         // else, this implies pre SRA client, with authType=None, so don't need to do anything
@@ -114,9 +118,7 @@ public class SigningStage implements RequestToRequestPipeline {
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SignedRequest signedRequest) {
         SdkHttpRequest request = signedRequest.request();
-        if (request instanceof SdkHttpFullRequest) {
-            return (SdkHttpFullRequest) request;
-        }
+
         return SdkHttpFullRequest.builder()
                                  .contentStreamProvider(signedRequest.payload().orElse(null))
                                  .protocol(request.protocol())

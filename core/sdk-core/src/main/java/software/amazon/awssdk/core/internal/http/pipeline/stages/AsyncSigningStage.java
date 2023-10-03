@@ -47,10 +47,13 @@ import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         CompletableFuture<SdkHttpFullRequest>> {
+
+    private static final Logger log = Logger.loggerFor(AsyncSigningStage.class);
 
     private final HttpClientDependencies dependencies;
 
@@ -75,6 +78,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES) != null) {
             SelectedAuthScheme<?> selectedAuthScheme =
                 context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            log.debug(() -> String.format("Using SelectedAuthScheme: %s", selectedAuthScheme.authSchemeOption().schemeId()));
             return sraSignRequest(request, context, selectedAuthScheme);
         }
         // else, this implies pre SRA client with authType=None, so don't need to do anything

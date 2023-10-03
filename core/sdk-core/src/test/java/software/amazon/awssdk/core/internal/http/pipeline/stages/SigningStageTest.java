@@ -120,7 +120,7 @@ public class SigningStageTest {
         assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
             .isEqualTo(httpClientDependencies.timeOffset());
 
-        assertThat(result).isSameAs(signedRequest);
+        assertThat(result).usingRecursiveComparison().isEqualTo(signedRequest);
         // assert that interceptor context is updated with result
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
@@ -166,7 +166,7 @@ public class SigningStageTest {
         assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
             .isEqualTo(httpClientDependencies.timeOffset());
 
-        assertThat(result).isSameAs(signedRequest);
+        assertThat(result).usingRecursiveComparison().isEqualTo(signedRequest);
         // Assert that interceptor context is updated with result
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
@@ -215,7 +215,7 @@ public class SigningStageTest {
         assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
             .isEqualTo(httpClientDependencies.timeOffset());
 
-        assertThat(result).isSameAs(signedRequest);
+        assertThat(result).usingRecursiveComparison().isEqualTo(signedRequest);
         // assert that interceptor context is updated with result
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
@@ -258,7 +258,7 @@ public class SigningStageTest {
         assertThat(context.executionAttributes().getAttribute(TIME_OFFSET))
             .isEqualTo(httpClientDependencies.timeOffset());
 
-        assertThat(result).isSameAs(signedRequest);
+        assertThat(result).usingRecursiveComparison().isEqualTo(signedRequest);
         // assert that interceptor context is updated with result
         assertThat(context.executionContext().interceptorContext().httpRequest()).isSameAs(result);
 
