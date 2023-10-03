@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "This release adds the ability to replace video frames without modifying the audio essence."
+}
