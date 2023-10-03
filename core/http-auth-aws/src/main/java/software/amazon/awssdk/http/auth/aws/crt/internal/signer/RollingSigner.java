@@ -49,6 +49,8 @@ public final class RollingSigner {
         // All the config remains the same as signing config except the Signature Type.
         AwsSigningConfig configCopy = signingConfig.clone();
         configCopy.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_CHUNK);
+        configCopy.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        configCopy.setSignedBodyValue(null);
 
         HttpRequestBodyStream crtBody = new CrtInputStream(() -> new ByteArrayInputStream(chunkBody));
         return CompletableFutureUtils.joinLikeSync(AwsSigner.signChunk(crtBody, previousSignature, configCopy));
@@ -64,6 +66,8 @@ public final class RollingSigner {
         // All the config remains the same as signing config except the Signature Type.
         AwsSigningConfig configCopy = signingConfig.clone();
         configCopy.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_TRAILING_HEADERS);
+        configCopy.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
+        configCopy.setSignedBodyValue(null);
 
         return CompletableFutureUtils.joinLikeSync(AwsSigner.sign(httpHeaderList, previousSignature, configCopy));
     }
@@ -72,12 +76,14 @@ public final class RollingSigner {
      * Using a template that incorporates the previous calculated signature, sign the string and return it.
      */
     public byte[] sign(byte[] chunkBody) {
-        return signChunk(chunkBody, previousSignature, signingConfig);
+        previousSignature = signChunk(chunkBody, previousSignature, signingConfig);
+        return previousSignature;
     }
 
     public byte[] sign(Map<String, List<String>> headerMap) {
         AwsSigningResult result = signTrailerHeaders(headerMap, previousSignature, signingConfig);
-        return result != null ? result.getSignature() : new byte[0];
+        previousSignature = result != null ? result.getSignature() : new byte[0];
+        return previousSignature;
     }
 
     public void reset() {
