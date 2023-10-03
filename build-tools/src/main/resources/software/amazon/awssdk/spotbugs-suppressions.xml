@@ -142,6 +142,11 @@
     </Match>
 
     <Match>
+        <Class name="software.amazon.awssdk.http.auth.aws.crt.internal.signer.RollingSigner" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
         <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
         <Method name="unmarshallStructured" />
         <Bug pattern="BC_UNCONFIRMED_CAST" />

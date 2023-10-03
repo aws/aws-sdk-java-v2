@@ -17,8 +17,6 @@ package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.fromChecksumAlgorithm;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AWS_CHUNKED;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.CONTENT_ENCODING;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
@@ -147,7 +145,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
             request.appendHeader(X_AMZ_TRAILER, checksumHeaderName);
         }
         request.putHeader(Header.CONTENT_LENGTH, Long.toString(encodedContentLength));
-        request.appendHeader(CONTENT_ENCODING, AWS_CHUNKED);
+        // CRT-signed request doesn't expect 'aws-chunked' Content-Encoding, so we don't add it
     }
 
     /**

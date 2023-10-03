@@ -30,6 +30,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.signer.Signer;
@@ -380,12 +382,15 @@ public class SigningStageTest {
                               // .httpRequest(request)
                               .build();
 
-        ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
-                                                                     .put(SELECTED_AUTH_SCHEME, selectedAuthScheme)
-                                                                     .build();
+        ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder()
+                                                                             .put(SELECTED_AUTH_SCHEME, selectedAuthScheme);
+        if (selectedAuthScheme != null) {
+            // Doesn't matter that it is empty, just needs to non-null, which implies SRA path.
+            executionAttributes.put(SdkInternalExecutionAttribute.AUTH_SCHEMES, new HashMap<>());
+        }
 
         ExecutionContext executionContext = ExecutionContext.builder()
-                                                            .executionAttributes(executionAttributes)
+                                                            .executionAttributes(executionAttributes.build())
                                                             .interceptorContext(interceptorContext)
                                                             .signer(oldSigner)
                                                             .build();
