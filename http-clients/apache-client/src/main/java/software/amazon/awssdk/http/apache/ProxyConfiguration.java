@@ -199,6 +199,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                        .build();
     }
 
+    public String resolveScheme() {
+        return endpoint != null ? endpoint.getScheme() : scheme;
+    }
 
     /**
      * A builder for {@link ProxyConfiguration}.
