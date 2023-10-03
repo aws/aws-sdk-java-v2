@@ -5,7 +5,6 @@ phases:
     commands:
       - pip install awscli --upgrade --user
 
-
   pre_build:
     commands:
       - ROOT=`pwd`
