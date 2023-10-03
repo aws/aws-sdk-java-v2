@@ -88,7 +88,6 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     private <T extends Identity> CompletableFuture<SdkHttpFullRequest> sraSignRequest(SdkHttpFullRequest request,
                                                                                       RequestExecutionContext context,
                                                                                       SelectedAuthScheme<T> selectedAuthScheme) {
-        updateHttpRequestInInterceptorContext(request, context.executionContext());
         adjustForClockSkew(context.executionAttributes());
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         return identityFuture.thenCompose(identity -> {

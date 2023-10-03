@@ -46,7 +46,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.signer.Signer;
@@ -382,9 +382,12 @@ public class SigningStageTest {
                               // .httpRequest(request)
                               .build();
 
-        ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
-                                                                     .put(SELECTED_AUTH_SCHEME, selectedAuthScheme)
-                                                                     .build();
+        ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder()
+                                                                             .put(SELECTED_AUTH_SCHEME, selectedAuthScheme);
+        if (selectedAuthScheme != null) {
+            // Doesn't matter that it is empty, just needs to non-null, which implies SRA path.
+            executionAttributes.put(SdkInternalExecutionAttribute.AUTH_SCHEMES, new HashMap<>());
+        }
 
         ExecutionContext executionContext = ExecutionContext.builder()
                                                             .executionAttributes(executionAttributes.build())
