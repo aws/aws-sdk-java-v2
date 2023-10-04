@@ -120,7 +120,8 @@ class GenericS3TransferManager implements S3TransferManager {
 
         CompletableFuture<CompletedUpload> returnFuture = new CompletableFuture<>();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest, requestBody);
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest,
+                                                                              requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
@@ -159,7 +160,8 @@ class GenericS3TransferManager implements S3TransferManager {
 
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest, requestBody);
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest,
+                                                                              requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);

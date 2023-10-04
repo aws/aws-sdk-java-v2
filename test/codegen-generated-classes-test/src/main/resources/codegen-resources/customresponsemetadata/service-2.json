@@ -111,6 +111,15 @@
       "input":{"shape":"OperationWithExplicitPayloadBlobInput"},
       "output":{"shape":"OperationWithExplicitPayloadBlobInput"}
     },
+    "OperationWithExplicitPayloadString":{
+      "name":"OperationWithExplicitPayloadString",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/operationWithExplicitPayloadString"
+      },
+      "input":{"shape":"OperationWithExplicitPayloadStringInput"},
+      "output":{"shape":"OperationWithExplicitPayloadStringInput"}
+    },
     "OperationWithExplicitPayloadStructure":{
       "name":"OperationWithExplicitPayloadStructure",
       "http":{
@@ -276,6 +285,31 @@
         "requestChecksumRequired": true,
         "requestAlgorithmMember": "ChecksumAlgorithm"
       }
+    },
+    "PutOperationWithRequestCompression":{
+      "name":"PutOperationWithRequestCompression",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RequestCompressionStructure"},
+      "output":{"shape":"RequestCompressionStructure"},
+      "requestCompression": {
+        "encodings": ["gzip"]
+      }
+    },
+    "PutOperationWithStreamingRequestCompression":{
+      "name":"PutOperationWithStreamingRequestCompression",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RequestCompressionStructureWithStreaming"},
+      "output":{"shape":"RequestCompressionStructureWithStreaming"},
+      "requestCompression": {
+        "encodings": ["gzip"]
+      },
+      "authtype":"v4-unsigned-body"
     },
     "GetOperationWithChecksum":{
       "name":"GetOperationWithChecksum",
@@ -672,6 +706,13 @@
       },
       "payload":"PayloadMember"
     },
+    "OperationWithExplicitPayloadStringInput":{
+      "type":"structure",
+      "members":{
+        "PayloadMember":{"shape":"String"}
+      },
+      "payload":"PayloadMember"
+    },
     "OperationWithExplicitPayloadStructureInput":{
       "type":"structure",
       "members":{
@@ -1007,6 +1048,28 @@
         }
       },
       "payload":"NestedQueryParameterOperation"
+    },
+    "RequestCompressionStructure":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":false
+        }
+      },
+      "payload":"Body"
+    },
+    "RequestCompressionStructureWithStreaming":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":true
+        }
+      },
+      "payload":"Body"
     }
   }
 }

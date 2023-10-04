@@ -1,0 +1,60 @@
+{
+    "version": "2.20.154",
+    "date": "2023-09-25",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3TransferManager",
+            "contributor": "graebm",
+            "description": "Fix [aws-crt-java issue [#686](https://github.com/aws/aws-sdk-java-v2/issues/686)](https://github.com/awslabs/aws-crt-java/issues/686) S3AsyncClient ignoring trustAllCertificatesEnabled setting"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Amplify UI Builder",
+            "contributor": "",
+            "description": "Support for generating code that is compatible with future versions of amplify project dependencies."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "You can now perform an exact match against the web request's JA3 fingerprint."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Media Pipelines",
+            "contributor": "",
+            "description": "Adds support for sending WebRTC audio to Amazon Kineses Video Streams."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Added ability to tag users upon creation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "This release updates the enum values for ResourceType in SSM DescribeInstanceInformation input and ConnectionStatus in GetConnectionStatus output."
+        },
+        {
+            "type": "feature",
+            "category": "EMR Serverless",
+            "contributor": "",
+            "description": "This release adds support for application-wide default job configurations."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "Adding sensitive trait to attributes. Change max SessionDuration from 720 to 60. Correct \"ApiAccess\" attribute to \"apiAccess\" to maintain consistency between APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

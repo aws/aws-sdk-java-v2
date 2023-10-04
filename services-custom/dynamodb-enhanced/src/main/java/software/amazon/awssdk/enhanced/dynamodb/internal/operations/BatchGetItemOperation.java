@@ -62,6 +62,7 @@ public class BatchGetItemOperation
 
         return BatchGetItemRequest.builder()
                                   .requestItems(Collections.unmodifiableMap(requestItems))
+                                  .returnConsumedCapacity(request.returnConsumedCapacityAsString())
                                   .build();
     }
 

@@ -113,6 +113,48 @@
       ],
       "documentation":"<p>Creates a media live connector pipeline in an Amazon Chime SDK meeting.</p>"
     },
+    "CreateMediaPipelineKinesisVideoStreamPool":{
+      "name":"CreateMediaPipelineKinesisVideoStreamPool",
+      "http":{
+        "method":"POST",
+        "requestUri":"/media-pipeline-kinesis-video-stream-pools",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateMediaPipelineKinesisVideoStreamPoolRequest"},
+      "output":{"shape":"CreateMediaPipelineKinesisVideoStreamPoolResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ResourceLimitExceededException"},
+        {"shape":"ConflictException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Creates an Kinesis video stream pool for the media pipeline.</p>"
+    },
+    "CreateMediaStreamPipeline":{
+      "name":"CreateMediaStreamPipeline",
+      "http":{
+        "method":"POST",
+        "requestUri":"/sdk-media-stream-pipelines",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateMediaStreamPipelineRequest"},
+      "output":{"shape":"CreateMediaStreamPipelineResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ResourceLimitExceededException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Creates a streaming media pipeline.</p>"
+    },
     "DeleteMediaCapturePipeline":{
       "name":"DeleteMediaCapturePipeline",
       "http":{
@@ -166,10 +208,31 @@
         {"shape":"ThrottledClientException"},
         {"shape":"NotFoundException"},
         {"shape":"UnauthorizedClientException"},
+        {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"},
         {"shape":"ServiceFailureException"}
       ],
       "documentation":"<p>Deletes the media pipeline.</p>"
+    },
+    "DeleteMediaPipelineKinesisVideoStreamPool":{
+      "name":"DeleteMediaPipelineKinesisVideoStreamPool",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/media-pipeline-kinesis-video-stream-pools/{identifier}",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteMediaPipelineKinesisVideoStreamPoolRequest"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ConflictException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Deletes an Kinesis video stream pool.</p>"
     },
     "GetMediaCapturePipeline":{
       "name":"GetMediaCapturePipeline",
@@ -231,6 +294,66 @@
       ],
       "documentation":"<p>Gets an existing media pipeline.</p>"
     },
+    "GetMediaPipelineKinesisVideoStreamPool":{
+      "name":"GetMediaPipelineKinesisVideoStreamPool",
+      "http":{
+        "method":"GET",
+        "requestUri":"/media-pipeline-kinesis-video-stream-pools/{identifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetMediaPipelineKinesisVideoStreamPoolRequest"},
+      "output":{"shape":"GetMediaPipelineKinesisVideoStreamPoolResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Gets an Kinesis video stream pool.</p>"
+    },
+    "GetSpeakerSearchTask":{
+      "name":"GetSpeakerSearchTask",
+      "http":{
+        "method":"GET",
+        "requestUri":"/media-insights-pipelines/{identifier}/speaker-search-tasks/{speakerSearchTaskId}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetSpeakerSearchTaskRequest"},
+      "output":{"shape":"GetSpeakerSearchTaskResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Retrieves the details of the specified speaker search task.</p>"
+    },
+    "GetVoiceToneAnalysisTask":{
+      "name":"GetVoiceToneAnalysisTask",
+      "http":{
+        "method":"GET",
+        "requestUri":"/media-insights-pipelines/{identifier}/voice-tone-analysis-tasks/{voiceToneAnalysisTaskId}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetVoiceToneAnalysisTaskRequest"},
+      "output":{"shape":"GetVoiceToneAnalysisTaskResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Retrieves the details of a voice tone analysis task.</p>"
+    },
     "ListMediaCapturePipelines":{
       "name":"ListMediaCapturePipelines",
       "http":{
@@ -271,6 +394,26 @@
       ],
       "documentation":"<p>Lists the available media insights pipeline configurations.</p>"
     },
+    "ListMediaPipelineKinesisVideoStreamPools":{
+      "name":"ListMediaPipelineKinesisVideoStreamPools",
+      "http":{
+        "method":"GET",
+        "requestUri":"/media-pipeline-kinesis-video-stream-pools",
+        "responseCode":200
+      },
+      "input":{"shape":"ListMediaPipelineKinesisVideoStreamPoolsRequest"},
+      "output":{"shape":"ListMediaPipelineKinesisVideoStreamPoolsResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ResourceLimitExceededException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Lists the video stream pools in the media pipeline.</p>"
+    },
     "ListMediaPipelines":{
       "name":"ListMediaPipelines",
       "http":{
@@ -310,6 +453,88 @@
         {"shape":"ServiceFailureException"}
       ],
       "documentation":"<p>Lists the tags available for a media pipeline.</p>"
+    },
+    "StartSpeakerSearchTask":{
+      "name":"StartSpeakerSearchTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/media-insights-pipelines/{identifier}/speaker-search-tasks?operation=start",
+        "responseCode":201
+      },
+      "input":{"shape":"StartSpeakerSearchTaskRequest"},
+      "output":{"shape":"StartSpeakerSearchTaskResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ConflictException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Starts a speaker search task.</p> <important> <p>Before starting any speaker search tasks, you must provide all notices and obtain all consents from the speaker as required under applicable privacy and biometrics laws, and as required under the <a href=\"https://aws.amazon.com/service-terms/\">AWS service terms</a> for the Amazon Chime SDK.</p> </important>"
+    },
+    "StartVoiceToneAnalysisTask":{
+      "name":"StartVoiceToneAnalysisTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/media-insights-pipelines/{identifier}/voice-tone-analysis-tasks?operation=start",
+        "responseCode":201
+      },
+      "input":{"shape":"StartVoiceToneAnalysisTaskRequest"},
+      "output":{"shape":"StartVoiceToneAnalysisTaskResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ConflictException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Starts a voice tone analysis task. For more information about voice tone analysis, see <a href=\"https://docs.aws.amazon.com/chime-sdk/latest/dg/voice-analytics.html\">Using Amazon Chime SDK voice analytics</a> in the <i>Amazon Chime SDK Developer Guide</i>.</p> <important> <p>Before starting any voice tone analysis tasks, you must provide all notices and obtain all consents from the speaker as required under applicable privacy and biometrics laws, and as required under the <a href=\"https://aws.amazon.com/service-terms/\">AWS service terms</a> for the Amazon Chime SDK.</p> </important>"
+    },
+    "StopSpeakerSearchTask":{
+      "name":"StopSpeakerSearchTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/media-insights-pipelines/{identifier}/speaker-search-tasks/{speakerSearchTaskId}?operation=stop",
+        "responseCode":204
+      },
+      "input":{"shape":"StopSpeakerSearchTaskRequest"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ConflictException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Stops a speaker search task.</p>"
+    },
+    "StopVoiceToneAnalysisTask":{
+      "name":"StopVoiceToneAnalysisTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/media-insights-pipelines/{identifier}/voice-tone-analysis-tasks/{voiceToneAnalysisTaskId}?operation=stop",
+        "responseCode":204
+      },
+      "input":{"shape":"StopVoiceToneAnalysisTaskRequest"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"ConflictException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"NotFoundException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Stops a voice tone analysis task.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -391,6 +616,27 @@
         {"shape":"ServiceFailureException"}
       ],
       "documentation":"<p>Updates the status of a media insights pipeline.</p>"
+    },
+    "UpdateMediaPipelineKinesisVideoStreamPool":{
+      "name":"UpdateMediaPipelineKinesisVideoStreamPool",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/media-pipeline-kinesis-video-stream-pools/{identifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateMediaPipelineKinesisVideoStreamPoolRequest"},
+      "output":{"shape":"UpdateMediaPipelineKinesisVideoStreamPoolResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"NotFoundException"},
+        {"shape":"UnauthorizedClientException"},
+        {"shape":"ThrottledClientException"},
+        {"shape":"ConflictException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ServiceFailureException"}
+      ],
+      "documentation":"<p>Updates an Kinesis video stream pool in a media pipeline.</p>"
     }
   },
   "shapes":{
@@ -692,6 +938,12 @@
     "AudioSampleRateOption":{
       "type":"string",
       "pattern":"44100|48000"
+    },
+    "AwsRegion":{
+      "type":"string",
+      "max":32,
+      "min":1,
+      "pattern":"^([a-z]+-){2,}\\d+$"
     },
     "BadRequestException":{
       "type":"structure",
@@ -1204,6 +1456,76 @@
         }
       }
     },
+    "CreateMediaPipelineKinesisVideoStreamPoolRequest":{
+      "type":"structure",
+      "required":[
+        "StreamConfiguration",
+        "PoolName"
+      ],
+      "members":{
+        "StreamConfiguration":{
+          "shape":"KinesisVideoStreamConfiguration",
+          "documentation":"<p>The configuration settings for the video stream.</p>"
+        },
+        "PoolName":{
+          "shape":"KinesisVideoStreamPoolName",
+          "documentation":"<p>The name of the video stream pool.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>The token assigned to the client making the request.</p>",
+          "idempotencyToken":true
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags assigned to the video stream pool.</p>"
+        }
+      }
+    },
+    "CreateMediaPipelineKinesisVideoStreamPoolResponse":{
+      "type":"structure",
+      "members":{
+        "KinesisVideoStreamPoolConfiguration":{
+          "shape":"KinesisVideoStreamPoolConfiguration",
+          "documentation":"<p>The configuration for the Kinesis video stream pool.</p>"
+        }
+      }
+    },
+    "CreateMediaStreamPipelineRequest":{
+      "type":"structure",
+      "required":[
+        "Sources",
+        "Sinks"
+      ],
+      "members":{
+        "Sources":{
+          "shape":"MediaStreamSourceList",
+          "documentation":"<p>The data sources for the media pipeline.</p>"
+        },
+        "Sinks":{
+          "shape":"MediaStreamSinkList",
+          "documentation":"<p>The data sink for the media pipeline.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>The token assigned to the client making the request.</p>",
+          "idempotencyToken":true
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags assigned to the media pipeline.</p>"
+        }
+      }
+    },
+    "CreateMediaStreamPipelineResponse":{
+      "type":"structure",
+      "members":{
+        "MediaStreamPipeline":{
+          "shape":"MediaStreamPipeline",
+          "documentation":"<p>The requested media pipeline.</p>"
+        }
+      }
+    },
     "DataChannelConcatenationConfiguration":{
       "type":"structure",
       "required":["State"],
@@ -1214,6 +1536,14 @@
         }
       },
       "documentation":"<p>The content configuration object's data channel.</p>"
+    },
+    "DataRetentionChangeInHours":{
+      "type":"integer",
+      "min":1
+    },
+    "DataRetentionInHours":{
+      "type":"integer",
+      "min":0
     },
     "DeleteMediaCapturePipelineRequest":{
       "type":"structure",
@@ -1234,6 +1564,18 @@
         "Identifier":{
           "shape":"NonEmptyString",
           "documentation":"<p>The unique identifier of the resource to be deleted. Valid values include the name and ARN of the media insights pipeline configuration.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        }
+      }
+    },
+    "DeleteMediaPipelineKinesisVideoStreamPoolRequest":{
+      "type":"structure",
+      "required":["Identifier"],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ID of the pool being deleted.</p>",
           "location":"uri",
           "locationName":"identifier"
         }
@@ -1303,7 +1645,7 @@
       "members":{
         "FragmentSelectorType":{
           "shape":"FragmentSelectorType",
-          "documentation":"<p>The origin of the timestamps to use, <code>Server</code> or <code>Producer</code>. For more information, see <a href=\"kinesisvideostreams/latest/dg/API_dataplane_StartSelector.html#KinesisVideo-Type-dataplane_StartSelector-StartSelectorType\">StartSelectorType</a> in the <i>Amazon Kinesis Video Streams Developer Guide</i>.</p>"
+          "documentation":"<p>The origin of the timestamps to use, <code>Server</code> or <code>Producer</code>. For more information, see <a href=\"https://docs.aws.amazon.com/kinesisvideostreams/latest/dg/API_dataplane_StartSelector.html\">StartSelectorType</a> in the <i>Amazon Kinesis Video Streams Developer Guide</i>.</p>"
         },
         "TimestampRange":{
           "shape":"TimestampRange",
@@ -1361,6 +1703,27 @@
         }
       }
     },
+    "GetMediaPipelineKinesisVideoStreamPoolRequest":{
+      "type":"structure",
+      "required":["Identifier"],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ID of the video stream pool.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        }
+      }
+    },
+    "GetMediaPipelineKinesisVideoStreamPoolResponse":{
+      "type":"structure",
+      "members":{
+        "KinesisVideoStreamPoolConfiguration":{
+          "shape":"KinesisVideoStreamPoolConfiguration",
+          "documentation":"<p>The video stream pool configuration object.</p>"
+        }
+      }
+    },
     "GetMediaPipelineRequest":{
       "type":"structure",
       "required":["MediaPipelineId"],
@@ -1379,6 +1742,66 @@
         "MediaPipeline":{
           "shape":"MediaPipeline",
           "documentation":"<p>The media pipeline object.</p>"
+        }
+      }
+    },
+    "GetSpeakerSearchTaskRequest":{
+      "type":"structure",
+      "required":[
+        "Identifier",
+        "SpeakerSearchTaskId"
+      ],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The unique identifier of the resource to be updated. Valid values include the ID and ARN of the media insights pipeline.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "SpeakerSearchTaskId":{
+          "shape":"GuidString",
+          "documentation":"<p>The ID of the speaker search task.</p>",
+          "location":"uri",
+          "locationName":"speakerSearchTaskId"
+        }
+      }
+    },
+    "GetSpeakerSearchTaskResponse":{
+      "type":"structure",
+      "members":{
+        "SpeakerSearchTask":{
+          "shape":"SpeakerSearchTask",
+          "documentation":"<p>The details of the speaker search task.</p>"
+        }
+      }
+    },
+    "GetVoiceToneAnalysisTaskRequest":{
+      "type":"structure",
+      "required":[
+        "Identifier",
+        "VoiceToneAnalysisTaskId"
+      ],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The unique identifier of the resource to be updated. Valid values include the ID and ARN of the media insights pipeline.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "VoiceToneAnalysisTaskId":{
+          "shape":"GuidString",
+          "documentation":"<p>The ID of the voice tone analysis task.</p>",
+          "location":"uri",
+          "locationName":"voiceToneAnalysisTaskId"
+        }
+      }
+    },
+    "GetVoiceToneAnalysisTaskResponse":{
+      "type":"structure",
+      "members":{
+        "VoiceToneAnalysisTask":{
+          "shape":"VoiceToneAnalysisTask",
+          "documentation":"<p>The details of the voice tone analysis task.</p>"
         }
       }
     },
@@ -1451,7 +1874,7 @@
         },
         "TileAspectRatio":{
           "shape":"TileAspectRatio",
-          "documentation":"<p>Sets the aspect ratio of the video tiles, such as 16:9.</p>"
+          "documentation":"<p>Specifies the aspect ratio of all video tiles.</p>"
         }
       },
       "documentation":"<p>Defines the configuration settings for the horizontal layout.</p>"
@@ -1528,6 +1951,117 @@
       "min":1,
       "pattern":"arn:[a-z\\d-]+:kinesisvideo:[a-z0-9-]+:[0-9]+:[a-z]+/[a-zA-Z0-9_.-]+/[0-9]+"
     },
+    "KinesisVideoStreamConfiguration":{
+      "type":"structure",
+      "required":["Region"],
+      "members":{
+        "Region":{
+          "shape":"AwsRegion",
+          "documentation":"<p>The Amazon Web Services Region of the video stream.</p>"
+        },
+        "DataRetentionInHours":{
+          "shape":"DataRetentionInHours",
+          "documentation":"<p>The amount of time that data is retained.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of an Kinesis video stream.</p>"
+    },
+    "KinesisVideoStreamConfigurationUpdate":{
+      "type":"structure",
+      "members":{
+        "DataRetentionInHours":{
+          "shape":"DataRetentionChangeInHours",
+          "documentation":"<p>The updated time that data is retained.</p>"
+        }
+      },
+      "documentation":"<p>The updated Kinesis video stream configuration object.</p>"
+    },
+    "KinesisVideoStreamPoolConfiguration":{
+      "type":"structure",
+      "members":{
+        "PoolArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the video stream pool configuration.</p>"
+        },
+        "PoolName":{
+          "shape":"KinesisVideoStreamPoolName",
+          "documentation":"<p>The name of the video stream pool configuration.</p>"
+        },
+        "PoolId":{
+          "shape":"KinesisVideoStreamPoolId",
+          "documentation":"<p>The ID of the video stream pool in the configuration.</p>"
+        },
+        "PoolStatus":{
+          "shape":"KinesisVideoStreamPoolStatus",
+          "documentation":"<p>The status of the video stream pool in the configuration. </p>"
+        },
+        "PoolSize":{
+          "shape":"KinesisVideoStreamPoolSize",
+          "documentation":"<p>The size of the video stream pool in the configuration.</p>"
+        },
+        "StreamConfiguration":{
+          "shape":"KinesisVideoStreamConfiguration",
+          "documentation":"<p>The Kinesis video stream pool configuration object.</p>"
+        },
+        "CreatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which the configuration was created.</p>"
+        },
+        "UpdatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which the configuration was updated.</p>"
+        }
+      },
+      "documentation":"<p>The video stream pool configuration object.</p>"
+    },
+    "KinesisVideoStreamPoolId":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"^[0-9a-zA-Z._-]+"
+    },
+    "KinesisVideoStreamPoolName":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^[0-9a-zA-Z._-]+"
+    },
+    "KinesisVideoStreamPoolSize":{
+      "type":"integer",
+      "min":0
+    },
+    "KinesisVideoStreamPoolStatus":{
+      "type":"string",
+      "enum":[
+        "CREATING",
+        "ACTIVE",
+        "UPDATING",
+        "DELETING",
+        "FAILED"
+      ]
+    },
+    "KinesisVideoStreamPoolSummary":{
+      "type":"structure",
+      "members":{
+        "PoolName":{
+          "shape":"KinesisVideoStreamPoolName",
+          "documentation":"<p>The name of the video stream pool.</p>"
+        },
+        "PoolId":{
+          "shape":"KinesisVideoStreamPoolId",
+          "documentation":"<p>The ID of the video stream pool.</p>"
+        },
+        "PoolArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the video stream pool.</p>"
+        }
+      },
+      "documentation":"<p>A summary of the Kinesis video stream pool.</p>"
+    },
+    "KinesisVideoStreamPoolSummaryList":{
+      "type":"list",
+      "member":{"shape":"KinesisVideoStreamPoolSummary"}
+    },
     "KinesisVideoStreamRecordingSourceRuntimeConfiguration":{
       "type":"structure",
       "required":[
@@ -1568,6 +2102,28 @@
         }
       },
       "documentation":"<p>The runtime configuration settings for the Kinesis video stream source.</p>"
+    },
+    "KinesisVideoStreamSourceTaskConfiguration":{
+      "type":"structure",
+      "required":[
+        "StreamArn",
+        "ChannelId"
+      ],
+      "members":{
+        "StreamArn":{
+          "shape":"KinesisVideoStreamArn",
+          "documentation":"<p>The ARN of the stream.</p>"
+        },
+        "ChannelId":{
+          "shape":"ChannelId",
+          "documentation":"<p>The channel ID.</p>"
+        },
+        "FragmentNumber":{
+          "shape":"FragmentNumberString",
+          "documentation":"<p>The unique identifier of the fragment to begin processing.</p>"
+        }
+      },
+      "documentation":"<p>The task configuration settings for the Kinesis video stream source.</p>"
     },
     "LambdaFunctionSinkConfiguration":{
       "type":"structure",
@@ -1646,6 +2202,36 @@
         "NextToken":{
           "shape":"String",
           "documentation":"<p>The token used to return the next page of results. </p>"
+        }
+      }
+    },
+    "ListMediaPipelineKinesisVideoStreamPoolsRequest":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token used to return the next page of results. </p>",
+          "location":"querystring",
+          "locationName":"next-token"
+        },
+        "MaxResults":{
+          "shape":"ResultMax",
+          "documentation":"<p>The maximum number of results to return in a single call.</p>",
+          "location":"querystring",
+          "locationName":"max-results"
+        }
+      }
+    },
+    "ListMediaPipelineKinesisVideoStreamPoolsResponse":{
+      "type":"structure",
+      "members":{
+        "KinesisVideoStreamPools":{
+          "shape":"KinesisVideoStreamPoolSummaryList",
+          "documentation":"<p>The list of video stream pools.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token used to return the next page of results.</p>"
         }
       }
     },
@@ -1940,6 +2526,10 @@
         "CreatedTimestamp":{
           "shape":"Iso8601Timestamp",
           "documentation":"<p>The time at which the media insights pipeline was created.</p>"
+        },
+        "ElementStatuses":{
+          "shape":"MediaInsightsPipelineElementStatuses",
+          "documentation":"<p>The statuses that the elements in a media insights pipeline can have during data processing.</p>"
         }
       },
       "documentation":"<p>A media pipeline that streams call analytics data.</p>"
@@ -2021,6 +2611,10 @@
         "SnsTopicSinkConfiguration":{
           "shape":"SnsTopicSinkConfiguration",
           "documentation":"<p>The configuration settings for an SNS topic sink in a media insights pipeline configuration element.</p>"
+        },
+        "VoiceEnhancementSinkConfiguration":{
+          "shape":"VoiceEnhancementSinkConfiguration",
+          "documentation":"<p>The configuration settings for voice enhancement sink in a media insights pipeline configuration element.</p>"
         }
       },
       "documentation":"<p>An element in a media insights pipeline configuration.</p>"
@@ -2035,7 +2629,8 @@
         "LambdaFunctionSink",
         "SqsQueueSink",
         "SnsTopicSink",
-        "S3RecordingSink"
+        "S3RecordingSink",
+        "VoiceEnhancementSink"
       ]
     },
     "MediaInsightsPipelineConfigurationElements":{
@@ -2069,6 +2664,24 @@
     "MediaInsightsPipelineConfigurationSummaryList":{
       "type":"list",
       "member":{"shape":"MediaInsightsPipelineConfigurationSummary"}
+    },
+    "MediaInsightsPipelineElementStatus":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"MediaInsightsPipelineConfigurationElementType",
+          "documentation":"<p>The type of status.</p>"
+        },
+        "Status":{
+          "shape":"MediaPipelineElementStatus",
+          "documentation":"<p>The element's status.</p>"
+        }
+      },
+      "documentation":"<p>The status of the pipeline element.</p>"
+    },
+    "MediaInsightsPipelineElementStatuses":{
+      "type":"list",
+      "member":{"shape":"MediaInsightsPipelineElementStatus"}
     },
     "MediaInsightsRuntimeMetadata":{
       "type":"map",
@@ -2128,9 +2741,26 @@
         "MediaInsightsPipeline":{
           "shape":"MediaInsightsPipeline",
           "documentation":"<p>The media insights pipeline of a media pipeline.</p>"
+        },
+        "MediaStreamPipeline":{
+          "shape":"MediaStreamPipeline",
+          "documentation":"<p>Designates a media pipeline as a media stream pipeline.</p>"
         }
       },
       "documentation":"<p>A pipeline consisting of a media capture, media concatenation, or live-streaming pipeline.</p>"
+    },
+    "MediaPipelineElementStatus":{
+      "type":"string",
+      "enum":[
+        "NotStarted",
+        "NotSupported",
+        "Initializing",
+        "InProgress",
+        "Failed",
+        "Stopping",
+        "Stopped",
+        "Paused"
+      ]
     },
     "MediaPipelineList":{
       "type":"list",
@@ -2152,7 +2782,8 @@
         "Failed",
         "Stopping",
         "Stopped",
-        "Paused"
+        "Paused",
+        "NotStarted"
       ]
     },
     "MediaPipelineStatusUpdate":{
@@ -2176,10 +2807,123 @@
       },
       "documentation":"<p>The summary of the media pipeline.</p>"
     },
+    "MediaPipelineTaskStatus":{
+      "type":"string",
+      "enum":[
+        "NotStarted",
+        "Initializing",
+        "InProgress",
+        "Failed",
+        "Stopping",
+        "Stopped"
+      ]
+    },
     "MediaSampleRateHertz":{
       "type":"integer",
       "max":48000,
       "min":8000
+    },
+    "MediaStreamPipeline":{
+      "type":"structure",
+      "members":{
+        "MediaPipelineId":{
+          "shape":"GuidString",
+          "documentation":"<p>The ID of the media stream pipeline</p>"
+        },
+        "MediaPipelineArn":{
+          "shape":"AmazonResourceName",
+          "documentation":"<p>The ARN of the media stream pipeline.</p>"
+        },
+        "CreatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which the media stream pipeline was created.</p>"
+        },
+        "UpdatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which the media stream pipeline was updated.</p>"
+        },
+        "Status":{
+          "shape":"MediaPipelineStatus",
+          "documentation":"<p>The status of the media stream pipeline.</p>"
+        },
+        "Sources":{
+          "shape":"MediaStreamSourceList",
+          "documentation":"<p>The media stream pipeline's data sources.</p>"
+        },
+        "Sinks":{
+          "shape":"MediaStreamSinkList",
+          "documentation":"<p>The media stream pipeline's data sinks.</p>"
+        }
+      },
+      "documentation":"<p>Structure that contains the settings for a media stream pipeline.</p>"
+    },
+    "MediaStreamPipelineSinkType":{
+      "type":"string",
+      "enum":["KinesisVideoStreamPool"]
+    },
+    "MediaStreamSink":{
+      "type":"structure",
+      "required":[
+        "SinkArn",
+        "SinkType",
+        "ReservedStreamCapacity",
+        "MediaStreamType"
+      ],
+      "members":{
+        "SinkArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the media stream sink.</p>"
+        },
+        "SinkType":{
+          "shape":"MediaStreamPipelineSinkType",
+          "documentation":"<p>The media stream sink's type.</p>"
+        },
+        "ReservedStreamCapacity":{
+          "shape":"ReservedStreamCapacity",
+          "documentation":"<p>Specifies the number of streams that the sink can accept.</p>"
+        },
+        "MediaStreamType":{
+          "shape":"MediaStreamType",
+          "documentation":"<p>The media stream sink's media stream type.</p>"
+        }
+      },
+      "documentation":"<p>Structure that contains the settings for a media stream sink.</p>"
+    },
+    "MediaStreamSinkList":{
+      "type":"list",
+      "member":{"shape":"MediaStreamSink"},
+      "max":2,
+      "min":1
+    },
+    "MediaStreamSource":{
+      "type":"structure",
+      "required":[
+        "SourceType",
+        "SourceArn"
+      ],
+      "members":{
+        "SourceType":{
+          "shape":"MediaPipelineSourceType",
+          "documentation":"<p>The type of media stream source.</p>"
+        },
+        "SourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the media stream source. </p>"
+        }
+      },
+      "documentation":"<p>Structure that contains the settings for media stream sources.</p>"
+    },
+    "MediaStreamSourceList":{
+      "type":"list",
+      "member":{"shape":"MediaStreamSource"},
+      "min":1
+    },
+    "MediaStreamType":{
+      "type":"string",
+      "enum":[
+        "MixedAudio",
+        "IndividualAudio"
+      ]
     },
     "MeetingEventsConcatenationConfiguration":{
       "type":"structure",
@@ -2362,6 +3106,11 @@
       "max":2,
       "min":2
     },
+    "ReservedStreamCapacity":{
+      "type":"integer",
+      "max":10,
+      "min":1
+    },
     "ResolutionOption":{
       "type":"string",
       "enum":[
@@ -2539,6 +3288,28 @@
       },
       "documentation":"<p>Source configuration for a specified media pipeline.</p>"
     },
+    "SpeakerSearchTask":{
+      "type":"structure",
+      "members":{
+        "SpeakerSearchTaskId":{
+          "shape":"GuidString",
+          "documentation":"<p>The speaker search task ID.</p>"
+        },
+        "SpeakerSearchTaskStatus":{
+          "shape":"MediaPipelineTaskStatus",
+          "documentation":"<p>The status of the speaker search task.</p>"
+        },
+        "CreatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which a speaker search task was created.</p>"
+        },
+        "UpdatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which a speaker search task was updated.</p>"
+        }
+      },
+      "documentation":"<p>A representation of an asynchronous request to perform speaker search analysis on a media insights pipeline.</p>"
+    },
     "SqsQueueSinkConfiguration":{
       "type":"structure",
       "members":{
@@ -2548,6 +3319,122 @@
         }
       },
       "documentation":"<p>The configuration settings for the SQS sink.</p>"
+    },
+    "StartSpeakerSearchTaskRequest":{
+      "type":"structure",
+      "required":[
+        "Identifier",
+        "VoiceProfileDomainArn"
+      ],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The unique identifier of the resource to be updated. Valid values include the ID and ARN of the media insights pipeline.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "VoiceProfileDomainArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the voice profile domain that will store the voice profile.</p>"
+        },
+        "KinesisVideoStreamSourceTaskConfiguration":{
+          "shape":"KinesisVideoStreamSourceTaskConfiguration",
+          "documentation":"<p>The task configuration for the Kinesis video stream source of the media insights pipeline.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>The unique identifier for the client request. Use a different token for different speaker search tasks.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "StartSpeakerSearchTaskResponse":{
+      "type":"structure",
+      "members":{
+        "SpeakerSearchTask":{
+          "shape":"SpeakerSearchTask",
+          "documentation":"<p>The details of the speaker search task.</p>"
+        }
+      }
+    },
+    "StartVoiceToneAnalysisTaskRequest":{
+      "type":"structure",
+      "required":[
+        "Identifier",
+        "LanguageCode"
+      ],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The unique identifier of the resource to be updated. Valid values include the ID and ARN of the media insights pipeline.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "LanguageCode":{
+          "shape":"VoiceAnalyticsLanguageCode",
+          "documentation":"<p>The language code.</p>"
+        },
+        "KinesisVideoStreamSourceTaskConfiguration":{
+          "shape":"KinesisVideoStreamSourceTaskConfiguration",
+          "documentation":"<p>The task configuration for the Kinesis video stream source of the media insights pipeline.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>The unique identifier for the client request. Use a different token for different voice tone analysis tasks.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "StartVoiceToneAnalysisTaskResponse":{
+      "type":"structure",
+      "members":{
+        "VoiceToneAnalysisTask":{
+          "shape":"VoiceToneAnalysisTask",
+          "documentation":"<p>The details of the voice tone analysis task.</p>"
+        }
+      }
+    },
+    "StopSpeakerSearchTaskRequest":{
+      "type":"structure",
+      "required":[
+        "Identifier",
+        "SpeakerSearchTaskId"
+      ],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The unique identifier of the resource to be updated. Valid values include the ID and ARN of the media insights pipeline.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "SpeakerSearchTaskId":{
+          "shape":"GuidString",
+          "documentation":"<p>The speaker search task ID.</p>",
+          "location":"uri",
+          "locationName":"speakerSearchTaskId"
+        }
+      }
+    },
+    "StopVoiceToneAnalysisTaskRequest":{
+      "type":"structure",
+      "required":[
+        "Identifier",
+        "VoiceToneAnalysisTaskId"
+      ],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The unique identifier of the resource to be updated. Valid values include the ID and ARN of the media insights pipeline.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "VoiceToneAnalysisTaskId":{
+          "shape":"GuidString",
+          "documentation":"<p>The ID of the voice tone analysis task.</p>",
+          "location":"uri",
+          "locationName":"voiceToneAnalysisTaskId"
+        }
+      }
     },
     "StreamChannelDefinition":{
       "type":"structure",
@@ -2811,6 +3698,31 @@
         }
       }
     },
+    "UpdateMediaPipelineKinesisVideoStreamPoolRequest":{
+      "type":"structure",
+      "required":["Identifier"],
+      "members":{
+        "Identifier":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ID of the video stream pool.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "StreamConfiguration":{
+          "shape":"KinesisVideoStreamConfigurationUpdate",
+          "documentation":"<p>The configuration settings for the video stream.</p>"
+        }
+      }
+    },
+    "UpdateMediaPipelineKinesisVideoStreamPoolResponse":{
+      "type":"structure",
+      "members":{
+        "KinesisVideoStreamPoolConfiguration":{
+          "shape":"KinesisVideoStreamPoolConfiguration",
+          "documentation":"<p>The video stream pool configuration object.</p>"
+        }
+      }
+    },
     "VerticalLayoutConfiguration":{
       "type":"structure",
       "members":{
@@ -2831,7 +3743,7 @@
           "documentation":"<p>Sets the aspect ratio of the video tiles, such as 16:9.</p>"
         }
       },
-      "documentation":"<p>Defines the configuration settings for a vertial layout.</p>"
+      "documentation":"<p>Defines the configuration settings for a vertical layout.</p>"
     },
     "VerticalTilePosition":{
       "type":"string",
@@ -2931,6 +3843,10 @@
         "Disabled"
       ]
     },
+    "VoiceAnalyticsLanguageCode":{
+      "type":"string",
+      "enum":["en-US"]
+    },
     "VoiceAnalyticsProcessorConfiguration":{
       "type":"structure",
       "members":{
@@ -2944,6 +3860,38 @@
         }
       },
       "documentation":"<p>The configuration settings for a voice analytics processor.</p>"
+    },
+    "VoiceEnhancementSinkConfiguration":{
+      "type":"structure",
+      "members":{
+        "Disabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Disables the <code>VoiceEnhancementSinkConfiguration</code> element.</p>"
+        }
+      },
+      "documentation":"<p>A static structure that contains the configuration data for a <code>VoiceEnhancementSinkConfiguration</code> element.</p>"
+    },
+    "VoiceToneAnalysisTask":{
+      "type":"structure",
+      "members":{
+        "VoiceToneAnalysisTaskId":{
+          "shape":"GuidString",
+          "documentation":"<p>The ID of the voice tone analysis task.</p>"
+        },
+        "VoiceToneAnalysisTaskStatus":{
+          "shape":"MediaPipelineTaskStatus",
+          "documentation":"<p>The status of a voice tone analysis task.</p>"
+        },
+        "CreatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which a voice tone analysis task was created.</p>"
+        },
+        "UpdatedTimestamp":{
+          "shape":"Iso8601Timestamp",
+          "documentation":"<p>The time at which a voice tone analysis task was updated.</p>"
+        }
+      },
+      "documentation":"<p>A representation of an asynchronous request to perform voice tone analysis on a media insights pipeline.</p>"
     }
   },
   "documentation":"<p>The Amazon Chime SDK media pipeline APIs in this section allow software developers to create Amazon Chime SDK media pipelines that capture, concatenate, or stream your Amazon Chime SDK meetings. For more information about media pipelines, see <a href=\"https://docs.aws.amazon.com/chime-sdk/latest/APIReference/API_Operations_Amazon_Chime_SDK_Media_Pipelines.html\">Amazon Chime SDK media pipelines</a>. </p>"

@@ -859,6 +859,33 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "deki",
+      "name": "Dennis Kieselhorst",
+      "avatar_url": "https://avatars.githubusercontent.com/u/858827?v=4",
+      "profile": "http://www.dekies.de",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "psnilesh",
+      "name": "Nilesh PS",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12656997?v=4",
+      "profile": "https://github.com/psnilesh",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "swar8080",
+      "name": "Steven Swartz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17691679?v=4",
+      "profile": "https://github.com/swar8080",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

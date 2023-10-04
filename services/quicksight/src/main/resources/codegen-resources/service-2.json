@@ -2462,7 +2462,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Assigns one or more tags (key-value pairs) to the specified Amazon QuickSight resource. </p> <p>Tags can help you organize and categorize your resources. You can also use them to scope user permissions, by granting a user permission to access or change only resources with certain tag values. You can use the <code>TagResource</code> operation with a resource that already has tags. If you specify a new tag key for the resource, this tag is appended to the list of tags associated with the resource. If you specify a tag key that is already associated with the resource, the new tag value that you specify replaces the previous value for that tag.</p> <p>You can associate as many as 50 tags with a resource. Amazon QuickSight supports tagging on data set, data source, dashboard, template, and topic. </p> <p>Tagging for Amazon QuickSight works in a similar way to tagging for other Amazon Web Services services, except for the following:</p> <ul> <li> <p>You can't use tags to track costs for Amazon QuickSight. This isn't possible because you can't tag the resources that Amazon QuickSight costs are based on, for example Amazon QuickSight storage capacity (SPICE), number of users, type of users, and usage metrics.</p> </li> <li> <p>Amazon QuickSight doesn't currently support the tag editor for Resource Groups.</p> </li> </ul>"
+      "documentation":"<p>Assigns one or more tags (key-value pairs) to the specified Amazon QuickSight resource. </p> <p>Tags can help you organize and categorize your resources. You can also use them to scope user permissions, by granting a user permission to access or change only resources with certain tag values. You can use the <code>TagResource</code> operation with a resource that already has tags. If you specify a new tag key for the resource, this tag is appended to the list of tags associated with the resource. If you specify a tag key that is already associated with the resource, the new tag value that you specify replaces the previous value for that tag.</p> <p>You can associate as many as 50 tags with a resource. Amazon QuickSight supports tagging on data set, data source, dashboard, template, topic, and user. </p> <p>Tagging for Amazon QuickSight works in a similar way to tagging for other Amazon Web Services services, except for the following:</p> <ul> <li> <p>Tags are used to track costs for users in Amazon QuickSight. You can't tag other resources that Amazon QuickSight costs are based on, such as storage capacoty (SPICE), session usage, alert consumption, or reporting units.</p> </li> <li> <p>Amazon QuickSight doesn't currently support the tag editor for Resource Groups.</p> </li> </ul>"
     },
     "UntagResource":{
       "name":"UntagResource",
@@ -3130,7 +3130,7 @@
     "ActionList":{
       "type":"list",
       "member":{"shape":"String"},
-      "max":16,
+      "max":20,
       "min":1
     },
     "ActiveIAMPolicyAssignment":{
@@ -17006,6 +17006,34 @@
         "RIGHT"
       ]
     },
+    "KPIActualValueConditionalFormatting":{
+      "type":"structure",
+      "members":{
+        "TextColor":{
+          "shape":"ConditionalFormattingColor",
+          "documentation":"<p>The conditional formatting of the actual value's text color.</p>"
+        },
+        "Icon":{
+          "shape":"ConditionalFormattingIcon",
+          "documentation":"<p>The conditional formatting of the actual value's icon.</p>"
+        }
+      },
+      "documentation":"<p>The conditional formatting for the actual value of a KPI visual.</p>"
+    },
+    "KPIComparisonValueConditionalFormatting":{
+      "type":"structure",
+      "members":{
+        "TextColor":{
+          "shape":"ConditionalFormattingColor",
+          "documentation":"<p>The conditional formatting of the comparison value's text color.</p>"
+        },
+        "Icon":{
+          "shape":"ConditionalFormattingIcon",
+          "documentation":"<p>The conditional formatting of the comparison value's icon.</p>"
+        }
+      },
+      "documentation":"<p>The conditional formatting for the comparison value of a KPI visual.</p>"
+    },
     "KPIConditionalFormatting":{
       "type":"structure",
       "members":{
@@ -17026,6 +17054,14 @@
         "ProgressBar":{
           "shape":"KPIProgressBarConditionalFormatting",
           "documentation":"<p>The conditional formatting for the progress bar of a KPI visual.</p>"
+        },
+        "ActualValue":{
+          "shape":"KPIActualValueConditionalFormatting",
+          "documentation":"<p>The conditional formatting for the actual value of a KPI visual.</p>"
+        },
+        "ComparisonValue":{
+          "shape":"KPIComparisonValueConditionalFormatting",
+          "documentation":"<p>The conditional formatting for the comparison value of a KPI visual.</p>"
         }
       },
       "documentation":"<p>The conditional formatting options of a KPI visual.</p>"
@@ -17101,6 +17137,14 @@
         "SecondaryValueFontConfiguration":{
           "shape":"FontConfiguration",
           "documentation":"<p>The options that determine the secondary value font configuration.</p>"
+        },
+        "Sparkline":{
+          "shape":"KPISparklineOptions",
+          "documentation":"<p>The options that determine the visibility, color, type, and tooltip visibility of the sparkline of a KPI visual.</p>"
+        },
+        "VisualLayoutOptions":{
+          "shape":"KPIVisualLayoutOptions",
+          "documentation":"<p>The options that determine the layout a KPI visual.</p>"
         }
       },
       "documentation":"<p>The options that determine the presentation of a KPI visual.</p>"
@@ -17139,6 +17183,36 @@
       },
       "documentation":"<p>The sort configuration of a KPI visual.</p>"
     },
+    "KPISparklineOptions":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The visibility of the sparkline.</p>"
+        },
+        "Type":{
+          "shape":"KPISparklineType",
+          "documentation":"<p>The type of the sparkline.</p>"
+        },
+        "Color":{
+          "shape":"HexColor",
+          "documentation":"<p>The color of the sparkline.</p>"
+        },
+        "TooltipVisibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The tooltip visibility of the sparkline.</p>"
+        }
+      },
+      "documentation":"<p>The options that determine the visibility, color, type, and tooltip visibility of the sparkline of a KPI visual.</p>"
+    },
+    "KPISparklineType":{
+      "type":"string",
+      "enum":[
+        "LINE",
+        "AREA"
+      ]
+    },
     "KPIVisual":{
       "type":"structure",
       "required":["VisualId"],
@@ -17173,6 +17247,34 @@
         }
       },
       "documentation":"<p>A key performance indicator (KPI).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/kpi.html\">Using KPIs</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
+    },
+    "KPIVisualLayoutOptions":{
+      "type":"structure",
+      "members":{
+        "StandardLayout":{
+          "shape":"KPIVisualStandardLayout",
+          "documentation":"<p>The standard layout of the KPI visual.</p>"
+        }
+      },
+      "documentation":"<p>The options that determine the layout a KPI visual.</p>"
+    },
+    "KPIVisualStandardLayout":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Type":{
+          "shape":"KPIVisualStandardLayoutType",
+          "documentation":"<p>The standard layout type.</p>"
+        }
+      },
+      "documentation":"<p>The standard layout of the KPI visual.</p>"
+    },
+    "KPIVisualStandardLayoutType":{
+      "type":"string",
+      "enum":[
+        "CLASSIC",
+        "VERTICAL"
+      ]
     },
     "LabelOptions":{
       "type":"structure",
@@ -19412,7 +19514,8 @@
       "enum":[
         "DASHBOARD",
         "ANALYSIS",
-        "DATASET"
+        "DATASET",
+        "TOPIC"
       ]
     },
     "MetricComparisonComputation":{
@@ -22267,6 +22370,10 @@
         "ExternalLoginId":{
           "shape":"String",
           "documentation":"<p>The identity ID for a user in the external login provider.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to associate with the user.</p>"
         }
       }
     },

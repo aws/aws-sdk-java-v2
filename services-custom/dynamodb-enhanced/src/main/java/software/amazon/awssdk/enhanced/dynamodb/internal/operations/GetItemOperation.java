@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -33,7 +34,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 
 @SdkInternalApi
-public class GetItemOperation<T> implements TableOperation<T, GetItemRequest, GetItemResponse, T>,
+public class GetItemOperation<T> implements TableOperation<T, GetItemRequest, GetItemResponse, GetItemEnhancedResponse<T>>,
                                             BatchableReadOperation,
                                             TransactableReadOperation<T> {
 
@@ -74,15 +75,20 @@ public class GetItemOperation<T> implements TableOperation<T, GetItemRequest, Ge
                              .tableName(context.tableName())
                              .key(this.request.key().keyMap(tableSchema, context.indexName()))
                              .consistentRead(this.request.consistentRead())
+                             .returnConsumedCapacity(this.request.returnConsumedCapacityAsString())
                              .build();
     }
 
     @Override
-    public T transformResponse(GetItemResponse response,
-                               TableSchema<T> tableSchema,
-                               OperationContext context,
-                               DynamoDbEnhancedClientExtension extension) {
-        return EnhancedClientUtils.readAndTransformSingleItem(response.item(), tableSchema, context, extension);
+    public GetItemEnhancedResponse<T> transformResponse(GetItemResponse response,
+                                                        TableSchema<T> tableSchema,
+                                                        OperationContext context,
+                                                        DynamoDbEnhancedClientExtension extension) {
+        T attributes = EnhancedClientUtils.readAndTransformSingleItem(response.item(), tableSchema, context, extension);
+        return GetItemEnhancedResponse.<T>builder()
+                                      .attributes(attributes)
+                                      .consumedCapacity(response.consumedCapacity())
+                                      .build();
     }
 
     @Override

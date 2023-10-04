@@ -20,6 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -29,12 +30,14 @@ import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Fa
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
@@ -43,10 +46,12 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemC
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GetItemOperationTest {
@@ -150,6 +155,37 @@ public class GetItemOperationTest {
         assertThat(request, is(expectedRequest));
     }
 
+    @Test
+    public void generateRequest_withReturnConsumedCapacity_unknownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+
+        String returnConsumedCapacity = UUID.randomUUID().toString();
+        GetItemOperation<FakeItem> getItemOperation = GetItemOperation.create(GetItemEnhancedRequest.builder()
+                                                          .key(Key.builder().partitionValue(fakeItem.getId()).build())
+                                                          .returnConsumedCapacity(returnConsumedCapacity)
+                                                          .build());
+
+        GetItemRequest request = getItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+
+        assertEquals(returnConsumedCapacity, request.returnConsumedCapacityAsString());
+    }
+
+    @Test
+    public void generateRequest_withReturnConsumedCapacity_knownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+
+        ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
+        GetItemOperation<FakeItem> getItemOperation = GetItemOperation.create(
+                GetItemEnhancedRequest.builder()
+                                .key(Key.builder().partitionValue(fakeItem.getId()).build())
+                                .returnConsumedCapacity(returnConsumedCapacity)
+                                .build()
+        );
+
+        GetItemRequest request = getItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        assertEquals(returnConsumedCapacity, request.returnConsumedCapacity());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_noPartitionKey_throwsIllegalArgumentException() {
         GetItemOperation<FakeItemComposedClass> getItemOperation =
@@ -165,10 +201,10 @@ public class GetItemOperationTest {
             GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(keyItem.getId())).build());
         GetItemResponse response = GetItemResponse.builder().build();
 
-        FakeItem result = getItemOperation.transformResponse(response, FakeItem.getTableSchema(), PRIMARY_CONTEXT,
-                                                             null);
+        GetItemEnhancedResponse<FakeItem> result = getItemOperation.transformResponse(response, FakeItem.getTableSchema(),
+                                                                               PRIMARY_CONTEXT, null);
 
-        assertThat(result, is(nullValue()));
+        assertThat(result.attributes(), is(nullValue()));
     }
 
     @Test
@@ -183,11 +219,11 @@ public class GetItemOperationTest {
                                                   .item(responseMap)
                                                   .build();
 
-        FakeItem result = getItemOperation.transformResponse(response, FakeItem.getTableSchema(), PRIMARY_CONTEXT,
-                                                             null);
+        GetItemEnhancedResponse<FakeItem> result = getItemOperation.transformResponse(response, FakeItem.getTableSchema(),
+                                                                               PRIMARY_CONTEXT, null);
 
-        assertThat(result.getId(), is(keyItem.getId()));
-        assertThat(result.getSubclassAttribute(), is("test-value"));
+        assertThat(result.attributes().getId(), is(keyItem.getId()));
+        assertThat(result.attributes().getSubclassAttribute(), is("test-value"));
     }
 
     @Test
@@ -219,14 +255,15 @@ public class GetItemOperationTest {
         when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
             .thenReturn(ReadModification.builder().transformedItem(fakeItemMap).build());
 
-        FakeItem resultItem = getItemOperation.transformResponse(response, FakeItem.getTableSchema(),
+        GetItemEnhancedResponse<FakeItem> resultItem = getItemOperation.transformResponse(response, FakeItem.getTableSchema(),
                                                                  PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension);
 
-        assertThat(resultItem, is(fakeItem));
+        assertThat(resultItem.attributes(), is(fakeItem));
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
                                                               .tableMetadata(FakeItem.getTableMetadata())
                                                               .operationContext(PRIMARY_CONTEXT)
                                                               .tableSchema(FakeItem.getTableSchema())
                                                               .items(baseFakeItemMap).build());
     }
+
 }
