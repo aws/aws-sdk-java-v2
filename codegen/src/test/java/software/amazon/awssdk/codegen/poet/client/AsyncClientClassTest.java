@@ -32,7 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 public class AsyncClientClassTest {
     @Test
     public void asyncClientClassRestJson() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(restJsonServiceModels());
+        AsyncClientClass asyncClientClass = createAsyncClientClass(restJsonServiceModels(), false);
         assertThat(asyncClientClass, generatesTo("test-json-async-client-class.java"));
 
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(restJsonServiceModels(), true);
@@ -41,7 +41,7 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientClassQuery() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(queryServiceModels());
+        AsyncClientClass asyncClientClass = createAsyncClientClass(queryServiceModels(), false);
         assertThat(asyncClientClass, generatesTo("test-query-async-client-class.java"));
 
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(queryServiceModels(), true);
@@ -50,7 +50,7 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientClassAwsJson() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(awsJsonServiceModels());
+        AsyncClientClass asyncClientClass = createAsyncClientClass(awsJsonServiceModels(), false);
         assertThat(asyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
 
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(awsJsonServiceModels(), true);
@@ -65,7 +65,7 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientClassXml() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(xmlServiceModels());
+        AsyncClientClass asyncClientClass = createAsyncClientClass(xmlServiceModels(), false);
         assertThat(asyncClientClass, generatesTo("test-xml-async-client-class.java"));
 
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(xmlServiceModels(), true);

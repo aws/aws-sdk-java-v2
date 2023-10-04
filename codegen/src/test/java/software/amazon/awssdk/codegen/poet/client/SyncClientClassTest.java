@@ -32,7 +32,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 public class SyncClientClassTest {
     @Test
     public void syncClientClassRestJson() {
-        SyncClientClass syncClientClass = createSyncClientClass(restJsonServiceModels());
+        SyncClientClass syncClientClass = createSyncClientClass(restJsonServiceModels(), false);
         assertThat(syncClientClass, generatesTo("test-json-client-class.java"));
 
         SyncClientClass sraSyncClientClass = createSyncClientClass(restJsonServiceModels(), true);
@@ -41,7 +41,7 @@ public class SyncClientClassTest {
 
     @Test
     public void syncClientClassQuery() {
-        SyncClientClass syncClientClass = createSyncClientClass(queryServiceModels());
+        SyncClientClass syncClientClass = createSyncClientClass(queryServiceModels(), false);
         assertThat(syncClientClass, generatesTo("test-query-client-class.java"));
 
         SyncClientClass sraSyncClientClass = createSyncClientClass(queryServiceModels(), true);
@@ -56,7 +56,7 @@ public class SyncClientClassTest {
 
     @Test
     public void syncClientClassXml() {
-        SyncClientClass syncClientClass = createSyncClientClass(xmlServiceModels());
+        SyncClientClass syncClientClass = createSyncClientClass(xmlServiceModels(), false);
         assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
 
         SyncClientClass sraSyncClientClass = createSyncClientClass(xmlServiceModels(), true);
