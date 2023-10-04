@@ -82,8 +82,6 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
         IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider =
             resolveCredentialsProvider(request, defaultCredentialsProvider);
         AwsCredentials credentials = CredentialUtils.toCredentials(resolveCredentials(credentialsProvider, metricCollector));
-        // TODO(sra-identity-and-auth): Should the signer be changed to use AwsCredentialsIdentity? Maybe with Signer SRA work,
-        //  not now.
         executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
     }
 

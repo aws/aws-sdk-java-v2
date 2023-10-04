@@ -78,7 +78,6 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
     @Override
     public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
         SdkToken token = TokenUtils.toSdkToken(resolveToken(defaultTokenProvider, metricCollector));
-        // TODO(sra-identity-and-auth): Should the signer be changed to use TokenIdentity? Maybe with Signer SRA work, not now.
         executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, token);
     }
 
