@@ -18,13 +18,13 @@ package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 import static java.util.Collections.singletonList;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -47,9 +47,10 @@ import software.amazon.awssdk.utils.builder.Buildable;
 @SdkInternalApi
 public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
+    public static final String XML_REGEX = "^<([a-zA-Z_][\\w\\-]*)>(.*)</\\1>$";
+    public static final Pattern XML_PATTERN = Pattern.compile(XML_REGEX);
     public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
         = StringToInstant.create(getDefaultTimestampFormats());
-
     private static final XmlUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
 
     private XmlProtocolUnmarshaller() {
@@ -59,18 +60,9 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
         return new XmlProtocolUnmarshaller();
     }
 
-    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
-                                                    SdkHttpFullResponse response) {
-
-        if (hasPayloadMembersOnUnmarshall(sdkPojo)
-            && !hasExplicitBlobPayloadMember(sdkPojo)
-            && !hasExplicitStringPayloadMember(sdkPojo)
-            && response.content().isPresent()) {
-            XmlElement document = XmlResponseParserUtils.parse(sdkPojo, response);
-            return unmarshall(sdkPojo, document, response);
-        } else {
-            return unmarshall(sdkPojo, null, response);
-        }
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo, SdkHttpFullResponse response) {
+        XmlElement document = hasXmlPayload(sdkPojo, response) ? XmlResponseParserUtils.parse(sdkPojo, response) : null;
+        return unmarshall(sdkPojo, document, response);
     }
 
     /**
@@ -93,51 +85,60 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
         for (SdkField<?> field : sdkPojo.sdkFields()) {
             XmlUnmarshaller<Object> unmarshaller = REGISTRY.getUnmarshaller(field.location(), field.marshallingType());
 
-            if (field.location() == MarshallLocation.PAYLOAD) {
-                if (!context.response().content().isPresent()) {
-                    // This is a payload field, but the service sent no content. Do not populate this field (leave it null or
-                    // empty).
-                    if (field.marshallingType() == MarshallingType.SDK_BYTES && field.containsTrait(PayloadTrait.class)) {
-                        // SDK bytes bound directly to the payload field should never be left empty
-                        field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
-                    } else if (field.marshallingType() == MarshallingType.STRING && field.containsTrait(PayloadTrait.class)) {
-                        field.set(sdkPojo, "");
-                    }
-                    continue;
-                }
-
-                if (isAttribute(field)) {
-                    root.getOptionalAttributeByName(field.unmarshallLocationName())
-                        .ifPresent(e -> field.set(sdkPojo, e));
-                } else {
-                    List<XmlElement> element = isExplicitPayloadMember(field) ?
-                                               singletonList(root) :
-                                               root.getElementsByName(field.unmarshallLocationName());
-
-                    if (!CollectionUtils.isNullOrEmpty(element)) {
-                        if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
-                            field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
-                        } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.STRING) {
-                            SdkBytes sdkBytes = SdkBytes.fromInputStream(context.response().content().get());
-                            String stringPayload = sdkBytes.asUtf8String();
-                            if (isXmlString(stringPayload)) {
-                                InputStream inputStream = new ByteArrayInputStream(sdkBytes.asByteArray());
-                                XmlElement document = XmlDomParser.parse(inputStream);
-                                Object unmarshalled = unmarshaller.unmarshall(context, singletonList(document),
-                                                                              (SdkField<Object>) field);
-                                field.set(sdkPojo, unmarshalled);
-                            } else {
-                                field.set(sdkPojo, stringPayload);
-                            }
-                        } else {
-                            Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
-                            field.set(sdkPojo, unmarshalled);
-                        }
-                    }
-                }
-            } else {
+            if (field.location() != MarshallLocation.PAYLOAD) {
                 Object unmarshalled = unmarshaller.unmarshall(context, null, (SdkField<Object>) field);
                 field.set(sdkPojo, unmarshalled);
+                continue;
+            }
+
+            if (!context.response().content().isPresent()) {
+                // This is a payload field, but the service sent no content. Do not populate this field (leave it null or
+                // empty).
+                if (field.marshallingType() == MarshallingType.SDK_BYTES && field.containsTrait(PayloadTrait.class)) {
+                    // SDK bytes bound directly to the payload field should never be left empty
+                    field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
+                } else if (field.marshallingType() == MarshallingType.STRING && field.containsTrait(PayloadTrait.class)) {
+                    field.set(sdkPojo, "");
+                }
+                continue;
+            }
+
+            if (root != null && isAttribute(field)) {
+                root.getOptionalAttributeByName(field.unmarshallLocationName())
+                    .ifPresent(e -> field.set(sdkPojo, e));
+                continue;
+            }
+
+            List<XmlElement> element = isExplicitPayloadMember(field) ?
+                                       singletonList(root) :
+                                       root.getElementsByName(field.unmarshallLocationName());
+
+            if (!CollectionUtils.isNullOrEmpty(element)) {
+                if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
+                    field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
+                } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.STRING) {
+                    InputStream is = context.response().content().get();
+                    try {
+                        is.reset();
+                    } catch (IOException e) {
+                        // do nothing
+                    }
+
+                    SdkBytes sdkBytes = SdkBytes.fromInputStream(is);
+                    String stringPayload = sdkBytes.asUtf8String();
+
+                    if (isXmlString(stringPayload)) {
+                        InputStream inputStream = new ByteArrayInputStream(sdkBytes.asByteArray());
+                        XmlElement document = XmlDomParser.parse(inputStream);
+                        Object unmarshalled = unmarshaller.unmarshall(context, singletonList(document), (SdkField<Object>) field);
+                        field.set(sdkPojo, unmarshalled);
+                    } else {
+                        field.set(sdkPojo, stringPayload);
+                    }
+                } else {
+                    Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
+                    field.set(sdkPojo, unmarshalled);
+                }
             }
         }
 
@@ -149,10 +150,8 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
     }
 
     private boolean isXmlString(String payload) {
-        String pattern = "^<([a-zA-Z_][\\w\\-]*)>(.*)</\\1>$";
-        Pattern xmlPattern = Pattern.compile(pattern);
-        Matcher matcher = xmlPattern.matcher(payload);
-        return matcher.matches();
+        String s3XmlEnvelopePrefix = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Policy><![CDATA[";
+        return payload.startsWith(s3XmlEnvelopePrefix) || XML_PATTERN.matcher(payload).matches();
     }
 
     private boolean isAttribute(SdkField<?> field) {
@@ -163,25 +162,27 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
         return field.containsTrait(PayloadTrait.class);
     }
 
-    private boolean hasExplicitBlobPayloadMember(SdkPojo sdkPojo) {
+    private boolean hasXmlPayload(SdkPojo sdkPojo, SdkHttpFullResponse response) {
         return sdkPojo.sdkFields()
                       .stream()
-                      .anyMatch(f -> isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.SDK_BYTES);
+                      .anyMatch(f -> isPayloadMemberOnUnmarshall(f) && !isExplicitBlobPayloadMember(f)
+                                     && !isExplicitStringPayloadMember(f))
+            && response.content().isPresent();
     }
 
-    private boolean hasExplicitStringPayloadMember(SdkPojo sdkPojo) {
-        return sdkPojo.sdkFields()
-                      .stream()
-                      .anyMatch(f -> isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.STRING);
+    private boolean isExplicitBlobPayloadMember(SdkField<?> f) {
+        return isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.SDK_BYTES;
     }
 
-    private boolean hasPayloadMembersOnUnmarshall(SdkPojo sdkPojo) {
-        return sdkPojo.sdkFields()
-                      .stream()
-                      .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD || locationInUri(f.location()));
+    private boolean isExplicitStringPayloadMember(SdkField<?> f) {
+        return isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.STRING;
     }
 
-    private static boolean locationInUri(MarshallLocation location) {
+    private boolean isPayloadMemberOnUnmarshall(SdkField<?> f) {
+        return f.location() == MarshallLocation.PAYLOAD || isInUri(f.location());
+    }
+
+    private static boolean isInUri(MarshallLocation location) {
         switch (location) {
             case PATH:
             case QUERY_PARAM:

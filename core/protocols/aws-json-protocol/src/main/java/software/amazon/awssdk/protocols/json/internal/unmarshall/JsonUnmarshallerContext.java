@@ -54,7 +54,7 @@ public final class JsonUnmarshallerContext {
     public JsonUnmarshaller<Object> getUnmarshaller(MarshallLocation location, MarshallingType<?> marshallingType) {
         // A member being in the URI on a response is nonsensical; when a member is declared to be somewhere in the URI,
         // it should be found in the payload on response
-        if (MarshallerUtil.locationInUri(location)) {
+        if (MarshallerUtil.isInUri(location)) {
             location = MarshallLocation.PAYLOAD;
         }
         return unmarshallerRegistry.getUnmarshaller(location, marshallingType);
