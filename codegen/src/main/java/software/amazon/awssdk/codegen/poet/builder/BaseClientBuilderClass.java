@@ -54,6 +54,7 @@ import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -83,6 +84,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
+    private final ClassName sdkClientConfigurationUtilClassName;
     private final String basePackage;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
@@ -93,6 +95,8 @@ public class BaseClientBuilderClass implements ClassSpec {
         this.basePackage = model.getMetadata().getFullClientPackageName();
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
+        this.sdkClientConfigurationUtilClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
+                                                                 "SdkClientConfigurationUtil");
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
@@ -174,6 +178,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             }
         }
         builder.addMethod(defaultConfigUpdaterMethod());
+        builder.addMethod(setOverridesMethod());
         addServiceHttpConfigIfNeeded(builder, model);
 
         builder.addMethod(validateClientOptionsMethod());
@@ -742,6 +747,23 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()")
                .addCode("$<};\n");
         return builder.build();
+    }
+
+    private MethodSpec setOverridesMethod() {
+        return MethodSpec.methodBuilder("setOverrides")
+                         .addModifiers(PROTECTED)
+                         .addAnnotation(Override.class)
+                         .addParameter(SdkClientConfiguration.class, "configuration")
+                         .returns(SdkClientConfiguration.class)
+                         .addStatement("$T overrideConfiguration = overrideConfiguration()",
+                                       ClientOverrideConfiguration.class)
+                         .beginControlFlow("if (overrideConfiguration == null)")
+                         .addStatement("return configuration")
+                         .endControlFlow()
+                         .addStatement("return $T.copyOverridesToConfiguration(overrideConfiguration, configuration.toBuilder())"
+                                       + ".build()",
+                                       sdkClientConfigurationUtilClassName)
+                         .build();
     }
 
     @Override

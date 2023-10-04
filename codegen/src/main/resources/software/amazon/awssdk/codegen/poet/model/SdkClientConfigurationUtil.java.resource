@@ -30,9 +30,6 @@ public final class SdkClientConfigurationUtil {
         ClientOverrideConfiguration overrides,
         SdkClientConfiguration.Builder builder
     ) {
-        // ⚠️  ATTENTION ⚠️
-        // This logic is duplicated in SdkDefaultClientBuilder#setOverrides
-        // please make sure that any changes made here are also reflected in the other place (and vice-versa).
 
         // misc
         builder.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, overrides.headers());

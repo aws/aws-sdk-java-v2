@@ -7,6 +7,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -19,6 +20,7 @@ import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
+import software.amazon.awssdk.services.json.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -90,6 +92,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             consumer.accept(serviceConfigBuilder);
             return serviceConfigBuilder.buildSdkClientConfiguration();
         };
+    }
+
+    @Override
+    protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
+        ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
+        if (overrideConfiguration == null) {
+            return configuration;
+        }
+        return SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, configuration.toBuilder()).build();
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

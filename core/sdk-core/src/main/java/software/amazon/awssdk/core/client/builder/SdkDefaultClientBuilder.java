@@ -229,11 +229,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return configuration;
     }
 
-    private SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
-        // ⚠️ ATTENTION ⚠️
-        // This logic is also here
-        // codegen/src/main/resources/software/amazon/awssdk/codegen/poet/model/SdkClientConfigurationUtil.java.resource
-        // please make sure that any changes made here are also reflected in the other place (and vice-versa).
+    // TODO: delete this and make the method abstract when we break protected APIs
+    protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
         if (clientOverrideConfiguration == null) {
             return configuration;
         }
