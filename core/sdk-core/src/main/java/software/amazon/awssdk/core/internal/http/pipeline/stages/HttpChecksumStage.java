@@ -75,8 +75,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             return request;
         }
 
-        // If SRA is enabled, we skip flexible checksum in header, as it is not supported in the HttpSigner right now
-        // TODO: we should remove this after it is supported
+        // If SRA is enabled, skip flexible checksum in header, since it is handled by SRA signer
         if (sraSigningEnabled(context)) {
             return request;
         }
@@ -136,8 +135,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
 
     private boolean flexibleChecksumInTrailerRequired(RequestExecutionContext context, ChecksumSpecs checksumSpecs) {
 
-        // If SRA is enabled and it's sync client,
-        // skip it since flexible checksum trailer is handled in SRA signer
+        // If SRA is enabled and it's sync client, skip flexible checksum trailer, since it is handled in SRA signer
         if (sraSigningEnabled(context) && clientType == ClientType.SYNC) {
             return false;
         }
