@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
@@ -152,10 +154,28 @@ public final class AwsExecutionContextBuilder {
     /**
      * We will load the old (non-SRA) signer if this client seems like an old version or the customer has provided a signer
      * override. We assume that if there's no auth schemes defined, we're on the old code path.
+     * <p>
+     * In addition, if authType=none, we don't need to use the old signer, even if overridden.
      */
     private static boolean loadOldSigner(ExecutionAttributes attributes, SdkRequest request) {
-        return attributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES) == null ||
-               SignerOverrideUtils.isSignerOverridden(request, attributes);
+        Map<String, AuthScheme<?>> authSchemes = attributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
+        if (authSchemes == null) {
+            // pre SRA case.
+            // We used to set IS_NONE_AUTH_TYPE_REQUEST = false when authType=none. Yes, false.
+            return attributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
+        }
+
+        // post SRA case.
+        // By default, SRA uses new HttpSigner, so we shouldn't use old non-SRA Signer, unless the customer has provided a signer
+        // override.
+        // But, if the operation was modeled as authTpye=None, we don't want to use the provided overridden Signer either. In
+        // post SRA, modeled authType=None would default to NoAuthAuthScheme.
+        // Note, for authType=None operation, technically, customer could override the AuthSchemeProvider and select a different
+        // AuthScheme (than NoAuthAuthScheme). In this case, we are choosing to use the customer's overridden Signer.
+        SelectedAuthScheme<?> selectedAuthScheme = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        return SignerOverrideUtils.isSignerOverridden(request, attributes) &&
+               selectedAuthScheme != null &&
+               !NoAuthAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId());
     }
 
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
