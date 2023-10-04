@@ -43,6 +43,9 @@ public final class ScheduledExecutorUtils {
      * Wrap a scheduled executor in a type that cannot be closed, or shut down.
      */
     public static ScheduledExecutorService unmanagedScheduledExecutor(ScheduledExecutorService executor) {
+        if (executor instanceof UnmanagedScheduledExecutorService) {
+            return executor;
+        }
         return new UnmanagedScheduledExecutorService(executor);
     }
 

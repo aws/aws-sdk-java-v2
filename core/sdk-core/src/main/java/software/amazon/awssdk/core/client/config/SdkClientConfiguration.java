@@ -113,6 +113,16 @@ public final class SdkClientConfiguration
             return this;
         }
 
+        public <T> Builder lazyOption(ClientOption<T> option, AttributeMap.LazyValue<T> lazyValue) {
+            this.attributes.putLazy(option, lazyValue);
+            return this;
+        }
+
+        public <T> Builder lazyOptionIfAbsent(ClientOption<T> option, AttributeMap.LazyValue<T> lazyValue) {
+            this.attributes.putLazyIfAbsent(option, lazyValue);
+            return this;
+        }
+
         /**
          * Retrieve the value of a specific option.
          */

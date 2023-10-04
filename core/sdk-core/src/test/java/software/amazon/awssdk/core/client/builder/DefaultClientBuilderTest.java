@@ -133,6 +133,7 @@ public class DefaultClientBuilderTest {
         String prefix = "prefix";
         Duration apiCallTimeout = Duration.ofMillis(42);
         Duration apiCallAttemptTimeout = Duration.ofMillis(43);
+        Supplier<ProfileFile> profileFileSupplier = () -> null;
         ProfileFile profileFile = ProfileFile.builder()
                                              .content(new StringInputStream(""))
                                              .type(ProfileFile.Type.CONFIGURATION)
@@ -150,6 +151,7 @@ public class DefaultClientBuilderTest {
             .apiCallTimeout(apiCallTimeout)
             .apiCallAttemptTimeout(apiCallAttemptTimeout)
             .putAdvancedOption(DISABLE_HOST_PREFIX_INJECTION, Boolean.TRUE)
+            .defaultProfileFileSupplier(profileFileSupplier)
             .defaultProfileFile(profileFile)
             .defaultProfileName(profileName)
             .metricPublishers(metricPublishers)
@@ -169,6 +171,7 @@ public class DefaultClientBuilderTest {
         assertThat(builderOverrideConfig.apiCallTimeout()).isEqualTo(Optional.of(apiCallTimeout));
         assertThat(builderOverrideConfig.apiCallAttemptTimeout()).isEqualTo(Optional.of(apiCallAttemptTimeout));
         assertThat(builderOverrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION)).isEqualTo(Optional.of(Boolean.TRUE));
+        assertThat(builderOverrideConfig.defaultProfileFileSupplier()).isEqualTo(Optional.of(profileFileSupplier));
         assertThat(builderOverrideConfig.defaultProfileFile()).isEqualTo(Optional.of(profileFile));
         assertThat(builderOverrideConfig.defaultProfileName()).isEqualTo(Optional.of(profileName));
         assertThat(builderOverrideConfig.metricPublishers()).isEqualTo(metricPublishers);
@@ -193,6 +196,7 @@ public class DefaultClientBuilderTest {
         assertThat(builderOverrideConfig.apiCallTimeout()).isEmpty();
         assertThat(builderOverrideConfig.apiCallAttemptTimeout()).isEmpty();
         assertThat(builderOverrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION)).isEmpty();
+        assertThat(builderOverrideConfig.defaultProfileFileSupplier()).isEmpty();
         assertThat(builderOverrideConfig.defaultProfileFile()).isEmpty();
         assertThat(builderOverrideConfig.defaultProfileName()).isEmpty();
         assertThat(builderOverrideConfig.metricPublishers()).isEmpty();

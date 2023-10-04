@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
 import software.amazon.awssdk.core.CompressionConfiguration;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -60,6 +62,7 @@ public final class ClientOverrideConfiguration
     private final AttributeMap advancedOptions;
     private final Duration apiCallAttemptTimeout;
     private final Duration apiCallTimeout;
+    private final Supplier<ProfileFile> defaultProfileFileSupplier;
     private final ProfileFile defaultProfileFile;
     private final String defaultProfileName;
     private final List<MetricPublisher> metricPublishers;
@@ -77,6 +80,7 @@ public final class ClientOverrideConfiguration
         this.advancedOptions = builder.advancedOptions();
         this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
+        this.defaultProfileFileSupplier = builder.defaultProfileFileSupplier();
         this.defaultProfileFile = builder.defaultProfileFile();
         this.defaultProfileName = builder.defaultProfileName();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
@@ -95,6 +99,7 @@ public final class ClientOverrideConfiguration
             .apiCallTimeout(apiCallTimeout)
             .apiCallAttemptTimeout(apiCallAttemptTimeout)
             .executionInterceptors(executionInterceptors)
+            .defaultProfileFileSupplier(defaultProfileFileSupplier)
             .defaultProfileFile(defaultProfileFile)
             .defaultProfileName(defaultProfileName)
             .executionAttributes(executionAttributes)
@@ -199,6 +204,15 @@ public final class ClientOverrideConfiguration
     }
 
     /**
+     * The profile file supplier that should be used by default for all profile-based configuration in the SDK client.
+     *
+     * @see Builder#defaultProfileFileSupplier(Supplier)
+     */
+    public Optional<Supplier<ProfileFile>> defaultProfileFileSupplier() {
+        return Optional.ofNullable(defaultProfileFileSupplier);
+    }
+
+    /**
      * The profile file that should be used by default for all profile-based configuration in the SDK client.
      *
      * @see Builder#defaultProfileFile(ProfileFile)
@@ -253,6 +267,7 @@ public final class ClientOverrideConfiguration
                        .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
                        .add("executionInterceptors", executionInterceptors)
                        .add("advancedOptions", advancedOptions)
+                       .add("profileFileSupplier", defaultProfileFileSupplier)
                        .add("profileFile", defaultProfileFile)
                        .add("profileName", defaultProfileName)
                        .add("scheduledExecutorService", scheduledExecutorService)
@@ -456,6 +471,23 @@ public final class ClientOverrideConfiguration
         Duration apiCallAttemptTimeout();
 
         /**
+         * Configure a {@link ProfileFileSupplier} that should be used by default for all profile-based configuration in the SDK
+         * client.
+         *
+         * <p>This is equivalent to setting {@link #defaultProfileFile(ProfileFile)}, except the supplier is read every time
+         * the configuration is requested. It's recommended to use {@link ProfileFileSupplier} that provides configurable
+         * caching for the reading of the profile file.
+         *
+         * <p>If this is not set, the {@link ProfileFile#defaultProfileFile()} is used.
+         *
+         * @see #defaultProfileFile(ProfileFile)
+         * @see #defaultProfileName(String)
+         */
+        Builder defaultProfileFileSupplier(Supplier<ProfileFile> defaultProfileFile);
+
+        Supplier<ProfileFile> defaultProfileFileSupplier();
+
+        /**
          * Configure the profile file that should be used by default for all profile-based configuration in the SDK client.
          *
          * <p>This is equivalent to setting the {@link ProfileFileSystemSetting#AWS_CONFIG_FILE} and
@@ -470,6 +502,7 @@ public final class ClientOverrideConfiguration
          *
          * <p>If this is not set, the {@link ProfileFile#defaultProfileFile()} is used.
          *
+         * @see #defaultProfileFileSupplier(Supplier)
          * @see #defaultProfileName(String)
          */
         Builder defaultProfileFile(ProfileFile defaultProfileFile);
@@ -556,6 +589,7 @@ public final class ClientOverrideConfiguration
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
+        private Supplier<ProfileFile> defaultProfileFileSupplier;
         private ProfileFile defaultProfileFile;
         private String defaultProfileName;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
@@ -691,6 +725,17 @@ public final class ClientOverrideConfiguration
         @Override
         public Duration apiCallAttemptTimeout() {
             return apiCallAttemptTimeout;
+        }
+
+        @Override
+        public Builder defaultProfileFileSupplier(Supplier<ProfileFile> defaultProfileFileSupplier) {
+            this.defaultProfileFileSupplier = defaultProfileFileSupplier;
+            return this;
+        }
+
+        @Override
+        public Supplier<ProfileFile> defaultProfileFileSupplier() {
+            return defaultProfileFileSupplier;
         }
 
         @Override
