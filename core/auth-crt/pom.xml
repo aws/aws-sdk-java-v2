@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.20.159</version>
+        <version>2.20.160</version>
     </parent>
 
     <artifactId>auth-crt</artifactId>
@@ -134,6 +134,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.unitils</groupId>
             <artifactId>unitils-core</artifactId>
             <scope>test</scope>
@@ -143,7 +148,7 @@
             <artifactId>rxjava</artifactId>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+   </dependencies>
     <build>
         <plugins>
             <plugin>
