@@ -75,8 +75,8 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             return request;
         }
 
-        // If SRA is enabled, we skip flexible checksum in header
-        // TODO(post-sra-identity-auth): we should remove this after SRA is fully released
+        // If SRA is enabled, we skip flexible checksum in header, as it is not supported in the HttpSigner right now
+        // TODO: we should remove this after it is supported
         if (sraSigningEnabled(context)) {
             return request;
         }

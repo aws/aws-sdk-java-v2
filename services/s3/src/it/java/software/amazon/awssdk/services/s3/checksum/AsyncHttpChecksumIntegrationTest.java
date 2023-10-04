@@ -49,7 +49,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
-import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
@@ -234,11 +233,6 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
         assertThat(response).isEqualTo("Hello world");
     }
 
-    /**
-     * If http is used, payload signing will be enforced, but it's not currently supported in async path
-     * TODO: re-enable it once it's supported
-     */
-    @Disabled("Payload signing is not supported for S3 async client")
     @Test
     public void putObject_with_bufferCreatedFromEmptyString() {
 
@@ -261,11 +255,6 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
         assertThat(response).isEqualTo("");
     }
 
-    /**
-     * If http is used, payload signing will be enforced, but it's not currently supported in async path
-     * TODO: re-enable it once it's supported
-     */
-    @Disabled("Payload signing is not supported for S3 async client")
     @Test
     public void putObject_with_bufferCreatedFromZeroCapacityByteBuffer() {
         ByteBuffer content = ByteBuffer.allocate(0);
