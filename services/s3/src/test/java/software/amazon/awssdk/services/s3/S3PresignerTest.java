@@ -642,7 +642,6 @@ public class S3PresignerTest {
     }
 
     @Test
-    // TODO(sra-identity-and-auth), this test fails with Expected :"AWS4-ECDSA-P256-SHA256", Actual :"AWS4-HMAC-SHA256"
     public void accessPointArn_multiRegion_useArnRegionTrue_correctEndpointAndSigner() {
         String customEndpoint = "https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com";
         String accessPointArn = "arn:aws:s3::12345678910:accesspoint:mfzwi23gnjvgw.mrap";
