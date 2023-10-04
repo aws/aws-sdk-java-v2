@@ -33,7 +33,6 @@ import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -47,7 +46,7 @@ public class ServiceClientConfigurationUtils {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final ClassName configurationClassName;
     private final ClassName configurationBuilderClassName;
-
+    private final ClassName sdkClientConfigurationUtilClassName;
 
     public ServiceClientConfigurationUtils(IntermediateModel model) {
         String basePackage = model.getMetadata().getFullClientPackageName();
@@ -55,7 +54,10 @@ public class ServiceClientConfigurationUtils {
         configurationClassName = ClassName.get(basePackage, serviceId + "ServiceClientConfiguration");
         configurationBuilderClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
                                                       serviceId + "ServiceClientConfigurationBuilder");
-        this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+        sdkClientConfigurationUtilClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
+                                                            "SdkClientConfigurationUtil");
+        authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+
     }
 
     /**
@@ -77,7 +79,9 @@ public class ServiceClientConfigurationUtils {
      * mapping to the {@link SdkClientConfiguration} class.
      */
     public List<Field> serviceClientConfigurationFields() {
-        List<Field> fields = new ArrayList<>(BASE_FIELDS);
+        List<Field> fields = new ArrayList<>();
+        fields.add(overrideConfigurationField());
+        fields.addAll(BASE_FIELDS);
         fields.add(Field.builder("authSchemeProvider", authSchemeSpecUtils.providerInterfaceName())
                         .doc("auth scheme provider")
                         .optionClass(SdkClientOption.class)
@@ -87,9 +91,34 @@ public class ServiceClientConfigurationUtils {
         return fields;
     }
 
+    private Field overrideConfigurationField() {
+        Field.Builder builder = Field.builder("overrideConfiguration", ClientOverrideConfiguration.class)
+                                     .doc("client override configuration")
+                                     .definingClass(SdkServiceClientConfiguration.class);
+
+        builder.constructFromConfiguration(
+            CodeBlock.builder()
+                     .addStatement("this.overrideConfiguration = $T.copyConfigurationToOverrides("
+                                   + "$T.builder(), internalBuilder).build()",
+                                   sdkClientConfigurationUtilClassName,
+                                   ClientOverrideConfiguration.class)
+                     .build()
+        );
+
+        builder.copyToConfiguration(
+            CodeBlock.builder()
+                     .beginControlFlow("if (overrideConfiguration != null)")
+                     .addStatement("$T.copyOverridesToConfiguration(overrideConfiguration, internalBuilder)",
+                                   sdkClientConfigurationUtilClassName)
+                     .endControlFlow()
+                     .build()
+        );
+
+        return builder.build();
+    }
+
     private static List<Field> baseServiceClientConfigurationFields() {
         return Arrays.asList(
-            overrideConfigurationField(),
             endpointOverrideField(),
             Field.builder("endpointProvider", EndpointProvider.class)
                  .doc("endpoint provider")
@@ -179,31 +208,6 @@ public class ServiceClientConfigurationUtils {
                      .endControlFlow()
                      .addStatement("internalBuilder.option($T.$L, identityProviders)",
                                    SdkClientOption.class, fieldName(SdkClientOption.IDENTITY_PROVIDERS, SdkClientOption.class))
-                     .endControlFlow()
-                     .build()
-        );
-
-        return builder.build();
-    }
-
-    private static Field overrideConfigurationField() {
-        Field.Builder builder = Field.builder("overrideConfiguration", ClientOverrideConfiguration.class)
-                                     .doc("client override configuration")
-                                     .definingClass(SdkServiceClientConfiguration.class);
-
-        builder.constructFromConfiguration(
-            CodeBlock.builder()
-                     .addStatement("this.overrideConfiguration = $T.copyConfigurationToOverrides("
-                                   + "$T.builder(), internalBuilder).build()", SdkClientConfigurationUtil.class,
-                                   ClientOverrideConfiguration.class)
-                     .build()
-        );
-
-        builder.copyToConfiguration(
-            CodeBlock.builder()
-                     .beginControlFlow("if (overrideConfiguration != null)")
-                     .addStatement("$T.copyOverridesToConfiguration(overrideConfiguration, internalBuilder)",
-                                   SdkClientConfigurationUtil.class)
                      .endControlFlow()
                      .build()
         );

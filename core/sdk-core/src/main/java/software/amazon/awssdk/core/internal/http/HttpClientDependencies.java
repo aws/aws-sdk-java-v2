@@ -77,10 +77,6 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
         return new Builder(this);
     }
 
-    public Builder toBuilder() {
-        return new Builder(this);
-    }
-
     @Override
     public void close() {
         this.clientConfiguration.close();

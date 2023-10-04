@@ -75,6 +75,7 @@ public class SyncClientClass extends SyncClientInterface {
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
+    private final ClassName sdkClientConfigurationUtilClassName;
     private final ServiceClientConfigurationUtils configurationUtils;
     private final boolean useSraAuth;
 
@@ -85,6 +86,8 @@ public class SyncClientClass extends SyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
+        this.sdkClientConfigurationUtilClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
+                                                                 "SdkClientConfigurationUtil");
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
         this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
@@ -137,7 +140,8 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethod(resolveMetricPublishersMethod());
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
-        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
+        type.addMethod(updateSdkClientConfigurationMethod(sdkClientConfigurationUtilClassName,
+                                                          configurationUtils.serviceClientConfigurationBuilderClassName()));
         type.addMethod(protocolSpec.initProtocolFactory(model));
     }
 

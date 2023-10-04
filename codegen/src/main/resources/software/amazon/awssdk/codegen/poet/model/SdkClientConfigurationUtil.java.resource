@@ -1,52 +1,39 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
-package software.amazon.awssdk.core.client.config.internal;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 
-// TODO(sra-plugins) Move this to codegen such that we can actually convert it to @SdkInternalApi
-@SdkProtectedApi
+@SdkInternalApi
 public final class SdkClientConfigurationUtil {
     private SdkClientConfigurationUtil() {
     }
 
     /**
      * Copies the {@link ClientOverrideConfiguration} values to the configuration builder.
-     * <p>
-     * <b>NOTE</b> make sure to mirror the properties in the method below or create a new abstraction to avoid this coupling.
      */
     public static SdkClientConfiguration.Builder copyOverridesToConfiguration(
         ClientOverrideConfiguration overrides,
         SdkClientConfiguration.Builder builder
     ) {
+        // ⚠️  ATTENTION ⚠️
+        // This logic is duplicated in SdkDefaultClientBuilder#setOverrides
+        // please make sure that any changes made here are also reflected in the other place (and vice-versa).
+
         // misc
         builder.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, overrides.headers());
         builder.option(SdkClientOption.RETRY_POLICY, overrides.retryPolicy().orElse(null));
@@ -108,6 +95,10 @@ public final class SdkClientConfigurationUtil {
         List<ExecutionInterceptor> executionInterceptors = clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS);
         if (executionInterceptors != null) {
             clientOverrides.executionInterceptors(executionInterceptors);
+        }
+        ExecutionAttributes executionAttributes = clientConfiguration.option(SdkClientOption.EXECUTION_ATTRIBUTES);
+        if (executionAttributes != null) {
+            clientOverrides.executionAttributes(executionAttributes);
         }
 
         // advanced option
