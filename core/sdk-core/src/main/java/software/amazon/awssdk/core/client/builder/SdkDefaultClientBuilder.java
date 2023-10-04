@@ -187,7 +187,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = finalizeSyncConfiguration(configuration);
         configuration = finalizeConfiguration(configuration);
 
-
         return configuration;
     }
 

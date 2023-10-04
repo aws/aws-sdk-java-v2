@@ -38,6 +38,7 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
 
@@ -102,14 +103,7 @@ public class ServiceClientConfigurationUtils {
                  .optionClass(AwsClientOption.class)
                  .optionValue(AwsClientOption.AWS_REGION)
                  .build(),
-            Field.builder("credentialsProvider",
-                          ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
-                                                    WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class)))
-                 .doc("credentials provider")
-                 .definingClass(AwsServiceClientConfiguration.class)
-                 .optionClass(AwsClientOption.class)
-                 .optionValue(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER)
-                 .build()
+            credentialsProviderField()
         );
     }
 
@@ -136,6 +130,55 @@ public class ServiceClientConfigurationUtils {
                                    SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT, SdkClientOption.class))
                      .addStatement("internalBuilder.option($T.$L, true)",
                                    SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT_OVERRIDDEN, SdkClientOption.class))
+                     .endControlFlow()
+                     .build()
+        );
+
+        return builder.build();
+    }
+
+    private static Field credentialsProviderField() {
+        Field.Builder builder = Field.builder("credentialsProvider",
+                                              ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
+                                                                        WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class)))
+                                     .doc("credentials provider")
+                                     .definingClass(AwsServiceClientConfiguration.class);
+
+        builder.constructFromConfiguration(
+            CodeBlock.builder()
+                     .addStatement("this.credentialsProvider = internalBuilder.option($T.$L)",
+                                   AwsClientOption.class, fieldName(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
+                                                                    AwsClientOption.class))
+                     .build()
+        );
+
+        builder.copyToConfiguration(
+            // TODO(sra-plugins)
+            // This code duplicates the logic here
+            // https://github.com/aws/aws-sdk-java-v2/blob/fa9dbcce47637486e3f7d4d366ab6509b535342a/core/aws-core/src/main/java/software/amazon/awssdk/awscore/client/builder/AwsDefaultClientBuilder.java#L212
+            // That adds the credentialsProvider to the identityProviders class. This is for request level plugins,
+            // to be able to support credentialsProvider overrides.
+            CodeBlock.builder()
+                     .beginControlFlow("if (credentialsProvider != null &&"
+                                       + " !credentialsProvider.equals(internalBuilder.option($T.$L)))",
+                                       AwsClientOption.class, fieldName(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
+                                                                        AwsClientOption.class))
+                     .addStatement("internalBuilder.option($T.$L, credentialsProvider)",
+                                   AwsClientOption.class, fieldName(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
+                                                                    AwsClientOption.class))
+                     .addStatement("$T identityProviders = internalBuilder.option($T.$L)",
+                                   IdentityProviders.class, SdkClientOption.class,
+                                   fieldName(SdkClientOption.IDENTITY_PROVIDERS, SdkClientOption.class))
+                     .beginControlFlow("if (identityProviders == null)")
+                     .addStatement("identityProviders = $T.builder().putIdentityProvider(credentialsProvider).build()",
+                                   IdentityProviders.class)
+                     .nextControlFlow(" else ")
+                     .addStatement("identityProviders = identityProviders.toBuilder()"
+                                   + ".putIdentityProvider(credentialsProvider)"
+                                   + ".build()")
+                     .endControlFlow()
+                     .addStatement("internalBuilder.option($T.$L, identityProviders)",
+                                   SdkClientOption.class, fieldName(SdkClientOption.IDENTITY_PROVIDERS, SdkClientOption.class))
                      .endControlFlow()
                      .build()
         );
@@ -324,11 +367,11 @@ public class ServiceClientConfigurationUtils {
      * <pre>
      * fieldName(AwsClientOption.AWS_REGION, AwsClientOption.class)
      * </pre>
-     * it will return the string "AWS_REGION" that we can use for codegen.
-     * Using the value directly avoid typo bugs and allows the compiler and the IDE to know about this relationship.
+     * it will return the string "AWS_REGION" that we can use for codegen. Using the value directly avoid typo bugs and allows the
+     * compiler and the IDE to know about this relationship.
      * <p>
-     * This method uses the fully qualified names in the reflection package to avoid polluting this class imports.
-     * Adapted from https://stackoverflow.com/a/35416606
+     * This method uses the fully qualified names in the reflection package to avoid polluting this class imports. Adapted from
+     * https://stackoverflow.com/a/35416606
      */
     private static String fieldName(Object fieldObject, Class<?> parent) {
         java.lang.reflect.Field[] allFields = parent.getFields();

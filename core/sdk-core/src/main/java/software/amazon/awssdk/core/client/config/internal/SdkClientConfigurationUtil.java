@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -32,7 +32,8 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 
-@SdkInternalApi
+// TODO(sra-plugins) Move this to codegen such that we can actually convert it to @SdkInternalApi
+@SdkProtectedApi
 public final class SdkClientConfigurationUtil {
     private SdkClientConfigurationUtil() {
     }

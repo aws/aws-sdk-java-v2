@@ -133,6 +133,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                     hostPrefixExpression(opModel) +
                                                     discoveredEndpoint(opModel))
                                                .add(credentialType(opModel, model))
+                                               .add(".withRequestConfiguration(clientConfiguration)")
                                                .add(".withInput($L)", opModel.getInput().getVariableName())
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                                                .add(HttpChecksumTrait.create(opModel));
@@ -198,11 +199,11 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         if (opModel.hasEventStreamOutput()) {
             executionResponseTransformerName = "restAsyncResponseTransformer";
         }
-
         builder.add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n",
                     CompletableFuture.class, executeFutureValueType,
                     ClientExecutionParams.class, requestType, pojoResponseType)
                .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
+               .add(".withRequestConfiguration(clientConfiguration)")
                .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"));
 
         if (opModel.hasEventStreamOutput()) {
