@@ -11,7 +11,6 @@ import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -234,9 +233,6 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
 
         @Override
         Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
-
-        @Override
-        Builder addPlugin(SdkPlugin plugin);
     }
 
     static final class BuilderImpl extends ProtocolRestXmlRequest.BuilderImpl implements Builder {
@@ -307,12 +303,6 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
         @Override
         public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
             super.overrideConfiguration(builderConsumer);
-            return this;
-        }
-
-        @Override
-        public Builder addPlugin(SdkPlugin plugin) {
-            super.addPlugin(plugin);
             return this;
         }
 

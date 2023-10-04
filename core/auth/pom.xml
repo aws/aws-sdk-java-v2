@@ -84,6 +84,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.eventstream</groupId>
             <artifactId>eventstream</artifactId>
         </dependency>
@@ -172,6 +177,12 @@
             <groupId>com.google.jimfs</groupId>
             <artifactId>jimfs</artifactId>
             <version>${jimfs.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>checksums</artifactId>
+            <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

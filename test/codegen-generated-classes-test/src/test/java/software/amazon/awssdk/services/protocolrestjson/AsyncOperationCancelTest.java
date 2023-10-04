@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.reactivex.Flowable;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,9 +31,14 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
+import software.amazon.awssdk.services.protocolrestjson.model.EventStream;
+import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponse;
+import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.protocolrestjson.model.InputEventStream;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 
@@ -86,32 +92,33 @@ public class AsyncOperationCancelTest {
         assertThat(executeFuture.isCancelled()).isTrue();
     }
 
+    // Still failing for useSraAuth=true
     // TODO(sra-identity-and-auth): This test is now failing after changes made to the event-stream signer module. We need to
     //  investigate and figure out the fix.
     @Test
     public void testEventStreamingOperation() throws InterruptedException {
-        // CompletableFuture<Void> responseFuture =
-        //     client.eventStreamOperation(r -> {},
-        //                                 Flowable.just(InputEventStream.inputEventBuilder().build()),
-        //         new EventStreamOperationResponseHandler() {
-        //             @Override
-        //             public void responseReceived(EventStreamOperationResponse response) {
-        //             }
-        //
-        //             @Override
-        //             public void onEventStream(SdkPublisher<EventStream> publisher) {
-        //             }
-        //
-        //             @Override
-        //             public void exceptionOccurred(Throwable throwable) {
-        //             }
-        //
-        //             @Override
-        //             public void complete() {
-        //             }
-        //         });
-        // responseFuture.cancel(true);
-        // assertThat(executeFuture.isCompletedExceptionally()).isTrue();
-        // assertThat(executeFuture.isCancelled()).isTrue();
+        CompletableFuture<Void> responseFuture =
+            client.eventStreamOperation(r -> {},
+                                        Flowable.just(InputEventStream.inputEventBuilder().build()),
+                new EventStreamOperationResponseHandler() {
+                    @Override
+                    public void responseReceived(EventStreamOperationResponse response) {
+                    }
+
+                    @Override
+                    public void onEventStream(SdkPublisher<EventStream> publisher) {
+                    }
+
+                    @Override
+                    public void exceptionOccurred(Throwable throwable) {
+                    }
+
+                    @Override
+                    public void complete() {
+                    }
+                });
+        responseFuture.cancel(true);
+        assertThat(executeFuture.isCompletedExceptionally()).isTrue();
+        assertThat(executeFuture.isCancelled()).isTrue();
     }
 }

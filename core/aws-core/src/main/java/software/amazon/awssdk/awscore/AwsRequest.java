@@ -15,14 +15,10 @@
 
 package software.amazon.awssdk.awscore;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
 
 /**
@@ -31,21 +27,14 @@ import software.amazon.awssdk.core.SdkRequest;
 @SdkPublicApi
 public abstract class AwsRequest extends SdkRequest {
     private final AwsRequestOverrideConfiguration requestOverrideConfig;
-    private final List<SdkPlugin> registeredPlugins;
 
     protected AwsRequest(Builder builder) {
         this.requestOverrideConfig = builder.overrideConfiguration();
-        this.registeredPlugins = Collections.unmodifiableList(new ArrayList<>(builder.registeredPlugins()));
     }
 
     @Override
     public final Optional<AwsRequestOverrideConfiguration> overrideConfiguration() {
         return Optional.ofNullable(requestOverrideConfig);
-    }
-
-    @Override
-    public List<SdkPlugin> registeredPlugins() {
-        return registeredPlugins;
     }
 
     @Override
@@ -96,7 +85,6 @@ public abstract class AwsRequest extends SdkRequest {
 
     protected abstract static class BuilderImpl implements Builder {
         private AwsRequestOverrideConfiguration awsRequestOverrideConfig;
-        private final List<SdkPlugin> registeredPlugins = new ArrayList<>();
 
         protected BuilderImpl() {
         }
@@ -116,17 +104,6 @@ public abstract class AwsRequest extends SdkRequest {
             AwsRequestOverrideConfiguration.Builder b = AwsRequestOverrideConfiguration.builder();
             builderConsumer.accept(b);
             awsRequestOverrideConfig = b.build();
-            return this;
-        }
-
-        @Override
-        public List<SdkPlugin> registeredPlugins() {
-            return registeredPlugins;
-        }
-
-        @Override
-        public Builder addPlugin(SdkPlugin plugin) {
-            this.registeredPlugins.add(plugin);
             return this;
         }
 

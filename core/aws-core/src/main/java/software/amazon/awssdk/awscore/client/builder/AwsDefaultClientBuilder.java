@@ -386,8 +386,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                CredentialUtils.toCredentialsProvider(identityProvider);
     }
 
-
-
     private RetryPolicy resolveAwsRetryPolicy(SdkClientConfiguration config) {
         RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
 
