@@ -122,8 +122,10 @@ public final class ProfileFile {
 
     @Override
     public String toString() {
+        Map<String, Profile> profiles = profilesAndSectionsMap.get(PROFILES_SECTION_TITLE);
         return ToString.builder("ProfileFile")
-                       .add("profilesAndSectionsMap", profilesAndSectionsMap.values())
+                       .add("sections", profilesAndSectionsMap.keySet())
+                       .add("profiles", profiles == null ? null : profiles.values())
                        .build();
     }
 
