@@ -228,7 +228,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
         HttpRequest crtRequest = toRequest(sanitizedRequest, request.payload().orElse(null));
 
-        V4aContext v4aContext = sign(sanitizedRequest, crtRequest, signingConfig);
+        V4aContext v4aContext = sign(requestBuilder.build(), crtRequest, signingConfig);
 
         ContentStreamProvider payload = payloadSigner.sign(request.payload().orElse(null), v4aContext);
 

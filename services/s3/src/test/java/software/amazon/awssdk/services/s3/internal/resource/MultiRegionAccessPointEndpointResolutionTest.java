@@ -40,11 +40,6 @@ import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 public class MultiRegionAccessPointEndpointResolutionTest {
 
     private final static String MULTI_REGION_ARN = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
-    // TODO(sra-identity-and-auth): The forward slash of the URL below was added to account for the signer behavior that
-    //  sanitizes the URI path, we need to double check that this behavior it's safe and that it won't break anything else.
-    //  With useSraAuth=test, need to add the forward slash to the endpoint below to make related tests pass.
-    // private final static URI MULTI_REGION_ENDPOINT =
-    //     URI.create("https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com/");
     private final static URI MULTI_REGION_ENDPOINT =
         URI.create("https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com");
     private MockHttpClient mockHttpClient;
