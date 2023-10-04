@@ -78,6 +78,7 @@
         <dependency>
             <groupId>software.amazon.awssdk.crt</groupId>
             <artifactId>aws-crt</artifactId>
+            <version>${awscrt.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -88,6 +89,7 @@
         <dependency>
             <groupId>software.amazon.eventstream</groupId>
             <artifactId>eventstream</artifactId>
+            <version>${eventstream.version}</version>
         </dependency>
 
 
