@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Application Migration Service",
-    "contributor": "",
-    "description": "This release includes the following new APIs: ListConnectors, CreateConnector, UpdateConnector, DeleteConnector and UpdateSourceServer to support the source action framework feature."
-}

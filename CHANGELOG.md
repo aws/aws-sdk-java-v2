@@ -1,3 +1,29 @@
+# __2.20.160__ __2023-10-04__
+## __AWS MediaTailor__
+  - ### Features
+    - Updates DescribeVodSource to include a list of ad break opportunities in the response
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for building JDK 21.
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig introduces KMS customer-managed key (CMK) encryption support for data saved to AppConfig's hosted configuration store.
+
+## __Amazon DataZone__
+  - ### Features
+    - Initial release of Amazon DataZone
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding support for AdditionalS3DataSource, a data source used for training or inference that is in addition to the input dataset or model data.
+
+## __Application Migration Service__
+  - ### Features
+    - This release includes the following new APIs: ListConnectors, CreateConnector, UpdateConnector, DeleteConnector and UpdateSourceServer to support the source action framework feature.
+
 # __2.20.159__ __2023-10-03__
 ## __AWS Elemental MediaConvert__
   - ### Features
@@ -439,7 +465,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2180,7 +2206,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

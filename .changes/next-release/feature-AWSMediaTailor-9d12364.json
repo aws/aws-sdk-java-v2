@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaTailor",
-    "contributor": "",
-    "description": "Updates DescribeVodSource to include a list of ad break opportunities in the response"
-}
