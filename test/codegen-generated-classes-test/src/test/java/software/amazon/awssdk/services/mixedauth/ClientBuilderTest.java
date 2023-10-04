@@ -21,7 +21,8 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 
-
+// TODO(sra-identity-auth): assert client is configured with SRA types like AUTH_SCHEMES, AUTH_SCHEME_PROVIDER,
+//  IDENTITY_PROVIDERS. For mixed auth, assert AUTH_SCHEMES has all expected.
 public class ClientBuilderTest {
     @Test
     public void syncClient_buildWithDefaults_validationsSucceed() {
