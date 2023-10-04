@@ -7,7 +7,6 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.client.config.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
