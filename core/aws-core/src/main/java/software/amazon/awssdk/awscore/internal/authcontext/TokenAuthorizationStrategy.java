@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
@@ -85,8 +86,9 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
                                               MetricCollector metricCollector) {
         Validate.notNull(tokenProvider, "No token provider exists to resolve a token from.");
 
-        // TODO(sra-identity-and-auth): Exception handling for join()?
-        Pair<TokenIdentity, Duration> measured = MetricUtils.measureDuration(() -> tokenProvider.resolveIdentity().join());
+        // TODO(sra-identity-and-auth): internal issue SMITHY-1677. avoid join for async clients.
+        Pair<TokenIdentity, Duration> measured =
+            MetricUtils.measureDuration(() -> CompletableFutureUtils.joinLikeSync(tokenProvider.resolveIdentity()));
         metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, measured.right());
         TokenIdentity token = measured.left();
 
