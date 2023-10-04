@@ -81,6 +81,10 @@
             <version>${awsjavasdk.version}</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.eventstream</groupId>
+            <artifactId>eventstream</artifactId>
+        </dependency>
 
 
         <dependency>
