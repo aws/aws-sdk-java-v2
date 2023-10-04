@@ -24,9 +24,6 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * A container for the identity resolver, signer and auth option that we selected for use with this service call attempt.
- *
- * TODO(sra-identity-auth): Should this be made public? People might treat it as such anyway so that they can change the
- * identity, signer or options from the interceptors. They're doing that already with the existing execution attributes.
  */
 @SdkProtectedApi
 public final class SelectedAuthScheme<T extends Identity> {
