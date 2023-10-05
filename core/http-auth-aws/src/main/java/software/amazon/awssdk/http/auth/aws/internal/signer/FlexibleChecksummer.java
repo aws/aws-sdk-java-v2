@@ -34,7 +34,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
-import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumSubscriber;
+import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumPublisher;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -56,27 +56,31 @@ public final class FlexibleChecksummer implements Checksummer {
 
     @Override
     public void checksum(ContentStreamProvider payload, SdkHttpRequest.Builder request) {
-        InputStream payloadStream = getBinaryRequestPayloadStream(payload);
+        if (!optionToSdkChecksum.isEmpty() && payload != null) {
+            InputStream payloadStream = getBinaryRequestPayloadStream(payload);
 
-        ChecksumInputStream computingStream = new ChecksumInputStream(
-            payloadStream,
-            optionToSdkChecksum.values()
-        );
+            ChecksumInputStream computingStream = new ChecksumInputStream(
+                payloadStream,
+                optionToSdkChecksum.values()
+            );
 
-        readAll(computingStream);
+            readAll(computingStream);
 
-        addChecksums(request);
+            addChecksums(request);
+        }
     }
 
     @Override
-    public CompletableFuture<Void> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
-        ChecksumSubscriber checksumSubscriber = new ChecksumSubscriber(optionToSdkChecksum.values());
-
-        if (payload != null) {
-            payload.subscribe(checksumSubscriber);
+    public CompletableFuture<Publisher<ByteBuffer>> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
+        if (!optionToSdkChecksum.isEmpty() && payload != null) {
+            ChecksumPublisher checksumPublisher = new ChecksumPublisher(payload, optionToSdkChecksum.values());
+            return checksumPublisher.checksum().thenApply(__ -> {
+                addChecksums(request);
+                return checksumPublisher;
+            });
         }
 
-        return checksumSubscriber.checksum().thenRun(() -> addChecksums(request));
+        return CompletableFuture.completedFuture(payload);
     }
 
     private void addChecksums(SdkHttpRequest.Builder request) {

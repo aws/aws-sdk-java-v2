@@ -26,11 +26,13 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerCo
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.UNSIGNED_PAYLOAD;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
 
+import java.nio.ByteBuffer;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -203,7 +205,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4Properties properties) {
 
-        boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
 
@@ -254,16 +256,16 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        CompletableFuture<V4Context> futureV4Context =
-            checksummer.checksum(request.payload().orElse(null), requestBuilder)
-                       .thenApply(__ -> requestSigner.sign(requestBuilder));
+        CompletableFuture<Publisher<ByteBuffer>> futurePayload =
+            checksummer.checksum(request.payload().orElse(null), requestBuilder);
 
-        return futureV4Context.thenApply(
-            v4Context -> AsyncSignedRequest.builder()
-                                           .request(v4Context.getSignedRequest().build())
-                                           .payload(payloadSigner.signAsync(request.payload().orElse(null), v4Context))
-                                           .build()
-        );
+        return futurePayload.thenApply(payload -> {
+            V4Context v4Context = requestSigner.sign(requestBuilder);
+            return AsyncSignedRequest.builder()
+                                     .request(v4Context.getSignedRequest().build())
+                                     .payload(payloadSigner.signAsync(payload, v4Context))
+                                     .build();
+        });
     }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {

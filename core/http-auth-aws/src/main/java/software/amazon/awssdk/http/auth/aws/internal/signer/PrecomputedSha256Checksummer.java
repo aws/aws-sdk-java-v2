@@ -50,12 +50,12 @@ public final class PrecomputedSha256Checksummer implements Checksummer {
     }
 
     @Override
-    public CompletableFuture<Void> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
+    public CompletableFuture<Publisher<ByteBuffer>> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
         try {
             String checksum = computation.call();
             request.putHeader(X_AMZ_CONTENT_SHA256, checksum);
 
-            return CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(payload);
         } catch (Exception e) {
             throw new RuntimeException("Could not retrieve checksum: ", e);
         }

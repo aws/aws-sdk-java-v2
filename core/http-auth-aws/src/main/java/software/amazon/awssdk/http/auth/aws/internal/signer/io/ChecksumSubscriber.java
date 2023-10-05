@@ -18,78 +18,52 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.io;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.zip.Checksum;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 
 /**
  * A subscriber that takes a collection of checksums, and updates each checksum when it receives data.
  */
 @SdkInternalApi
-public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
-    private final CompletableFuture<Void> checksumming = new CompletableFuture<>();
+public final class ChecksumSubscriber extends DelegatingSubscriber<ByteBuffer, ByteBuffer> {
+    private final CompletableFuture<Void> signal;
     private final Collection<Checksum> checksums = new ArrayList<>();
-    private volatile boolean canceled = false;
-    private volatile Subscription subscription;
 
-    public ChecksumSubscriber(Collection<? extends Checksum> consumers) {
+    public ChecksumSubscriber(Subscriber<? super ByteBuffer> subscriber, Collection<? extends Checksum> consumers,
+                              CompletableFuture<Void> signal) {
+        super(subscriber);
+
         this.checksums.addAll(consumers);
-
-        checksumming.whenComplete((r, t) -> {
-            if (t instanceof CancellationException) {
-                synchronized (this) {
-                    canceled = true;
-                    if (subscription != null) {
-                        subscription.cancel();
-                    }
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onSubscribe(Subscription subscription) {
-        synchronized (this) {
-            if (!canceled && this.subscription == null) {
-                this.subscription = subscription;
-                subscription.request(Long.MAX_VALUE);
-            } else {
-                subscription.cancel();
-            }
-        }
+        this.signal = signal;
     }
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
-        if (!canceled) {
-            byte[] buf;
-
-            if (byteBuffer.hasArray()) {
-                buf = byteBuffer.array();
-            } else {
-                buf = new byte[byteBuffer.remaining()];
-                byteBuffer.get(buf);
-            }
-
-            // We have to use a byte[], since update(<ByteBuffer>) is java 9+
-            checksums.forEach(checksum -> checksum.update(buf, 0, buf.length));
+        byte[] buf;
+        if (byteBuffer.hasArray()) {
+            buf = byteBuffer.array();
+        } else {
+            buf = new byte[byteBuffer.remaining()];
+            byteBuffer.get(buf);
         }
+        // We have to use a byte[], since update(<ByteBuffer>) is java 9+
+        checksums.forEach(checksum -> checksum.update(buf, 0, buf.length));
+
+        subscriber.onNext(byteBuffer);
     }
 
     @Override
-    public void onError(Throwable throwable) {
-        checksumming.completeExceptionally(throwable);
+    public void onError(Throwable t) {
+        super.onError(t);
+        signal.completeExceptionally(t);
     }
 
     @Override
     public void onComplete() {
-        checksumming.complete(null);
-    }
-
-    public CompletableFuture<Void> checksum() {
-        return checksumming;
+        super.onComplete();
+        signal.complete(null);
     }
 }
