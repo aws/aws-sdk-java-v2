@@ -26,13 +26,11 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.xmlServiceMod
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 
 public class AsyncClientClassTest {
     @Test
-    @Disabled
     public void asyncClientClassRestJson() {
         AsyncClientClass asyncClientClass = createAsyncClientClass(restJsonServiceModels(), false);
         assertThat(asyncClientClass, generatesTo("test-json-async-client-class.java"));
