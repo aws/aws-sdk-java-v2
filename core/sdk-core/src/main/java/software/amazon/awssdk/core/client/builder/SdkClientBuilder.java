@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -64,6 +65,17 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
      * addressing.
      */
     B endpointOverride(URI endpointOverride);
+
+    /**
+     * Configure this client with an additional auth scheme, or replace one already on the client.
+     *
+     * <p>By default, the SDK will only know about default auth schemes that ship with the service. If you want to modify those
+     * existing auth schemes or add a custom one (you select with a custom auth scheme resolver), you can add that new auth
+     * scheme with this method.
+     */
+    default B putAuthScheme(AuthScheme<?> authScheme) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Adds a plugin to the client builder. The plugins will be invoked when building the client to allow them to change the
