@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SecurityHub",
-    "contributor": "",
-    "description": "Added new resource detail objects to ASFF, including resources for AwsEventsEventbus, AwsEventsEndpoint, AwsDmsEndpoint, AwsDmsReplicationTask, AwsDmsReplicationInstance, AwsRoute53HostedZone, and AwsMskCluster"
-}
