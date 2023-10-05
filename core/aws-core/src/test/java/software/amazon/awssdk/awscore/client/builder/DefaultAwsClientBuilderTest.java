@@ -27,7 +27,6 @@ import static software.amazon.awssdk.awscore.client.config.AwsClientOption.SERVI
 import static software.amazon.awssdk.awscore.client.config.AwsClientOption.SIGNING_REGION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 
-import com.google.common.collect.ImmutableSet;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -36,7 +35,6 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -221,10 +219,6 @@ public class DefaultAwsClientBuilderTest {
 
     @Test
     public void clientBuilderFieldsHaveBeanEquivalents() throws Exception {
-        // Mutating properties might not have bean equivalents. This is probably fine, since very few customers require
-        // bean-equivalent methods and it's not clear what they'd expect them to be named anyway. Ignore these methods for now.
-        Set<String> NON_BEAN_EQUIVALENT_METHODS = ImmutableSet.of("putAuthScheme", "addPlugin");
-
         AwsClientBuilder<TestClientBuilder, TestClient> builder = testClientBuilder();
 
         BeanInfo beanInfo = Introspector.getBeanInfo(builder.getClass());
@@ -232,10 +226,6 @@ public class DefaultAwsClientBuilderTest {
 
         Arrays.stream(clientBuilderMethods).filter(m -> !m.isSynthetic()).forEach(builderMethod -> {
             String propertyName = builderMethod.getName();
-
-            if (NON_BEAN_EQUIVALENT_METHODS.contains(propertyName)) {
-                return;
-            }
 
             Optional<PropertyDescriptor> propertyForMethod =
                 Arrays.stream(beanInfo.getPropertyDescriptors())
