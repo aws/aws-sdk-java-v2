@@ -74,14 +74,12 @@ import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
@@ -101,7 +99,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
-    private final ClassName sdkClientConfigurationUtilClassName;
     private final ServiceClientConfigurationUtils configurationUtils;
     private final boolean useSraAuth;
 
@@ -112,8 +109,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
-        this.sdkClientConfigurationUtilClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
-                                                                 "SdkClientConfigurationUtil");
         this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
     }
@@ -175,9 +170,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 type.addMethod(isSignerOverriddenOnClientMethod());
             }
         }
-        type.addMethod(updateSdkClientConfigurationMethod(
-            sdkClientConfigurationUtilClassName,
-            configurationUtils.serviceClientConfigurationBuilderClassName()));
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
     }
 
@@ -291,26 +284,26 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     protected static MethodSpec updateSdkClientConfigurationMethod(
-        ClassName sdkClientConfigurationUtilClassName,
         TypeName serviceClientConfigurationBuilderClassName) {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
-                                               .addModifiers(PROTECTED)
+                                               .addModifiers(PRIVATE)
                                                .addParameter(SdkRequest.class, "request")
                                                .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                                                .returns(SdkClientConfiguration.class);
-        builder.addCode("$T configurationUpdater = ",
-                        ParameterizedTypeName.get(ConfigurationUpdater.class, SdkServiceClientConfiguration.Builder.class));
-        builder.addCode("(consumer, configBuilder) -> {\n$>")
-               .addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(configBuilder)",
-                             serviceClientConfigurationBuilderClassName)
-               .addStatement("consumer.accept(serviceConfigBuilder)")
-               .addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()")
-               .addCode("$<};\n");
+
+
         builder.addStatement("$T plugins = request.overrideConfiguration()\n"
                              + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
-                             ParameterizedTypeName.get(List.class, SdkPlugin.class));
-        builder.addStatement("return $T.invokePlugins(clientConfiguration, plugins, configurationUpdater)",
-                             sdkClientConfigurationUtilClassName);
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
+               .beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return clientConfiguration")
+               .endControlFlow();
+        builder.addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(clientConfiguration.toBuilder())",
+                             serviceClientConfigurationBuilderClassName);
+        builder.beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("plugin.configureClient(serviceConfigBuilder)")
+               .endControlFlow();
+        builder.addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()");
         return builder.build();
     }
 

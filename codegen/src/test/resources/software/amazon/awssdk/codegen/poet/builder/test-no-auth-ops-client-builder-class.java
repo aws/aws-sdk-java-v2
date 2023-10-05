@@ -6,12 +6,11 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
@@ -43,8 +42,8 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
@@ -77,15 +76,6 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         return DatabaseEndpointProvider.defaultProvider();
     }
 
-    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> defaultConfigurationUpdater() {
-        return (consumer, configBuilder) -> {
-            DatabaseServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = DatabaseServiceClientConfigurationBuilder
-                    .builder(configBuilder);
-            consumer.accept(serviceConfigBuilder);
-            return serviceConfigBuilder.buildSdkClientConfiguration();
-        };
-    }
-
     @Override
     protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
         ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
@@ -93,6 +83,20 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
             return configuration;
         }
         return SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, configuration.toBuilder()).build();
+    }
+
+    @Override
+    protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
+        List<SdkPlugin> plugins = plugins();
+        if (plugins.isEmpty()) {
+            return config;
+        }
+        DatabaseServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = DatabaseServiceClientConfigurationBuilder
+            .builder(config.toBuilder());
+        for (SdkPlugin plugin : plugins) {
+            plugin.configureClient(serviceConfigBuilder);
+        }
+        return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
