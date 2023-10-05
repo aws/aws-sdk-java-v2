@@ -16,11 +16,15 @@
 package software.amazon.awssdk.awscore;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -33,11 +37,13 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
 
     private final Region region;
     private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
+    private final Map<String, AuthScheme<?>> authSchemes;
 
     protected AwsServiceClientConfiguration(Builder builder) {
         super(builder);
         this.region = builder.region();
         this.credentialsProvider = builder.credentialsProvider();
+        this.authSchemes = builder.authSchemes();
     }
 
     /**
@@ -55,12 +61,20 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         return credentialsProvider;
     }
 
+    /**
+     * @return The configured map of auth schemes.
+     */
+    public Map<String, AuthScheme<?>> authSchemes() {
+        return authSchemes;
+    }
+
     @Override
     public int hashCode() {
         int result = 1;
         result = 31 * result + super.hashCode();
         result = 31 * result + (region != null ? region.hashCode() : 0);
         result = 31 * result + (credentialsProvider != null ? credentialsProvider.hashCode() : 0);
+        result = 31 * result + (authSchemes != null ? authSchemes.hashCode() : 0);
         return result;
     }
 
@@ -72,7 +86,8 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
 
         AwsServiceClientConfiguration that = (AwsServiceClientConfiguration) o;
         return Objects.equals(region, that.region)
-            && Objects.equals(credentialsProvider, that.credentialsProvider);
+               && Objects.equals(credentialsProvider, that.credentialsProvider)
+               && Objects.equals(authSchemes, that.authSchemes);
     }
 
     /**
@@ -108,11 +123,28 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Configure the credentials provider
+         */
         default Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             throw new UnsupportedOperationException();
         }
 
         default IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Adds the given auth scheme. Replaces the an existing auth scheme with the same id.
+         */
+        default Builder putAuthScheme(AuthScheme<?> authScheme) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Returns the configured map of auth schemes.
+         */
+        default Map<String, AuthScheme<?>> authSchemes() {
             throw new UnsupportedOperationException();
         }
 
@@ -126,8 +158,10 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         protected URI endpointOverride;
         protected EndpointProvider endpointProvider;
         protected IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
+        protected Map<String, AuthScheme<?>> authSchemes;
 
         protected BuilderImpl() {
+
         }
 
         protected BuilderImpl(AwsServiceClientConfiguration awsServiceClientConfiguration) {
@@ -167,6 +201,22 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         public final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
             return credentialsProvider;
         }
-    }
 
+        @Override
+        public final Builder putAuthScheme(AuthScheme<?> authScheme) {
+            if (authSchemes == null) {
+                authSchemes = new HashMap<>();
+            }
+            authSchemes.put(authScheme.schemeId(), authScheme);
+            return this;
+        }
+
+        @Override
+        public final Map<String, AuthScheme<?>> authSchemes() {
+            if (authSchemes == null) {
+                return Collections.emptyMap();
+            }
+            return Collections.unmodifiableMap(new HashMap<>(authSchemes));
+        }
+    }
 }

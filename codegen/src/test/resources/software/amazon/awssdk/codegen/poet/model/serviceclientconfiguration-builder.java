@@ -1,6 +1,9 @@
 package software.amazon.awssdk.services.jsonprotocoltests.internal;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -8,6 +11,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -41,6 +45,8 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
 
         private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
+        private Map<String, AuthScheme<?>> authSchemes;
+
         private BuilderImpl() {
             this.internalBuilder = SdkClientConfiguration.builder();
         }
@@ -53,6 +59,11 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
                 this.endpointOverride = internalBuilder.option(SdkClientOption.ENDPOINT);
             }
             this.credentialsProvider = internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
+            Map<String, AuthScheme<?>> authSchemes = internalBuilder.option(SdkClientOption.AUTH_SCHEMES);
+            if (authSchemes != null) {
+                authSchemes = new HashMap<>(authSchemes);
+            }
+            this.authSchemes = authSchemes;
         }
 
         /**
@@ -142,6 +153,23 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
             return credentialsProvider;
         }
 
+        @Override
+        public JsonProtocolTestsServiceClientConfiguration.Builder putAuthScheme(AuthScheme<?> authScheme) {
+            if (authSchemes == null) {
+                authSchemes = new HashMap<>();
+            }
+            authSchemes.put(authScheme.schemeId(), authScheme);
+            return this;
+        }
+
+        @Override
+        public Map<String, AuthScheme<?>> authSchemes() {
+            if (authSchemes == null) {
+                return Collections.emptyMap();
+            }
+            return Collections.unmodifiableMap(new HashMap<>(authSchemes));
+        }
+
         /**
          * Sets the value for auth scheme provider
          */
@@ -189,6 +217,9 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
                     identityProviders = identityProviders.toBuilder().putIdentityProvider(credentialsProvider).build();
                 }
                 internalBuilder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders);
+            }
+            if (authSchemes != null && !authSchemes.equals(internalBuilder.option(SdkClientOption.AUTH_SCHEMES))) {
+                internalBuilder.option(SdkClientOption.AUTH_SCHEMES, authSchemes());
             }
             return internalBuilder.build();
         }
