@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
@@ -46,8 +45,6 @@ import software.amazon.awssdk.utils.builder.Buildable;
 @SdkInternalApi
 public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
-    public static final String XML_REGEX = "^<([a-zA-Z_][\\w\\-]*)>(.*)</\\1>$";
-    public static final Pattern XML_PATTERN = Pattern.compile(XML_REGEX);
     public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
         = StringToInstant.create(getDefaultTimestampFormats());
     private static final XmlUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
@@ -135,7 +132,7 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
                                              SdkPojo sdkPojo, List<XmlElement> element, SdkField<?> field) {
         SdkBytes sdkBytes = SdkBytes.fromInputStream(context.response().content().get());
         String stringPayload = sdkBytes.asUtf8String();
-        if (isXmlString(stringPayload)) {
+        if (hasS3XmlEnvelopePrefix(stringPayload)) {
             InputStream inputStream = new ByteArrayInputStream(sdkBytes.asByteArray());
             XmlElement document = XmlDomParser.parse(inputStream);
             Object unmarshalled = unmarshaller.unmarshall(context, singletonList(document), (SdkField<Object>) field);
@@ -156,9 +153,10 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
         }
     }
 
-    private boolean isXmlString(String payload) {
+    // Handle S3 GetBucketPolicy(), which returns JSON so we wrap with XML
+    private boolean hasS3XmlEnvelopePrefix(String payload) {
         String s3XmlEnvelopePrefix = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Policy><![CDATA[";
-        return payload.startsWith(s3XmlEnvelopePrefix) || XML_PATTERN.matcher(payload).matches();
+        return payload.startsWith(s3XmlEnvelopePrefix);
     }
 
     private boolean isAttribute(SdkField<?> field) {

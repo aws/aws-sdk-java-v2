@@ -74,8 +74,7 @@ public class XmlPayloadStringTest {
         String loggedRequestBody = new String(SdkBytes.fromInputStream(loggedRequestStream).asByteArray());
 
         assertThat(loggedRequestBody).isEqualTo(PAYLOAD_STRING_XML);
-        // Explicit XML String payload should be unmarshalled to raw value without tags in response POJO
-        assertThat(response.payloadMember()).isEqualTo(PAYLOAD_STRING_NON_XML);
+        assertThat(response.payloadMember()).isEqualTo(PAYLOAD_STRING_XML);
     }
 
     @Test
