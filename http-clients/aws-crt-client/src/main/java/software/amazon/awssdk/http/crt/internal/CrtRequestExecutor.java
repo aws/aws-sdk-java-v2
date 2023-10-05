@@ -54,8 +54,9 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @SdkInternalApi
 public final class CrtRequestExecutor {
-    private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
     public static final int CRT_TLS_NEGOTIATION_ERROR_CODE = 1029;
+
+    private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
 
     public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext) {
         // go ahead and get a reference to the metricCollector since multiple futures will

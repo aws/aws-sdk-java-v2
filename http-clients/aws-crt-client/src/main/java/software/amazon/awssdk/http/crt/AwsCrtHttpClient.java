@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -32,8 +33,8 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
 import software.amazon.awssdk.http.crt.internal.AwsCrtHttpClientBase;
-import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
+import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -51,6 +52,7 @@ import software.amazon.awssdk.utils.AttributeMap;
  *}
  *
  */
+@SdkPublicApi
 public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkHttpClient {
 
     private AwsCrtHttpClient(DefaultBuilder builder, AttributeMap config) {
@@ -260,10 +262,11 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
     }
 
     /**
-     * Factory that allows more advanced configuration of the AWS CRT HTTP implementation. Use {@link #builder()} to
-     * configure and construct an immutable instance of the factory.
+     * Factory that allows more advanced configuration of the AWS CRT HTTP implementation.
+     * Use {@link #builder()} to configure and construct an immutable instance of the factory.
      */
-    private static final class DefaultBuilder extends AwsCrtClientBuilderBase<AwsCrtHttpClient.Builder> implements AwsCrtHttpClient.Builder {
+    private static final class DefaultBuilder
+        extends AwsCrtClientBuilderBase<AwsCrtHttpClient.Builder> implements AwsCrtHttpClient.Builder {
 
 
         @Override

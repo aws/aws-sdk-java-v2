@@ -235,7 +235,8 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
      * Factory that allows more advanced configuration of the AWS CRT HTTP implementation. Use {@link #builder()} to
      * configure and construct an immutable instance of the factory.
      */
-    private static final class DefaultAsyncBuilder extends AwsCrtClientBuilderBase<AwsCrtAsyncHttpClient.Builder> implements Builder {
+    private static final class DefaultAsyncBuilder
+        extends AwsCrtClientBuilderBase<AwsCrtAsyncHttpClient.Builder> implements Builder {
 
         @Override
         public SdkAsyncHttpClient build() {

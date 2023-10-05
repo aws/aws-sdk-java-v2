@@ -54,6 +54,7 @@ public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
     private static final long DEFAULT_STREAM_WINDOW_SIZE = 16L * 1024L * 1024L; // 16 MB
 
+    protected final long readBufferSize;
     private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
     private final ClientBootstrap bootstrap;
@@ -62,7 +63,6 @@ public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final HttpProxyOptions proxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
-    protected final long readBufferSize;
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
@@ -84,7 +84,8 @@ public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             this.bootstrap = registerOwnedResource(clientBootstrap);
             this.socketOptions = registerOwnedResource(clientSocketOptions);
             this.tlsContext = registerOwnedResource(clientTlsContext);
-            this.readBufferSize = builder.getReadBufferSizeInBytes() == null ? DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
+            this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
+                                  DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
             this.monitoringOptions = resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration()).orElse(null);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
