@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "contributor": "",
+    "description": "Add SoftwareVersion to response of DescribeGatewayInformation."
+}
