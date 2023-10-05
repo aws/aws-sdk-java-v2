@@ -34,7 +34,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -51,7 +50,7 @@ import software.amazon.awssdk.utils.Logger;
 
 /**
  * A set of tests validating that the functionality implemented by a {@link SdkHttpClient}.
- *
+ * <p>
  * This is used by an HTTP plugin implementation by extending this class and implementing the abstract methods to provide this
  * suite with a testable HTTP client implementation.
  */
@@ -109,7 +108,7 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     @Test
-    public void validatesHttpsCertificateIssuer() throws Exception {
+    public void validatesHttpsCertificateIssuer() {
         SdkHttpClient client = createSdkHttpClient();
 
         SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort(), SdkHttpMethod.POST);
