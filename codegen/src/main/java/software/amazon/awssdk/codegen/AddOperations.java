@@ -183,7 +183,7 @@ final class AddOperations {
 
                 if (isQueryProtocolWithExplicitStringPayload(c2jShapes, c2jShapes.get(inputShape))) {
                     throw SdkClientException.create("Operations with explicit String payloads are not supported for Query "
-                                                    + "protocols.");
+                                                    + "protocols. Unsupported operation: " + operationName);
                 }
 
                 String documentation = input.getDocumentation() != null ? input.getDocumentation() :
@@ -205,7 +205,7 @@ final class AddOperations {
                         new ReturnTypeModel(responseClassName).withDocumentation(documentation));
                 if (isQueryProtocolWithExplicitStringPayload(c2jShapes, outputShape)) {
                     throw SdkClientException.create("Operations with explicit String payloads are not supported for Query "
-                                                    + "protocols. - " + operationName);
+                                                    + "protocols. Unsupported operation: " + operationName);
                 }
                 if (isBlobShape(getPayloadShape(c2jShapes, outputShape))) {
                     operationModel.setHasBlobMemberAsPayload(true);
