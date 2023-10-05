@@ -54,12 +54,13 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      */
     private ProxyConfiguration(DefaultClientProxyConfigurationBuilder builder) {
         this.endpoint = builder.endpoint;
-        String resolvedScheme = resolveScheme(builder.scheme);
+        String resolvedScheme = endpoint != null ? endpoint.getScheme() : builder.scheme;
         this.scheme = resolvedScheme;
 
-        ProxyConfigProvider proxyConfigProvider = ProxyConfigProvider.fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
-                                                                                                    builder.useEnvironmentVariablesValues,
-                                                                                                    resolvedScheme);
+        ProxyConfigProvider proxyConfigProvider = ProxyConfigProvider.fromSystemEnvironmentSettings(
+            builder.useSystemPropertyValues,
+            builder.useEnvironmentVariablesValues,
+            resolvedScheme);
 
         this.username = builder.username != null || proxyConfigProvider == null ? builder.username :
                         proxyConfigProvider.userName().orElseGet(() -> builder.username);
@@ -145,6 +146,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                 .password(password)
                 .nonProxyHosts(nonProxyHosts)
                 .useSystemPropertyValues(useSystemPropertyValues)
+                .scheme(scheme)
                 .useEnvironmentVariablesValues(useEnvironmentVariablesValues);
     }
 
@@ -164,7 +166,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                        .build();
     }
 
-    public String resolveScheme(String scheme) {
+    public String resolveScheme() {
         return endpoint != null ? endpoint.getScheme() : scheme;
     }
 
