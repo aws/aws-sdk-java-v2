@@ -49,7 +49,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
-import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
@@ -235,13 +234,15 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
     }
 
     /**
-     * If http is used, payload signing will be enforced, but it's not currently supported in async path
-     * TODO: re-enable it once it's supported
+     * S3 clients by default don't do payload signing. But when http is used, payload signing is expected to be enforced. But
+     * payload signing is not currently supported in async path (for both pre/post SRA signers).
+     * However, this test passes, because of https://github
+     * .com/aws/aws-sdk-java-v2/blob/38e221bd815af31a6c6b91557499af155103c21a/core/auth/src/main/java/software/amazon/awssdk/auth/signer/internal/AbstractAwsS3V4Signer.java#L279-L285.
+     * Keeping this test enabled, to ensure moving to SRA Identity & Auth, does not break current behavior.
+     * TODO: Update this test with right asserts when payload signing is supported in async.
      */
-    @Disabled("Payload signing is not supported for S3 async client")
     @Test
     public void putObject_with_bufferCreatedFromEmptyString() {
-
         s3HttpAsync.putObject(PutObjectRequest.builder()
                                               .bucket(BUCKET)
                                               .key(KEY)
@@ -262,10 +263,13 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
     }
 
     /**
-     * If http is used, payload signing will be enforced, but it's not currently supported in async path
-     * TODO: re-enable it once it's supported
+     * S3 clients by default don't do payload signing. But when http is used, payload signing is expected to be enforced. But
+     * payload signing is not currently supported in async path (for both pre/post SRA signers).
+     * However, this test passes, because of https://github
+     * .com/aws/aws-sdk-java-v2/blob/38e221bd815af31a6c6b91557499af155103c21a/core/auth/src/main/java/software/amazon/awssdk/auth/signer/internal/AbstractAwsS3V4Signer.java#L279-L285.
+     * Keeping this test enabled, to ensure moving to SRA Identity & Auth, does not break current behavior.
+     * TODO: Update this test with right asserts when payload signing is supported in async.
      */
-    @Disabled("Payload signing is not supported for S3 async client")
     @Test
     public void putObject_with_bufferCreatedFromZeroCapacityByteBuffer() {
         ByteBuffer content = ByteBuffer.allocate(0);

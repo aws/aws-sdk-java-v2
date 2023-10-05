@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
@@ -82,8 +83,6 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
         IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider =
             resolveCredentialsProvider(request, defaultCredentialsProvider);
         AwsCredentials credentials = CredentialUtils.toCredentials(resolveCredentials(credentialsProvider, metricCollector));
-        // TODO(sra-identity-and-auth): Should the signer be changed to use AwsCredentialsIdentity? Maybe with Signer SRA work,
-        //  not now.
         executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
     }
 
@@ -108,9 +107,9 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
             MetricCollector metricCollector) {
         Validate.notNull(credentialsProvider, "No credentials provider exists to resolve credentials from.");
 
-        // TODO(sra-identity-and-auth): Exception handling for join()?
+        // TODO(sra-identity-and-auth): internal issue SMITHY-1677. avoid join for async clients.
         Pair<? extends AwsCredentialsIdentity, Duration> measured =
-            MetricUtils.measureDuration(() -> credentialsProvider.resolveIdentity().join());
+            MetricUtils.measureDuration(() -> CompletableFutureUtils.joinLikeSync(credentialsProvider.resolveIdentity()));
 
         metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, measured.right());
         AwsCredentialsIdentity credentials = measured.left();
