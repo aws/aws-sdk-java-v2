@@ -18,7 +18,6 @@ package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 import static java.util.Collections.singletonList;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Collections;
@@ -117,24 +116,7 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
                 if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
                     field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
                 } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.STRING) {
-                    InputStream is = context.response().content().get();
-                    try {
-                        is.reset();
-                    } catch (IOException e) {
-                        // do nothing
-                    }
-
-                    SdkBytes sdkBytes = SdkBytes.fromInputStream(is);
-                    String stringPayload = sdkBytes.asUtf8String();
-
-                    if (isXmlString(stringPayload)) {
-                        InputStream inputStream = new ByteArrayInputStream(sdkBytes.asByteArray());
-                        XmlElement document = XmlDomParser.parse(inputStream);
-                        Object unmarshalled = unmarshaller.unmarshall(context, singletonList(document), (SdkField<Object>) field);
-                        field.set(sdkPojo, unmarshalled);
-                    } else {
-                        field.set(sdkPojo, stringPayload);
-                    }
+                    setExplicitStringPayload(unmarshaller, context, sdkPojo, element, field);
                 } else {
                     Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
                     field.set(sdkPojo, unmarshalled);
@@ -147,6 +129,31 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
                                        + "Buildable)");
         }
         return (SdkPojo) ((Buildable) sdkPojo).build();
+    }
+
+    private void setExplicitStringPayload(XmlUnmarshaller<Object> unmarshaller, XmlUnmarshallerContext context,
+                                             SdkPojo sdkPojo, List<XmlElement> element, SdkField<?> field) {
+        SdkBytes sdkBytes = SdkBytes.fromInputStream(context.response().content().get());
+        String stringPayload = sdkBytes.asUtf8String();
+        if (isXmlString(stringPayload)) {
+            InputStream inputStream = new ByteArrayInputStream(sdkBytes.asByteArray());
+            XmlElement document = XmlDomParser.parse(inputStream);
+            Object unmarshalled = unmarshaller.unmarshall(context, singletonList(document), (SdkField<Object>) field);
+            field.set(sdkPojo, unmarshalled);
+        } else {
+            if (stringPayload.isEmpty()) {
+                try {
+                    // InputStream may have already been read
+                    Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
+                    field.set(sdkPojo, unmarshalled);
+                } catch (NullPointerException e) {
+                    // User passed in empty String
+                    field.set(sdkPojo, stringPayload);
+                }
+            } else {
+                field.set(sdkPojo, stringPayload);
+            }
+        }
     }
 
     private boolean isXmlString(String payload) {
