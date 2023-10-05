@@ -194,7 +194,8 @@ public final class JsonProtocolUnmarshaller {
     private boolean hasJsonPayload(SdkPojo sdkPojo, SdkHttpFullResponse response) {
         return sdkPojo.sdkFields()
                       .stream()
-                      .anyMatch(f -> isPayloadMemberOnUnmarshall(f) && !isExplicitBlobPayloadMember(f) && !isExplicitStringPayloadMember(f))
+                      .anyMatch(f -> isPayloadMemberOnUnmarshall(f) && !isExplicitBlobPayloadMember(f)
+                                     && !isExplicitStringPayloadMember(f))
                && response.content().isPresent();
     }
 
