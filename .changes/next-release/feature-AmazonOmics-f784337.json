@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Omics",
+    "contributor": "",
+    "description": "Add Etag Support for Omics Storage in ListReadSets and GetReadSetMetadata API"
+}
