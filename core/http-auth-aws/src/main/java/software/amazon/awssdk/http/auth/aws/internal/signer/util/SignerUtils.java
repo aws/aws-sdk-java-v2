@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
 
 import java.io.ByteArrayInputStream;
@@ -274,5 +275,11 @@ public final class SignerUtils {
         } catch (Exception e) {
             throw new RuntimeException("Could not finish reading stream: ", e);
         }
+    }
+
+    public static String getContentHash(SdkHttpRequest.Builder requestBuilder) {
+        return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
+            () -> new IllegalArgumentException("Content hash must be present in the '" + X_AMZ_CONTENT_SHA256 + "' header!")
+        );
     }
 }

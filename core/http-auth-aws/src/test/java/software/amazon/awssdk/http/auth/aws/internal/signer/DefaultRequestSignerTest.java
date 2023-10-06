@@ -37,21 +37,20 @@ public class DefaultRequestSignerTest {
                                             .normalizePath(true)
                                             .build();
 
-    V4RequestSigner requestSigner = new DefaultV4RequestSigner(v4Properties);
+    DefaultV4RequestSigner requestSigner = new DefaultV4RequestSigner(v4Properties, "quux");
 
     @Test
     public void requestSigner_sign_shouldReturnSignedResult_butNotAddAnyAuthInfoToRequest() {
         SdkHttpRequest.Builder request = SdkHttpRequest
             .builder()
             .uri(URI.create("https://localhost"))
-            .method(SdkHttpMethod.GET)
-            .putHeader("x-amz-content-sha256", "quux");
+            .method(SdkHttpMethod.GET);
         String expectedContentHash = "quux";
         String expectedSigningKeyHex = "3d558b7a87b67996abc908071e0771a31b2a7977ab247144e60a6cba3356be1f";
-        String expectedSignature = "7557839280ea0ef5c4acc66e5670d0857ac4f491884b1b8031d4dea2fc33483c";
+        String expectedSignature = "6c1f4222e0888e6e68b20ded382bc80c7312465c69fb52cbd6d6ce2d073533bf";
         String expectedCanonicalRequestString = "GET\n/\n\n"
-                                                + "host:localhost\nx-amz-content-sha256:quux\n\n"
-                                                + "host;x-amz-content-sha256\nquux";
+                                                + "host:localhost\n\n"
+                                                + "host\nquux";
         String expectedHost = "localhost";
 
         V4RequestSigningResult requestSigningResult = requestSigner.sign(request);

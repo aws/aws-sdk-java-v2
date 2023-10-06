@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addHostHeader;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.deriveSigningKey;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.hashCanonicalRequest;
@@ -42,15 +41,16 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
     private static final Logger LOG = Logger.loggerFor(DefaultV4RequestSigner.class);
 
     private final V4Properties properties;
+    private final String contentHash;
 
-    public DefaultV4RequestSigner(V4Properties properties) {
+    public DefaultV4RequestSigner(V4Properties properties, String contentHash) {
         this.properties = properties;
+        this.contentHash = contentHash;
     }
 
     @Override
     public V4RequestSigningResult sign(SdkHttpRequest.Builder requestBuilder) {
         // Step 0: Pre-requisites
-        String contentHash = getContentHash(requestBuilder);
         addHostHeader(requestBuilder);
 
         // Step 1: Create a canonical request
@@ -69,12 +69,6 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
 
         // Step 5: Return the results (including signature) of request signing
         return new V4RequestSigningResult(contentHash, signingKey, signature, canonicalRequest, requestBuilder);
-    }
-
-    private String getContentHash(SdkHttpRequest.Builder requestBuilder) {
-        return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
-            () -> new IllegalArgumentException("Content hash must be present in the '" + X_AMZ_CONTENT_SHA256 + "' header!")
-        );
     }
 
     private V4CanonicalRequest createCanonicalRequest(SdkHttpRequest request, String contentHash) {
