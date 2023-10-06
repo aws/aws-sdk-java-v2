@@ -24,7 +24,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 @SdkInternalApi
 public class DefaultV4aPayloadSigner implements V4aPayloadSigner {
     @Override
-    public ContentStreamProvider sign(ContentStreamProvider payload, V4aContext v4Context) {
+    public ContentStreamProvider sign(ContentStreamProvider payload, RequestSigningResult requestSigningResult) {
         return payload;
     }
 }
