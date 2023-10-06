@@ -17,16 +17,10 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.io;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Clock;
-import java.time.Instant;
 import java.util.Collections;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
-import software.amazon.awssdk.http.auth.aws.TestUtils.TickingClock;
-import software.amazon.awssdk.http.auth.aws.eventstream.internal.io.SigV4DataFramePublisher;
-import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class ChecksumPublisherTckTest extends PublisherVerification<ByteBuffer> {
@@ -41,10 +35,7 @@ public class ChecksumPublisherTckTest extends PublisherVerification<ByteBuffer> 
 
         Publisher<ByteBuffer> checksumPublisher = new ChecksumPublisher(payload, Collections.emptyList());
 
-        // since this publisher specifically appends an empty element to the end, we need to subtract 1
-        // from the number of elements to expected to be "produced" before end-of-stream
-        long expectedElements = elements;
-        for (int i = 0; i < expectedElements; i++) {
+        for (int i = 0; i < elements; i++) {
             payload.send(ByteBuffer.wrap(Integer.toString(i).getBytes(StandardCharsets.UTF_8)));
         }
         payload.complete();

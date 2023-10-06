@@ -17,8 +17,10 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.io;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.TestEnvironment;
+import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
 
 /**
@@ -32,7 +34,11 @@ public class ChecksumSubscriberTckTest extends org.reactivestreams.tck.Subscribe
 
     @Override
     public Subscriber<ByteBuffer> createSubscriber() {
-        return new ChecksumSubscriber(Collections.singleton(new Sha256Checksum()));
+        return new ChecksumSubscriber(
+            new SimpleSubscriber((b) -> {}),
+            Collections.singleton(new Sha256Checksum()),
+            new CompletableFuture<>()
+        );
     }
 
     @Override

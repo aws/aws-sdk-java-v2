@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.io;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.zip.Checksum;
 import org.reactivestreams.Publisher;
@@ -28,21 +29,30 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public final class ChecksumPublisher implements Publisher<ByteBuffer> {
-    private final Publisher<ByteBuffer> checksummingPublisher;
     private final CompletableFuture<Void> signal = new CompletableFuture<>();
+    private final Publisher<ByteBuffer> publisher;
+    private final Collection<? extends Checksum> consumers;
+    private boolean isSubscribed = false;
 
     public ChecksumPublisher(Publisher<ByteBuffer> publisher, Collection<? extends Checksum> consumers) {
-        this.checksummingPublisher = subscriber -> {
-            publisher.subscribe(new ChecksumSubscriber(subscriber, consumers, signal));
-        };
+        this.publisher = publisher;
+        this.consumers = Collections.unmodifiableCollection(consumers);
     }
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-        checksummingPublisher.subscribe(subscriber);
+        if (!isSubscribed) {
+            publisher.subscribe(new ChecksumSubscriber(subscriber, consumers, signal));
+            isSubscribed = true;
+        } else {
+            subscriber.onError(new IllegalStateException("Only one subscription may be active at a time."));
+        }
     }
 
     public CompletableFuture<Void> checksum() {
-        return signal;
+        if (isSubscribed) {
+            return signal;
+        }
+        throw new IllegalStateException("Checksum will never complete because nothing is subscribed.");
     }
 }

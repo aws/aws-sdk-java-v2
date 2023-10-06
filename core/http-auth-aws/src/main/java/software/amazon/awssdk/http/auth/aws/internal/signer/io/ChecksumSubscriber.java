@@ -31,28 +31,44 @@ import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 public final class ChecksumSubscriber extends DelegatingSubscriber<ByteBuffer, ByteBuffer> {
     private final CompletableFuture<Void> signal;
     private final Collection<Checksum> checksums = new ArrayList<>();
+    private byte[] copyBuffer;
 
-    public ChecksumSubscriber(Subscriber<? super ByteBuffer> subscriber, Collection<? extends Checksum> consumers,
+    public ChecksumSubscriber(Subscriber<? super ByteBuffer> subscriber,
+                              Collection<? extends Checksum> consumers,
                               CompletableFuture<Void> signal) {
-        super(subscriber);
 
+        super(subscriber);
         this.checksums.addAll(consumers);
         this.signal = signal;
     }
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
-        byte[] buf;
-        if (byteBuffer.hasArray()) {
-            buf = byteBuffer.array();
-        } else {
-            buf = new byte[byteBuffer.remaining()];
-            byteBuffer.get(buf);
-        }
-        // We have to use a byte[], since update(<ByteBuffer>) is java 9+
-        checksums.forEach(checksum -> checksum.update(buf, 0, buf.length));
-
+        updateChecksumsAndReset(byteBuffer);
         subscriber.onNext(byteBuffer);
+    }
+
+    private void updateChecksumsAndReset(ByteBuffer buffer) {
+        int position = buffer.position();
+        int limit = buffer.limit();
+        int remaining = limit - position;
+        if (remaining <= 0) {
+            return;
+        }
+        if (buffer.hasArray()) {
+            checksums.forEach(c -> c.update(buffer.array(), position + buffer.arrayOffset(), remaining));
+        } else {
+            if (copyBuffer == null) {
+                copyBuffer = new byte[4096];
+            }
+            while (buffer.hasRemaining()) {
+                int length = Math.min(buffer.remaining(), copyBuffer.length);
+                buffer.get(copyBuffer, 0, length);
+                checksums.forEach(c -> c.update(copyBuffer, 0, length));
+            }
+        }
+        buffer.position(position);
+        buffer.limit(limit);
     }
 
     @Override
