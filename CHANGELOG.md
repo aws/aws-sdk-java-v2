@@ -1,3 +1,24 @@
+# __2.20.162__ __2023-10-06__
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release adds support for Document type as an alternative for stringified JSON for StartChangeSet, DescribeChangeSet and DescribeEntity APIs
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release updates the max character limit of PreAuthenticationLoginBanner and PostAuthenticationLoginBanner to 4096 characters
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __Amazon FSx__
+  - ### Features
+    - After performing steps to repair the Active Directory configuration of a file system, use this action to initiate the process of attempting to recover to the file system.
+
+## __Amazon QuickSight__
+  - ### Features
+    - NullOption in FilterListConfiguration; Dataset schema/table max length increased; Support total placement for pivot table visual; Lenient mode relaxes the validation to create resources with definition; Data sources can be added to folders; Redshift data sources support IAM Role-based authentication
+
 # __2.20.161__ __2023-10-05__
 ## __AWS SDK for Java v2__
   - ### Features
