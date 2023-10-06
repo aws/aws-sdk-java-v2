@@ -63,6 +63,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.CompressionConfiguration;
@@ -409,6 +410,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * By default, returns the configuration as-is. Classes extending this method will take care of running the plugins and
      * return the updated configuration if plugins are supported.
      */
+    @SdkPreviewApi
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
         return config;
     }

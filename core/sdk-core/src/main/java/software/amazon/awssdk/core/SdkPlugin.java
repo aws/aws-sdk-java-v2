@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core;
 
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * A plugin modifies a client's configuration when the client is created or at request execution
  * time.
  */
+@SdkPreviewApi
 @SdkPublicApi
 @ThreadSafe
 @FunctionalInterface

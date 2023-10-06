@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.client.builder;
 import java.net.URI;
 import java.util.List;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -82,6 +83,7 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
      * Adds a plugin to the client builder. The plugins will be invoked when building the client to allow them to change the
      * configuration of the built client.
      */
+    @SdkPreviewApi
     default B addPlugin(SdkPlugin plugin) {
         throw new UnsupportedOperationException();
     }
@@ -89,6 +91,7 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
     /**
      * Returns the list of  plugins configured on the client builder.
      */
+    @SdkPreviewApi
     default List<SdkPlugin> plugins() {
         throw new UnsupportedOperationException();
     }
