@@ -10,7 +10,6 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
@@ -129,22 +128,5 @@ public final class SdkClientConfigurationUtil {
         clientOverrides.compressionConfiguration(clientConfiguration.option(SdkClientOption.COMPRESSION_CONFIGURATION));
 
         return clientOverrides;
-    }
-
-    /**
-     * Executes the given list of plugins and returns the updated configuration.
-     */
-    public static SdkClientConfiguration invokePlugins(SdkClientConfiguration clientConfiguration,
-                                                       List<SdkPlugin> plugins,
-                                                       ConfigurationUpdater<SdkServiceClientConfiguration.Builder> updater
-    ) {
-        if (plugins.isEmpty()) {
-            return clientConfiguration;
-        }
-        return updater.update(builder -> {
-            for (SdkPlugin plugin : plugins) {
-                plugin.configureClient(builder);
-            }
-        }, clientConfiguration.toBuilder());
     }
 }

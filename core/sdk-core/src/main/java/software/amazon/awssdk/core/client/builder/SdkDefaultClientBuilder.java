@@ -67,13 +67,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
@@ -135,7 +133,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     private SdkHttpClient.Builder httpClientBuilder;
     private SdkAsyncHttpClient.Builder asyncHttpClientBuilder;
-    private final List<SdkPlugin> registeredPlugins = new ArrayList<>();
+    private final List<SdkPlugin> plugins = new ArrayList<>();
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
@@ -188,7 +186,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = mergeGlobalDefaults(configuration);
 
         // Invoke the plugins after defaults and before finalizing the configuration.
-        configuration = invokePluginsIfNeeded(configuration);
+        configuration = invokePlugins(configuration);
 
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
@@ -219,7 +217,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = mergeGlobalDefaults(configuration);
 
         // Invoke the plugins after defaults and before finalizing the configuration.
-        configuration = invokePluginsIfNeeded(configuration);
+        configuration = invokePlugins(configuration);
 
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
@@ -408,18 +406,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Invoke all the registered plugins and return the configuration.
+     * By default, returns the configuration as-is. Classes extending this method will take care of running the plugins and
+     * return the updated configuration if plugins are supported.
      */
-    protected SdkClientConfiguration invokePluginsIfNeeded(SdkClientConfiguration config) {
-        if (registeredPlugins.isEmpty()) {
-            return config;
-        }
-        ConfigurationUpdater<SdkServiceClientConfiguration.Builder> configurationUpdater = defaultConfigurationUpdater();
-        return configurationUpdater.update(builder -> {
-            for (SdkPlugin plugin : registeredPlugins) {
-                plugin.configureClient(builder);
-            }
-        }, config.toBuilder());
+    protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
+        return config;
     }
 
     private String resolveClientUserAgent(SdkClientConfiguration config, RetryPolicy retryPolicy) {
@@ -618,14 +609,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     @Override
     public final B addPlugin(SdkPlugin plugin) {
-        registeredPlugins.add(Validate.paramNotNull(plugin, "plugin"));
+        plugins.add(Validate.paramNotNull(plugin, "plugin"));
         return thisBuilder();
     }
 
-    protected ConfigurationUpdater<SdkServiceClientConfiguration.Builder> defaultConfigurationUpdater() {
-        // No-op by default, service specific codegen classes will extend this method will have a proper
-        // implementation of it.
-        return (consumer, configBuilder) -> configBuilder.build();
+    @Override
+    public final List<SdkPlugin> plugins() {
+        return plugins;
     }
 
     /**
