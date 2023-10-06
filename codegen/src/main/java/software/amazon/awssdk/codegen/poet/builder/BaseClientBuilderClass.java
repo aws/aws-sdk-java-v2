@@ -53,12 +53,11 @@ import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.client.config.internal.ConfigurationUpdater;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -177,10 +176,9 @@ public class BaseClientBuilderClass implements ClassSpec {
                 builder.addMethod(defaultTokenAuthSignerMethod());
             }
         }
-        builder.addMethod(defaultConfigUpdaterMethod());
         builder.addMethod(setOverridesMethod());
         addServiceHttpConfigIfNeeded(builder, model);
-
+        builder.addMethod(invokePluginsMethod());
         builder.addMethod(validateClientOptionsMethod());
 
 
@@ -733,19 +731,23 @@ public class BaseClientBuilderClass implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec defaultConfigUpdaterMethod() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("defaultConfigurationUpdater")
+    private MethodSpec invokePluginsMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("invokePlugins")
+            .addAnnotation(Override.class)
                                                .addModifiers(PROTECTED)
-                                               .returns(ParameterizedTypeName.get(ConfigurationUpdater.class,
-                                                                                  SdkServiceClientConfiguration.Builder.class));
-
-        builder.addCode("return (consumer, configBuilder) -> {\n")
-               .addCode("$>")
-               .addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(configBuilder)",
-                             configurationUtils.serviceClientConfigurationBuilderClassName())
-               .addStatement("consumer.accept(serviceConfigBuilder)")
-               .addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()")
-               .addCode("$<};\n");
+                                               .addParameter(SdkClientConfiguration.class, "config")
+                                               .returns(SdkClientConfiguration.class);
+        builder.addStatement("$T plugins = plugins()",
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
+               .beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return config")
+               .endControlFlow();
+        builder.addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(config.toBuilder())",
+                             configurationUtils.serviceClientConfigurationBuilderClassName());
+        builder.beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("plugin.configureClient(serviceConfigBuilder)")
+               .endControlFlow();
+        builder.addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()");
         return builder.build();
     }
 

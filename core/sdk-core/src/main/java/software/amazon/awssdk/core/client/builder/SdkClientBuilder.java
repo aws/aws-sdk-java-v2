@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client.builder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkPlugin;
@@ -82,6 +83,13 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
      * configuration of the built client.
      */
     default B addPlugin(SdkPlugin plugin) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the list of  plugins configured on the client builder.
+     */
+    default List<SdkPlugin> plugins() {
         throw new UnsupportedOperationException();
     }
 }
