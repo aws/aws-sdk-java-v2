@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -153,6 +154,7 @@ public abstract class RequestOverrideConfiguration {
     /**
      * Return the plugins that will be used to update the configuration used by the request.
      */
+    @SdkPreviewApi
     public List<SdkPlugin> plugins() {
         return plugins;
     }
@@ -494,11 +496,13 @@ public abstract class RequestOverrideConfiguration {
          *
          * @param plugin The plugin to add.
          */
+        @SdkPreviewApi
         B addPlugin(SdkPlugin plugin);
 
         /**
          * Returns the list of registered plugins
          */
+        @SdkPreviewApi
         List<SdkPlugin> plugins();
 
         /**
