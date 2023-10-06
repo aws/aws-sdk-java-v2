@@ -1,3 +1,32 @@
+# __2.20.161__ __2023-10-05__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail objects to ASFF, including resources for AwsEventsEventbus, AwsEventsEndpoint, AwsDmsEndpoint, AwsDmsReplicationTask, AwsDmsReplicationInstance, AwsRoute53HostedZone, and AwsMskCluster
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Add SoftwareVersion to response of DescribeGatewayInformation.
+
+## __Amazon Omics__
+  - ### Features
+    - Add Etag Support for Omics Storage in ListReadSets and GetReadSetMetadata API
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for corrections and minor improvements.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add hostedzonetype filter to ListHostedZones API.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release introduces Manage applications. This feature allows users to manage their WorkSpaces applications by associating or disassociating their WorkSpaces with applications. The DescribeWorkspaces API will now additionally return OperatingSystemName in its responses.
+
 # __2.20.160__ __2023-10-04__
 ## __AWS MediaTailor__
   - ### Features
