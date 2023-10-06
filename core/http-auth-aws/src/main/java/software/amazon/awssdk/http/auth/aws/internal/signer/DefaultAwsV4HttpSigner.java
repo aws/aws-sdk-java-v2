@@ -54,6 +54,26 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
 
+    @Override
+    public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
+        Checksummer checksummer = checksummer(request);
+        V4Properties v4Properties = v4Properties(request);
+        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
+        V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
+
+        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
+    }
+
+    @Override
+    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+        Checksummer checksummer = checksummer(request);
+        V4Properties v4Properties = v4Properties(request);
+        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
+        V4PayloadSigner payloadSigner = v4PayloadAsyncSigner(request, v4Properties);
+
+        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
+    }
+
     private static V4Properties v4Properties(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
         Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
@@ -106,17 +126,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return requestSigner.apply(v4Properties);
     }
 
-    private static boolean hasChecksumHeader(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
-
-        if (checksumAlgorithm != null) {
-            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
-            return request.request().firstMatchingHeader(checksumHeaderName).isPresent();
-        }
-
-        return false;
-    }
-
     private static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
         boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
@@ -161,14 +170,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
     }
 
-    private static boolean useChunkEncoding(boolean payloadSigningEnabled, boolean chunkEncodingEnabled,
-                                            boolean isTrailingOrFlexible) {
-
-        return (payloadSigningEnabled && chunkEncodingEnabled) || (chunkEncodingEnabled && isTrailingOrFlexible);
-    }
-
     private static V4PayloadSigner v4PayloadSigner(
-        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+        SignRequest<? extends AwsCredentialsIdentity> request,
         V4Properties properties) {
 
         boolean isPayloadSigning = isPayloadSigning(request);
@@ -200,7 +203,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private static V4PayloadSigner v4PayloadAsyncSigner(
-        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request,
         V4Properties properties) {
 
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
@@ -289,23 +292,20 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
     }
 
-    @Override
-    public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request);
-        V4Properties v4Properties = v4Properties(request);
-        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
-        V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
+    private static boolean hasChecksumHeader(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
 
-        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
+        if (checksumAlgorithm != null) {
+            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+            return request.request().firstMatchingHeader(checksumHeaderName).isPresent();
+        }
+
+        return false;
     }
 
-    @Override
-    public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request);
-        V4Properties v4Properties = v4Properties(request);
-        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
-        V4PayloadSigner payloadSigner = v4PayloadAsyncSigner(request, v4Properties);
+    private static boolean useChunkEncoding(boolean payloadSigningEnabled, boolean chunkEncodingEnabled,
+                                            boolean isTrailingOrFlexible) {
 
-        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
+        return (payloadSigningEnabled && chunkEncodingEnabled) || (chunkEncodingEnabled && isTrailingOrFlexible);
     }
 }
