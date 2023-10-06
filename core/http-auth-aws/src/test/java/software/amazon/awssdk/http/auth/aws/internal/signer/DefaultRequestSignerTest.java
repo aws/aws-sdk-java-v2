@@ -40,7 +40,7 @@ public class DefaultRequestSignerTest {
     V4RequestSigner requestSigner = new DefaultV4RequestSigner(v4Properties);
 
     @Test
-    public void requestSigner_sign_shouldReturnSignedContext_butNotAddAnyAuthInfoToRequest() {
+    public void requestSigner_sign_shouldReturnSignedResult_butNotAddAnyAuthInfoToRequest() {
         SdkHttpRequest.Builder request = SdkHttpRequest
             .builder()
             .uri(URI.create("https://localhost"))
@@ -54,12 +54,12 @@ public class DefaultRequestSignerTest {
                                                 + "host;x-amz-content-sha256\nquux";
         String expectedHost = "localhost";
 
-        V4Context v4Context = requestSigner.sign(request);
+        V4RequestSigningResult requestSigningResult = requestSigner.sign(request);
 
-        assertEquals(expectedContentHash, v4Context.getContentHash());
-        assertEquals(expectedSigningKeyHex, toHex(v4Context.getSigningKey()));
-        assertEquals(expectedSignature, v4Context.getSignature());
-        assertEquals(expectedCanonicalRequestString, v4Context.getCanonicalRequest().getCanonicalRequestString());
-        assertEquals(expectedHost, v4Context.getSignedRequest().firstMatchingHeader("Host").orElse(""));
+        assertEquals(expectedContentHash, requestSigningResult.getContentHash());
+        assertEquals(expectedSigningKeyHex, toHex(requestSigningResult.getSigningKey()));
+        assertEquals(expectedSignature, requestSigningResult.getSignature());
+        assertEquals(expectedCanonicalRequestString, requestSigningResult.getCanonicalRequest().getCanonicalRequestString());
+        assertEquals(expectedHost, requestSigningResult.getSignedRequest().firstMatchingHeader("Host").orElse(""));
     }
 }

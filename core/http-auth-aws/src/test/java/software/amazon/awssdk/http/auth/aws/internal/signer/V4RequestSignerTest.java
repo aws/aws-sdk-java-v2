@@ -41,10 +41,10 @@ public class V4RequestSignerTest {
     @Test
     public void sign_computesSignatureAndAddsHostHeader() {
         String expectedSignature = "9f7da47c7fe7989712658509580c725430af16a2dccb6bf38b3506bd9606642e";
-        V4Context ctx = V4RequestSigner.create(getProperties(creds)).sign(getRequest());
+        V4RequestSigningResult result = V4RequestSigner.create(getProperties(creds)).sign(getRequest());
 
-        assertEquals(expectedSignature, ctx.getSignature());
-        assertThat(ctx.getSignedRequest().firstMatchingHeader("Host")).hasValue("test.com");
+        assertEquals(expectedSignature, result.getSignature());
+        assertThat(result.getSignedRequest().firstMatchingHeader("Host")).hasValue("test.com");
     }
 
     @Test
@@ -52,10 +52,10 @@ public class V4RequestSignerTest {
         String expectedAuthorization = "AWS4-HMAC-SHA256 Credential=access/19700101/us-east-1/demo/aws4_request, " +
                                        "SignedHeaders=host;x-amz-archive-description;x-amz-content-sha256;x-amz-date, " +
                                        "Signature=0fafd04465eb6201e868a80f72d15d50731512298f554684ce6627c0619f429a";
-        V4Context ctx = V4RequestSigner.header(getProperties(creds)).sign(getRequest());
+        V4RequestSigningResult result = V4RequestSigner.header(getProperties(creds)).sign(getRequest());
 
-        assertThat(ctx.getSignedRequest().firstMatchingHeader("X-Amz-Date")).hasValue("19700101T000000Z");
-        assertThat(ctx.getSignedRequest().firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+        assertThat(result.getSignedRequest().firstMatchingHeader("X-Amz-Date")).hasValue("19700101T000000Z");
+        assertThat(result.getSignedRequest().firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
     }
 
     @Test
@@ -64,49 +64,49 @@ public class V4RequestSignerTest {
                                        "SignedHeaders=host;x-amz-archive-description;x-amz-content-sha256;x-amz-date;"
                                        + "x-amz-security-token, " +
                                        "Signature=cda79272f6d258c2cb2f04ac84a5f9515440e0158bf39e212c3dcf88b3a477a9";
-        V4Context ctx = V4RequestSigner.header(getProperties(sessionCreds)).sign(getRequest());
+        V4RequestSigningResult result = V4RequestSigner.header(getProperties(sessionCreds)).sign(getRequest());
 
-        assertThat(ctx.getSignedRequest().firstMatchingHeader("X-Amz-Date")).hasValue("19700101T000000Z");
-        assertThat(ctx.getSignedRequest().firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
-        assertThat(ctx.getSignedRequest().firstMatchingHeader("X-Amz-Security-Token")).hasValue("token");
+        assertThat(result.getSignedRequest().firstMatchingHeader("X-Amz-Date")).hasValue("19700101T000000Z");
+        assertThat(result.getSignedRequest().firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+        assertThat(result.getSignedRequest().firstMatchingHeader("X-Amz-Security-Token")).hasValue("token");
     }
 
     @Test
     public void sign_withQuery_addsAuthQueryParams() {
-        V4Context ctx = V4RequestSigner.query(getProperties(creds)).sign(getRequest());
+        V4RequestSigningResult result = V4RequestSigner.query(getProperties(creds)).sign(getRequest());
 
-        assertEquals("AWS4-HMAC-SHA256", ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0));
-        assertEquals("19700101T000000Z", ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Date").get(0));
+        assertEquals("AWS4-HMAC-SHA256", result.getSignedRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0));
+        assertEquals("19700101T000000Z", result.getSignedRequest().rawQueryParameters().get("X-Amz-Date").get(0));
         assertEquals("x-amz-archive-description;x-amz-content-sha256",
-                     ctx.getSignedRequest().rawQueryParameters().get("X-Amz-SignedHeaders").get(0));
-        assertEquals("access/19700101/us-east-1/demo/aws4_request", ctx.getSignedRequest().rawQueryParameters().get(
+                     result.getSignedRequest().rawQueryParameters().get("X-Amz-SignedHeaders").get(0));
+        assertEquals("access/19700101/us-east-1/demo/aws4_request", result.getSignedRequest().rawQueryParameters().get(
             "X-Amz-Credential").get(0));
         assertEquals("448f105ad26c5adfdf07b482b0f46ff294032c7bc72e10bb944e2f45929bf468",
-                     ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Signature").get(0));
+                     result.getSignedRequest().rawQueryParameters().get("X-Amz-Signature").get(0));
     }
 
     @Test
     public void sign_withQueryAndSessionCredentials_addsAuthQueryParamsAndTokenParam() {
-        V4Context ctx = V4RequestSigner.query(getProperties(sessionCreds)).sign(getRequest());
+        V4RequestSigningResult result = V4RequestSigner.query(getProperties(sessionCreds)).sign(getRequest());
 
-        assertEquals("AWS4-HMAC-SHA256", ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0));
-        assertEquals("19700101T000000Z", ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Date").get(0));
+        assertEquals("AWS4-HMAC-SHA256", result.getSignedRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0));
+        assertEquals("19700101T000000Z", result.getSignedRequest().rawQueryParameters().get("X-Amz-Date").get(0));
         assertEquals("x-amz-archive-description;x-amz-content-sha256",
-                     ctx.getSignedRequest().rawQueryParameters().get("X-Amz-SignedHeaders").get(0));
+                     result.getSignedRequest().rawQueryParameters().get("X-Amz-SignedHeaders").get(0));
         assertEquals(
             "access/19700101/us-east-1/demo/aws4_request",
-            ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Credential").get(0));
+            result.getSignedRequest().rawQueryParameters().get("X-Amz-Credential").get(0));
         assertEquals("f8a7d5ed62c2095240dd847ea48ebb1f1471b3fccb8d8165f8c5dbd8c5a670da",
-                     ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Signature").get(0));
-        assertEquals("token", ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Security-Token").get(0));
+                     result.getSignedRequest().rawQueryParameters().get("X-Amz-Signature").get(0));
+        assertEquals("token", result.getSignedRequest().rawQueryParameters().get("X-Amz-Security-Token").get(0));
     }
 
     @Test
     public void sign_withPresigned_addsExpirationParam() {
-        V4Context ctx = V4RequestSigner.presigned(getProperties(creds), Duration.ZERO).sign(getRequest());
+        V4RequestSigningResult result = V4RequestSigner.presigned(getProperties(creds), Duration.ZERO).sign(getRequest());
 
-        assertEquals("0", ctx.getSignedRequest().rawQueryParameters().get("X-Amz-Expires").get(0));
-        assertEquals("45d00c9c0eb2c05cfe7e42231a572aef30d96d1afb2a205e27d9c6b89867a865", ctx.getSignature());
+        assertEquals("0", result.getSignedRequest().rawQueryParameters().get("X-Amz-Expires").get(0));
+        assertEquals("45d00c9c0eb2c05cfe7e42231a572aef30d96d1afb2a205e27d9c6b89867a865", result.getSignature());
     }
 
     @Test

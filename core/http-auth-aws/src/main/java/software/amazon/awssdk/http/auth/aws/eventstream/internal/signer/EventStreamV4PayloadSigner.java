@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.aws.eventstream.internal.io.SigV4DataFramePublisher;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.internal.signer.V4Context;
+import software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigningResult;
 import software.amazon.awssdk.http.auth.aws.internal.signer.V4PayloadSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.Validate;
@@ -48,17 +48,17 @@ public class EventStreamV4PayloadSigner implements V4PayloadSigner {
     }
 
     @Override
-    public ContentStreamProvider sign(ContentStreamProvider payload, V4Context v4Context) {
+    public ContentStreamProvider sign(ContentStreamProvider payload, V4RequestSigningResult requestSigningResult) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4Context v4Context) {
+    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4RequestSigningResult requestSigningResult) {
         return SigV4DataFramePublisher.builder()
                                       .publisher(payload)
                                       .credentials(credentials)
                                       .credentialScope(credentialScope)
-                                      .signature(v4Context.getSignature())
+                                      .signature(requestSigningResult.getSignature())
                                       .signingClock(signingClock)
                                       .build();
     }

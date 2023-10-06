@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.Logger;
  * The default implementation of a v4-request-signer. It performs each step of the SigV4 signing process, but does not add the
  * signature or auth information to the request itself.
  * <p>
- * All signing information, such as signature, signing key, canonical request, etc. is present in context object that is returned.
+ * All signing information, such as signature, signing key, canonical request, etc. is present in result object that is returned.
  * This can be used by the caller to add the auth info to the request, such as adding the signature as a query parameter or
  * building an authorization header using the signature and canonical request headers.
  */
@@ -48,7 +48,7 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
     }
 
     @Override
-    public V4Context sign(SdkHttpRequest.Builder requestBuilder) {
+    public V4RequestSigningResult sign(SdkHttpRequest.Builder requestBuilder) {
         // Step 0: Pre-requisites
         String contentHash = getContentHash(requestBuilder);
         addHostHeader(requestBuilder);
@@ -67,8 +67,8 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
 
         String signature = createSignature(stringToSign, signingKey);
 
-        // Step 5: Return the signature to be added to the request
-        return new V4Context(contentHash, signingKey, signature, canonicalRequest, requestBuilder);
+        // Step 5: Return the results (including signature) of request signing
+        return new V4RequestSigningResult(contentHash, signingKey, signature, canonicalRequest, requestBuilder);
     }
 
     private String getContentHash(SdkHttpRequest.Builder requestBuilder) {

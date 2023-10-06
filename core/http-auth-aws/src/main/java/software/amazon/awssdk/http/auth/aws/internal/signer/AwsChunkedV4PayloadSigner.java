@@ -73,8 +73,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     }
 
     @Override
-    public ContentStreamProvider sign(ContentStreamProvider payload, V4Context v4Context) {
-        SdkHttpRequest.Builder request = v4Context.getSignedRequest();
+    public ContentStreamProvider sign(ContentStreamProvider payload, V4RequestSigningResult requestSigningResult) {
+        SdkHttpRequest.Builder request = requestSigningResult.getSignedRequest();
 
         String checksum = request.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
             () -> new IllegalArgumentException(X_AMZ_CONTENT_SHA256 + " must be set!")
@@ -90,7 +90,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
 
         switch (checksum) {
             case STREAMING_SIGNED_PAYLOAD: {
-                RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
+                RollingSigner rollingSigner = new RollingSigner(requestSigningResult.getSigningKey(),
+                                                                requestSigningResult.getSignature());
                 chunkedEncodedInputStreamBuilder.addExtension(new SigV4ChunkExtensionProvider(rollingSigner, credentialScope));
                 break;
             }
@@ -98,7 +99,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
                 setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder);
                 break;
             case STREAMING_SIGNED_PAYLOAD_TRAILER: {
-                RollingSigner rollingSigner = new RollingSigner(v4Context.getSigningKey(), v4Context.getSignature());
+                RollingSigner rollingSigner = new RollingSigner(requestSigningResult.getSigningKey(),
+                                                                requestSigningResult.getSignature());
                 chunkedEncodedInputStreamBuilder.addExtension(new SigV4ChunkExtensionProvider(rollingSigner, credentialScope));
                 setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder);
                 chunkedEncodedInputStreamBuilder.addTrailer(
@@ -114,7 +116,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     }
 
     @Override
-    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4Context v4Context) {
+    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4RequestSigningResult requestSigningResult) {
         throw new UnsupportedOperationException();
     }
 

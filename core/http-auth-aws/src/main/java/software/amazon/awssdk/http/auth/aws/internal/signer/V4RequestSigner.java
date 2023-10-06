@@ -54,16 +54,16 @@ public interface V4RequestSigner {
             }
             addDateHeader(requestBuilder, formatDateTime(properties.getCredentialScope().getInstant()));
 
-            V4Context ctx = create(properties).sign(requestBuilder);
+            V4RequestSigningResult result = create(properties).sign(requestBuilder);
 
             // Add the signature within an authorization header
             String authHeader = AWS4_SIGNING_ALGORITHM
                                 + " Credential=" + properties.getCredentialScope().scope(properties.getCredentials())
-                                + ", SignedHeaders=" + ctx.getCanonicalRequest().getSignedHeadersString()
-                                + ", Signature=" + ctx.getSignature();
+                                + ", SignedHeaders=" + result.getCanonicalRequest().getSignedHeadersString()
+                                + ", Signature=" + result.getSignature();
 
             requestBuilder.putHeader(SignerConstant.AUTHORIZATION, authHeader);
-            return ctx;
+            return result;
         };
     }
 
@@ -85,12 +85,12 @@ public interface V4RequestSigner {
             requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL,
                                                 properties.getCredentialScope().scope(properties.getCredentials()));
 
-            V4Context ctx = create(properties).sign(requestBuilder);
+            V4RequestSigningResult result = create(properties).sign(requestBuilder);
 
             // Add the signature
-            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, ctx.getSignature());
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, result.getSignature());
 
-            return ctx;
+            return result;
         };
     }
 
@@ -114,12 +114,12 @@ public interface V4RequestSigner {
      */
     static V4RequestSigner anonymous(V4Properties properties) {
         return requestBuilder ->
-            new V4Context("", new byte[] {}, null, null, requestBuilder);
+            new V4RequestSigningResult("", new byte[] {}, null, null, requestBuilder);
     }
 
     /**
-     * Given a request builder, sign a request and return a v4-context containing the signed request and its properties.
+     * Given a request builder, sign the request and return a result containing the signed request and its properties.
      */
-    V4Context sign(SdkHttpRequest.Builder requestBuilder);
+    V4RequestSigningResult sign(SdkHttpRequest.Builder requestBuilder);
 }
 
