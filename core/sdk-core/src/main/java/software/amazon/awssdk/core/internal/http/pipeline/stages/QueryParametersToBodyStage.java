@@ -40,7 +40,7 @@ public class QueryParametersToBodyStage implements MutableRequestToRequestPipeli
 
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
-        throws Exception {
+            throws Exception {
 
         if (shouldPutParamsInBody(request.build())) {
             return changeQueryParametersToFormData(request.build()).toBuilder();
