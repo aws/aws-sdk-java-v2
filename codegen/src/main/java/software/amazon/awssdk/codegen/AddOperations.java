@@ -35,7 +35,6 @@ import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Constructs the operation model for every operation defined by the service.
@@ -74,7 +73,7 @@ final class AddOperations {
      * @return True if shape is a String type. False otherwise
      */
     private static boolean isStringShape(Shape shape) {
-        return shape != null && shape.getType().equalsIgnoreCase("String");
+        return shape != null && "String".equalsIgnoreCase(shape.getType());
     }
 
     /**
@@ -180,12 +179,6 @@ final class AddOperations {
             if (input != null) {
                 String originalShapeName = input.getShape();
                 String inputShape = namingStrategy.getRequestClassName(operationName);
-
-                if (isQueryProtocolWithExplicitStringPayload(c2jShapes, c2jShapes.get(inputShape))) {
-                    throw SdkClientException.create("Operations with explicit String payloads are not supported for Query "
-                                                    + "protocols. Unsupported operation: " + operationName);
-                }
-
                 String documentation = input.getDocumentation() != null ? input.getDocumentation() :
                                        c2jShapes.get(originalShapeName).getDocumentation();
 
@@ -203,10 +196,6 @@ final class AddOperations {
 
                 operationModel.setReturnType(
                         new ReturnTypeModel(responseClassName).withDocumentation(documentation));
-                if (isQueryProtocolWithExplicitStringPayload(c2jShapes, outputShape)) {
-                    throw SdkClientException.create("Operations with explicit String payloads are not supported for Query "
-                                                    + "protocols. Unsupported operation: " + operationName);
-                }
                 if (isBlobShape(getPayloadShape(c2jShapes, outputShape))) {
                     operationModel.setHasBlobMemberAsPayload(true);
                 }
@@ -237,12 +226,6 @@ final class AddOperations {
         }
 
         return javaOperationModels;
-    }
-
-    private boolean isQueryProtocolWithExplicitStringPayload(Map<String, Shape> c2jShapes, Shape shape) {
-        String protocol = serviceModel.getMetadata().getProtocol();
-        return (protocol.equals("ec2") || protocol.equals("query")) && shape != null
-               && isStringShape(getPayloadShape(c2jShapes, shape));
     }
 
     /**
