@@ -28,7 +28,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,7 +58,6 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -293,16 +291,6 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
                         CollectionUtils.class, SdkClientOption.class);
-
-        if (model.getMetadata().isQueryProtocol()) {
-            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
-            builder.addStatement("$T protocolInterceptors = $T.singletonList(new $T())",
-                                 listType,
-                                 Collections.class,
-                                 QueryParametersToBodyInterceptor.class);
-            builder.addStatement("interceptors = $T.mergeLists(interceptors, protocolInterceptors)",
-                                 CollectionUtils.class);
-        }
 
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
