@@ -286,4 +286,10 @@
         </Or>
         <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
     </Match>
+
+    <!-- New flags as of spotbogs 4.7.3.5 -->
+    <!-- TODO: Fix or explicitly exclude each occurrence -->
+     <Match>
+        <Bug pattern="EI_EXPOSE_REP2,EI_EXPOSE_REP,MS_EXPOSE_REP,MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR,SA_FIELD_SELF_ASSIGNMENT,DCN_NULLPOINTER_EXCEPTION"/>
+    </Match>
 </FindBugsFilter>

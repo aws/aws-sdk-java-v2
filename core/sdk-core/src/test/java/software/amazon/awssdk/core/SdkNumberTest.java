@@ -22,6 +22,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Objects;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 
 public class SdkNumberTest {
 
@@ -95,8 +98,24 @@ public class SdkNumberTest {
         assertThat(sdkNumber.floatValue()).isEqualTo(-123456789.987654321f);
         assertThat(sdkNumber.shortValue()).isEqualTo((short) -123456789.987654321f);
         assertThat(sdkNumber.byteValue()).isEqualTo((byte) -123456789.987654321f);
+    }
+
+    // JDK 19+ changes the float formatting: https://bugs.openjdk.org/browse/JDK-8300869
+    @Test
+    @EnabledForJreRange(max = JRE.JAVA_18)
+    public void floatSdkNumber_lt_jdk19() {
+        SdkNumber sdkNumber = SdkNumber.fromFloat(-123456789.987654321f);
         assertThat(sdkNumber.toString()).isEqualTo("-1.23456792E8")
-                .isEqualTo(Float.valueOf(-123456789.987654321f).toString());
+               .isEqualTo(Float.valueOf(-123456789.987654321f).toString());
+    }
+
+    // JDK 19+ changes the float formatting: https://bugs.openjdk.org/browse/JDK-8300869
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_19)
+    public void floatSdkNumber_gt_jdk19() {
+        SdkNumber sdkNumber = SdkNumber.fromFloat(-123456789.987654321f);
+        assertThat(sdkNumber.toString()).isEqualTo("-1.2345679E8")
+                                        .isEqualTo(Float.valueOf(-123456789.987654321f).toString());
     }
 
     @Test

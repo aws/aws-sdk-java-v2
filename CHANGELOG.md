@@ -1,3 +1,124 @@
+# __2.20.161__ __2023-10-05__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail objects to ASFF, including resources for AwsEventsEventbus, AwsEventsEndpoint, AwsDmsEndpoint, AwsDmsReplicationTask, AwsDmsReplicationInstance, AwsRoute53HostedZone, and AwsMskCluster
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Add SoftwareVersion to response of DescribeGatewayInformation.
+
+## __Amazon Omics__
+  - ### Features
+    - Add Etag Support for Omics Storage in ListReadSets and GetReadSetMetadata API
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for corrections and minor improvements.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add hostedzonetype filter to ListHostedZones API.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release introduces Manage applications. This feature allows users to manage their WorkSpaces applications by associating or disassociating their WorkSpaces with applications. The DescribeWorkspaces API will now additionally return OperatingSystemName in its responses.
+
+# __2.20.160__ __2023-10-04__
+## __AWS MediaTailor__
+  - ### Features
+    - Updates DescribeVodSource to include a list of ad break opportunities in the response
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for building JDK 21.
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig introduces KMS customer-managed key (CMK) encryption support for data saved to AppConfig's hosted configuration store.
+
+## __Amazon DataZone__
+  - ### Features
+    - Initial release of Amazon DataZone
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding support for AdditionalS3DataSource, a data source used for training or inference that is in addition to the input dataset or model data.
+
+## __Application Migration Service__
+  - ### Features
+    - This release includes the following new APIs: ListConnectors, CreateConnector, UpdateConnector, DeleteConnector and UpdateSourceServer to support the source action framework feature.
+
+# __2.20.159__ __2023-10-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds the ability to replace video frames without modifying the audio essence.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - AWS Well-Architected now supports Review Templates that allows you to create templates with pre-filled answers for Well-Architected and Custom Lens best practices.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 API: Update to include new metrics CONTACTS_RESOLVED_IN_X , AVG_HOLD_TIME_ALL_CONTACTS , AVG_RESOLUTION_TIME , ABANDONMENT_RATE , AGENT_NON_RESPONSE_WITHOUT_CUSTOMER_ABANDONS with added features: Interval Period, TimeZone, Negate MetricFilters, Extended date time range.
+
+## __Amazon Location Service__
+  - ### Features
+    - Amazon Location Service adds support for bounding polygon queries. Additionally, the GeofenceCount field has been added to the DescribeGeofenceCollection API response.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release allows users to run Selective Execution in SageMaker Pipelines without SourcePipelineExecutionArn if selected steps do not have any dependent steps.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - This release adds support for sharing AWS::ApplicationInsights::Application resources.
+
+# __2.20.158__ __2023-10-02__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - STS API updates for assumeRole
+
+## __AWS Single Sign-On__
+  - ### Features
+    - Fix FIPS Endpoints in aws-us-gov.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __Amazon Bedrock__
+  - ### Features
+    - Provisioned throughput feature with Amazon and third-party base models, and update validators for model identifier and taggable resource ARNs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add model timeout exception for InvokeModelWithResponseStream API and update validator for invoke model identifier.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introducing Amazon EC2 R7iz instances with 3.9 GHz sustained all-core turbo frequency and deliver up to 20% better performance than previous generation z1d instances.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - Remove Rinkeby as option from Ethereum APIs
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds DefaultCertificateForNewLaunches field in the DescribeCertificates API response.
+
 # __2.20.157__ __2023-09-28__
 ## __AWS Budgets__
   - ### Features
@@ -2114,7 +2235,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

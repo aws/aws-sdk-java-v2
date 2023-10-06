@@ -1,0 +1,60 @@
+{
+    "version": "2.20.158",
+    "date": "2023-10-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "STS API updates for assumeRole"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On",
+            "contributor": "",
+            "description": "Fix FIPS Endpoints in aws-us-gov."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Documentation updates for AWS Transfer Family"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "Provisioned throughput feature with Amazon and third-party base models, and update validators for model identifier and taggable resource ARNs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Add model timeout exception for InvokeModelWithResponseStream API and update validator for invoke model identifier."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Introducing Amazon EC2 R7iz instances with 3.9 GHz sustained all-core turbo frequency and deliver up to 20% better performance than previous generation z1d instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Blockchain",
+            "contributor": "",
+            "description": "Remove Rinkeby as option from Ethereum APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds DefaultCertificateForNewLaunches field in the DescribeCertificates API response."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
