@@ -1,11 +1,13 @@
 package software.amazon.awssdk.services.jsonprotocoltests;
 
 import java.net.URI;
+import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -99,6 +101,15 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
          */
         @Override
         IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider();
+
+        @Override
+        Builder putAuthScheme(AuthScheme<?> authScheme);
+
+        /**
+         * Gets the value for auth schemes
+         */
+        @Override
+        Map<String, AuthScheme<?>> authSchemes();
 
         /**
          * Sets the value for auth scheme provider

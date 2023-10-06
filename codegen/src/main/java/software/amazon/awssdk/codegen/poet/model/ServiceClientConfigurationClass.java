@@ -122,6 +122,12 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     }
 
     private MethodSpec.Builder baseSetterForField(Field field) {
+        MethodSpec fieldBuilderSetter = field.builderSetter();
+        if (fieldBuilderSetter != null) {
+            return fieldBuilderSetter.toBuilder()
+                                     .returns(className().nestedClass("Builder"));
+        }
+
         MethodSpec.Builder builder = MethodSpec.methodBuilder(field.name())
                                                .addModifiers(PUBLIC)
                                                .addParameter(field.type(), field.name())
@@ -138,6 +144,13 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     }
 
     private MethodSpec getterForField(Field field, String fieldName, boolean forDataGetter) {
+        MethodSpec fieldBuilderGetter = field.builderGetterImpl();
+        if (fieldBuilderGetter != null) {
+            return fieldBuilderGetter.toBuilder()
+                                     .returns(field.type())
+                                     .build();
+        }
+
         MethodSpec.Builder builder = baseGetterForField(field);
         if (!forDataGetter && field.isLocalField()) {
             builder.addAnnotation(Override.class);

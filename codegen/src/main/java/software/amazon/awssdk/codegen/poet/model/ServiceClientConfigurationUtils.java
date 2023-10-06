@@ -17,13 +17,18 @@ package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -34,6 +39,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -132,7 +138,8 @@ public class ServiceClientConfigurationUtils {
                  .optionClass(AwsClientOption.class)
                  .optionValue(AwsClientOption.AWS_REGION)
                  .build(),
-            credentialsProviderField()
+            credentialsProviderField(),
+            authSchemesField()
         );
     }
 
@@ -215,6 +222,78 @@ public class ServiceClientConfigurationUtils {
         return builder.build();
     }
 
+
+    private static Field authSchemesField() {
+        TypeName authSchemeGenericType = ParameterizedTypeName.get(ClassName.get(AuthScheme.class),
+                                                                   WildcardTypeName.subtypeOf(Object.class));
+        TypeName authSchemesType = ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class),
+                                                             authSchemeGenericType);
+        Field.Builder builder = Field.builder("authSchemes",
+                                              authSchemesType)
+                                     .doc("auth schemes")
+                                     .definingClass(SdkServiceClientConfiguration.class);
+
+        builder.constructFromConfiguration(
+            CodeBlock.builder()
+                     .addStatement("$T authSchemes = internalBuilder.option($T.$L)",
+                                   authSchemesType, SdkClientOption.class,
+                                   fieldName(SdkClientOption.AUTH_SCHEMES, SdkClientOption.class))
+                     .beginControlFlow("if (authSchemes != null)")
+                     .addStatement("authSchemes = new $T<>(authSchemes)", HashMap.class)
+                     .endControlFlow()
+                     .addStatement("this.authSchemes = authSchemes")
+                     .build()
+        );
+
+        builder.copyToConfiguration(
+            CodeBlock.builder()
+                     .beginControlFlow("if (authSchemes != null &&"
+                                       + " !authSchemes.equals(internalBuilder.option($T.$L)))",
+                                       SdkClientOption.class, fieldName(SdkClientOption.AUTH_SCHEMES,
+                                                                        SdkClientOption.class))
+                     .addStatement("internalBuilder.option($T.$L, authSchemes())",
+                                   SdkClientOption.class, fieldName(SdkClientOption.AUTH_SCHEMES,
+                                                                    SdkClientOption.class))
+                     .endControlFlow()
+                     .build()
+        );
+
+        builder.builderSetterImpl(
+            MethodSpec.methodBuilder("putAuthScheme")
+                      .addModifiers(Modifier.PUBLIC)
+                      .addAnnotation(Override.class)
+                      .addParameter(authSchemeGenericType, "authScheme")
+                      .beginControlFlow("if (authSchemes == null)")
+                      .addStatement("authSchemes = new $T<>()", HashMap.class)
+                      .endControlFlow()
+                      .addStatement("authSchemes.put(authScheme.schemeId(), authScheme)")
+                      .addStatement("return this")
+                      .build()
+        );
+
+        builder.builderSetter(
+            MethodSpec.methodBuilder("putAuthScheme")
+                      .addModifiers(Modifier.PUBLIC)
+                      .addAnnotation(Override.class)
+                      .addParameter(authSchemeGenericType, "authScheme")
+                      .build()
+        );
+
+        builder.builderGetterImpl(
+            MethodSpec.methodBuilder("authSchemes")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(authSchemesType)
+                .beginControlFlow("if (authSchemes == null)")
+                .addStatement("return $T.emptyMap()", Collections.class)
+                .endControlFlow()
+                .addStatement("return $T.unmodifiableMap(new $T<>(authSchemes))", Collections.class, HashMap.class)
+                .build()
+        );
+
+        return builder.build();
+    }
+
     static class Field {
         private final String name;
         private final TypeName type;
@@ -225,6 +304,9 @@ public class ServiceClientConfigurationUtils {
         private final TypeName baseType;
         private final CodeBlock constructFromConfiguration;
         private final CodeBlock copyToConfiguration;
+        private final MethodSpec builderSetterImpl;
+        private final MethodSpec builderSetter;
+        private final MethodSpec builderGetterImpl;
 
         Field(Field.Builder builder) {
             this.name = Validate.paramNotNull(builder.name, "name");
@@ -236,6 +318,9 @@ public class ServiceClientConfigurationUtils {
             this.baseType = builder.baseType;
             this.constructFromConfiguration = builder.constructFromConfiguration;
             this.copyToConfiguration = builder.copyToConfiguration;
+            this.builderSetterImpl = builder.builderSetterImpl;
+            this.builderSetter = builder.builderSetter;
+            this.builderGetterImpl = builder.builderGetterImpl;
         }
 
         public boolean isLocalField() {
@@ -278,6 +363,18 @@ public class ServiceClientConfigurationUtils {
             return copyToConfiguration;
         }
 
+        public MethodSpec builderSetterImpl() {
+            return builderSetterImpl;
+        }
+
+        public MethodSpec builderSetter() {
+            return builderSetter;
+        }
+
+        public MethodSpec builderGetterImpl() {
+            return builderGetterImpl;
+        }
+
         public static Field.Builder builder() {
             return new Field.Builder();
         }
@@ -305,7 +402,9 @@ public class ServiceClientConfigurationUtils {
             private TypeName baseType;
             private CodeBlock constructFromConfiguration;
             private CodeBlock copyToConfiguration;
-
+            private MethodSpec builderSetterImpl;
+            private MethodSpec builderSetter;
+            private MethodSpec builderGetterImpl;
 
             public Field.Builder name(String name) {
                 this.name = name;
@@ -354,6 +453,21 @@ public class ServiceClientConfigurationUtils {
 
             public Field.Builder copyToConfiguration(CodeBlock copyToConfiguration) {
                 this.copyToConfiguration = copyToConfiguration;
+                return this;
+            }
+
+            public Field.Builder builderSetterImpl(MethodSpec builderSetter) {
+                this.builderSetterImpl = builderSetter;
+                return this;
+            }
+
+            public Field.Builder builderSetter(MethodSpec builderSetter) {
+                this.builderSetter = builderSetter;
+                return this;
+            }
+
+            public Field.Builder builderGetterImpl(MethodSpec builderGetterImpl) {
+                this.builderGetterImpl = builderGetterImpl;
                 return this;
             }
 
