@@ -362,6 +362,8 @@ public class AwsChunkedV4PayloadSignerTest {
             "x-amz-checksum-sha256:oVyCkrHRKru75BSGBfeHL732RWGP7lqw6AcqezTxVeI=\r\n\r\n";
 
         requestBuilder.putHeader("x-amz-content-sha256", "STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+        requestBuilder.removeHeader(Header.CONTENT_LENGTH);
+
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
@@ -380,7 +382,6 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .checksumAlgorithm(SHA256)
                                                                     .build();
 
-        v4Context.getSignedRequest().removeHeader(Header.CONTENT_LENGTH);
         signer.beforeSigning(requestBuilder, payload);
         ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
 
