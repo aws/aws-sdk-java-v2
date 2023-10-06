@@ -39,7 +39,8 @@ public class QueryParametersToBodyStage implements MutableRequestToRequestPipeli
                                                        lowerCase(StandardCharsets.UTF_8.toString());
 
     @Override
-    public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context) throws Exception {
+    public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
+        throws Exception {
 
         if (shouldPutParamsInBody(request.build())) {
             return changeQueryParametersToFormData(request.build()).toBuilder();

@@ -24,7 +24,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -42,9 +46,13 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.protocolquery.model.MembersInQueryParamsRequest;
 import software.amazon.awssdk.utils.IoUtils;
 
 public class MoveQueryParamsToBodyTest {
+
+    private static final String CUSTOM_PARAM_NAME = "CustomParamName";
+    private static final String CUSTOM_PARAM_VALUE = "CustomParamValue";
     private static final AwsCredentialsProvider CREDENTIALS = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
 
     private SdkHttpClient mockHttpClient;
@@ -88,14 +96,49 @@ public class MoveQueryParamsToBodyTest {
 
         String contentString = IoUtils.toUtf8String(requestContent.newStream());
 
-        assertThat(contentString).contains("CustomParamName=CustomParamValue");
+        assertThat(contentString).contains(CUSTOM_PARAM_NAME + "=" + CUSTOM_PARAM_VALUE);
+    }
+
+    @Test
+    public void requestOverrideConfiguratio_additionalQueryParamsAdded_paramsAlsoMovedToBody() throws IOException {
+        client = ProtocolQueryClient.builder()
+                                    .region(Region.US_WEST_2)
+                                    .credentialsProvider(CREDENTIALS)
+                                    .httpClient(mockHttpClient)
+                                    .build();
+
+        ArgumentCaptor<HttpExecuteRequest> requestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
+
+        Map<String, List<String>> queryMap = new HashMap<>();
+        List<String> paramValues = new ArrayList<>();
+        paramValues.add(CUSTOM_PARAM_VALUE);
+        queryMap.put(CUSTOM_PARAM_NAME, paramValues);
+        AwsRequestOverrideConfiguration overrideConfig =
+            AwsRequestOverrideConfiguration.builder().rawQueryParameters(queryMap).build();
+
+        MembersInQueryParamsRequest request = MembersInQueryParamsRequest.builder()
+                                                                         .stringQueryParam("hello")
+                                                                         .overrideConfiguration(overrideConfig)
+                                                                         .build();
+
+        assertThatThrownBy(() -> client.membersInQueryParams(request))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("IO");
+
+        verify(mockHttpClient, atLeast(1)).prepareRequest(requestCaptor.capture());
+
+        ContentStreamProvider requestContent = requestCaptor.getValue().contentStreamProvider().get();
+
+        String contentString = IoUtils.toUtf8String(requestContent.newStream());
+
+        assertThat(contentString).contains(CUSTOM_PARAM_NAME + "=" + CUSTOM_PARAM_VALUE);
     }
 
     private static class AdditionalQueryParamInterceptor implements ExecutionInterceptor {
         @Override
         public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
             return context.httpRequest().toBuilder()
-                                        .putRawQueryParameter("CustomParamName", "CustomParamValue")
+                                        .putRawQueryParameter(CUSTOM_PARAM_NAME, CUSTOM_PARAM_VALUE)
                                         .build();
         }
     }
