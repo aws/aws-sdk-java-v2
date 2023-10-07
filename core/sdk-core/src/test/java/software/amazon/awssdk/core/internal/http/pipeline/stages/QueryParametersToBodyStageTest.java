@@ -106,7 +106,7 @@ public class QueryParametersToBodyStageTest {
     private void nonPostRequestsUnaltered(SdkHttpMethod method) throws Exception {
         requestBuilder = requestBuilder.method(method);
 
-        SdkHttpFullRequest output = (SdkHttpFullRequest) stage.execute(requestBuilder, context);
+        SdkHttpFullRequest output = stage.execute(requestBuilder, context).build();
         assertThat(output.rawQueryParameters()).hasSize(1);
         assertThat(output.headers()).hasSize(0);
         assertThat(output.contentStreamProvider()).isEmpty();
