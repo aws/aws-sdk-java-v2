@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -28,10 +29,12 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 public final class AwsRequestOverrideConfiguration extends RequestOverrideConfiguration {
     private final AwsCredentialsProvider credentialsProvider;
+    private final SdkTokenProvider tokenProvider;
 
     private AwsRequestOverrideConfiguration(Builder builder) {
         super(builder);
         this.credentialsProvider = builder.credentialsProvider();
+        this.tokenProvider = builder.tokenProvider();
     }
 
     /**
@@ -62,6 +65,16 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         return Optional.ofNullable(credentialsProvider);
     }
 
+    /**
+     * The optional {@link SdkTokenProvider} that will provide a token to be used to authorize this request. This will
+     * be used only if the requested operation uses bearer token authorization.
+     *
+     * @return The optional {@link SdkTokenProvider}.
+     */
+    public Optional<SdkTokenProvider> tokenProvider() {
+        return Optional.ofNullable(tokenProvider);
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -84,7 +97,8 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
             return false;
         }
         AwsRequestOverrideConfiguration that = (AwsRequestOverrideConfiguration) o;
-        return Objects.equals(credentialsProvider, that.credentialsProvider);
+        return Objects.equals(credentialsProvider, that.credentialsProvider)
+               && Objects.equals(tokenProvider, that.tokenProvider);
     }
 
     @Override
@@ -92,6 +106,7 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         int hashCode = 1;
         hashCode = 31 * hashCode + super.hashCode();
         hashCode = 31 * hashCode + Objects.hashCode(credentialsProvider);
+        hashCode = 31 * hashCode + Objects.hashCode(tokenProvider);
         return hashCode;
     }
 
@@ -113,6 +128,23 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
          */
         AwsCredentialsProvider credentialsProvider();
 
+        /**
+         * Set the optional {@link SdkTokenProvider} that will provide a token to be used to authorize this request.
+         * This will be used only if the requested operation uses bearer token authorization.
+         *
+         * @param tokenProvider The {@link SdkTokenProvider}.
+         * @return This object for chaining.
+         */
+        Builder tokenProvider(SdkTokenProvider tokenProvider);
+
+        /**
+         * Return the optional {@link SdkTokenProvider} that will provide a token to be used to authorize this request.
+         * This will be used only if the requested operation uses bearer token authorization.
+         *
+         * @return The optional {@link AwsCredentialsProvider}.
+         */
+        SdkTokenProvider tokenProvider();
+
         @Override
         AwsRequestOverrideConfiguration build();
     }
@@ -120,7 +152,7 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
     private static final class BuilderImpl extends RequestOverrideConfiguration.BuilderImpl<Builder> implements Builder {
 
         private AwsCredentialsProvider awsCredentialsProvider;
-
+        private SdkTokenProvider sdkTokenProvider;
 
         private BuilderImpl() {
         }
@@ -132,6 +164,7 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         private BuilderImpl(AwsRequestOverrideConfiguration awsRequestOverrideConfig) {
             super(awsRequestOverrideConfig);
             this.awsCredentialsProvider = awsRequestOverrideConfig.credentialsProvider;
+            this.sdkTokenProvider = awsRequestOverrideConfig.tokenProvider;
         }
 
         @Override
@@ -143,6 +176,17 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         @Override
         public AwsCredentialsProvider credentialsProvider() {
             return awsCredentialsProvider;
+        }
+
+        @Override
+        public Builder tokenProvider(SdkTokenProvider tokenProvider) {
+            this.sdkTokenProvider = tokenProvider;
+            return this;
+        }
+
+        @Override
+        public SdkTokenProvider tokenProvider() {
+            return sdkTokenProvider;
         }
 
         @Override

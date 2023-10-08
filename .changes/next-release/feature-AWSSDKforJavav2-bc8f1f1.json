@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "chenying-wang", 
+    "type": "feature", 
+    "description": "Enable request-level token provider override"
+}
