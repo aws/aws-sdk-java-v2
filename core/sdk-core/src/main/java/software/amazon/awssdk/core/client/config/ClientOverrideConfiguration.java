@@ -263,7 +263,6 @@ public final class ClientOverrideConfiguration
         return ToString.builder("ClientOverrideConfiguration")
                        .add("headers", headers)
                        .add("retryPolicy", retryPolicy)
-                       .add("retryStrategy", retryStrategy)                           
                        .add("apiCallTimeout", apiCallTimeout)
                        .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
                        .add("executionInterceptors", executionInterceptors)

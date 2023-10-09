@@ -21,6 +21,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+/**
+ * A bean with a local secondary index and a global secondary index.
+ */
 @DynamoDbBean
 public class SecondaryIndexBean {
     private String id;

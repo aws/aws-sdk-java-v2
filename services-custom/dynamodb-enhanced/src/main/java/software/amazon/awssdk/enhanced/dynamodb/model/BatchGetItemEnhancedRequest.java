@@ -20,10 +20,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 /**
  * Defines parameters used for the batchGetItem() operation (such as
@@ -36,9 +40,11 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 public final class BatchGetItemEnhancedRequest {
 
     private final List<ReadBatch> readBatches;
+    private final String returnConsumedCapacity;
 
     private BatchGetItemEnhancedRequest(Builder builder) {
         this.readBatches = getListIfExist(builder.readBatches);
+        this.returnConsumedCapacity = builder.returnConsumedCapacity;
     }
 
     /**
@@ -52,7 +58,7 @@ public final class BatchGetItemEnhancedRequest {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder toBuilder() {
-        return new Builder().readBatches(readBatches);
+        return new Builder().readBatches(readBatches).returnConsumedCapacity(this.returnConsumedCapacity);
     }
 
     /**
@@ -60,6 +66,25 @@ public final class BatchGetItemEnhancedRequest {
      */
     public Collection<ReadBatch> readBatches() {
         return readBatches;
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     *
+     * @see GetItemRequest#returnConsumedCapacity()
+     */
+    public ReturnConsumedCapacity returnConsumedCapacity() {
+        return ReturnConsumedCapacity.fromValue(returnConsumedCapacity);
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     * <p>
+     * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the
+     * value is not defined in {@link ReturnConsumedCapacity}.
+     */
+    public String returnConsumedCapacityAsString() {
+        return returnConsumedCapacity;
     }
 
     @Override
@@ -73,12 +98,15 @@ public final class BatchGetItemEnhancedRequest {
 
         BatchGetItemEnhancedRequest that = (BatchGetItemEnhancedRequest) o;
 
-        return readBatches != null ? readBatches.equals(that.readBatches) : that.readBatches == null;
+        return Objects.equals(this.readBatches, that.readBatches) &&
+               Objects.equals(this.returnConsumedCapacity, that.returnConsumedCapacity);
     }
 
     @Override
     public int hashCode() {
-        return readBatches != null ? readBatches.hashCode() : 0;
+        int hc = readBatches != null ? readBatches.hashCode() : 0;
+        hc = 31 * hc + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
+        return hc;
     }
 
     private static List<ReadBatch> getListIfExist(List<ReadBatch> readBatches) {
@@ -91,6 +119,7 @@ public final class BatchGetItemEnhancedRequest {
     @NotThreadSafe
     public static final class Builder {
         private List<ReadBatch> readBatches;
+        private String returnConsumedCapacity;
 
         private Builder() {
         }
@@ -132,9 +161,30 @@ public final class BatchGetItemEnhancedRequest {
             return this;
         }
 
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see BatchGetItemRequest.Builder#returnConsumedCapacity(ReturnConsumedCapacity)
+         * @return a builder of this type
+         */
+        public Builder returnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity == null ? null : returnConsumedCapacity.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see BatchGetItemRequest.Builder#returnConsumedCapacity(String)
+         * @return a builder of this type
+         */
+        public Builder returnConsumedCapacity(String returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
         public BatchGetItemEnhancedRequest build() {
             return new BatchGetItemEnhancedRequest(this);
         }
     }
-
 }

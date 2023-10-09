@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -33,30 +36,47 @@ import software.amazon.awssdk.utils.ToString;
 public final class Page<T> {
     private final List<T> items;
     private final Map<String, AttributeValue> lastEvaluatedKey;
+    private final Integer count;
+    private final Integer scannedCount;
+    private final ConsumedCapacity consumedCapacity;
 
     private Page(List<T> items, Map<String, AttributeValue> lastEvaluatedKey) {
         this.items = items;
         this.lastEvaluatedKey = lastEvaluatedKey;
+        this.count = null;
+        this.scannedCount = null;
+        this.consumedCapacity = null;
+    }
+
+    private Page(Builder<T> builder) {
+        this.items = builder.items;
+        this.lastEvaluatedKey = builder.lastEvaluatedKey;
+        this.count = builder.count;
+        this.scannedCount = builder.scannedCount;
+        this.consumedCapacity = builder.consumedCapacity;
     }
 
     /**
-     * Static constructor for this object.
+     * Static constructor for this object. Deprecated in favor of using the builder() pattern to construct this object.
+     *
      * @param items A list of items to store for the page.
      * @param lastEvaluatedKey A 'lastEvaluatedKey' to store for the page.
      * @param <T> The modelled type of the object that has been read.
      * @return A newly constructed {@link Page} object.
      */
+    @Deprecated
     public static <T> Page<T> create(List<T> items, Map<String, AttributeValue> lastEvaluatedKey) {
         return new Page<>(items, lastEvaluatedKey);
     }
 
     /**
      * Static constructor for this object that sets a null 'lastEvaluatedKey' which indicates this is the final page
-     * of results.
+     * of results. Deprecated in favor of using the builder() pattern to construct this object.
      * @param items A list of items to store for the page.
      * @param <T> The modelled type of the object that has been read.
      * @return A newly constructed {@link Page} object.
      */
+    @Deprecated
     public static <T> Page<T> create(List<T> items) {
         return new Page<>(items, null);
     }
@@ -78,6 +98,31 @@ public final class Page<T> {
         return lastEvaluatedKey;
     }
 
+    /**
+     * The count of the returned items from the last page query or scan, after any filters were applied.
+     */
+    public Integer count() {
+        return count;
+    }
+
+    /**
+     * The scanned count of the returned items from the last page query or scan, before any filters were applied.
+     * This number will be equal or greater than the count.
+     */
+    public Integer scannedCount() {
+        return scannedCount;
+    }
+
+    /**
+     * Returns the capacity units consumed by the last page query or scan. Will only be returned if it has been
+     * explicitly requested by the user when calling the operation.
+     *
+     * @return The 'consumedCapacity' from the last query or scan operation or null if it was not requested.
+     */
+    public ConsumedCapacity consumedCapacity() {
+        return consumedCapacity;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -92,13 +137,25 @@ public final class Page<T> {
         if (items != null ? ! items.equals(page.items) : page.items != null) {
             return false;
         }
-        return lastEvaluatedKey != null ? lastEvaluatedKey.equals(page.lastEvaluatedKey) : page.lastEvaluatedKey == null;
+        if (lastEvaluatedKey != null ? ! lastEvaluatedKey.equals(page.lastEvaluatedKey) : page.lastEvaluatedKey != null) {
+            return false;
+        }
+        if (consumedCapacity != null ? ! consumedCapacity.equals(page.consumedCapacity) : page.consumedCapacity != null) {
+            return false;
+        }
+        if (count != null ? ! count.equals(page.count) : page.count != null) {
+            return false;
+        }
+        return scannedCount != null ? scannedCount.equals(page.scannedCount) : page.scannedCount == null;
     }
 
     @Override
     public int hashCode() {
         int result = items != null ? items.hashCode() : 0;
         result = 31 * result + (lastEvaluatedKey != null ? lastEvaluatedKey.hashCode() : 0);
+        result = 31 * result + (consumedCapacity != null ? consumedCapacity.hashCode() : 0);
+        result = 31 * result + (count != null ? count.hashCode() : 0);
+        result = 31 * result + (scannedCount != null ? scannedCount.hashCode() : 0);
         return result;
     }
 
@@ -108,5 +165,46 @@ public final class Page<T> {
                        .add("lastEvaluatedKey", lastEvaluatedKey)
                        .add("items", items)
                        .build();
+    }
+
+    public static <T> Builder<T> builder(Class<T> itemClass) {
+        return new Builder<>();
+    }
+
+    public static final class Builder<T> {
+        private List<T> items;
+        private Map<String, AttributeValue> lastEvaluatedKey;
+        private Integer count;
+        private Integer scannedCount;
+        private ConsumedCapacity consumedCapacity;
+
+        public Builder<T> items(List<T> items) {
+            this.items = new ArrayList<>(items);
+            return this;
+        }
+
+        public Builder<T> lastEvaluatedKey(Map<String, AttributeValue> lastEvaluatedKey) {
+            this.lastEvaluatedKey = new HashMap<>(lastEvaluatedKey);
+            return this;
+        }
+
+        public Builder<T> count(Integer count) {
+            this.count = count;
+            return this;
+        }
+
+        public Builder<T> scannedCount(Integer scannedCount) {
+            this.scannedCount = scannedCount;
+            return this;
+        }
+
+        public Builder<T> consumedCapacity(ConsumedCapacity consumedCapacity) {
+            this.consumedCapacity = consumedCapacity;
+            return this;
+        }
+
+        public Page<T> build() {
+            return new Page<T>(this);
+        }
     }
 }
