@@ -29,6 +29,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.PAYLOA
 import java.net.URI;
 import java.time.Duration;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -342,5 +343,338 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2");
+    }
+
+    @Test
+    public void signAsync_WithNoAdditonalProperties_DelegatesToHeaderSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization")).isPresent();
+    }
+
+    @Test
+    public void signAsync_WithQueryAuthLocation_DelegatesToQuerySigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest.putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Signature")).isPresent();
+    }
+
+    @Test
+    public void signAsync_WithHeaderAuthLocationAndExpirationDuration_Throws() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(AUTH_LOCATION, AuthLocation.HEADER)
+                .putProperty(EXPIRATION_DURATION, Duration.ZERO)
+        );
+
+        assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(request).join());
+    }
+
+    @Test
+    public void signAsync_withAnonymousCreds_shouldNotSign() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            new TestUtils.AnonymousCredentialsIdentity(),
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Signature"))
+            .isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).isNotPresent();
+    }
+
+    @Test
+    public void signAsync_WithQueryAuthLocationAndExpiration_DelegatesToPresignedSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
+                .putProperty(EXPIRATION_DURATION, Duration.ZERO)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Expires")).isPresent();
+    }
+
+    @Test
+    public void signAsync_WithPayloadSigningFalse_DelegatesToUnsignedPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+    }
+
+    @Test
+    public void signAsync_WithEventStreamContentTypeWithoutHttpAuthAwsEventStreamModule_throws() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
+            signRequest -> {
+            }
+        );
+
+        try (MockedStatic<ClassLoaderHelper> utilities = Mockito.mockStatic(ClassLoaderHelper.class)) {
+            utilities.when(() ->ClassLoaderHelper.loadClass(
+                "software.amazon.awssdk.http.auth.aws.eventstream.HttpAuthAwsEventStream",
+                false)
+            ).thenThrow(new ClassNotFoundException("boom!"));
+            Exception e = assertThrows(RuntimeException.class, () -> signer.signAsync(request).join());
+            assertThat(e).hasMessageContaining("http-auth-aws-eventstream");
+        }
+    }
+
+    @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
+    @Test
+    public void signAsync_WithChunkEncodingTrue_DelegatesToAwsChunkedPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("193");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+    }
+
+    @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
+    @Test
+    public void signAsync_WithChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("314");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
+    }
+
+    @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
+    @Test
+    public void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+        Assertions.assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("62");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
+    }
+
+    @Test
+    public void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueWithoutTrailer_DelegatesToUnsignedPayload() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
+    }
+
+    @Test
+    public void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueWithChecksumHeader_DelegatesToUnsignedPayload() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20")
+                .putHeader("x-amz-checksum-crc32", "bogus"),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("bogus");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
+    }
+
+    @Test
+    public void signAsync_withChecksumAlgorithm_DelegatesToChecksummerWithThatChecksumAlgorithm() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest.putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32")).isPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).isPresent();
+    }
+
+    @Test
+    public void signAsync_withChecksumAlgorithmAndPayloadSigningFalse_DelegatesToChecksummerWithThatChecksumAlgorithm() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32")).isPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+    }
+
+    @Test
+    public void signAsync_WithEventStreamContentType_DelegatesToEventStreamPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
+            signRequest -> {
+            }
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.payload().get()).isInstanceOf(SigV4DataFramePublisher.class);
+    }
+
+    @Test
+    public void signAsync_WithEventStreamContentTypeAndUnsignedPayload_Throws() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+        );
+
+        assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(request));
+    }
+
+    @Test
+    public void signAsync_WithPayloadSigningFalseAndHttp_FallsBackToPayloadSigning() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2");
+    }
+
+    @Test
+    public void signAsync_WithPayloadSigningNullAndHttp_FallsBackToPayloadSigning() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, null)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("a15c8292b1d12abbbbe4148605f7872fbdf645618fee5ab0e8072a7b34f155e2");
+    }
+
+    // TODO(sra-identity-and-auth): Once chunk-encoding is implemented in the async path, the assertions this test makes should
+    //  be different - it should asserted that signed-payload (STREAMING-AWS4-HMAC-SHA256-PAYLOAD) is the fallback.
+    @Test
+    public void signAsync_WithPayloadSigningTrueAndChunkEncodingTrueAndHttp_DoesNotFallBackToPayloadSigning() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("UNSIGNED-PAYLOAD");
+    }
+
+    // TODO(sra-identity-and-auth): Once chunk-encoding is implemented in the async path, the assertions this test makes should
+    //  be different - it should asserted that signed-payload (STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER) is the fallback.
+    @Test
+    public void signAsync_WithPayloadSigningTrueAndChunkEncodingTrueAndHttpAndFlexibleChecksum_DoesNotFallBackToPayloadSigning() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
     }
 }
