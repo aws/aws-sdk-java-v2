@@ -68,7 +68,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
     }
 
     @Override
-    public ContentStreamProvider sign(ContentStreamProvider payload, RequestSigningResult requestSigningResult) {
+    public ContentStreamProvider sign(ContentStreamProvider payload, V4aRequestSigningResult requestSigningResult) {
         InputStream inputStream = payload != null ? payload.newStream() : new StringInputStream("");
         ChunkedEncodedInputStream.Builder chunkedEncodedInputStreamBuilder = ChunkedEncodedInputStream
             .builder()

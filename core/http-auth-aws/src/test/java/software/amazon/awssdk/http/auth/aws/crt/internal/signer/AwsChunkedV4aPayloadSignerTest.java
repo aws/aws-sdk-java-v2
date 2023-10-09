@@ -70,7 +70,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     public void sign_withSignedPayload_shouldChunkEncodeWithSigV4aExt() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD);
-        RequestSigningResult result = new RequestSigningResult(
+        V4aRequestSigningResult result = new V4aRequestSigningResult(
             requestBuilder,
             "sig".getBytes(StandardCharsets.UTF_8),
             signingConfig
@@ -97,7 +97,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     public void sign_withSignedPayloadAndChecksum_shouldChunkEncodeWithSigV4aExtAndSigV4aTrailer() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER);
-        RequestSigningResult result = new RequestSigningResult(
+        V4aRequestSigningResult result = new V4aRequestSigningResult(
             requestBuilder,
             "sig".getBytes(StandardCharsets.UTF_8),
             signingConfig
@@ -129,7 +129,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     public void sign_withChecksum_shouldChunkEncodeWithChecksumTrailer() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
-        RequestSigningResult result = new RequestSigningResult(
+        V4aRequestSigningResult result = new V4aRequestSigningResult(
             requestBuilder,
             "sig".getBytes(StandardCharsets.UTF_8),
             signingConfig
@@ -161,7 +161,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     public void sign_withPreExistingTrailers_shouldChunkEncodeWithExistingTrailers() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
-        RequestSigningResult result = new RequestSigningResult(
+        V4aRequestSigningResult result = new V4aRequestSigningResult(
             requestBuilder
                 .putHeader("x-amz-trailer", "aTrailer")
                 .putHeader("aTrailer", "aValue"),
@@ -195,7 +195,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     public void sign_withPreExistingTrailersAndChecksum_shouldChunkEncodeWithTrailers() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
-        RequestSigningResult result = new RequestSigningResult(
+        V4aRequestSigningResult result = new V4aRequestSigningResult(
             requestBuilder
                 .putHeader("x-amz-trailer", "aTrailer")
                 .putHeader("aTrailer", "aValue"),
@@ -230,7 +230,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     public void sign_withPreExistingTrailersAndChecksumAndSignedPayload_shouldAwsChunkEncode() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER);
-        RequestSigningResult result = new RequestSigningResult(
+        V4aRequestSigningResult result = new V4aRequestSigningResult(
             requestBuilder
                 .putHeader("x-amz-trailer", "aTrailer")
                 .putHeader("aTrailer", "aValue"),
@@ -265,7 +265,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     public void sign_withoutContentLength_calculatesContentLengthFromPayload() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
-        RequestSigningResult result = new RequestSigningResult(
+        V4aRequestSigningResult result = new V4aRequestSigningResult(
             requestBuilder,
             "sig".getBytes(StandardCharsets.UTF_8),
             signingConfig
@@ -298,7 +298,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     public void sign_shouldReturnResettableContentStreamProvider() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD);
-        RequestSigningResult result = new RequestSigningResult(
+        V4aRequestSigningResult result = new V4aRequestSigningResult(
             requestBuilder,
             "sig".getBytes(StandardCharsets.UTF_8),
             signingConfig

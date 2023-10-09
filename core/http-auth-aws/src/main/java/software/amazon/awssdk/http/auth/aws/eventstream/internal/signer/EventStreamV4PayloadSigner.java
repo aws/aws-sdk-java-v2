@@ -22,8 +22,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.aws.eventstream.internal.io.SigV4DataFramePublisher;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
-import software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigningResult;
 import software.amazon.awssdk.http.auth.aws.internal.signer.V4PayloadSigner;
+import software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigningResult;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.Validate;
 

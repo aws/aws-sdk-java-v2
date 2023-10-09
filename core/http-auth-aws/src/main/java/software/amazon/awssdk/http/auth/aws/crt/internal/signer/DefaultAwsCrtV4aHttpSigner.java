@@ -228,7 +228,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
         HttpRequest crtRequest = toRequest(sanitizedRequest, request.payload().orElse(null));
 
-        RequestSigningResult requestSigningResult = sign(requestBuilder.build(), crtRequest, signingConfig);
+        V4aRequestSigningResult requestSigningResult = sign(requestBuilder.build(), crtRequest, signingConfig);
 
         ContentStreamProvider payload = payloadSigner.sign(request.payload().orElse(null), requestSigningResult);
 
@@ -238,9 +238,9 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
                             .build();
     }
 
-    private static RequestSigningResult sign(SdkHttpRequest request, HttpRequest crtRequest, AwsSigningConfig signingConfig) {
+    private static V4aRequestSigningResult sign(SdkHttpRequest request, HttpRequest crtRequest, AwsSigningConfig signingConfig) {
         AwsSigningResult signingResult = CompletableFutureUtils.joinLikeSync(AwsSigner.sign(crtRequest, signingConfig));
-        return new RequestSigningResult(
+        return new V4aRequestSigningResult(
             toRequest(request, signingResult.getSignedRequest()).toBuilder(),
             signingResult.getSignature(),
             signingConfig);
