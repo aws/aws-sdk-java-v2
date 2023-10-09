@@ -34,14 +34,14 @@ public interface V4PayloadSigner {
     }
 
     /**
-     * Given a payload and v4-context, sign the payload via the SigV4 process.
+     * Given a payload and result of request signing, sign the payload via the SigV4 process.
      */
-    ContentStreamProvider sign(ContentStreamProvider payload, V4Context v4Context);
+    ContentStreamProvider sign(ContentStreamProvider payload, V4RequestSigningResult requestSigningResult);
 
     /**
-     * Given a payload and v4-context, sign the payload via the SigV4 process.
+     * Given a payload and result of request signing, sign the payload via the SigV4 process.
      */
-    Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4Context v4Context);
+    Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4RequestSigningResult requestSigningResult);
 
     /**
      * Modify a request before it is signed, such as changing headers or query-parameters.

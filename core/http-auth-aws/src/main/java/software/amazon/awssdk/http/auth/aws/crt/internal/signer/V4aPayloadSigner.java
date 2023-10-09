@@ -32,9 +32,9 @@ public interface V4aPayloadSigner {
     }
 
     /**
-     * Given a payload and v4a-context, sign the payload via the SigV4a process.
+     * Given a payload and result of request signing, sign the payload via the SigV4a process.
      */
-    ContentStreamProvider sign(ContentStreamProvider payload, V4aContext v4Context);
+    ContentStreamProvider sign(ContentStreamProvider payload, V4aRequestSigningResult requestSigningResult);
 
     /**
      * Modify a request before it is signed, such as changing headers or query-parameters.

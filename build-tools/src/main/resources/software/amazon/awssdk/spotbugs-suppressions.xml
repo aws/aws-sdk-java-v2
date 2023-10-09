@@ -136,7 +136,7 @@
     </Match>
 
     <Match>
-        <Class name="software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aContext" />
+        <Class name="software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aRequestSigningResult" />
         <Method name="getSignature" />
         <Bug pattern="EI_EXPOSE_REP" />
     </Match>
