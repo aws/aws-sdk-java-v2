@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static java.time.ZoneOffset.UTC;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
@@ -44,7 +45,8 @@ public class DefaultRequestSignerTest {
         SdkHttpRequest.Builder request = SdkHttpRequest
             .builder()
             .uri(URI.create("https://localhost"))
-            .method(SdkHttpMethod.GET);
+            .method(SdkHttpMethod.GET)
+            .putHeader("Host", "localhost");
         String expectedContentHash = "quux";
         String expectedSigningKeyHex = "3d558b7a87b67996abc908071e0771a31b2a7977ab247144e60a6cba3356be1f";
         String expectedSignature = "6c1f4222e0888e6e68b20ded382bc80c7312465c69fb52cbd6d6ce2d073533bf";
@@ -55,10 +57,11 @@ public class DefaultRequestSignerTest {
 
         V4RequestSigningResult requestSigningResult = requestSigner.sign(request);
 
-        assertEquals(expectedContentHash, requestSigningResult.getContentHash());
-        assertEquals(expectedSigningKeyHex, toHex(requestSigningResult.getSigningKey()));
-        assertEquals(expectedSignature, requestSigningResult.getSignature());
-        assertEquals(expectedCanonicalRequestString, requestSigningResult.getCanonicalRequest().getCanonicalRequestString());
-        assertEquals(expectedHost, requestSigningResult.getSignedRequest().firstMatchingHeader("Host").orElse(""));
+        assertEquals(expectedContentHash, v4Context.getContentHash());
+        assertEquals(expectedSigningKeyHex, toHex(v4Context.getSigningKey()));
+        assertEquals(expectedSignature, v4Context.getSignature());
+        assertEquals(expectedCanonicalRequestString, v4Context.getCanonicalRequest().getCanonicalRequestString());
+        assertEquals(expectedHost, v4Context.getSignedRequest().firstMatchingHeader("Host").orElse(""));
+        assertThat(v4Context.getSignedRequest().build()).usingRecursiveComparison().isEqualTo(request.build());
     }
 }

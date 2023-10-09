@@ -55,6 +55,7 @@ public interface V4RequestSigner {
                 requestBuilder.putHeader(SignerConstant.X_AMZ_SECURITY_TOKEN,
                                          ((AwsSessionCredentialsIdentity) properties.getCredentials()).sessionToken());
             }
+            addHostHeader(requestBuilder);
             addDateHeader(requestBuilder, formatDateTime(properties.getCredentialScope().getInstant()));
 
             V4RequestSigningResult result = create(properties).sign(requestBuilder);

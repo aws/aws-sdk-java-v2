@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.TickingClock;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigner.header;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.V4RequestSigner.query;
 
 import java.net.URI;
 import java.time.Clock;
@@ -114,11 +115,20 @@ public class V4RequestSignerTest {
     }
 
     @Test
-    public void sign_withNoContentHashHeader_throws() {
+    public void sign_withHeader_withNoContentHashHeader_throws() {
         SdkHttpRequest.Builder request = getRequest().removeHeader("x-amz-content-sha256");
 
         assertThrows(IllegalArgumentException.class,
                      () -> header(getProperties(sessionCreds)).sign(request)
+        );
+    }
+
+    @Test
+    public void sign_withQuery_withNoContentHashHeader_throws() {
+        SdkHttpRequest.Builder request = getRequest().removeHeader("x-amz-content-sha256");
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> query(getProperties(sessionCreds)).sign(request)
         );
     }
 
