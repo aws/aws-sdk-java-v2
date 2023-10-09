@@ -257,16 +257,14 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        CompletableFuture<V4RequestSigningResult> resultSigningResultFuture =
-            checksummer.checksum(request.payload().orElse(null), requestBuilder)
-                       .thenApply(__ -> requestSigner.sign(requestBuilder));
-
-        return resultSigningResultFuture.thenApply(
-            resultSigningResult -> AsyncSignedRequest.builder()
-                                           .request(resultSigningResult.getSignedRequest().build())
-                                           .payload(payloadSigner.signAsync(request.payload().orElse(null), resultSigningResult))
-                                           .build()
-        );
+        return checksummer.checksum(request.payload().orElse(null), requestBuilder)
+                          .thenApply(payload -> {
+                              V4RequestSigningResult requestSigningResultFuture = requestSigner.sign(requestBuilder);
+                              return AsyncSignedRequest.builder()
+                                                       .request(requestSigningResultFuture.getSignedRequest().build())
+                                                       .payload(payloadSigner.signAsync(payload, requestSigningResultFuture))
+                                                       .build();
+                          });
     }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
