@@ -91,6 +91,29 @@ public class ProcessCredentialsProviderTest {
         Assert.assertEquals("secretAccessKey", sessionCredentials.secretAccessKey());
         assertNotNull(sessionCredentials.sessionToken());
     }
+ 
+    @Test
+    public void sessionCredentialsCanBeLoadedThroughEnvironment() {
+        ProcessCredentialsProvider credentialsProvider =
+                ProcessCredentialsProvider.builder()
+                                          .command(scriptLocation)
+                                          .env("ACCESS_KEY_ID", "accessKeyId")
+                                          .env("SECRET_ACCESS_KEY", "secretAccessKey")
+                                          .env("SESSION_TOKEN", "sessionToken")
+                                          .env("EXPIRATION", DateUtils.formatIso8601Date(Instant.now()))
+                                          .credentialRefreshThreshold(Duration.ofSeconds(1))
+                                          .build();
+
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+
+        Assert.assertTrue(credentials instanceof AwsSessionCredentials);
+
+        AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentials;
+
+        Assert.assertEquals("accessKeyId", sessionCredentials.accessKeyId());
+        Assert.assertEquals("secretAccessKey", sessionCredentials.secretAccessKey());
+        assertNotNull(sessionCredentials.sessionToken());
+    }
 
     @Test
     public void resultsAreCached() {

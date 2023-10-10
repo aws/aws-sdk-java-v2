@@ -23,7 +23,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
@@ -77,6 +79,8 @@ public final class ProcessCredentialsProvider
     private final String commandFromBuilder;
 
     private final Boolean asyncCredentialUpdateEnabled;
+    
+    private final Map<String, String> environmentVariables;
 
     /**
      * @see #builder()
@@ -101,6 +105,7 @@ public final class ProcessCredentialsProvider
         this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
         this.commandFromBuilder = builder.command;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
+        this.environmentVariables =  builder.environmentVairables;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -202,6 +207,9 @@ public final class ProcessCredentialsProvider
      */
     private String executeCommand() throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(executableCommand);
+        if (!environmentVariables.isEmpty()){
+            processBuilder.environment().putAll(environmentVariables);
+        }
 
         ByteArrayOutputStream commandOutput = new ByteArrayOutputStream();
 
@@ -243,6 +251,8 @@ public final class ProcessCredentialsProvider
         private String command;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
+        
+        private HashMap<String, String> environmentVairables = new HashMap<>();
 
         /**
          * @see #builder()
@@ -275,6 +285,14 @@ public final class ProcessCredentialsProvider
          */
         public Builder command(String command) {
             this.command = command;
+            return this;
+        }
+
+        /**
+         * Configure environment variables forwarded to the command
+         */
+        public Builder env(String key, String value) {
+            environmentVairables.put(key, value);
             return this;
         }
 
