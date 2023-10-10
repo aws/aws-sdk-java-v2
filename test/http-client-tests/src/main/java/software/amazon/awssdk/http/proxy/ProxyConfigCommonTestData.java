@@ -52,6 +52,7 @@ public final class ProxyConfigCommonTestData {
                 systemPropertySettings(),
                 environmentSettings(),
                 new TestProxySetting(), null, null, getSystemPropertyProxySettings()),
+
             Arguments.of(
                 "Provided system and environment variable when Host and port used from Builder then resolved Poxy "
                 + "config uses User password from System setting",
@@ -59,11 +60,13 @@ public final class ProxyConfigCommonTestData {
                 environmentSettings(),
                 new TestProxySetting().host("localhost").port(80), null, null, getSystemPropertyProxySettings().host("localhost"
                 ).port(80)),
+
             Arguments.of(
                 "Provided system and environment variable when configured user setting then uses User provider setting",
                 systemPropertySettings(),
                 environmentSettings(),
                 getTestProxySettings(), null, null, getTestProxySettings()),
+
             Arguments.of(
                 "Provided: System property settings and environment variables are set. "
                 + "When: useEnvironmentVariable is set to \true. And: useSystemProperty is left at its default value. Then: The"
@@ -72,56 +75,58 @@ public final class ProxyConfigCommonTestData {
                 systemPropertySettings(),
                 environmentSettings(),
                 new TestProxySetting(), null, true, getSystemPropertyProxySettings()),
+
             Arguments.of(
                 "Provided: System property settings and environment variables are set. "
-                + "When: useEnvironmentVariable is set to true. And: useSystemProperty is left at its default value. Then: "
-                + "The proxy configuration gets resolved to "
-                + "use system properties ",
+                + "When: useEnvironmentVariable is set to true. And: useSystemProperty is set to false. Then: "
+                + "The proxy configuration gets resolved to use environment variable values",
                 systemPropertySettings(),
                 environmentSettings(),
-                new TestProxySetting(), false, true, getEnvironmentalVariableProxySettings()),
+                new TestProxySetting(), false, true, getEnvironmentVariableProxySettings()),
 
             // No System Property only Environment variable set
-
             Arguments.of(
                 "Provided with no system property and valid environment variables, "
                 + "when using the default proxy builder, the proxy configuration is resolved to use environment variables.",
                 Collections.singletonList(Pair.of("", "")),
                 environmentSettings(),
-                new TestProxySetting(), null, null, getEnvironmentalVariableProxySettings()),
+                new TestProxySetting(), null, null, getEnvironmentVariableProxySettings()),
+
             Arguments.of(
                 "Provided with no system property and valid environment variables, when using the host,"
                 + "port on builder , the proxy configuration is resolved to username and password of environment variables.",
                 Collections.singletonList(Pair.of("", "")),
                 environmentSettings(),
                 new TestProxySetting().host(USER_HOST_ON_BUILDER).port(USER_PORT_NUMBER_ON_BUILDER), null, true,
-                getEnvironmentalVariableProxySettings().host(USER_HOST_ON_BUILDER).port(USER_PORT_NUMBER_ON_BUILDER)),
+                getEnvironmentVariableProxySettings().host(USER_HOST_ON_BUILDER).port(USER_PORT_NUMBER_ON_BUILDER)),
+
             Arguments.of(
                 "Provided with no system property and valid environment variables, when using the host,port on builder"
                 + " , the proxy configuration is resolved to Builder values.",
                 Collections.singletonList(Pair.of("", "")),
                 environmentSettings(),
                 getTestProxySettings(), null, null, getTestProxySettings()),
+
             Arguments.of(
                 "Provided environment variable and No System Property when default ProxyConfig then uses environment "
                 + "variable ",
                 Collections.singletonList(Pair.of("", "")),
                 environmentSettings(),
-                new TestProxySetting(), null, true, getEnvironmentalVariableProxySettings()),
+                new TestProxySetting(), null, true, getEnvironmentVariableProxySettings()),
+
             Arguments.of(
                 "Provided only environment variable when useSytemProperty set to true "
                 + "then proxy resolved to environment",
                 Collections.singletonList(Pair.of("", "")),
                 environmentSettings(),
-                null, true, null, getEnvironmentalVariableProxySettings()),
+                null, true, null, getEnvironmentVariableProxySettings()),
 
             Arguments.of(
                 "Provided only environment variable when useEnvironmentVariable set to false then proxy resolved "
                 + "to null",
                 Collections.singletonList(Pair.of("", "")),
                 environmentSettings(),
-                new TestProxySetting(), null, true, getEnvironmentalVariableProxySettings()),
-
+                new TestProxySetting(), null, true, getEnvironmentVariableProxySettings()),
 
             // Only System Property and no Environment variable
 
@@ -144,6 +149,7 @@ public final class ProxyConfigCommonTestData {
                 systemPropertySettings(),
                 Collections.singletonList(Pair.of("", "")),
                 getTestProxySettings(), true, true, getTestProxySettings()),
+
             Arguments.of(
                 "Provided system and no environment variable when useEnvironmentVariable then System property proxy "
                 + "resolved",
@@ -158,9 +164,7 @@ public final class ProxyConfigCommonTestData {
                 Collections.singletonList(Pair.of("", "")),
                 new TestProxySetting(), false, true, new TestProxySetting()),
 
-
             // when both system property and environment variable are null
-
             Arguments.of(
                 "Provided  no system property and no environment variable when default ProxyConfig "
                 + "then no Proxy config resolved",
@@ -189,9 +193,7 @@ public final class ProxyConfigCommonTestData {
                 Collections.singletonList(Pair.of("", "")),
                 Collections.singletonList(Pair.of("", "")), null, true, true, new TestProxySetting()),
 
-
             // Incomplete Proxy setting in systemProperty and environment variable
-
             Arguments.of(
                 "Given System property with No user name and Environment variable with user name "
                 + "when Default proxy config then resolves proxy config with no user name same as System property",
@@ -203,8 +205,7 @@ public final class ProxyConfigCommonTestData {
 
             Arguments.of(
                 "Given password in System property when Password present in system property "
-                + "then proxy resolves to Builder "
-                + "password",
+                + "then proxy resolves to Builder password",
                 getSystemPropertiesWithNoUserName(),
                 environmentSettingsWithNoPassword(),
                 new TestProxySetting().password("passwordFromBuilder"), null, null,
@@ -212,9 +213,8 @@ public final class ProxyConfigCommonTestData {
                                                 .userName(null)
                                                 .nonProxyHost(null)),
 
-
             Arguments.of(
-                "Given partial System Property and Environment variables when Builder method with Host "
+                "Given partial System Property and partial Environment variables when Builder method with Host "
                 + "and port only then Proxy config uses password from System property and no User name since System property"
                 + " has none",
                 getSystemPropertiesWithNoUserName(),
@@ -227,31 +227,28 @@ public final class ProxyConfigCommonTestData {
                                                 .nonProxyHost(null)),
 
             Arguments.of(
-                "Given partial system property and environment variable use when User set all proxy config"
-                + " on builer then Proxy config gets resolved to Builder ",
+                "Given System Property and Environment variables when valid empty Proxy config on Builder then "
+                + "Proxy config resolves to Proxy on builder.",
                 systemPropertySettings(),
                 environmentSettings(),
-                getTestProxySettings(), null, null,  getTestProxySettings()),
-
+                getTestProxySettings(), null, null, getTestProxySettings()),
 
             Arguments.of(
-                "Given partial system property and environment variable use when User "
-                + "set useEnvironmentVarible and default System property then default system property gets used ",
+                "Given partial system property and partial environment variable when User "
+                + "set useEnvironmentVariable to true and default System property then default system property gets used.",
                 getSystemPropertiesWithNoUserName(),
                 environmentSettingsWithNoPassword(),
                 new TestProxySetting(), null, true, getSystemPropertyProxySettings().nonProxyHost(null)
                                                                                     .userName(null)),
 
-
-
             Arguments.of(
-                "three",
+                "Given partial system property and partial environment variable  when User "
+                + "set useEnvironmentVariable and explicitly sets useSystemProperty to fals then only environment variable is "
+                + "resolved",
                 getSystemPropertiesWithNoUserName(),
                 environmentSettingsWithNoPassword(),
-                new TestProxySetting(), false, true, getEnvironmentalVariableProxySettings().password(null)
-            )
-
-            );
+                new TestProxySetting(), false, true, getEnvironmentVariableProxySettings().password(null))
+        );
     }
 
     private static List<Pair<String, String>> getSystemPropertiesWithNoUserName() {
@@ -279,7 +276,7 @@ public final class ProxyConfigCommonTestData {
     }
 
 
-    private static TestProxySetting getEnvironmentalVariableProxySettings() {
+    private static TestProxySetting getEnvironmentVariableProxySettings() {
         return new TestProxySetting().host(ENVIRONMENT_HOST)
                                      .port(Integer.parseInt(ENVIRONMENT_VARIABLE_PORT_NUMBER))
                                      .userName(ENV_VARIABLE_USER)

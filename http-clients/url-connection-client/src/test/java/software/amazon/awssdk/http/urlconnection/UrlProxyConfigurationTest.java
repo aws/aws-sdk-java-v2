@@ -38,11 +38,7 @@ public class UrlProxyConfigurationTest extends HttpProxyTestSuite {
             Set<String> nonProxyHosts = userSetProxySettings.getNonProxyHosts();
 
             if (hostName != null && portNumber != null) {
-                try {
-                    builder.endpoint(new URI(String.format("%s://%s:%d", protocol, hostName, portNumber)));
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
+                builder.endpoint(URI.create(String.format("%s://%s:%d", protocol, hostName, portNumber)));
             }
             Optional.ofNullable(userName).ifPresent(builder::username);
             Optional.ofNullable(password).ifPresent(builder::password);

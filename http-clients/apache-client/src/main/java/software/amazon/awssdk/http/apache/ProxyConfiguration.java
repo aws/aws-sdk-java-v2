@@ -55,23 +55,21 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      */
     private ProxyConfiguration(DefaultClientProxyConfigurationBuilder builder) {
         this.endpoint = builder.endpoint;
-        String resolvedScheme =  endpoint != null ? endpoint.getScheme() : builder.scheme;
+        String resolvedScheme = getResolvedScheme(builder);
         this.scheme = resolvedScheme;
         ProxyConfigProvider proxyConfiguration = fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
                                                                                builder.useEnvironmentVariableValues,
                                                                                resolvedScheme);
-        this.username = !isEmpty(builder.username) || proxyConfiguration == null ? builder.username :
-                        proxyConfiguration.userName().orElseGet(() -> builder.username);
-        this.password = !isEmpty(builder.password) || proxyConfiguration == null ? builder.password :
-                        proxyConfiguration.password().orElseGet(() -> builder.password);
+        this.username = resolveUsername(builder, proxyConfiguration);
+        this.password = resolvePassword(builder, proxyConfiguration);
         this.ntlmDomain = builder.ntlmDomain;
         this.ntlmWorkstation = builder.ntlmWorkstation;
-        this.nonProxyHosts = builder.nonProxyHosts != null || proxyConfiguration == null ? builder.nonProxyHosts :
-                             proxyConfiguration.nonProxyHosts();
+        this.nonProxyHosts = resolveNonProxyHosts(builder, proxyConfiguration);
         this.preemptiveBasicAuthenticationEnabled = builder.preemptiveBasicAuthenticationEnabled == null ? Boolean.FALSE :
                                                     builder.preemptiveBasicAuthenticationEnabled;
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
         this.useEnvironmentVariablesValues = builder.useEnvironmentVariableValues;
+
         if (this.endpoint != null) {
             this.host = endpoint.getHost();
             this.port = endpoint.getPort();
@@ -79,6 +77,31 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             this.host = proxyConfiguration != null ? proxyConfiguration.host() : null;
             this.port = proxyConfiguration != null ? proxyConfiguration.port() : 0;
         }
+    }
+
+    private static String resolvePassword(DefaultClientProxyConfigurationBuilder builder,
+                                          ProxyConfigProvider proxyConfiguration) {
+        return !isEmpty(builder.password) || proxyConfiguration == null ? builder.password :
+               proxyConfiguration.password().orElseGet(() -> builder.password);
+    }
+
+    private static String resolveUsername(DefaultClientProxyConfigurationBuilder builder,
+                                          ProxyConfigProvider proxyConfiguration) {
+        return !isEmpty(builder.username) || proxyConfiguration == null ? builder.username :
+               proxyConfiguration.userName().orElseGet(() -> builder.username);
+    }
+
+
+    private static Set<String> resolveNonProxyHosts(DefaultClientProxyConfigurationBuilder builder,
+                                                    ProxyConfigProvider proxyConfiguration) {
+        if (builder.nonProxyHosts != null || proxyConfiguration == null) {
+            return builder.nonProxyHosts;
+        }
+        return proxyConfiguration.nonProxyHosts();
+    }
+
+    private String getResolvedScheme(DefaultClientProxyConfigurationBuilder builder) {
+        return endpoint != null ? endpoint.getScheme() : builder.scheme;
     }
 
     /**
@@ -255,19 +278,22 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         /**
          * Option whether to use system property values from {@link ProxySystemSetting} if any of the config options are missing.
-         *
-         * This value is set to "true" by default which means SDK will automatically use system property values
-         * for options that are not provided during building the {@link ProxyConfiguration} object. To disable this behavior,
-         * set this value to "false".
+         * <p>
+         * This value is set to "true" by default which means SDK will automatically use system property values for options that
+         * are not provided during building the {@link ProxyConfiguration} object. To disable this behavior, set this value to
+         * "false".It is important to note that when this property is set to "true," all proxy settings will exclusively originate
+         * from system properties, and no partial settings will be obtained from EnvironmentVariableValues.
          */
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
         /**
          * Option whether to use environment variable values for proxy configuration if any of the config options are missing.
-         *
-         * This value is set to "true" by default, which means the SDK will automatically use environment variable values
-         * for proxy configuration options that are not provided during the building of the {@link ProxyConfiguration} object.
-         * To disable this behavior, set this value to "false".
+         * <p>
+         * This value is set to "true" by default, which means the SDK will automatically use environment variable values for
+         * proxy configuration options that are not provided during the building of the {@link ProxyConfiguration} object. To
+         * disable this behavior, set this value to "false". It is important to note that when this property is set to "true," all
+         * proxy settings will exclusively originate from environment variableValues, and no partial settings will be obtained
+         * from SystemPropertyValues.
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values.
          * @return This object for method chaining.
@@ -412,7 +438,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return this;
         }
 
-        public void setUseEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
+        public void setuseEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
             useEnvironmentVariableValues(useEnvironmentVariableValues);
         }
 

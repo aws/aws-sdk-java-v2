@@ -42,13 +42,13 @@ public enum ProxyEnvironmentSetting implements SystemSetting {
     @Override
     public Optional<String> getStringValue() {
         Optional<String> envVarLowercase = resolveEnvironmentVariable(environmentVariable);
-        if (envVarLowercase.isPresent() && !envVarLowercase.get().trim().isEmpty()) {
-            return envVarLowercase.map(String::trim);
+        if (envVarLowercase.isPresent()) {
+            return getValueIfValid(envVarLowercase.get());
         }
 
         Optional<String> envVarUppercase = resolveEnvironmentVariable(environmentVariable.toUpperCase(Locale.getDefault()));
-        if (envVarUppercase.isPresent() && !envVarUppercase.get().trim().isEmpty()) {
-            return envVarUppercase.map(String::trim);
+        if (envVarUppercase.isPresent()) {
+            return getValueIfValid(envVarUppercase.get());
         }
         return Optional.empty();
     }
@@ -66,6 +66,14 @@ public enum ProxyEnvironmentSetting implements SystemSetting {
     @Override
     public String defaultValue() {
         return null;
+    }
+
+    private Optional<String> getValueIfValid(String value) {
+        String trimmedValue = value.trim();
+        if (!trimmedValue.isEmpty()) {
+            return Optional.of(trimmedValue);
+        }
+        return Optional.empty();
     }
 
 }

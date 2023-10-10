@@ -41,11 +41,7 @@ public class ApacheHttpProxyTest extends HttpProxyTestSuite {
             Set<String> nonProxyHosts = userSetProxySettings.getNonProxyHosts();
 
             if (hostName != null && portNumber != null) {
-                try {
-                    builder.endpoint(new URI(String.format("%s://%s:%d", protocol, hostName, portNumber)));
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
+                builder.endpoint(URI.create(String.format("%s://%s:%d", protocol, hostName, portNumber)));
             }
             if (userName != null) {
                 builder.username(userName);

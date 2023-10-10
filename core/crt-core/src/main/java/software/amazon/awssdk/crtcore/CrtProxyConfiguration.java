@@ -46,12 +46,42 @@ public abstract class CrtProxyConfiguration {
         ProxyConfigProvider proxyConfigProvider = fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
                                                                                 builder.useEnvironmentVariableValues ,
                                                                                 builder.scheme);
-        this.host = builder.host != null || proxyConfigProvider == null ? builder.host : proxyConfigProvider.host();
-        this.port = builder.port != 0 || proxyConfigProvider == null ? builder.port : proxyConfigProvider.port();
-        this.username = ! StringUtils.isEmpty(builder.username) || proxyConfigProvider == null ? builder.username :
-                        proxyConfigProvider.userName().orElseGet(() -> builder.username);
-        this.password = ! StringUtils.isEmpty(builder.password) || proxyConfigProvider == null ? builder.password :
-                        proxyConfigProvider.password().orElseGet(() -> builder.password);
+        this.host = resolveHost(builder, proxyConfigProvider);
+        this.port = resolvePort(builder, proxyConfigProvider);
+        this.username = resolveUsername(builder, proxyConfigProvider);
+        this.password = resolvePassword(builder, proxyConfigProvider);
+    }
+
+    private static String resolvePassword(DefaultBuilder<?> builder, ProxyConfigProvider proxyConfigProvider) {
+        if (!StringUtils.isEmpty(builder.password) || proxyConfigProvider == null) {
+            return builder.password;
+        } else {
+            return proxyConfigProvider.password().orElseGet(() -> builder.password);
+        }
+    }
+
+    private static String resolveUsername(DefaultBuilder<?> builder, ProxyConfigProvider proxyConfigProvider) {
+        if (!StringUtils.isEmpty(builder.username) || proxyConfigProvider == null) {
+            return builder.username;
+        } else {
+            return proxyConfigProvider.userName().orElseGet(() -> builder.username);
+        }
+    }
+
+    private static int resolvePort(DefaultBuilder<?> builder, ProxyConfigProvider proxyConfigProvider) {
+        if (builder.port != 0 || proxyConfigProvider == null) {
+            return builder.port;
+        } else {
+            return proxyConfigProvider.port();
+        }
+    }
+
+    private static String resolveHost(DefaultBuilder<?> builder, ProxyConfigProvider proxyConfigProvider) {
+        if (builder.host != null || proxyConfigProvider == null) {
+            return builder.host;
+        } else {
+            return proxyConfigProvider.host();
+        }
     }
 
     /**
@@ -190,10 +220,11 @@ public abstract class CrtProxyConfiguration {
         Builder password(String password);
 
         /**
-         * The option whether to use system property values from {@link ProxySystemSetting} if any of the config options
-         * are missing. The value is set to "true" by default which means SDK will automatically use system property values if
-         * options are not provided during building the {@link CrtProxyConfiguration} object. To disable this behaviour, set this
-         * value to false.
+         * The option whether to use system property values from {@link ProxySystemSetting} if any of the config options are
+         * missing. The value is set to "true" by default which means SDK will automatically use system property values if options
+         * are not provided during building the {@link CrtProxyConfiguration} object. To disable this behaviour, set this value to
+         * false.It is important to note that when this property is set to "true," all proxy settings will exclusively originate
+         * from system properties, and no partial settings will be obtained from EnvironmentVariableValues.
          *
          * @param useSystemPropertyValues The option whether to use system property values
          * @return This object for method chaining.
@@ -201,10 +232,11 @@ public abstract class CrtProxyConfiguration {
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
         /**
-         * The option whether to use environment variable values from {@link ProxySystemSetting} if any of the config options
-         * are missing. The value is set to "true" by default which means SDK will automatically use environment variable values
-         * if options are not provided during building the {@link CrtProxyConfiguration} object. To disable this behavior, set
-         * this value to false.
+         * The option whether to use environment variable values from {@link ProxySystemSetting} if any of the config options are
+         * missing. The value is set to "true" by default which means SDK will automatically use environment variable values if
+         * options are not provided during building the {@link CrtProxyConfiguration} object. To disable this behavior, set this
+         * value to false.It is important to note that when this property is set to "true," all proxy settings will exclusively
+         * originate from environment variableValues, and no partial settings will be obtained from SystemPropertyValues.
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values
          * @return This object for method chaining.
@@ -280,7 +312,7 @@ public abstract class CrtProxyConfiguration {
             return (B) this;
         }
 
-        public B setUseEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
+        public B setuseEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
             this.useEnvironmentVariableValues = useEnvironmentVariableValues;
             return (B) this;
         }

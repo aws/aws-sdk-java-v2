@@ -50,7 +50,7 @@ public class NettyProxyConfigurationTest extends HttpProxyTestSuite {
             builder.useSystemPropertyValues(useSystemProperty);
         }
         if (useEnvironmentVariable != null) {
-            builder.useEnvironmentVariablesValues(useEnvironmentVariable);
+            builder.useEnvironmentVariableValues(useEnvironmentVariable);
         }
         ProxyConfiguration proxyConfiguration = builder.build();
         assertThat(proxyConfiguration.host()).isEqualTo(expectedProxySettings.getHost());
