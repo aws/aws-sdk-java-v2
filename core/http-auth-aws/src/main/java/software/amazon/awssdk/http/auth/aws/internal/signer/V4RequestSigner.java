@@ -58,8 +58,7 @@ public interface V4RequestSigner {
             addHostHeader(requestBuilder);
             addDateHeader(requestBuilder, formatDateTime(properties.getCredentialScope().getInstant()));
 
-            V4RequestSigningResult result = create(properties).sign(requestBuilder);
-            V4Context ctx = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
+            V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
 
             // Add the signature within an authorization header
             String authHeader = AWS4_SIGNING_ALGORITHM
@@ -92,8 +91,7 @@ public interface V4RequestSigner {
             requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL,
                                                 properties.getCredentialScope().scope(properties.getCredentials()));
 
-            V4RequestSigningResult result = create(properties).sign(requestBuilder);
-            V4Context ctx = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
+            V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
 
             // Add the signature
             requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, result.getSignature());
@@ -128,12 +126,12 @@ public interface V4RequestSigner {
                                                 properties.getCredentialScope().scope(properties.getCredentials()));
             requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationDuration.getSeconds()));
 
-            V4Context ctx = create(properties, contentHash).sign(requestBuilder);
+            V4RequestSigningResult result = create(properties, contentHash).sign(requestBuilder);
 
             // Add the signature
-            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, ctx.getSignature());
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, result.getSignature());
 
-            return ctx;
+            return result;
 
         };
     }

@@ -57,11 +57,11 @@ public class DefaultRequestSignerTest {
 
         V4RequestSigningResult requestSigningResult = requestSigner.sign(request);
 
-        assertEquals(expectedContentHash, v4Context.getContentHash());
-        assertEquals(expectedSigningKeyHex, toHex(v4Context.getSigningKey()));
-        assertEquals(expectedSignature, v4Context.getSignature());
-        assertEquals(expectedCanonicalRequestString, v4Context.getCanonicalRequest().getCanonicalRequestString());
-        assertEquals(expectedHost, v4Context.getSignedRequest().firstMatchingHeader("Host").orElse(""));
-        assertThat(v4Context.getSignedRequest().build()).usingRecursiveComparison().isEqualTo(request.build());
+        assertEquals(expectedContentHash, requestSigningResult.getContentHash());
+        assertEquals(expectedSigningKeyHex, toHex(requestSigningResult.getSigningKey()));
+        assertEquals(expectedSignature, requestSigningResult.getSignature());
+        assertEquals(expectedCanonicalRequestString, requestSigningResult.getCanonicalRequest().getCanonicalRequestString());
+        assertEquals(expectedHost, requestSigningResult.getSignedRequest().firstMatchingHeader("Host").orElse(""));
+        assertThat(requestSigningResult.getSignedRequest().build()).usingRecursiveComparison().isEqualTo(request.build());
     }
 }

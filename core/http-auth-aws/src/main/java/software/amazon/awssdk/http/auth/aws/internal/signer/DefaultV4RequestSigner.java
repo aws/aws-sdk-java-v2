@@ -49,9 +49,6 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
 
     @Override
     public V4RequestSigningResult sign(SdkHttpRequest.Builder requestBuilder) {
-        // Step 0: Pre-requisites
-        addHostHeader(requestBuilder);
-
         // Step 1: Create a canonical request
         V4CanonicalRequest canonicalRequest = createCanonicalRequest(requestBuilder.build(), contentHash);
 
