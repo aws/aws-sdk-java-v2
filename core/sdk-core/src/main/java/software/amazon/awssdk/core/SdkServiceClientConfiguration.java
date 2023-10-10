@@ -122,14 +122,14 @@ public abstract class SdkServiceClientConfiguration {
 
         default Builder overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> consumer) {
             ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
-            ClientOverrideConfiguration.Builder overrideConfigurationBuilder;
+            ClientOverrideConfiguration.Builder builder;
             if (overrideConfiguration != null) {
-                overrideConfigurationBuilder = overrideConfiguration.toBuilder();
+                builder = overrideConfiguration.toBuilder();
             } else {
-                overrideConfigurationBuilder = ClientOverrideConfiguration.builder();
+                builder = ClientOverrideConfiguration.builder();
             }
-            consumer.accept(overrideConfigurationBuilder);
-            return overrideConfiguration(overrideConfigurationBuilder.build());
+            consumer.accept(builder);
+            return overrideConfiguration(builder.build());
         }
 
         /**
