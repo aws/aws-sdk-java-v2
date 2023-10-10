@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "gosar",
+    "description": "This release contains a major internal refactor of authentication. The refactor is part of moving the SDK to Smithy Reference Architecture.\n\nIt paves the way for new features to be released over the coming months, e.g., SDK plugins and custom auth schemes. These will be released to individual service SDKs in a phased rollout.\n\nAlso, with this release:\n* custom 3rd party credential providers can be created with fewer SDK dependencies.\n* new signers can be used with fewer SDK dependencies.\n\nSince this is a major refactor, this release bumps the minor version of the SDK to 2.21. So keep an eye out for behavioral changes."
+}
