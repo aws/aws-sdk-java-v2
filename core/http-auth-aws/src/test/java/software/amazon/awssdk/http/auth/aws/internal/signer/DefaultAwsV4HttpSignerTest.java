@@ -31,6 +31,8 @@ import java.time.Duration;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.Header;
@@ -81,6 +83,21 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Signature")).isPresent();
     }
 
+    @ParameterizedTest
+    @ValueSource(longs = {-1, 0, 604801})
+    public void sign_WithQueryAuthLocationAndInvalidExpiration_Throws(long seconds) {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
+                .putProperty(EXPIRATION_DURATION, Duration.ofSeconds(seconds))
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> signer.sign(request));
+    }
+
     @Test
     public void sign_WithHeaderAuthLocationAndExpirationDuration_Throws() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
@@ -89,7 +106,7 @@ public class DefaultAwsV4HttpSignerTest {
             },
             signRequest -> signRequest
                 .putProperty(AUTH_LOCATION, AuthLocation.HEADER)
-                .putProperty(EXPIRATION_DURATION, Duration.ZERO)
+                .putProperty(EXPIRATION_DURATION, Duration.ofDays(1))
         );
 
         assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
@@ -119,7 +136,7 @@ public class DefaultAwsV4HttpSignerTest {
             },
             signRequest -> signRequest
                 .putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
-                .putProperty(EXPIRATION_DURATION, Duration.ZERO)
+                .putProperty(EXPIRATION_DURATION, Duration.ofDays(1))
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -288,8 +305,8 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    public void sign_WithEventStreamContentType_DelegatesToEventStreamPayloadSigner() {
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+    public void sign_WithEventStreamContentType_Throws() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
                 .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
@@ -297,14 +314,12 @@ public class DefaultAwsV4HttpSignerTest {
             }
         );
 
-        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
-
-        assertThat(signedRequest.payload().get()).isInstanceOf(SigV4DataFramePublisher.class);
+        assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
     }
 
     @Test
     public void sign_WithEventStreamContentTypeAndUnsignedPayload_Throws() {
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
                 .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
@@ -312,7 +327,7 @@ public class DefaultAwsV4HttpSignerTest {
                 .putProperty(PAYLOAD_SIGNING_ENABLED, false)
         );
 
-        assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(request));
+        assertThrows(UnsupportedOperationException.class, () -> signer.sign(request));
     }
 
     @Test
@@ -382,7 +397,7 @@ public class DefaultAwsV4HttpSignerTest {
             },
             signRequest -> signRequest
                 .putProperty(AUTH_LOCATION, AuthLocation.HEADER)
-                .putProperty(EXPIRATION_DURATION, Duration.ZERO)
+                .putProperty(EXPIRATION_DURATION, Duration.ofDays(1))
         );
 
         assertThrows(UnsupportedOperationException.class, () -> signer.signAsync(request).join());
@@ -412,12 +427,27 @@ public class DefaultAwsV4HttpSignerTest {
             },
             signRequest -> signRequest
                 .putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
-                .putProperty(EXPIRATION_DURATION, Duration.ZERO)
+                .putProperty(EXPIRATION_DURATION, Duration.ofDays(1))
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
 
         assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Expires")).isPresent();
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {-1, 0, 604801})
+    public void signAsync_WithQueryAuthLocationAndInvalidExpiration_Throws(long seconds) {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest
+                .putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
+                .putProperty(EXPIRATION_DURATION, Duration.ofSeconds(seconds))
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> signer.signAsync(request));
     }
 
     @Test
@@ -455,6 +485,7 @@ public class DefaultAwsV4HttpSignerTest {
         }
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding support in async is added, we can enable these tests.
     @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
     @Test
     public void signAsync_WithChunkEncodingTrue_DelegatesToAwsChunkedPayloadSigner() {
@@ -474,6 +505,7 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding support in async is added, we can enable these tests.
     @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
     @Test
     public void signAsync_WithChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
@@ -495,6 +527,7 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding support in async is added, we can enable these tests.
     @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
     @Test
     public void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
