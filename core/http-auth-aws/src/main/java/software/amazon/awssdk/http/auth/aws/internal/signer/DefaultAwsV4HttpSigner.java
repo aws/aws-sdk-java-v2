@@ -293,7 +293,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
-        if (expirationDuration.compareTo(Duration.ZERO) < 1 || expirationDuration.compareTo(PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
+        if (!isBetweenInclusive(Duration.ofSeconds(1), expirationDuration, PRESIGN_URL_MAX_EXPIRATION_DURATION)) {
             throw new IllegalArgumentException(
                 "Requests that are pre-signed by SigV4 algorithm are valid for at least 1 second and at most 7" +
                 " days. The expiration duration set on the current request [" + expirationDuration + "]" +
@@ -301,6 +301,10 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             );
         }
         return expirationDuration;
+    }
+
+    private static boolean isBetweenInclusive(Duration start, Duration x, Duration end) {
+        return start.compareTo(x) <= 0 && x.compareTo(end) <= 0;
     }
 
     private static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
