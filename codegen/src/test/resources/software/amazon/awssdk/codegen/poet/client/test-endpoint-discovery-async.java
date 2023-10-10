@@ -408,6 +408,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
         }
         EndpointDiscoveryTestServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = EndpointDiscoveryTestServiceClientConfigurationBuilder
             .builder(clientConfiguration.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }

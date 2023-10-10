@@ -1332,6 +1332,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         }
         JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
             .builder(clientConfiguration.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }

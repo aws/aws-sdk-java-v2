@@ -82,7 +82,9 @@ public class CodegenServiceClientConfigurationTest {
             ProtocolRestJsonServiceClientConfigurationBuilder.builder(clientConfig.toBuilder());
 
         // Assert that we can retrieve the same value
-        assertThat(testCase.getter.apply(anotherBuilder)).isEqualTo(testCase.value);
+        if (testCase.hasDirectMapping) {
+            assertThat(testCase.getter.apply(anotherBuilder)).isEqualTo(testCase.value);
+        }
     }
 
     public static List<TestCase<?>> testCases() throws Exception {

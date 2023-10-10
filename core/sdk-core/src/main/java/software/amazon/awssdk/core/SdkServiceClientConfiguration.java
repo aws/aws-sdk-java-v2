@@ -18,6 +18,7 @@ package software.amazon.awssdk.core;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
@@ -117,6 +118,18 @@ public abstract class SdkServiceClientConfiguration {
          */
         default Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
             throw new UnsupportedOperationException();
+        }
+
+        default Builder overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> consumer) {
+            ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
+            ClientOverrideConfiguration.Builder overrideConfigurationBuilder;
+            if (overrideConfiguration != null) {
+                overrideConfigurationBuilder = overrideConfiguration.toBuilder();
+            } else {
+                overrideConfigurationBuilder = ClientOverrideConfiguration.builder();
+            }
+            consumer.accept(overrideConfigurationBuilder);
+            return overrideConfiguration(overrideConfigurationBuilder.build());
         }
 
         /**

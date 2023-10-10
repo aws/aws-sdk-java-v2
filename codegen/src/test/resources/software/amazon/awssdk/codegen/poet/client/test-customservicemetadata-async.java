@@ -154,6 +154,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
         }
         ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder
             .builder(clientConfiguration.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }

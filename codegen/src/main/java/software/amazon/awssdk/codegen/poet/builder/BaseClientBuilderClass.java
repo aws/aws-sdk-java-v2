@@ -744,9 +744,11 @@ public class BaseClientBuilderClass implements ClassSpec {
                .endControlFlow();
         builder.addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(config.toBuilder())",
                              configurationUtils.serviceClientConfigurationBuilderClassName());
+        builder.addStatement("serviceConfigBuilder.overrideConfiguration(overrideConfiguration())");
         builder.beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
                .endControlFlow();
+        builder.addStatement("overrideConfiguration(serviceConfigBuilder.overrideConfiguration())");
         builder.addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()");
         return builder.build();
     }
