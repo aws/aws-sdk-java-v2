@@ -470,6 +470,24 @@
     }
   },
   {
+    "description": "GET operation does not have content-type header",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "doesNotContain": [ "content-type" ]
+        }
+      }
+    }
+  },
+  {
       "description": "Input with greedy label in path",
       "given": {
 	  "input": {
