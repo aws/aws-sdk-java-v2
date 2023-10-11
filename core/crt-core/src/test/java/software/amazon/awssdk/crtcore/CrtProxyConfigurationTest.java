@@ -18,10 +18,10 @@ package software.amazon.awssdk.crtcore;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-public class CrtProxyConfigurationTest {
+class CrtProxyConfigurationTest {
 
     @Test
-    public void equalsHashCodeTest() {
+    void equalsHashCodeTest() {
         EqualsVerifier.forClass(CrtProxyConfiguration.class)
             .usingGetClass()
                       .verify();

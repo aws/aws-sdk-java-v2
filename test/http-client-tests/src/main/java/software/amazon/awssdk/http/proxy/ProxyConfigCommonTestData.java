@@ -151,8 +151,7 @@ public final class ProxyConfigCommonTestData {
                 getTestProxySettings(), true, true, getTestProxySettings()),
 
             Arguments.of(
-                "Provided system and no environment variable when useEnvironmentVariable then System property proxy "
-                + "resolved",
+                "Provided system and no environment variable when useEnvironmentVariable then System property proxy resolved",
                 systemPropertySettings(),
                 Collections.singletonList(Pair.of("", "")),
                 new TestProxySetting(), null, true, getSystemPropertyProxySettings()),
@@ -173,8 +172,7 @@ public final class ProxyConfigCommonTestData {
                 new TestProxySetting(), null, null, new TestProxySetting()),
 
             Arguments.of(
-                "Provided  no system property and no environment variable when user ProxyConfig then user Proxy config "
-                + "resolved",
+                "Provided  no system property and no environment variable when user ProxyConfig then user Proxy config resolved",
                 Collections.singletonList(Pair.of("", "")),
                 Collections.singletonList(Pair.of("", "")),
                 new TestProxySetting().host(USER_HOST_ON_BUILDER).port(USER_PORT_NUMBER_ON_BUILDER), null, null,
@@ -201,7 +199,7 @@ public final class ProxyConfigCommonTestData {
                 environmentSettingsWithNoPassword(),
                 new TestProxySetting(), null, null,
                 new TestProxySetting().host(SYSTEM_PROPERTY_HOST).port(Integer.parseInt(SYSTEM_PROPERTY_PORT_NUMBER))
-                    .password(SYSTEM_PROPERTY_PASSWORD)),
+                                      .password(SYSTEM_PROPERTY_PASSWORD)),
 
             Arguments.of(
                 "Given password in System property when Password present in system property "

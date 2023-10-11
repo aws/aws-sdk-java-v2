@@ -30,7 +30,10 @@ import software.amazon.awssdk.utils.StringUtils;
 
 public abstract class HttpProxyTestSuite {
 
+    public static final String HTTP = "http";
+    public static final String HTTPS = "https";
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
+
 
     public static Stream<Arguments> proxyConfigurationSetting() {
         return ProxyConfigCommonTestData.proxyConfigurationSetting();
@@ -67,9 +70,9 @@ public abstract class HttpProxyTestSuite {
                                                         Boolean useSystemProperty,
                                                         Boolean useEnvironmentVariable,
                                                         TestProxySetting expectedProxySettings) throws URISyntaxException {
-        setSystemProperties(systemSettingsPair, "http");
-        setEnvironmentProperties(envSystemSetting, "http");
-        assertProxyConfiguration(userSetProxySettings, expectedProxySettings, useSystemProperty, useEnvironmentVariable, "http");
+        setSystemProperties(systemSettingsPair, HTTP);
+        setEnvironmentProperties(envSystemSetting, HTTP);
+        assertProxyConfiguration(userSetProxySettings, expectedProxySettings, useSystemProperty, useEnvironmentVariable, HTTP);
     }
 
     @ParameterizedTest(name = "{index} -{0}  useSystemProperty {4} useEnvironmentVariable {5}  userSetProxy {3} then expected "
@@ -83,10 +86,10 @@ public abstract class HttpProxyTestSuite {
         Boolean useSystemProperty,
         Boolean useEnvironmentVariable,
         TestProxySetting expectedProxySettings) throws URISyntaxException {
-        setSystemProperties(systemSettingsPair, "https");
-        setEnvironmentProperties(envSystemSetting, "https");
+        setSystemProperties(systemSettingsPair, HTTPS);
+        setEnvironmentProperties(envSystemSetting, HTTPS);
         assertProxyConfiguration(userSetProxySettings, expectedProxySettings,
-                                 useSystemProperty, useEnvironmentVariable, "https");
+                                 useSystemProperty, useEnvironmentVariable, HTTPS);
     }
 
     protected abstract void assertProxyConfiguration(TestProxySetting userSetProxySettings,

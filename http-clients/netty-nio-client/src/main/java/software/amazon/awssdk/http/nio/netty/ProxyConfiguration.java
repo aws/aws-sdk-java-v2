@@ -34,7 +34,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
-    private static final String HTTPS = "https";
     private final Boolean useSystemPropertyValues;
     private final Boolean useEnvironmentVariablesValues;
     private final String scheme;

@@ -28,7 +28,6 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 @SdkPublicApi
 public abstract class CrtProxyConfiguration {
-    private static final String HTTPS = "https";
     private final String scheme;
     private final String host;
     private final int port;
@@ -313,8 +312,7 @@ public abstract class CrtProxyConfiguration {
         }
 
         public B setuseEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
-            this.useEnvironmentVariableValues = useEnvironmentVariableValues;
-            return (B) this;
+            return useEnvironmentVariableValues(useEnvironmentVariableValues);
         }
 
         public void setUseSystemPropertyValues(Boolean useSystemPropertyValues) {

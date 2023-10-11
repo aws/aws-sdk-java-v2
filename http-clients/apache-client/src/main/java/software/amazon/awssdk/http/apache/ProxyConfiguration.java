@@ -35,8 +35,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
-
-    private static final String HTTPS = "https";
     private final URI endpoint;
     private final String username;
     private final String password;
@@ -428,7 +426,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         @Override
         public Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
             this.useEnvironmentVariableValues = useEnvironmentVariableValues;
-
             return this;
         }
 
