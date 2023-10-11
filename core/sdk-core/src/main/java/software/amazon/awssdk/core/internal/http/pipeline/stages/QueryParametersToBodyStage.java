@@ -21,6 +21,7 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -42,14 +43,18 @@ public class QueryParametersToBodyStage implements MutableRequestToRequestPipeli
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
 
-        if (shouldPutParamsInBody(request.build())) {
+        if (shouldPutParamsInBody(request.build(), context)) {
             return changeQueryParametersToFormData(request.build()).toBuilder();
         }
         return request;
     }
 
-    private boolean shouldPutParamsInBody(SdkHttpFullRequest request) {
-        return request.method() == SdkHttpMethod.POST &&
+    private boolean shouldPutParamsInBody(SdkHttpFullRequest request, RequestExecutionContext context) {
+        String protocol = context.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_PROTOCOL);
+        boolean isQueryProtocol = "query".equalsIgnoreCase(protocol) || "ec2".equalsIgnoreCase(protocol);
+
+        return isQueryProtocol &&
+               request.method() == SdkHttpMethod.POST &&
                !request.contentStreamProvider().isPresent() &&
                request.numRawQueryParameters() > 0;
     }

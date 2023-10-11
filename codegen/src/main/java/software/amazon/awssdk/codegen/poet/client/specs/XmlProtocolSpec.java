@@ -128,6 +128,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n",
                                                     ClientExecutionParams.class, requestType, responseType)
                                                .add(".withOperationName($S)\n", opModel.getOperationName())
+                                               .add(".withServiceProtocol($S)\n", opModel.getServiceProtocol())
                                                .add(".withCombinedResponseHandler(responseHandler)\n")
                                                .add(".withMetricCollector(apiCallMetricCollector)\n" +
                                                     hostPrefixExpression(opModel) +
@@ -200,6 +201,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                     CompletableFuture.class, executeFutureValueType,
                     ClientExecutionParams.class, requestType, pojoResponseType)
                .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
+               .add(".withServiceProtocol($S)\n", opModel.getServiceProtocol())
                .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"));
 
         if (opModel.hasEventStreamOutput()) {

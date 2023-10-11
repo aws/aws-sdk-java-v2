@@ -51,6 +51,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private boolean hasInitialRequestEvent;
     private String hostPrefixExpression;
     private String operationName;
+    private String serviceProtocol;
     private URI discoveredEndpoint;
     private CredentialType credentialType;
     private MetricCollector metricCollector;
@@ -162,6 +163,18 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
      */
     public ClientExecutionParams<InputT, OutputT> withOperationName(String operationName) {
         this.operationName = operationName;
+        return this;
+    }
+
+    public String getServiceProtocol() {
+        return serviceProtocol;
+    }
+
+    /**
+     * Sets the service protocol of the API.
+     */
+    public ClientExecutionParams<InputT, OutputT> withServiceProtocol(String serviceProtocol) {
+        this.serviceProtocol = serviceProtocol;
         return this;
     }
 

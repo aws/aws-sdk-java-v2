@@ -45,6 +45,11 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<String> SERVICE_NAME = new ExecutionAttribute<>("ServiceName");
 
     /**
+     * The key under which the service protocol is stored.
+     */
+    public static final ExecutionAttribute<String> SERVICE_PROTOCOL = new ExecutionAttribute<>("ServiceProtocol");
+
+    /**
      * The key under which the time offset (for clock skew correction) is stored.
      */
     public static final ExecutionAttribute<Integer> TIME_OFFSET = new ExecutionAttribute<>("TimeOffset");
