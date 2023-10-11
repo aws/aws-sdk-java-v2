@@ -53,8 +53,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * <p> DocumentTableSchema specifying primaryKey, sortKey and a customAttributeConverter can be created as below
  * {@snippet :
  * DocumentTableSchema documentTableSchema = DocumentTableSchema.builder()
- * .primaryKey("sampleHashKey", AttributeValueType.S)
- * .sortKey("sampleSortKey", AttributeValueType.S)
+ * .addIndexPartitionKey("sampleIndexName", "sampleHashKey", AttributeValueType.S)
+ * .addIndexSortKey("sampleIndexName", "sampleSortKey", AttributeValueType.S)
  * .attributeConverterProviders(customAttributeConverter, AttributeConverterProvider.defaultProvider())
  * .build();
  *}

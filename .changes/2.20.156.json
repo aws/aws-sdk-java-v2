@@ -1,0 +1,36 @@
+{
+    "version": "2.20.156",
+    "date": "2023-09-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "Added support for IoT Rules Engine Kafka Action Headers"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "The UserPoolType Status field is no longer used."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Firehose",
+            "contributor": "",
+            "description": "Features : Adding support for new data ingestion source to Kinesis Firehose - AWS Managed Services Kafka."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "contributor": "",
+            "description": "This release adds new feature - Layout to Analyze Document API which can automatically extract layout elements such as titles, paragraphs, headers, section headers, lists, page numbers, footers, table areas, key-value areas and figure areas and order the elements as a human would read."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

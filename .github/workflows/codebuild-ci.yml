@@ -59,6 +59,20 @@ jobs:
         timeout-minutes: 120
         with:
           project-name: aws-sdk-java-v2-JDK17
+  jdk21-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run JDK21 build
+        uses: aws-actions/aws-codebuild-run-build@v1
+        timeout-minutes: 120
+        with:
+          project-name: aws-java-sdk-v2-JDK21
   windows-jdk8-build:
     runs-on: ubuntu-latest
     steps:
