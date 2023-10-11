@@ -24,6 +24,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
@@ -54,6 +55,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder builder = PoetUtils.createInterfaceBuilder(builderInterfaceName)
+                        .addAnnotation(SdkPublicApi.class)
                         .addTypeVariable(PoetUtils.createBoundedTypeVariableName("B", builderInterfaceName, "B", "C"))
                         .addTypeVariable(TypeVariableName.get("C"))
                         .addSuperinterface(PoetUtils.createParameterizedTypeName(AwsClientBuilder.class, "B", "C"))

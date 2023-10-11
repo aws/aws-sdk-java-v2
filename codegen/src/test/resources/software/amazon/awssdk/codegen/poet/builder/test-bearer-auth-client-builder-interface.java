@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.json;
 
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
@@ -10,6 +11,7 @@ import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
  * {@link JsonAsyncClientBuilder}.
  */
 @Generated("software.amazon.awssdk:codegen")
+@SdkPublicApi
 public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsClientBuilder<B, C> {
     /**
      * Set the {@link JsonEndpointProvider} implementation that will be used by the client to determine the endpoint for
