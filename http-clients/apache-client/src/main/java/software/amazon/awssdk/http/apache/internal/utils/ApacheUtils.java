@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.apache.internal.utils;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Optional;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -114,42 +115,73 @@ public final class ApacheUtils {
     }
 
     /**
-     * Returns a new Credentials Provider for use with proxy authentication.
+     * Returns a new instance of a CredentialsProvider for both HTTP and HTTPS.
      */
     public static CredentialsProvider newProxyCredentialsProvider(ProxyConfiguration proxyConfiguration) {
-        CredentialsProvider provider = new BasicCredentialsProvider();
-        provider.setCredentials(newAuthScope(proxyConfiguration), newNtCredentials(proxyConfiguration));
-        return provider;
+        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+
+        String httpHost = proxyConfiguration.host("http");
+        Optional<Credentials> httpCredentials = newNtCredentials(proxyConfiguration, "http");
+        if (httpHost != null && httpCredentials.isPresent()) {
+            credsProvider.setCredentials(newAuthScope(proxyConfiguration, "http"), httpCredentials.get());
+        }
+
+        String httpsHost = proxyConfiguration.host("https");
+        Optional<Credentials> httpsCredentials = newNtCredentials(proxyConfiguration, "https");
+        if (httpsHost != null && httpsCredentials.isPresent()) {
+            credsProvider.setCredentials(newAuthScope(proxyConfiguration, "https"), httpsCredentials.get());
+        }
+
+        return credsProvider;
     }
 
     /**
      * Returns a new instance of NTCredentials used for proxy authentication.
      */
-    private static Credentials newNtCredentials(ProxyConfiguration proxyConfiguration) {
-        return new NTCredentials(proxyConfiguration.username(),
-                                 proxyConfiguration.password(),
-                                 proxyConfiguration.ntlmWorkstation(),
-                                 proxyConfiguration.ntlmDomain());
+    private static Optional<Credentials> newNtCredentials(ProxyConfiguration proxyConfiguration, String scheme) {
+        String user = proxyConfiguration.username(scheme);
+        if (user == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new NTCredentials(user,
+                                 proxyConfiguration.password(scheme),
+                                 proxyConfiguration.ntlmWorkstation(scheme),
+                                 proxyConfiguration.ntlmDomain(scheme)));
     }
 
     /**
      * Returns a new instance of AuthScope used for proxy authentication.
      */
-    private static AuthScope newAuthScope(ProxyConfiguration proxyConfiguration) {
-        return new AuthScope(proxyConfiguration.host(), proxyConfiguration.port());
+    private static AuthScope newAuthScope(ProxyConfiguration proxyConfiguration, String scheme) {
+        return new AuthScope(
+            proxyConfiguration.host(scheme),
+            proxyConfiguration.port(scheme),
+            AuthScope.ANY_REALM,
+            scheme
+        );
     }
 
     private static void addPreemptiveAuthenticationProxy(HttpClientContext clientContext,
                                                          ProxyConfiguration proxyConfiguration) {
 
         if (proxyConfiguration.preemptiveBasicAuthenticationEnabled()) {
-            HttpHost targetHost = new HttpHost(proxyConfiguration.host(), proxyConfiguration.port());
-            CredentialsProvider credsProvider = newProxyCredentialsProvider(proxyConfiguration);
-            // Create AuthCache instance
+            CredentialsProvider credsProvider = new BasicCredentialsProvider();
             AuthCache authCache = new BasicAuthCache();
-            // Generate BASIC scheme object and add it to the local auth cache
             BasicScheme basicAuth = new BasicScheme();
-            authCache.put(targetHost, basicAuth);
+
+            String httpHost = proxyConfiguration.host("http");
+            Optional<Credentials> httpCredentials = newNtCredentials(proxyConfiguration, "http");
+            if (httpHost != null && httpCredentials.isPresent()) {
+                credsProvider.setCredentials(newAuthScope(proxyConfiguration, "http"), httpCredentials.get());
+                authCache.put(new HttpHost(httpHost, proxyConfiguration.port("http")), basicAuth);
+            }
+
+            String httpsHost = proxyConfiguration.host("https");
+            Optional<Credentials> httpsCredentials = newNtCredentials(proxyConfiguration, "https");
+            if (httpsHost != null && httpsCredentials.isPresent()) {
+                credsProvider.setCredentials(newAuthScope(proxyConfiguration, "https"), httpsCredentials.get());
+                authCache.put(new HttpHost(httpsHost, proxyConfiguration.port("https")), basicAuth);
+            }
 
             clientContext.setCredentialsProvider(credsProvider);
             clientContext.setAuthCache(authCache);

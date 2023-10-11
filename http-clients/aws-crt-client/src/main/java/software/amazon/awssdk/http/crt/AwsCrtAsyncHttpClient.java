@@ -28,6 +28,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -80,7 +81,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
     private final TlsContext tlsContext;
-    private final HttpProxyOptions proxyOptions;
+    private final HttpProxyOptions httpProxyOptions;
+    private final HttpProxyOptions httpsProxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
     private final long readBufferSize;
@@ -109,7 +111,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
             this.monitoringOptions = resolveHttpMonitoringOptions(builder.connectionHealthConfiguration).orElse(null);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
-            this.proxyOptions = resolveProxy(builder.proxyConfiguration, tlsContext).orElse(null);
+            this.httpProxyOptions = resolveProxy(builder.proxyConfiguration, tlsContext, "http").orElse(null);
+            this.httpsProxyOptions = resolveProxy(builder.proxyConfiguration, tlsContext, "https").orElse(null);
         }
     }
 
@@ -157,9 +160,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withWindowSize(readBufferSize)
                 .withMaxConnections(maxConnectionsPerEndpoint)
                 .withManualWindowManagement(true)
-                .withProxyOptions(proxyOptions)
                 .withMonitoringOptions(monitoringOptions)
                 .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds);
+        if (Objects.equals(uri.getScheme(), "https")) {
+            options = options.withProxyOptions(httpsProxyOptions);
+        } else if (Objects.equals(uri.getScheme(), "http")) {
+            options = options.withProxyOptions(httpProxyOptions);
+        }
 
         return HttpClientConnectionManager.create(options);
     }

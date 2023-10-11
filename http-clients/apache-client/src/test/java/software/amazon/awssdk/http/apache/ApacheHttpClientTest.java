@@ -27,6 +27,7 @@ import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 /**
  * @see ApacheHttpClientWireMockTest
@@ -34,6 +35,7 @@ import org.mockito.Mockito;
 public class ApacheHttpClientTest {
     @AfterEach
     public void cleanup() {
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
         System.clearProperty("http.proxyUser");
@@ -63,9 +65,43 @@ public class ApacheHttpClientTest {
     }
 
     @Test
-    public void httpRoutePlannerCantBeUsedWithProxy_SystemPropertiesEnabled() {
+    public void httpRoutePlannerCantBeUsedWithProxy_SystemPropertiesEnabledHttp() {
         System.setProperty("http.proxyHost", "localhost");
         System.setProperty("http.proxyPort", "1234");
+
+        assertThatThrownBy(() -> {
+            ApacheHttpClient.builder()
+                            .httpRoutePlanner(Mockito.mock(HttpRoutePlanner.class))
+                            .build();
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void httpRoutePlannerCantBeUsedWithProxy_SystemPropertiesEnabledHttps() {
+        System.setProperty("https.proxyHost", "localhost");
+        System.setProperty("https.proxyPort", "1234");
+
+        assertThatThrownBy(() -> {
+            ApacheHttpClient.builder()
+                            .httpRoutePlanner(Mockito.mock(HttpRoutePlanner.class))
+                            .build();
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void httpRoutePlannerCantBeUsedWithProxy_EnvironmentVariablesEnabledHttp() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("http_proxy", "http://user:pass@localhost:1234");
+
+        assertThatThrownBy(() -> {
+            ApacheHttpClient.builder()
+                            .httpRoutePlanner(Mockito.mock(HttpRoutePlanner.class))
+                            .build();
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void httpRoutePlannerCantBeUsedWithProxy_EnvironmentVariablesEnabledHttps() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("https_proxy", "http://user:pass@localhost:1234");
 
         assertThatThrownBy(() -> {
             ApacheHttpClient.builder()
@@ -78,9 +114,26 @@ public class ApacheHttpClientTest {
     public void httpRoutePlannerCantBeUsedWithProxy_SystemPropertiesDisabled() {
         System.setProperty("http.proxyHost", "localhost");
         System.setProperty("http.proxyPort", "1234");
+        System.setProperty("https.proxyHost", "localhost");
+        System.setProperty("https.proxyPort", "4321");
 
         ProxyConfiguration proxyConfig = ProxyConfiguration.builder()
                                                            .useSystemPropertyValues(Boolean.FALSE)
+                                                           .build();
+
+        ApacheHttpClient.builder()
+                        .proxyConfiguration(proxyConfig)
+                        .httpRoutePlanner(Mockito.mock(HttpRoutePlanner.class))
+                        .build();
+    }
+
+    @Test
+    public void httpRoutePlannerCantBeUsedWithProxy_EnvironmentDisabled() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("http_proxy", "http://user:pass@localhost:1234");
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("https_proxy", "http://user:pass@localhost:4321");
+
+        ProxyConfiguration proxyConfig = ProxyConfiguration.builder()
+                                                           .useEnvironmentVariables(Boolean.FALSE)
                                                            .build();
 
         ApacheHttpClient.builder()
@@ -117,10 +170,48 @@ public class ApacheHttpClientTest {
     }
 
     @Test
+    public void credentialProviderCantBeUsedWithProxyCredentials_Environment() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("http_proxy", "http://user:pass@localhost:1234");
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("https_proxy", "http://user:pass@localhost:4321");
+
+        assertThatThrownBy(() -> {
+            ApacheHttpClient.builder()
+                            .credentialsProvider(Mockito.mock(CredentialsProvider.class))
+                            .build();
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     public void credentialProviderCanBeUsedWithProxy() {
         ProxyConfiguration proxyConfig = ProxyConfiguration.builder()
                                                            .endpoint(URI.create("http://localhost:1234"))
                                                            .build();
+        ApacheHttpClient.builder()
+                        .proxyConfiguration(proxyConfig)
+                        .credentialsProvider(Mockito.mock(CredentialsProvider.class))
+                        .build();
+    }
+
+    @Test
+    public void credentialProviderCanBeUsedWithProxy_SystemProperties() {
+        System.setProperty("http.proxyHost", "localhost");
+        System.setProperty("http.proxyPort", "1234");
+        System.setProperty("https.proxyHost", "localhost");
+        System.setProperty("https.proxyPort", "1234");
+        ProxyConfiguration proxyConfig = ProxyConfiguration.builder().build();
+
+        ApacheHttpClient.builder()
+                        .proxyConfiguration(proxyConfig)
+                        .credentialsProvider(Mockito.mock(CredentialsProvider.class))
+                        .build();
+    }
+
+    @Test
+    public void credentialProviderCanBeUsedWithProxy_Environment() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("http_proxy", "http://localhost:1234");
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("https_proxy", "http://localhost:4321");
+        ProxyConfiguration proxyConfig = ProxyConfiguration.builder().build();
+
         ApacheHttpClient.builder()
                         .proxyConfiguration(proxyConfig)
                         .credentialsProvider(Mockito.mock(CredentialsProvider.class))

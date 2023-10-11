@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.apache.internal;
 
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
+import java.util.Objects;
 import java.util.Set;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -25,6 +26,7 @@ import org.apache.http.impl.conn.DefaultRoutePlanner;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.protocol.HttpContext;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
 
 /**
  * SdkProxyRoutePlanner delegates a Proxy Route Planner from the settings instead of the
@@ -33,14 +35,24 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public class SdkProxyRoutePlanner extends DefaultRoutePlanner {
+    private static final String HTTPS = "https";
+    private static final String HTTP = "http";
 
-    private HttpHost proxy;
+    private HttpHost httpProxy;
+    private HttpHost httpsProxy;
     private Set<String> hostPatterns;
 
-    public SdkProxyRoutePlanner(String proxyHost, int proxyPort, String proxyProtocol, Set<String> nonProxyHosts) {
+    public SdkProxyRoutePlanner(ProxyConfiguration configuration) {
         super(DefaultSchemePortResolver.INSTANCE);
-        proxy = new HttpHost(proxyHost, proxyPort, proxyProtocol);
-        this.hostPatterns = nonProxyHosts;
+        String httpHost = configuration.host(HTTP);
+        if (httpHost != null) {
+            httpProxy = new HttpHost(httpHost, configuration.port(HTTP), configuration.scheme(HTTP));
+        }
+        String httpsHost = configuration.host(HTTPS);
+        if (httpsHost != null) {
+            httpsProxy = new HttpHost(httpsHost, configuration.port(HTTPS), configuration.scheme(HTTPS));
+        }
+        this.hostPatterns = configuration.nonProxyHosts();
     }
 
     private boolean doesTargetMatchNonProxyHosts(HttpHost target) {
@@ -62,6 +74,17 @@ public class SdkProxyRoutePlanner extends DefaultRoutePlanner {
             final HttpRequest request,
             final HttpContext context) throws HttpException {
 
-        return doesTargetMatchNonProxyHosts(target) ? null : proxy;
+        if (doesTargetMatchNonProxyHosts(target)) {
+            return null;
+        }
+
+        if (Objects.equals(target.getSchemeName(), HTTPS)) {
+            return httpsProxy;
+        }
+        if (Objects.equals(target.getSchemeName(), HTTP)) {
+            return httpProxy;
+        }
+
+        return null;
     }
 }

@@ -115,6 +115,24 @@ public final class ProxyConfiguration extends CrtProxyConfiguration
         @Override
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
+        /**
+         * Option whether to use environment variable values from {@link ProxySystemSetting} if any of the config options are
+         * missing.
+         * This value is set to "true" by default which means SDK will automatically use environment variable values
+         * for options that are not provided during building the {@link CrtProxyConfiguration} object. To disable this behavior,
+         * set this value to "false".
+         */
+        Builder useEnvironmentVariables(Boolean useEnvironmentVariables);
+
+        /**
+         * Configure whether to attempt to use this proxy for HTTP requests.
+         */
+        Builder proxyOverHttp(Boolean overHttp);
+
+        /**
+         * Configure whether to attempt to use this proxy for HTTPS requests.
+         */
+        Builder proxyOverHttps(Boolean overHttps);
 
         @Override
         ProxyConfiguration build();

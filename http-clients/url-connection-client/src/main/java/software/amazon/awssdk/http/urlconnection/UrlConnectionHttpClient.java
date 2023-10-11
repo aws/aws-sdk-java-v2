@@ -197,8 +197,11 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             httpsConnection.setSSLSocketFactory(socketFactory);
         }
 
-        if (proxy.isPresent() && shouldProxyAuthorize()) {
-            connection.addRequestProperty("proxy-authorization", String.format("Basic %s", encodedAuthToken(proxyConfiguration)));
+        String scheme = uri.getScheme();
+        if (proxy.isPresent() && shouldProxyAuthorize(scheme)) {
+            connection.addRequestProperty(
+                "proxy-authorization",
+                String.format("Basic %s", encodedAuthToken(proxyConfiguration, scheme)));
         }
 
         connection.setConnectTimeout(saturatedCast(options.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()));
@@ -211,23 +214,24 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
      * If a proxy is configured with username+password, then set the proxy-authorization header to authorize ourselves with the
      * proxy
      */
-    private static String encodedAuthToken(ProxyConfiguration proxyConfiguration) {
-
-        String authToken = String.format("%s:%s", proxyConfiguration.username(), proxyConfiguration.password());
+    private static String encodedAuthToken(ProxyConfiguration proxyConfiguration, String scheme) {
+        String authToken = String.format("%s:%s", proxyConfiguration.username(scheme), proxyConfiguration.password(scheme));
         return Base64.getEncoder().encodeToString(authToken.getBytes(StandardCharsets.UTF_8));
     }
 
-    private boolean shouldProxyAuthorize() {
+    private boolean shouldProxyAuthorize(String scheme) {
         return this.proxyConfiguration != null
-               && ! StringUtils.isEmpty(this.proxyConfiguration.username())
-               && ! StringUtils.isEmpty(this.proxyConfiguration.password());
+               && ! StringUtils.isEmpty(this.proxyConfiguration.username(scheme))
+               && ! StringUtils.isEmpty(this.proxyConfiguration.password(scheme));
     }
 
     private Optional<Proxy> determineProxy(URI uri) {
-        if (isProxyEnabled() && isProxyHostIncluded(uri)) {
+        String scheme = uri.getScheme();
+        if (isProxyEnabled(scheme) && isProxyHostIncluded(uri)) {
             return Optional.of(
                 new Proxy(Proxy.Type.HTTP,
-                          InetSocketAddress.createUnresolved(this.proxyConfiguration.host(), this.proxyConfiguration.port())));
+                          InetSocketAddress.createUnresolved(this.proxyConfiguration.host(scheme),
+                                                             this.proxyConfiguration.port(scheme))));
         }
         return Optional.empty();
     }
@@ -238,8 +242,8 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                                       .noneMatch(uri.getHost().toLowerCase(Locale.getDefault())::matches);
     }
 
-    private boolean isProxyEnabled() {
-        return this.proxyConfiguration != null && this.proxyConfiguration.host() != null;
+    private boolean isProxyEnabled(String scheme) {
+        return this.proxyConfiguration != null && this.proxyConfiguration.host(scheme) != null;
     }
 
     private SSLContext getSslContext(AttributeMap options) {

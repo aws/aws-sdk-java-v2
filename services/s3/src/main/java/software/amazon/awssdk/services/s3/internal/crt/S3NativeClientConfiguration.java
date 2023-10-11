@@ -59,7 +59,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final Long readBufferSizeInBytes;
 
     private final TlsContext tlsContext;
-    private final HttpProxyOptions proxyOptions;
+    private final HttpProxyOptions httpProxyOptions;
+    private final HttpProxyOptions httpsProxyOptions;
     private final Duration connectionTimeout;
     private final HttpMonitoringOptions httpMonitoringOptions;
 
@@ -102,12 +103,15 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
                                      partSizeInBytes * 10 : builder.readBufferSizeInBytes;
 
         if (builder.httpConfiguration != null) {
-            this.proxyOptions = resolveProxy(builder.httpConfiguration.proxyConfiguration(), tlsContext).orElse(null);
+            this.httpProxyOptions = resolveProxy(builder.httpConfiguration.proxyConfiguration(), tlsContext, "http").orElse(null);
+            this.httpsProxyOptions =
+                resolveProxy(builder.httpConfiguration.proxyConfiguration(), tlsContext, "https").orElse(null);
             this.connectionTimeout = builder.httpConfiguration.connectionTimeout();
             this.httpMonitoringOptions =
                 resolveHttpMonitoringOptions(builder.httpConfiguration.healthConfiguration()).orElse(null);
         } else {
-            this.proxyOptions = null;
+            this.httpProxyOptions = null;
+            this.httpsProxyOptions = null;
             this.connectionTimeout = null;
             this.httpMonitoringOptions = null;
         }
@@ -118,8 +122,12 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return httpMonitoringOptions;
     }
 
-    public HttpProxyOptions proxyOptions() {
-        return proxyOptions;
+    public HttpProxyOptions httpProxyOptions() {
+        return httpProxyOptions;
+    }
+
+    public HttpProxyOptions httpsProxyOptions() {
+        return httpsProxyOptions;
     }
 
     public Duration connectionTimeout() {

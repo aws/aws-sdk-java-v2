@@ -22,7 +22,9 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -33,12 +35,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -49,6 +53,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkProtectedApi
 public final class SdkHttpUtils {
     private static final String DEFAULT_ENCODING = "UTF-8";
+    private static final String HTTPS = "https";
+    private static final String HTTP = "http";
 
     /**
      * Characters that we need to fix up after URLEncoder.encode().
@@ -440,5 +446,72 @@ public final class SdkHttpUtils {
         return Collections.emptySet();
     }
 
+    public static Set<String> parseNonProxyHostsEnvironment() {
+        String nonProxyHosts = ProxyEnvironmentSetting.NO_PROXY.getStringValue().orElse(null);
+        if (nonProxyHosts != null && !isEmpty(nonProxyHosts)) {
+            return Arrays.stream(nonProxyHosts.split(","))
+                         .map(String::toLowerCase)
+                         .map(s -> StringUtils.replace(s, "*", ".*?"))
+                         .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
+    }
 
+    public static Optional<URL> fetchProxyFromEnvironment(String scheme) {
+        Optional<String> environment;
+        if (Objects.equals(scheme, HTTPS)) {
+            environment = ProxyEnvironmentSetting.HTTPS_PROXY.getStringValue();
+        } else if (Objects.equals(scheme, HTTP)) {
+            environment = ProxyEnvironmentSetting.HTTP_PROXY.getStringValue();
+        } else {
+            environment = Optional.empty();
+        }
+
+        return environment.flatMap(value -> {
+            try {
+                URL asUrl = new URL(value);
+                return Optional.of(asUrl);
+            } catch (MalformedURLException cause) {
+                return Optional.empty();
+            }
+        });
+    }
+
+    public static Optional<String> parseUsernameFromUrl(URL value) {
+        String[] parts = parseUserInfoParts(value);
+        if (parts == null) {
+            return Optional.empty();
+        }
+        String trimmed = parts[0].trim();
+        if (trimmed.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(trimmed);
+    }
+
+    public static Optional<String> parsePasswordFromUrl(URL value) {
+        String[] parts = parseUserInfoParts(value);
+        if (parts == null) {
+            return Optional.empty();
+        }
+        if (parts.length < 2) {
+            return Optional.empty();
+        }
+        String password = parts[1].trim();
+        if (password.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(password);
+    }
+
+    private static String[] parseUserInfoParts(URL value) {
+        if (value == null) {
+            return null;
+        }
+        String userInfo = value.getUserInfo();
+        if (userInfo == null) {
+            return null;
+        }
+        return userInfo.split(":", 2);
+    }
 }

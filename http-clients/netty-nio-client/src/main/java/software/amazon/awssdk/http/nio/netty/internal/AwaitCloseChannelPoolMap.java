@@ -140,8 +140,9 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         if (shouldUseProxyForHost(key)) {
             tcpChannelPool = new BetterSimpleChannelPool(bootstrap, NOOP_HANDLER);
             baseChannelPool = new Http1TunnelConnectionPool(bootstrap.config().group().next(), tcpChannelPool, sslContext,
-                                            proxyAddress(key), proxyConfiguration.username(), proxyConfiguration.password(),
-                                            key, pipelineInitializer, configuration);
+                                            proxyAddress(key), proxyConfiguration.username(key.getScheme()),
+                                            proxyConfiguration.password(key.getScheme()), key, pipelineInitializer,
+                                            configuration);
         } else {
             tcpChannelPool = new BetterSimpleChannelPool(bootstrap, pipelineInitializer);
             baseChannelPool = tcpChannelPool;
@@ -198,14 +199,14 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
     private String bootstrapHost(URI remoteHost) {
         if (shouldUseProxyForHost(remoteHost)) {
-            return proxyConfiguration.host();
+            return proxyConfiguration.host(remoteHost.getScheme());
         }
         return remoteHost.getHost();
     }
 
     private int bootstrapPort(URI remoteHost) {
         if (shouldUseProxyForHost(remoteHost)) {
-            return proxyConfiguration.port();
+            return proxyConfiguration.port(remoteHost.getScheme());
         }
         return remoteHost.getPort();
     }
@@ -215,14 +216,21 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
             return null;
         }
 
-        String scheme = proxyConfiguration.scheme();
+        String scheme = proxyConfiguration.scheme(remoteHost.getScheme());
         if (scheme == null) {
             scheme = "http";
         }
 
         try {
-            return new URI(scheme, null, proxyConfiguration.host(), proxyConfiguration.port(), null, null,
-                    null);
+            return new URI(
+                scheme,
+                null,
+                proxyConfiguration.host(remoteHost.getScheme()),
+                proxyConfiguration.port(remoteHost.getScheme()),
+                null,
+                null,
+                null
+            );
         } catch (URISyntaxException e) {
             throw new RuntimeException("Unable to construct proxy URI", e);
         }
