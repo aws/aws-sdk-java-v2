@@ -97,7 +97,8 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
             CompletableFuture<OneOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                             .withOperationName("OneOperation").withMarshaller(new OneOperationRequestMarshaller(protocolFactory))
+                             .withOperationName("OneOperation").withServiceProtocol("rest-json")
+                             .withMarshaller(new OneOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).withInput(oneOperationRequest));
             CompletableFuture<OneOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {

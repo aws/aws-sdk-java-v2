@@ -150,7 +150,7 @@ final class DefaultJsonClient implements JsonClient {
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withOperationName("APostOperation").withResponseHandler(responseHandler)
+                                             .withOperationName("APostOperation").withServiceProtocol("rest-json").withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
                                              .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
@@ -201,9 +201,9 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationWithOutputRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withOperationName("APostOperationWithOutput").withServiceProtocol("rest-json")
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withInput(aPostOperationWithOutputRequest).withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -247,9 +247,10 @@ final class DefaultJsonClient implements JsonClient {
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
 
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                                             .withOperationName("BearerAuthOperation").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).credentialType(CredentialType.TOKEN)
-                                             .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withOperationName("BearerAuthOperation").withServiceProtocol("rest-json")
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .credentialType(CredentialType.TOKEN).withInput(bearerAuthOperationRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -295,6 +296,7 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
                              .withOperationName("GetOperationWithChecksum")
+                             .withServiceProtocol("rest-json")
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withInput(getOperationWithChecksumRequest)
@@ -352,9 +354,9 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                             .withOperationName("GetWithoutRequiredMembers").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withInput(getWithoutRequiredMembersRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withOperationName("GetWithoutRequiredMembers").withServiceProtocol("rest-json")
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withInput(getWithoutRequiredMembersRequest).withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -400,6 +402,7 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
+                             .withServiceProtocol("rest-json")
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withInput(operationWithChecksumRequiredRequest)
@@ -451,6 +454,7 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
                              .withOperationName("OperationWithRequestCompression")
+                             .withServiceProtocol("rest-json")
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withInput(operationWithRequestCompressionRequest)
@@ -501,9 +505,9 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithResultKey").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withInput(paginatedOperationWithResultKeyRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withOperationName("PaginatedOperationWithResultKey").withServiceProtocol("rest-json")
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withInput(paginatedOperationWithResultKeyRequest).withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -548,9 +552,9 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithoutResultKey").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withInput(paginatedOperationWithoutResultKeyRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withOperationName("PaginatedOperationWithoutResultKey").withServiceProtocol("rest-json")
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withInput(paginatedOperationWithoutResultKeyRequest).withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -622,6 +626,7 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler.execute(
                 new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
                     .withOperationName("PutOperationWithChecksum")
+                    .withServiceProtocol("rest-json")
                     .withResponseHandler(responseHandler)
                     .withErrorResponseHandler(errorResponseHandler)
                     .withInput(putOperationWithChecksumRequest)
@@ -691,6 +696,7 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                              .withOperationName("StreamingInputOperation")
+                             .withServiceProtocol("rest-json")
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withInput(streamingInputOperationRequest)
@@ -765,6 +771,7 @@ final class DefaultJsonClient implements JsonClient {
             return clientHandler.execute(
                 new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
                     .withOperationName("StreamingInputOutputOperation")
+                    .withServiceProtocol("rest-json")
                     .withResponseHandler(responseHandler)
                     .withErrorResponseHandler(errorResponseHandler)
                     .withInput(streamingInputOutputOperationRequest)
@@ -826,9 +833,9 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation").withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler).withInput(streamingOutputOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
+                    .withOperationName("StreamingOutputOperation").withServiceProtocol("rest-json")
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withInput(streamingOutputOperationRequest).withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));

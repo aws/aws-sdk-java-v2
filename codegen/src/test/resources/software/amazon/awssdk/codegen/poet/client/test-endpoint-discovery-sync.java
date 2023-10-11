@@ -107,7 +107,7 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "DescribeEndpoints");
 
             return clientHandler.execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
-                                             .withOperationName("DescribeEndpoints").withResponseHandler(responseHandler)
+                                             .withOperationName("DescribeEndpoints").withServiceProtocol("json").withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).withInput(describeEndpointsRequest)
                                              .withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
@@ -173,9 +173,10 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
             return clientHandler
                 .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
-                             .withOperationName("TestDiscoveryIdentifiersRequired").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                             .withInput(testDiscoveryIdentifiersRequiredRequest).withMetricCollector(apiCallMetricCollector)
+                             .withOperationName("TestDiscoveryIdentifiersRequired").withServiceProtocol("json")
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryIdentifiersRequiredRequest)
+                             .withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -229,7 +230,7 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryOptional");
 
             return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
-                                             .withOperationName("TestDiscoveryOptional").withResponseHandler(responseHandler)
+                                             .withOperationName("TestDiscoveryOptional").withServiceProtocol("json").withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
                                              .withInput(testDiscoveryOptionalRequest).withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
@@ -293,7 +294,7 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryRequired");
 
             return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
-                                             .withOperationName("TestDiscoveryRequired").withResponseHandler(responseHandler)
+                                             .withOperationName("TestDiscoveryRequired").withServiceProtocol("json").withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
                                              .withInput(testDiscoveryRequiredRequest).withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));

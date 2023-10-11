@@ -90,7 +90,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OneOperation");
 
             return clientHandler.execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                                             .withOperationName("OneOperation").withResponseHandler(responseHandler)
+                                             .withOperationName("OneOperation").withServiceProtocol("rest-json").withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).withInput(oneOperationRequest)
                                              .withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));

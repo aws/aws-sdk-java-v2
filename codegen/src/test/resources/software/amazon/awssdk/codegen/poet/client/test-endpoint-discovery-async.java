@@ -114,7 +114,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             CompletableFuture<DescribeEndpointsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
-                             .withOperationName("DescribeEndpoints")
+                             .withOperationName("DescribeEndpoints").withServiceProtocol("json")
                              .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).withInput(describeEndpointsRequest));
@@ -190,7 +190,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
-                             .withOperationName("TestDiscoveryIdentifiersRequired")
+                             .withOperationName("TestDiscoveryIdentifiersRequired").withServiceProtocol("json")
                              .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).discoveredEndpoint(cachedEndpoint)
@@ -257,7 +257,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             CompletableFuture<TestDiscoveryOptionalResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
-                             .withOperationName("TestDiscoveryOptional")
+                             .withOperationName("TestDiscoveryOptional").withServiceProtocol("json")
                              .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).discoveredEndpoint(cachedEndpoint)
@@ -332,7 +332,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             CompletableFuture<TestDiscoveryRequiredResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
-                             .withOperationName("TestDiscoveryRequired")
+                             .withOperationName("TestDiscoveryRequired").withServiceProtocol("json")
                              .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector).discoveredEndpoint(cachedEndpoint)
