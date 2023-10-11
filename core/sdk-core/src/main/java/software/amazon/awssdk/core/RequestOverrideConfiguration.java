@@ -489,6 +489,7 @@ public abstract class RequestOverrideConfiguration {
          * @param plugins The list of plugins for this request.
          * @return This object for method chaining.
          */
+        @SdkPreviewApi
         B plugins(List<SdkPlugin> plugins);
 
         /**

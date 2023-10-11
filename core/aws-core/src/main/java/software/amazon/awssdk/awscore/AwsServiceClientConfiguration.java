@@ -37,13 +37,11 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
 
     private final Region region;
     private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
-    private final Map<String, AuthScheme<?>> authSchemes;
 
     protected AwsServiceClientConfiguration(Builder builder) {
         super(builder);
         this.region = builder.region();
         this.credentialsProvider = builder.credentialsProvider();
-        this.authSchemes = builder.authSchemes();
     }
 
     /**
@@ -61,20 +59,12 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         return credentialsProvider;
     }
 
-    /**
-     * @return The configured map of auth schemes.
-     */
-    public Map<String, AuthScheme<?>> authSchemes() {
-        return authSchemes;
-    }
-
     @Override
     public int hashCode() {
         int result = 1;
         result = 31 * result + super.hashCode();
         result = 31 * result + (region != null ? region.hashCode() : 0);
         result = 31 * result + (credentialsProvider != null ? credentialsProvider.hashCode() : 0);
-        result = 31 * result + (authSchemes != null ? authSchemes.hashCode() : 0);
         return result;
     }
 
@@ -86,8 +76,7 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
 
         AwsServiceClientConfiguration that = (AwsServiceClientConfiguration) o;
         return Objects.equals(region, that.region)
-               && Objects.equals(credentialsProvider, that.credentialsProvider)
-               && Objects.equals(authSchemes, that.authSchemes);
+               && Objects.equals(credentialsProvider, that.credentialsProvider);
     }
 
     /**
@@ -123,6 +112,11 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        default Builder putAuthScheme(AuthScheme<?> authScheme) {
+            throw new UnsupportedOperationException();
+        }
+
         /**
          * Configure the credentials provider
          */
@@ -131,20 +125,6 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         }
 
         default IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Adds the given auth scheme. Replaces the an existing auth scheme with the same id.
-         */
-        default Builder putAuthScheme(AuthScheme<?> authScheme) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Returns the configured map of auth schemes.
-         */
-        default Map<String, AuthScheme<?>> authSchemes() {
             throw new UnsupportedOperationException();
         }
 
