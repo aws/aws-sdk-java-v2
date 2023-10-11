@@ -19,9 +19,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
  */
 public class ResponseMetadataSpec implements ClassSpec {
     private PoetExtension poetExtensions;
-    private Map<String, String> headerMetadata = new HashMap<>();
+    private Map<String, String> headerMetadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     public ResponseMetadataSpec(IntermediateModel model) {
         if (!CollectionUtils.isNullOrEmpty(model.getCustomizationConfig().getCustomResponseMetadata())) {

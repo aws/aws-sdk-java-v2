@@ -1,0 +1,30 @@
+{
+    "version": "2.20.150",
+    "date": "2023-09-18",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Do not instruct the CRT Sigv4a signer to do path normalization to avoid signature mismatch errors"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "Add sensitive protection for customer information"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release changes the default managedDataIdentifierSelector setting for new classification jobs to RECOMMENDED. By default, new classification jobs now use the recommended set of managed data identifiers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "contributor": "",
+            "description": "This release includes four new APIs UpdateUser, UpdateGroup, ListGroupsForEntity and DescribeEntity, along with RemoteUsers and some enhancements to existing APIs."
+        }
+    ]
+}

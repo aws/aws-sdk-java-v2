@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static java.util.Objects.requireNonNull;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getItemsFromSupplier;
 
 import java.util.ArrayList;
@@ -187,7 +188,9 @@ public final class WriteBatch {
     }
 
     private static final class BuilderImpl<T> implements Builder<T> {
-
+        private static final String MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE = String.format("A mappedTableResource (table) is "
+                                                                                           + "required when building a %s",
+                                                                                           WriteBatch.class.getSimpleName());
         private Class<? extends T> itemClass;
         private List<Supplier<WriteRequest>> itemSupplierList = new ArrayList<>();
         private MappedTableResource<T> mappedTableResource;
@@ -204,6 +207,7 @@ public final class WriteBatch {
 
         @Override
         public Builder<T> addDeleteItem(DeleteItemEnhancedRequest request) {
+            requireNonNull(mappedTableResource, MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE);
             itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, DeleteItemOperation.create(request)));
             return this;
         }
@@ -222,11 +226,13 @@ public final class WriteBatch {
 
         @Override
         public Builder<T> addDeleteItem(T keyItem) {
+            requireNonNull(mappedTableResource, MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE);
             return addDeleteItem(this.mappedTableResource.keyFrom(keyItem));
         }
 
         @Override
         public Builder<T> addPutItem(PutItemEnhancedRequest<T> request) {
+            requireNonNull(mappedTableResource, MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE);
             itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, PutItemOperation.create(request)));
             return this;
         }

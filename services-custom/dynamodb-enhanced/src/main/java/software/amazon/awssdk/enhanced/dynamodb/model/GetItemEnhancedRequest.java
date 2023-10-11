@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -22,6 +23,8 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 /**
  * Defines parameters used to retrieve an item from a DynamoDb table using the getItem() operation (such as
@@ -35,10 +38,12 @@ public final class GetItemEnhancedRequest {
 
     private final Key key;
     private final Boolean consistentRead;
+    private final String returnConsumedCapacity;
 
     private GetItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
         this.consistentRead = builder.consistentRead;
+        this.returnConsumedCapacity = builder.returnConsumedCapacity;
     }
 
     /**
@@ -53,7 +58,7 @@ public final class GetItemEnhancedRequest {
      * @return a builder with all existing values set
      */
     public Builder toBuilder() {
-        return builder().key(key).consistentRead(consistentRead);
+        return builder().key(key).consistentRead(consistentRead).returnConsumedCapacity(returnConsumedCapacity);
     }
 
     /**
@@ -70,6 +75,25 @@ public final class GetItemEnhancedRequest {
         return this.key;
     }
 
+    /**
+     * Whether to return the capacity consumed by this operation.
+     *
+     * @see GetItemRequest#returnConsumedCapacity()
+     */
+    public ReturnConsumedCapacity returnConsumedCapacity() {
+        return ReturnConsumedCapacity.fromValue(returnConsumedCapacity);
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     * <p>
+     * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the
+     * value is not defined in {@link ReturnConsumedCapacity}.
+     */
+    public String returnConsumedCapacityAsString() {
+        return returnConsumedCapacity;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -79,18 +103,18 @@ public final class GetItemEnhancedRequest {
             return false;
         }
 
-        GetItemEnhancedRequest getItem = (GetItemEnhancedRequest) o;
+        GetItemEnhancedRequest that = (GetItemEnhancedRequest) o;
 
-        if (key != null ? ! key.equals(getItem.key) : getItem.key != null) {
-            return false;
-        }
-        return consistentRead != null ? consistentRead.equals(getItem.consistentRead) : getItem.consistentRead == null;
+        return Objects.equals(key, that.key)
+               && Objects.equals(consistentRead, that.consistentRead)
+               && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity);
     }
 
     @Override
     public int hashCode() {
         int result = key != null ? key.hashCode() : 0;
         result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
+        result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         return result;
     }
 
@@ -103,6 +127,7 @@ public final class GetItemEnhancedRequest {
     public static final class Builder {
         private Key key;
         private Boolean consistentRead;
+        private String returnConsumedCapacity;
 
         private Builder() {
         }
@@ -143,6 +168,26 @@ public final class GetItemEnhancedRequest {
             Key.Builder builder = Key.builder();
             keyConsumer.accept(builder);
             return key(builder.build());
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see GetItemRequest.Builder#returnConsumedCapacity(ReturnConsumedCapacity)
+         */
+        public Builder returnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity == null ? null : returnConsumedCapacity.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see GetItemRequest.Builder#returnConsumedCapacity(String)
+         */
+        public Builder returnConsumedCapacity(String returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
         }
 
         public GetItemEnhancedRequest build() {
