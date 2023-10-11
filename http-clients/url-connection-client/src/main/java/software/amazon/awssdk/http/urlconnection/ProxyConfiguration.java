@@ -85,25 +85,26 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         }
     }
 
-    private static String resolvePassword(DefaultClientProxyConfigurationBuilder builder, ProxyConfigProvider proxyConfigProvider) {
+    private static String resolvePassword(DefaultClientProxyConfigurationBuilder builder,
+                                          ProxyConfigProvider proxyConfigProvider) {
         if (builder.password != null || proxyConfigProvider == null) {
             return builder.password;
-        } else {
-            return proxyConfigProvider.password().orElseGet(() -> builder.password);
         }
+        return proxyConfigProvider.password().orElseGet(() -> builder.password);
     }
 
-    private static Set<String> resolveNonProxyHosts(DefaultClientProxyConfigurationBuilder builder, ProxyConfigProvider proxyConfigProvider) {
+    private static Set<String> resolveNonProxyHosts(DefaultClientProxyConfigurationBuilder builder,
+                                                    ProxyConfigProvider proxyConfigProvider) {
         return builder.nonProxyHosts != null || proxyConfigProvider == null ? builder.nonProxyHosts :
                proxyConfigProvider.nonProxyHosts();
     }
 
-    private static String resolveUsername(DefaultClientProxyConfigurationBuilder builder, ProxyConfigProvider proxyConfigProvider) {
+    private static String resolveUsername(DefaultClientProxyConfigurationBuilder builder,
+                                          ProxyConfigProvider proxyConfigProvider) {
         if (builder.username != null || proxyConfigProvider == null) {
             return builder.username;
-        } else {
-            return proxyConfigProvider.userName().orElseGet(() -> builder.username);
         }
+        return proxyConfigProvider.userName().orElseGet(() -> builder.username);
     }
 
     /**
