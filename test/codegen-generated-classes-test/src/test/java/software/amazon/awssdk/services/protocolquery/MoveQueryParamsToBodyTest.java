@@ -100,7 +100,7 @@ public class MoveQueryParamsToBodyTest {
     }
 
     @Test
-    public void requestOverrideConfiguratio_additionalQueryParamsAdded_paramsAlsoMovedToBody() throws IOException {
+    public void requestOverrideConfiguration_additionalQueryParamsAdded_paramsAlsoMovedToBody() throws IOException {
         client = ProtocolQueryClient.builder()
                                     .region(Region.US_WEST_2)
                                     .credentialsProvider(CREDENTIALS)
