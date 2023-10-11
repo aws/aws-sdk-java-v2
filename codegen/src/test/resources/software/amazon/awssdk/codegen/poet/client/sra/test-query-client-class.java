@@ -777,6 +777,7 @@ final class DefaultQueryClient implements QueryClient {
         }
         QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
             .builder(clientConfiguration.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }

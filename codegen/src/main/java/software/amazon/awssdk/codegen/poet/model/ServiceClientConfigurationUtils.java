@@ -102,15 +102,6 @@ public class ServiceClientConfigurationUtils {
                                      .doc("client override configuration")
                                      .definingClass(SdkServiceClientConfiguration.class);
 
-        builder.constructFromConfiguration(
-            CodeBlock.builder()
-                     .addStatement("this.overrideConfiguration = $T.copyConfigurationToOverrides("
-                                   + "$T.builder(), internalBuilder).build()",
-                                   sdkClientConfigurationUtilClassName,
-                                   ClientOverrideConfiguration.class)
-                     .build()
-        );
-
         builder.copyToConfiguration(
             CodeBlock.builder()
                      .beginControlFlow("if (overrideConfiguration != null)")
