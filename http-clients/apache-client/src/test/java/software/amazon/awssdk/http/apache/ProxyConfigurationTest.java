@@ -23,17 +23,22 @@ import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class ProxyConfigurationTest {
+
+    private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
     @BeforeEach
     public void setup() {
         clearProxyProperties();
+        ENVIRONMENT_VARIABLE_HELPER.reset();
     }
 
     @AfterAll
     public static void cleanup() {
         clearProxyProperties();
+        ENVIRONMENT_VARIABLE_HELPER.reset();
     }
 
     @Test
@@ -42,12 +47,30 @@ public class ProxyConfigurationTest {
         int port = 7777;
         System.setProperty("http.proxyHost", host);
         System.setProperty("http.proxyPort", Integer.toString(port));
-
+        ENVIRONMENT_VARIABLE_HELPER.set("http_proxy", "http://UserOne:passwordSecret@bar.com:555/");
         ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(true).build();
 
         assertThat(config.host()).isEqualTo(host);
         assertThat(config.port()).isEqualTo(port);
-        assertThat(config.scheme()).isNull();
+        assertThat(config.scheme()).isEqualTo("http");
+
+    }
+
+    @Test
+    void testEndpointValues_Http_EnvironmentVariableEnabled() {
+        String host = "bar.com";
+        int port = 7777;
+        System.setProperty("http.proxyHost", "foo.com");
+        System.setProperty("http.proxyPort", Integer.toString(8888));
+
+        ENVIRONMENT_VARIABLE_HELPER.set("http_proxy", String.format("http://%s:%d/", host, port));
+
+        ProxyConfiguration config =
+            ProxyConfiguration.builder().useSystemPropertyValues(false).useEnvironmentVariableValues(true).build();
+
+        assertThat(config.host()).isEqualTo(host);
+        assertThat(config.port()).isEqualTo(port);
+        assertThat(config.scheme()).isEqualTo("http");
     }
 
     @Test
@@ -65,6 +88,30 @@ public class ProxyConfigurationTest {
         assertThat(config.port()).isEqualTo(port);
         assertThat(config.scheme()).isEqualTo("https");
     }
+
+
+    @Test
+    void testEndpointValues_Https_EnvironmentVariableEnabled() {
+        String host = "bar.com";
+        int port = 7777;
+        System.setProperty("https.proxyHost", "foo.com");
+        System.setProperty("https.proxyPort", Integer.toString(8888));
+
+        ENVIRONMENT_VARIABLE_HELPER.set("http_proxy", String.format("http://%s:%d/", "foo.com", 8888));
+        ENVIRONMENT_VARIABLE_HELPER.set("https_proxy", String.format("http://%s:%d/", host, port));
+
+        ProxyConfiguration config =
+            ProxyConfiguration.builder()
+                              .scheme("https")
+                              .useSystemPropertyValues(false)
+                              .useEnvironmentVariableValues(true)
+                              .build();
+
+        assertThat(config.host()).isEqualTo(host);
+        assertThat(config.port()).isEqualTo(port);
+        assertThat(config.scheme()).isEqualTo("https");
+    }
+
 
     @Test
     void testEndpointValues_SystemPropertyDisabled() {
