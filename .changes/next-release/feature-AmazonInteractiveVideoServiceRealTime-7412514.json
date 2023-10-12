@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Interactive Video Service RealTime",
+    "contributor": "",
+    "description": "Update GetParticipant to return additional metadata."
+}
