@@ -24,17 +24,22 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public final class SigV4AuthScheme implements EndpointAuthScheme {
     private final String signingRegion;
     private final String signingName;
-    private final boolean disableDoubleEncoding;
+    private final Boolean disableDoubleEncoding;
 
     private SigV4AuthScheme(Builder b) {
         this.signingRegion = b.signingRegion;
         this.signingName = b.signingName;
-        this.disableDoubleEncoding = b.disableDoubleEncoding == null ? false : b.disableDoubleEncoding;
+        this.disableDoubleEncoding = b.disableDoubleEncoding;
     }
 
     @Override
     public String name() {
         return "sigv4";
+    }
+
+    @Override
+    public String schemeId() {
+        return "aws.auth#sigv4";
     }
 
     public String signingRegion() {
@@ -46,7 +51,11 @@ public final class SigV4AuthScheme implements EndpointAuthScheme {
     }
 
     public boolean disableDoubleEncoding() {
-        return disableDoubleEncoding;
+        return disableDoubleEncoding == null ? false : disableDoubleEncoding;
+    }
+
+    public boolean isDisableDoubleEncodingSet() {
+        return disableDoubleEncoding != null;
     }
 
     @Override
@@ -60,7 +69,8 @@ public final class SigV4AuthScheme implements EndpointAuthScheme {
 
         SigV4AuthScheme that = (SigV4AuthScheme) o;
 
-        if (disableDoubleEncoding != that.disableDoubleEncoding) {
+        if (disableDoubleEncoding != null ? !disableDoubleEncoding.equals(that.disableDoubleEncoding)
+                                          : that.disableDoubleEncoding != null) {
             return false;
         }
         if (signingRegion != null ? !signingRegion.equals(that.signingRegion) : that.signingRegion != null) {
@@ -73,7 +83,7 @@ public final class SigV4AuthScheme implements EndpointAuthScheme {
     public int hashCode() {
         int result = signingRegion != null ? signingRegion.hashCode() : 0;
         result = 31 * result + (signingName != null ? signingName.hashCode() : 0);
-        result = 31 * result + (disableDoubleEncoding ? 1 : 0);
+        result = 31 * result + (disableDoubleEncoding != null ? disableDoubleEncoding.hashCode() : 0);
         return result;
     }
 

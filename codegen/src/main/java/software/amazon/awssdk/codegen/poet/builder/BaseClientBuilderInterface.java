@@ -22,6 +22,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import com.squareup.javapoet.WildcardTypeName;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -34,22 +35,30 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class BaseClientBuilderInterface implements ClassSpec {
+    private static final ParameterizedTypeName TOKEN_IDENTITY_PROVIDER_TYPE_NAME =
+        ParameterizedTypeName.get(ClassName.get(IdentityProvider.class), WildcardTypeName.subtypeOf(TokenIdentity.class));
+
     private final IntermediateModel model;
     private final String basePackage;
     private final ClassName builderInterfaceName;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+    private final AuthSchemeSpecUtils authSchemeSpecUtils;
 
     public BaseClientBuilderInterface(IntermediateModel model) {
         this.model = model;
         this.basePackage = model.getMetadata().getFullClientPackageName();
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
     }
 
     @Override
@@ -75,6 +84,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
         }
 
         builder.addMethod(endpointProviderMethod());
+        builder.addMethod(authSchemeProviderMethod());
 
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
@@ -90,6 +100,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
         if (generateTokenProviderMethod()) {
             builder.addMethod(tokenProviderMethod());
+            builder.addMethod(tokenIdentityProviderMethod());
         }
 
         return builder.build();
@@ -156,6 +167,19 @@ public class BaseClientBuilderInterface implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec authSchemeProviderMethod() {
+        return MethodSpec.methodBuilder("authSchemeProvider")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addParameter(authSchemeSpecUtils.providerInterfaceName(), "authSchemeProvider")
+                         .addJavadoc("Set the {@link $T} implementation that will be used by the client to resolve the "
+                                     + "auth scheme for each request. This is optional; if none is provided a "
+                                     + "default implementation will be used the SDK.",
+                                     authSchemeSpecUtils.providerInterfaceName())
+                         .returns(TypeVariableName.get("B"))
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .build();
+    }
+
     private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
         String setterName = Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
         TypeName type = endpointRulesSpecUtils.toJavaType(param.getType());
@@ -176,7 +200,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private MethodSpec tokenProviderMethod() {
         return MethodSpec.methodBuilder("tokenProvider")
-                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                          .returns(TypeVariableName.get("B"))
                          .addParameter(SdkTokenProvider.class, "tokenProvider")
                          .addJavadoc("Set the token provider to use for bearer token authorization. This is optional, if none "
@@ -190,6 +214,27 @@ public class BaseClientBuilderInterface implements ClassSpec {
                                      DefaultAwsTokenProvider.class,
                                      SdkAdvancedClientOption.class,
                                      BearerTokenSigner.class)
+                         .addStatement("return tokenProvider(($T) tokenProvider)", TOKEN_IDENTITY_PROVIDER_TYPE_NAME)
+                         .build();
+    }
+
+    private MethodSpec tokenIdentityProviderMethod() {
+        return MethodSpec.methodBuilder("tokenProvider")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(TOKEN_IDENTITY_PROVIDER_TYPE_NAME, "tokenProvider")
+                         .addJavadoc("Set the token provider to use for bearer token authorization. This is optional, if none "
+                                     + "is provided, the SDK will use {@link $T}.\n"
+                                     + "<p>\n"
+                                     + "If the service, or any of its operations require Bearer Token Authorization, then the "
+                                     + "SDK will default to this token provider to retrieve the token to use for authorization.\n"
+                                     + "<p>\n"
+                                     + "This provider works in conjunction with the {@code $T.TOKEN_SIGNER} set on the client. "
+                                     + "By default it is {@link $T}.",
+                                     DefaultAwsTokenProvider.class,
+                                     SdkAdvancedClientOption.class,
+                                     BearerTokenSigner.class)
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .build();
     }
 

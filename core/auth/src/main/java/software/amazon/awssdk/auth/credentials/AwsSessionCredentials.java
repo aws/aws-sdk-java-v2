@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -30,7 +31,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Immutable
 @SdkPublicApi
-public final class AwsSessionCredentials implements AwsCredentials {
+public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCredentialsIdentity {
 
     private final String accessKeyId;
     private final String secretAccessKey;
@@ -83,6 +84,7 @@ public final class AwsSessionCredentials implements AwsCredentials {
     /**
      * Retrieve the expiration time of these credentials, if it exists.
      */
+    @Override
     public Optional<Instant> expirationTime() {
         return Optional.ofNullable(expirationTime);
     }

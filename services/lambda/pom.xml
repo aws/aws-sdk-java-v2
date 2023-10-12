@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.20.163-SNAPSHOT</version>
+        <version>2.21.0-SNAPSHOT</version>
     </parent>
     <artifactId>lambda</artifactId>
     <name>AWS Java SDK :: Services :: AWS Lambda</name>
@@ -67,6 +67,11 @@
             <artifactId>iam</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
 </project>
