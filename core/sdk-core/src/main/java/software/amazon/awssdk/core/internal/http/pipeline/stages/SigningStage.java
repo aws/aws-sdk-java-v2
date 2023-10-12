@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -31,7 +30,6 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
-import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -147,18 +145,8 @@ public class SigningStage implements RequestToRequestPipeline {
 
         SdkHttpFullRequest signedRequest = measuredSign.left();
 
-        // TODO: This case does not apply to SigningStage as event stream operations are not supported by SyncClients that
-        //  use this SigningStage. So this is dead code and can be removed.
-        if (signer instanceof AsyncRequestBodySigner) {
-            //Transform request body provider with signing operator
-            AsyncRequestBody transformedRequestProvider =
-                ((AsyncRequestBodySigner) signer)
-                    .signAsyncRequestBody(signedRequest, context.requestProvider(), context.executionAttributes());
-            context.requestProvider(transformedRequestProvider);
-        }
         updateHttpRequestInInterceptorContext(signedRequest, context.executionContext());
         return signedRequest;
-
     }
 
 

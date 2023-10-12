@@ -23,12 +23,12 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  * A container for data produced during and as a result of the SigV4a request signing with CRT.
  */
 @SdkInternalApi
-public final class V4aContext {
+public final class V4aRequestSigningResult {
     private final SdkHttpRequest.Builder signedRequest;
     private final byte[] signature;
     private final AwsSigningConfig signingConfig;
 
-    public V4aContext(SdkHttpRequest.Builder signedRequest, byte[] signature, AwsSigningConfig signingConfig) {
+    public V4aRequestSigningResult(SdkHttpRequest.Builder signedRequest, byte[] signature, AwsSigningConfig signingConfig) {
         this.signedRequest = signedRequest;
         this.signature = signature.clone();
         this.signingConfig = signingConfig;

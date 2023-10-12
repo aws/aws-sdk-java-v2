@@ -77,7 +77,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
             new V4CanonicalRequest.Options(true, true)
         );
-        V4Context v4Context = new V4Context(
+        V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
             "key".getBytes(StandardCharsets.UTF_8),
             "sig",
@@ -90,7 +90,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .build();
 
         signer.beforeSigning(requestBuilder, null);
-        ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
 
@@ -119,7 +119,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
             new V4CanonicalRequest.Options(true, true)
         );
-        V4Context v4Context = new V4Context(
+        V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
             "key".getBytes(StandardCharsets.UTF_8),
             "sig",
@@ -133,7 +133,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .build();
 
         signer.beforeSigning(requestBuilder, payload);
-        ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
@@ -162,7 +162,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
             new V4CanonicalRequest.Options(true, true)
         );
-        V4Context v4Context = new V4Context(
+        V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
             "key".getBytes(StandardCharsets.UTF_8),
             "sig",
@@ -176,7 +176,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .build();
 
         signer.beforeSigning(requestBuilder, payload);
-        ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-sha256");
@@ -213,7 +213,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
             new V4CanonicalRequest.Options(true, true)
         );
-        V4Context v4Context = new V4Context(
+        V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
             "key".getBytes(StandardCharsets.UTF_8),
             "sig",
@@ -226,7 +226,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .build();
 
         signer.beforeSigning(requestBuilder, payload);
-        ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("PreExistingHeader1")).isNotPresent();
@@ -266,7 +266,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
             new V4CanonicalRequest.Options(true, true)
         );
-        V4Context v4Context = new V4Context(
+        V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
             "key".getBytes(StandardCharsets.UTF_8),
             "sig",
@@ -280,7 +280,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .build();
 
         signer.beforeSigning(requestBuilder, payload);
-        ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("PreExistingHeader1")).isNotPresent();
@@ -322,7 +322,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
             new V4CanonicalRequest.Options(true, true)
         );
-        V4Context v4Context = new V4Context(
+        V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
             "key".getBytes(StandardCharsets.UTF_8),
             "sig",
@@ -336,7 +336,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .build();
 
         signer.beforeSigning(requestBuilder, payload);
-        ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("PreExistingHeader1")).isNotPresent();
@@ -369,7 +369,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
             new V4CanonicalRequest.Options(true, true)
         );
-        V4Context v4Context = new V4Context(
+        V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
             "key".getBytes(StandardCharsets.UTF_8),
             "sig",
@@ -383,7 +383,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .build();
 
         signer.beforeSigning(requestBuilder, payload);
-        ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(data.length));
         assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-sha256");
@@ -411,7 +411,7 @@ public class AwsChunkedV4PayloadSignerTest {
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
             new V4CanonicalRequest.Options(true, true)
         );
-        V4Context v4Context = new V4Context(
+        V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
             "key".getBytes(StandardCharsets.UTF_8),
             "sig",
@@ -424,7 +424,7 @@ public class AwsChunkedV4PayloadSignerTest {
                                                                     .build();
 
         signer.beforeSigning(requestBuilder, payload);
-        ContentStreamProvider signedPayload = signer.sign(payload, v4Context);
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
 
         // successive calls to newStream() should return a stream with the same data every time - this makes sure that state
         // isn't carried over to the new streams returned by newStream()

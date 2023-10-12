@@ -38,7 +38,8 @@ public final class DefaultCustomizationProcessor {
                 new UseLegacyEventGenerationSchemeProcessor(),
                 new NewAndLegacyEventStreamProcessor(),
                 new S3RemoveBucketFromUriProcessor(),
-                new S3ControlRemoveAccountIdHostPrefixProcessor()
+                new S3ControlRemoveAccountIdHostPrefixProcessor(),
+                new ExplicitStringPayloadQueryProtocolProcessor()
                 );
     }
 }

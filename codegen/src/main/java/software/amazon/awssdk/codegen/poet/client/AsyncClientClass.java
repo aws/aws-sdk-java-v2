@@ -300,6 +300,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .endControlFlow();
         builder.addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(clientConfiguration.toBuilder())",
                              serviceClientConfigurationBuilderClassName);
+        builder.addStatement("serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration())");
         builder.beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
                .endControlFlow();

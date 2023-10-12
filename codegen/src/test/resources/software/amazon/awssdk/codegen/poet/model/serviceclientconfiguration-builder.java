@@ -53,8 +53,6 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder {
 
         private BuilderImpl(SdkClientConfiguration.Builder internalBuilder) {
             this.internalBuilder = internalBuilder;
-            this.overrideConfiguration = SdkClientConfigurationUtil.copyConfigurationToOverrides(
-                    ClientOverrideConfiguration.builder(), internalBuilder).build();
             if (Boolean.TRUE.equals(internalBuilder.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
                 this.endpointOverride = internalBuilder.option(SdkClientOption.ENDPOINT);
             }

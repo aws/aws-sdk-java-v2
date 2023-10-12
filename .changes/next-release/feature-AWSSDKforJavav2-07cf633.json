@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "This release contains a major internal refactor of authentication. The refactor is part of moving the SDK to a standardized AWS SDK architecture.\n\nIt paves the way for new features to be released over the coming months: SDK plugins to provide a unified interface to add third-party functionality to the SDK and the ability to define additional ways of authenticating with services. \n\nWith this release, custom 3rd party credential providers can be created with fewer SDK dependencies (with the new `identity-spi` module), and AWS signers can be used with fewer SDK dependencies (with the new `http-auth-aws` module).\n\nBecause this is a major refactor that may result in backwards-compatible behavior changes, this release bumps the minor version of the SDK to 2.21."
+}

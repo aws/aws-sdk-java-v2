@@ -24,17 +24,15 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 @SdkInternalApi
 // TODO(sra-identity-auth): This is currently not @Immutable because signedRequest is a Builder. Is Builder needed? If it could
 //  hold reference to SdkHttpRequest instead, this class would be @Immutable.
-// TODO(sra-identity-auth): Consider if we can rename this to convey something more. maybe,
-//  V4RequestSigningResult/V4RequestSigningResultData? Note there is V4aContext similarly.
-public final class V4Context {
+public final class V4RequestSigningResult {
     private final String contentHash;
     private final byte[] signingKey;
     private final String signature;
     private final V4CanonicalRequest canonicalRequest;
     private final SdkHttpRequest.Builder signedRequest;
 
-    public V4Context(String contentHash, byte[] signingKey, String signature,
-                     V4CanonicalRequest canonicalRequest, SdkHttpRequest.Builder signedRequest) {
+    public V4RequestSigningResult(String contentHash, byte[] signingKey, String signature,
+                                  V4CanonicalRequest canonicalRequest, SdkHttpRequest.Builder signedRequest) {
         this.contentHash = contentHash;
         this.signingKey = signingKey.clone();
         this.signature = signature;
