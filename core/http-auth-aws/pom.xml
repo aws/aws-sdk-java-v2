@@ -85,6 +85,7 @@
             <groupId>software.amazon.eventstream</groupId>
             <artifactId>eventstream</artifactId>
             <version>${eventstream.version}</version>
+            <optional>true</optional>
         </dependency>
 
 
