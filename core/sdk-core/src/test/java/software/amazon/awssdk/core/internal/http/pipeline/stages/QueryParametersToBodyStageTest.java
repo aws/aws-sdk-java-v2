@@ -39,7 +39,6 @@ import software.amazon.awssdk.utils.IoUtils;
 public class QueryParametersToBodyStageTest {
     public static final URI HTTP_LOCALHOST = URI.create("http://localhost:8080");
     private QueryParametersToBodyStage stage;
-    private RequestExecutionContext queryProtocolContext;
     private SdkHttpFullRequest.Builder requestBuilder;
 
     @BeforeEach
@@ -50,69 +49,47 @@ public class QueryParametersToBodyStageTest {
                                            .method(SdkHttpMethod.POST)
                                            .putRawQueryParameter("key", singletonList("value"))
                                            .uri(HTTP_LOCALHOST);
+    }
 
-        ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
-                                                                     .put(SdkExecutionAttribute.SERVICE_PROTOCOL, "query")
-                                                                     .build();
-        ExecutionContext executionContext = ExecutionContext.builder()
-                                                            .executionAttributes(executionAttributes)
-                                                            .build();
-        queryProtocolContext = RequestExecutionContext.builder()
-                                                      .originalRequest(NoopTestRequest.builder().build())
-                                                      .executionContext(executionContext)
-                                                      .build();
+    private void verifyParametersMovedToBody(SdkHttpFullRequest output) throws Exception {
+        assertThat(output.rawQueryParameters()).hasSize(0);
+        assertThat(output.headers())
+            .containsKey("Content-Length")
+            .containsEntry("Content-Type", singletonList("application/x-www-form-urlencoded; charset=utf-8"));
+        assertThat(output.contentStreamProvider()).isNotEmpty();
+        String bodyContent = new String(IoUtils.toByteArray(output.contentStreamProvider().get().newStream()));
+        assertThat(bodyContent).isEqualTo("key=value");
+
+    }
+
+    private void verifyParametersUnaltered(SdkHttpFullRequest output, int numOfParams) {
+        assertThat(output.rawQueryParameters()).hasSize(numOfParams);
+        assertThat(output.headers()).isEmpty();
     }
 
     @Test
     public void postRequestWithNoBody_queryProtocol_parametersAreMovedToTheBody() throws Exception {
-        SdkHttpFullRequest output = stage.execute(requestBuilder, queryProtocolContext).build();
+        RequestExecutionContext requestExecutionContext = createRequestExecutionContext("query");
+        SdkHttpFullRequest output = stage.execute(requestBuilder, requestExecutionContext).build();
 
-        assertThat(output.rawQueryParameters()).hasSize(0);
-        assertThat(output.headers())
-            .containsKey("Content-Length")
-            .containsEntry("Content-Type", singletonList("application/x-www-form-urlencoded; charset=utf-8"));
-        assertThat(output.contentStreamProvider()).isNotEmpty();
+        verifyParametersMovedToBody(output);
     }
 
     @Test
     public void postRequestWithNoBody_ec2Protocol_parametersAreMovedToTheBody() throws Exception {
-        ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
-                                                                     .put(SdkExecutionAttribute.SERVICE_PROTOCOL, "ec2")
-                                                                     .build();
-        ExecutionContext executionContext = ExecutionContext.builder()
-                                                            .executionAttributes(executionAttributes)
-                                                            .build();
-        RequestExecutionContext ec2ProtocolContext = RequestExecutionContext.builder()
-                                                                            .originalRequest(NoopTestRequest.builder().build())
-                                                                            .executionContext(executionContext)
-                                                                            .build();
+        RequestExecutionContext requestExecutionContext = createRequestExecutionContext("ec2");
+        SdkHttpFullRequest output = stage.execute(requestBuilder, requestExecutionContext).build();
 
-        SdkHttpFullRequest output = stage.execute(requestBuilder, ec2ProtocolContext).build();
-
-        assertThat(output.rawQueryParameters()).hasSize(0);
-        assertThat(output.headers())
-            .containsKey("Content-Length")
-            .containsEntry("Content-Type", singletonList("application/x-www-form-urlencoded; charset=utf-8"));
-        assertThat(output.contentStreamProvider()).isNotEmpty();
+        verifyParametersMovedToBody(output);
     }
 
     @Test
     public void postRequestWithNoBody_nonQueryProtocol_isUnaltered() throws Exception {
-        ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
-                                                                     .put(SdkExecutionAttribute.SERVICE_PROTOCOL, "json")
-                                                                     .build();
-        ExecutionContext executionContext = ExecutionContext.builder()
-                                                            .executionAttributes(executionAttributes)
-                                                            .build();
-        RequestExecutionContext jsonProtocolContext = RequestExecutionContext.builder()
-                                                                            .originalRequest(NoopTestRequest.builder().build())
-                                                                            .executionContext(executionContext)
-                                                                            .build();
+        RequestExecutionContext requestExecutionContext = createRequestExecutionContext("json");
+        SdkHttpFullRequest output = stage.execute(requestBuilder, requestExecutionContext).build();
 
-        SdkHttpFullRequest output = stage.execute(requestBuilder, jsonProtocolContext).build();
-
-        assertThat(output.rawQueryParameters()).hasSize(1);
-        assertThat(output.headers()).isEmpty();
+        int numOfParams = 1;
+        verifyParametersUnaltered(output, numOfParams);
         assertThat(output.contentStreamProvider()).isEmpty();
     }
 
@@ -135,31 +112,45 @@ public class QueryParametersToBodyStageTest {
         ContentStreamProvider contentProvider = () -> new ByteArrayInputStream(contentBytes);
 
         requestBuilder = requestBuilder.contentStreamProvider(contentProvider);
+        RequestExecutionContext requestExecutionContext = createRequestExecutionContext("query");
+        SdkHttpFullRequest output = stage.execute(requestBuilder, requestExecutionContext).build();
 
-        SdkHttpFullRequest output = stage.execute(requestBuilder, queryProtocolContext).build();
-
-        assertThat(output.rawQueryParameters()).hasSize(1);
-        assertThat(output.headers()).hasSize(0);
+        int numOfParams = 1;
+        verifyParametersUnaltered(output, numOfParams);
         assertThat(IoUtils.toByteArray(output.contentStreamProvider().get().newStream())).isEqualTo(contentBytes);
     }
 
     @Test
     public void onlyAlterRequestsIfParamsArePresent() throws Exception {
         requestBuilder = requestBuilder.clearQueryParameters();
+        RequestExecutionContext requestExecutionContext = createRequestExecutionContext("query");
+        SdkHttpFullRequest output = stage.execute(requestBuilder, requestExecutionContext).build();
 
-        SdkHttpFullRequest output = stage.execute(requestBuilder, queryProtocolContext).build();
-
-        assertThat(output.rawQueryParameters()).hasSize(0);
-        assertThat(output.headers()).hasSize(0);
+        int numOfParams = 0;
+        verifyParametersUnaltered(output, numOfParams);
         assertThat(output.contentStreamProvider()).isEmpty();
     }
 
     private void nonPostRequestsUnaltered(SdkHttpMethod method) throws Exception {
         requestBuilder = requestBuilder.method(method);
+        RequestExecutionContext requestExecutionContext = createRequestExecutionContext("query");
+        SdkHttpFullRequest output = stage.execute(requestBuilder, requestExecutionContext).build();
 
-        SdkHttpFullRequest output = stage.execute(requestBuilder, queryProtocolContext).build();
-        assertThat(output.rawQueryParameters()).hasSize(1);
-        assertThat(output.headers()).hasSize(0);
+        int numOfParams = 1;
+        verifyParametersUnaltered(output, numOfParams);
         assertThat(output.contentStreamProvider()).isEmpty();
+    }
+
+    private RequestExecutionContext createRequestExecutionContext(String serviceProtocol) {
+        ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
+                                                                     .put(SdkExecutionAttribute.SERVICE_PROTOCOL, serviceProtocol)
+                                                                     .build();
+        ExecutionContext executionContext = ExecutionContext.builder()
+                                                            .executionAttributes(executionAttributes)
+                                                            .build();
+        return RequestExecutionContext.builder()
+                                      .originalRequest(NoopTestRequest.builder().build())
+                                      .executionContext(executionContext)
+                                      .build();
     }
 }
