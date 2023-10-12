@@ -2,8 +2,12 @@ package software.amazon.awssdk.services.json;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
@@ -11,6 +15,7 @@ import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
  * {@link JsonAsyncClientBuilder}.
  */
 @Generated("software.amazon.awssdk:codegen")
+@SdkPublicApi
 public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsClientBuilder<B, C> {
     B serviceConfiguration(ServiceConfiguration serviceConfiguration);
 
@@ -23,6 +28,14 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
      * each request. This is optional; if none is provided a default implementation will be used the SDK.
      */
     default B endpointProvider(JsonEndpointProvider endpointProvider) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Set the {@link JsonAuthSchemeProvider} implementation that will be used by the client to resolve the auth scheme
+     * for each request. This is optional; if none is provided a default implementation will be used the SDK.
+     */
+    default B authSchemeProvider(JsonAuthSchemeProvider authSchemeProvider) {
         throw new UnsupportedOperationException();
     }
 
@@ -42,5 +55,22 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
      * {@code software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.TOKEN_SIGNER} set on the client. By
      * default it is {@link software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner}.
      */
-    B tokenProvider(SdkTokenProvider tokenProvider);
+    default B tokenProvider(SdkTokenProvider tokenProvider) {
+        return tokenProvider((IdentityProvider<? extends TokenIdentity>) tokenProvider);
+    }
+
+    /**
+     * Set the token provider to use for bearer token authorization. This is optional, if none is provided, the SDK will
+     * use {@link software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider}.
+     * <p>
+     * If the service, or any of its operations require Bearer Token Authorization, then the SDK will default to this
+     * token provider to retrieve the token to use for authorization.
+     * <p>
+     * This provider works in conjunction with the
+     * {@code software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.TOKEN_SIGNER} set on the client. By
+     * default it is {@link software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner}.
+     */
+    default B tokenProvider(IdentityProvider<? extends TokenIdentity> tokenProvider) {
+        throw new UnsupportedOperationException();
+    }
 }

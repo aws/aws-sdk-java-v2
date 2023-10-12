@@ -135,6 +135,7 @@ public class ServerConnectivityErrorMessageTest {
                                                  .httpMethod(SdkHttpMethod.GET)
                                                  .contentPublisher(new EmptyPublisher())
                                                  .build()))
+            .as("Closing time: " + testCase.closeTime)
             .hasMessageContaining(testCase.errorMessageSubstring);
     }
 

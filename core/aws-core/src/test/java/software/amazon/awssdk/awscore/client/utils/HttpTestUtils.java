@@ -54,7 +54,7 @@ public class HttpTestUtils {
                                      .option(SdkClientOption.RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                     .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
+                                     .option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, DefaultCredentialsProvider.create())
                                      .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                      .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")

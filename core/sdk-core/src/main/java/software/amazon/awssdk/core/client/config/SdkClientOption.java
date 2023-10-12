@@ -32,6 +32,9 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -184,6 +187,23 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * The {@link EndpointProvider} configured on the client.
      */
     public static final SdkClientOption<EndpointProvider> ENDPOINT_PROVIDER = new SdkClientOption<>(EndpointProvider.class);
+
+    /**
+     * The {@link AuthSchemeProvider} configured on the client.
+     */
+    public static final SdkClientOption<AuthSchemeProvider> AUTH_SCHEME_PROVIDER =
+        new SdkClientOption<>(AuthSchemeProvider.class);
+
+    /**
+     * The {@link AuthScheme}s configured on the client.
+     */
+    public static final SdkClientOption<Map<String, AuthScheme<?>>> AUTH_SCHEMES =
+        new SdkClientOption<>(new UnsafeValueType(Map.class));
+
+    /**
+     * The IdentityProviders configured on the client.
+     */
+    public static final SdkClientOption<IdentityProviders> IDENTITY_PROVIDERS = new SdkClientOption<>(IdentityProviders.class);
 
     /**
      * The container for any client contexts parameters set on the client.

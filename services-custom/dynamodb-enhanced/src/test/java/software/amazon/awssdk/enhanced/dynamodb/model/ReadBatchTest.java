@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThrows;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
 import java.util.Collections;
@@ -97,12 +97,22 @@ public class ReadBatchTest {
     }
 
     @Test
-    public void builder_missing_mapped_table_resource_error_message() {
+    public void builder_key_from_item_missing_mapped_table_resource_error_message() {
         FakeItem fakeItem = createUniqueFakeItem();
 
         ReadBatch.Builder<FakeItem> builder = ReadBatch.builder(FakeItem.class);
 
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> builder.addGetItem(fakeItem));
-        assertThat(exception.getMessage(), is("A mappedTableResource (table) is required when building a ReadBatch"));
+        assertThatThrownBy(() -> builder.addGetItem(fakeItem))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("A mappedTableResource is required to derive a key from the given keyItem");
+    }
+
+    @Test
+    public void builder_missing_mapped_table_resource_error_message() {
+        ReadBatch.Builder<FakeItem> builder = ReadBatch.builder(FakeItem.class);
+
+        assertThatThrownBy(() -> builder.addGetItem(GetItemEnhancedRequest.builder().build()).build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("A mappedTableResource (table) is required when generating the read requests for ReadBatch");
     }
 }

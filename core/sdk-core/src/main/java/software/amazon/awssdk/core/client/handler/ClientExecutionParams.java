@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -55,6 +56,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private CredentialType credentialType;
     private MetricCollector metricCollector;
     private final ExecutionAttributes attributes = new ExecutionAttributes();
+    private SdkClientConfiguration requestConfiguration;
 
     public Marshaller<InputT> getMarshaller() {
         return marshaller;
@@ -212,5 +214,14 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     public MetricCollector getMetricCollector() {
         return metricCollector;
+    }
+
+    public SdkClientConfiguration requestConfiguration() {
+        return requestConfiguration;
+    }
+
+    public <T> ClientExecutionParams<InputT, OutputT> withRequestConfiguration(SdkClientConfiguration requestConfiguration) {
+        this.requestConfiguration = requestConfiguration;
+        return this;
     }
 }
