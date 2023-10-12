@@ -59,22 +59,15 @@
                 </configuration>
             </plugin>
 
-            <!-- This module is meant to bring in dependency on eventstream but does not have any code that explicitly
-                 uses it. To avoid failing on "Unused declared dependencies found", overriding this plugin configuration
-                 to failOnWarning=false -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>${maven-dependency-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>analyze-only</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
-                    <failOnWarning>false</failOnWarning>
+                    <!-- This module is meant to bring in dependency on eventstream but does not have any code that
+                     explicitly uses it -->
+                    <ignoredUnusedDeclaredDependencies>
+                        <ignoredUnusedDeclaredDependency>software.amazon.eventstream:eventstream</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
         </plugins>
