@@ -85,7 +85,7 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
+    public void mark(int readlimit) {
         super.mark(readlimit);
         // mark() causes reset() to change the stream's position back to the current position. Therefore, when reset() is called,
         // the new length of the stream will be equal to the current value of 'remaining'.
@@ -93,7 +93,7 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
     }
 
     @Override
-    public synchronized void reset() throws IOException {
+    public void reset() throws IOException {
         super.reset();
         remaining = length;
     }
