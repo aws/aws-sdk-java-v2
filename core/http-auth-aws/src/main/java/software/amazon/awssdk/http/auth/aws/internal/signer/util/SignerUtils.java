@@ -26,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -190,7 +191,8 @@ public final class SignerUtils {
      * the payload is read in its entirety to calculate the length.
      */
     public static long moveContentLength(SdkHttpRequest.Builder request, InputStream payload) {
-        if (!request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH).isPresent()) {
+        Optional<String> decodedContentLength = request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH);
+        if (!decodedContentLength.isPresent()) {
             // if the decoded length isn't present, content-length must be there
             String contentLength = request.firstMatchingHeader(Header.CONTENT_LENGTH).orElseGet(
                 () -> String.valueOf(readAll(payload))
@@ -203,7 +205,7 @@ public final class SignerUtils {
 
         // decoded header is already there, so remove content-length just to be sure it's gone
         request.removeHeader(Header.CONTENT_LENGTH);
-        return Long.parseLong(request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH).get());
+        return Long.parseLong(decodedContentLength.get());
     }
 
     private static MessageDigest getMessageDigestInstance() {
