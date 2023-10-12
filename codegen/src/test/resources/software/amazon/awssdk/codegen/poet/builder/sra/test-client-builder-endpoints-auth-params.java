@@ -159,9 +159,11 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         }
         QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
             .builder(config.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
+        overrideConfiguration(serviceConfigBuilder.overrideConfiguration());
         return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 

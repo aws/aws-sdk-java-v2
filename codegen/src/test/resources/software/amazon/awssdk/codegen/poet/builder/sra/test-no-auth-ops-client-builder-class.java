@@ -125,9 +125,11 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         }
         DatabaseServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = DatabaseServiceClientConfigurationBuilder
             .builder(config.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
+        overrideConfiguration(serviceConfigBuilder.overrideConfiguration());
         return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 

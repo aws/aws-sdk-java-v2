@@ -171,6 +171,7 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
         }
         QueryToJsonCompatibleServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryToJsonCompatibleServiceClientConfigurationBuilder
             .builder(clientConfiguration.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
