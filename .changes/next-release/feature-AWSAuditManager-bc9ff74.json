@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Audit Manager",
-    "contributor": "",
-    "description": "This release introduces a new limit to the awsAccounts parameter. When you create or update an assessment, there is now a limit of 200 AWS accounts that can be specified in the assessment scope."
-}

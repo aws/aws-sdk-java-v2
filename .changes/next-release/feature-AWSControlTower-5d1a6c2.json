@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Control Tower",
-    "contributor": "",
-    "description": "Added new EnabledControl resource details to ListEnabledControls API and added new GetEnabledControl API."
-}
