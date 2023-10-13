@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncRequest;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.CONTENT_ENCODING;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.CHUNK_ENCODING_ENABLED;
@@ -390,6 +391,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
+        assertThat(signedRequest.request().firstMatchingHeader(CONTENT_ENCODING)).hasValue("aws-chunked");
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("193");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
@@ -450,6 +452,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
+        assertThat(signedRequest.request().firstMatchingHeader(CONTENT_ENCODING)).hasValue("aws-chunked");
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("314");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
@@ -515,6 +518,7 @@ public class DefaultAwsV4HttpSignerTest {
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
             .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+        assertThat(signedRequest.request().firstMatchingHeader(CONTENT_ENCODING)).hasValue("aws-chunked");
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("62");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
