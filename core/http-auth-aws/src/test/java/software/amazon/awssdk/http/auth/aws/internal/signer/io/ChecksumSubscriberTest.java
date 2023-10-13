@@ -47,7 +47,7 @@ public class ChecksumSubscriberTest {
         Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testString.getBytes(StandardCharsets.UTF_8)));
         publisher.subscribe(subscriber);
 
-        joinLikeSync(subscriber.checksum());
+        joinLikeSync(subscriber.completeFuture());
         String computedDigest = BinaryUtils.toHex(checksum.getChecksumBytes());
 
         assertThat(computedDigest).isEqualTo(expectedDigest);
@@ -65,7 +65,7 @@ public class ChecksumSubscriberTest {
         Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testString.getBytes(StandardCharsets.UTF_8)));
         publisher.subscribe(subscriber);
 
-        joinLikeSync(subscriber.checksum());
+        joinLikeSync(subscriber.completeFuture());
         String computedSha256Digest = BinaryUtils.toHex(sha256Checksum.getChecksumBytes());
         String computedCrc32Digest = BinaryUtils.toHex(crc32Checksum.getChecksumBytes());
 
@@ -79,7 +79,7 @@ public class ChecksumSubscriberTest {
 
         ChecksumSubscriber subscriber = new ChecksumSubscriber(Collections.emptyList());
 
-        subscriber.checksum().cancel(true);
+        subscriber.completeFuture().cancel(true);
 
         subscriber.onSubscribe(mockSubscription);
 
@@ -97,6 +97,6 @@ public class ChecksumSubscriberTest {
         RuntimeException error = new RuntimeException("error");
         subscriber.onError(error);
 
-        assertThatThrownBy(subscriber.checksum()::join).hasCause(error);
+        assertThatThrownBy(subscriber.completeFuture()::join).hasCause(error);
     }
 }
