@@ -188,7 +188,7 @@ public final class ChunkedEncodedInputStream extends InputStream {
     }
 
     @Override
-    public void reset() throws IOException {
+    public synchronized void reset() throws IOException {
         trailers.forEach(TrailerProvider::reset);
         extensions.forEach(ChunkExtensionProvider::reset);
         header.reset();
