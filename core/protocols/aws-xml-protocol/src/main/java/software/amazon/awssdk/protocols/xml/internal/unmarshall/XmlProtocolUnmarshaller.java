@@ -87,37 +87,45 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
                 continue;
             }
 
-            if (!context.response().content().isPresent()) {
-                // This is a payload field, but the service sent no content. Do not populate this field (leave it null or
-                // empty).
-                if (field.marshallingType() == MarshallingType.SDK_BYTES && field.containsTrait(PayloadTrait.class)) {
-                    // SDK bytes bound directly to the payload field should never be left empty
-                    field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
-                } else if (field.marshallingType() == MarshallingType.STRING && field.containsTrait(PayloadTrait.class)) {
-                    field.set(sdkPojo, "");
+            if (isExplicitPayloadMember(field)) {
+                InputStream content = context.response().content().orElse(null);
+                if (field.marshallingType() == MarshallingType.SDK_BYTES) {
+                    SdkBytes value = content == null ? SdkBytes.fromByteArrayUnsafe(new byte[0])
+                                                     : SdkBytes.fromInputStream(content);
+                    field.set(sdkPojo, value);
+                    continue;
                 }
+                if (field.marshallingType() == MarshallingType.STRING) {
+                    // TODO: If we ever break protected APIs, just parse this as a string and remove XML-wrapping
+                    // compatibility for S3.
+                    if (content == null) {
+                        field.set(sdkPojo, "");
+                    } else {
+                        setExplicitStringPayload(unmarshaller, context, sdkPojo, root, field);
+                    }
+                    continue;
+                }
+                if (root != null && !isAttribute(field)) {
+                    Object unmarshalled = unmarshaller.unmarshall(context, singletonList(root), (SdkField<Object>) field);
+                    field.set(sdkPojo, unmarshalled);
+                    continue;
+                }
+            }
+
+            if (root == null) {
                 continue;
             }
 
-            if (root != null && isAttribute(field)) {
+            if (isAttribute(field)) {
                 root.getOptionalAttributeByName(field.unmarshallLocationName())
                     .ifPresent(e -> field.set(sdkPojo, e));
                 continue;
             }
 
-            List<XmlElement> element = isExplicitPayloadMember(field) ?
-                                       singletonList(root) :
-                                       root.getElementsByName(field.unmarshallLocationName());
-
+            List<XmlElement> element = root.getElementsByName(field.unmarshallLocationName());
             if (!CollectionUtils.isNullOrEmpty(element)) {
-                if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
-                    field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
-                } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.STRING) {
-                    setExplicitStringPayload(unmarshaller, context, sdkPojo, element, field);
-                } else {
-                    Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
-                    field.set(sdkPojo, unmarshalled);
-                }
+                Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
+                field.set(sdkPojo, unmarshalled);
             }
         }
 
@@ -129,7 +137,7 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
     }
 
     private void setExplicitStringPayload(XmlUnmarshaller<Object> unmarshaller, XmlUnmarshallerContext context,
-                                             SdkPojo sdkPojo, List<XmlElement> element, SdkField<?> field) {
+                                             SdkPojo sdkPojo, XmlElement element, SdkField<?> field) {
         SdkBytes sdkBytes = SdkBytes.fromInputStream(context.response().content().get());
         String stringPayload = sdkBytes.asUtf8String();
         if (hasS3XmlEnvelopePrefix(stringPayload)) {
@@ -139,13 +147,13 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             field.set(sdkPojo, unmarshalled);
         } else {
             if (stringPayload.isEmpty()) {
-                try {
-                    // InputStream may have already been read
-                    Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
-                    field.set(sdkPojo, unmarshalled);
-                } catch (NullPointerException e) {
+                if (element == null) {
                     // User passed in empty String
-                    field.set(sdkPojo, stringPayload);
+                    field.set(sdkPojo, "");
+                } else {
+                    // InputStream may have already been read
+                    Object unmarshalled = unmarshaller.unmarshall(context, singletonList(element), (SdkField<Object>) field);
+                    field.set(sdkPojo, unmarshalled);
                 }
             } else {
                 field.set(sdkPojo, stringPayload);
