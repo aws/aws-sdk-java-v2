@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Fix an issue where the presence of a `MappedTableResource` was being unnecessarily asserted when building a `WriteBatch` or `ReadBatch`."
-}
