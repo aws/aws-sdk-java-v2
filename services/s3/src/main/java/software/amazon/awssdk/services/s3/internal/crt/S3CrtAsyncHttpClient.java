@@ -37,6 +37,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.s3.ChecksumConfig;
 import software.amazon.awssdk.crt.s3.ResumeToken;
@@ -88,6 +89,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         if (s3NativeClientConfiguration.standardRetryOptions() != null) {
             this.s3ClientOptions.withStandardRetryOptions(s3NativeClientConfiguration.standardRetryOptions());
+        }
+        if (Boolean.FALSE.equals(s3NativeClientConfiguration.isUseEnvironmentVariableValues())) {
+            s3ClientOptions.withProxyEnvironmentVariableSetting(disabledHttpProxyEnvironmentVariableSetting());
         }
         Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(s3ClientOptions::withProxyOptions);
         Optional.ofNullable(s3NativeClientConfiguration.connectionTimeout())
@@ -281,5 +285,11 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
                ? request.host()
                : request.host() + ":" + request.port();
+    }
+
+    private static HttpProxyEnvironmentVariableSetting disabledHttpProxyEnvironmentVariableSetting() {
+        HttpProxyEnvironmentVariableSetting proxyEnvSetting = new HttpProxyEnvironmentVariableSetting();
+        proxyEnvSetting.setEnvironmentVariableType(HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType.DISABLED);
+        return proxyEnvSetting;
     }
 }
