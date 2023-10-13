@@ -65,7 +65,7 @@ public class ProxyConfigurationTest {
         assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
         assertThat(config.username()).isEqualTo(TEST_USER);
         assertThat(config.password()).isEqualTo(TEST_PASSWORD);
-        assertThat(config.scheme()).isNull();
+        assertThat(config.scheme()).isEqualTo("http");
     }
 
     @Test
@@ -104,7 +104,7 @@ public class ProxyConfigurationTest {
         assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
         assertThat(config.username()).isEqualTo("username");
         assertThat(config.password()).isEqualTo("password");
-        assertThat(config.scheme()).isNull();
+        assertThat(config.scheme()).isEqualTo("http");
     }
 
     @Test
@@ -126,7 +126,7 @@ public class ProxyConfigurationTest {
         assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHost);
         assertThat(config.username()).isEqualTo("username");
         assertThat(config.password()).isEqualTo("password");
-        assertThat(config.scheme()).isNull();
+        assertThat(config.scheme()).isEqualTo("http");
     }
 
     @Test

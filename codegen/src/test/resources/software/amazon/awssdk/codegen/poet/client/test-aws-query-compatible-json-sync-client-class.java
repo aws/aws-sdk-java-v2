@@ -7,6 +7,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -22,6 +24,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.services.querytojsoncompatible.internal.QueryToJsonCompatibleServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationRequest;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationResponse;
 import software.amazon.awssdk.services.querytojsoncompatible.model.InvalidInputException;
@@ -87,6 +90,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -102,7 +106,8 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                                              .withOperationName("APostOperation").withServiceProtocol("json").withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
-                                             .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withRequestConfiguration(clientConfiguration).withInput(aPostOperationRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -132,6 +137,20 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
                                                                                 JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
+    }
+
+    private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
+        List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
+        if (plugins.isEmpty()) {
+            return clientConfiguration;
+        }
+        QueryToJsonCompatibleServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryToJsonCompatibleServiceClientConfigurationBuilder
+            .builder(clientConfiguration.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        for (SdkPlugin plugin : plugins) {
+            plugin.configureClient(serviceConfigBuilder);
+        }
+        return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {

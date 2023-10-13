@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
@@ -95,4 +96,23 @@ public class ReadBatchTest {
         assertThat(builtObject.keysAndAttributes().keys(), containsInAnyOrder(Collections.singletonList(fakeItemMap).toArray()));
     }
 
+    @Test
+    public void builder_key_from_item_missing_mapped_table_resource_error_message() {
+        FakeItem fakeItem = createUniqueFakeItem();
+
+        ReadBatch.Builder<FakeItem> builder = ReadBatch.builder(FakeItem.class);
+
+        assertThatThrownBy(() -> builder.addGetItem(fakeItem))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("A mappedTableResource is required to derive a key from the given keyItem");
+    }
+
+    @Test
+    public void builder_missing_mapped_table_resource_error_message() {
+        ReadBatch.Builder<FakeItem> builder = ReadBatch.builder(FakeItem.class);
+
+        assertThatThrownBy(() -> builder.addGetItem(GetItemEnhancedRequest.builder().build()).build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("A mappedTableResource (table) is required when generating the read requests for ReadBatch");
+    }
 }

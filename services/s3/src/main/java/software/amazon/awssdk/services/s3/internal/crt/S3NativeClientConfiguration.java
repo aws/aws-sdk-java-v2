@@ -21,7 +21,6 @@ import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
@@ -31,6 +30,8 @@ import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.utils.Logger;
@@ -143,6 +144,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return credentialsProvider;
     }
 
+    public TlsContext tlsContext() {
+        return tlsContext;
+    }
+
     public long partSizeBytes() {
         return partSizeInBytes;
     }
@@ -185,7 +190,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     public static final class Builder {
         private Long readBufferSizeInBytes;
         private String signingRegion;
-        private AwsCredentialsProvider credentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
         private Long partSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
@@ -204,7 +209,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             return this;
         }
 
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }

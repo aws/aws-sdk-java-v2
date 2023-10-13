@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.20.153-SNAPSHOT</version>
+        <version>2.21.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>auth-crt</artifactId>
@@ -66,6 +66,13 @@
             <groupId>software.amazon.awssdk.crt</groupId>
             <artifactId>aws-crt</artifactId>
             <version>${awscrt.version}</version>
+        </dependency>
+
+        <!-- Ensure that users that depend on auth-crt also get a dependency on the new signers -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws-crt</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
 
         <dependency>
@@ -134,6 +141,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.unitils</groupId>
             <artifactId>unitils-core</artifactId>
             <scope>test</scope>
@@ -143,7 +155,7 @@
             <artifactId>rxjava</artifactId>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+   </dependencies>
     <build>
         <plugins>
             <plugin>
@@ -155,6 +167,18 @@
                             <Automatic-Module-Name>software.amazon.awssdk.authcrt</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <!-- This module brings in dependency on http-auth-aws-crt but does not have any code that
+                     explicitly uses it -->
+                    <ignoredUnusedDeclaredDependencies>
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth-aws-crt</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
         </plugins>

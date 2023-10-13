@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.internal.token.TestToken;
@@ -40,18 +41,18 @@ public class TokenAuthorizationStrategyTest {
 
     private static final String TOKEN_VALUE = "token_value";
     private SdkToken token;
+    private SdkTokenProvider tokenProvider;
 
     @Mock SdkRequest sdkRequest;
     @Mock Signer defaultSigner;
     @Mock Signer requestOverrideSigner;
-    @Mock SdkTokenProvider tokenProvider;
     @Mock MetricCollector metricCollector;
 
     @Before
     public void setUp() throws Exception {
         token = TestToken.builder().token(TOKEN_VALUE).build();
+        tokenProvider = StaticTokenProvider.create(token);
         when(sdkRequest.overrideConfiguration()).thenReturn(Optional.empty());
-        when(tokenProvider.resolveToken()).thenReturn(token);
     }
 
     @Test

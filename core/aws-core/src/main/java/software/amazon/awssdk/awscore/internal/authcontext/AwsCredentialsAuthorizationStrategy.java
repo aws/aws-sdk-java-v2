@@ -18,7 +18,7 @@ package software.amazon.awssdk.awscore.internal.authcontext;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
@@ -27,20 +27,27 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * An authorization strategy for AWS Credentials that can resolve a compatible signer as
  * well as provide resolved AWS credentials as an execution attribute.
+ *
+ * @deprecated This is only used for compatibility with pre-SRA authorization logic. After we are comfortable that the new code
+ * paths are working, we should migrate old clients to the new code paths (where possible) and delete this code.
  */
+@Deprecated
 @SdkInternalApi
 public final class AwsCredentialsAuthorizationStrategy implements AuthorizationStrategy {
 
     private final SdkRequest request;
     private final Signer defaultSigner;
-    private final AwsCredentialsProvider defaultCredentialsProvider;
+    private final IdentityProvider<? extends AwsCredentialsIdentity> defaultCredentialsProvider;
     private final MetricCollector metricCollector;
 
     public AwsCredentialsAuthorizationStrategy(Builder builder) {
@@ -73,8 +80,9 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
      */
     @Override
     public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
-        AwsCredentialsProvider credentialsProvider = resolveCredentialsProvider(request, defaultCredentialsProvider);
-        AwsCredentials credentials = resolveCredentials(credentialsProvider, metricCollector);
+        IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider =
+            resolveCredentialsProvider(request, defaultCredentialsProvider);
+        AwsCredentials credentials = CredentialUtils.toCredentials(resolveCredentials(credentialsProvider, metricCollector));
         executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
     }
 
@@ -84,22 +92,27 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
      *
      * @return The credentials provider that will be used by the SDK to resolve credentials
      */
-    private static AwsCredentialsProvider resolveCredentialsProvider(SdkRequest originalRequest,
-                                                                    AwsCredentialsProvider defaultProvider) {
+    private static IdentityProvider<? extends AwsCredentialsIdentity> resolveCredentialsProvider(
+            SdkRequest originalRequest,
+            IdentityProvider<? extends AwsCredentialsIdentity> defaultProvider) {
         return originalRequest.overrideConfiguration()
                               .filter(c -> c instanceof AwsRequestOverrideConfiguration)
                               .map(c -> (AwsRequestOverrideConfiguration) c)
-                              .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
+                              .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                               .orElse(defaultProvider);
     }
 
-    private static AwsCredentials resolveCredentials(AwsCredentialsProvider credentialsProvider,
-                                                     MetricCollector metricCollector) {
+    private static AwsCredentialsIdentity resolveCredentials(
+            IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider,
+            MetricCollector metricCollector) {
         Validate.notNull(credentialsProvider, "No credentials provider exists to resolve credentials from.");
 
-        Pair<AwsCredentials, Duration> measured = MetricUtils.measureDuration(credentialsProvider::resolveCredentials);
+        // TODO(sra-identity-and-auth): internal issue SMITHY-1677. avoid join for async clients.
+        Pair<? extends AwsCredentialsIdentity, Duration> measured =
+            MetricUtils.measureDuration(() -> CompletableFutureUtils.joinLikeSync(credentialsProvider.resolveIdentity()));
+
         metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, measured.right());
-        AwsCredentials credentials = measured.left();
+        AwsCredentialsIdentity credentials = measured.left();
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
         return credentials;
@@ -108,7 +121,7 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
     public static final class Builder {
         private SdkRequest request;
         private Signer defaultSigner;
-        private AwsCredentialsProvider defaultCredentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> defaultCredentialsProvider;
         private MetricCollector metricCollector;
 
         private Builder() {
@@ -132,11 +145,11 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
             return this;
         }
 
-        public AwsCredentialsProvider defaultCredentialsProvider() {
+        public IdentityProvider<? extends AwsCredentialsIdentity> defaultCredentialsProvider() {
             return this.defaultCredentialsProvider;
         }
 
-        public Builder defaultCredentialsProvider(AwsCredentialsProvider defaultCredentialsProvider) {
+        public Builder defaultCredentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> defaultCredentialsProvider) {
             this.defaultCredentialsProvider = defaultCredentialsProvider;
             return this;
         }

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
@@ -38,7 +37,6 @@ import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.protocolquery.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.AwsEndpointProviderUtils;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Identifier;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Value;
@@ -277,47 +275,6 @@ public class AwsEndpointProviderUtilsTest {
 
         assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri).getUri().toString())
             .isEqualTo("https://override.example.com//a");
-    }
-
-    @Test
-    public void setHeaders_existingValuesOnOverride_combinesWithNewValues() {
-        AwsRequest request = AllTypesRequest.builder()
-                                            .overrideConfiguration(o -> o.putHeader("foo", Arrays.asList("a", "b")))
-                                            .build();
-
-        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("c"));
-        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
-
-        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a", "b", "c"));
-
-        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
-    }
-
-    @Test
-    public void setHeaders_noExistingValues_setCorrectly() {
-        AwsRequest request = AllTypesRequest.builder()
-                                            .overrideConfiguration(o -> {})
-                                            .build();
-
-        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("a"));
-        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
-
-        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a"));
-
-        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
-    }
-
-    @Test
-    public void setHeaders_noExistingOverrideConfig_createsOverrideConfig() {
-        AwsRequest request = AllTypesRequest.builder()
-                                            .build();
-
-        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("a"));
-        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
-
-        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a"));
-
-        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
     }
 
     @Test

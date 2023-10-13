@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -54,6 +56,26 @@ public final class MetricUtils {
         T result = c.get();
         Duration d = Duration.ofNanos(System.nanoTime() - start);
         return Pair.of(result, d);
+    }
+
+    /**
+     * Report a duration metric of the given {@link CompletableFuture} supplier.
+     *
+     * @param c The callable to measure.
+     * @param metricCollector The MetricCollector where the metric is to be reported.
+     * @param metric The metric to be reported.
+     * @return A {@code Pair} containing the result of {@code c} and the duration.
+     */
+    public static <T> CompletableFuture<T> reportDuration(Supplier<CompletableFuture<T>> c,
+                                                          MetricCollector metricCollector,
+                                                          SdkMetric<Duration> metric) {
+        long start = System.nanoTime();
+        CompletableFuture<T> result = c.get();
+        result.whenComplete((r, t) -> {
+            Duration d = Duration.ofNanos(System.nanoTime() - start);
+            metricCollector.reportMetric(metric, d);
+        });
+        return result;
     }
 
     /**

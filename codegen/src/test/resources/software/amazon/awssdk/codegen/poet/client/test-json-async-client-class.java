@@ -27,7 +27,9 @@ import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTr
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkPojoBuilder;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -180,6 +183,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -205,8 +209,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("APostOperation").withServiceProtocol("rest-json")
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
-                             .withInput(aPostOperationRequest));
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
             CompletableFuture<APostOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -244,6 +248,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
         APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationWithOutputRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -265,7 +271,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("APostOperationWithOutput").withServiceProtocol("rest-json")
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationWithOutputRequest));
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withInput(aPostOperationWithOutputRequest));
             CompletableFuture<APostOperationWithOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -299,6 +306,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
         BearerAuthOperationRequest bearerAuthOperationRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(bearerAuthOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -321,8 +330,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("BearerAuthOperation").withServiceProtocol("rest-json")
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).credentialType(CredentialType.TOKEN)
-                             .withInput(bearerAuthOperationRequest));
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .credentialType(CredentialType.TOKEN).withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -356,6 +365,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
                                                         Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(eventStreamOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, eventStreamOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -405,8 +416,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
                     .withAsyncRequestBody(AsyncRequestBody.fromPublisher(adapted)).withFullDuplex(true)
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationRequest),
-                restAsyncResponseTransformer);
+                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                    .withInput(eventStreamOperationRequest), restAsyncResponseTransformer);
             CompletableFuture<Void> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     try {
@@ -451,6 +462,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
         EventStreamOperationWithOnlyInputRequest eventStreamOperationWithOnlyInputRequest,
         Publisher<InputEventStreamTwo> requestStream) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(eventStreamOperationWithOnlyInputRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                                                                          eventStreamOperationWithOnlyInputRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -480,8 +493,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("EventStreamOperationWithOnlyInput").withServiceProtocol("rest-json")
                              .withMarshaller(new EventStreamOperationWithOnlyInputRequestMarshaller(protocolFactory))
                              .withAsyncRequestBody(AsyncRequestBody.fromPublisher(adapted)).withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
-                             .withInput(eventStreamOperationWithOnlyInputRequest));
+                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationWithOnlyInputRequest));
             CompletableFuture<EventStreamOperationWithOnlyInputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -517,6 +530,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
         EventStreamOperationWithOnlyOutputRequest eventStreamOperationWithOnlyOutputRequest,
         EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(eventStreamOperationWithOnlyOutputRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                                                                          eventStreamOperationWithOnlyOutputRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -560,7 +575,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                         .withOperationName("EventStreamOperationWithOnlyOutput").withServiceProtocol("rest-json")
                         .withMarshaller(new EventStreamOperationWithOnlyOutputRequestMarshaller(protocolFactory))
                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                        .withMetricCollector(apiCallMetricCollector)
+                        .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                         .withInput(eventStreamOperationWithOnlyOutputRequest), restAsyncResponseTransformer);
             CompletableFuture<Void> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
@@ -604,6 +619,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<GetOperationWithChecksumResponse> getOperationWithChecksum(
         GetOperationWithChecksumRequest getOperationWithChecksumRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getOperationWithChecksumRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -612,7 +629,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetOperationWithChecksum");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                                                                           .isPayloadJson(false).build();
 
             HttpResponseHandler<GetOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, GetOperationWithChecksumResponse::builder);
@@ -627,6 +644,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
@@ -670,6 +688,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
         GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getWithoutRequiredMembersRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getWithoutRequiredMembersRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -691,7 +711,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("GetWithoutRequiredMembers").withServiceProtocol("rest-json")
                              .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(getWithoutRequiredMembersRequest));
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withInput(getWithoutRequiredMembersRequest));
             CompletableFuture<GetWithoutRequiredMembersResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -726,6 +747,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
         OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithChecksumRequiredRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                                                                          operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -749,6 +772,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
@@ -786,6 +810,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<OperationWithRequestCompressionResponse> operationWithRequestCompression(
         OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithRequestCompressionRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                                                                          operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -809,6 +835,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
@@ -847,6 +874,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(paginatedOperationWithResultKeyRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                                                                          paginatedOperationWithResultKeyRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -868,7 +897,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("PaginatedOperationWithResultKey").withServiceProtocol("rest-json")
                              .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(paginatedOperationWithResultKeyRequest));
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withInput(paginatedOperationWithResultKeyRequest));
             CompletableFuture<PaginatedOperationWithResultKeyResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -903,6 +933,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(paginatedOperationWithoutResultKeyRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                                                                          paginatedOperationWithoutResultKeyRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -924,7 +956,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withOperationName("PaginatedOperationWithoutResultKey").withServiceProtocol("rest-json")
                              .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withInput(paginatedOperationWithoutResultKeyRequest));
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withInput(paginatedOperationWithoutResultKeyRequest));
             CompletableFuture<PaginatedOperationWithoutResultKeyResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -977,6 +1010,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
         PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putOperationWithChecksumRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -1010,6 +1045,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                        .asyncRequestBody(requestBody).build())
                     .withResponseHandler(responseHandler)
                     .withErrorResponseHandler(errorResponseHandler)
+                    .withRequestConfiguration(clientConfiguration)
                     .withMetricCollector(apiCallMetricCollector)
                     .withAsyncRequestBody(requestBody)
                     .putExecutionAttribute(
@@ -1066,6 +1102,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
         StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -1093,8 +1131,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                  AsyncStreamingRequestMarshaller.builder()
                                                                 .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                                                 .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withMetricCollector(apiCallMetricCollector)
-                             .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
+                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector).withAsyncRequestBody(requestBody)
+                             .withInput(streamingInputOperationRequest));
             CompletableFuture<StreamingInputOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -1139,6 +1178,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
         StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOutputOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                                                                          streamingInputOutputOperationRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -1172,8 +1213,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                 new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
                             .asyncRequestBody(requestBody).transferEncoding(true).build())
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withMetricCollector(apiCallMetricCollector).withAsyncRequestBody(requestBody)
-                    .withInput(streamingInputOutputOperationRequest), asyncResponseTransformer);
+                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                    .withAsyncRequestBody(requestBody).withInput(streamingInputOutputOperationRequest),
+                asyncResponseTransformer);
             AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
@@ -1223,6 +1265,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
         StreamingOutputOperationRequest streamingOutputOperationRequest,
         AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingOutputOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -1248,8 +1292,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     .withOperationName("StreamingOutputOperation").withServiceProtocol("rest-json")
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
-                asyncResponseTransformer);
+                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                    .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             CompletableFuture<ReturnT> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
@@ -1320,6 +1364,20 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
         return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
+    }
+
+    private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
+        List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
+        if (plugins.isEmpty()) {
+            return clientConfiguration;
+        }
+        JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
+            .builder(clientConfiguration.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        for (SdkPlugin plugin : plugins) {
+            plugin.configureClient(serviceConfigBuilder);
+        }
+        return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
