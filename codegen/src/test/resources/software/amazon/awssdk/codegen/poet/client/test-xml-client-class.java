@@ -670,6 +670,7 @@ final class DefaultXmlClient implements XmlClient {
         }
         XmlServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = XmlServiceClientConfigurationBuilder
             .builder(clientConfiguration.toBuilder());
+        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }

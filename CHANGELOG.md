@@ -1,3 +1,120 @@
+# __2.21.0__ __2023-10-12__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a new limit to the awsAccounts parameter. When you create or update an assessment, there is now a limit of 200 AWS accounts that can be specified in the assessment scope.
+
+## __AWS Config__
+  - ### Features
+    - Add enums for resource types supported by Config
+
+## __AWS Control Tower__
+  - ### Features
+    - Added new EnabledControl resource details to ListEnabledControls API and added new GetEnabledControl API.
+
+## __AWS Glue__
+  - ### Features
+    - Extending version control support to GitLab and Bitbucket from AWSGlue
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for Lambda functions to access Dual-Stack subnets over IPv6, via an opt-in flag in CreateFunction and UpdateFunctionConfiguration APIs
+
+## __AWS Price List Service__
+  - ### Features
+    - Documentation updates for Price List
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This release contains a major internal refactor of authentication. The refactor is part of moving the SDK to a standardized AWS SDK architecture.
+
+      It paves the way for new features to be released over the coming months: SDK plugins to provide a unified interface to add third-party functionality to the SDK and the ability to define additional ways of authenticating with services. 
+
+      With this release, custom 3rd party credential providers can be created with fewer SDK dependencies (with the new `identity-spi` module), and AWS signers can be used with fewer SDK dependencies (with the new `http-auth-aws` module).
+
+      Because this is a major refactor that may result in backwards-compatible behavior changes, this release bumps the minor version of the SDK to 2.21.
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Adds sensitive trait to various shapes in Customer Profiles Calculated Attribute API model.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds Ubuntu Pro as a supported platform for On-Demand Capacity Reservations and adds support for setting an Amazon Machine Image (AMI) to disabled state. Disabling the AMI makes it private if it was previously shared, and prevents new EC2 instance launches from it.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Update GetParticipant to return additional metadata.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds endpoint updates for all AWS Location resource operations.
+
+## __Amazon Machine Learning__
+  - ### Features
+    - This release marks Password field as sensitive
+
+## __Amazon Rekognition__
+  - ### Features
+    - Amazon Rekognition introduces support for Custom Moderation. This allows the enhancement of accuracy for detect moderation labels operations by creating custom adapters tuned on customer data.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for adding a dedicated log volume to open-source RDS instances.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Canvas adds KendraSettings and DirectDeploySettings support for CanvasAppSettings
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds 9 new APIs for adapter and adapter version management, 3 new APIs for tagging, and updates AnalyzeDocument and StartDocumentAnalysis API parameters for using adapters.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release is to enable m4a format to customers
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Updated the CreateWorkspaces action documentation to clarify that the PCoIP protocol is only available for Windows bundles.
+
+## __Auto Scaling__
+  - ### Features
+    - Update the NotificationMetadata field to only allow visible ascii characters. Add paginators to DescribeInstanceRefreshes, DescribeLoadBalancers, and DescribeLoadBalancerTargetGroups
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix an issue where the presence of a `MappedTableResource` was being unnecessarily asserted when building a `WriteBatch` or `ReadBatch`.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables routing policies with Availability Zone affinity for Network Load Balancers.
+
+## __Inspector2__
+  - ### Features
+    - Add MacOs ec2 platform support
+
+# __2.20.162__ __2023-10-06__
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release adds support for Document type as an alternative for stringified JSON for StartChangeSet, DescribeChangeSet and DescribeEntity APIs
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release updates the max character limit of PreAuthenticationLoginBanner and PostAuthenticationLoginBanner to 4096 characters
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __Amazon FSx__
+  - ### Features
+    - After performing steps to repair the Active Directory configuration of a file system, use this action to initiate the process of attempting to recover to the file system.
+
+## __Amazon QuickSight__
+  - ### Features
+    - NullOption in FilterListConfiguration; Dataset schema/table max length increased; Support total placement for pivot table visual; Lenient mode relaxes the validation to create resources with definition; Data sources can be added to folders; Redshift data sources support IAM Role-based authentication
+
 # __2.20.161__ __2023-10-05__
 ## __AWS SDK for Java v2__
   - ### Features

@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.20.162-SNAPSHOT</version>
+        <version>2.21.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>http-auth-aws-crt</artifactId>
@@ -58,6 +58,18 @@
                             <Automatic-Module-Name>software.amazon.awssdk.http.auth.aws.crt</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <!-- This module is meant to bring in dependency on aws-crt but does not have any code that
+                     explicitly uses it -->
+                    <ignoredUnusedDeclaredDependencies>
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk.crt:aws-crt</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
         </plugins>

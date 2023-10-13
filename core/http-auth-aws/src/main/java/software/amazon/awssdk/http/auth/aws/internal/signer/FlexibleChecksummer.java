@@ -69,14 +69,18 @@ public final class FlexibleChecksummer implements Checksummer {
     }
 
     @Override
-    public CompletableFuture<Void> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
+    public CompletableFuture<Publisher<ByteBuffer>> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
         ChecksumSubscriber checksumSubscriber = new ChecksumSubscriber(optionToSdkChecksum.values());
 
-        if (payload != null) {
-            payload.subscribe(checksumSubscriber);
+        if (payload == null) {
+            addChecksums(request);
+            return CompletableFuture.completedFuture(null);
         }
 
-        return checksumSubscriber.checksum().thenRun(() -> addChecksums(request));
+        payload.subscribe(checksumSubscriber);
+        CompletableFuture<Publisher<ByteBuffer>> result = checksumSubscriber.completeFuture();
+        result.thenRun(() -> addChecksums(request));
+        return result;
     }
 
     private void addChecksums(SdkHttpRequest.Builder request) {

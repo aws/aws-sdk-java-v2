@@ -56,7 +56,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     @Override
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request);
+        Checksummer checksummer = checksummer(request, null);
         V4Properties v4Properties = v4Properties(request);
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
         V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
@@ -66,7 +66,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     @Override
     public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request);
+        Checksummer checksummer = asyncChecksummer(request);
         V4Properties v4Properties = v4Properties(request);
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
         V4PayloadSigner payloadSigner = v4PayloadAsyncSigner(request, v4Properties);
@@ -126,8 +126,9 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return requestSigner.apply(v4Properties);
     }
 
-    private static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        boolean isPayloadSigning = isPayloadSigning(request);
+    private static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+                                           Boolean isPayloadSigningOverride) {
+        boolean isPayloadSigning = isPayloadSigningOverride != null ? isPayloadSigningOverride : isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean hasChecksumHeader = hasChecksumHeader(request);
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
@@ -168,6 +169,24 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         }
 
         return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
+    }
+
+    /**
+     * This is needed because of the pre-existing gap (pre-SRA) in behavior where we don't treat async + streaming + http +
+     * unsigned-payload as signed-payload (fallback). We have to do some finagling of the payload-signing options before
+     * calling the actual checksummer() method
+     */
+    private static Checksummer asyncChecksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        boolean isHttp = !"https".equals(request.request().protocol());
+        boolean isPayloadSigning = isPayloadSigning(request);
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+        boolean shouldTreatAsUnsigned = isHttp && isPayloadSigning && isChunkEncoding;
+
+        // set the override to false if it should be treated as unsigned, otherwise, null should be passed so that the normal
+        // check for payload signing is done.
+        Boolean overridePayloadSigning = shouldTreatAsUnsigned ? false : null;
+
+        return checksummer(request, overridePayloadSigning);
     }
 
     private static V4PayloadSigner v4PayloadSigner(
@@ -222,8 +241,12 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         }
 
         if (isChunkEncoding && isPayloadSigning) {
-            throw new UnsupportedOperationException("Chunked encoding and payload signing is not supported in async client. Use"
-                                                    + " sync client instead");
+            // TODO(sra-identity-and-auth): We need to implement aws-chunk content-encoding for async.
+            //  For now, we basically have to treat this as an unsigned case because there are existing s3 use-cases for
+            //  Unsigned-payload + HTTP. These requests SHOULD be signed-payload, but are not pre-SRA, hence the problem. This
+            //  will be taken care of in HttpChecksumStage for now, so we shouldn't throw an unsupported exception here, we
+            //  should just fall through to the default since it will already encoded by the time it gets here.
+            return V4PayloadSigner.create();
         }
 
         return V4PayloadSigner.create();
@@ -240,12 +263,12 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         payloadSigner.beforeSigning(requestBuilder, request.payload().orElse(null));
 
-        V4Context v4Context = requestSigner.sign(requestBuilder);
+        V4RequestSigningResult requestSigningResult = requestSigner.sign(requestBuilder);
 
-        ContentStreamProvider payload = request.payload().map(p -> payloadSigner.sign(p, v4Context)).orElse(null);
+        ContentStreamProvider payload = request.payload().map(p -> payloadSigner.sign(p, requestSigningResult)).orElse(null);
 
         return SignedRequest.builder()
-                            .request(v4Context.getSignedRequest().build())
+                            .request(requestSigningResult.getSignedRequest().build())
                             .payload(payload)
                             .build();
     }
@@ -257,27 +280,29 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        CompletableFuture<V4Context> futureV4Context =
-            checksummer.checksum(request.payload().orElse(null), requestBuilder)
-                       .thenApply(__ -> requestSigner.sign(requestBuilder));
-
-        return futureV4Context.thenApply(
-            v4Context -> AsyncSignedRequest.builder()
-                                           .request(v4Context.getSignedRequest().build())
-                                           .payload(payloadSigner.signAsync(request.payload().orElse(null), v4Context))
-                                           .build()
-        );
+        return checksummer.checksum(request.payload().orElse(null), requestBuilder)
+                          .thenApply(payload -> {
+                              V4RequestSigningResult requestSigningResultFuture = requestSigner.sign(requestBuilder);
+                              return AsyncSignedRequest.builder()
+                                                       .request(requestSigningResultFuture.getSignedRequest().build())
+                                                       .payload(payloadSigner.signAsync(payload, requestSigningResultFuture))
+                                                       .build();
+                          });
     }
 
     private static Duration validateExpirationDuration(Duration expirationDuration) {
-        if (expirationDuration.compareTo(PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
+        if (!isBetweenInclusive(Duration.ofSeconds(1), expirationDuration, PRESIGN_URL_MAX_EXPIRATION_DURATION)) {
             throw new IllegalArgumentException(
-                "Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
+                "Requests that are pre-signed by SigV4 algorithm are valid for at least 1 second and at most 7" +
                 " days. The expiration duration set on the current request [" + expirationDuration + "]" +
-                " has exceeded this limit."
+                " does not meet these bounds."
             );
         }
         return expirationDuration;
+    }
+
+    private static boolean isBetweenInclusive(Duration start, Duration x, Duration end) {
+        return start.compareTo(x) <= 0 && x.compareTo(end) <= 0;
     }
 
     private static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
