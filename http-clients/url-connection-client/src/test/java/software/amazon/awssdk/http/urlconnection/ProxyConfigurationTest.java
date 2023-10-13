@@ -55,7 +55,7 @@ public class ProxyConfigurationTest {
 
         assertThat(config.host()).isEqualTo(host);
         assertThat(config.port()).isEqualTo(port);
-        assertThat(config.scheme()).isNull();
+        assertThat(config.scheme()).isEqualTo("http");
     }
 
     @Test

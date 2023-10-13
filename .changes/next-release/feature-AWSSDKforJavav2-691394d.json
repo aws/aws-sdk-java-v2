@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Proxy Configuration from Environment Variables for all SDK clients, including Apache, Netty, URL, and CRT HTTP clients PR [#4467](https://github.com/aws/aws-sdk-java-v2/issues/4467)"
+}
