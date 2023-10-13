@@ -32,6 +32,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlAsyncClient;
+import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 
 @WireMockTest
 public class StringPayloadUnmarshallingTest {
@@ -57,8 +59,8 @@ public class StringPayloadUnmarshallingTest {
     }
 
     private enum Protocol {
-        JSON
-        // TODO - add support for XML
+        JSON,
+        XML
     }
 
     private enum StringLocation {
@@ -119,7 +121,7 @@ public class StringPayloadUnmarshallingTest {
             case FIELD:
                 switch (protocol) {
                     case JSON: return "{\"StringMember\": \"X\"}";
-                    // TODO - add support for XML
+                    case XML: return "<AllTypes><StringMember>X</StringMember></AllTypes>";
                     default: throw new UnsupportedOperationException();
                 }
             default: throw new UnsupportedOperationException();
@@ -138,7 +140,7 @@ public class StringPayloadUnmarshallingTest {
     private String syncCallService(WireMockRuntimeInfo wm, Protocol protocol, StringLocation stringLoc) {
         switch (protocol) {
             case JSON: return syncJsonCallService(wm, stringLoc);
-            // TODO - add support for XML
+            case XML: return syncXmlCallService(wm, stringLoc);
             default: throw new UnsupportedOperationException();
         }
     }
@@ -146,7 +148,7 @@ public class StringPayloadUnmarshallingTest {
     private String asyncCallService(WireMockRuntimeInfo wm, Protocol protocol, StringLocation stringLoc) {
         switch (protocol) {
             case JSON: return asyncJsonCallService(wm, stringLoc);
-            // TODO - add support for XML
+            case XML: return asyncXmlCallService(wm, stringLoc);
             default: throw new UnsupportedOperationException();
         }
     }
@@ -172,6 +174,35 @@ public class StringPayloadUnmarshallingTest {
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                        .build();
+
+        switch (stringLoc) {
+            case PAYLOAD: return client.operationWithExplicitPayloadString(r -> {}).join().payloadMember();
+            case FIELD: return client.allTypes(r -> {}).join().stringMember();
+            default: throw new UnsupportedOperationException();
+        }
+    }
+
+    private String syncXmlCallService(WireMockRuntimeInfo wm, StringLocation stringLoc) {
+        ProtocolRestXmlClient client =
+            ProtocolRestXmlClient.builder()
+                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                 .region(Region.US_EAST_1)
+                                 .endpointOverride(URI.create(wm.getHttpBaseUrl()))
+                                 .build();
+        switch (stringLoc) {
+            case PAYLOAD: return client.operationWithExplicitPayloadString(r -> {}).payloadMember();
+            case FIELD: return client.allTypes(r -> {}).stringMember();
+            default: throw new UnsupportedOperationException();
+        }
+    }
+
+    private String asyncXmlCallService(WireMockRuntimeInfo wm, StringLocation stringLoc) {
+        ProtocolRestXmlAsyncClient client =
+            ProtocolRestXmlAsyncClient.builder()
+                                      .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                      .region(Region.US_EAST_1)
+                                      .endpointOverride(URI.create(wm.getHttpBaseUrl()))
+                                      .build();
 
         switch (stringLoc) {
             case PAYLOAD: return client.operationWithExplicitPayloadString(r -> {}).join().payloadMember();
