@@ -102,5 +102,5 @@ public interface Checksummer {
     /**
      * Given a payload, asynchronously calculate a checksum and promise to add it to the request.
      */
-    CompletableFuture<Void> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request);
+    CompletableFuture<Publisher<ByteBuffer>> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request);
 }

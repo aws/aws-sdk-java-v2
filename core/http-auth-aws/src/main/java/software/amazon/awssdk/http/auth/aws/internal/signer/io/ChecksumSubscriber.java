@@ -18,9 +18,11 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.io;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.zip.Checksum;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -30,10 +32,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
-    private final CompletableFuture<Void> checksumming = new CompletableFuture<>();
+    private final CompletableFuture<Publisher<ByteBuffer>> checksumming = new CompletableFuture<>();
     private final Collection<Checksum> checksums = new ArrayList<>();
     private volatile boolean canceled = false;
     private volatile Subscription subscription;
+
+    private final List<ByteBuffer> bufferedPayload = new ArrayList<>();
 
     public ChecksumSubscriber(Collection<? extends Checksum> consumers) {
         this.checksums.addAll(consumers);
@@ -65,19 +69,22 @@ public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
     @Override
     public void onNext(ByteBuffer byteBuffer) {
         if (!canceled) {
-            byte[] buf;
-
-            if (byteBuffer.hasArray()) {
-                buf = byteBuffer.array();
-            } else {
-                buf = new byte[byteBuffer.remaining()];
-                byteBuffer.get(buf);
-            }
-
-            // We have to use a byte[], since update(<ByteBuffer>) is java 9+
-            checksums.forEach(checksum -> checksum.update(buf, 0, buf.length));
+            updateChecksumsAndBuffer(byteBuffer);
         }
     }
+
+    private void updateChecksumsAndBuffer(ByteBuffer buffer) {
+        int remaining = buffer.remaining();
+        if (remaining <= 0) {
+            return;
+        }
+
+        byte[] copyBuffer = new byte[remaining];
+        buffer.get(copyBuffer);
+        checksums.forEach(c -> c.update(copyBuffer, 0, remaining));
+        bufferedPayload.add(ByteBuffer.wrap(copyBuffer));
+    }
+
 
     @Override
     public void onError(Throwable throwable) {
@@ -86,10 +93,10 @@ public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onComplete() {
-        checksumming.complete(null);
+        checksumming.complete(new InMemoryPublisher(bufferedPayload));
     }
 
-    public CompletableFuture<Void> checksum() {
+    public CompletableFuture<Publisher<ByteBuffer>> completeFuture() {
         return checksumming;
     }
 }
