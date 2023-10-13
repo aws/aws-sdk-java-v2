@@ -263,12 +263,12 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         payloadSigner.beforeSigning(requestBuilder, request.payload().orElse(null));
 
-        V4Context v4Context = requestSigner.sign(requestBuilder);
+        V4RequestSigningResult requestSigningResult = requestSigner.sign(requestBuilder);
 
-        ContentStreamProvider payload = request.payload().map(p -> payloadSigner.sign(p, v4Context)).orElse(null);
+        ContentStreamProvider payload = request.payload().map(p -> payloadSigner.sign(p, requestSigningResult)).orElse(null);
 
         return SignedRequest.builder()
-                            .request(v4Context.getSignedRequest().build())
+                            .request(requestSigningResult.getSignedRequest().build())
                             .payload(payload)
                             .build();
     }
@@ -280,14 +280,14 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        CompletableFuture<V4Context> futureV4Context =
+        CompletableFuture<V4RequestSigningResult> resultSigningResultFuture =
             checksummer.checksum(request.payload().orElse(null), requestBuilder)
                        .thenApply(__ -> requestSigner.sign(requestBuilder));
 
-        return futureV4Context.thenApply(
-            v4Context -> AsyncSignedRequest.builder()
-                                           .request(v4Context.getSignedRequest().build())
-                                           .payload(payloadSigner.signAsync(request.payload().orElse(null), v4Context))
+        return resultSigningResultFuture.thenApply(
+            resultSigningResult -> AsyncSignedRequest.builder()
+                                           .request(resultSigningResult.getSignedRequest().build())
+                                           .payload(payloadSigner.signAsync(request.payload().orElse(null), resultSigningResult))
                                            .build()
         );
     }

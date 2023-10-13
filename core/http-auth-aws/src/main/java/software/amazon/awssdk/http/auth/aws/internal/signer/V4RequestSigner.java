@@ -18,8 +18,11 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getCanonicalHeaders;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getSignedHeadersString;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addDateHeader;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addHostHeader;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.formatDateTime;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.getContentHash;
 
 import java.time.Duration;
 import java.util.List;
@@ -38,8 +41,8 @@ public interface V4RequestSigner {
     /**
      * Retrieve an implementation of a V4RequestSigner, which signs the request, but does not add authentication to the request.
      */
-    static V4RequestSigner create(V4Properties properties) {
-        return new DefaultV4RequestSigner(properties);
+    static V4RequestSigner create(V4Properties properties, String contentHash) {
+        return new DefaultV4RequestSigner(properties, contentHash);
     }
 
     /**
@@ -52,18 +55,19 @@ public interface V4RequestSigner {
                 requestBuilder.putHeader(SignerConstant.X_AMZ_SECURITY_TOKEN,
                                          ((AwsSessionCredentialsIdentity) properties.getCredentials()).sessionToken());
             }
+            addHostHeader(requestBuilder);
             addDateHeader(requestBuilder, formatDateTime(properties.getCredentialScope().getInstant()));
 
-            V4Context ctx = create(properties).sign(requestBuilder);
+            V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
 
             // Add the signature within an authorization header
             String authHeader = AWS4_SIGNING_ALGORITHM
                                 + " Credential=" + properties.getCredentialScope().scope(properties.getCredentials())
-                                + ", SignedHeaders=" + ctx.getCanonicalRequest().getSignedHeadersString()
-                                + ", Signature=" + ctx.getSignature();
+                                + ", SignedHeaders=" + result.getCanonicalRequest().getSignedHeadersString()
+                                + ", Signature=" + result.getSignature();
 
             requestBuilder.putHeader(SignerConstant.AUTHORIZATION, authHeader);
-            return ctx;
+            return result;
         };
     }
 
@@ -77,6 +81,8 @@ public interface V4RequestSigner {
                 requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SECURITY_TOKEN,
                                                     ((AwsSessionCredentialsIdentity) properties.getCredentials()).sessionToken());
             }
+            // We have to add the host-header here explicitly, since query-signed request requires it in the signed-header param
+            addHostHeader(requestBuilder);
 
             List<Pair<String, List<String>>> canonicalHeaders = getCanonicalHeaders(requestBuilder.build());
             requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, AWS4_SIGNING_ALGORITHM);
@@ -85,12 +91,12 @@ public interface V4RequestSigner {
             requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL,
                                                 properties.getCredentialScope().scope(properties.getCredentials()));
 
-            V4Context ctx = create(properties).sign(requestBuilder);
+            V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
 
             // Add the signature
-            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, ctx.getSignature());
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, result.getSignature());
 
-            return ctx;
+            return result;
         };
     }
 
@@ -100,11 +106,33 @@ public interface V4RequestSigner {
      */
     static V4RequestSigner presigned(V4Properties properties, Duration expirationDuration) {
         return requestBuilder -> {
-            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES,
-                                                Long.toString(expirationDuration.getSeconds())
-            );
+            // Add pre-requisites
+            if (properties.getCredentials() instanceof AwsSessionCredentialsIdentity) {
+                requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SECURITY_TOKEN,
+                                                    ((AwsSessionCredentialsIdentity) properties.getCredentials()).sessionToken());
+            }
+            // We have to add the host-header here explicitly, since pre-signed request requires it in the signed-header param
+            addHostHeader(requestBuilder);
 
-            return query(properties).sign(requestBuilder);
+            // Pre-signed requests shouldn't have the content-hash header
+            String contentHash = getContentHash(requestBuilder);
+            requestBuilder.removeHeader(X_AMZ_CONTENT_SHA256);
+
+            List<Pair<String, List<String>>> canonicalHeaders = getCanonicalHeaders(requestBuilder.build());
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, AWS4_SIGNING_ALGORITHM);
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_DATE, properties.getCredentialScope().getDatetime());
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADERS, getSignedHeadersString(canonicalHeaders));
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL,
+                                                properties.getCredentialScope().scope(properties.getCredentials()));
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationDuration.getSeconds()));
+
+            V4RequestSigningResult result = create(properties, contentHash).sign(requestBuilder);
+
+            // Add the signature
+            requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, result.getSignature());
+
+            return result;
+
         };
     }
 
@@ -114,12 +142,12 @@ public interface V4RequestSigner {
      */
     static V4RequestSigner anonymous(V4Properties properties) {
         return requestBuilder ->
-            new V4Context("", new byte[] {}, null, null, requestBuilder);
+            new V4RequestSigningResult("", new byte[] {}, null, null, requestBuilder);
     }
 
     /**
-     * Given a request builder, sign a request and return a v4-context containing the signed request and its properties.
+     * Given a request builder, sign the request and return a result containing the signed request and its properties.
      */
-    V4Context sign(SdkHttpRequest.Builder requestBuilder);
+    V4RequestSigningResult sign(SdkHttpRequest.Builder requestBuilder);
 }
 

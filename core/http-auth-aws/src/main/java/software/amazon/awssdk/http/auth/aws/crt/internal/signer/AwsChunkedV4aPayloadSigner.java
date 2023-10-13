@@ -68,7 +68,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
     }
 
     @Override
-    public ContentStreamProvider sign(ContentStreamProvider payload, V4aContext v4aContext) {
+    public ContentStreamProvider sign(ContentStreamProvider payload, V4aRequestSigningResult requestSigningResult) {
         InputStream inputStream = payload != null ? payload.newStream() : new StringInputStream("");
         ChunkedEncodedInputStream.Builder chunkedEncodedInputStreamBuilder = ChunkedEncodedInputStream
             .builder()
@@ -78,9 +78,10 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
 
         preExistingTrailers.forEach(trailer -> chunkedEncodedInputStreamBuilder.addTrailer(() -> trailer));
 
-        switch (v4aContext.getSigningConfig().getSignedBodyValue()) {
+        switch (requestSigningResult.getSigningConfig().getSignedBodyValue()) {
             case STREAMING_ECDSA_SIGNED_PAYLOAD: {
-                RollingSigner rollingSigner = new RollingSigner(v4aContext.getSignature(), v4aContext.getSigningConfig());
+                RollingSigner rollingSigner = new RollingSigner(requestSigningResult.getSignature(),
+                                                                requestSigningResult.getSigningConfig());
                 chunkedEncodedInputStreamBuilder.addExtension(new SigV4aChunkExtensionProvider(rollingSigner, credentialScope));
                 break;
             }
@@ -88,7 +89,8 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
                 setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder);
                 break;
             case STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER: {
-                RollingSigner rollingSigner = new RollingSigner(v4aContext.getSignature(), v4aContext.getSigningConfig());
+                RollingSigner rollingSigner = new RollingSigner(requestSigningResult.getSignature(),
+                                                                requestSigningResult.getSigningConfig());
                 chunkedEncodedInputStreamBuilder.addExtension(new SigV4aChunkExtensionProvider(rollingSigner, credentialScope));
                 setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder);
                 chunkedEncodedInputStreamBuilder.addTrailer(

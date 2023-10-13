@@ -15,19 +15,17 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThrows;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
 import java.util.Map;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -117,17 +115,28 @@ public class WriteBatchTest {
 
         WriteBatch.Builder<FakeItem> builder = WriteBatch.builder(FakeItem.class);
 
-        assertThrowsMappedTableResourceNullException(() -> builder.addPutItem(putItemRequest));
-        assertThrowsMappedTableResourceNullException(() -> builder.addPutItem(fakeItem));
-        assertThrowsMappedTableResourceNullException(() -> builder.addPutItem(r -> r.item(fakeItem)));
-        assertThrowsMappedTableResourceNullException(() -> builder.addDeleteItem(deleteItemRequest));
-        assertThrowsMappedTableResourceNullException(() -> builder.addDeleteItem(fakeItem));
-        assertThrowsMappedTableResourceNullException(() -> builder.addDeleteItem(r -> r.key(partitionKey)));
+        String errorMesageAfterBuild = "A mappedTableResource (table) is required when generating the write requests for "
+                                       + "WriteBatch";
+
+        assertThrowsMappedTableResourceNullException(() -> builder.addPutItem(putItemRequest).build(),
+                                                     errorMesageAfterBuild);
+        assertThrowsMappedTableResourceNullException(() -> builder.addPutItem(fakeItem).build(),
+                                                     errorMesageAfterBuild);
+        assertThrowsMappedTableResourceNullException(() -> builder.addPutItem(r -> r.item(fakeItem)).build(),
+                                                     errorMesageAfterBuild);
+        assertThrowsMappedTableResourceNullException(() -> builder.addDeleteItem(r -> r.key(partitionKey)).build(),
+                                                     errorMesageAfterBuild);
+        assertThrowsMappedTableResourceNullException(() -> builder.addDeleteItem(deleteItemRequest).build(),
+                                                     errorMesageAfterBuild);
+
+        String errorMessageDeleteKeyFromItem = "A mappedTableResource is required to derive a key from the given keyItem";
+        assertThrowsMappedTableResourceNullException(() -> builder.addDeleteItem(fakeItem).build(),
+                                                     errorMessageDeleteKeyFromItem);
     }
 
-    private static void assertThrowsMappedTableResourceNullException(ThrowingRunnable runnable) {
-        NullPointerException exception = assertThrows(NullPointerException.class, runnable);
-        assertThat(exception.getMessage(), is("A mappedTableResource (table) is required when building a WriteBatch"));
+
+    private static void assertThrowsMappedTableResourceNullException(ThrowableAssert.ThrowingCallable runnable, String message) {
+        assertThatThrownBy(runnable).isInstanceOf(NullPointerException.class).hasMessage(message);
     }
 
     private static WriteRequest putRequest(Map<String, AttributeValue> itemMap) {

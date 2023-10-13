@@ -78,7 +78,7 @@ final class AddOperations {
      * @return True if shape is a String type. False otherwise
      */
     private static boolean isStringShape(Shape shape) {
-        return shape != null && "String".equals(shape.getType());
+        return shape != null && "String".equalsIgnoreCase(shape.getType());
     }
 
     /**
