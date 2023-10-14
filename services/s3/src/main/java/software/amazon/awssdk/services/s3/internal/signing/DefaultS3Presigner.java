@@ -17,34 +17,40 @@ package software.amazon.awssdk.services.s3.internal.signing;
 
 import static java.util.stream.Collectors.toMap;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.PRESIGNER_EXPIRATION;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
-import software.amazon.awssdk.awscore.internal.authcontext.AwsCredentialsAuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -57,6 +63,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.signer.Presigner;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -64,9 +71,16 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -107,6 +121,7 @@ import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -118,7 +133,6 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3Presigner {
     private static final Logger log = Logger.loggerFor(DefaultS3Presigner.class);
 
-    private static final AwsS3V4Signer DEFAULT_SIGNER = AwsS3V4Signer.create();
     private static final String SERVICE_NAME = "s3";
     private static final String SIGNING_NAME = "s3";
 
@@ -330,7 +344,15 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                                               Function<U, SdkHttpFullRequest> requestMarshaller,
                                                               String operationName) {
 
-        ExecutionContext execCtx = invokeInterceptorsAndCreateExecutionContext(presignRequest, requestToPresign, operationName);
+        // A fixed signingClock is used, so that the current time used by the signing logic, as well as to determine expiration
+        // are the same.
+        Instant signingInstant = Instant.now();
+        Clock signingClock = Clock.fixed(signingInstant, ZoneOffset.UTC);
+        Duration expirationDuration = presignRequest.signatureDuration();
+        Instant expiration = signingInstant.plus(expirationDuration);
+
+        ExecutionContext execCtx =
+            invokeInterceptorsAndCreateExecutionContext(presignRequest, requestToPresign, operationName, expiration);
 
         callBeforeMarshallingHooks(execCtx);
         marshalRequestAndUpdateContext(execCtx, requestToPresignType, requestMarshaller);
@@ -339,9 +361,12 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         callModifyHttpRequestHooksAndUpdateContext(execCtx);
 
         SdkHttpFullRequest httpRequest = getHttpFullRequest(execCtx);
-        SdkHttpFullRequest signedHttpRequest = presignRequest(execCtx, httpRequest);
 
-        initializePresignedRequest(presignedRequest, execCtx, signedHttpRequest);
+        SdkHttpFullRequest signedHttpRequest = execCtx.signer() != null
+                                               ? presignRequest(execCtx, httpRequest)
+                                               : sraPresignRequest(execCtx, httpRequest, signingClock, expirationDuration);
+
+        initializePresignedRequest(presignedRequest, execCtx, signedHttpRequest, expiration);
 
         return presignedRequest;
     }
@@ -351,7 +376,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      */
     private ExecutionContext invokeInterceptorsAndCreateExecutionContext(PresignRequest presignRequest,
                                                                          SdkRequest sdkRequest,
-                                                                         String operationName) {
+                                                                         String operationName,
+                                                                         Instant expiration) {
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
@@ -362,7 +388,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
-            .putAttribute(PRESIGNER_EXPIRATION, Instant.now().plus(presignRequest.signatureDuration()))
+            .putAttribute(PRESIGNER_EXPIRATION, expiration)
             .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfiguration.option(SdkClientOption.ENDPOINT))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
                           clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
@@ -373,10 +399,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams)
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, S3AuthSchemeProvider.defaultProvider())
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
-            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS,
-                          IdentityProviders.builder()
-                                           .putIdentityProvider(credentialsProvider())
-                                           .build());
+            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, resolveIdentityProviders(sdkRequest));
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
 
@@ -386,23 +409,29 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         interceptorContext = AwsExecutionContextBuilder.runInitialInterceptors(interceptorContext,
                                                                                executionAttributes,
                                                                                executionInterceptorChain);
-        AwsCredentialsAuthorizationStrategy authorizationContext =
-            AwsCredentialsAuthorizationStrategy.builder()
-                                               .request(interceptorContext.request())
-                                               .defaultSigner(DEFAULT_SIGNER)
-                                               .defaultCredentialsProvider(credentialsProvider())
-                                               .metricCollector(NoOpMetricCollector.create())
-                                               .build();
 
-        authorizationContext.addCredentialsToExecutionAttributes(executionAttributes);
+        Signer signer = sdkRequest.overrideConfiguration().flatMap(RequestOverrideConfiguration::signer).orElse(null);
 
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
                                .executionAttributes(executionAttributes)
-                               .signer(authorizationContext.resolveSigner())
+                               .signer(signer)
                                .build();
     }
+
+    private IdentityProviders resolveIdentityProviders(SdkRequest originalRequest) {
+        IdentityProvider<? extends AwsCredentialsIdentity> identityProvider =
+            originalRequest.overrideConfiguration()
+                           .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+                           .map(c -> (AwsRequestOverrideConfiguration) c)
+                           .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                           .orElse(credentialsProvider());
+        return IdentityProviders.builder()
+                                .putIdentityProvider(identityProvider)
+                                .build();
+    }
+
 
     private Map<String, AuthScheme<?>> authSchemes() {
         Map<String, AuthScheme<?>> schemes = new HashMap<>(2);
@@ -510,7 +539,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     }
 
     /**
-     * Presign the provided HTTP request.
+     * Presign the provided HTTP request using old Signer
      */
     private SdkHttpFullRequest presignRequest(ExecutionContext execCtx, SdkHttpFullRequest request) {
         Presigner presigner = Validate.isInstanceOf(Presigner.class, execCtx.signer(),
@@ -521,19 +550,67 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     }
 
     /**
+     * Presign the provided HTTP request using SRA HttpSigner
+     */
+    private SdkHttpFullRequest sraPresignRequest(ExecutionContext execCtx, SdkHttpFullRequest request,
+                                              Clock signingClock, Duration expirationDuration) {
+        SelectedAuthScheme selectedAuthScheme = execCtx.executionAttributes().getAttribute(SELECTED_AUTH_SCHEME);
+        return doSraPresign(request, selectedAuthScheme, signingClock, expirationDuration);
+    }
+
+    private <T extends Identity> SdkHttpFullRequest doSraPresign(SdkHttpFullRequest request,
+                                                                 SelectedAuthScheme<T> selectedAuthScheme,
+                                                                 Clock signingClock, Duration expirationDuration) {
+        CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
+        T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
+
+        // presigned url puts auth info in query string, does not sign the payload, and has an expiry.
+        SignRequest.Builder<T> signRequestBuilder = SignRequest
+            .builder(identity)
+            .putProperty(AwsV4FamilyHttpSigner.AUTH_LOCATION, AwsV4FamilyHttpSigner.AuthLocation.QUERY_STRING)
+            .putProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED, false)
+            .putProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION, expirationDuration)
+            .putProperty(HttpSigner.SIGNING_CLOCK, signingClock)
+            .request(request)
+            .payload(request.contentStreamProvider().orElse(null));
+        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+
+        HttpSigner<T> signer = selectedAuthScheme.signer();
+        SignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+        return toSdkHttpFullRequest(signedRequest);
+    }
+
+    private SdkHttpFullRequest toSdkHttpFullRequest(SignedRequest signedRequest) {
+        SdkHttpRequest request = signedRequest.request();
+
+        return SdkHttpFullRequest.builder()
+                                 .contentStreamProvider(signedRequest.payload().orElse(null))
+                                 .protocol(request.protocol())
+                                 .method(request.method())
+                                 .host(request.host())
+                                 .port(request.port())
+                                 .encodedPath(request.encodedPath())
+                                 .applyMutation(r -> request.forEachHeader(r::putHeader))
+                                 .applyMutation(r -> request.forEachRawQueryParameter(r::putRawQueryParameter))
+                                 .build();
+    }
+
+    /**
      * Initialize the provided presigned request.
      */
     private void initializePresignedRequest(PresignedRequest.Builder presignedRequest,
                                             ExecutionContext execCtx,
-                                            SdkHttpFullRequest signedHttpRequest) {
+                                            SdkHttpFullRequest signedHttpRequest,
+                                            Instant expiration) {
         SdkBytes signedPayload = signedHttpRequest.contentStreamProvider()
                                                   .map(p -> SdkBytes.fromInputStream(p.newStream()))
                                                   .orElse(null);
 
         List<String> signedHeadersQueryParam = signedHttpRequest.firstMatchingRawQueryParameters("X-Amz-SignedHeaders");
         Validate.validState(!signedHeadersQueryParam.isEmpty(),
-                            "Only SigV4 presigners are supported at this time, but the configured "
-                            + "presigner (%s) did not seem to generate a SigV4 signature.", execCtx.signer());
+                            "Only SigV4 signers are supported at this time, but the configured "
+                            + "signer did not seem to generate a SigV4 signature.");
 
         Map<String, List<String>> signedHeaders =
             signedHeadersQueryParam.stream()
@@ -547,7 +624,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                       (signedHeaders.isEmpty() ||
                                        (signedHeaders.size() == 1 && signedHeaders.containsKey("host")));
 
-        presignedRequest.expiration(execCtx.executionAttributes().getAttribute(PRESIGNER_EXPIRATION))
+        presignedRequest.expiration(expiration)
                         .isBrowserExecutable(isBrowserExecutable)
                         .httpRequest(signedHttpRequest)
                         .signedHeaders(signedHeaders)

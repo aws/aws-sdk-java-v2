@@ -209,13 +209,14 @@ public class S3PresignerTest {
                                                                                             .key("bar")
                                                                                             .overrideConfiguration(override))))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("NoOpSigner");
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
     }
 
     @Test
     public void getObject_Sigv4PresignerHonorsSignatureDuration() {
         AwsRequestOverrideConfiguration override =
             AwsRequestOverrideConfiguration.builder()
+                                           // TODO(sra-identity-auth): This test shouldn't need signer configured.
                                            .signer(AwsS3V4Signer.create())
                                            .build();
 
@@ -227,6 +228,7 @@ public class S3PresignerTest {
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();
+            // TODO(sra-identity-auth): This should be isEqualTo(1234)?
             assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
         });
     }
@@ -319,13 +321,14 @@ public class S3PresignerTest {
                                                                                             .key("bar")
                                                                                             .overrideConfiguration(override))))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("NoOpSigner");
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
     }
 
     @Test
     public void putObject_Sigv4PresignerHonorsSignatureDuration() {
         AwsRequestOverrideConfiguration override =
             AwsRequestOverrideConfiguration.builder()
+                                           // TODO(sra-identity-auth): This test shouldn't need signer configured.
                                            .signer(AwsS3V4Signer.create())
                                            .build();
 
@@ -337,6 +340,7 @@ public class S3PresignerTest {
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();
+            // TODO(sra-identity-auth): This should be isEqualTo(1234)?
             assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
         });
     }
@@ -429,13 +433,14 @@ public class S3PresignerTest {
                                                                                                     .key("bar")
                                                                                                     .overrideConfiguration(override))))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("NoOpSigner");
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
     }
 
     @Test
     public void deleteObject_Sigv4PresignerHonorsSignatureDuration() {
         AwsRequestOverrideConfiguration override =
             AwsRequestOverrideConfiguration.builder()
+                                           // TODO(sra-identity-auth): This test shouldn't need signer configured.
                                            .signer(AwsS3V4Signer.create())
                                            .build();
 
@@ -447,6 +452,7 @@ public class S3PresignerTest {
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();
+            // TODO(sra-identity-auth): This should be isEqualTo(1234)?
             assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
         });
     }
