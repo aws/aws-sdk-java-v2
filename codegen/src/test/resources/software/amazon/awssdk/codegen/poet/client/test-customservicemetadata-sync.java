@@ -6,6 +6,8 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
@@ -39,6 +41,9 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 final class DefaultProtocolRestJsonWithCustomContentTypeClient implements ProtocolRestJsonWithCustomContentTypeClient {
     private static final Logger log = Logger.loggerFor(DefaultProtocolRestJsonWithCustomContentTypeClient.class);
+
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -94,9 +99,10 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OneOperation");
 
             return clientHandler.execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                                             .withOperationName("OneOperation").withServiceProtocol("rest-json").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
-                                             .withInput(oneOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withOperationName("OneOperation").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(oneOperationRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));

@@ -11,6 +11,8 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
@@ -43,6 +45,9 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @SdkInternalApi
 final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements ProtocolRestJsonWithCustomContentTypeAsyncClient {
     private static final Logger log = LoggerFactory.getLogger(DefaultProtocolRestJsonWithCustomContentTypeAsyncClient.class);
+
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
 
     private final AsyncClientHandler clientHandler;
 
@@ -101,7 +106,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
             CompletableFuture<OneOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                             .withOperationName("OneOperation").withServiceProtocol("rest-json")
+                             .withOperationName("OneOperation").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OneOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)

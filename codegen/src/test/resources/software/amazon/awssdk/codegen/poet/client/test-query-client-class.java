@@ -9,6 +9,8 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
@@ -86,6 +88,9 @@ import software.amazon.awssdk.utils.Logger;
 final class DefaultQueryClient implements QueryClient {
     private static final Logger log = Logger.loggerFor(DefaultQueryClient.class);
 
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.QUERY).build();
+
     private final SyncClientHandler clientHandler;
 
     private final AwsQueryProtocolFactory protocolFactory;
@@ -142,10 +147,10 @@ final class DefaultQueryClient implements QueryClient {
             String resolvedHostExpression = "foo-";
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withOperationName("APostOperation").withServiceProtocol("query").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
-                                             .withRequestConfiguration(clientConfiguration).withInput(aPostOperationRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
+                                             .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -193,7 +198,7 @@ final class DefaultQueryClient implements QueryClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput").withServiceProtocol("query")
+                             .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
                              .withMetricCollector(apiCallMetricCollector)
@@ -239,10 +244,10 @@ final class DefaultQueryClient implements QueryClient {
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
 
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                                             .withOperationName("BearerAuthOperation").withServiceProtocol("query").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).credentialType(CredentialType.TOKEN)
-                                             .withRequestConfiguration(clientConfiguration).withInput(bearerAuthOperationRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withOperationName("BearerAuthOperation").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
+                                             .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -287,7 +292,7 @@ final class DefaultQueryClient implements QueryClient {
             return clientHandler
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
                              .withOperationName("GetOperationWithChecksum")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
@@ -342,7 +347,7 @@ final class DefaultQueryClient implements QueryClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
@@ -393,7 +398,7 @@ final class DefaultQueryClient implements QueryClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithContextParamRequest, OperationWithContextParamResponse>()
-                             .withOperationName("OperationWithContextParam").withServiceProtocol("query")
+                             .withOperationName("OperationWithContextParam").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithContextParamRequest)
                              .withMetricCollector(apiCallMetricCollector)
@@ -440,7 +445,7 @@ final class DefaultQueryClient implements QueryClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType").withServiceProtocol("query")
+                             .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
                              .withMetricCollector(apiCallMetricCollector)
@@ -489,7 +494,7 @@ final class DefaultQueryClient implements QueryClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
                              .withOperationName("OperationWithRequestCompression")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
@@ -540,7 +545,7 @@ final class DefaultQueryClient implements QueryClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
-                             .withOperationName("OperationWithStaticContextParams").withServiceProtocol("query")
+                             .withOperationName("OperationWithStaticContextParams").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithStaticContextParamsRequest)
                              .withMetricCollector(apiCallMetricCollector)
@@ -614,7 +619,7 @@ final class DefaultQueryClient implements QueryClient {
             return clientHandler
                 .execute(new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
                              .withOperationName("PutOperationWithChecksum")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
@@ -684,7 +689,7 @@ final class DefaultQueryClient implements QueryClient {
             return clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                              .withOperationName("StreamingInputOperation")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
@@ -744,7 +749,7 @@ final class DefaultQueryClient implements QueryClient {
 
             return clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation").withServiceProtocol("query")
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
                     .withMetricCollector(apiCallMetricCollector)

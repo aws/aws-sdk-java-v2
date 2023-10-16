@@ -11,6 +11,8 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
@@ -46,6 +48,9 @@ import software.amazon.awssdk.utils.HostnameValidator;
 @SdkInternalApi
 final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompatibleAsyncClient {
     private static final Logger log = LoggerFactory.getLogger(DefaultQueryToJsonCompatibleAsyncClient.class);
+
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.AWS_JSON).build();
 
     private final AsyncClientHandler clientHandler;
 
@@ -111,7 +116,7 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                             .withOperationName("APostOperation").withServiceProtocol("json")
+                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)

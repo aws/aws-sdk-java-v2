@@ -16,6 +16,8 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
@@ -94,6 +96,9 @@ import software.amazon.awssdk.utils.Pair;
 final class DefaultQueryAsyncClient implements QueryAsyncClient {
     private static final Logger log = LoggerFactory.getLogger(DefaultQueryAsyncClient.class);
 
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.QUERY).build();
+
     private final AsyncClientHandler clientHandler;
 
     private final AwsQueryProtocolFactory protocolFactory;
@@ -156,7 +161,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                             .withOperationName("APostOperation").withServiceProtocol("query")
+                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -215,7 +220,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput").withServiceProtocol("query")
+                             .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -271,7 +276,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
             CompletableFuture<BearerAuthOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                             .withOperationName("BearerAuthOperation").withServiceProtocol("query")
+                             .withOperationName("BearerAuthOperation").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
@@ -327,7 +332,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             CompletableFuture<GetOperationWithChecksumResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
                              .withOperationName("GetOperationWithChecksum")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
@@ -390,7 +395,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             CompletableFuture<OperationWithChecksumRequiredResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
@@ -448,7 +453,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
             CompletableFuture<OperationWithContextParamResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithContextParamRequest, OperationWithContextParamResponse>()
-                             .withOperationName("OperationWithContextParam").withServiceProtocol("query")
+                             .withOperationName("OperationWithContextParam").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -503,7 +508,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
             CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType").withServiceProtocol("query")
+                             .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -561,7 +566,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             CompletableFuture<OperationWithRequestCompressionResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
                              .withOperationName("OperationWithRequestCompression")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
@@ -621,7 +626,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
             CompletableFuture<OperationWithStaticContextParamsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
-                             .withOperationName("OperationWithStaticContextParams").withServiceProtocol("query")
+                             .withOperationName("OperationWithStaticContextParams").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -703,7 +708,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
                     .withOperationName("PutOperationWithChecksum")
-                    .withServiceProtocol("query")
+                    .withProtocolMetadata(protocolMetadata)
                     .withMarshaller(
                         AsyncStreamingRequestMarshaller.builder()
                                                        .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
@@ -788,7 +793,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                              .withOperationName("StreamingInputOperation")
-                             .withServiceProtocol("query")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(
                                  AsyncStreamingRequestMarshaller.builder()
                                                                 .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
@@ -856,7 +861,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation").withServiceProtocol("query")
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)

@@ -18,6 +18,8 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransf
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkPojoBuilder;
@@ -118,6 +120,9 @@ import software.amazon.awssdk.utils.Pair;
 final class DefaultJsonAsyncClient implements JsonAsyncClient {
     private static final Logger log = LoggerFactory.getLogger(DefaultJsonAsyncClient.class);
 
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.AWS_JSON).build();
+
     private final AsyncClientHandler clientHandler;
 
     private final AwsJsonProtocolFactory protocolFactory;
@@ -190,7 +195,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                             .withOperationName("APostOperation").withServiceProtocol("json")
+                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -253,7 +258,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput").withServiceProtocol("json")
+                             .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -333,7 +338,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<Void> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationRequest, SdkResponse>()
-                    .withOperationName("EventStreamOperation").withServiceProtocol("json")
+                    .withOperationName("EventStreamOperation").withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
                     .withAsyncRequestBody(AsyncRequestBody.fromPublisher(adapted)).withFullDuplex(true)
                     .withInitialRequestEvent(true).withResponseHandler(voidResponseHandler)
@@ -410,7 +415,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<EventStreamOperationWithOnlyInputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<EventStreamOperationWithOnlyInputRequest, EventStreamOperationWithOnlyInputResponse>()
-                             .withOperationName("EventStreamOperationWithOnlyInput").withServiceProtocol("json")
+                             .withOperationName("EventStreamOperationWithOnlyInput").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new EventStreamOperationWithOnlyInputRequestMarshaller(protocolFactory))
                              .withAsyncRequestBody(AsyncRequestBody.fromPublisher(adapted)).withInitialRequestEvent(true)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
@@ -488,7 +493,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<Void> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationWithOnlyOutputRequest, SdkResponse>()
-                    .withOperationName("EventStreamOperationWithOnlyOutput").withServiceProtocol("json")
+                    .withOperationName("EventStreamOperationWithOnlyOutput").withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new EventStreamOperationWithOnlyOutputRequestMarshaller(protocolFactory))
                     .withResponseHandler(voidResponseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -559,7 +564,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<GetWithoutRequiredMembersResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                             .withOperationName("GetWithoutRequiredMembers").withServiceProtocol("json")
+                             .withOperationName("GetWithoutRequiredMembers").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -619,7 +624,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             CompletableFuture<OperationWithChecksumRequiredResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
-                             .withServiceProtocol("json")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
@@ -680,7 +685,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType").withServiceProtocol("json")
+                             .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -740,7 +745,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             CompletableFuture<OperationWithRequestCompressionResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
                              .withOperationName("OperationWithRequestCompression")
-                             .withServiceProtocol("json")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
@@ -803,7 +808,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<PaginatedOperationWithResultKeyResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithResultKey").withServiceProtocol("json")
+                             .withOperationName("PaginatedOperationWithResultKey").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -862,7 +867,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<PaginatedOperationWithoutResultKeyResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithoutResultKey").withServiceProtocol("json")
+                             .withOperationName("PaginatedOperationWithoutResultKey").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
@@ -926,7 +931,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                              .withOperationName("StreamingInputOperation")
-                             .withServiceProtocol("json")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(
                                  AsyncStreamingRequestMarshaller.builder()
                                                                 .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
@@ -1003,7 +1008,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
                     .withOperationName("StreamingInputOutputOperation")
-                    .withServiceProtocol("json")
+                    .withProtocolMetadata(protocolMetadata)
                     .withMarshaller(
                         AsyncStreamingRequestMarshaller
                             .builder()
@@ -1087,7 +1092,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation").withServiceProtocol("json")
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)

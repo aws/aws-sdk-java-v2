@@ -9,6 +9,8 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
@@ -81,6 +83,9 @@ import software.amazon.awssdk.utils.Logger;
 final class DefaultXmlClient implements XmlClient {
     private static final Logger log = Logger.loggerFor(DefaultXmlClient.class);
 
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.REST_XML).build();
+
     private final SyncClientHandler clientHandler;
 
     private final AwsXmlProtocolFactory protocolFactory;
@@ -135,7 +140,7 @@ final class DefaultXmlClient implements XmlClient {
             String resolvedHostExpression = "foo-";
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withOperationName("APostOperation").withServiceProtocol("rest-xml")
+                                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
                                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                                              .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
                                              .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
@@ -184,7 +189,7 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput").withServiceProtocol("rest-xml")
+                             .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
@@ -228,7 +233,7 @@ final class DefaultXmlClient implements XmlClient {
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
 
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                                             .withOperationName("BearerAuthOperation").withServiceProtocol("rest-xml")
+                                             .withOperationName("BearerAuthOperation").withProtocolMetadata(protocolMetadata)
                                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                                              .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
                                              .withInput(bearerAuthOperationRequest)
@@ -275,7 +280,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
                              .withOperationName("GetOperationWithChecksum")
-                             .withServiceProtocol("rest-xml")
+                             .withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
@@ -328,7 +333,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
-                             .withServiceProtocol("rest-xml")
+                             .withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
@@ -377,7 +382,7 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType").withServiceProtocol("rest-xml")
+                             .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
@@ -424,7 +429,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
                              .withOperationName("OperationWithRequestCompression")
-                             .withServiceProtocol("rest-xml")
+                             .withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
@@ -501,7 +506,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
                              .withOperationName("PutOperationWithChecksum")
-                             .withServiceProtocol("rest-xml")
+                             .withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
@@ -570,7 +575,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                              .withOperationName("StreamingInputOperation")
-                             .withServiceProtocol("rest-xml")
+                             .withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
@@ -629,7 +634,7 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation").withServiceProtocol("rest-xml")
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
                     .withMetricCollector(apiCallMetricCollector)
