@@ -60,7 +60,6 @@ class AwsSignerExecutionAttributeTest {
     public void setup() {
         this.attributes = new ExecutionAttributes();
         this.testClock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
-        AwsSignerExecutionAttribute.presignerExpirationClock(testClock);
     }
 
     @Test
