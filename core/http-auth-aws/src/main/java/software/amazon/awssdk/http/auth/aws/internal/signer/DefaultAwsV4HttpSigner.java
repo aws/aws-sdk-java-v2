@@ -29,6 +29,9 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerCo
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -83,6 +86,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, signingInstant);
         boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
         boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
+        String excludedHeaders = request.property(EXCLUDED_HEADERS);
+        List<String> excludedHeadersAsString = excludedHeaders != null ? Arrays.asList(excludedHeaders.split(",")) : new ArrayList<>();
 
         return V4Properties.builder()
                            .credentials(credentials)
@@ -90,6 +95,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                            .signingClock(signingClock)
                            .doubleUrlEncode(doubleUrlEncode)
                            .normalizePath(normalizePath)
+                           .excludedHeaders(excludedHeadersAsString)
                            .build();
     }
 

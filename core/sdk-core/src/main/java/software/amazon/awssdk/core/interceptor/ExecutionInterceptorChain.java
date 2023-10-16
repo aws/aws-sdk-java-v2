@@ -59,7 +59,10 @@ public class ExecutionInterceptorChain {
     }
 
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-        interceptors.forEach(i -> i.beforeExecution(context, executionAttributes));
+        for (ExecutionInterceptor interceptor : interceptors) {
+            interceptor.beforeExecution(context, executionAttributes);
+        }
+       // interceptors.forEach(i -> i.beforeExecution(context, executionAttributes));
     }
 
     public InterceptorContext modifyRequest(InterceptorContext context, ExecutionAttributes executionAttributes) {
