@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2 Codegen", 
-    "contributor": "sugmanue", 
-    "type": "bugfix", 
-    "description": "Use the correct name for the SdkClientConfigurationUtil.java.resource resource file. The name should have the .resource suffix."
-}
