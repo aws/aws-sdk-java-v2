@@ -80,7 +80,6 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
     @Override
     public ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
         request.metricCollector()
-               .filter(metricCollector -> !(metricCollector instanceof NoOpMetricCollector))
                .ifPresent(metricCollector -> metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName()));
 
         /*

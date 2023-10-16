@@ -81,7 +81,6 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         paramNotNull(asyncRequest.responseHandler(), "ResponseHandler");
 
         asyncRequest.metricCollector()
-                    .filter(metricCollector -> !(metricCollector instanceof NoOpMetricCollector))
                     .ifPresent(metricCollector -> metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName()));
 
         /*

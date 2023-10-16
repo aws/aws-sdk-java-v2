@@ -272,18 +272,13 @@ public final class CrtRequestExecutor {
 
             CompletableFuture<Void> writeFuture = simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
 
-            // go ahead and let back pressure know we consumed the data.
-            if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {
-                return bodyBytesIn.length;
-            }
-
             writeFuture.whenComplete((result, failure) -> {
                 if (failure != null) {
                     requestCompletionFuture.completeExceptionally(failure);
                     return;
                 }
 
-                // otherwise, increment the window upon buffer consumption.
+                // increment the window upon buffer consumption.
                 stream.incrementWindow(bodyBytesIn.length);
             });
 

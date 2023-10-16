@@ -42,6 +42,7 @@ import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtClientBen
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.ApacheHttpClientBenchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.sync.CrtHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.UrlConnectionHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.Ec2ProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.JsonProtocolBenchmark;
@@ -75,7 +76,8 @@ public class BenchmarkRunner {
 
     private static final List<String> SYNC_BENCHMARKS = Arrays.asList(
         ApacheHttpClientBenchmark.class.getSimpleName(),
-        UrlConnectionHttpClientBenchmark.class.getSimpleName());
+        UrlConnectionHttpClientBenchmark.class.getSimpleName(),
+        CrtHttpClientBenchmark.class.getSimpleName());
 
     private static final List<String> COLD_START_BENCHMARKS = Arrays.asList(
         V2OptimizedClientCreationBenchmark.class.getSimpleName(),
