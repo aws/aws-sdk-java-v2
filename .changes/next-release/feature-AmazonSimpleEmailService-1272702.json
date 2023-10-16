@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Email Service",
-    "contributor": "",
-    "description": "This release provides enhanced visibility into your SES identity verification status. This will offer you more actionable insights, enabling you to promptly address any verification-related issues."
-}
