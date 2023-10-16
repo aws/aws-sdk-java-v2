@@ -1,3 +1,54 @@
+# __2.21.1__ __2023-10-16__
+## __AWS CloudFormation__
+  - ### Features
+    - SDK and documentation updates for UpdateReplacePolicy
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release allows customers to manage MediaPackage v2 resource using CloudFormation.
+
+## __AWS EntityResolution__
+  - ### Features
+    - This launch expands our matching techniques to include provider-based matching to help customer match, link, and enhance records with minimal data movement. With data service providers, we have removed the need for customers to build bespoke integrations,.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds support for non-XML String payloads
+    - Proxy Configuration from Environment Variables for all SDK clients, including Apache, Netty, URL, and CRT HTTP clients PR [#4467](https://github.com/aws/aws-sdk-java-v2/issues/4467)
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Documentation updates for AWS Transfer Family
+
+## __AWS X-Ray__
+  - ### Features
+    - This releases enhances GetTraceSummaries API to support new TimeRangeType Service to query trace summaries by segment end time.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - This release introduces two new APIs: GetAssetContract and ListAssetContracts. This release also adds support for Bitcoin Testnet.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release allows customers to list and associate optional plugin packages with compatible Amazon OpenSearch Service clusters for enhanced functionality.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support for managing credentials of provisioned cluster admin using AWS Secrets Manager.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release provides enhanced visibility into your SES identity verification status. This will offer you more actionable insights, enabling you to promptly address any verification-related issues.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Updated exsiting API to allow AWS Elastic Disaster Recovery support of launching recovery into existing EC2 instances.
+
+## __Redshift Serverless__
+  - ### Features
+    - Added support for managing credentials of serverless namespace admin using AWS Secrets Manager.
+
 # __2.21.0__ __2023-10-12__
 ## __AWS Audit Manager__
   - ### Features
@@ -611,7 +662,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2352,7 +2403,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

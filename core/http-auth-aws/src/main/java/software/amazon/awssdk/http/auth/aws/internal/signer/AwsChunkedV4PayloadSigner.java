@@ -223,7 +223,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
 
     private long calculateTrailerLength(Pair<String, List<String>> trailer) {
         // size of trailer-header and colon
-        long lengthInBytes = trailer.left().length() + 1;
+        long lengthInBytes = trailer.left().length() + 1L;
 
         // size of trailer-values
         for (String value : trailer.right()) {
@@ -239,7 +239,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
 
     private long calculateChecksumTrailerLength(String checksumHeaderName) {
         // size of checksum trailer-header and colon
-        long lengthInBytes = checksumHeaderName.length() + 1;
+        long lengthInBytes = checksumHeaderName.length() + 1L;
 
         // get the base checksum for the algorithm
         SdkChecksum sdkChecksum = fromChecksumAlgorithm(checksumAlgorithm);
