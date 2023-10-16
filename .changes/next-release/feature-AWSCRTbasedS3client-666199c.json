@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT-based S3 client",
+    "contributor": "",
+    "description": "Added a boolean flag, 'useEnvironmentVariableValues,' to the S3CrtProxyConfiguration to enable the disabling of reading ProxyConfig from environment variables by the CRT client."
+}
