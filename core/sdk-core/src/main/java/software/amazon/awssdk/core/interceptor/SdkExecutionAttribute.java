@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
+import software.amazon.awssdk.core.internal.SdkProtocolMetadata;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
@@ -63,9 +64,9 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<String> SERVICE_NAME = new ExecutionAttribute<>("ServiceName");
 
     /**
-     * The key under which the service protocol is stored.
+     * The key under which the protocol metadata is stored.
      */
-    public static final ExecutionAttribute<String> SERVICE_PROTOCOL = new ExecutionAttribute<>("ServiceProtocol");
+    public static final ExecutionAttribute<SdkProtocolMetadata> PROTOCOL_METADATA = new ExecutionAttribute<>("ProtocolMetadata");
 
     /**
      * The key under which the time offset (for clock skew correction) is stored.

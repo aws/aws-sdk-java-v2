@@ -111,7 +111,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()",
                           ClientExecutionParams.class, requestType, responseType)
                      .add(".withOperationName($S)\n", opModel.getOperationName())
-                     .add(".withServiceProtocol($S)\n", opModel.getServiceProtocol())
+                     .add(".withProtocolMetadata(protocolMetadata)\n")
                      .add(".withResponseHandler(responseHandler)\n")
                      .add(".withErrorResponseHandler(errorResponseHandler)\n")
                      .add(hostPrefixExpression(opModel))
@@ -153,7 +153,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                           CompletableFuture.class, executeFutureValueType, ClientExecutionParams.class,
                           requestType, pojoResponseType)
                      .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
-                     .add(".withServiceProtocol($S)\n", opModel.getServiceProtocol())
+                     .add(".withProtocolMetadata(protocolMetadata)\n")
                      .add(".withMarshaller($L)\n",
                           asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"))
                      .add(".withResponseHandler(responseHandler)\n")

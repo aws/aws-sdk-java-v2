@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.SdkProtocolMetadata;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -52,7 +53,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private boolean hasInitialRequestEvent;
     private String hostPrefixExpression;
     private String operationName;
-    private String serviceProtocol;
+    private SdkProtocolMetadata protocolMetadata;
     private URI discoveredEndpoint;
     private CredentialType credentialType;
     private MetricCollector metricCollector;
@@ -168,15 +169,15 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return this;
     }
 
-    public String getServiceProtocol() {
-        return serviceProtocol;
+    public SdkProtocolMetadata getProtocolMetadata() {
+        return protocolMetadata;
     }
 
     /**
-     * Sets the service protocol of the API.
+     * Sets the protocol metadata of the API.
      */
-    public ClientExecutionParams<InputT, OutputT> withServiceProtocol(String serviceProtocol) {
-        this.serviceProtocol = serviceProtocol;
+    public ClientExecutionParams<InputT, OutputT> withProtocolMetadata(SdkProtocolMetadata protocolMetadata) {
+        this.protocolMetadata = protocolMetadata;
         return this;
     }
 

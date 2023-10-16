@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.SdkProtocolMetadata;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -143,7 +144,8 @@ public class QueryParametersToBodyStageTest {
 
     private RequestExecutionContext createRequestExecutionContext(String serviceProtocol) {
         ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
-                                                                     .put(SdkExecutionAttribute.SERVICE_PROTOCOL, serviceProtocol)
+                                                                     .put(SdkExecutionAttribute.PROTOCOL_METADATA,
+                                                                          new TestProtocolMetadata(serviceProtocol))
                                                                      .build();
         ExecutionContext executionContext = ExecutionContext.builder()
                                                             .executionAttributes(executionAttributes)
@@ -152,5 +154,19 @@ public class QueryParametersToBodyStageTest {
                                       .originalRequest(NoopTestRequest.builder().build())
                                       .executionContext(executionContext)
                                       .build();
+    }
+
+    private final class TestProtocolMetadata implements SdkProtocolMetadata {
+
+        private String serviceProtocol;
+
+        TestProtocolMetadata(String serviceProtocol) {
+            this.serviceProtocol = serviceProtocol;
+        }
+
+        @Override
+        public String serviceProtocol() {
+            return serviceProtocol;
+        }
     }
 }

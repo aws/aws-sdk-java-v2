@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.SdkProtocolMetadata;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -50,7 +51,12 @@ public class QueryParametersToBodyStage implements MutableRequestToRequestPipeli
     }
 
     private boolean shouldPutParamsInBody(SdkHttpFullRequest request, RequestExecutionContext context) {
-        String protocol = context.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_PROTOCOL);
+        SdkProtocolMetadata protocolMetadata =
+            context.executionAttributes().getAttribute(SdkExecutionAttribute.PROTOCOL_METADATA);
+        if (protocolMetadata == null) {
+            return false;
+        }
+        String protocol = protocolMetadata.serviceProtocol();
         boolean isQueryProtocol = "query".equalsIgnoreCase(protocol) || "ec2".equalsIgnoreCase(protocol);
 
         return isQueryProtocol &&
