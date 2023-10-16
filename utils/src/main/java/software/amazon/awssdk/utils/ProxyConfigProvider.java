@@ -70,9 +70,9 @@ public interface ProxyConfigProvider {
                                                              Boolean useEnvironmentVariableValues,
                                                              String scheme) {
         ProxyConfigProvider resultProxyConfig = null;
-        if (useSystemPropertyValues) {
+        if (Boolean.TRUE.equals(useSystemPropertyValues)) {
             resultProxyConfig = fromSystemPropertySettings(scheme);
-        } else if (useEnvironmentVariableValues) {
+        } else if (Boolean.TRUE.equals(useEnvironmentVariableValues)) {
             return fromEnvironmentSettings(scheme);
         }
         boolean isProxyConfigurationNotSet = resultProxyConfig != null && resultProxyConfig.host() == null
@@ -81,7 +81,7 @@ public interface ProxyConfigProvider {
                                              && !resultProxyConfig.userName().isPresent()
                                              && CollectionUtils.isNullOrEmpty(resultProxyConfig.nonProxyHosts());
 
-        if (isProxyConfigurationNotSet && useEnvironmentVariableValues) {
+        if (isProxyConfigurationNotSet && Boolean.TRUE.equals(useEnvironmentVariableValues)) {
             return fromEnvironmentSettings(scheme);
 
         }

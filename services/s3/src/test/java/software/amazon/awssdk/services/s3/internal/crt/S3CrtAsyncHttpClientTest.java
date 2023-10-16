@@ -32,10 +32,12 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
 import software.amazon.awssdk.crt.io.StandardRetryOptions;
@@ -376,6 +378,65 @@ public class S3CrtAsyncHttpClientTest {
         assertThat(clientOptions.getMonitoringOptions()).isNull();
         assertThat(clientOptions.getProxyOptions()).isNull();
         assertThat(clientOptions.getMonitoringOptions()).isNull();
+    }
+
+    private static Stream<Arguments> s3CrtHttpConfigurations() {
+        return Stream.of(
+            Arguments.of(S3CrtHttpConfiguration.builder()
+                                               .connectionTimeout(Duration.ofSeconds(1))
+                                               .connectionHealthConfiguration(c -> c.minimumThroughputInBps(1024L)
+                                                                                    .minimumThroughputTimeout(Duration.ofSeconds(2)))
+                                               .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
+                                               .build(),
+                         null,
+                         "S3CrtHttpConfiguration with default useEnvironmentVariableFlag does not set "
+                         + "HttpProxyEnvironmentVariableSetting"),
+
+            Arguments.of(S3CrtHttpConfiguration.builder()
+                                               .proxyConfiguration(p -> p.host("127.0.0.1").port(8080).useEnvironmentVariableValues(false))
+                                               .build(),
+                         HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType.DISABLED,
+                         "S3CrtHttpConfiguration with other settings and useEnvironmentVariableFlag as false sets "
+                         + "HttpProxyEnvironmentVariableSetting as DISABLED"),
+
+            Arguments.of(S3CrtHttpConfiguration.builder().build(),
+                         null, "S3CrtHttpConfiguration as null does not set HttpProxyEnvironmentVariableSetting"),
+
+            Arguments.of(S3CrtHttpConfiguration.builder()
+                                               .proxyConfiguration(p -> p.useEnvironmentVariableValues(false))
+                                               .build(),
+                         HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType.DISABLED,
+                         "S3CrtHttpConfiguration with only useEnvironmentVariableFlag as false sets "
+                         + "HttpProxyEnvironmentVariableSetting as DISABLED"
+            ),
+
+            Arguments.of(S3CrtHttpConfiguration.builder()
+                                               .proxyConfiguration(p -> p.useEnvironmentVariableValues(true))
+                                               .build(),
+                         null,
+                         "S3CrtHttpConfiguration with only useEnvironmentVariableFlag as true sets "
+                         + "does not set HttpProxyEnvironmentVariableSetting")
+        );
+    }
+
+    @ParameterizedTest(name = "{index} - {2}.")
+    @MethodSource("s3CrtHttpConfigurations")
+    void build_ProxyConfigurationWithEnvironmentVariables(S3CrtHttpConfiguration s3CrtHttpConfiguration,
+                                                          HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType environmentVariableType,
+                                                          String testCase) {
+        S3NativeClientConfiguration configuration =
+            S3NativeClientConfiguration.builder()
+                                       .httpConfiguration(s3CrtHttpConfiguration)
+                                       .build();
+        S3CrtAsyncHttpClient client =
+            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
+        S3ClientOptions clientOptions = client.s3ClientOptions();
+        if (environmentVariableType == null) {
+            assertThat(clientOptions.getHttpProxyEnvironmentVariableSetting()).isNull();
+        } else {
+            assertThat(clientOptions.getHttpProxyEnvironmentVariableSetting().getEnvironmentVariableType())
+                .isEqualTo(environmentVariableType);
+        }
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {
