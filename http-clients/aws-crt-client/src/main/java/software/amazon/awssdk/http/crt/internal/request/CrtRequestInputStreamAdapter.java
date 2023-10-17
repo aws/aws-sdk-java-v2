@@ -29,7 +29,7 @@ final class CrtRequestInputStreamAdapter implements HttpRequestBodyStream {
     private static final int READ_BUFFER_SIZE = 16 * 1024;
 
     private final ContentStreamProvider provider;
-    private InputStream providerStream;
+    private volatile InputStream providerStream;
     private final byte[] readBuffer = new byte[READ_BUFFER_SIZE];
 
     CrtRequestInputStreamAdapter(ContentStreamProvider provider) {
