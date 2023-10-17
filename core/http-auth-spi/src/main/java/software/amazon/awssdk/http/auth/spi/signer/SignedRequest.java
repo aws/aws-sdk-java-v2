@@ -20,7 +20,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.spi.internal.signer.DefaultSignedRequest;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Represents a request with sync payload that has been signed by {@link HttpSigner}.
@@ -28,7 +30,8 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface SignedRequest extends BaseSignedRequest<ContentStreamProvider> {
+public interface SignedRequest extends BaseSignedRequest<ContentStreamProvider>,
+                                       ToCopyableBuilder<SignedRequest.Builder, SignedRequest> {
 
     /**
      * Get a new builder for creating a {@link SignedRequest}.
@@ -40,7 +43,6 @@ public interface SignedRequest extends BaseSignedRequest<ContentStreamProvider> 
     /**
      * A builder for a {@link SignedRequest}.
      */
-    interface Builder extends BaseSignedRequest.Builder<Builder, ContentStreamProvider>,
-                              SdkBuilder<Builder, SignedRequest> {
+    interface Builder extends BaseSignedRequest.Builder<Builder, ContentStreamProvider>, CopyableBuilder<Builder, SignedRequest> {
     }
 }

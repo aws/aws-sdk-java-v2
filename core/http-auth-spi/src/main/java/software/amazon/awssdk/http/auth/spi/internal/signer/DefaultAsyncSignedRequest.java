@@ -36,6 +36,11 @@ public final class DefaultAsyncSignedRequest
                        .build();
     }
 
+    @Override
+    public AsyncSignedRequest.Builder toBuilder() {
+        return AsyncSignedRequest.builder().request(request).payload(payload);
+    }
+
     @SdkInternalApi
     public static final class BuilderImpl
         extends DefaultBaseSignedRequest.BuilderImpl<AsyncSignedRequest.Builder, Publisher<ByteBuffer>>
