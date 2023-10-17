@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Collections;
@@ -60,7 +59,6 @@ class AwsSignerExecutionAttributeTest {
     public void setup() {
         this.attributes = new ExecutionAttributes();
         this.testClock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
-        AwsSignerExecutionAttribute.presignerExpirationClock(testClock);
     }
 
     @Test
@@ -159,14 +157,6 @@ class AwsSignerExecutionAttributeTest {
         assertOldAndNewAttributesAreMirrored(AwsSignerExecutionAttribute.SIGNING_CLOCK,
                                              HttpSigner.SIGNING_CLOCK,
                                              Mockito.mock(Clock.class));
-    }
-
-    @Test
-    public void signingExpiration_oldAndNewAttributeAreMirrored() {
-        assertOldAndNewAttributesAreMirrored(AwsSignerExecutionAttribute.PRESIGNER_EXPIRATION,
-                                             AwsV4FamilyHttpSigner.EXPIRATION_DURATION,
-                                             testClock.instant().plusSeconds(10),
-                                             Duration.ofSeconds(10));
     }
 
     @Test
