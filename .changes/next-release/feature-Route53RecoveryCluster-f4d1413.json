@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Route53 Recovery Cluster",
-    "contributor": "",
-    "description": "Adds Owner field to ListRoutingControls API."
-}
