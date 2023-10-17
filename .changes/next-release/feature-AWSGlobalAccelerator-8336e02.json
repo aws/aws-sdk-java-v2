@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Global Accelerator",
+    "contributor": "",
+    "description": "Fixed error where ListCustomRoutingEndpointGroups did not have a paginator"
+}
