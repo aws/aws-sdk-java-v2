@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Route53 Recovery Control Config",
+    "contributor": "",
+    "description": "Adds permissions for GetResourcePolicy to support returning details about AWS Resource Access Manager resource policies for shared resources."
+}
