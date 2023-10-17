@@ -1530,11 +1530,6 @@ Amazon AutoScaling, etc).</description>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>gamesparks</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>pinpointsmsvoicev2</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
