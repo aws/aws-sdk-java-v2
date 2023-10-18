@@ -16,10 +16,13 @@
 package software.amazon.awssdk.services.rds.internal;
 
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
 import java.net.URI;
 import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
@@ -37,9 +40,11 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Abstract pre-sign handler that follows the pre-signing scheme outlined in the 'RDS Presigned URL for Cross-Region Copying'
@@ -144,10 +149,21 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
                                                                  .signingRegion(Region.of(signingRegion))
                                                                  .signingName(SERVICE_NAME)
                                                                  .signingClockOverride(signingOverrideClock)
-                                                                 .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
+                                                                 .awsCredentials(resolveCredentials(attributes))
                                                                  .build();
 
         return signer.presign(request, presignerParams);
+    }
+
+    private AwsCredentials resolveCredentials(ExecutionAttributes attributes) {
+        return attributes.getOptionalAttribute(SELECTED_AUTH_SCHEME)
+                         .map(selectedAuthScheme -> selectedAuthScheme.identity())
+                         .map(identityFuture -> CompletableFutureUtils.joinLikeSync(identityFuture))
+                         .filter(identity -> identity instanceof AwsCredentialsIdentity)
+                         .map(identity -> {
+                             AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
+                             return CredentialUtils.toCredentials(awsCredentialsIdentity);
+                         }).orElse(attributes.getAttribute(AWS_CREDENTIALS));
     }
 
     private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {

@@ -192,6 +192,7 @@ public abstract class BaseClientHandler {
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(
         ClientExecutionParams<InputT, OutputT> params) {
+        SdkClientConfiguration clientConfiguration = resolveRequestConfiguration(params);
         SdkRequest originalRequest = params.getInput();
 
         ExecutionAttributes executionAttributes = params.executionAttributes();
@@ -245,6 +246,14 @@ public abstract class BaseClientHandler {
         if (!"https".equals(endpoint.getScheme())) {
             throw SdkClientException.create("Cannot use bearer token signer with a plaintext HTTP endpoint: " + endpoint);
         }
+    }
+
+    protected SdkClientConfiguration resolveRequestConfiguration(ClientExecutionParams<?, ?> params) {
+        SdkClientConfiguration config =  params.requestConfiguration();
+        if (config != null) {
+            return config;
+        }
+        return clientConfiguration;
     }
 
     /**
