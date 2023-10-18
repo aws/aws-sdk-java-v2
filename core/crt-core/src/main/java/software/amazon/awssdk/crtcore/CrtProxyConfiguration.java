@@ -123,6 +123,15 @@ public abstract class CrtProxyConfiguration {
         return password;
     }
 
+    /**
+     * Indicates whether environment variables are utilized for proxy configuration.
+     *
+     * @return {@code true} if environment variables are being used for proxy configuration, {@code false} otherwise.
+     */
+    public final Boolean isUseEnvironmentVariableValues() {
+        return useEnvironmentVariableValues;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

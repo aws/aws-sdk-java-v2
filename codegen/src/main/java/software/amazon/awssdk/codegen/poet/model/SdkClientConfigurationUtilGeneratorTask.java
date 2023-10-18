@@ -57,7 +57,7 @@ public final class SdkClientConfigurationUtilGeneratorTask extends BaseGenerator
     private static String loadConfigUtilCode() {
         try {
             InputStream is = SdkClientConfigurationUtilGeneratorTask.class.getResourceAsStream(
-                "/software/amazon/awssdk/codegen/poet/model/SdkClientConfigurationUtil.resource.java");
+                "/software/amazon/awssdk/codegen/poet/model/SdkClientConfigurationUtil.java.resource");
             return IoUtils.toUtf8String(is);
         } catch (IOException ioe) {
             throw new UncheckedIOException(ioe);

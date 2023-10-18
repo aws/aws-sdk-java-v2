@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_DIAGNOSTICS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
 
 import io.netty.channel.Channel;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.ListenerInvokingChannelPool.ChannelPoolListener;
+import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 
 /**
  * Marks {@link Channel}s as in-use when they are leased from the pool. An in-use channel is not eligible to be closed by {@link
@@ -40,10 +42,12 @@ public final class InUseTrackingChannelPoolListener implements ChannelPoolListen
     @Override
     public void channelAcquired(Channel channel) {
         channel.attr(IN_USE).set(true);
+        ChannelUtils.getAttribute(channel, CHANNEL_DIAGNOSTICS).ifPresent(ChannelDiagnostics::stopIdleTimer);
     }
 
     @Override
     public void channelReleased(Channel channel) {
         channel.attr(IN_USE).set(false);
+        ChannelUtils.getAttribute(channel, CHANNEL_DIAGNOSTICS).ifPresent(ChannelDiagnostics::startIdleTimer);
     }
 }
