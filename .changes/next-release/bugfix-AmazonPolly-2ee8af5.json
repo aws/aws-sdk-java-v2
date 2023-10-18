@@ -1,0 +1,6 @@
+{
+    "category": "Amazon Polly", 
+    "contributor": "sugmanue", 
+    "type": "bugfix", 
+    "description": "The Scala compiler gets confused when overriding a method with a more specific return type in the interface. To work around this we added a default implementation that fixes this issue with local testing."
+}

@@ -586,7 +586,9 @@ public interface S3Presigner extends SdkPresigner {
         Builder region(Region region);
 
         @Override
-        Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+        default Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        }
 
         @Override
         Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider);
