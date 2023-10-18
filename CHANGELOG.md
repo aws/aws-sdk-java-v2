@@ -1,3 +1,42 @@
+# __2.21.3__ __2023-10-18__
+## __AWS Cloud9__
+  - ### Features
+    - Update to imageId parameter behavior and dates updated.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Changes for a new feature in Amazon Kendra's Query API to Collapse/Expand query results
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release adds an max limit of 25 recommendation ids for NotifyRecommendationsReceived API.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Updating descriptions for several APIs.
+
+## __Amazon Polly__
+  - ### Bugfixes
+    - The Scala compiler gets confused when overriding a method with a more specific return type in the interface. To work around this we added a default implementation that fixes this issue with local testing.
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for upgrading the storage file system configuration on the DB instance using a blue/green deployment or a read replica.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - The Scala compiler gets confused when overriding a method with a more specific return type in the interface. To work around this we added a default implementation that fixes this issue with local testing.
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sugmanue](https://github.com/sugmanue)
 # __2.21.2__ __2023-10-17__
 ## __AWS Application Discovery Service__
   - ### Features
