@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.21.2</version>
+    <version>2.21.3</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -92,7 +92,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.21.1</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.21.2</awsjavasdk.previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
@@ -522,6 +522,13 @@
 
                         <!-- TODO(post-sra-identity-auth): Once everything is switched to useSraAuth=true, remove this-->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
+
+			<!-- TODO(post-sra-identity-auth): With move to SRA Identity & Auth, most clients won't need a
+                             dependency on auth module. But cannot remove it from services/pom.xml until all services
+                             have switched. Some service modules may still need it, because they have tests that use the
+                             old interfaces, but that should become a test scoped dependency in modules where needed.
+                             And the line below removed. -->
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
