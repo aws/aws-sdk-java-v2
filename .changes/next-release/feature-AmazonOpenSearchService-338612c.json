@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon OpenSearch Service",
-    "contributor": "",
-    "description": "Added Cluster Administrative options for node restart, opensearch process restart and opensearch dashboard restart for Multi-AZ without standby domains"
-}

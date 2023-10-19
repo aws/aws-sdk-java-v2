@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "mgrundie-r7",
-    "description": "Netty version bump to address CVE-2023-44487"
-}
