@@ -321,7 +321,6 @@
         <module>amplifyuibuilder</module>
         <module>keyspaces</module>
         <module>billingconductor</module>
-        <module>gamesparks</module>
         <module>pinpointsmsvoicev2</module>
         <module>ivschat</module>
         <module>chimesdkmediapipelines</module>
