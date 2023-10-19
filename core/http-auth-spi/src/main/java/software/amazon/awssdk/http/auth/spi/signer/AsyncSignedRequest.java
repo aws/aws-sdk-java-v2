@@ -22,7 +22,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.auth.spi.internal.signer.DefaultAsyncSignedRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**

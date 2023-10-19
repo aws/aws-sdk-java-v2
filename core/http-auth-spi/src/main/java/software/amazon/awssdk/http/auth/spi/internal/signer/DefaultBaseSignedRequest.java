@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.auth.spi.internal.signer;
 
-import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
