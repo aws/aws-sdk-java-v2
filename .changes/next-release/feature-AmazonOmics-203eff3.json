@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Omics",
+    "contributor": "",
+    "description": "This change enables customers to retrieve failure reasons with detailed status messages for their failed runs"
+}
