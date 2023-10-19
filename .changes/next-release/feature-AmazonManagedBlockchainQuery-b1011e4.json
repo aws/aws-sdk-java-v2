@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Blockchain Query",
+    "contributor": "",
+    "description": "This release adds support for Ethereum Sepolia network"
+}
