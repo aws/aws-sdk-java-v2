@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "s3control",
+    "contributor": "",
+    "description": "Move the service to the standardized AWS SDK architecture for identity and auth that was introduced in 2.21.0 release."
+}

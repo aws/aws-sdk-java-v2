@@ -76,9 +76,6 @@ public class EventMarshallingTest {
         eventDecoder = new MessageDecoder();
     }
 
-    // Still failing for useSraAuth=true
-    // TODO(sra-identity-and-auth): This test no longer works, it's unclear as of why not but seems related to the changes in
-    // the signing stage.
     @Test
     public void testMarshalling_setsCorrectEventType() {
         List<InputEventStream> inputEvents = Stream.of(
