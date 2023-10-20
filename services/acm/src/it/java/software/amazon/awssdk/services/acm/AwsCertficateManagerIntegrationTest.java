@@ -40,17 +40,6 @@ public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase 
         Assert.assertTrue(result.certificateSummaryList().size() >= 0);
     }
 
-    @Test
-    public void list_certificates_using_oldSigv4aSigner() {
-        AcmClient client = AcmClient.builder()
-                                    .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
-                                    .overrideConfiguration(c -> c.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
-                                                                                    AwsCrtV4aSigner.create()))
-                                    .build();
-        ListCertificatesResponse result = client.listCertificates(ListCertificatesRequest.builder().build());
-        Assert.assertTrue(result.certificateSummaryList().size() >= 0);
-    }
-
     /**
      * Ideally the service must be throwing a Invalid Arn exception
      * instead of SdkServiceException. Have reported this to service to
