@@ -19,6 +19,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.authcrt.signer.AwsCrtV4aSigner;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.services.acm.model.AcmException;
 import software.amazon.awssdk.services.acm.model.GetCertificateRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesRequest;
@@ -36,6 +38,17 @@ public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase 
 
     @Test
     public void list_certificates() {
+        ListCertificatesResponse result = client.listCertificates(ListCertificatesRequest.builder().build());
+        Assert.assertTrue(result.certificateSummaryList().size() >= 0);
+    }
+
+    @Test
+    public void list_certificates_using_oldSigv4aSigner() {
+        AcmClient client = AcmClient.builder()
+                                    .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
+                                    .overrideConfiguration(c -> c.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                                    AwsCrtV4aSigner.create()))
+                                    .build();
         ListCertificatesResponse result = client.listCertificates(ListCertificatesRequest.builder().build());
         Assert.assertTrue(result.certificateSummaryList().size() >= 0);
     }
