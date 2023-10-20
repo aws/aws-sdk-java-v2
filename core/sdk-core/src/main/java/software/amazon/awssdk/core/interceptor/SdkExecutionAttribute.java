@@ -101,7 +101,7 @@ public class SdkExecutionAttribute {
      * The RESOLVED_CHECKSUM_SPECS holds the final checksum which will be used for checksum computation.
      */
     public static final ExecutionAttribute<ChecksumSpecs> RESOLVED_CHECKSUM_SPECS =
-        new ExecutionAttribute("ResolvedChecksumSpecs");
+        new ExecutionAttribute<>("ResolvedChecksumSpecs");
 
     /**
      * The Algorithm used for checksum validation of a response.
