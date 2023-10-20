@@ -114,22 +114,13 @@ public class SdkExecutionAttribute {
 
     public static final ExecutionAttribute<String> PROFILE_NAME = new ExecutionAttribute<>("ProfileName");
 
-
-    /**
-     * The backing attribute for RESOLVED_CHECKSUM_SPECS.
-     * This holds the real ChecksumSpecs value, and is used to map to the ChecksumAlgorithm signer property
-     * in the SELECTED_AUTH_SCHEME execution attribute.
-     */
-    private static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
-        new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
-
     /**
      * The checksum algorithm is resolved based on the Request member.
      * The RESOLVED_CHECKSUM_SPECS holds the final checksum which will be used for checksum computation.
      */
     public static final ExecutionAttribute<ChecksumSpecs> RESOLVED_CHECKSUM_SPECS =
         ExecutionAttribute.mappedBuilder("ResolvedChecksumSpecs",
-                                         () -> INTERNAL_RESOLVED_CHECKSUM_SPECS,
+                                         () -> SdkExecutionAttribute.INTERNAL_RESOLVED_CHECKSUM_SPECS,
                                          () -> SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)
                           .readMapping(SdkExecutionAttribute::signerChecksumReadMapping)
                           .writeMapping(SdkExecutionAttribute::signerChecksumWriteMapping)
@@ -146,6 +137,14 @@ public class SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
+
+    /**
+     * The backing attribute for RESOLVED_CHECKSUM_SPECS.
+     * This holds the real ChecksumSpecs value, and is used to map to the ChecksumAlgorithm signer property
+     * in the SELECTED_AUTH_SCHEME execution attribute.
+     */
+    private static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
+        new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
 
     private static final ImmutableMap<Algorithm, ChecksumAlgorithm> CHECKSUM_ALGORITHM_MAP = ImmutableMap.of(
         Algorithm.SHA256, SHA256,
