@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Application Discovery Service",
-    "contributor": "",
-    "description": "This release introduces three new APIs: StartBatchDeleteConfigurationTask, DescribeBatchDeleteConfigurationTask, and BatchDeleteAgents."
-}
