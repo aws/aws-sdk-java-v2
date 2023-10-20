@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -48,8 +48,6 @@ import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
 import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -103,8 +101,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
         ClientOverrideConfiguration.Builder overrideConfigurationBuilder =
             ClientOverrideConfiguration.builder()
-                                       // Disable checksum for streaming operations, retry policy and signer because they are
-                                       // handled in crt
+                                       // Disable checksum, retry policy and signer because they are handled in crt
                                        .putAdvancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                        .putExecutionAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
                                                               ChecksumValidation.FORCE_SKIP)
@@ -117,8 +114,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         return S3AsyncClient.builder()
-                            // Disable checksum for streaming operations, it is handled in CRT. Checksumming for non-streaming
-                            // operations is still handled in HttpChecksumStage
+                            // Disable checksum, it is handled in CRT
                             .serviceConfiguration(S3Configuration.builder()
                                                                  .checksumValidationEnabled(false)
                                                                  .build())
@@ -166,7 +162,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
         private Long readBufferSizeInBytes;
-        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
+        private AwsCredentialsProvider credentialsProvider;
         private Region region;
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
@@ -182,9 +178,40 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private boolean crossRegionAccessEnabled;
         private Long thresholdInBytes;
 
+        public AwsCredentialsProvider credentialsProvider() {
+            return credentialsProvider;
+        }
+
+        public Region region() {
+            return region;
+        }
+
+        public Long minimumPartSizeInBytes() {
+            return minimalPartSizeInBytes;
+        }
+
+        public Double targetThroughputInGbps() {
+            return targetThroughputInGbps;
+        }
+
+        public Integer maxConcurrency() {
+            return maxConcurrency;
+        }
+
+        public URI endpointOverride() {
+            return endpointOverride;
+        }
+
+        public Long readBufferSizeInBytes() {
+            return readBufferSizeInBytes;
+        }
+
+        public boolean crossRegionAccessEnabled() {
+            return crossRegionAccessEnabled;
+        }
+
         @Override
-        public S3CrtAsyncClientBuilder credentialsProvider(
-                IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+        public S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }
@@ -283,15 +310,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     }
 
     private static final class AttachHttpAttributesExecutionInterceptor implements ExecutionInterceptor {
-
-        @Override
-        public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-            // Hack to disable new SRA path because we still rely on HttpChecksumStage to perform checksum for
-            // non-streaming operation.
-            // TODO: remove this once CRT supports checksum for default requests
-            executionAttributes.putAttribute(AUTH_SCHEMES, null);
-        }
-
         @Override
         public void afterMarshalling(Context.AfterMarshalling context,
                                      ExecutionAttributes executionAttributes) {
@@ -321,7 +339,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private static void disableChecksumForPutAndGet(Context.AfterMarshalling context,
                                                         ExecutionAttributes executionAttributes) {
             if (context.request() instanceof PutObjectRequest || context.request() instanceof GetObjectRequest) {
-                // TODO: we can remove this once we are fully on SRA signing AND CRT supports checksum for default requests
+                // TODO: is there a better way to disable SDK flexible checksum implementation
                 // Clear HTTP_CHECKSUM and RESOLVED_CHECKSUM_SPECS to disable SDK flexible checksum implementation.
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, null);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_CHECKSUM_SPECS, null);
@@ -347,7 +365,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 }
 
                 // TODO: support request-level credential override
-                if (overrideConfiguration.credentialsIdentityProvider().isPresent()) {
+                if (overrideConfiguration.credentialsProvider().isPresent()) {
                     throw new UnsupportedOperationException("Request-level credentials override is not supported");
                 }
 

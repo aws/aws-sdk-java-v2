@@ -28,8 +28,6 @@ import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.awscore.presigner.SdkPresigner;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -589,9 +587,6 @@ public interface S3Presigner extends SdkPresigner {
         default Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
             return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
         }
-
-        @Override
-        Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider);
 
         @Override
         Builder dualstackEnabled(Boolean dualstackEnabled);

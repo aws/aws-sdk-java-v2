@@ -136,17 +136,6 @@
     </Match>
 
     <Match>
-        <Class name="software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aRequestSigningResult" />
-        <Method name="getSignature" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-
-    <Match>
-        <Class name="software.amazon.awssdk.http.auth.aws.crt.internal.signer.RollingSigner" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-
-    <Match>
         <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
         <Method name="unmarshallStructured" />
         <Bug pattern="BC_UNCONFIRMED_CAST" />
@@ -197,12 +186,6 @@
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 
-    <!-- See SpotBugs bug: https://github.com/spotbugs/spotbugs/issues/600, https://github.com/spotbugs/spotbugs/issues/756 -->
-    <Match>
-        <Class name="software.amazon.awssdk.core.SdkServiceClientConfiguration$Builder"/>
-        <Method name="overrideConfiguration"/>
-        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
-    </Match>
 
     <!-- If we're not sure about the RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT, skip the warning. -->
     <Match>
@@ -284,14 +267,6 @@
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 
-    <!-- Intentional for backwards-compatibility -->
-    <Match>
-        <Or>
-            <Class name="software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute"/>
-            <Class name="software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute"/>
-        </Or>
-        <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
-    </Match>
 
     <!-- New flags as of spotbogs 4.7.3.5 -->
     <!-- TODO: Fix or explicitly exclude each occurrence -->

@@ -19,7 +19,6 @@ import java.time.Duration;
 import java.util.List;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Pair;
 
 public interface MockHttpClient {
@@ -32,15 +31,6 @@ public interface MockHttpClient {
      * Sets up the next HTTP response that will be returned by the mock. Removes responses previously added to the mock.
      */
     void stubNextResponse(HttpExecuteResponse nextResponse);
-
-    default void stubNextResponse200() {
-        stubNextResponse(HttpExecuteResponse.builder()
-                                            .response(SdkHttpResponse.builder()
-                                                                     .statusCode(200)
-                                                                     .putHeader("Content-Length", "0")
-                                                                     .build())
-                                            .build());
-    }
 
     /**
      * Sets up the next HTTP response that will be returned by the mock with a delay. Removes responses previously added to the

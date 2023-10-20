@@ -17,10 +17,6 @@ package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.reactivex.Flowable;
 import java.io.IOException;
@@ -28,8 +24,9 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
@@ -51,11 +48,8 @@ import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 /**
  * Verify that the "authtype" C2J trait for request type is honored for each requests.
  */
-// TODO(sra-identity-auth): These tests need the updates from https://github.com/aws/aws-sdk-java-v2/pull/4548/files (to the mock
-//  setup and verify) when switching to useSraAuth=true.
 public class NoneAuthTypeRequestTest {
 
-    private AwsCredentialsProvider credentialsProvider;
     private SdkHttpClient httpClient;
     private SdkAsyncHttpClient httpAsyncClient;
     private ProtocolRestJsonClient jsonClient;
@@ -63,14 +57,11 @@ public class NoneAuthTypeRequestTest {
     private ProtocolRestXmlClient xmlClient;
     private ProtocolRestXmlAsyncClient xmlAsyncClient;
 
+
     @Before
     public void setup() throws IOException {
-        credentialsProvider = mock(AwsCredentialsProvider.class);
-        when(credentialsProvider.resolveIdentity()).thenAnswer(
-            invocationOnMock -> CompletableFuture.completedFuture(AwsBasicCredentials.create("123", "12344")));
-
-        httpClient = mock(SdkHttpClient.class);
-        httpAsyncClient = mock(SdkAsyncHttpClient.class);
+        httpClient = Mockito.mock(SdkHttpClient.class);
+        httpAsyncClient = Mockito.mock(SdkAsyncHttpClient.class);
         jsonClient = initializeSync(ProtocolRestJsonClient.builder()).build();
         jsonAsyncClient = initializeAsync(ProtocolRestJsonAsyncClient.builder()).build();
         xmlClient = initializeSync(ProtocolRestXmlClient.builder()).build();
@@ -81,13 +72,13 @@ public class NoneAuthTypeRequestTest {
                                                                     .putHeader("Content-Length", "0")
                                                                     .build();
 
-        ExecutableHttpRequest request = mock(ExecutableHttpRequest.class);
+        ExecutableHttpRequest request = Mockito.mock(ExecutableHttpRequest.class);
 
-        when(request.call()).thenReturn(HttpExecuteResponse.builder()
+        Mockito.when(request.call()).thenReturn(HttpExecuteResponse.builder()
                                                                    .response(successfulHttpResponse)
                                                                    .build());
-        when(httpClient.prepareRequest(any())).thenReturn(request);
-        when(httpAsyncClient.execute(any())).thenAnswer(invocation -> {
+        Mockito.when(httpClient.prepareRequest(any())).thenReturn(request);
+        Mockito.when(httpAsyncClient.execute(any())).thenAnswer(invocation -> {
             AsyncExecuteRequest asyncExecuteRequest = invocation.getArgument(0, AsyncExecuteRequest.class);
             asyncExecuteRequest.responseHandler().onHeaders(successfulHttpResponse);
             asyncExecuteRequest.responseHandler().onStream(Flowable.empty());
@@ -99,76 +90,68 @@ public class NoneAuthTypeRequestTest {
     public void sync_json_authorization_is_absent_for_noneAuthType() {
         jsonClient.operationWithNoneAuthType(o -> o.booleanMember(true));
         assertThat(getSyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
-        verify(credentialsProvider, times(0)).resolveIdentity();
     }
 
     @Test
     public void sync_json_authorization_is_present_for_defaultAuth() {
         jsonClient.jsonValuesOperation();
         assertThat(getSyncRequest().firstMatchingHeader("Authorization")).isPresent();
-        verify(credentialsProvider, times(1)).resolveIdentity();
     }
 
     @Test
     public void async_json_authorization_is_absent_for_noneAuthType() {
         jsonAsyncClient.operationWithNoneAuthType(o -> o.booleanMember(true));
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
-        verify(credentialsProvider, times(0)).resolveIdentity();
     }
 
     @Test
     public void async_json_authorization_is_present_for_defaultAuth() {
         jsonAsyncClient.jsonValuesOperation();
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isPresent();
-        verify(credentialsProvider, times(1)).resolveIdentity();
     }
 
     @Test
     public void sync_xml_authorization_is_absent_for_noneAuthType() {
         xmlClient.operationWithNoneAuthType(o -> o.booleanMember(true));
         assertThat(getSyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
-        verify(credentialsProvider, times(0)).resolveIdentity();
     }
 
     @Test
     public void sync_xml_authorization_is_present_for_defaultAuth() {
         xmlClient.jsonValuesOperation(json -> json.jsonValueMember("one"));
         assertThat(getSyncRequest().firstMatchingHeader("Authorization")).isPresent();
-        verify(credentialsProvider, times(1)).resolveIdentity();
     }
 
     @Test
     public void async_xml_authorization_is_absent_for_noneAuthType() {
         xmlAsyncClient.operationWithNoneAuthType(o -> o.booleanMember(true));
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
-        verify(credentialsProvider, times(0)).resolveIdentity();
     }
 
     @Test
     public void async_xml_authorization_is_present_for_defaultAuth() {
         xmlAsyncClient.jsonValuesOperation(json -> json.jsonValueMember("one"));
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isPresent();
-        verify(credentialsProvider, times(1)).resolveIdentity();
     }
 
     private SdkHttpRequest getSyncRequest() {
         ArgumentCaptor<HttpExecuteRequest> captor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
-        verify(httpClient).prepareRequest(captor.capture());
+        Mockito.verify(httpClient).prepareRequest(captor.capture());
         return captor.getValue().httpRequest();
     }
 
     private SdkHttpRequest getAsyncRequest() {
         ArgumentCaptor<AsyncExecuteRequest> captor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
-        verify(httpAsyncClient).execute(captor.capture());
+        Mockito.verify(httpAsyncClient).execute(captor.capture());
         return captor.getValue().request();
     }
 
     private <T extends AwsSyncClientBuilder<T, ?> & AwsClientBuilder<T, ?>> T initializeSync(T syncClientBuilder) {
-        return initialize(syncClientBuilder.httpClient(httpClient).credentialsProvider(credentialsProvider));
+        return initialize(syncClientBuilder.httpClient(httpClient).credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("123", "12344"))));
     }
 
     private <T extends AwsAsyncClientBuilder<T, ?> & AwsClientBuilder<T, ?>> T initializeAsync(T asyncClientBuilder) {
-        return initialize(asyncClientBuilder.httpClient(httpAsyncClient).credentialsProvider(credentialsProvider));
+        return initialize(asyncClientBuilder.httpClient(httpAsyncClient));
     }
 
     private <T extends AwsClientBuilder<T, ?>> T initialize(T clientBuilder) {

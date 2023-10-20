@@ -211,7 +211,7 @@ public class S3PresignerIntegrationTest {
         PresignedDeleteObjectRequest presigned =
             presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
                                              .deleteObjectRequest(delo -> delo.bucket(testBucket)
-                                                                         .key(objectKey)
+                                                                         .key(testGetObjectKey)
                                                                          .requestPayer(RequestPayer.REQUESTER)));
 
         assertThat(presigned.isBrowserExecutable()).isFalse();

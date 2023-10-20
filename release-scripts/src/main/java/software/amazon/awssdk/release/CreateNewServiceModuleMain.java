@@ -24,18 +24,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
@@ -53,61 +46,18 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
  *                  --service-module-name service-module-name
  *                  --service-protocol json"
  * </pre>
- *
- * <p>By default the service new pom will include a dependency to the http-auth-aws module, this is only needed if the service
- * has one or more operations signed by any of the aws algorithms, e.g., sigv4 or sigv4a, but not needed if the service uses,
- * say, bearer auth (e.g., codecatalyst at the moment). Excluding this can be done by adding the
- * {@code --exclude-internal-dependency http-auth-aws} switch. For example
- * <pre>
- * mvn exec:java -pl :release-scripts \
- *     -Dexec.mainClass="software.amazon.awssdk.release.CreateNewServiceModuleMain" \
- *     -Dexec.args="--maven-project-root /path/to/root
- *                  --maven-project-version 2.1.4-SNAPSHOT
- *                  --service-id 'Service Id'
- *                  --service-module-name service-module-name
- *                  --service-protocol json
- *                  --exclude-internal-dependency http-auth-aws"
- * </pre>
  */
 public class CreateNewServiceModuleMain extends Cli {
-
-    private static final Set<String> DEFAULT_INTERNAL_DEPENDENCIES = toSet("http-auth-aws");
-
     private CreateNewServiceModuleMain() {
         super(requiredOption("service-module-name", "The name of the service module to be created."),
               requiredOption("service-id", "The service ID of the service module to be created."),
               requiredOption("service-protocol", "The protocol of the service module to be created."),
               requiredOption("maven-project-root", "The root directory for the maven project."),
-              requiredOption("maven-project-version", "The maven version of the service module to be created."),
-              optionalMultiValueOption("include-internal-dependency", "Includes an internal dependency from new service pom."),
-              optionalMultiValueOption("exclude-internal-dependency", "Excludes an internal dependency from new service pom."));
+              requiredOption("maven-project-version", "The maven version of the service module to be created."));
     }
 
     public static void main(String[] args) {
         new CreateNewServiceModuleMain().run(args);
-    }
-
-    static Set<String> toSet(String...args) {
-        Set<String> result = new LinkedHashSet<>();
-        for (String arg : args) {
-            result.add(arg);
-        }
-        return Collections.unmodifiableSet(result);
-
-    }
-
-    static List<String> toList(String[] optionValues) {
-        if (optionValues == null) {
-            return Collections.emptyList();
-        }
-        return Arrays.asList(optionValues);
-    }
-
-    static Set<String> computeInternalDependencies(List<String> includes, List<String> excludes) {
-        Set<String> result = new LinkedHashSet<>(DEFAULT_INTERNAL_DEPENDENCIES);
-        result.addAll(includes);
-        excludes.forEach(result::remove);
-        return Collections.unmodifiableSet(result);
     }
 
     @Override
@@ -121,7 +71,6 @@ public class CreateNewServiceModuleMain extends Cli {
         private final String serviceModuleName;
         private final String serviceId;
         private final String serviceProtocol;
-        private final Set<String> internalDependencies;
 
         private NewServiceCreator(CommandLine commandLine) {
             this.mavenProjectRoot = Paths.get(commandLine.getOptionValue("maven-project-root").trim());
@@ -129,10 +78,7 @@ public class CreateNewServiceModuleMain extends Cli {
             this.serviceModuleName = commandLine.getOptionValue("service-module-name").trim();
             this.serviceId = commandLine.getOptionValue("service-id").trim();
             this.serviceProtocol = transformSpecialProtocols(commandLine.getOptionValue("service-protocol").trim());
-            this.internalDependencies = computeInternalDependencies(toList(commandLine
-                                                                               .getOptionValues("include-internal-dependency")),
-                                                                    toList(commandLine
-                                                                               .getOptionValues("exclude-internal-dependency")));
+
             Validate.isTrue(Files.exists(mavenProjectRoot), "Project root does not exist: " + mavenProjectRoot);
         }
 
@@ -152,9 +98,6 @@ public class CreateNewServiceModuleMain extends Cli {
 
             createNewModuleFromTemplate(templateModulePath, newServiceModulePath);
             replaceTemplatePlaceholders(newServiceModulePath);
-
-            Path newServicePom = newServiceModulePath.resolve("pom.xml");
-            new AddInternalDependenciesTransformer(internalDependencies).transform(newServicePom);
         }
 
         private void createNewModuleFromTemplate(Path templateModulePath, Path newServiceModule) throws IOException {
@@ -199,22 +142,4 @@ public class CreateNewServiceModuleMain extends Cli {
                          .collect(Collectors.joining(" "));
         }
     }
-
-    static class AddInternalDependenciesTransformer extends PomTransformer {
-        private final Set<String> internalDependencies;
-
-        AddInternalDependenciesTransformer(Set<String> internalDependencies) {
-            this.internalDependencies = internalDependencies;
-        }
-
-        @Override
-        protected void updateDocument(Document doc) {
-            Node project = findChild(doc, "project");
-            Node dependencies = findChild(project, "dependencies");
-            for (String internalDependency : internalDependencies) {
-                dependencies.appendChild(sdkDependencyElement(doc, internalDependency));
-            }
-        }
-    }
-
 }

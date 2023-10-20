@@ -6,8 +6,6 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
-import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -16,10 +14,9 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
+import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
-import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.json.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -58,6 +55,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         endpointInterceptors.add(new JsonResolveEndpointInterceptor());
+        endpointInterceptors.add(new JsonEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
@@ -66,9 +64,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        SdkClientConfiguration.Builder builder = config.toBuilder();
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
-        return builder.build();
+        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
     }
 
     private Signer defaultSigner() {
@@ -82,31 +78,6 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private JsonEndpointProvider defaultEndpointProvider() {
         return JsonEndpointProvider.defaultProvider();
-    }
-
-    @Override
-    protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
-        ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
-        if (overrideConfiguration == null) {
-            return configuration;
-        }
-        return SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, configuration.toBuilder()).build();
-    }
-
-    @Override
-    protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> plugins = plugins();
-        if (plugins.isEmpty()) {
-            return config;
-        }
-        JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
-            .builder(config.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
-        for (SdkPlugin plugin : plugins) {
-            plugin.configureClient(serviceConfigBuilder);
-        }
-        overrideConfiguration(serviceConfigBuilder.overrideConfiguration());
-        return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

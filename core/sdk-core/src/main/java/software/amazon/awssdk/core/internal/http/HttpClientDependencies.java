@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
@@ -31,15 +32,15 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @SdkInternalApi
 public final class HttpClientDependencies implements SdkAutoCloseable {
-    /**
-     * Time offset may be mutated by {@link RequestPipeline} implementations if a clock skew is detected.
-     */
-    private final SdkClientTime sdkClientTime;
     private final ClockSkewAdjuster clockSkewAdjuster;
     private final SdkClientConfiguration clientConfiguration;
 
+    /**
+     * Time offset may be mutated by {@link RequestPipeline} implementations if a clock skew is detected.
+     */
+    private volatile int timeOffset = SdkGlobalTime.getGlobalTimeOffset();
+
     private HttpClientDependencies(Builder builder) {
-        this.sdkClientTime = builder.sdkClientTime != null ? builder.sdkClientTime : new SdkClientTime();
         this.clockSkewAdjuster = builder.clockSkewAdjuster != null ? builder.clockSkewAdjuster : new ClockSkewAdjuster();
         this.clientConfiguration = paramNotNull(builder.clientConfiguration, "ClientConfiguration");
     }
@@ -63,18 +64,15 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
      * @return Current time offset. This is mutable and should not be cached.
      */
     public int timeOffset() {
-        return sdkClientTime.getTimeOffset();
+        return timeOffset;
     }
 
     /**
      * Updates the time offset of the client as well as the global time offset.
      */
     public void updateTimeOffset(int timeOffset) {
-        sdkClientTime.setTimeOffset(timeOffset);
-    }
-
-    public Builder toBuilder() {
-        return new Builder(this);
+        this.timeOffset = timeOffset;
+        SdkGlobalTime.setGlobalTimeOffset(timeOffset);
     }
 
     @Override
@@ -86,17 +84,10 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
      * Builder for {@link HttpClientDependencies}.
      */
     public static class Builder {
-        private SdkClientTime sdkClientTime;
         private ClockSkewAdjuster clockSkewAdjuster;
         private SdkClientConfiguration clientConfiguration;
 
         private Builder() {
-        }
-
-        private Builder(HttpClientDependencies from) {
-            this.sdkClientTime = from.sdkClientTime;
-            this.clientConfiguration = from.clientConfiguration;
-            this.clockSkewAdjuster = from.clockSkewAdjuster;
         }
 
         public Builder clockSkewAdjuster(ClockSkewAdjuster clockSkewAdjuster) {

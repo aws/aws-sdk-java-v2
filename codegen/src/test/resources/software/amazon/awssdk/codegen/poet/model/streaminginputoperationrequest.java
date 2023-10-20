@@ -121,3 +121,4 @@ public final class StreamingInputOperationRequest extends JsonProtocolTestsReque
         }
     }
 }
+

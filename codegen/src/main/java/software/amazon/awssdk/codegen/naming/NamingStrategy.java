@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.naming;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
-import software.amazon.awssdk.core.SdkField;
 
 /**
  * Strategy to name various Java constructs based on the naming in the model and potentially customizations.
@@ -63,11 +62,6 @@ public interface NamingStrategy {
      * Retrieve the endpoint rules package name that should be used based on the service name.
      */
     String getEndpointRulesPackageName(String serviceName);
-
-    /**
-     * Retrieve the auth scheme package name that should be used based on the service name.
-     */
-    String getAuthSchemePackageName(String serviceName);
 
     /**
      * Retrieve the smote test package name that should be used based on the service name.

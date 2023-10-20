@@ -22,11 +22,7 @@ import software.amazon.awssdk.core.signer.Signer;
 /**
  * Represents a logical unit for providing instructions on how to authorize a request,
  * including which signer and which credentials to use.
- *
- * @deprecated This is only used for compatibility with pre-SRA authorization logic. After we are comfortable that the new code
- * paths are working, we should migrate old clients to the new code paths (where possible) and delete this code.
  */
-@Deprecated
 @SdkInternalApi
 public interface AuthorizationStrategy {
 

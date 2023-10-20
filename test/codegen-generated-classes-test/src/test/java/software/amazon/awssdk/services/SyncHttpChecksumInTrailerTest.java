@@ -26,7 +26,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
@@ -65,13 +64,8 @@ public class SyncHttpChecksumInTrailerTest {
                                        .credentialsProvider(AnonymousCredentialsProvider.create())
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                       // TODO(sra-identity-and-auth): we should remove these
-                                       //  overrides once we set up codegen to set chunk-encoding to true
-                                       //  for requests that are streaming and checksum-enabled
-                                       .overrideConfiguration(c -> c.putExecutionAttribute(
-                                           ENABLE_CHUNKED_ENCODING, true
-                                       ))
                                        .build();
+
     }
 
     @Test

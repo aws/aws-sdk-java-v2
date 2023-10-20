@@ -44,13 +44,14 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
     protected ExecutionAttributes(Map<? extends ExecutionAttribute<?>, ?> attributes) {
         this.attributes = new HashMap<>(attributes);
     }
-    
+
     /**
      * Retrieve the current value of the provided attribute in this collection of attributes. This will return null if the value
      * is not set.
      */
+    @SuppressWarnings("unchecked") // Cast is safe due to implementation of {@link #putAttribute}
     public <U> U getAttribute(ExecutionAttribute<U> attribute) {
-        return attribute.storage().get(attributes);
+        return (U) attributes.get(attribute);
     }
 
     /**
@@ -65,22 +66,14 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
      * This will return Optional Value.
      */
     public <U> Optional<U> getOptionalAttribute(ExecutionAttribute<U> attribute) {
-        return Optional.ofNullable(getAttribute(attribute));
+        return Optional.ofNullable((U) attributes.get(attribute));
     }
 
     /**
      * Update or set the provided attribute in this collection of attributes.
      */
     public <U> ExecutionAttributes putAttribute(ExecutionAttribute<U> attribute, U value) {
-        attribute.storage().set(attributes, value);
-        return this;
-    }
-
-    /**
-     * Set the provided attribute in this collection of attributes if it does not already exist in the collection.
-     */
-    public <U> ExecutionAttributes putAttributeIfAbsent(ExecutionAttribute<U> attribute, U value) {
-        attribute.storage().setIfAbsent(attributes, value);
+        this.attributes.put(attribute, value);
         return this;
     }
 
@@ -100,6 +93,14 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
         if (lowerPrecedenceExecutionAttributes != null) {
             lowerPrecedenceExecutionAttributes.getAttributes().forEach(attributes::putIfAbsent);
         }
+    }
+
+    /**
+     * Set the provided attribute in this collection of attributes if it does not already exist in the collection.
+     */
+    public <U> ExecutionAttributes putAttributeIfAbsent(ExecutionAttribute<U> attribute, U value) {
+        attributes.putIfAbsent(attribute, value);
+        return this;
     }
 
     public static Builder builder() {
@@ -162,18 +163,15 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
         }
     }
 
-    /**
-     * TODO: We should deprecate this builder - execution attributes are mutable - why do we need a builder? We can just use
-     * copy() if it's because of {@link #unmodifiableExecutionAttributes(ExecutionAttributes)}.
-     */
     public static final class Builder implements CopyableBuilder<ExecutionAttributes.Builder, ExecutionAttributes> {
-        private final Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>(32);
+
+        private final Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
 
         private Builder() {
         }
 
-        private Builder(ExecutionAttributes source) {
-            this.executionAttributes.putAll(source.attributes);
+        private Builder(ExecutionAttributes attributes) {
+            this.executionAttributes.putAll(attributes.attributes);
         }
 
         /**
@@ -181,7 +179,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
          */
         public <T> ExecutionAttributes.Builder put(ExecutionAttribute<T> key, T value) {
             Validate.notNull(key, "Key to set must not be null.");
-            key.storage().set(executionAttributes, value);
+            executionAttributes.put(key, value);
             return this;
         }
 
@@ -189,17 +187,8 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
          * Adds all the attributes from the map provided.
          */
         public ExecutionAttributes.Builder putAll(Map<? extends ExecutionAttribute<?>, ?> attributes) {
-            attributes.forEach(this::unsafePut);
+            executionAttributes.putAll(attributes);
             return this;
-        }
-
-        /**
-         * There is no way to make this safe without runtime checks, which we can't do because we don't have the class of T.
-         * This will just throw an exception at runtime if the types don't match up.
-         */
-        @SuppressWarnings("unchecked")
-        private <T> void unsafePut(ExecutionAttribute<T> key, Object value) {
-            key.storage().set(executionAttributes, (T) value);
         }
 
         @Override

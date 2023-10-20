@@ -304,8 +304,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                  .required(false).build())
                     .addParameter(
                         Parameter.builder().name("defaultTrueParam").type(ParameterType.fromValue("boolean"))
-                                  .required(false).documentation("A param that defauls to true")
-                                  .defaultValue(Value.fromBool(true)).build())
+                                 .required(false).defaultValue(Value.fromBool(true)).build())
                     .addParameter(
                         Parameter.builder().name("defaultStringParam").type(ParameterType.fromValue("string"))
                                  .required(false).defaultValue(Value.fromStr("hello endpoints")).build())

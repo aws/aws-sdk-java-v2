@@ -15,10 +15,8 @@
 
 package software.amazon.awssdk.utils.async;
 
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.mockito.Mockito.times;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -207,9 +205,8 @@ public class FlatteningSubscriberTest {
     @Test
     public void stochastic_dataFlushedBeforeOnComplete() {
         ExecutorService exec = Executors.newSingleThreadExecutor();
-        Instant end = Instant.now().plus(10, SECONDS);
         try {
-            while (Instant.now().isBefore(end)) {
+            for (int i = 0; i < 30_000_000; ++i) {
                 Publisher<List<String>> iterablePublisher = subscriber -> subscriber.onSubscribe(new Subscription() {
                     @Override
                     public void request(long l) {

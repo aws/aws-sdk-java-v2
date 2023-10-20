@@ -101,3 +101,4 @@ public final class StreamBirthsResponse extends SharedEventStreamResponse implem
         }
     }
 }
+

@@ -15,12 +15,6 @@
 
 package software.amazon.awssdk.services.protocolrestjson;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import io.reactivex.Flowable;
-import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,9 +32,14 @@ import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStream;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponseHandler;
-import software.amazon.awssdk.services.protocolrestjson.model.InputEventStream;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
+
+import java.util.concurrent.CompletableFuture;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Test to ensure that cancelling the future returned for an async operation will cancel the future returned by the async HTTP client.
@@ -52,7 +51,7 @@ public class AsyncOperationCancelTest {
 
     private ProtocolRestJsonAsyncClient client;
 
-    private CompletableFuture<Void> executeFuture;
+    private CompletableFuture executeFuture;
 
     @Before
     public void setUp() {
@@ -63,7 +62,7 @@ public class AsyncOperationCancelTest {
                 .httpClient(mockHttpClient)
                 .build();
 
-        executeFuture = new CompletableFuture<>();
+        executeFuture = new CompletableFuture();
         when(mockHttpClient.execute(any())).thenReturn(executeFuture);
     }
 
@@ -93,10 +92,10 @@ public class AsyncOperationCancelTest {
     }
 
     @Test
-    public void testEventStreamingOperation() throws InterruptedException {
-        CompletableFuture<Void> responseFuture =
-            client.eventStreamOperation(r -> {},
-                                        Flowable.just(InputEventStream.inputEventBuilder().build()),
+    public void testEventStreamingOperation() {
+        CompletableFuture<Void> responseFuture = client.eventStreamOperation(r -> {
+                },
+                subscriber -> {},
                 new EventStreamOperationResponseHandler() {
                     @Override
                     public void responseReceived(EventStreamOperationResponse response) {

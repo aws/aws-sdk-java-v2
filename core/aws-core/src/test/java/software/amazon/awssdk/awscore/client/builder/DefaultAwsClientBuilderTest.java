@@ -237,6 +237,7 @@ public class DefaultAwsClientBuilderTest {
                 assertThat(property.getWriteMethod()).as(propertyName + " setter").isNotNull();
             });
         });
+
     }
 
     private AwsClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {

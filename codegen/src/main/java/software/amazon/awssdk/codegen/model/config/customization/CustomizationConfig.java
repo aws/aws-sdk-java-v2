@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.model.config.customization;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -263,26 +262,6 @@ public class CustomizationConfig {
      * Whether marshallers perform validations against members marked with RequiredTrait.
      */
     private boolean requiredTraitValidationEnabled = false;
-
-    /**
-     * Whether SRA based auth logic should be used.
-     */
-    private boolean useSraAuth = false;
-
-    /**
-     * Whether to generate auth scheme params based on endpoint params.
-     */
-    private boolean enableEndpointAuthSchemeParams = false;
-
-    /**
-     * List of endpoint params to be used for the auth scheme params
-     */
-    private List<String> allowedEndpointAuthSchemeParams = Collections.emptyList();
-
-    /**
-     * Whether the list of allowed endpoint auth scheme params was explicitly configured.
-     */
-    private boolean allowedEndpointAuthSchemeParamsConfigured = false;
 
     /**
      * Customization to attach map of Custom client param configs that can be set on a client builder.
@@ -705,37 +684,6 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
-    }
-
-    public void setUseSraAuth(boolean useSraAuth) {
-        this.useSraAuth = useSraAuth;
-    }
-
-    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
-    //  useSraAuth==true branch going forward.
-    public boolean useSraAuth() {
-        return useSraAuth;
-    }
-
-    public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
-        this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
-    }
-
-    public boolean isEnableEndpointAuthSchemeParams() {
-        return enableEndpointAuthSchemeParams;
-    }
-
-    public void setAllowedEndpointAuthSchemeParams(List<String> allowedEndpointAuthSchemeParams) {
-        this.allowedEndpointAuthSchemeParamsConfigured = true;
-        this.allowedEndpointAuthSchemeParams = allowedEndpointAuthSchemeParams;
-    }
-
-    public List<String> getAllowedEndpointAuthSchemeParams() {
-        return this.allowedEndpointAuthSchemeParams;
-    }
-
-    public boolean getAllowedEndpointAuthSchemeParamsConfigured() {
-        return allowedEndpointAuthSchemeParamsConfigured;
     }
 
     public Map<String, ClientContextParam> getCustomClientContextParams() {

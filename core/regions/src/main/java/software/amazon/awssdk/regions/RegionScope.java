@@ -101,10 +101,6 @@ public final class RegionScope {
     private void validateFormat(String regionScope) {
         Matcher matcher = REGION_SCOPE_PATTERN.matcher(regionScope);
         if (!matcher.matches()) {
-            if (regionScope.contains(",")) {
-                throw new IllegalArgumentException("Incorrect region scope '" + regionScope + "'. Region scopes with more than "
-                                                   + "one region defined are not supported.");
-            }
             throw new IllegalArgumentException("Incorrect region scope '" + regionScope + "'. Region scope must be a"
                                                + " string that either is a complete region string, such as 'us-east-1',"
                                                + " or uses the wildcard '*' to represent any region that starts with"

@@ -39,7 +39,6 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
-import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
@@ -65,12 +64,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private final PoetExtension poetExtensions;
     private final IntermediateModel model;
-    private final boolean useSraAuth;
 
     public JsonProtocolSpec(PoetExtension poetExtensions, IntermediateModel model) {
         this.poetExtensions = poetExtensions;
         this.model = model;
-        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -187,17 +184,12 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(hostPrefixExpression(opModel))
                      .add(discoveredEndpoint(opModel))
                      .add(credentialType(opModel, model))
-                     .add(".withRequestConfiguration(clientConfiguration)")
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-                     .add(HttpChecksumTrait.create(opModel));
-
-        if (!useSraAuth) {
-            codeBlock.add(NoneAuthTypeRequestTrait.create(opModel));
-        }
-
-        codeBlock.add(RequestCompressionTrait.create(opModel, model));
+                     .add(HttpChecksumTrait.create(opModel))
+                     .add(NoneAuthTypeRequestTrait.create(opModel))
+                     .add(RequestCompressionTrait.create(opModel, model));
 
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
@@ -250,9 +242,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                                               : pojoResponseType;
         TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
 
-        builder.add("\n\n$T<$T> executeFuture = ", CompletableFuture.class, executeFutureValueType)
-               .add(opModel.getEndpointDiscovery() != null ? "endpointFuture.thenCompose(cachedEndpoint -> " : "")
-               .add("clientHandler.execute(new $T<$T, $T>()\n", ClientExecutionParams.class, requestType, responseType)
+        builder.add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n",
+                    CompletableFuture.class, executeFutureValueType, ClientExecutionParams.class, requestType, responseType)
                .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
                .add(".withMarshaller($L)\n", asyncMarshaller(model, opModel, marshaller, protocolFactory))
                .add(asyncRequestBody(opModel))
@@ -260,23 +251,17 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(hasInitialRequestEvent(opModel, isRestJson))
                .add(".withResponseHandler($L)\n", responseHandlerName(opModel, isRestJson))
                .add(".withErrorResponseHandler(errorResponseHandler)\n")
-               .add(".withRequestConfiguration(clientConfiguration)")
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(hostPrefixExpression(opModel))
                .add(discoveredEndpoint(opModel))
                .add(credentialType(opModel, model))
                .add(asyncRequestBody)
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-               .add(HttpChecksumTrait.create(opModel));
-
-        if (!useSraAuth) {
-            builder.add(NoneAuthTypeRequestTrait.create(opModel));
-        }
-
-        builder.add(RequestCompressionTrait.create(opModel, model))
-               .add(".withInput($L)$L)",
-                    opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel))
-               .add(opModel.getEndpointDiscovery() != null ? ");" : ";");
+               .add(HttpChecksumTrait.create(opModel))
+               .add(NoneAuthTypeRequestTrait.create(opModel))
+               .add(RequestCompressionTrait.create(opModel, model))
+               .add(".withInput($L)$L);",
+                    opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel));
 
         if (opModel.hasStreamingOutput()) {
             builder.addStatement("$T<$T, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer",

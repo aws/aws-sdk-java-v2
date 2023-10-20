@@ -24,8 +24,12 @@ import static org.mockito.Mockito.when;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,21 +38,24 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.PaginatedOperationWithResultKeyResponse;
+import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
+import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyIterable;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyPublisher;
-import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 /**
  * Core metrics test for async non-streaming API
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
+
+    @Mock
+    private AwsCredentialsProvider mockCredentialsProvider;
 
     @Mock
     private MetricPublisher mockPublisher;
@@ -63,10 +70,19 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
     public void setup() throws IOException {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_2)
-                                            .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
+                                            .credentialsProvider(mockCredentialsProvider)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                                             .build();
+
+        when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+            return AwsBasicCredentials.create("foo", "bar");
+        });
     }
 
     @After
@@ -98,7 +114,7 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
         stubSuccessfulResponse();
         ProtocolRestJsonAsyncClient noPublisher = ProtocolRestJsonAsyncClient.builder()
                                                                              .region(Region.US_WEST_2)
-                                                                             .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
+                                                                             .credentialsProvider(mockCredentialsProvider)
                                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                                                              .build();
 

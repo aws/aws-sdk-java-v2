@@ -68,13 +68,6 @@
             <version>${awscrt.version}</version>
         </dependency>
 
-        <!-- Ensure that users that depend on auth-crt also get a dependency on the new signers -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>http-auth-aws-crt</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -167,18 +160,6 @@
                             <Automatic-Module-Name>software.amazon.awssdk.authcrt</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <configuration>
-                    <!-- This module brings in dependency on http-auth-aws-crt but does not have any code that
-                     explicitly uses it -->
-                    <ignoredUnusedDeclaredDependencies>
-                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth-aws-crt</ignoredUnusedDeclaredDependency>
-                    </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
         </plugins>

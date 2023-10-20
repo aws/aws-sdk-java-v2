@@ -56,12 +56,14 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public abstract class BaseAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
     private static final Logger log = Logger.loggerFor(BaseAsyncClientHandler.class);
+    private final SdkClientConfiguration clientConfiguration;
     private final AmazonAsyncHttpClient client;
     private final Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator;
 
     protected BaseAsyncClientHandler(SdkClientConfiguration clientConfiguration,
                                      AmazonAsyncHttpClient client) {
         super(clientConfiguration);
+        this.clientConfiguration = clientConfiguration;
         this.client = client;
         this.crc32Validator = response -> Crc32Validation.validate(isCalculateCrc32FromCompressedData(), response);
     }
@@ -199,8 +201,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             InterceptorContext finalizeSdkHttpRequestContext = finalizeSdkHttpFullRequest(executionParams,
                                                                                           executionContext,
                                                                                           inputT,
-                                                                                          resolveRequestConfiguration(
-                                                                                              executionParams));
+                                                                                          clientConfiguration);
 
             SdkHttpFullRequest marshalled = (SdkHttpFullRequest) finalizeSdkHttpRequestContext.httpRequest();
 
@@ -222,10 +223,8 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                        .build();
             }
 
-            SdkClientConfiguration clientConfiguration = resolveRequestConfiguration(executionParams);
             CompletableFuture<ReturnT> invokeFuture =
-                invoke(clientConfiguration,
-                       marshalled,
+                invoke(marshalled,
                        finalizeSdkHttpRequestContext.asyncRequestBody().orElse(null),
                        inputT,
                        executionContext,
@@ -273,7 +272,6 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
      * configured in the ExecutionContext beforehand.
      **/
     private <InputT extends SdkRequest, OutputT> CompletableFuture<OutputT> invoke(
-        SdkClientConfiguration clientConfiguration,
         SdkHttpFullRequest request,
         AsyncRequestBody requestProvider,
         InputT originalRequest,
@@ -284,7 +282,6 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                      .request(request)
                      .originalRequest(originalRequest)
                      .executionContext(executionContext)
-                     .httpClientDependencies(c -> c.clientConfiguration(clientConfiguration))
                      .execute(responseHandler);
     }
 

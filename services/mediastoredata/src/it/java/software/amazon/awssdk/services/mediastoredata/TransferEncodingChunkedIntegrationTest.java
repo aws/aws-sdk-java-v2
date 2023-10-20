@@ -29,9 +29,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.services.mediastore.model.Container;
 import software.amazon.awssdk.services.mediastoredata.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.mediastoredata.model.ObjectNotFoundException;
 import software.amazon.awssdk.services.mediastoredata.model.PutObjectRequest;
@@ -45,8 +42,6 @@ public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegr
     private static MediaStoreDataClient syncClientWithApache;
     private static MediaStoreDataClient syncClientWithUrlConnection;
     private static MediaStoreDataAsyncClient asyncClientWithNetty;
-    private static IdentityProvider<AwsCredentialsIdentity> credentialsProvider;
-    private static Container container;
     private static PutObjectRequest putObjectRequest;
     private static DeleteObjectRequest deleteObjectRequest;
 

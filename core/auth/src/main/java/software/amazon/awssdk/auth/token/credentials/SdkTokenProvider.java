@@ -15,11 +15,8 @@
 
 package software.amazon.awssdk.auth.token.credentials;
 
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
 
 /**
  * Interface for loading {@link SdkToken} that are used for authentication.
@@ -27,7 +24,7 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
  */
 @FunctionalInterface
 @SdkPublicApi
-public interface SdkTokenProvider extends IdentityProvider<TokenIdentity> {
+public interface SdkTokenProvider {
     /**
      * Returns an {@link SdkToken} that can be used to authorize a request. Each implementation of SdkTokenProvider
      * can choose its own strategy for loading token. For example, an implementation might load token from an existing
@@ -37,14 +34,4 @@ public interface SdkTokenProvider extends IdentityProvider<TokenIdentity> {
      * @return AwsToken which the caller can use to authorize an AWS request using token authorization for a request.
      */
     SdkToken resolveToken();
-
-    @Override
-    default Class<TokenIdentity> identityType() {
-        return TokenIdentity.class;
-    }
-
-    @Override
-    default CompletableFuture<TokenIdentity> resolveIdentity(ResolveIdentityRequest request) {
-        return CompletableFuture.completedFuture(resolveToken());
-    }
 }

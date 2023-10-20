@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.codegen;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
@@ -62,7 +59,6 @@ final class AddMetadata {
                 .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
                 .withWaitersPackageName(namingStrategy.getWaitersPackageName(serviceName))
                 .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(serviceName))
-                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(serviceName))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withServiceName(serviceName)
@@ -82,12 +78,7 @@ final class AddMetadata {
                 .withServiceId(serviceMetadata.getServiceId())
                 .withSupportsH2(supportsH2(serviceMetadata))
                 .withJsonVersion(getJsonVersion(metadata, serviceMetadata))
-                .withAwsQueryCompatible(serviceMetadata.getAwsQueryCompatible())
-                .withAuth(Optional.ofNullable(serviceMetadata.getAuth())
-                                  .orElseGet(() -> Collections.singletonList(serviceMetadata.getSignatureVersion()))
-                                  .stream()
-                                  .map(AuthType::fromValue)
-                                  .collect(Collectors.toList()));
+                .withAwsQueryCompatible(serviceMetadata.getAwsQueryCompatible());
 
         return metadata;
     }

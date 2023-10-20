@@ -28,10 +28,9 @@
     <artifactId>auth</artifactId>
     <name>AWS Java SDK :: Auth</name>
     <description>
-        The AWS SDK for Java - Auth module holds the classes that are used for authentication with services
+        The AWS SDK for Java - Auth module holds the classes that are used for authentication with AWS services
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
-
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -46,11 +45,6 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>identity-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
@@ -71,21 +65,6 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>json-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>http-auth-aws</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>http-auth</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>http-auth-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
@@ -182,12 +161,6 @@
             <groupId>com.google.jimfs</groupId>
             <artifactId>jimfs</artifactId>
             <version>${jimfs.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>checksums</artifactId>
-            <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

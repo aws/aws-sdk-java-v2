@@ -16,17 +16,11 @@
 package software.amazon.awssdk.awscore;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -36,12 +30,10 @@ import software.amazon.awssdk.regions.Region;
 public abstract class AwsServiceClientConfiguration extends SdkServiceClientConfiguration {
 
     private final Region region;
-    private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
     protected AwsServiceClientConfiguration(Builder builder) {
         super(builder);
         this.region = builder.region();
-        this.credentialsProvider = builder.credentialsProvider();
     }
 
     /**
@@ -52,11 +44,14 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         return this.region;
     }
 
-    /**
-     * @return The configured identity provider
-     */
-    public IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
-        return credentialsProvider;
+    @Override
+    public boolean equals(Object o) {
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        AwsServiceClientConfiguration serviceClientConfiguration = (AwsServiceClientConfiguration) o;
+        return Objects.equals(region, serviceClientConfiguration.region);
     }
 
     @Override
@@ -64,19 +59,7 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         int result = 1;
         result = 31 * result + super.hashCode();
         result = 31 * result + (region != null ? region.hashCode() : 0);
-        result = 31 * result + (credentialsProvider != null ? credentialsProvider.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        AwsServiceClientConfiguration that = (AwsServiceClientConfiguration) o;
-        return Objects.equals(region, that.region)
-               && Objects.equals(credentialsProvider, that.credentialsProvider);
     }
 
     /**
@@ -113,22 +96,6 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         }
 
         @Override
-        default Builder putAuthScheme(AuthScheme<?> authScheme) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Configure the credentials provider
-         */
-        default Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-            throw new UnsupportedOperationException();
-        }
-
-        default IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         AwsServiceClientConfiguration build();
     }
 
@@ -137,11 +104,8 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         protected Region region;
         protected URI endpointOverride;
         protected EndpointProvider endpointProvider;
-        protected IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
-        protected Map<String, AuthScheme<?>> authSchemes;
 
         protected BuilderImpl() {
-
         }
 
         protected BuilderImpl(AwsServiceClientConfiguration awsServiceClientConfiguration) {
@@ -171,32 +135,6 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
             return endpointProvider;
         }
 
-        @Override
-        public final Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-            this.credentialsProvider = credentialsProvider;
-            return this;
-        }
-
-        @Override
-        public final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
-            return credentialsProvider;
-        }
-
-        @Override
-        public final Builder putAuthScheme(AuthScheme<?> authScheme) {
-            if (authSchemes == null) {
-                authSchemes = new HashMap<>();
-            }
-            authSchemes.put(authScheme.schemeId(), authScheme);
-            return this;
-        }
-
-        @Override
-        public final Map<String, AuthScheme<?>> authSchemes() {
-            if (authSchemes == null) {
-                return Collections.emptyMap();
-            }
-            return Collections.unmodifiableMap(new HashMap<>(authSchemes));
-        }
     }
+
 }

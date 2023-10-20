@@ -22,7 +22,6 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.poet.builder.BaseClientBuilderClass;
 import software.amazon.awssdk.codegen.poet.builder.BaseClientBuilderInterface;
-import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationBuilderClass;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationClass;
 
 /**
@@ -37,8 +36,7 @@ public class CommonClientGeneratorTasks extends BaseGeneratorTasks {
     protected List<GeneratorTask> createTasks() throws Exception {
         return Arrays.asList(createBaseBuilderTask(),
                              createBaseBuilderInterfaceTask(),
-                             createServiceClientConfigurationTask(),
-                             createServiceClientConfigurationBuilderTask());
+                             createServiceClientConfigurationTask());
     }
 
     private GeneratorTask createBaseBuilderTask() throws IOException {
@@ -51,9 +49,5 @@ public class CommonClientGeneratorTasks extends BaseGeneratorTasks {
 
     private GeneratorTask createServiceClientConfigurationTask() throws IOException {
         return createPoetGeneratorTask(new ServiceClientConfigurationClass(model));
-    }
-
-    private GeneratorTask createServiceClientConfigurationBuilderTask() throws IOException {
-        return createPoetGeneratorTask(new ServiceClientConfigurationBuilderClass(model));
     }
 }

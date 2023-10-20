@@ -121,3 +121,4 @@ public final class EventStreamOperationWithOnlyInputRequest extends JsonProtocol
         }
     }
 }
+

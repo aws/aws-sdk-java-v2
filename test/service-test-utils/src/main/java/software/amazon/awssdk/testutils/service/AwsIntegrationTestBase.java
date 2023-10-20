@@ -19,12 +19,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import reactor.blockhound.BlockHound;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.IoUtils;
 
 public abstract class AwsIntegrationTestBase {
@@ -58,9 +57,9 @@ public abstract class AwsIntegrationTestBase {
     }
 
     /**
-     * @return {@link IdentityProvider<AwsCredentialsIdentity>} to use during tests. Setup by base fixture
+     * @return AwsCredentialsProvider to use during tests. Setup by base fixture
      */
-    protected static IdentityProvider<AwsCredentialsIdentity> getCredentialsProvider() {
+    protected static AwsCredentialsProvider getCredentialsProvider() {
         return StaticCredentialsProvider.create(CREDENTIALS);
     }
 

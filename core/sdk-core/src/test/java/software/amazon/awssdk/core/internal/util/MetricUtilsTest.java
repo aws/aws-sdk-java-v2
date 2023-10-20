@@ -16,24 +16,19 @@
 package software.amazon.awssdk.core.internal.util;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Pair;
 
 public class MetricUtilsTest {
@@ -41,7 +36,7 @@ public class MetricUtilsTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void measureDuration_returnsAccurateDurationInformation() {
+    public void testMeasureDuration_returnsAccurateDurationInformation() {
         long testDurationNanos = Duration.ofMillis(1).toNanos();
 
         Pair<Object, Duration> measuredExecute = MetricUtils.measureDuration(() -> {
@@ -56,7 +51,7 @@ public class MetricUtilsTest {
     }
 
     @Test
-    public void measureDuration_returnsCallableReturnValue() {
+    public void testMeasureDuration_returnsCallableReturnValue() {
         String result = "foo";
 
         Pair<String, Duration> measuredExecute = MetricUtils.measureDuration(() -> result);
@@ -65,7 +60,7 @@ public class MetricUtilsTest {
     }
 
     @Test
-    public void measureDurationUnsafe_doesNotWrapException() throws Exception {
+    public void testMeasureDurationUnsafe_doesNotWrapException() throws Exception {
         IOException ioe = new IOException("boom");
 
         thrown.expect(IOException.class);
@@ -80,7 +75,7 @@ public class MetricUtilsTest {
     }
 
     @Test
-    public void measureDuration_doesNotWrapException() {
+    public void testMeasureDuration_doesNotWrapException() {
         RuntimeException e = new RuntimeException("boom");
 
         thrown.expect(RuntimeException.class);
@@ -96,82 +91,7 @@ public class MetricUtilsTest {
     }
 
     @Test
-    public void reportDuration_completableFuture_reportsAccurateDurationInformation() {
-        MetricCollector mockCollector = mock(MetricCollector.class);
-        SdkMetric<Duration> mockMetric = mock(SdkMetric.class);
-
-        CompletableFuture<String> future = new CompletableFuture<>();
-        CompletableFuture<String> result = MetricUtils.reportDuration(() -> future, mockCollector, mockMetric);
-
-        long testDurationNanos = Duration.ofMillis(1).toNanos();
-        long start = System.nanoTime();
-        // spin thread instead of Thread.sleep() for a bit more accuracy...
-        while (System.nanoTime() - start < testDurationNanos) {
-        }
-        future.complete("foo");
-        future.join();
-
-        ArgumentCaptor<Duration> duration = ArgumentCaptor.forClass(Duration.class);
-        verify(mockCollector).reportMetric(eq(mockMetric), duration.capture());
-        assertThat(duration.getValue()).isGreaterThanOrEqualTo(Duration.ofNanos(testDurationNanos));
-    }
-
-    @Test
-    public void reportDuration_completableFuture_completesExceptionally_reportsAccurateDurationInformation() {
-        MetricCollector mockCollector = mock(MetricCollector.class);
-        SdkMetric<Duration> mockMetric = mock(SdkMetric.class);
-
-        CompletableFuture<String> future = new CompletableFuture<>();
-        CompletableFuture<String> result = MetricUtils.reportDuration(() -> future, mockCollector, mockMetric);
-
-        long testDurationNanos = Duration.ofMillis(1).toNanos();
-        long start = System.nanoTime();
-        // spin thread instead of Thread.sleep() for a bit more accuracy...
-        while (System.nanoTime() - start < testDurationNanos) {
-        }
-        future.completeExceptionally(new RuntimeException("future failed"));
-        try {
-            future.join();
-        } catch (CompletionException e) {
-            ArgumentCaptor<Duration> duration = ArgumentCaptor.forClass(Duration.class);
-            verify(mockCollector).reportMetric(eq(mockMetric), duration.capture());
-            assertThat(duration.getValue()).isGreaterThanOrEqualTo(Duration.ofNanos(testDurationNanos));
-        }
-    }
-
-    @Test
-    public void reportDuration_completableFuture_returnsCallableReturnValue() {
-        MetricCollector mockCollector = mock(MetricCollector.class);
-        SdkMetric<Duration> mockMetric = mock(SdkMetric.class);
-
-        CompletableFuture<String> future = new CompletableFuture<>();
-
-        CompletableFuture<String> result = MetricUtils.reportDuration(() -> future, mockCollector, mockMetric);
-
-        assertThat(result).isEqualTo(result);
-    }
-
-    @Test
-    public void reportDuration_completableFuture_doesNotWrapException() {
-        MetricCollector mockCollector = mock(MetricCollector.class);
-        SdkMetric<Duration> mockMetric = mock(SdkMetric.class);
-
-        RuntimeException e = new RuntimeException("boom");
-
-        thrown.expect(RuntimeException.class);
-
-        try {
-            MetricUtils.reportDuration(() -> {
-                throw e;
-            }, mockCollector, mockMetric);
-        } catch (RuntimeException caught) {
-            assertThat(caught).isSameAs(e);
-            throw caught;
-        }
-    }
-
-    @Test
-    public void collectHttpMetrics_collectsAllExpectedMetrics() {
+    public void testCollectHttpMetrics_collectsAllExpectedMetrics() {
         MetricCollector mockCollector = mock(MetricCollector.class);
 
         int statusCode = 200;

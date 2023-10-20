@@ -19,14 +19,12 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.DelegateCredentialsProvider;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -34,10 +32,10 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @SdkInternalApi
 public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
-    private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
+    private final AwsCredentialsProvider credentialsProvider;
     private final CredentialsProvider crtCredentials;
 
-    public CrtCredentialsProviderAdapter(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+    public CrtCredentialsProviderAdapter(AwsCredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
         this.crtCredentials = new DelegateCredentialsProvider.DelegateCredentialsProviderBuilder()
             .withHandler(() -> {
@@ -46,17 +44,18 @@ public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
                     return Credentials.createAnonymousCredentials();
                 }
 
-                AwsCredentialsIdentity sdkCredentials =
-                    CompletableFutureUtils.joinLikeSync(credentialsProvider.resolveIdentity());
+                AwsCredentials sdkCredentials = credentialsProvider.resolveCredentials();
                 byte[] accessKey = sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8);
                 byte[] secreteKey = sdkCredentials.secretAccessKey().getBytes(StandardCharsets.UTF_8);
 
                 byte[] sessionTokens = null;
-                if (sdkCredentials instanceof AwsSessionCredentialsIdentity) {
+                if (sdkCredentials instanceof AwsSessionCredentials) {
                     sessionTokens =
-                        ((AwsSessionCredentialsIdentity) sdkCredentials).sessionToken().getBytes(StandardCharsets.UTF_8);
+                        ((AwsSessionCredentials) sdkCredentials).sessionToken().getBytes(StandardCharsets.UTF_8);
                 }
-                return new Credentials(accessKey, secreteKey, sessionTokens);
+                return new Credentials(accessKey,
+                                           secreteKey,
+                                           sessionTokens);
 
             }).build();
     }

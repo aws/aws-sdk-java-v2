@@ -38,9 +38,11 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -58,7 +60,6 @@ import software.amazon.awssdk.services.protocolrestjson.endpoints.ProtocolRestJs
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
 import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyIterable;
-import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CoreMetricsTest {
@@ -76,6 +77,9 @@ public class CoreMetricsTest {
     private SdkHttpClient mockHttpClient;
 
     @Mock
+    private AwsCredentialsProvider mockCredentialsProvider;
+
+    @Mock
     private MetricPublisher mockPublisher;
 
     @Mock
@@ -86,7 +90,7 @@ public class CoreMetricsTest {
         client = ProtocolRestJsonClient.builder()
                 .httpClient(mockHttpClient)
                 .region(Region.US_WEST_2)
-                .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
+                .credentialsProvider(mockCredentialsProvider)
                 .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                 .endpointProvider(mockEndpointProvider)
                 .build();
@@ -113,6 +117,15 @@ public class CoreMetricsTest {
         when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
                 .thenReturn(mockExecuteRequest);
 
+        when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+            return AwsBasicCredentials.create("foo", "bar");
+        });
+
         when(mockEndpointProvider.resolveEndpoint(any(ProtocolRestJsonEndpointParams.class))).thenReturn(
             CompletableFuture.completedFuture(Endpoint.builder()
                                                       .url(URI.create("https://protocolrestjson.amazonaws.com"))
@@ -131,7 +144,7 @@ public class CoreMetricsTest {
     public void testApiCall_noConfiguredPublisher_succeeds() {
         ProtocolRestJsonClient noPublisher = ProtocolRestJsonClient.builder()
                 .region(Region.US_WEST_2)
-                .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
+                .credentialsProvider(mockCredentialsProvider)
                 .httpClient(mockHttpClient)
                 .build();
 

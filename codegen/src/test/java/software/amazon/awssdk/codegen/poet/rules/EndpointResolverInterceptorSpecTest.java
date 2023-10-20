@@ -19,27 +19,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class EndpointResolverInterceptorSpecTest {
     @Test
     public void endpointResolverInterceptorClass() {
-        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(getModel(true));
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor.java"));
-    }
-
-    // TODO(post-sra-identity-auth): This can be deleted when useSraAuth is removed
-    @Test
-    public void endpointResolverInterceptorClass_preSra() {
-        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(getModel(false));
-        assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-preSra.java"));
-    }
-
-    private static IntermediateModel getModel(boolean useSraAuth) {
-        IntermediateModel model = ClientTestModels.queryServiceModels();
-        model.getCustomizationConfig().setUseSraAuth(useSraAuth);
-        return model;
     }
 }

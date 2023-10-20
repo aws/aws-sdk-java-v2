@@ -19,8 +19,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -51,36 +49,8 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
      *
      * <p>If the credentials are not found in any of the locations above, an exception will be thrown at {@link #build()} time.
      * </p>
-     *
-     * <p>The last of {@link #credentialsProvider(AwsCredentialsProvider)} or {@link #credentialsProvider(IdentityProvider)}
-     * wins.</p>
      */
-    default BuilderT credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-        return credentialsProvider((IdentityProvider<AwsCredentialsIdentity>) credentialsProvider);
-    }
-
-    /**
-     * Configure the credentials that should be used to authenticate with AWS.
-     *
-     * <p>The default provider will attempt to identify the credentials automatically using the following checks:
-     * <ol>
-     *   <li>Java System Properties - <code>aws.accessKeyId</code> and <code>aws.secretAccessKey</code></li>
-     *   <li>Environment Variables - <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code></li>
-     *   <li>Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI</li>
-     *   <li>Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI environment
-     *   variable is set and security manager has permission to access the variable.</li>
-     *   <li>Instance profile credentials delivered through the Amazon EC2 metadata service</li>
-     * </ol>
-     *
-     * <p>If the credentials are not found in any of the locations above, an exception will be thrown at {@link #build()} time.
-     * </p>
-     *
-     * <p>The last of {@link #credentialsProvider(AwsCredentialsProvider)} or {@link #credentialsProvider(IdentityProvider)}
-     * wins.</p>
-     */
-    default BuilderT credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-        throw new UnsupportedOperationException();
-    }
+    BuilderT credentialsProvider(AwsCredentialsProvider credentialsProvider);
 
     /**
      * Configure the region with which the SDK should communicate.

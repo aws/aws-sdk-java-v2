@@ -26,12 +26,12 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public final class SigV4aAuthScheme implements EndpointAuthScheme {
     private final String signingName;
     private final List<String> signingRegionSet;
-    private final Boolean disableDoubleEncoding;
+    private final boolean disableDoubleEncoding;
 
     private SigV4aAuthScheme(Builder b) {
         this.signingName = b.signingName;
         this.signingRegionSet = b.signingRegionSet;
-        this.disableDoubleEncoding = b.disableDoubleEncoding;
+        this.disableDoubleEncoding = b.disableDoubleEncoding == null ? false : b.disableDoubleEncoding;
     }
 
     public String signingName() {
@@ -39,11 +39,7 @@ public final class SigV4aAuthScheme implements EndpointAuthScheme {
     }
 
     public boolean disableDoubleEncoding() {
-        return disableDoubleEncoding == null ? false : disableDoubleEncoding;
-    }
-
-    public boolean isDisableDoubleEncodingSet() {
-        return disableDoubleEncoding != null;
+        return disableDoubleEncoding;
     }
 
     public List<String> signingRegionSet() {
@@ -53,11 +49,6 @@ public final class SigV4aAuthScheme implements EndpointAuthScheme {
     @Override
     public String name() {
         return "sigv4a";
-    }
-
-    @Override
-    public String schemeId() {
-        return "aws.auth#sigv4a";
     }
 
     @Override
@@ -71,8 +62,7 @@ public final class SigV4aAuthScheme implements EndpointAuthScheme {
 
         SigV4aAuthScheme that = (SigV4aAuthScheme) o;
 
-        if (disableDoubleEncoding != null ? !disableDoubleEncoding.equals(that.disableDoubleEncoding)
-                                          : that.disableDoubleEncoding != null) {
+        if (disableDoubleEncoding != that.disableDoubleEncoding) {
             return false;
         }
         if (signingName != null ? !signingName.equals(that.signingName) : that.signingName != null) {
@@ -85,7 +75,7 @@ public final class SigV4aAuthScheme implements EndpointAuthScheme {
     public int hashCode() {
         int result = signingName != null ? signingName.hashCode() : 0;
         result = 31 * result + (signingRegionSet != null ? signingRegionSet.hashCode() : 0);
-        result = 31 * result + (disableDoubleEncoding != null ? disableDoubleEncoding.hashCode() : 0);
+        result = 31 * result + (disableDoubleEncoding ? 1 : 0);
         return result;
     }
 

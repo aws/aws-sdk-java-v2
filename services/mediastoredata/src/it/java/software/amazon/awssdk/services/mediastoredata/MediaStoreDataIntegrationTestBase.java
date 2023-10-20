@@ -39,8 +39,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.services.mediastore.MediaStoreClient;
 import software.amazon.awssdk.services.mediastore.model.Container;
 import software.amazon.awssdk.services.mediastore.model.ContainerStatus;
@@ -52,7 +50,7 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
  * Base class for MediaStoreData integration tests. Used for Transfer-Encoding and Request Compression testing.
  */
 public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
-    protected static IdentityProvider<AwsCredentialsIdentity> credentialsProvider;
+    protected static AwsCredentialsProvider credentialsProvider;
     protected static MediaStoreClient mediaStoreClient;
     protected static URI uri;
 

@@ -15,18 +15,34 @@
 
 package software.amazon.awssdk.auth.token.credentials;
 
+import java.time.Instant;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
- * Provides token which is used to securely authorize requests to services that use token based auth, e.g., OAuth.
+ * Provides token which is used to securely authorize requests to AWS services.
+ * A token is a string that the OAuth client uses to make requests to the resource server.
  *
- * <p>For more details on OAuth tokens, see:
+ * <p>For more details on tokens, see:
  * <a href="https://oauth.net/2/access-tokens">
  * https://oauth.net/2/access-tokens</a></p>
  *
  * @see SdkTokenProvider
  */
+
 @SdkPublicApi
-public interface SdkToken extends TokenIdentity {
+public interface SdkToken {
+
+
+    /**
+     * Retrieves string field representing the literal token string.
+     * A token is a string that the OAuth client uses to make requests to the resource server.
+     */
+    String token();
+
+
+    /**
+     * Retrieves the time at which the token expires.
+     */
+    Optional<Instant> expirationTime();
 }

@@ -36,12 +36,6 @@
         <module>annotations</module>
         <module>arns</module>
         <module>auth</module>
-        <module>identity-spi</module>
-        <module>http-auth-spi</module>
-        <module>http-auth</module>
-        <module>http-auth-aws</module>
-        <module>http-auth-aws-crt</module>
-        <module>http-auth-aws-eventstream</module>
         <module>auth-crt</module>
         <module>sdk-core</module>
         <module>aws-core</module>
@@ -53,8 +47,6 @@
         <module>endpoints-spi</module>
         <module>imds</module>
         <module>crt-core</module>
-        <module>checksums-spi</module>
-        <module>checksums</module>
     </modules>
 
     <dependencyManagement>

@@ -24,7 +24,6 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,18 +61,13 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
-import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
-import software.amazon.awssdk.services.s3.auth.scheme.internal.S3AuthSchemeInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
+import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3RequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointInterceptor;
 import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
@@ -209,8 +203,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         List<ExecutionInterceptor> s3Interceptors =
             interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
-        additionalInterceptors.add(new S3AuthSchemeInterceptor());
         additionalInterceptors.add(new S3ResolveEndpointInterceptor());
+        additionalInterceptors.add(new S3EndpointAuthSchemeInterceptor());
         additionalInterceptors.add(new S3RequestSetEndpointInterceptor());
         s3Interceptors = mergeLists(s3Interceptors, additionalInterceptors);
         return mergeLists(interceptorFactory.getGlobalInterceptors(), s3Interceptors);
@@ -370,13 +364,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, serviceConfiguration.dualstackEnabled())
             .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, useGlobalEndpointResolver.resolve(region()))
-            .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams)
-            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, S3AuthSchemeProvider.defaultProvider())
-            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
-            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS,
-                          IdentityProviders.builder()
-                                           .putIdentityProvider(credentialsProvider())
-                                           .build());
+            .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams);
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
 
@@ -402,15 +390,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                .executionAttributes(executionAttributes)
                                .signer(authorizationContext.resolveSigner())
                                .build();
-    }
-
-    private Map<String, AuthScheme<?>> authSchemes() {
-        Map<String, AuthScheme<?>> schemes = new HashMap<>(2);
-        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
-        schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
-        AwsV4aAuthScheme awsV4aAuthScheme = AwsV4aAuthScheme.create();
-        schemes.put(awsV4aAuthScheme.schemeId(), awsV4aAuthScheme);
-        return Collections.unmodifiableMap(schemes);
     }
 
     /**

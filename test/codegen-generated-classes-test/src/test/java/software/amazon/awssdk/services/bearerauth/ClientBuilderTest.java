@@ -17,21 +17,20 @@ package software.amazon.awssdk.services.bearerauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
-import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.regions.Region;
 
 public class ClientBuilderTest {
@@ -40,7 +39,7 @@ public class ClientBuilderTest {
         DefaultBearerauthClientBuilder builder = new DefaultBearerauthClientBuilder();
         SdkClientConfiguration config = getSyncConfig(builder);
 
-        assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
+        assertThat(config.option(AwsClientOption.TOKEN_PROVIDER))
             .isInstanceOf(DefaultAwsTokenProvider.class);
         assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
             .isInstanceOf(BearerTokenSigner.class);
@@ -54,21 +53,10 @@ public class ClientBuilderTest {
         builder.tokenProvider(mockProvider);
         SdkClientConfiguration config = getSyncConfig(builder);
 
-        assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
+        assertThat(config.option(AwsClientOption.TOKEN_PROVIDER))
             .isSameAs(mockProvider);
     }
 
-    @Test
-    public void syncClient_customTokenIdentityProviderSet_presentInFinalConfig() {
-        DefaultBearerauthClientBuilder builder = new DefaultBearerauthClientBuilder();
-
-        IdentityProvider<TokenIdentity> mockProvider = mock(IdentityProvider.class);
-        builder.tokenProvider(mockProvider);
-        SdkClientConfiguration config = getSyncConfig(builder);
-
-        assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
-            .isSameAs(mockProvider);
-    }
 
     @Test
     public void syncClient_customSignerSet_presentInFinalConfig() {
@@ -88,7 +76,7 @@ public class ClientBuilderTest {
         DefaultBearerauthAsyncClientBuilder builder = new DefaultBearerauthAsyncClientBuilder();
         SdkClientConfiguration config = getAsyncConfig(builder);
 
-        assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
+        assertThat(config.option(AwsClientOption.TOKEN_PROVIDER))
             .isInstanceOf(DefaultAwsTokenProvider.class);
         assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
             .isInstanceOf(BearerTokenSigner.class);
@@ -102,19 +90,7 @@ public class ClientBuilderTest {
         builder.tokenProvider(mockProvider);
         SdkClientConfiguration config = getAsyncConfig(builder);
 
-        assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
-            .isSameAs(mockProvider);
-    }
-
-    @Test
-    public void asyncClient_customTokenIdentityProviderSet_presentInFinalConfig() {
-        DefaultBearerauthAsyncClientBuilder builder = new DefaultBearerauthAsyncClientBuilder();
-
-        IdentityProvider<TokenIdentity> mockProvider = mock(IdentityProvider.class);
-        builder.tokenProvider(mockProvider);
-        SdkClientConfiguration config = getAsyncConfig(builder);
-
-        assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
+        assertThat(config.option(AwsClientOption.TOKEN_PROVIDER))
             .isSameAs(mockProvider);
     }
 

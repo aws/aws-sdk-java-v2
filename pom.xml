@@ -84,7 +84,6 @@
         <module>test/auth-tests</module>
         <module>test/region-testing</module>
         <module>test/ruleset-testing-core</module>
-        <module>test/old-client-version-compatibility-test</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
@@ -519,6 +518,7 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                         <!-- Declared by the codegen maven plugins (lite and normal). Not used directly but used to override a transitive dependecy -->
                         <ignoredUnusedDeclaredDependency>org.codehaus.plexus:plexus-utils</ignoredUnusedDeclaredDependency>
+<<<<<<< HEAD
 
                         <!-- TODO(post-sra-identity-auth): Once everything is switched to useSraAuth=true, remove this-->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
@@ -529,6 +529,8 @@
                              old interfaces, but that should become a test scoped dependency in modules where needed.
                              And the line below removed. -->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
+=======
+>>>>>>> parent of 99c975d4fc5 (Merge pull request #4509 from aws/feature/master/sra-identity-auth)
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
@@ -648,9 +650,6 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <!-- Moving the interface methods to new SRA super interfaces causes japicmp to complain -->
-                            <exclude>software.amazon.awssdk.auth.credentials.AwsCredentials</exclude>
-                            <exclude>software.amazon.awssdk.auth.token.credentials.SdkToken</exclude>
                             <!-- exclude ObjectPart size change TODO: re-enable -->
                             <exclude>software.amazon.awssdk.services.s3.model.ObjectPart</exclude>
                         </excludes>

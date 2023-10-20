@@ -20,9 +20,6 @@ import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
@@ -35,7 +32,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
@@ -80,6 +76,12 @@ public class EndpointRulesSpecUtils {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
                              md.getServiceName() + "ResolveEndpointInterceptor");
+    }
+
+    public ClassName authSchemesInterceptorName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             md.getServiceName() + "EndpointAuthSchemeInterceptor");
     }
 
     public ClassName requestModifierInterceptorName() {
@@ -201,197 +203,8 @@ public class EndpointRulesSpecUtils {
         }
     }
 
-    public Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
-    }
-
     public boolean isDeclaredParam(String paramName) {
         Map<String, ParameterModel> parameters = intermediateModel.getEndpointRuleSetModel().getParameters();
         return parameters.containsKey(paramName);
-    }
-
-    /**
-     * Creates a data-class level field for the given parameter. For instance
-     *
-     * <pre>
-     *     private final Region region;
-     * </pre>
-     */
-    public FieldSpec parameterClassField(String name, ParameterModel model) {
-        return parameterFieldSpecBuilder(name, model)
-            .addModifiers(Modifier.PRIVATE)
-            .addModifiers(Modifier.FINAL)
-            .build();
-    }
-
-    /**
-     * Creates a data-class method to access the given parameter. For instance
-     *
-     * <pre>
-     *     public Region region() {…};
-     * </pre>
-     */
-    public MethodSpec parameterClassAccessorMethod(String name, ParameterModel model) {
-        MethodSpec.Builder b = parameterMethodBuilder(name, model);
-        b.returns(parameterType(model));
-        b.addStatement("return $N", variableName(name));
-        return b.build();
-    }
-
-
-    /**
-     * Creates a data-interface method to access the given parameter. For instance
-     *
-     * <pre>
-     *     Region region();
-     * </pre>
-     */
-    public MethodSpec parameterInterfaceAccessorMethod(String name, ParameterModel model) {
-        MethodSpec.Builder b = parameterMethodBuilder(name, model);
-        b.returns(parameterType(model));
-        b.addModifiers(Modifier.ABSTRACT);
-        return b.build();
-    }
-
-    /**
-     * Creates a builder-class level field for the given parameter initialized to its default value when present. For instance
-     *
-     * <pre>
-     *    private Boolean useGlobalEndpoint = false;
-     * </pre>
-     */
-    public FieldSpec parameterBuilderFieldSpec(String name, ParameterModel model) {
-        return parameterFieldSpecBuilder(name, model)
-            .initializer(parameterDefaultValueCode(model))
-            .build();
-    }
-
-    /**
-     * Creates a builder-interface method to set the given parameter. For instance
-     *
-     * <pre>
-     *    Builder region(Region region);
-     * </pre>
-     *
-     */
-    public MethodSpec parameterBuilderSetterMethodDeclaration(ClassName containingClass, String name, ParameterModel model) {
-        MethodSpec.Builder b = parameterMethodBuilder(name, model);
-        b.addModifiers(Modifier.ABSTRACT);
-        b.addParameter(parameterSpec(name, model));
-        b.returns(containingClass.nestedClass("Builder"));
-        return b.build();
-    }
-
-    /**
-     * Creates a builder-class method to set the given parameter. For instance
-     *
-     * <pre>
-     *    public Builder region(Region region) {…};
-     * </pre>
-     */
-    public MethodSpec parameterBuilderSetterMethod(ClassName containingClass, String name, ParameterModel model) {
-        String memberName = variableName(name);
-
-        MethodSpec.Builder b = parameterMethodBuilder(name, model)
-            .addAnnotation(Override.class)
-            .addParameter(parameterSpec(name, model))
-            .returns(containingClass.nestedClass("Builder"))
-            .addStatement("this.$1N = $1N", memberName);
-
-        TreeNode defaultValue = model.getDefault();
-        if (defaultValue != null) {
-            b.beginControlFlow("if (this.$N == null)", memberName);
-            b.addStatement("this.$N = $L", memberName, parameterDefaultValueCode(model));
-            b.endControlFlow();
-        }
-
-        b.addStatement("return this");
-        return b.build();
-    }
-
-    /**
-     * Used internally to create a field for the given parameter. Returns the builder that can be further tailor to be used for
-     * data-classes or for builder-classes.
-     */
-    private FieldSpec.Builder parameterFieldSpecBuilder(String name, ParameterModel model) {
-        return FieldSpec.builder(parameterType(model), variableName(name))
-                        .addModifiers(Modifier.PRIVATE);
-    }
-
-    /**
-     * Used internally to create the spec for a parameter to be used in a method for the given param model. For instance, for
-     * {@code ParameterModel} for {@code Region} it creates this parameter for the builder setter.
-     *
-     * <pre>
-     *    public Builder region(
-     *          Region region // <<--- This
-     *          ) {…};
-     * </pre>
-     */
-    private ParameterSpec parameterSpec(String name, ParameterModel model) {
-        return ParameterSpec.builder(parameterType(model), variableName(name)).build();
-    }
-
-    /**
-     * Used internally to create a accessor method for the given parameter model. Returns the builder that can be further
-     * tailor to be used for data-classes/interfaces and builder-classes/interfaces.
-     */
-    private MethodSpec.Builder parameterMethodBuilder(String name, ParameterModel model) {
-        MethodSpec.Builder b = MethodSpec.methodBuilder(paramMethodName(name));
-        b.addModifiers(Modifier.PUBLIC);
-        if (model.getDeprecated() != null) {
-            b.addAnnotation(Deprecated.class);
-        }
-        return b;
-    }
-
-    /**
-     * Used internally to create the code to initialize the default value modeled for the given parameter. For instance, if the
-     * modeled default for region is "us-east-1", it will create
-     *
-     * <pre>
-     *     Region.of("us-east-1")
-     * </pre>
-     *
-     * and if the modeled default value for a boolean parameter useGlobalEndpoint is "false", it will create
-     *
-     * <pre>
-     *     false
-     * </pre>
-     */
-    private CodeBlock parameterDefaultValueCode(ParameterModel parameterModel) {
-        CodeBlock.Builder b = CodeBlock.builder();
-
-        TreeNode defaultValue = parameterModel.getDefault();
-
-        if (defaultValue == null) {
-            return b.build();
-        }
-
-        switch (defaultValue.asToken()) {
-            case VALUE_STRING:
-                String stringValue = ((JrsString) defaultValue).getValue();
-                if (parameterModel.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
-                    b.add("$T.of($S)", Region.class, stringValue);
-                } else {
-                    b.add("$S", stringValue);
-                }
-                break;
-            case VALUE_TRUE:
-            case VALUE_FALSE:
-                b.add("$L", ((JrsBoolean) defaultValue).booleanValue());
-                break;
-            default:
-                throw new RuntimeException("Don't know how to set default value for parameter of type "
-                                           + defaultValue.asToken());
-        }
-        return b.build();
-    }
-
-    /**
-     * Returns the name as a variable name using the intermediate model naming strategy.
-     */
-    public String variableName(String name) {
-        return intermediateModel.getNamingStrategy().getVariableName(name);
     }
 }

@@ -15,18 +15,17 @@
 
 package software.amazon.awssdk.auth.token.credentials;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Instant;
-import java.util.Arrays;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.auth.token.TestBearerToken;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProviderChain;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 public class SdkTokenProviderChainTest {
 
@@ -38,7 +37,7 @@ public class SdkTokenProviderChainTest {
      * for any additional calls to getToken.
      */
     @Test
-    public void resolveToken_reuseEnabled_reusesLastProvider() {
+    public void testReusingLastProvider() {
         MockTokenProvider provider1 = new MockTokenProvider("Failed!");
         MockTokenProvider provider2 = new MockTokenProvider();
         SdkTokenProviderChain chain = SdkTokenProviderChain.builder()
@@ -66,7 +65,7 @@ public class SdkTokenProviderChainTest {
      * first, until it finds a provider that can return token.
      */
     @Test
-    public void resolveToken_reuseDisabled_alwaysGoesThroughChain() {
+    public void testDisableReusingLastProvider() {
         MockTokenProvider provider1 = new MockTokenProvider("Failed!");
         MockTokenProvider provider2 = new MockTokenProvider();
         SdkTokenProviderChain chain = SdkTokenProviderChain.builder()
@@ -91,66 +90,16 @@ public class SdkTokenProviderChainTest {
      * Tests that getToken throws an Exception if all providers in the chain fail to provide token.
      */
     @Test
-    public void resolveToken_allProvidersFail_throwsExceptionWithMessageFromAllProviders() {
+    public void testGetTokenException() {
         MockTokenProvider provider1 = new MockTokenProvider("Failed!");
         MockTokenProvider provider2 = new MockTokenProvider("Bad!");
         SdkTokenProviderChain chain = SdkTokenProviderChain.builder()
                                                            .tokenProviders(provider1, provider2)
                                                            .build();
 
-        SdkClientException e = assertThrows(SdkClientException.class, () -> chain.resolveToken());
-        assertThat(e.getMessage()).contains(provider1.exceptionMessage);
-        assertThat(e.getMessage()).contains(provider2.exceptionMessage);
+        assertThrows(SdkClientException.class, () -> chain.resolveToken());
     }
 
-    @Test
-    public void resolveToken_emptyChain_throwsException() {
-        assertThrowsIllegalArgument(() -> SdkTokenProviderChain.of());
-
-        assertThrowsIllegalArgument(() -> SdkTokenProviderChain
-            .builder()
-            .tokenProviders()
-            .build());
-
-        assertThrowsIllegalArgument(() -> SdkTokenProviderChain
-            .builder()
-            .tokenProviders(Arrays.asList())
-            .build());
-    }
-
-    private void assertThrowsIllegalArgument(Executable executable) {
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, executable);
-        assertThat(e.getMessage()).contains("No token providers were specified.");
-    }
-
-    /**
-     * Tests that the chain is setup correctly with the overloaded methods that accept the AwsCredentialsProvider type.
-     */
-    @Test
-    public void createMethods_withOldTokenType_work() {
-        SdkTokenProvider provider = new MockTokenProvider();
-        assertChainResolvesCorrectly(SdkTokenProviderChain.of(provider));
-        assertChainResolvesCorrectly(SdkTokenProviderChain.builder().tokenProviders(provider).build());
-        assertChainResolvesCorrectly(SdkTokenProviderChain.builder().tokenProviders(Arrays.asList(provider)).build());
-        assertChainResolvesCorrectly(SdkTokenProviderChain.builder().addTokenProvider(provider).build());
-    }
-
-    /**
-     * Tests that the chain is setup correctly with the overloaded methods that accept the IdentityProvider type.
-     */
-    @Test
-    public void createMethods_withNewTokenType_work() {
-        IdentityProvider<TokenIdentity> provider = new MockTokenProvider();
-        assertChainResolvesCorrectly(SdkTokenProviderChain.of(provider));
-        assertChainResolvesCorrectly(SdkTokenProviderChain.builder().tokenProviders(provider).build());
-        assertChainResolvesCorrectly(SdkTokenProviderChain.builder().tokenIdentityProviders(Arrays.asList(provider)).build());
-        assertChainResolvesCorrectly(SdkTokenProviderChain.builder().addTokenProvider(provider).build());
-    }
-
-    private static void assertChainResolvesCorrectly(SdkTokenProviderChain chain) {
-        SdkToken token = chain.resolveToken();
-        assertThat(token.token()).isEqualTo(SAMPLE_TOKEN_STRING);
-    }
 
     private static final class MockTokenProvider implements SdkTokenProvider {
         private final SdkTokenProvider sdkTokenProvider;

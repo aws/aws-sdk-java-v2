@@ -21,11 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.token.credentials.internal.TokenUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -51,11 +47,11 @@ import software.amazon.awssdk.utils.Validate;
 public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoCloseable {
     private static final Logger log = Logger.loggerFor(SdkTokenProviderChain.class);
 
-    private final List<IdentityProvider<? extends TokenIdentity>> sdkTokenProviders;
+    private final List<SdkTokenProvider> sdkTokenProviders;
 
     private final boolean reuseLastProviderEnabled;
 
-    private volatile IdentityProvider<? extends TokenIdentity> lastUsedProvider;
+    private volatile SdkTokenProvider lastUsedProvider;
 
     /**
      * @see #builder()
@@ -74,7 +70,7 @@ public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoClo
     }
 
     /**
-     * Create a token provider chain with default configuration that checks the given token providers.
+     * Create an AWS token provider chain with default configuration that checks the given token providers.
      * @param sdkTokenProviders The token providers that should be checked for token, in the order they should
      *                                be checked.
      * @return A token provider chain that checks the provided token providers in order.
@@ -83,31 +79,21 @@ public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoClo
         return builder().tokenProviders(sdkTokenProviders).build();
     }
 
-    /**
-     * Create a token provider chain with default configuration that checks the given token providers.
-     * @param sdkTokenProviders The token providers that should be checked for token, in the order they should
-     *                                be checked.
-     * @return A token provider chain that checks the provided token providers in order.
-     */
-    public static SdkTokenProviderChain of(IdentityProvider<? extends TokenIdentity>... sdkTokenProviders) {
-        return builder().tokenProviders(sdkTokenProviders).build();
-    }
-
     @Override
     public SdkToken resolveToken() {
         if (reuseLastProviderEnabled && lastUsedProvider != null) {
-            return TokenUtils.toSdkToken(CompletableFutureUtils.joinLikeSync(lastUsedProvider.resolveIdentity()));
+            return lastUsedProvider.resolveToken();
         }
 
         List<String> exceptionMessages = null;
-        for (IdentityProvider<? extends TokenIdentity> provider : sdkTokenProviders) {
+        for (SdkTokenProvider provider : sdkTokenProviders) {
             try {
-                TokenIdentity token = CompletableFutureUtils.joinLikeSync(provider.resolveIdentity());
+                SdkToken token = provider.resolveToken();
 
                 log.debug(() -> "Loading token from " + provider);
 
                 lastUsedProvider = provider;
-                return TokenUtils.toSdkToken(token);
+                return token;
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
                 String message = provider + ": " + e.getMessage();
@@ -133,7 +119,7 @@ public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoClo
 
     @Override
     public String toString() {
-        return ToString.builder("SdkTokenProviderChain")
+        return ToString.builder("AwsTokenProviderChain")
                        .add("tokenProviders", sdkTokenProviders)
                        .build();
     }
@@ -160,42 +146,19 @@ public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoClo
         /**
          * Configure the token providers that should be checked for token, in the order they should be checked.
          */
-        Builder tokenIdentityProviders(Collection<? extends IdentityProvider<? extends TokenIdentity>> tokenProviders);
-
-        /**
-         * Configure the token providers that should be checked for token, in the order they should be checked.
-         */
-        default Builder tokenProviders(SdkTokenProvider... tokenProviders) {
-            return tokenProviders((IdentityProvider<? extends TokenIdentity>[]) tokenProviders);
-        }
-
-        /**
-         * Configure the token providers that should be checked for token, in the order they should be checked.
-         */
-        default Builder tokenProviders(IdentityProvider<? extends TokenIdentity>... tokenProviders) {
-            throw new UnsupportedOperationException();
-        }
+        Builder tokenProviders(SdkTokenProvider... tokenProviders);
 
         /**
          * Add a token provider to the chain, after the token providers that have already been configured.
          */
-        default Builder addTokenProvider(SdkTokenProvider tokenProvider) {
-            return addTokenProvider((IdentityProvider<? extends TokenIdentity>) tokenProvider);
-        }
-
-        /**
-         * Add a token provider to the chain, after the token providers that have already been configured.
-         */
-        default Builder addTokenProvider(IdentityProvider<? extends TokenIdentity> tokenProvider) {
-            throw new UnsupportedOperationException();
-        }
+        Builder addTokenProvider(SdkTokenProvider tokenProviders);
 
         SdkTokenProviderChain build();
     }
 
     private static final class BuilderImpl implements Builder {
         private Boolean reuseLastProviderEnabled = true;
-        private List<IdentityProvider<? extends TokenIdentity>> tokenProviders = new ArrayList<>();
+        private List<SdkTokenProvider> tokenProviders = new ArrayList<>();
 
         private BuilderImpl() {
         }
@@ -220,23 +183,13 @@ public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoClo
             tokenProviders(tokenProviders);
         }
 
-        @Override
-        public Builder tokenIdentityProviders(Collection<? extends IdentityProvider<? extends TokenIdentity>> tokenProviders) {
-            this.tokenProviders = new ArrayList<>(tokenProviders);
-            return this;
-        }
-
-        public void setTokenIdentityProviders(Collection<? extends IdentityProvider<? extends TokenIdentity>> tokenProviders) {
-            tokenIdentityProviders(tokenProviders);
-        }
-
-        public Builder tokenProviders(IdentityProvider<? extends TokenIdentity>... tokenProvider) {
-            return tokenIdentityProviders(Arrays.asList(tokenProvider));
+        public Builder tokenProviders(SdkTokenProvider... tokenProviders) {
+            return tokenProviders(Arrays.asList(tokenProviders));
         }
 
         @Override
-        public Builder addTokenProvider(IdentityProvider<? extends TokenIdentity> tokenProvider) {
-            this.tokenProviders.add(tokenProvider);
+        public Builder addTokenProvider(SdkTokenProvider tokenProviders) {
+            this.tokenProviders.add(tokenProviders);
             return this;
         }
 

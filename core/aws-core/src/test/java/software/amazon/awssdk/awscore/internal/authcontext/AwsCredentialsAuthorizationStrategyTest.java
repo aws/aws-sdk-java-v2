@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.internal.authcontext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -25,10 +26,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -42,15 +41,14 @@ public class AwsCredentialsAuthorizationStrategyTest {
     @Mock SdkRequest sdkRequest;
     @Mock Signer defaultSigner;
     @Mock Signer requestOverrideSigner;
-    AwsCredentialsProvider credentialsProvider;
-    AwsCredentials credentials;
+    @Mock AwsCredentialsProvider credentialsProvider;
+    @Mock AwsCredentials credentials;
     @Mock MetricCollector metricCollector;
 
     @Before
     public void setUp() throws Exception {
         when(sdkRequest.overrideConfiguration()).thenReturn(Optional.empty());
-        credentials = AwsBasicCredentials.create("foo", "bar");
-        credentialsProvider = StaticCredentialsProvider.create(credentials);
+        when(credentialsProvider.resolveCredentials()).thenReturn(credentials);
     }
 
     @Test
