@@ -304,7 +304,7 @@ public final class ExecutionAttribute<T> {
         @SuppressWarnings("unchecked") // Safe because of the implementation of set
         @Override
         public void set(Map<ExecutionAttribute<?>, Object> attributes, T value) {
-            attributes.compute(backingAttributeSupplier.get(), (k, attr) -> value);
+            attributes.put(backingAttributeSupplier.get(), value);
             attributes.compute(attributeSupplier.get(), (k, attr) -> writeMapping.apply((U) attr, value));
         }
 

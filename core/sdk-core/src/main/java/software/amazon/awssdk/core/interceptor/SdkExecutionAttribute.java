@@ -146,6 +146,13 @@ public class SdkExecutionAttribute {
     private static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
         new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
 
+    private static final ImmutableMap<ChecksumAlgorithm, Algorithm> ALGORITHM_MAP = ImmutableMap.of(
+        SHA256, Algorithm.SHA256,
+        SHA1, Algorithm.SHA1,
+        CRC32, Algorithm.CRC32,
+        CRC32C, Algorithm.CRC32C
+    );
+
     private static final ImmutableMap<Algorithm, ChecksumAlgorithm> CHECKSUM_ALGORITHM_MAP = ImmutableMap.of(
         Algorithm.SHA256, SHA256,
         Algorithm.SHA1, SHA1,
@@ -157,11 +164,30 @@ public class SdkExecutionAttribute {
     }
 
     /**
-     * Return the checksum specs without doing any extra mapping, since the attribute is backed by another attribute.
+     * Map from the SelectedAuthScheme and the backing ChecksumSpecs value to a new value for ChecksumSpecs.
      */
     private static <T extends Identity> ChecksumSpecs signerChecksumReadMapping(ChecksumSpecs checksumSpecs,
                                                                                 SelectedAuthScheme<T> authScheme) {
-        return checksumSpecs;
+        if (authScheme == null) {
+            return null;
+        }
+
+        ChecksumAlgorithm checksumAlgorithm =
+            authScheme.authSchemeOption().signerProperty(AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM);
+
+        if (checksumAlgorithm == null) {
+            return null;
+        }
+
+        return ChecksumSpecs.builder()
+                            .algorithm(ALGORITHM_MAP.get(checksumAlgorithm))
+                            .isRequestStreaming(checksumSpecs != null && checksumSpecs.isRequestStreaming())
+                            .isRequestChecksumRequired(checksumSpecs != null && checksumSpecs.isRequestChecksumRequired())
+                            .isValidationEnabled(checksumSpecs != null && checksumSpecs.isValidationEnabled())
+                            .headerName(checksumSpecs != null ? checksumSpecs.headerName() : null)
+                            .responseValidationAlgorithms(checksumSpecs != null ? checksumSpecs.responseValidationAlgorithms()
+                                                                                : null)
+                            .build();
     }
 
     /**
