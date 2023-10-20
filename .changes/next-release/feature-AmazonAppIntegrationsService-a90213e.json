@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon AppIntegrations Service",
+    "contributor": "",
+    "description": "Updated ScheduleConfig to be an optional input to CreateDataIntegration to support event driven downloading of files from sources such as Amazon s3 using Amazon Connect AppIntegrations."
+}
