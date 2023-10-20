@@ -102,9 +102,9 @@ public final class ExecutionAttribute<T> {
      * @param backingAttributeSupplier The supplier for the backing attribute, which this attribute is backed by
      * @param attributeSupplier The supplier for the attribute which is mapped from the backing attribute
      */
-    protected static <T, U> MappedAttributeBuilder<T, U> mappedBuilder(String name,
-                                                                       Supplier<ExecutionAttribute<T>> backingAttributeSupplier,
-                                                                       Supplier<ExecutionAttribute<U>> attributeSupplier) {
+    static <T, U> MappedAttributeBuilder<T, U> mappedBuilder(String name,
+                                                             Supplier<ExecutionAttribute<T>> backingAttributeSupplier,
+                                                             Supplier<ExecutionAttribute<U>> attributeSupplier) {
         return new MappedAttributeBuilder<>(name, backingAttributeSupplier, attributeSupplier);
     }
 
