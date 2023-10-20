@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -92,21 +91,21 @@ public final class ExecutionAttribute<T> {
     }
 
     /**
-     * Create an execution attribute whose value get mapped to another execution attribute.
+     * Create an execution attribute whose value is backed by another attribute, and gets mapped to another execution attribute.
      *
-     * <p>Whenever this value is read, its value is read from the given attribute, but whenever this value is written its
+     * <p>Whenever this value is read, its value is read from the backing attribute, but whenever this value is written its
      * value is written to the given attribute AND the mapped attribute.
      *
-     * <p>This is useful when you have some attribute that depends on the value of another.
+     * <p>This is useful when you have a complex attribute relationship, where certain attributes may depend on other attributes.
      *
      * @param name The name of the attribute to create
-     * @param attributeType The type of the attribute being created
-     * @param realAttributeSupplier The supplier for the mapped attribute which is mapped from this attribute
+     * @param backingAttributeSupplier The supplier for the backing attribute, which this attribute is backed by
+     * @param attributeSupplier The supplier for the attribute which is mapped from the backing attribute
      */
     protected static <T, U> MappedAttributeBuilder<T, U> mappedBuilder(String name,
-                                                                    @SuppressWarnings("unused") Class<T> attributeType,
-                                                                    Supplier<ExecutionAttribute<U>> realAttributeSupplier) {
-        return new MappedAttributeBuilder<>(name, realAttributeSupplier);
+                                                                       Supplier<ExecutionAttribute<T>> backingAttributeSupplier,
+                                                                       Supplier<ExecutionAttribute<U>> attributeSupplier) {
+        return new MappedAttributeBuilder<>(name, backingAttributeSupplier, attributeSupplier);
     }
 
     private void ensureUnique() {
@@ -276,14 +275,19 @@ public final class ExecutionAttribute<T> {
         }
     }
 
+    /**
+     * An implementation of {@link ValueStorage} that is backed by a different execution attribute in the provided
+     * attributes map (mirrors its value), and maps (updates) to another attribute.
+     */
     private static final class MappedValueStorage<T, U> implements ValueStorage<T> {
-        private final Supplier<ExecutionAttribute<U>> realAttributeSupplier;
-        private final AtomicReference<T> previousValue = new AtomicReference<>();
+        private final Supplier<ExecutionAttribute<T>> backingAttributeSupplier;
+        private final Supplier<ExecutionAttribute<U>> attributeSupplier;
         private final BiFunction<T, U, T> readMapping;
         private final BiFunction<U, T, U> writeMapping;
 
         private MappedValueStorage(MappedAttributeBuilder<T, U> builder) {
-            this.realAttributeSupplier = Validate.paramNotNull(builder.realAttributeSupplier, "realAttributeSupplier");
+            this.backingAttributeSupplier = Validate.paramNotNull(builder.backingAttributeSupplier, "backingAttributeSupplier");
+            this.attributeSupplier = Validate.paramNotNull(builder.attributeSupplier, "attributeSupplier");
             this.readMapping = Validate.paramNotNull(builder.readMapping, "readMapping");
             this.writeMapping = Validate.paramNotNull(builder.writeMapping, "writeMapping");
         }
@@ -291,37 +295,45 @@ public final class ExecutionAttribute<T> {
         @SuppressWarnings("unchecked") // Safe because of the implementation of set
         @Override
         public T get(Map<ExecutionAttribute<?>, Object> attributes) {
-            return previousValue.updateAndGet(t -> readMapping.apply(t, (U) attributes.get(realAttributeSupplier.get())));
+            return readMapping.apply(
+                (T) attributes.get(backingAttributeSupplier.get()),
+                (U) attributes.get(attributeSupplier.get())
+            );
         }
 
         @SuppressWarnings("unchecked") // Safe because of the implementation of set
         @Override
         public void set(Map<ExecutionAttribute<?>, Object> attributes, T value) {
-            previousValue.set(value);
-            attributes.compute(realAttributeSupplier.get(), (k, real) -> writeMapping.apply((U) real, value));
+            attributes.compute(backingAttributeSupplier.get(), (k, attr) -> value);
+            attributes.compute(attributeSupplier.get(), (k, attr) -> writeMapping.apply((U) attr, value));
         }
 
         @Override
         public void setIfAbsent(Map<ExecutionAttribute<?>, Object> attributes, T value) {
-            previousValue.set(value);
-            attributes.computeIfAbsent(realAttributeSupplier.get(), k -> writeMapping.apply(null, value));
+            T currentValue = get(attributes);
+            if (currentValue == null) {
+                set(attributes, value);
+            }
         }
     }
 
     protected static final class MappedAttributeBuilder<T, U> {
         private final String name;
-        private final Supplier<ExecutionAttribute<U>> realAttributeSupplier;
+        private final Supplier<ExecutionAttribute<T>> backingAttributeSupplier;
+        private final Supplier<ExecutionAttribute<U>> attributeSupplier;
         private BiFunction<T, U, T> readMapping;
         private BiFunction<U, T, U> writeMapping;
 
-        private MappedAttributeBuilder(String name, Supplier<ExecutionAttribute<U>> realAttributeSupplier) {
+        private MappedAttributeBuilder(String name, Supplier<ExecutionAttribute<T>> backingAttributeSupplier,
+                                       Supplier<ExecutionAttribute<U>> attributeSupplier) {
             this.name = name;
-            this.realAttributeSupplier = realAttributeSupplier;
+            this.backingAttributeSupplier = backingAttributeSupplier;
+            this.attributeSupplier = attributeSupplier;
         }
 
         /**
-         * Set the "read" mapping for this derived attribute. The provided function accepts the current value of the
-         * "real" attribute and returns the value of the derived attribute.
+         * Set the "read" mapping for this mapped attribute. The provided function accepts the current value of the
+         * backing attribute,
          */
         public MappedAttributeBuilder<T, U> readMapping(BiFunction<T, U, T> readMapping) {
             this.readMapping = readMapping;
@@ -329,8 +341,8 @@ public final class ExecutionAttribute<T> {
         }
 
         /**
-         * Set the "write" mapping for this derived attribute. The provided function accepts the current value of the "real"
-         * attribute, the value that we're trying to set to the derived attribute, and returns the value to set to the "real"
+         * Set the "write" mapping for this derived attribute. The provided function accepts the current value of the mapped
+         * attribute, the value that we are mapping from (the "backing" attribute), and returns the value to set to the mapped
          * attribute.
          */
         public MappedAttributeBuilder<T, U> writeMapping(BiFunction<U, T, U> writeMapping) {

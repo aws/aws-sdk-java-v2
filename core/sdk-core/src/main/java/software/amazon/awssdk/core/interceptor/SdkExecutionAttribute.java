@@ -15,17 +15,35 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
+import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * Contains attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
@@ -96,12 +114,26 @@ public class SdkExecutionAttribute {
 
     public static final ExecutionAttribute<String> PROFILE_NAME = new ExecutionAttribute<>("ProfileName");
 
+
+    /**
+     * The backing attribute for RESOLVED_CHECKSUM_SPECS.
+     * This holds the real ChecksumSpecs value, and is used to map to the ChecksumAlgorithm signer property
+     * in the SELECTED_AUTH_SCHEME execution attribute.
+     */
+    private static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
+        new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
+
     /**
      * The checksum algorithm is resolved based on the Request member.
      * The RESOLVED_CHECKSUM_SPECS holds the final checksum which will be used for checksum computation.
      */
     public static final ExecutionAttribute<ChecksumSpecs> RESOLVED_CHECKSUM_SPECS =
-        new ExecutionAttribute<>("ResolvedChecksumSpecs");
+        ExecutionAttribute.mappedBuilder("ResolvedChecksumSpecs",
+                                         () -> INTERNAL_RESOLVED_CHECKSUM_SPECS,
+                                         () -> SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)
+                          .readMapping(SdkExecutionAttribute::signerChecksumReadMapping)
+                          .writeMapping(SdkExecutionAttribute::signerChecksumWriteMapping)
+                          .build();
 
     /**
      * The Algorithm used for checksum validation of a response.
@@ -115,6 +147,65 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
 
+    private static final ImmutableMap<Algorithm, ChecksumAlgorithm> CHECKSUM_ALGORITHM_MAP = ImmutableMap.of(
+        Algorithm.SHA256, SHA256,
+        Algorithm.SHA1, SHA1,
+        Algorithm.CRC32, CRC32,
+        Algorithm.CRC32C, CRC32C
+    );
+
     protected SdkExecutionAttribute() {
+    }
+
+    /**
+     * Return the checksum specs without doing any extra mapping, since the attribute is backed by another attribute.
+     */
+    private static <T extends Identity> ChecksumSpecs signerChecksumReadMapping(ChecksumSpecs checksumSpecs,
+                                                                                SelectedAuthScheme<T> authScheme) {
+        return checksumSpecs;
+    }
+
+    /**
+     * Map from ChecksumSpecs to a SelectedAuthScheme with the CHECKSUM_ALGORITHM signer property set.
+     */
+    private static <T extends Identity> SelectedAuthScheme<?> signerChecksumWriteMapping(SelectedAuthScheme<T> authScheme,
+                                                                                         ChecksumSpecs checksumSpecs) {
+        ChecksumAlgorithm checksumAlgorithm =
+            checksumSpecs == null ? null
+                                  : CHECKSUM_ALGORITHM_MAP.getOrDefault(checksumSpecs.algorithm(), null);
+
+        if (authScheme == null) {
+            // This is an unusual use-case.
+            // Let's assume they're setting the checksum-algorithm so that they can call the signer directly. If that's true,
+            // then it doesn't really matter what we store other than the checksum-algorithm.
+            return new SelectedAuthScheme<>(CompletableFuture.completedFuture(new UnsetIdentity()),
+                                            new UnsetHttpSigner(),
+                                            AuthSchemeOption.builder()
+                                                            .schemeId("unset")
+                                                            .putSignerProperty(AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
+                                                                               checksumAlgorithm)
+                                                            .build());
+        }
+
+        return new SelectedAuthScheme<>(authScheme.identity(),
+                                        authScheme.signer(),
+                                        authScheme.authSchemeOption()
+                                                  .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
+                                                                                 checksumAlgorithm)));
+    }
+
+    private static class UnsetIdentity implements Identity {
+    }
+
+    private static class UnsetHttpSigner implements HttpSigner<UnsetIdentity> {
+        @Override
+        public SignedRequest sign(SignRequest<? extends UnsetIdentity> request) {
+            throw new IllegalStateException("A signer was not configured.");
+        }
+
+        @Override
+        public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends UnsetIdentity> request) {
+            return CompletableFutureUtils.failedFuture(new IllegalStateException("A signer was not configured."));
+        }
     }
 }
