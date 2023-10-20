@@ -29,7 +29,7 @@ import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.SdkProtocolMetadata;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -144,7 +144,7 @@ public class QueryParametersToBodyStageTest {
 
     private RequestExecutionContext createRequestExecutionContext(String serviceProtocol) {
         ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
-                                                                     .put(SdkExecutionAttribute.PROTOCOL_METADATA,
+                                                                     .put(SdkInternalExecutionAttribute.PROTOCOL_METADATA,
                                                                           new TestProtocolMetadata(serviceProtocol))
                                                                      .build();
         ExecutionContext executionContext = ExecutionContext.builder()

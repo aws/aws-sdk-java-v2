@@ -21,7 +21,7 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.SdkProtocolMetadata;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
@@ -52,7 +52,7 @@ public class QueryParametersToBodyStage implements MutableRequestToRequestPipeli
 
     private boolean shouldPutParamsInBody(SdkHttpFullRequest request, RequestExecutionContext context) {
         SdkProtocolMetadata protocolMetadata =
-            context.executionAttributes().getAttribute(SdkExecutionAttribute.PROTOCOL_METADATA);
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.PROTOCOL_METADATA);
         if (protocolMetadata == null) {
             return false;
         }
