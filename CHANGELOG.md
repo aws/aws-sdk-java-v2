@@ -10,6 +10,7 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+    - Removed mapping for RESOLVED_CHECKSUM_SPECS execution attribute that was causing intermittent failures for S3 operations with checksums since 2.21.0 release. The bug can cause `java.lang.NullPointerException: Cannot read field \"value\" because \"s1\" is null` exceptions, as reported in https://github.com/aws/aws-sdk-java-v2/issues/4608.
 
 ## __Amazon AppConfig__
   - ### Features
