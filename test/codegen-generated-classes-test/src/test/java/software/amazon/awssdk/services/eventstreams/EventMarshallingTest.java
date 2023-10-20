@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.eventstreams;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

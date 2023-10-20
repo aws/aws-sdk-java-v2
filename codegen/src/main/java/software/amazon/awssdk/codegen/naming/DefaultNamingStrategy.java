@@ -180,6 +180,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getAuthSchemePackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_AUTH_SCHEME_PATTERN);
+    }
+
+    @Override
     public String getSmokeTestPackageName(String serviceName) {
 
         return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),

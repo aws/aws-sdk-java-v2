@@ -34,6 +34,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FR
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.IDENTITY_PROVIDERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
@@ -62,9 +63,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.CompressionConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -84,6 +87,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -130,6 +134,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     private SdkHttpClient.Builder httpClientBuilder;
     private SdkAsyncHttpClient.Builder asyncHttpClientBuilder;
+    private final List<SdkPlugin> plugins = new ArrayList<>();
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
@@ -181,6 +186,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
 
+        // Invoke the plugins after defaults and before finalizing the configuration.
+        configuration = invokePlugins(configuration);
+
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
         configuration = finalizeSyncConfiguration(configuration);
@@ -209,6 +217,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
 
+        // Invoke the plugins after defaults and before finalizing the configuration.
+        configuration = invokePlugins(configuration);
+
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
         configuration = finalizeAsyncConfiguration(configuration);
@@ -217,11 +228,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return configuration;
     }
 
-    private SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
+    // TODO: delete this and make the method abstract when we break protected APIs
+    protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
         if (clientOverrideConfiguration == null) {
             return configuration;
         }
-
         SdkClientConfiguration.Builder builder = configuration.toBuilder();
 
         builder.option(SCHEDULED_EXECUTOR_SERVICE, clientOverrideConfiguration.scheduledExecutorService().orElse(null));
@@ -280,7 +291,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                           ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
                                                   .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
                                                   .option(USER_AGENT_SUFFIX, "")
-                                                  .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                                                  .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                                  .option(IDENTITY_PROVIDERS, IdentityProviders.builder().build()));
+        
 
         return addCompressionConfigGlobalDefaults(configuration);
     }
@@ -391,6 +404,15 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .option(RETRY_POLICY, retryPolicy)
                      .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
                      .build();
+    }
+
+    /**
+     * By default, returns the configuration as-is. Classes extending this method will take care of running the plugins and
+     * return the updated configuration if plugins are supported.
+     */
+    @SdkPreviewApi
+    protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
+        return config;
     }
 
     private String resolveClientUserAgent(SdkClientConfiguration config, RetryPolicy retryPolicy) {
@@ -585,6 +607,17 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     public final B metricPublishers(List<MetricPublisher> metricPublishers) {
         clientConfiguration.option(METRIC_PUBLISHERS, metricPublishers);
         return thisBuilder();
+    }
+
+    @Override
+    public final B addPlugin(SdkPlugin plugin) {
+        plugins.add(Validate.paramNotNull(plugin, "plugin"));
+        return thisBuilder();
+    }
+
+    @Override
+    public final List<SdkPlugin> plugins() {
+        return plugins;
     }
 
     /**

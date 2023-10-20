@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ClientType;
@@ -80,7 +81,8 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
      * @return A builder used to configure and execute a HTTP request.
      */
     public RequestExecutionBuilder requestExecutionBuilder() {
-        return new RequestExecutionBuilderImpl();
+        return new RequestExecutionBuilderImpl()
+            .httpClientDependencies(httpClientDependencies);
     }
 
     /**
@@ -106,6 +108,16 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
          */
         RequestExecutionBuilder executionContext(ExecutionContext executionContext);
 
+        RequestExecutionBuilder httpClientDependencies(HttpClientDependencies httpClientDependencies);
+
+        HttpClientDependencies httpClientDependencies();
+
+        default RequestExecutionBuilder httpClientDependencies(Consumer<HttpClientDependencies.Builder> mutator) {
+            HttpClientDependencies.Builder builder = httpClientDependencies().toBuilder();
+            mutator.accept(builder);
+            return httpClientDependencies(builder.build());
+        }
+
         /**
          * Executes the request with the given configuration.
          *
@@ -129,8 +141,9 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         }
     }
 
-    private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
+    private static class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
+        private HttpClientDependencies httpClientDependencies;
         private SdkHttpFullRequest request;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
@@ -152,6 +165,17 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         public RequestExecutionBuilder executionContext(ExecutionContext executionContext) {
             this.executionContext = executionContext;
             return this;
+        }
+
+        @Override
+        public RequestExecutionBuilder httpClientDependencies(HttpClientDependencies httpClientDependencies) {
+            this.httpClientDependencies = httpClientDependencies;
+            return this;
+        }
+
+        @Override
+        public HttpClientDependencies httpClientDependencies() {
+            return this.httpClientDependencies;
         }
 
         @Override
@@ -209,7 +233,5 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                           .executionContext(executionContext)
                                           .build();
         }
-
     }
-
 }
