@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,9 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 class MultipartDownloadHelperTest {
+
+    int MB_LEN_512 = 536870912;
+    int MB_LEN_32 = 33554432;
 
     @Test
     void testMultipartGet() throws Exception {
@@ -48,10 +53,10 @@ class MultipartDownloadHelperTest {
         CompletableFuture<ResponseBytes<GetObjectResponse>> responseFuture =
             helper.getObject(req, AsyncResponseTransformer.toBytes());
         ResponseBytes<GetObjectResponse> res = responseFuture.join();
-        Thread.sleep(10000);
         System.out.println("response: " + res.response());
-        System.out.println("bytes length: " + res.asByteArray().length);
-        Thread.sleep(1000);
-        System.out.println("All Done");
+        byte[] bytes = res.asByteArray();
+        System.out.println("bytes length: " + bytes.length);
+        System.out.println("byte diff: " + (MB_LEN_512 - bytes.length));
+        assertThat(MB_LEN_512 - bytes.length).isZero();
     }
 }

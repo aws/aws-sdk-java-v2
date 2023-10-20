@@ -15,15 +15,10 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -94,11 +89,6 @@ public class MultipartDownloadHelper<T> {
     private long individualPartContentLength;
 
     /**
-     * True if all parts have been consumed by the downstream {@link AsyncResponseTransformer}
-     */
-    private final AtomicBoolean completed = new AtomicBoolean(false);
-
-    /**
      * The number of completed parts. Parts are completed once the have been consumed but the downstream
      * {@link AsyncResponseTransformer}.
      */
@@ -107,25 +97,26 @@ public class MultipartDownloadHelper<T> {
     /**
      * The maximum amount of memory buffer configured.
      */
-    private long maxMemBufferSizeInBytes = DEFAULT_MEMORY_BUFFERED; //todo(buffer) todo(customization)
+    private final long maxMemBufferSizeInBytes = DEFAULT_MEMORY_BUFFERED; //todo(buffer) todo(customization)
 
     /**
      * The current amount of byte buffered in memory
      */
-    private AtomicLong totalMemBufferedInBytes = new AtomicLong(0);
+    private final AtomicLong totalMemBufferedInBytes = new AtomicLong(0);
 
     /**
      * Publisher that send buffered parts that are ready to be consumed by to the downstream {@link AsyncResponseTransformer}
      */
-    private SimplePublisher<ByteBuffer> bodyPartsPublisher = new SimplePublisher<>();
+    private final SimplePublisher<ByteBuffer> bodyPartsPublisher = new SimplePublisher<>();
 
     /**
      * Ordered collection of individual buffered body parts. Filled within {@link IndividualBodyPartSubscriber#onNext(ByteBuffer)}
-     * when body ByteBuffer is received and emptied in {@link IndividualBodyPartSubscriber#onComplete()}
+     * when body ByteBuffer is received and emptied in {@link IndividualBodyPartSubscriber#onComplete()}.
      */
     private PriorityQueue<PartBuffer> bufferedParts = new PriorityQueue<>(Comparator.comparingInt(p -> p.partNumber));
 
-    private long debug_totalBytesTransferred = 0; // todo(debug) remove
+    private long debug_totalBytesTransferredToDownstreamPublisher = 0; // todo(debug) remove
+    private long debug_totalBytesReceived = 0; // todo(debug) remove
 
     MultipartDownloadHelper(S3AsyncClient s3AsyncClient) {
         this.s3AsyncClient = s3AsyncClient;
@@ -141,32 +132,19 @@ public class MultipartDownloadHelper<T> {
 
         MultiGetAsyncResponseTransformer multiResponseTransformer =
             new MultiGetAsyncResponseTransformer(asyncResponseTransformer);
+        log.info(() -> String.format("sending GetObject request for part %d", 1));
         CompletableFuture<T> response = s3AsyncClient.getObject(firstPartRequest, multiResponseTransformer);
-        response.whenComplete((res, err) -> {
-            if (err != null) {
-                log.info(() -> String.format("MultiGetAsyncResponseTransformer future error: %s", err.toString()));
-                returnFuture.completeExceptionally(err);
-                return;
-            }
-            log.info(() -> "MultiGetAsyncResponseTransformer [s3AsyncClient.getObject] future completed");
-            returnFuture.complete(res); // todo(future)
-        });
         CompletableFutureUtils.forwardExceptionTo(returnFuture, response); // propagate cancellation
         return returnFuture;
     }
 
-    // send Get Object Requests for individual parts and buffer the response body until the response buffer is full, or until all
-    // individual part requests are sent.
     private void sendGetRequestsUntilBufferIsFull() {
-        // log.info(() -> String.format(
-        //     "Buffering request: current part: %d, memBufferSizeInBytes: %d, individualPartContentLength: %d",
-        //     currentPart, memBufferSizeInBytes, individualPartContentLength));
         long totalBufferAvailable = maxMemBufferSizeInBytes;
         while (totalBufferAvailable > 0 && currentPart < totalParts) {
             currentPart++;
-            int part = currentPart;
-            // log.info(() -> String.format("sending request for part %d", part));
-            GetObjectRequest partRequest = getObjectRequest.copy(b -> b.partNumber(part));
+            int partNumber = currentPart;
+            log.info(() -> String.format("sending GetObject request for part %d", partNumber));
+            GetObjectRequest partRequest = getObjectRequest.copy(b -> b.partNumber(partNumber));
             CompletableFuture<ResponsePublisher<GetObjectResponse>> responsePublisherFuture =
                 s3AsyncClient.getObject(partRequest, AsyncResponseTransformer.toPublisher());
             responsePublisherFuture.whenComplete((responsePublisher, e) -> {
@@ -175,10 +153,7 @@ public class MultipartDownloadHelper<T> {
                     returnFuture.completeExceptionally(e);
                     return;
                 }
-                // response received and body starts streaming
-                // log.info(() -> String.format("received content range for part %d: %s",
-                //                              part, responsePublisher.response().contentRange()));
-                responsePublisher.subscribe(new IndividualBodyPartSubscriber(part));
+                responsePublisher.subscribe(new IndividualBodyPartSubscriber(partNumber));
             });
             totalBufferAvailable -= individualPartContentLength;
         }
@@ -202,8 +177,7 @@ public class MultipartDownloadHelper<T> {
                     returnFuture.completeExceptionally(e);
                     return;
                 }
-                // log.info(() -> String.format("Total bytes transferred = %d", debug_totalBytesTransferred));
-                // returnFuture.complete(t);
+                returnFuture.complete(t);
             });
             CompletableFutureUtils.forwardExceptionTo(returnFuture, asyncBodyFuture);
             return asyncBodyFuture;
@@ -213,9 +187,6 @@ public class MultipartDownloadHelper<T> {
         public void onResponse(GetObjectResponse response) {
             totalParts = response.partsCount();
             individualPartContentLength = response.contentLength();
-            // log.info(() -> String.format("onResponse MultiGetAsyncResponseTransformer: %s", response)); // todo(log)
-            // log.info(() -> String.format("onResponse totalParts=%d", response.partsCount()));
-            // log.info(() -> String.format("onResponse contentLength=%d", response.contentLength()));
             firstResponse = response;
             if (totalParts > 1) {
                 completedParts.incrementAndGet();
@@ -235,9 +206,7 @@ public class MultipartDownloadHelper<T> {
                 return;
             }
             publisher.subscribe(new IndividualBodyPartSubscriber(1));
-            this.responseTransformer.onStream(SdkPublisher.adapt(bodyPartsPublisher).doAfterOnComplete(() -> {
-                log.info(() -> String.format("!!! SdkPublisher completed !!!"));
-            }));
+            this.responseTransformer.onStream(SdkPublisher.adapt(bodyPartsPublisher));
         }
 
         @Override
@@ -246,8 +215,6 @@ public class MultipartDownloadHelper<T> {
             this.responseTransformer.exceptionOccurred(error);
         }
     }
-
-    private final Object lock = new Object();
 
     /**
      * Subscriber to each of the individual body parts being received. Manages the buffering of each individual part body into
@@ -265,18 +232,14 @@ public class MultipartDownloadHelper<T> {
 
         @Override
         public void onSubscribe(Subscription s) {
-            log.info(() -> String.format("IndividualPartSubscriber[%d] onSubscribe", partNumber));
             s.request(Long.MAX_VALUE);
         }
 
         @Override
         public void onNext(ByteBuffer body) {
-            // log.info(() -> String.format("IndividualPartSubscriber[%d] onNext: limit=%d", partNumber, body.limit()));
-            // bodyPartsPublisher.send(body.duplicate());
-            synchronized (lock) {
-                partsToRequest.body.add(body.duplicate());
-                totalMemBufferedInBytes.addAndGet(body.capacity());
-            }
+            partsToRequest.put(body);
+            totalMemBufferedInBytes.addAndGet(body.limit());
+            debug_totalBytesReceived += body.limit();
         }
 
         @Override
@@ -287,72 +250,68 @@ public class MultipartDownloadHelper<T> {
 
         @Override
         public void onComplete() {
-            // todo(synchronized) with onNext? There might be other IndividualBodyPartSubscriber instance running
-            // log.info(() -> String.format("IndividualBodyPartSubscriber[%d] onComplete - totalBuffered: %d",
-            //                              partNumber, totalMemBufferedInBytes.get()));
             completedParts.incrementAndGet();
-            Integer debug_totalSizeOfPart = partsToRequest.body.stream().map(Buffer::capacity).reduce(0, Integer::sum);
-            log.info(() -> String.format("IndividualPartSubscriber[%d] onComplete: body total size: %d",
-                                         partsToRequest.partNumber,
-                                         debug_totalSizeOfPart));
-            if (totalMemBufferedInBytes.get() >= maxMemBufferSizeInBytes || completedParts.get() == totalParts) {
-                // log.info(() -> "Buffer is full, or last part was completed");
-                synchronized (lock) {
-                    // Buffer is full:
-                    //     we are done downloading this subset of parts, so send them IN ORDER to the downstream async request
-                    //     body
-                    while (!bufferedParts.isEmpty()) {
-                        PartBuffer part = bufferedParts.poll();
-                        // log.info(() -> String.format("IndividualBodyPartSubscriber[%d] onComplete - sending body of part %d",
-                        //                              partNumber, part.partNumber));
-                        // other parts might still be adding
-                        for (ByteBuffer bb : part.body) { // 68740994
-                            debug_totalBytesTransferred += bb.capacity();
-                            bodyPartsPublisher.send(bb.duplicate());
-                        }
-                    }
-                    totalMemBufferedInBytes.set(0);
-                    if (completedParts.get() < totalParts) {
-                        sendGetRequestsUntilBufferIsFull();
-                    }
+            if (bufferIsFull() || completedLastPart()) {
+                // send full buffer to downstream publisher
+                while (!bufferedParts.isEmpty()) {
+                    PartBuffer part = bufferedParts.poll();
+                    part.sendToPublisher();
+                }
+                totalMemBufferedInBytes.set(0);
+
+                if (!completedLastPart()) {
+                    sendGetRequestsUntilBufferIsFull();
                 }
             }
 
-            log.info(() -> String.format("completed part %d - %d/%d completed parts - %d/%d total byte transferred - total "
-                                         + "memory buffered %d/%d",
+            log.info(() -> String.format("Completed GetRequest for part %d "
+                                         + "- %d/%d completed parts "
+                                         + "- %d/%d total byte transferred "
+                                         + "- %d/%d current memory buffered",
                                          partNumber,
                                          completedParts.get(), totalParts,
-                                         debug_totalBytesTransferred, firstResponse.contentLength()*totalParts,
+                                         debug_totalBytesTransferredToDownstreamPublisher,
+                                         firstResponse.contentLength() * totalParts,
                                          totalMemBufferedInBytes.get(), maxMemBufferSizeInBytes
             ));
 
-            if (completedParts.get() == totalParts) {
-                if (completed.compareAndSet(false, true)) {
-                    // We are done with all the parts, complete the whole request
-                    log.info(() -> "All parts completed");
-                    synchronized (lock) {
-                        bodyPartsPublisher.complete().whenComplete((v, e) -> {
-                            // debug purpose
-                            if (e != null) {
-                                log.error(() -> "error while processing message in SimplePublisher", e);
-                                return;
-                            }
-                            log.info(() -> "Done processing messages in SimplePublisher");
-
-                        });
-                    }
-                }
+            if (completedLastPart()) {
+                // We are done with all the parts, complete the whole request
+                log.info(() -> "All parts completed");
+                bodyPartsPublisher.complete();
             }
+        }
+
+        private boolean bufferIsFull() {
+            return totalMemBufferedInBytes.get() >= maxMemBufferSizeInBytes;
+        }
+
+        private boolean completedLastPart() {
+            return completedParts.get() == totalParts;
         }
     }
 
-    private static class PartBuffer {
+    private class PartBuffer {
         int partNumber;
-        final List<ByteBuffer> body;
+        final ByteBuffer buffer;
 
         PartBuffer(int partNumber) {
             this.partNumber = partNumber;
-            this.body = Collections.synchronizedList(new ArrayList<>());
+            this.buffer = ByteBuffer.allocate((int) individualPartContentLength);
+        }
+
+        void resetPosition() {
+            this.buffer.position(0);
+        }
+
+        void sendToPublisher() {
+            resetPosition();
+            bodyPartsPublisher.send(this.buffer);
+            debug_totalBytesTransferredToDownstreamPublisher += this.buffer.capacity();
+        }
+
+        void put(ByteBuffer body) {
+            this.buffer.put(body);
         }
     }
 }
