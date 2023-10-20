@@ -161,9 +161,7 @@ public interface PollyPresigner extends SdkPresigner {
         Builder region(Region region);
 
         @Override
-        default Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-            return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
-        }
+        Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
 
         @Override
         Builder dualstackEnabled(Boolean dualstackEnabled);
