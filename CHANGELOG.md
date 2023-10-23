@@ -1,3 +1,24 @@
+# __2.21.6__ __2023-10-23__
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - The StartSupportDataExport operation has been deprecated as part of the Product Support Connection deprecation. As of December 2022, Product Support Connection is no longer supported.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support for Tunnel-less Connect (NoEncap Protocol) for AWS Cloud WAN
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Amazon Rekognition introduces StartMediaAnalysisJob, GetMediaAnalysisJob, and ListMediaAnalysisJobs operations to run a bulk analysis of images with a Detect Moderation model.
+
+## __Redshift Serverless__
+  - ### Features
+    - This release adds support for customers to see the patch version and workgroup version in Amazon Redshift Serverless.
+
 # __2.21.5__ __2023-10-20__
 ## __AWS Application Discovery Service__
   - ### Features
@@ -10,7 +31,9 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
-    - Removed mapping for RESOLVED_CHECKSUM_SPECS execution attribute that was causing intermittent failures for S3 operations with checksums since 2.21.0 release. The bug can cause `java.lang.NullPointerException: Cannot read field \"value\" because \"s1\" is null` exceptions, as reported in https://github.com/aws/aws-sdk-java-v2/issues/4608.
+
+  - ### Bugfixes
+    - Removed mapping for RESOLVED_CHECKSUM_SPECS execution attribute that was causing intermittent failures for S3 operations with checksums since 2.21.0 release. The bug can cause `java.lang.NullPointerException: Cannot read field "value" because "s1" is null` exceptions, as reported in https://github.com/aws/aws-sdk-java-v2/issues/4608.
 
 ## __Amazon AppConfig__
   - ### Features
@@ -833,7 +856,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2574,7 +2597,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
