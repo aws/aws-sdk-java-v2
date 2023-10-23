@@ -45,7 +45,8 @@ class MultipartDownloadHelperTest {
                                                             .connectionAcquisitionTimeout(Duration.ofSeconds(30))
                                                             .build())
                          .build();
-        MultipartDownloadHelper<ResponseBytes<GetObjectResponse>> helper = new MultipartDownloadHelper<>(s3AsyncClient);
+        PartNumberDownloader<ResponseBytes<GetObjectResponse>> helper = new PartNumberDownloader<>(s3AsyncClient,
+                                                                                                   64*1024*1024);
         GetObjectRequest req = GetObjectRequest.builder()
                                                .bucket("do-not-delete-crt-s3-eu-west-1")
                                                .key("512MB")

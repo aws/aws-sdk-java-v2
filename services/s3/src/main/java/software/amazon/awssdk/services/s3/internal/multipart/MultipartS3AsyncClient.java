@@ -48,6 +48,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
+    private final DownloadObjectHelper downloadObjectHelper;
 
     private MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration) {
         super(delegate);
@@ -56,8 +57,10 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(validConfiguration);
         long minPartSizeInBytes = resolver.minimalPartSizeInBytes();
         long threshold = resolver.thresholdInBytes();
+        long apiCallBufferSize = resolver.apiCallBufferSize();
         mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
+        downloadObjectHelper = new DownloadObjectHelper(delegate, apiCallBufferSize);
     }
 
     @Override
@@ -73,10 +76,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        // throw new UnsupportedOperationException(
-        //     "Multipart download is not yet supported. Instead use the CRT based S3 client for multipart download.");
-        MultipartDownloadHelper<ReturnT> downloadHelper = new MultipartDownloadHelper<>((S3AsyncClient) delegate());
-        return downloadHelper.getObject(getObjectRequest, asyncResponseTransformer);
+        return downloadObjectHelper.getObject(getObjectRequest, asyncResponseTransformer);
     }
 
     @Override

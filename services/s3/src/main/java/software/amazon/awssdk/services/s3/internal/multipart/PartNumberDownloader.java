@@ -37,10 +37,10 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 //  once the future is completed.
 
 /**
- * Helper class to handle multipart get requests to S3. Will buffer the response body Single-use helper class for a multipart get
- * response. DO NOT REUSE THAT CLASS FOR MULTIPLE REQUESTS!
- * <p>
- * <p>
+ * Helper class to handle multipart get requests to S3 using part number. Will buffer the response body Single-use helper class
+ * for a multipart get
+ * response.
+ * <p>DO NOT REUSE THAT CLASS FOR MULTIPLE REQUESTS!
  * <p>
  * todo(future)
  *  Future cancellation and error handling needs to be done correctly
@@ -54,9 +54,9 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  * @param <T>
  */
 @SdkInternalApi
-public class MultipartDownloadHelper<T> {
+public class PartNumberDownloader<T> {
 
-    private static final Logger log = Logger.loggerFor(MultipartDownloadHelper.class);
+    private static final Logger log = Logger.loggerFor(PartNumberDownloader.class);
     private static final long DEFAULT_MEMORY_BUFFERED = 64 * 1024 * 1024; // todo(buffer) todo(customization)
 
     /**
@@ -71,21 +71,17 @@ public class MultipartDownloadHelper<T> {
     private GetObjectRequest getObjectRequest;
 
     /**
-     * The firs {@link GetObjectResponse} returned by the S3 server, used to determine if multipart is required or not, as well as
-     * the individual part size.
-     */
-    private GetObjectResponse firstResponse;
-
-    /**
      * The provided {@link AsyncResponseTransformer} of the original Get Object request. Bodies of each individual part are sent
      * to this instance in order.
      */
     private AsyncResponseTransformer<GetObjectResponse, T> responseTransformer;
 
     private CompletableFuture<T> returnFuture;
-    private CompletableFuture<T> asyncBodyFuture;
+
     private Integer totalParts;
-    private int currentPart = 1;
+
+    private int currentPart;
+
     private long individualPartContentLength;
 
     /**
@@ -97,7 +93,7 @@ public class MultipartDownloadHelper<T> {
     /**
      * The maximum amount of memory buffer configured.
      */
-    private final long maxMemBufferSizeInBytes = DEFAULT_MEMORY_BUFFERED; //todo(buffer) todo(customization)
+    private final long maxMemBufferSizeInBytes;
 
     /**
      * The current amount of byte buffered in memory
@@ -118,21 +114,24 @@ public class MultipartDownloadHelper<T> {
     private long debug_totalBytesTransferredToDownstreamPublisher = 0; // todo(debug) remove
     private long debug_totalBytesReceived = 0; // todo(debug) remove
 
-    MultipartDownloadHelper(S3AsyncClient s3AsyncClient) {
+    PartNumberDownloader(S3AsyncClient s3AsyncClient, long maxMemBufferSizeInBytes) {
         this.s3AsyncClient = s3AsyncClient;
-        this.returnFuture = new CompletableFuture<>();
+        this.maxMemBufferSizeInBytes = maxMemBufferSizeInBytes;
     }
 
     public CompletableFuture<T> getObject(GetObjectRequest getObjectRequest,
                                           AsyncResponseTransformer<GetObjectResponse, T> asyncResponseTransformer) {
+
         this.responseTransformer = asyncResponseTransformer;
         this.getObjectRequest = getObjectRequest;
+        this.returnFuture = new CompletableFuture<>();
 
         GetObjectRequest firstPartRequest = getObjectRequest.copy(b -> b.partNumber(1));
 
         MultiGetAsyncResponseTransformer multiResponseTransformer =
             new MultiGetAsyncResponseTransformer(asyncResponseTransformer);
         log.info(() -> String.format("sending GetObject request for part %d", 1));
+        this.currentPart = 1;
         CompletableFuture<T> response = s3AsyncClient.getObject(firstPartRequest, multiResponseTransformer);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, response); // propagate cancellation
         return returnFuture;
@@ -169,25 +168,23 @@ public class MultipartDownloadHelper<T> {
 
         @Override
         public CompletableFuture<T> prepare() {
-            asyncBodyFuture = this.responseTransformer.prepare();
-            asyncBodyFuture.whenComplete((t, e) -> {
+            CompletableFuture<T> asyncResponseTransformerFuture = this.responseTransformer.prepare();
+            asyncResponseTransformerFuture.whenComplete((t, e) -> {
                 log.info(() -> "[MultiGetAsyncResponseTransformer.prepare] future completed");
                 if (e != null) {
-                    log.error(() -> "error", e);
                     returnFuture.completeExceptionally(e);
                     return;
                 }
                 returnFuture.complete(t);
             });
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, asyncBodyFuture);
-            return asyncBodyFuture;
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, asyncResponseTransformerFuture);
+            return asyncResponseTransformerFuture;
         }
 
         @Override
         public void onResponse(GetObjectResponse response) {
             totalParts = response.partsCount();
             individualPartContentLength = response.contentLength();
-            firstResponse = response;
             if (totalParts > 1) {
                 completedParts.incrementAndGet();
                 sendGetRequestsUntilBufferIsFull();
@@ -199,7 +196,6 @@ public class MultipartDownloadHelper<T> {
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            // log.info(() -> "MultiGetAsyncResponseTransformer onStream"); // todo(log)
             if (totalParts == null || totalParts <= 1) {
                 // do not use multipart
                 this.responseTransformer.onStream(publisher);
@@ -232,7 +228,7 @@ public class MultipartDownloadHelper<T> {
 
         @Override
         public void onSubscribe(Subscription s) {
-            s.request(Long.MAX_VALUE);
+            s.request(maxMemBufferSizeInBytes - totalMemBufferedInBytes.get());
         }
 
         @Override
@@ -264,15 +260,15 @@ public class MultipartDownloadHelper<T> {
                 }
             }
 
-            log.info(() -> String.format("Completed GetRequest for part %d "
-                                         + "- %d/%d completed parts "
-                                         + "- %d/%d total byte transferred "
-                                         + "- %d/%d current memory buffered",
-                                         partNumber,
-                                         completedParts.get(), totalParts,
-                                         debug_totalBytesTransferredToDownstreamPublisher,
-                                         firstResponse.contentLength() * totalParts,
-                                         totalMemBufferedInBytes.get(), maxMemBufferSizeInBytes
+            log.info(() -> String.format(
+                "Completed GetRequest for part %d "
+                + "- %d/%d completed parts "
+                + "- %d/%d total byte transferred "
+                + "- %d/%d current memory buffered",
+                partNumber,
+                completedParts.get(), totalParts,
+                debug_totalBytesTransferredToDownstreamPublisher, individualPartContentLength * totalParts,
+                totalMemBufferedInBytes.get(), maxMemBufferSizeInBytes
             ));
 
             if (completedLastPart()) {
