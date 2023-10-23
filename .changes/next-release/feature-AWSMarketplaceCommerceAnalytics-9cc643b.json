@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Commerce Analytics",
+    "contributor": "",
+    "description": "The StartSupportDataExport operation has been deprecated as part of the Product Support Connection deprecation. As of December 2022, Product Support Connection is no longer supported."
+}
