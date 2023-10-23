@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal;
+package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Interface to hold protocol-specific information.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public interface SdkProtocolMetadata {
 
     String serviceProtocol();

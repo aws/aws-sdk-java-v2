@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.SdkProtocolMetadata;
+import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
