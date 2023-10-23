@@ -164,6 +164,7 @@ final class AddOperations {
             OperationModel operationModel = new OperationModel();
 
             operationModel.setOperationName(operationName);
+            operationModel.setServiceProtocol(serviceModel.getMetadata().getProtocol());
             operationModel.setDeprecated(op.isDeprecated());
             operationModel.setDeprecatedMessage(op.getDeprecatedMessage());
             operationModel.setDocumentation(op.getDocumentation());

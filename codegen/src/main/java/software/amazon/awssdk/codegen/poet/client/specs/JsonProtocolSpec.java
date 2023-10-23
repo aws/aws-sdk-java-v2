@@ -182,6 +182,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n",
                           ClientExecutionParams.class, requestType, responseType)
                      .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
+                     .add(".withProtocolMetadata(protocolMetadata)\n")
                      .add(".withResponseHandler(responseHandler)\n")
                      .add(".withErrorResponseHandler(errorResponseHandler)\n")
                      .add(hostPrefixExpression(opModel))
@@ -254,6 +255,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(opModel.getEndpointDiscovery() != null ? "endpointFuture.thenCompose(cachedEndpoint -> " : "")
                .add("clientHandler.execute(new $T<$T, $T>()\n", ClientExecutionParams.class, requestType, responseType)
                .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
+               .add(".withProtocolMetadata(protocolMetadata)\n")
                .add(".withMarshaller($L)\n", asyncMarshaller(model, opModel, marshaller, protocolFactory))
                .add(asyncRequestBody(opModel))
                .add(fullDuplex(opModel))

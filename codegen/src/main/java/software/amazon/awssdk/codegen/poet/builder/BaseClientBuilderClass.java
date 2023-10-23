@@ -69,7 +69,6 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
-import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -343,17 +342,6 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
                         CollectionUtils.class, SdkClientOption.class);
-
-        if (model.getMetadata().isQueryProtocol()) {
-            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
-            builder.addStatement("$T protocolInterceptors = $T.singletonList(new $T())",
-                                 listType,
-                                 Collections.class,
-                                 QueryParametersToBodyInterceptor.class);
-            builder.addStatement("interceptors = $T.mergeLists(interceptors, protocolInterceptors)",
-                                 CollectionUtils.class);
-        }
-
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
                    .addStatement("$1T chain = new $1T(config)", DefaultEndpointDiscoveryProviderChain.class)

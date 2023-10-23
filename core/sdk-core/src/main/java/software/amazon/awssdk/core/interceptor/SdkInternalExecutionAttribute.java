@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.interceptor;
 
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
@@ -125,6 +126,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<RequestCompression> REQUEST_COMPRESSION =
         new ExecutionAttribute<>("RequestCompression");
+
+    /**
+     * The key under which the protocol metadata is stored.
+     */
+    public static final ExecutionAttribute<SdkProtocolMetadata> PROTOCOL_METADATA =
+        new ExecutionAttribute<>("ProtocolMetadata");
 
     private SdkInternalExecutionAttribute() {
     }
