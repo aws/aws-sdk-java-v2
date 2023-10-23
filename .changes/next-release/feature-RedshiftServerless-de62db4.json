@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Serverless",
-    "contributor": "",
-    "description": "This release adds support for customers to see the patch version and workgroup version in Amazon Redshift Serverless."
-}
