@@ -49,13 +49,14 @@ public final class V4CanonicalRequest {
     private final String contentHash;
     private final Options options;
 
-    private final String canonicalUri;
-    private final SortedMap<String, List<String>> canonicalParams;
-    private final List<Pair<String, List<String>>> canonicalHeaders;
-    private final String canonicalParamsString;
-    private final String canonicalHeadersString;
-    private final String signedHeadersString;
-    private final String canonicalRequestString;
+    // Compute these fields lazily when, and, if needed.
+    private String canonicalUri;
+    private SortedMap<String, List<String>> canonicalParams;
+    private List<Pair<String, List<String>>> canonicalHeaders;
+    private String canonicalQueryString;
+    private String canonicalHeadersString;
+    private String signedHeadersString;
+    private String canonicalRequestString;
 
     /**
      * Create a canonical request.
@@ -69,116 +70,63 @@ public final class V4CanonicalRequest {
         this.request = request;
         this.contentHash = contentHash;
         this.options = options;
+    }
 
-        this.canonicalParams = getCanonicalQueryParams(request);
-        this.canonicalHeaders = getCanonicalHeaders(request);
-        this.canonicalUri = getCanonicalUri(request, options);
-        this.canonicalParamsString = getCanonicalQueryString(canonicalParams);
-        this.canonicalHeadersString = getCanonicalHeadersString(canonicalHeaders);
-        this.signedHeadersString = getSignedHeadersString(canonicalHeaders);
-        this.canonicalRequestString = getCanonicalRequestString(request.method().toString(), canonicalUri, canonicalParamsString,
-                                                                canonicalHeadersString, signedHeadersString, contentHash);
+    /**
+     * Get the string representing which headers are part of the signing process. Header names are separated by a semicolon.
+     */
+    public String getSignedHeadersString() {
+        if (signedHeadersString == null) {
+            signedHeadersString = getSignedHeadersString(canonicalHeaders());
+        }
+        return signedHeadersString;
     }
 
     /**
      * Get the canonical request string.
-     * <p>
-     * Each {@link String} parameter is separated by a newline character.
      */
-    private static String getCanonicalRequestString(String httpMethod, String canonicalUri, String canonicalParamsString,
-                                                    String canonicalHeadersString, String signedHeadersString,
-                                                    String contentHash) {
-        return httpMethod + SignerConstant.LINE_SEPARATOR +
-               canonicalUri + SignerConstant.LINE_SEPARATOR +
-               canonicalParamsString + SignerConstant.LINE_SEPARATOR +
-               canonicalHeadersString + SignerConstant.LINE_SEPARATOR +
-               signedHeadersString + SignerConstant.LINE_SEPARATOR +
-               contentHash;
+    public String getCanonicalRequestString() {
+        if (canonicalRequestString == null) {
+            canonicalRequestString = getCanonicalRequestString(request.method().toString(), canonicalUri(),
+                                                               canonicalQueryString(), canonicalHeadersString(),
+                                                               getSignedHeadersString(), contentHash);
+        }
+        return canonicalRequestString;
     }
 
-    /**
-     * Get the uri-encoded version of the absolute path component URL.
-     * <p>
-     * If the path is empty, a single-forward slash ('/') is returned.
-     */
-    private static String getCanonicalUri(SdkHttpRequest request, Options options) {
-        String path = options.normalizePath ? request.getUri().normalize().getRawPath()
-                                            : request.encodedPath();
-
-        if (StringUtils.isEmpty(path)) {
-            return "/";
+    private SortedMap<String, List<String>> canonicalQueryParams() {
+        if (canonicalParams == null) {
+            canonicalParams = getCanonicalQueryParams(request);
         }
-
-        if (options.doubleUrlEncode) {
-            path = SdkHttpUtils.urlEncodeIgnoreSlashes(path);
-        }
-
-        if (!path.startsWith("/")) {
-            path += "/";
-        }
-
-        // Normalization can leave a trailing slash at the end of the resource path,
-        // even if the input path doesn't end with one. Example input: /foo/bar/.
-        // Remove the trailing slash if the input path doesn't end with one.
-        boolean trimTrailingSlash = options.normalizePath &&
-                                    path.length() > 1 &&
-                                    !request.getUri().getPath().endsWith("/") &&
-                                    path.charAt(path.length() - 1) == '/';
-
-        if (trimTrailingSlash) {
-            path = path.substring(0, path.length() - 1);
-        }
-        return path;
+        return canonicalParams;
     }
 
-    /**
-     * Get the sorted map of query parameters that are to be signed.
-     */
-    private static SortedMap<String, List<String>> getCanonicalQueryParams(SdkHttpRequest request) {
-        SortedMap<String, List<String>> sorted = new TreeMap<>();
-
-        // Signing protocol expects the param values also to be sorted after url
-        // encoding in addition to sorted parameter names.
-        request.forEachRawQueryParameter((key, values) -> {
-            if (StringUtils.isEmpty(key)) {
-                // Do not sign empty keys.
-                return;
-            }
-
-            String encodedParamName = SdkHttpUtils.urlEncode(key);
-
-            List<String> encodedValues = new ArrayList<>(values.size());
-            for (String value : values) {
-                String encodedValue = SdkHttpUtils.urlEncode(value);
-
-                // Null values should be treated as empty for the purposes of signing, not missing.
-                // For example "?foo=" instead of "?foo".
-                String signatureFormattedEncodedValue = encodedValue == null ? "" : encodedValue;
-
-                encodedValues.add(signatureFormattedEncodedValue);
-            }
-            Collections.sort(encodedValues);
-            sorted.put(encodedParamName, encodedValues);
-
-        });
-        return sorted;
+    private List<Pair<String, List<String>>> canonicalHeaders() {
+        if (canonicalHeaders == null) {
+            canonicalHeaders = getCanonicalHeaders(request);
+        }
+        return canonicalHeaders;
     }
 
-    /**
-     * Get the string representing query string parameters. Parameters are URL-encoded and separated by an ampersand.
-     * <p>
-     * Reserved characters are percent-encoded, names and values are encoded separately and empty parameters have an equals-sign
-     * appended before encoding.
-     * <p>
-     * After encoding, parameters are sorted alphanetically by key name.
-     * <p>
-     * If no query string is given, an empty string ("") is returned.
-     */
-    private static String getCanonicalQueryString(SortedMap<String, List<String>> canonicalParams) {
-        StringBuilder stringBuilder = new StringBuilder(512);
-        SdkHttpUtils.flattenQueryParameters(stringBuilder, canonicalParams);
+    private String canonicalUri() {
+        if (canonicalUri == null) {
+            canonicalUri = getCanonicalUri(request, options);
+        }
+        return canonicalUri;
+    }
 
-        return stringBuilder.toString();
+    private String canonicalQueryString() {
+        if (canonicalQueryString == null) {
+            canonicalQueryString = getCanonicalQueryString(canonicalQueryParams());
+        }
+        return canonicalQueryString;
+    }
+
+    private String canonicalHeadersString() {
+        if (canonicalHeadersString == null) {
+            canonicalHeadersString = getCanonicalHeadersString(canonicalHeaders());
+        }
+        return canonicalHeadersString;
     }
 
     /**
@@ -268,8 +216,20 @@ public final class V4CanonicalRequest {
         return signedHeadersString;
     }
 
-    private static boolean isWhiteSpace(char ch) {
-        return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
+    /**
+     * Get the canonical request string.
+     * <p>
+     * Each {@link String} parameter is separated by a newline character.
+     */
+    private static String getCanonicalRequestString(String httpMethod, String canonicalUri, String canonicalParamsString,
+                                                    String canonicalHeadersString, String signedHeadersString,
+                                                    String contentHash) {
+        return httpMethod + SignerConstant.LINE_SEPARATOR +
+               canonicalUri + SignerConstant.LINE_SEPARATOR +
+               canonicalParamsString + SignerConstant.LINE_SEPARATOR +
+               canonicalHeadersString + SignerConstant.LINE_SEPARATOR +
+               signedHeadersString + SignerConstant.LINE_SEPARATOR +
+               contentHash;
     }
 
     /**
@@ -318,14 +278,94 @@ public final class V4CanonicalRequest {
     }
 
     /**
-     * Get the canonical request string.
+     * Get the uri-encoded version of the absolute path component URL.
+     * <p>
+     * If the path is empty, a single-forward slash ('/') is returned.
      */
-    public String getCanonicalRequestString() {
-        return canonicalRequestString;
+    private static String getCanonicalUri(SdkHttpRequest request, Options options) {
+        String path = options.normalizePath ? request.getUri().normalize().getRawPath()
+                                            : request.encodedPath();
+
+        if (StringUtils.isEmpty(path)) {
+            return "/";
+        }
+
+        if (options.doubleUrlEncode) {
+            path = SdkHttpUtils.urlEncodeIgnoreSlashes(path);
+        }
+
+        if (!path.startsWith("/")) {
+            path += "/";
+        }
+
+        // Normalization can leave a trailing slash at the end of the resource path,
+        // even if the input path doesn't end with one. Example input: /foo/bar/.
+        // Remove the trailing slash if the input path doesn't end with one.
+        boolean trimTrailingSlash = options.normalizePath &&
+                                    path.length() > 1 &&
+                                    !request.getUri().getPath().endsWith("/") &&
+                                    path.charAt(path.length() - 1) == '/';
+
+        if (trimTrailingSlash) {
+            path = path.substring(0, path.length() - 1);
+        }
+        return path;
     }
 
-    public String getSignedHeadersString() {
-        return signedHeadersString;
+    /**
+     * Get the sorted map of query parameters that are to be signed.
+     */
+    private static SortedMap<String, List<String>> getCanonicalQueryParams(SdkHttpRequest request) {
+        SortedMap<String, List<String>> sorted = new TreeMap<>();
+
+        // Signing protocol expects the param values also to be sorted after url
+        // encoding in addition to sorted parameter names.
+        request.forEachRawQueryParameter((key, values) -> {
+            if (StringUtils.isEmpty(key)) {
+                // Do not sign empty keys.
+                return;
+            }
+
+            String encodedParamName = SdkHttpUtils.urlEncode(key);
+
+            List<String> encodedValues = new ArrayList<>(values.size());
+            for (String value : values) {
+                String encodedValue = SdkHttpUtils.urlEncode(value);
+
+                // Null values should be treated as empty for the purposes of signing, not missing.
+                // For example "?foo=" instead of "?foo".
+                String signatureFormattedEncodedValue = encodedValue == null ? "" : encodedValue;
+
+                encodedValues.add(signatureFormattedEncodedValue);
+            }
+            Collections.sort(encodedValues);
+            sorted.put(encodedParamName, encodedValues);
+
+        });
+        return sorted;
+    }
+
+    /**
+     * Get the string representing query string parameters. Parameters are URL-encoded and separated by an ampersand.
+     * <p>
+     * Reserved characters are percent-encoded, names and values are encoded separately and empty parameters have an equals-sign
+     * appended before encoding.
+     * <p>
+     * After encoding, parameters are sorted alphanetically by key name.
+     * <p>
+     * If no query string is given, an empty string ("") is returned.
+     */
+    private static String getCanonicalQueryString(SortedMap<String, List<String>> canonicalParams) {
+        if (canonicalParams.isEmpty()) {
+            return "";
+        }
+        StringBuilder stringBuilder = new StringBuilder(512);
+        SdkHttpUtils.flattenQueryParameters(stringBuilder, canonicalParams);
+        return stringBuilder.toString();
+    }
+
+    private static boolean isWhiteSpace(char ch) {
+        return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
     }
 
     /**
