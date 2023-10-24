@@ -17,19 +17,25 @@ package software.amazon.awssdk.auth.signer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
@@ -162,6 +168,73 @@ class AwsSignerExecutionAttributeTest {
                                              AwsV4FamilyHttpSigner.EXPIRATION_DURATION,
                                              testClock.instant().plusSeconds(10),
                                              Duration.ofSeconds(10));
+    }
+
+    @Test
+    public void checksum_AttributeWriteReflectedInProperty() {
+        assertOldAttributeWrite_canBeReadFromNewAttributeCases(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
+                                                               AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
+                                                               ChecksumSpecs.builder()
+                                                                            .isRequestChecksumRequired(true)
+                                                                            .headerName("beepboop")
+                                                                            .isRequestStreaming(true)
+                                                                            .isValidationEnabled(true)
+                                                                            .responseValidationAlgorithms(
+                                                                                Collections.singletonList(Algorithm.CRC32))
+                                                                            .algorithm(Algorithm.SHA256)
+                                                                            .build(),
+                                                               SHA256);
+    }
+
+    @Test
+    public void checksum_PropertyWriteReflectedInAttribute() {
+        // We need to set up the attribute first, so that ChecksumSpecs information is not lost
+        ChecksumSpecs valueToWrite = ChecksumSpecs.builder()
+                                                  .isRequestChecksumRequired(true)
+                                                  .headerName("x-amz-checksum-sha256")
+                                                  .isRequestStreaming(true)
+                                                  .isValidationEnabled(true)
+                                                  .responseValidationAlgorithms(
+                                                      Collections.singletonList(Algorithm.CRC32))
+                                                  .algorithm(Algorithm.SHA256)
+                                                  .build();
+        attributes.putAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS, valueToWrite);
+
+        assertNewPropertyWrite_canBeReadFromNewAttributeCases(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
+                                                              AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
+                                                              valueToWrite,
+                                                              SHA256);
+    }
+
+    @Test
+    public void checksum_PropertyWriteReflectedInAttributeAndHeaderName() {
+        // We need to set up the attribute first, so that ChecksumSpecs information is not lost
+        ChecksumSpecs valueToWrite = ChecksumSpecs.builder()
+                                                  .isRequestChecksumRequired(true)
+                                                  .headerName("x-amz-checksum-sha256")
+                                                  .isRequestStreaming(true)
+                                                  .isValidationEnabled(true)
+                                                  .responseValidationAlgorithms(
+                                                      Collections.singletonList(Algorithm.CRC32))
+                                                  .algorithm(Algorithm.SHA256)
+                                                  .build();
+        attributes.putAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS, valueToWrite);
+
+        // The header name should be updated to reflect the change in algorithm
+        ChecksumSpecs expectedValue = ChecksumSpecs.builder()
+                                                  .isRequestChecksumRequired(true)
+                                                  .headerName("x-amz-checksum-crc32")
+                                                  .isRequestStreaming(true)
+                                                  .isValidationEnabled(true)
+                                                  .responseValidationAlgorithms(
+                                                      Collections.singletonList(Algorithm.CRC32))
+                                                  .algorithm(Algorithm.CRC32)
+                                                  .build();
+
+        assertNewPropertyWrite_canBeReadFromNewAttributeCases(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
+                                                              AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
+                                                              expectedValue,
+                                                              CRC32);
     }
 
     private void assertOldAndNewBooleanAttributesAreMirrored(ExecutionAttribute<Boolean> attribute,

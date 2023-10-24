@@ -19,6 +19,7 @@ import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
@@ -179,12 +180,14 @@ public class SdkExecutionAttribute {
             return null;
         }
 
+        String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+
         return ChecksumSpecs.builder()
                             .algorithm(ALGORITHM_MAP.get(checksumAlgorithm))
                             .isRequestStreaming(checksumSpecs != null && checksumSpecs.isRequestStreaming())
                             .isRequestChecksumRequired(checksumSpecs != null && checksumSpecs.isRequestChecksumRequired())
                             .isValidationEnabled(checksumSpecs != null && checksumSpecs.isValidationEnabled())
-                            .headerName(checksumSpecs != null ? checksumSpecs.headerName() : null)
+                            .headerName(checksumHeaderName)
                             .responseValidationAlgorithms(checksumSpecs != null ? checksumSpecs.responseValidationAlgorithms()
                                                                                 : null)
                             .build();
