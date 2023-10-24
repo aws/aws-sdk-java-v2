@@ -31,8 +31,10 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 class MultipartDownloadHelperTest {
 
-    int MB_LEN_512 = 536870912;
-    int MB_LEN_32 = 33554432;
+    static int MB_LEN_512 = 536870912;
+    static int MB_LEN_32 = 33554432;
+    static String KEY_512 = "512MB";
+    static String KEY_32 = "mpu-get-32mb";
 
     @Test
     void testMultipartGet() throws Exception {
@@ -45,11 +47,11 @@ class MultipartDownloadHelperTest {
                                                             .connectionAcquisitionTimeout(Duration.ofSeconds(30))
                                                             .build())
                          .build();
-        PartNumberDownloader<ResponseBytes<GetObjectResponse>> helper = new PartNumberDownloader<>(s3AsyncClient,
-                                                                                                   64*1024*1024);
+        PartNumberDownloader<ResponseBytes<GetObjectResponse>> helper =
+            new PartNumberDownloader<>(s3AsyncClient, 64 * 1024 * 1024);
         GetObjectRequest req = GetObjectRequest.builder()
                                                .bucket("do-not-delete-crt-s3-eu-west-1")
-                                               .key("512MB")
+                                               .key(KEY_32)
                                                .build();
         CompletableFuture<ResponseBytes<GetObjectResponse>> responseFuture =
             helper.getObject(req, AsyncResponseTransformer.toBytes());
@@ -57,7 +59,7 @@ class MultipartDownloadHelperTest {
         System.out.println("response: " + res.response());
         byte[] bytes = res.asByteArray();
         System.out.println("bytes length: " + bytes.length);
-        System.out.println("byte diff: " + (MB_LEN_512 - bytes.length));
-        assertThat(MB_LEN_512 - bytes.length).isZero();
+        System.out.println("byte diff: " + (MB_LEN_32 - bytes.length));
+        assertThat(MB_LEN_32 - bytes.length).isZero();
     }
 }
