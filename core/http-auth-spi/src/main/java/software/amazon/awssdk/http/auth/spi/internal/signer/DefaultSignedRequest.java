@@ -35,6 +35,11 @@ public final class DefaultSignedRequest
                        .build();
     }
 
+    @Override
+    public SignedRequest.Builder toBuilder() {
+        return SignedRequest.builder().request(request).payload(payload);
+    }
+
     @SdkInternalApi
     public static final class BuilderImpl
         extends DefaultBaseSignedRequest.BuilderImpl<SignedRequest.Builder, ContentStreamProvider>

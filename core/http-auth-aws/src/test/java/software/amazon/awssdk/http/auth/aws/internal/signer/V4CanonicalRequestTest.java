@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -87,7 +88,7 @@ public class V4CanonicalRequestTest {
                                                .build();
         V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256",
                                                        new V4CanonicalRequest.Options(true,
-                                                                                      true));
+                                                                                      true, new ArrayList<>()));
 
         assertEquals("PUT\n/\n\nfoo:bar\n\nfoo\nsha-256", cr.getCanonicalRequestString());
     }
@@ -103,7 +104,7 @@ public class V4CanonicalRequestTest {
                                                .build();
         V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256",
                                                        new V4CanonicalRequest.Options(true,
-                                                                                      true));
+                                                                                      true, new ArrayList<>()));
 
         assertEquals("PUT\n/\n\nfoo:bar,baz\n\nfoo\nsha-256", cr.getCanonicalRequestString());
     }
@@ -118,7 +119,7 @@ public class V4CanonicalRequestTest {
                                                .build();
         V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256",
                                                        new V4CanonicalRequest.Options(true,
-                                                                                      true));
+                                                                                      true, new ArrayList<>()));
 
         assertEquals("PUT\n/\n\nfoo:bar baz\n\nfoo\nsha-256", cr.getCanonicalRequestString());
     }
@@ -133,7 +134,7 @@ public class V4CanonicalRequestTest {
                                                .build();
         V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256",
                                                        new V4CanonicalRequest.Options(true,
-                                                                                      true));
+                                                                                      true, new ArrayList<>()));
 
         assertEquals("PUT\n/\nfoo=\n\n\nsha-256", cr.getCanonicalRequestString());
     }
@@ -148,7 +149,7 @@ public class V4CanonicalRequestTest {
                                                .build();
         V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256",
                                                        new V4CanonicalRequest.Options(true,
-                                                                                      true));
+                                                                                      true, new ArrayList<>()));
 
         assertEquals("PUT\n/\n\n\n\nsha-256", cr.getCanonicalRequestString());
     }
@@ -174,7 +175,7 @@ public class V4CanonicalRequestTest {
             this.path = path;
             this.expectedPath = expectedPath;
             this.canonicalRequest = new V4CanonicalRequest(request, "sha-256",
-                                                           new V4CanonicalRequest.Options(doubleUrlEncode, normalizePath));
+                                                           new V4CanonicalRequest.Options(doubleUrlEncode, normalizePath, new ArrayList<>()));
         }
 
         @Override

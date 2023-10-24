@@ -70,7 +70,8 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
     private V4CanonicalRequest createCanonicalRequest(SdkHttpRequest request, String contentHash) {
         return new V4CanonicalRequest(request, contentHash, new V4CanonicalRequest.Options(
             properties.shouldDoubleUrlEncode(),
-            properties.shouldNormalizePath()
+            properties.shouldNormalizePath(),
+            properties.excludedHeaders()
         ));
     }
 

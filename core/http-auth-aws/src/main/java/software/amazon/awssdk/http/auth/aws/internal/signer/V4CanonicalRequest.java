@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import software.amazon.awssdk.annotations.Immutable;
@@ -71,7 +72,7 @@ public final class V4CanonicalRequest {
         this.options = options;
 
         this.canonicalParams = getCanonicalQueryParams(request);
-        this.canonicalHeaders = getCanonicalHeaders(request);
+        this.canonicalHeaders = getCanonicalHeaders(request, options.excludedHeaders);
         this.canonicalUri = getCanonicalUri(request, options);
         this.canonicalParamsString = getCanonicalQueryString(canonicalParams);
         this.canonicalHeadersString = getCanonicalHeadersString(canonicalHeaders);
@@ -188,12 +189,16 @@ public final class V4CanonicalRequest {
      * as doing so creates a redundant copy.
      */
     public static List<Pair<String, List<String>>> getCanonicalHeaders(SdkHttpRequest request) {
+        return getCanonicalHeaders(request, new ArrayList<>());
+    }
+
+    public static List<Pair<String, List<String>>> getCanonicalHeaders(SdkHttpRequest request, List<String> excludedHeaders) {
         List<Pair<String, List<String>>> result = new ArrayList<>(request.numHeaders());
 
         // headers retrieved from the request are already sorted case-insensitively
         request.forEachHeader((key, value) -> {
             String lowerCaseHeader = lowerCase(key);
-            if (!HEADERS_TO_IGNORE_IN_LOWER_CASE.contains(lowerCaseHeader)) {
+            if (shouldAdd(lowerCaseHeader, excludedHeaders)) {
                 result.add(Pair.of(lowerCaseHeader, value));
             }
         });
@@ -219,6 +224,12 @@ public final class V4CanonicalRequest {
         result.sort(Comparator.comparing(Pair::left));
 
         return result;
+    }
+
+    private static boolean shouldAdd(String header, List<String> additionalHeadersToIgnore) {
+        List<String> headersToIgnore = new ArrayList<>(HEADERS_TO_IGNORE_IN_LOWER_CASE);
+        headersToIgnore.addAll(additionalHeadersToIgnore);
+        return !headersToIgnore.contains(header);
     }
 
     /**
@@ -335,9 +346,12 @@ public final class V4CanonicalRequest {
         final boolean doubleUrlEncode;
         final boolean normalizePath;
 
-        public Options(boolean doubleUrlEncode, boolean normalizePath) {
+        final List<String> excludedHeaders;
+
+        public Options(boolean doubleUrlEncode, boolean normalizePath, List<String> excludedHeaders) {
             this.doubleUrlEncode = doubleUrlEncode;
             this.normalizePath = normalizePath;
+            this.excludedHeaders = Collections.unmodifiableList(excludedHeaders);
         }
     }
 }

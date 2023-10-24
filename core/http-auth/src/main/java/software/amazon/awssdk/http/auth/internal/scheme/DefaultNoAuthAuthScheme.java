@@ -100,6 +100,11 @@ public final class DefaultNoAuthAuthScheme implements NoAuthAuthScheme {
                     public Optional<ContentStreamProvider> payload() {
                         return request.payload();
                     }
+
+                    @Override
+                    public Builder toBuilder() {
+                        return SignedRequest.builder().request(request.request()).payload(request.payload().get());
+                    }
                 };
             }
 

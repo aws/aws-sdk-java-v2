@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -75,7 +76,7 @@ public class AwsChunkedV4PayloadSignerTest {
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
-            new V4CanonicalRequest.Options(true, true)
+            new V4CanonicalRequest.Options(true, true, new ArrayList<>())
         );
         V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
@@ -117,7 +118,7 @@ public class AwsChunkedV4PayloadSignerTest {
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
-            new V4CanonicalRequest.Options(true, true)
+            new V4CanonicalRequest.Options(true, true, new ArrayList<>())
         );
         V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
@@ -160,7 +161,7 @@ public class AwsChunkedV4PayloadSignerTest {
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
-            new V4CanonicalRequest.Options(true, true)
+            new V4CanonicalRequest.Options(true, true, new ArrayList<>())
         );
         V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
@@ -211,7 +212,7 @@ public class AwsChunkedV4PayloadSignerTest {
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
-            new V4CanonicalRequest.Options(true, true)
+            new V4CanonicalRequest.Options(true, true, new ArrayList<>())
         );
         V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
@@ -264,7 +265,7 @@ public class AwsChunkedV4PayloadSignerTest {
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
-            new V4CanonicalRequest.Options(true, true)
+            new V4CanonicalRequest.Options(true, true, new ArrayList<>())
         );
         V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
@@ -320,7 +321,7 @@ public class AwsChunkedV4PayloadSignerTest {
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
-            new V4CanonicalRequest.Options(true, true)
+            new V4CanonicalRequest.Options(true, true, new ArrayList<>())
         );
         V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER",
@@ -367,7 +368,7 @@ public class AwsChunkedV4PayloadSignerTest {
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
-            new V4CanonicalRequest.Options(true, true)
+            new V4CanonicalRequest.Options(true, true, new ArrayList<>())
         );
         V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-UNSIGNED-PAYLOAD-TRAILER",
@@ -409,7 +410,7 @@ public class AwsChunkedV4PayloadSignerTest {
         V4CanonicalRequest canonicalRequest = new V4CanonicalRequest(
             requestBuilder.build(),
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
-            new V4CanonicalRequest.Options(true, true)
+            new V4CanonicalRequest.Options(true, true, new ArrayList<>())
         );
         V4RequestSigningResult requestSigningResult = new V4RequestSigningResult(
             "STREAMING-AWS4-HMAC-SHA256-PAYLOAD",

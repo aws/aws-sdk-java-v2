@@ -16,12 +16,18 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.Buildable;
+import software.amazon.awssdk.utils.cache.lru.LruCache;
 
 
 /**
@@ -36,7 +42,7 @@ public final class V4Properties {
     private final Clock signingClock;
     private final boolean doubleUrlEncode;
     private final boolean normalizePath;
-
+    private final List<String> excludedHeaders;
 
     private V4Properties(Builder builder) {
         this.credentials = Validate.paramNotNull(builder.credentials, "Credentials");
@@ -44,6 +50,7 @@ public final class V4Properties {
         this.signingClock = Validate.paramNotNull(builder.signingClock, "SigningClock");
         this.doubleUrlEncode = Validate.getOrDefault(builder.doubleUrlEncode, () -> true);
         this.normalizePath = Validate.getOrDefault(builder.normalizePath, () -> true);
+        this.excludedHeaders = Validate.paramNotNull(builder.excludedHeaders, "ExcludedHeaders");
     }
 
     public static Builder builder() {
@@ -70,12 +77,17 @@ public final class V4Properties {
         return normalizePath;
     }
 
+    public List<String> excludedHeaders() {
+        return excludedHeaders;
+    }
+
     public static class Builder {
         private AwsCredentialsIdentity credentials;
         private CredentialScope credentialScope;
         private Clock signingClock;
         private Boolean doubleUrlEncode;
         private Boolean normalizePath;
+        private List<String> excludedHeaders = new ArrayList<>();
 
         public Builder credentials(AwsCredentialsIdentity credentials) {
             this.credentials = Validate.paramNotNull(credentials, "Credentials");
@@ -102,8 +114,13 @@ public final class V4Properties {
             return this;
         }
 
+        public Builder excludedHeaders(List<String> excludedHeaders) {
+            this.excludedHeaders = excludedHeaders;
+            return this;
+        }
         public V4Properties build() {
             return new V4Properties(this);
         }
+
     }
 }
