@@ -170,7 +170,7 @@ public class SdkExecutionAttribute {
     private static <T extends Identity> ChecksumSpecs signerChecksumReadMapping(ChecksumSpecs checksumSpecs,
                                                                                 SelectedAuthScheme<T> authScheme) {
         if (authScheme == null) {
-            return null;
+            return checksumSpecs;
         }
 
         ChecksumAlgorithm checksumAlgorithm =
