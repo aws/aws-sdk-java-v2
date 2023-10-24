@@ -108,7 +108,7 @@ public final class AwsCredentialsProviderChain
             try {
                 AwsCredentialsIdentity credentials = CompletableFutureUtils.joinLikeSync(provider.resolveIdentity());
 
-                log.debug(() -> "Loading credentials from " + provider);
+                log.info(() -> "Loading credentials from " + provider);
 
                 lastUsedProvider = provider;
                 return CredentialUtils.toCredentials(credentials);

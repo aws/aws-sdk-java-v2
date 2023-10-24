@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "singhbaljit",
+    "description": "Logs the selected credentials provider at the INFO level so its easy to which credentials the default credentials provider ended up using."
+}
