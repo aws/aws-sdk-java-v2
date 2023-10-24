@@ -176,18 +176,12 @@ public class SdkExecutionAttribute {
         ChecksumAlgorithm checksumAlgorithm =
             authScheme.authSchemeOption().signerProperty(AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM);
 
-        if (checksumAlgorithm == null) {
-            return null;
-        }
-
-        String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
-
         return ChecksumSpecs.builder()
-                            .algorithm(ALGORITHM_MAP.get(checksumAlgorithm))
+                            .algorithm(checksumAlgorithm != null ? ALGORITHM_MAP.get(checksumAlgorithm) : null)
                             .isRequestStreaming(checksumSpecs != null && checksumSpecs.isRequestStreaming())
                             .isRequestChecksumRequired(checksumSpecs != null && checksumSpecs.isRequestChecksumRequired())
                             .isValidationEnabled(checksumSpecs != null && checksumSpecs.isValidationEnabled())
-                            .headerName(checksumHeaderName)
+                            .headerName(checksumAlgorithm != null ? checksumHeaderName(checksumAlgorithm) : null)
                             .responseValidationAlgorithms(checksumSpecs != null ? checksumSpecs.responseValidationAlgorithms()
                                                                                 : null)
                             .build();

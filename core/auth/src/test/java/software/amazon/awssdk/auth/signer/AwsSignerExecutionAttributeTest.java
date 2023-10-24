@@ -188,8 +188,7 @@ class AwsSignerExecutionAttributeTest {
 
     @Test
     public void checksum_PropertyWriteReflectedInAttribute() {
-        // We need to set up the attribute first, so that ChecksumSpecs information is not lost
-        ChecksumSpecs valueToWrite = ChecksumSpecs.builder()
+        ChecksumSpecs initialValue = ChecksumSpecs.builder()
                                                   .isRequestChecksumRequired(true)
                                                   .headerName("x-amz-checksum-sha256")
                                                   .isRequestStreaming(true)
@@ -198,12 +197,35 @@ class AwsSignerExecutionAttributeTest {
                                                       Collections.singletonList(Algorithm.CRC32))
                                                   .algorithm(Algorithm.SHA256)
                                                   .build();
-        attributes.putAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS, valueToWrite);
+        attributes.putAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS, initialValue);
 
-        assertNewPropertyWrite_canBeReadFromNewAttributeCases(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
-                                                              AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
-                                                              valueToWrite,
-                                                              SHA256);
+        assertNewPropertyWrite_canBeReadFromNewAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
+                                                         AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM, initialValue, SHA256);
+    }
+
+    @Test
+    public void checksum_NullPropertyWriteReflectedInAttribute() {
+        ChecksumSpecs initialValue = ChecksumSpecs.builder()
+                                                  .isRequestChecksumRequired(true)
+                                                  .headerName("x-amz-checksum-sha256")
+                                                  .isRequestStreaming(true)
+                                                  .isValidationEnabled(true)
+                                                  .responseValidationAlgorithms(
+                                                      Collections.singletonList(Algorithm.CRC32))
+                                                  .algorithm(Algorithm.SHA256)
+                                                  .build();
+        attributes.putAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS, initialValue);
+
+        ChecksumSpecs expectedValue = ChecksumSpecs.builder()
+                                                   .isRequestChecksumRequired(true)
+                                                   .isRequestStreaming(true)
+                                                   .isValidationEnabled(true)
+                                                   .responseValidationAlgorithms(
+                                                       Collections.singletonList(Algorithm.CRC32))
+                                                   .build();
+
+        assertNewPropertyWrite_canBeReadFromNewAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
+                                                         AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM, expectedValue, null);
     }
 
     @Test
@@ -231,10 +253,9 @@ class AwsSignerExecutionAttributeTest {
                                                   .algorithm(Algorithm.CRC32)
                                                   .build();
 
-        assertNewPropertyWrite_canBeReadFromNewAttributeCases(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
-                                                              AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
-                                                              expectedValue,
-                                                              CRC32);
+        assertNewPropertyWrite_canBeReadFromNewAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
+                                                         AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM, expectedValue, CRC32);
+
     }
 
     private void assertOldAndNewBooleanAttributesAreMirrored(ExecutionAttribute<Boolean> attribute,
