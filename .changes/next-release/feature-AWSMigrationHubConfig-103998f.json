@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Migration Hub Config",
-    "contributor": "",
-    "description": "This release introduces DeleteHomeRegionControl API that customers can use to delete the Migration Hub Home Region configuration"
-}
