@@ -23,7 +23,6 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
-import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.auth.scheme.internal.QueryAuthSchemeInterceptor;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
@@ -75,8 +74,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        List<ExecutionInterceptor> protocolInterceptors = Collections.singletonList(new QueryParametersToBodyInterceptor());
-        interceptors = CollectionUtils.mergeLists(interceptors, protocolInterceptors);
         SdkClientConfiguration.Builder builder = config.toBuilder();
         IdentityProvider<? extends TokenIdentity> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
         if (identityProvider != null) {
