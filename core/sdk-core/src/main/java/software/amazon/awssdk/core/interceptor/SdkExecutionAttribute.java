@@ -169,7 +169,7 @@ public class SdkExecutionAttribute {
      */
     private static <T extends Identity> ChecksumSpecs signerChecksumReadMapping(ChecksumSpecs checksumSpecs,
                                                                                 SelectedAuthScheme<T> authScheme) {
-        if (authScheme == null || authScheme.signer() instanceof UnsetHttpSigner) {
+        if (checksumSpecs == null || authScheme == null || authScheme.signer() instanceof UnsetHttpSigner) {
             return checksumSpecs;
         }
 
@@ -178,12 +178,11 @@ public class SdkExecutionAttribute {
 
         return ChecksumSpecs.builder()
                             .algorithm(checksumAlgorithm != null ? ALGORITHM_MAP.get(checksumAlgorithm) : null)
-                            .isRequestStreaming(checksumSpecs != null && checksumSpecs.isRequestStreaming())
-                            .isRequestChecksumRequired(checksumSpecs != null && checksumSpecs.isRequestChecksumRequired())
-                            .isValidationEnabled(checksumSpecs != null && checksumSpecs.isValidationEnabled())
+                            .isRequestStreaming(checksumSpecs.isRequestStreaming())
+                            .isRequestChecksumRequired(checksumSpecs.isRequestChecksumRequired())
+                            .isValidationEnabled(checksumSpecs.isValidationEnabled())
                             .headerName(checksumAlgorithm != null ? checksumHeaderName(checksumAlgorithm) : null)
-                            .responseValidationAlgorithms(checksumSpecs != null ? checksumSpecs.responseValidationAlgorithms()
-                                                                                : null)
+                            .responseValidationAlgorithms(checksumSpecs.responseValidationAlgorithms())
                             .build();
     }
 
