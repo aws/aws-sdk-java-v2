@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
 
 import java.security.MessageDigest;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.DigestAlgorithm;
 
 /**
  * Implementation of {@link SdkChecksum} to calculate an MD5 checksum.
@@ -57,11 +58,7 @@ public class Md5Checksum implements SdkChecksum {
     }
 
     private MessageDigest getDigest() {
-        try {
-            return MessageDigest.getInstance("MD5");
-        } catch (Exception e) {
-            throw new IllegalStateException("Unexpected error creating MD5 checksum", e);
-        }
+        return DigestAlgorithm.MD5.getDigest();
     }
 
     @Override
