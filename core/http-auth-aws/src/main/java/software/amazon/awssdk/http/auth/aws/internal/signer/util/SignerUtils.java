@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -123,8 +122,7 @@ public final class SignerUtils {
             .getBytes(StandardCharsets.UTF_8);
         byte[] kDate = sign(dateStamp, kSecret);
         byte[] kRegion = sign(regionName, kDate);
-        byte[] kService = sign(serviceName, kRegion
-        );
+        byte[] kService = sign(serviceName, kRegion);
         return sign(SignerConstant.AWS4_TERMINATOR, kService);
     }
 
@@ -171,12 +169,14 @@ public final class SignerUtils {
         // AWS4 requires that we sign the Host header, so we
         // have to have it in the request by the time we sign.
 
-        StringBuilder hostHeaderBuilder = new StringBuilder(requestBuilder.host());
+        String host = requestBuilder.host();
         if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
+            StringBuilder hostHeaderBuilder = new StringBuilder(host);
             hostHeaderBuilder.append(":").append(requestBuilder.port());
+            requestBuilder.putHeader(SignerConstant.HOST, hostHeaderBuilder.toString());
+        } else {
+            requestBuilder.putHeader(SignerConstant.HOST, host);
         }
-
-        requestBuilder.putHeader(SignerConstant.HOST, hostHeaderBuilder.toString());
     }
 
     /**
@@ -209,11 +209,7 @@ public final class SignerUtils {
     }
 
     private static MessageDigest getMessageDigestInstance() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Unable to get SHA256 Function: ", e);
-        }
+        return DigestAlgorithm.SHA256.getDigest();
     }
 
     public static InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {

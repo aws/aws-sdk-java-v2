@@ -1,3 +1,36 @@
+# __2.21.7__ __2023-10-24__
+## __AWS CodePipeline__
+  - ### Features
+    - Add ability to trigger pipelines from git tags, define variables at pipeline level and new pipeline type V2.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Add the partitional endpoint for IAM in iso-f.
+
+## __AWS Migration Hub Config__
+  - ### Features
+    - This release introduces DeleteHomeRegionControl API that customers can use to delete the Migration Hub Home Region configuration
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates the documentation for InstanceInterruptionBehavior and HibernationOptionsRequest to more accurately describe the behavior of these two parameters when using Spot hibernation.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for Cluster Subnet and Security Group mutability.
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - This release introduces multi-data-source feature in Migration Hub Strategy Recommendations. This feature now supports vCenter as a data source to fetch inventory in addition to ADS and Import from file workflow that is currently supported with MHSR collector.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - This release includes the following new APIs: CreateLifecyclePolicy, UpdateLifecyclePolicy, BatchGetLifecyclePolicy, DeleteLifecyclePolicy, ListLifecyclePolicies and BatchGetEffectiveLifecyclePolicy to support the data lifecycle management feature.
+
 # __2.21.6__ __2023-10-23__
 ## __AWS Marketplace Commerce Analytics__
   - ### Features
