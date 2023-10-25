@@ -351,7 +351,7 @@ public final class V4CanonicalRequest {
      * Reserved characters are percent-encoded, names and values are encoded separately and empty parameters have an equals-sign
      * appended before encoding.
      * <p>
-     * After encoding, parameters are sorted alphanetically by key name.
+     * After encoding, parameters are sorted alphabetically by key name.
      * <p>
      * If no query string is given, an empty string ("") is returned.
      */
