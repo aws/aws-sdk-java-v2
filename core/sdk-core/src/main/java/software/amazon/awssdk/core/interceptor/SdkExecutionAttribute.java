@@ -169,7 +169,7 @@ public class SdkExecutionAttribute {
      */
     private static <T extends Identity> ChecksumSpecs signerChecksumReadMapping(ChecksumSpecs checksumSpecs,
                                                                                 SelectedAuthScheme<T> authScheme) {
-        if (checksumSpecs == null || authScheme == null || authScheme.signer() instanceof UnsetHttpSigner) {
+        if (checksumSpecs == null || authScheme == null) {
             return checksumSpecs;
         }
 
