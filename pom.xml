@@ -653,6 +653,8 @@
                             <exclude>software.amazon.awssdk.auth.token.credentials.SdkToken</exclude>
                             <!-- exclude ObjectPart size change TODO: re-enable -->
                             <exclude>software.amazon.awssdk.services.s3.model.ObjectPart</exclude>
+                            <!-- exclude mappedBuilder change, TODO: remove after merged -->
+                            <exclude>software.amazon.awssdk.core.interceptor.ExecutionAttribute</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
