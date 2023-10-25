@@ -56,6 +56,7 @@
             <artifactId>http-auth-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <!-- TODO: remove http-auth-aws once we deprecated RESOLVED_CHECKSUM_SPECS -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-auth-aws</artifactId>

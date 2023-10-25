@@ -121,7 +121,7 @@ public class SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<ChecksumSpecs> RESOLVED_CHECKSUM_SPECS =
         ExecutionAttribute.mappedBuilder("ResolvedChecksumSpecs",
-                                         () -> SdkExecutionAttribute.INTERNAL_RESOLVED_CHECKSUM_SPECS,
+                                         () -> SdkInternalExecutionAttribute.INTERNAL_RESOLVED_CHECKSUM_SPECS,
                                          () -> SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)
                           .readMapping(SdkExecutionAttribute::signerChecksumReadMapping)
                           .writeMapping(SdkExecutionAttribute::signerChecksumWriteMapping)
@@ -138,14 +138,6 @@ public class SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
-
-    /**
-     * The backing attribute for RESOLVED_CHECKSUM_SPECS.
-     * This holds the real ChecksumSpecs value, and is used to map to the ChecksumAlgorithm signer property
-     * in the SELECTED_AUTH_SCHEME execution attribute.
-     */
-    private static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
-        new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
 
     private static final ImmutableMap<ChecksumAlgorithm, Algorithm> ALGORITHM_MAP = ImmutableMap.of(
         SHA256, Algorithm.SHA256,
@@ -191,9 +183,8 @@ public class SdkExecutionAttribute {
      */
     private static <T extends Identity> SelectedAuthScheme<?> signerChecksumWriteMapping(SelectedAuthScheme<T> authScheme,
                                                                                          ChecksumSpecs checksumSpecs) {
-        ChecksumAlgorithm checksumAlgorithm =
-            checksumSpecs == null ? null
-                                  : CHECKSUM_ALGORITHM_MAP.getOrDefault(checksumSpecs.algorithm(), null);
+        ChecksumAlgorithm checksumAlgorithm = checksumSpecs == null ? null :
+                                              CHECKSUM_ALGORITHM_MAP.get(checksumSpecs.algorithm());
 
         if (authScheme == null) {
             // This is an unusual use-case.
