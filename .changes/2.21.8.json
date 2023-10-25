@@ -19,6 +19,12 @@
             "category": "Amazon Connect Cases",
             "contributor": "",
             "description": "Increase maximum length of CommentBody to 3000, and increase maximum length of StringValue to 1500"
+        },
+	{
+            "type": "bug",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed concurrency bug with ResolvedChecksumSpecs execution-attribute and associated mappings https://github.com/aws/aws-sdk-java-v2/issues/4608"
         }
     ]
 }
