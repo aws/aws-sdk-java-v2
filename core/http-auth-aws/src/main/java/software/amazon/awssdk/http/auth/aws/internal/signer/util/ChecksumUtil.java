@@ -67,15 +67,17 @@ public final class ChecksumUtil {
      * Gets the SdkChecksum object based on the given ChecksumAlgorithm.
      */
     public static SdkChecksum fromChecksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
-        if (CHECKSUM_MAP.containsKey(checksumAlgorithm.algorithmId())) {
-            return CHECKSUM_MAP.get(checksumAlgorithm.algorithmId()).get();
+        String algorithmId = checksumAlgorithm.algorithmId();
+        Supplier<SdkChecksum> checksumSupplier = CHECKSUM_MAP.get(algorithmId);
+        if (checksumSupplier != null) {
+            return checksumSupplier.get();
         }
 
-        if (CONSTANT_CHECKSUM.equals(checksumAlgorithm.algorithmId())) {
+        if (CONSTANT_CHECKSUM.equals(algorithmId)) {
             return new ConstantChecksum(((ConstantChecksumAlgorithm) checksumAlgorithm).value);
         }
 
-        throw new UnsupportedOperationException("Checksum not supported for " + checksumAlgorithm.algorithmId());
+        throw new UnsupportedOperationException("Checksum not supported for " + algorithmId);
     }
 
     /**

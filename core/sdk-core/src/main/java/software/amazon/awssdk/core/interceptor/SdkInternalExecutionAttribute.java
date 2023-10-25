@@ -17,7 +17,9 @@ package software.amazon.awssdk.core.interceptor;
 
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
@@ -125,6 +127,20 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<RequestCompression> REQUEST_COMPRESSION =
         new ExecutionAttribute<>("RequestCompression");
+
+    /**
+     * The key under which the protocol metadata is stored.
+     */
+    public static final ExecutionAttribute<SdkProtocolMetadata> PROTOCOL_METADATA =
+        new ExecutionAttribute<>("ProtocolMetadata");
+
+    /**
+     * The backing attribute for RESOLVED_CHECKSUM_SPECS.
+     * This holds the real ChecksumSpecs value, and is used to map to the ChecksumAlgorithm signer property
+     * in the SELECTED_AUTH_SCHEME execution attribute.
+     */
+    static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
+        new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
 
     private SdkInternalExecutionAttribute() {
     }

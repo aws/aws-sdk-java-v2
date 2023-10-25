@@ -92,9 +92,6 @@ public class AsyncOperationCancelTest {
         assertThat(executeFuture.isCancelled()).isTrue();
     }
 
-    // Still failing for useSraAuth=true
-    // TODO(sra-identity-and-auth): This test is now failing after changes made to the event-stream signer module. We need to
-    //  investigate and figure out the fix.
     @Test
     public void testEventStreamingOperation() throws InterruptedException {
         CompletableFuture<Void> responseFuture =

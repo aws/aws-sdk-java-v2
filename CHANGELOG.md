@@ -1,3 +1,150 @@
+# __2.21.7__ __2023-10-24__
+## __AWS CodePipeline__
+  - ### Features
+    - Add ability to trigger pipelines from git tags, define variables at pipeline level and new pipeline type V2.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Add the partitional endpoint for IAM in iso-f.
+
+## __AWS Migration Hub Config__
+  - ### Features
+    - This release introduces DeleteHomeRegionControl API that customers can use to delete the Migration Hub Home Region configuration
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates the documentation for InstanceInterruptionBehavior and HibernationOptionsRequest to more accurately describe the behavior of these two parameters when using Spot hibernation.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for Cluster Subnet and Security Group mutability.
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - This release introduces multi-data-source feature in Migration Hub Strategy Recommendations. This feature now supports vCenter as a data source to fetch inventory in addition to ADS and Import from file workflow that is currently supported with MHSR collector.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - This release includes the following new APIs: CreateLifecyclePolicy, UpdateLifecyclePolicy, BatchGetLifecyclePolicy, DeleteLifecyclePolicy, ListLifecyclePolicies and BatchGetEffectiveLifecyclePolicy to support the data lifecycle management feature.
+
+# __2.21.6__ __2023-10-23__
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - The StartSupportDataExport operation has been deprecated as part of the Product Support Connection deprecation. As of December 2022, Product Support Connection is no longer supported.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds API support for Tunnel-less Connect (NoEncap Protocol) for AWS Cloud WAN
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Amazon Rekognition introduces StartMediaAnalysisJob, GetMediaAnalysisJob, and ListMediaAnalysisJobs operations to run a bulk analysis of images with a Detect Moderation model.
+
+## __Redshift Serverless__
+  - ### Features
+    - This release adds support for customers to see the patch version and workgroup version in Amazon Redshift Serverless.
+
+# __2.21.5__ __2023-10-20__
+## __AWS Application Discovery Service__
+  - ### Features
+    - This release introduces three new APIs: StartBatchDeleteConfigurationTask, DescribeBatchDeleteConfigurationTask, and BatchDeleteAgents.
+
+## __AWS Health Imaging__
+  - ### Features
+    - Updates on documentation links
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Removed mapping for RESOLVED_CHECKSUM_SPECS execution attribute that was causing intermittent failures for S3 operations with checksums since 2.21.0 release. The bug can cause `java.lang.NullPointerException: Cannot read field "value" because "s1" is null` exceptions, as reported in https://github.com/aws/aws-sdk-java-v2/issues/4608.
+
+## __Amazon AppConfig__
+  - ### Features
+    - Update KmsKeyIdentifier constraints to support AWS KMS multi-Region keys.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - Updated ScheduleConfig to be an optional input to CreateDataIntegration to support event driven downloading of files from sources such as Amazon s3 using Amazon Connect AppIntegrations.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for updating phone number metadata, such as phone number description.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release introduces a new API: DeleteOpsItem. This allows deletion of an OpsItem.
+
+# __2.21.4__ __2023-10-19__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Netty version bump to address CVE-2023-44487
+        - Contributed by: [@mgrundie-r7](https://github.com/mgrundie-r7)
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __AWS Service Catalog__
+  - ### Features
+    - Introduce support for EXTERNAL product and provisioning artifact type in CreateProduct and CreateProvisioningArtifact APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 C7a instances, powered by 4th generation AMD EPYC processors, are ideal for high performance, compute-intensive workloads such as high performance computing. Amazon EC2 R7i instances are next-generation memory optimized and powered by custom 4th Generation Intel Xeon Scalable processors.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - This release adds support for Ethereum Sepolia network
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Doc changes to add IAM action mappings for the data actions.
+
+## __Amazon Omics__
+  - ### Features
+    - This change enables customers to retrieve failure reasons with detailed status messages for their failed runs
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Added Cluster Administrative options for node restart, opensearch process restart and opensearch dashboard restart for Multi-AZ without standby domains
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds the following: 1) Trino and Starburst Database Connectors 2) Custom total for tables and pivot tables 3) Enable restricted folders 4) Add rolling dates for time equality filters 5) Refine DataPathValue and introduce DataPathType 6) Add SeriesType to ReferenceLineDataConfiguration
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Improving Amazon Verified Permissions Create experience
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for WorkSpaces
+
+## __glacier__
+  - ### Features
+    - Move the service to the standardized AWS SDK architecture for identity and auth that was introduced in 2.21.0 release.
+
+## __s3control__
+  - ### Features
+    - Move the service to the standardized AWS SDK architecture for identity and auth that was introduced in 2.21.0 release.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@mgrundie-r7](https://github.com/mgrundie-r7)
 # __2.21.3__ __2023-10-18__
 ## __AWS Cloud9__
   - ### Features
