@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Ground Station",
+    "contributor": "",
+    "description": "This release will allow KMS alias names to be used when creating Mission Profiles"
+}
