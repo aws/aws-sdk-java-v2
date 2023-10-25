@@ -1,3 +1,16 @@
+# __2.21.8__ __2023-10-25__
+## __AWS Ground Station__
+  - ### Features
+    - This release will allow KMS alias names to be used when creating Mission Profiles
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Updates to GetAccessKeyLastUsed action to replace NoSuchEntity error with AccessDeniedException error.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Increase maximum length of CommentBody to 3000, and increase maximum length of StringValue to 1500
+
 # __2.21.7__ __2023-10-24__
 ## __AWS CodePipeline__
   - ### Features
@@ -2630,7 +2643,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

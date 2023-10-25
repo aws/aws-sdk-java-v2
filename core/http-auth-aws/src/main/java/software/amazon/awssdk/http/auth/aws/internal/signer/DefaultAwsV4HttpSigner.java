@@ -258,18 +258,21 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                                         V4PayloadSigner payloadSigner) {
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
+        ContentStreamProvider requestPayload = request.payload().orElse(null);
 
-        checksummer.checksum(request.payload().orElse(null), requestBuilder);
+        checksummer.checksum(requestPayload, requestBuilder);
 
-        payloadSigner.beforeSigning(requestBuilder, request.payload().orElse(null));
+        payloadSigner.beforeSigning(requestBuilder, requestPayload);
 
         V4RequestSigningResult requestSigningResult = requestSigner.sign(requestBuilder);
 
-        ContentStreamProvider payload = request.payload().map(p -> payloadSigner.sign(p, requestSigningResult)).orElse(null);
-
+        ContentStreamProvider signedPayload = null;
+        if (requestPayload != null) {
+            signedPayload = payloadSigner.sign(requestPayload, requestSigningResult);
+        }
         return SignedRequest.builder()
                             .request(requestSigningResult.getSignedRequest().build())
-                            .payload(payload)
+                            .payload(signedPayload)
                             .build();
     }
 
