@@ -26,8 +26,10 @@ import io.netty.handler.ssl.SslProvider;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -239,12 +241,19 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
                                                                    configuration.maxConnections(),
                                                                    configuration);
 
+
         sdkChannelPool = new ListenerInvokingChannelPool(bootstrap.config().group(), sdkChannelPool, Arrays.asList(
+            // Add a listener that disables auto reads on acquired connections.
+            AutoReadDisableChannelPoolListener.create(),
+
             // Add a listener that ensures acquired channels are marked IN_USE and thus not eligible for certain idle timeouts.
             InUseTrackingChannelPoolListener.create(),
 
             // Add a listener that removes request-specific handlers with each request.
-            HandlerRemovingChannelPoolListener.create()
+            HandlerRemovingChannelPoolListener.create(),
+
+            // Add a listner that enables auto reads on released connections.
+            AutoReadEnableChannelPoolListener.create()
         ));
 
         // Wrap the channel pool such that an individual channel can only be released to the underlying pool once.
