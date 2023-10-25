@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "contributor": "",
+    "description": "Updates to GetAccessKeyLastUsed action to replace NoSuchEntity error with AccessDeniedException error."
+}
