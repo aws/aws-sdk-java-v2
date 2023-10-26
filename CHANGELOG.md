@@ -1,3 +1,44 @@
+# __2.21.9__ __2023-10-26__
+## __AWS Network Firewall__
+  - ### Features
+    - Network Firewall now supports inspection of outbound SSL/TLS traffic.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - AWS Systems Manager for SAP added support for registration and discovery of SAP ABAP applications
+
+## __AWS Transfer Family__
+  - ### Features
+    - No API changes from previous release. This release migrated the model to Smithy keeping all features unchanged.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release introduces multi-session fleets, allowing customers to provision more than one user session on a single fleet instance.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Launching GetSecurityGroupsForVpc API. This API gets security groups that can be associated by the AWS account making the request with network interfaces in the specified VPC.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - You can specify ipv4 or dualstack IPAddressType for cluster endpoints. If you specify IPAddressType as dualstack, the new endpoint will be visible under the 'EndpointV2' parameter and will support IPv4 and IPv6 requests. Whereas, the 'Endpoint' will continue to serve IPv4 requests.
+
+## __Amazon Redshift__
+  - ### Features
+    - Add Redshift APIs GetResourcePolicy, DeleteResourcePolicy, PutResourcePolicy and DescribeInboundIntegrations for the new Amazon Redshift Zero-ETL integration feature, which can be used to control data ingress into Redshift namespace, and view inbound integrations.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon Sagemaker Autopilot now supports Text Generation jobs.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Message Archiving and Replay is now supported in Amazon SNS for FIFO topics.
+
 # __2.21.8__ __2023-10-25__
 ## __AWS Ground Station__
   - ### Features
@@ -6,6 +47,10 @@
 ## __AWS Identity and Access Management__
   - ### Features
     - Updates to GetAccessKeyLastUsed action to replace NoSuchEntity error with AccessDeniedException error.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed concurrency bug with ResolvedChecksumSpecs execution-attribute and associated mappings https://github.com/aws/aws-sdk-java-v2/issues/4608
 
 ## __Amazon Connect Cases__
   - ### Features
@@ -902,7 +947,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
