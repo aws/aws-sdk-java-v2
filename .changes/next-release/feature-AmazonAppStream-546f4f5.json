@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppStream",
-    "contributor": "",
-    "description": "This release introduces multi-session fleets, allowing customers to provision more than one user session on a single fleet instance."
-}

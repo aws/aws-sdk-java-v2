@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Firewall",
-    "contributor": "",
-    "description": "Network Firewall now supports inspection of outbound SSL/TLS traffic."
-}

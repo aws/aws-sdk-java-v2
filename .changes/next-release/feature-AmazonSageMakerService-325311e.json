@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Amazon Sagemaker Autopilot now supports Text Generation jobs."
-}
