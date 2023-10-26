@@ -1,0 +1,30 @@
+{
+    "version": "2.21.8",
+    "date": "2023-10-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Ground Station",
+            "contributor": "",
+            "description": "This release will allow KMS alias names to be used when creating Mission Profiles"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Updates to GetAccessKeyLastUsed action to replace NoSuchEntity error with AccessDeniedException error."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Cases",
+            "contributor": "",
+            "description": "Increase maximum length of CommentBody to 3000, and increase maximum length of StringValue to 1500"
+        },
+	{
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed concurrency bug with ResolvedChecksumSpecs execution-attribute and associated mappings https://github.com/aws/aws-sdk-java-v2/issues/4608"
+        }
+    ]
+}
