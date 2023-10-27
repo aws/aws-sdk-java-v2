@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Neptune",
+    "contributor": "",
+    "description": "Update TdeCredentialPassword type to SensitiveString"
+}
