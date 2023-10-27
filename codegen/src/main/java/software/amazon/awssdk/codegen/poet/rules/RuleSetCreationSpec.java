@@ -244,11 +244,11 @@ public class RuleSetCreationSpec {
                                 }
                             }
 
+                            b.add("))");
+
                             if (authSchemesIter.hasNext()) {
                                 b.add(", ");
                             }
-
-                            b.add("))");
                         }
                         b.add(")))");
 

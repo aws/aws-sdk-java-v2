@@ -261,6 +261,11 @@
                       "name": "sigv4a",
                       "signingName": "query",
                       "signingRegionSet": ["*"]
+                    },
+                    {
+                      "name": "sigv4",
+                      "signingName": "query",
+                      "signingRegion": "{region}"
                     }
                   ]
                 }
