@@ -1,3 +1,28 @@
+# __2.21.10__ __2023-10-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Updates the descriptions for the calls that manage web ACL associations, to provide information for customer-managed IAM policies.
+
+## __Amazon EMR__
+  - ### Features
+    - Updated CreateCluster API request and DescribeCluster API responses to include EbsRootVolumeIops, and EbsRootVolumeThroughput attributes that specify the user configured root volume IOPS and throughput for Amazon EBS root device volume. This feature will be available from Amazon EMR releases 6.15.0
+
+## __Amazon Neptune__
+  - ### Features
+    - Update TdeCredentialPassword type to SensitiveString
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Updated documentation to describe the case insensitivity for EndpointIds.
+
+## __Amazon Redshift__
+  - ### Features
+    - added support to create a dual stack cluster
+
 # __2.21.9__ __2023-10-26__
 ## __AWS Network Firewall__
   - ### Features
@@ -947,7 +972,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2688,7 +2713,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
