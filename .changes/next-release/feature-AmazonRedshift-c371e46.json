@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "contributor": "",
-    "description": "added support to create a dual stack cluster"
-}
