@@ -32,7 +32,8 @@ public enum Algorithm {
     SHA1("sha1", 28),
     ;
 
-    private static final Map<String, Algorithm> VALUE_MAP = EnumUtils.uniqueIndex(Algorithm.class, Algorithm::toString);
+    private static final Map<String, Algorithm> VALUE_MAP = EnumUtils.uniqueIndex(Algorithm.class,
+                                                                                  a -> StringUtils.upperCase(a.value));
 
     private final String value;
     private final int length;
@@ -46,12 +47,17 @@ public enum Algorithm {
         if (value == null) {
             return null;
         }
-        String normalizedValue = StringUtils.lowerCase(value);
-        Algorithm algorithm = VALUE_MAP.get(normalizedValue);
+        // The clients will send the algorithm name in all upper case
+        // try using that name directly and if not found then normalize
+        // it and try again.
+        Algorithm algorithm = VALUE_MAP.get(value);
         if (algorithm == null) {
-            throw new IllegalArgumentException("The provided value is not a valid algorithm " + value);
+            String normalizedValue = StringUtils.upperCase(value);
+            algorithm = VALUE_MAP.get(normalizedValue);
+            if (algorithm == null) {
+                throw new IllegalArgumentException("The provided value is not a valid algorithm " + value);
+            }
         }
-
         return algorithm;
     }
 
