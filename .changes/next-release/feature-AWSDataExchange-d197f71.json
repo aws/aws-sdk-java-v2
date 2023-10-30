@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Data Exchange",
-    "contributor": "",
-    "description": "We added a new API action: SendDataSetNotification."
-}

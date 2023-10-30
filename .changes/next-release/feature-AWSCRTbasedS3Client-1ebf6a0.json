@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT-based S3 Client",
-    "contributor": "",
-    "description": "Add the cause of failure to the stacktrace if present for the AWS CRT-based S3 client. Related to [aws-crt-java#497](https://github.com/awslabs/aws-crt-java/issues/697)."
-}
