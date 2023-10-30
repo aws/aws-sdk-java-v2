@@ -37,7 +37,7 @@ public interface AsyncSignedRequest extends BaseSignedRequest<Publisher<ByteBuff
      * Get a new builder for creating a {@link AsyncSignedRequest}.
      */
     static Builder builder() {
-        return new DefaultAsyncSignedRequest.BuilderImpl();
+        return DefaultAsyncSignedRequest.builder();
     }
 
     /**

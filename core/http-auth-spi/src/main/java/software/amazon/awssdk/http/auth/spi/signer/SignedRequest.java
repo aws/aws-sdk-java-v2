@@ -36,7 +36,7 @@ public interface SignedRequest extends BaseSignedRequest<ContentStreamProvider>,
      * Get a new builder for creating a {@link SignedRequest}.
      */
     static Builder builder() {
-        return new DefaultSignedRequest.BuilderImpl();
+        return DefaultSignedRequest.builder();
     }
 
     /**

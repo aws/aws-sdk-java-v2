@@ -430,7 +430,11 @@ public class ToBuilderIsCorrect extends OpcodeStackDetector {
             if (builders.containsKey(concreteClass)) {
                 // We're invoking these methods on a known builder. Assume the method name matches the field name and validate
                 // based on that.
-                Set<String> builderFieldsForBuilder = new HashSet<>(builderFields.get(concreteClass));
+                List<String> concreteClassBuilderFields = builderFields.get(concreteClass);
+                if (concreteClassBuilderFields == null) {
+                    concreteClassBuilderFields = new ArrayList<>();
+                }
+                Set<String> builderFieldsForBuilder = new HashSet<>(concreteClassBuilderFields);
                 invokedMethods.forEach(builderFieldsForBuilder::remove);
                 ignoredFields.getOrDefault(buildableClassName, emptyList()).forEach(builderFieldsForBuilder::remove);
 
