@@ -358,7 +358,27 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * non-blocking event loop threads owned by the SDK.
      */
     static AsyncRequestBody fromInputStream(InputStream inputStream, Long contentLength, ExecutorService executor) {
-        return new InputStreamWithExecutorAsyncRequestBody(inputStream, contentLength, executor);
+        return fromInputStream(b -> b.inputStream(inputStream).contentLength(contentLength).executor(executor));
+    }
+
+    /**
+     * Creates an {@link AsyncRequestBody} from an {@link InputStream} with the provided
+     * {@link AsyncRequestBodySplitConfiguration}.
+     */
+    static AsyncRequestBody fromInputStream(AsyncRequestBodyFromInputStreamConfiguration configuration) {
+        Validate.notNull(configuration, "configuration");
+        return new InputStreamWithExecutorAsyncRequestBody(configuration);
+    }
+
+    /**
+     * This is a convenience method that passes an instance of the {@link AsyncRequestBodyFromInputStreamConfiguration} builder,
+     * avoiding the need to create one manually via {@link AsyncRequestBodyFromInputStreamConfiguration#builder()}.
+     *
+     * @see #fromInputStream(AsyncRequestBodyFromInputStreamConfiguration)
+     */
+    static AsyncRequestBody fromInputStream(Consumer<AsyncRequestBodyFromInputStreamConfiguration.Builder> configuration) {
+        Validate.notNull(configuration, "configuration");
+        return fromInputStream(AsyncRequestBodyFromInputStreamConfiguration.builder().applyMutation(configuration).build());
     }
 
     /**
