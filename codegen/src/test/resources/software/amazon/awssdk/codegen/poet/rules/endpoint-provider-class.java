@@ -209,7 +209,10 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                         Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
                                                                                        Literal.fromStr("sigv4a"), Identifier.of("signingName"),
                                                                                        Literal.fromStr("query"), Identifier.of("signingRegionSet"),
-                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*")))))))).build());
+                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*"))))), Literal
+                                                            .fromRecord(MapUtils.of(Identifier.of("name"), Literal.fromStr("sigv4"),
+                                                                                    Identifier.of("signingName"), Literal.fromStr("query"),
+                                                                                    Identifier.of("signingRegion"), Literal.fromStr("{region}")))))).build());
     }
 
     private static Rule endpointRule_8() {
@@ -304,8 +307,8 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                  .required(false).build())
                     .addParameter(
                         Parameter.builder().name("defaultTrueParam").type(ParameterType.fromValue("boolean"))
-                                  .required(false).documentation("A param that defauls to true")
-                                  .defaultValue(Value.fromBool(true)).build())
+                                 .required(false).documentation("A param that defauls to true")
+                                 .defaultValue(Value.fromBool(true)).build())
                     .addParameter(
                         Parameter.builder().name("defaultStringParam").type(ParameterType.fromValue("string"))
                                  .required(false).defaultValue(Value.fromStr("hello endpoints")).build())
