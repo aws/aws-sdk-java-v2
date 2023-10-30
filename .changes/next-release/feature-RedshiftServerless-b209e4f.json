@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Serverless",
+    "contributor": "",
+    "description": "Added support for custom domain names for Amazon Redshift Serverless workgroups. This feature enables customers to create a custom domain name and use ACM to generate fully secure connections to it."
+}
