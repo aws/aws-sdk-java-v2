@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 
 import java.net.URI;
@@ -26,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -34,6 +38,7 @@ import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -57,60 +62,65 @@ import software.amazon.awssdk.services.protocolquery.endpoints.ProtocolQueryEndp
  */
 public class SignerAndEndpointOverridesTest {
 
-    public Signer mockSigner = mock(Signer.class);
+    private static Signer mockSigner = mock(Signer.class);
+
+    @BeforeAll
+    static void setup() {
+        when(mockSigner.sign(any(), any())).thenThrow(new RuntimeException("boom!"));
+    }
 
     @Test
-    public void test_whenV4EndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
+    void test_whenV4EndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
         ProtocolQueryClient client = ProtocolQueryClient
             .builder()
             .authSchemeProvider(v4AuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4EndpointProviderOverride())
-            .region(Region.US_WEST_2)
+            .region(Region.US_WEST_1)
             .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner))
             .build();
 
-        try {
-            client.streamingInputOperation(r -> {}, RequestBody.fromString("test"));
-        } catch (Exception expected) {
-        }
+        Exception ex = assertThrows(
+            RuntimeException.class, () -> client.streamingInputOperation(r -> {}, RequestBody.fromString("test"))
+        );
 
+        assertThat(ex.getMessage()).contains("boom!");
         verify(mockSigner).sign(
             any(SdkHttpFullRequest.class),
             argThat(attrs ->
-                        "us-west-2".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id()) &&
+                        "us-west-1".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id()) &&
                         "query-test-v4".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)) &&
-                        !attrs.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE))
+                        Boolean.FALSE.equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)))
         );
     }
 
     @Test
-    public void testAsync_whenV4EndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
+    void testAsync_whenV4EndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
         ProtocolQueryAsyncClient client = ProtocolQueryAsyncClient
             .builder()
             .authSchemeProvider(v4AuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4EndpointProviderOverride())
-            .region(Region.US_WEST_2)
+            .region(Region.US_WEST_1)
             .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner))
             .build();
 
-        try {
-            client.streamingInputOperation(r -> {}, AsyncRequestBody.fromString("test")).join();
-        } catch (Exception expected) {
-        }
+        Exception ex = assertThrows(
+            RuntimeException.class, () -> client.streamingInputOperation(r -> {}, AsyncRequestBody.fromString("test")).join()
+        );
 
+        assertThat(ex.getMessage()).contains("boom!");
         verify(mockSigner).sign(
             any(SdkHttpFullRequest.class),
             argThat(attrs ->
-                        "us-west-2".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id()) &&
+                        "us-west-1".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id()) &&
                         "query-test-v4".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)) &&
-                        !attrs.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE))
+                        Boolean.FALSE.equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)))
         );
     }
 
     @Test
-    public void test_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
+    void test_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
         ProtocolQueryClient client = ProtocolQueryClient
             .builder()
             .authSchemeProvider(v4aAuthSchemeProviderOverride())
@@ -124,22 +134,22 @@ public class SignerAndEndpointOverridesTest {
                       )))
             .build();
 
-        try {
-            client.streamingInputOperation(r -> {}, RequestBody.fromString("test"));
-        } catch (Exception expected) {
-        }
+        Exception ex = assertThrows(
+            RuntimeException.class, () -> client.streamingInputOperation(r -> {}, RequestBody.fromString("test"))
+        );
 
+        assertThat(ex.getMessage()).contains("boom!");
         verify(mockSigner).sign(
             any(SdkHttpFullRequest.class),
             argThat(attrs ->
                         "us-east-1".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id()) &&
                         "query-test-v4a".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)) &&
-                        !attrs.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE))
+                        Boolean.FALSE.equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)))
         );
     }
 
     @Test
-    public void testAsync_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
+    void testAsync_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
         ProtocolQueryAsyncClient client = ProtocolQueryAsyncClient
             .builder()
             .authSchemeProvider(v4aAuthSchemeProviderOverride())
@@ -153,17 +163,17 @@ public class SignerAndEndpointOverridesTest {
                       )))
             .build();
 
-        try {
-            client.streamingInputOperation(r -> {}, AsyncRequestBody.fromString("test")).join();
-        } catch (Exception expected) {
-        }
+        Exception ex = assertThrows(
+            SdkClientException.class, () -> client.streamingInputOperation(r -> {}, AsyncRequestBody.fromString("test")).join()
+        );
 
+        assertThat(ex.getMessage()).contains("boom!");
         verify(mockSigner).sign(
             any(SdkHttpFullRequest.class),
             argThat(attrs ->
                         "us-east-1".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id()) &&
                         "query-test-v4a".equals(attrs.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)) &&
-                        !attrs.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE))
+                        Boolean.FALSE.equals(attrs.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)))
         );
     }
 
@@ -194,14 +204,14 @@ public class SignerAndEndpointOverridesTest {
     }
 
     private static ProtocolQueryEndpointProvider v4EndpointProviderOverride() {
-        return __ -> {
+        return x -> {
             Endpoint endpoint =
                 Endpoint.builder()
-                        .url(URI.create("https://testv4.query.us-west-2"))
+                        .url(URI.create("https://testv4.query.us-west-1"))
                         .putAttribute(
                             AwsEndpointAttribute.AUTH_SCHEMES,
                             Collections.singletonList(SigV4AuthScheme.builder()
-                                                                     .signingRegion("us-west-2")
+                                                                     .signingRegion("us-west-1")
                                                                      .signingName("query-test-v4")
                                                                      .disableDoubleEncoding(true)
                                                                      .build()))
@@ -212,7 +222,7 @@ public class SignerAndEndpointOverridesTest {
     }
 
     private static ProtocolQueryEndpointProvider v4aEndpointProviderOverride() {
-        return __ -> {
+        return x -> {
             Endpoint endpoint =
                 Endpoint.builder()
                         .url(URI.create("https://testv4a.query.us-east-1"))
