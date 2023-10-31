@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Amplify",
-    "contributor": "",
-    "description": "Add backend field to CreateBranch and UpdateBranch requests. Add pagination support for ListApps, ListDomainAssociations, ListBranches, and ListJobs"
-}
