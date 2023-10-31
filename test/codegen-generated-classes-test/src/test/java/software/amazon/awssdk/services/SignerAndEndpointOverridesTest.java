@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -35,10 +34,12 @@ import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
@@ -108,9 +109,6 @@ public class SignerAndEndpointOverridesTest {
         );
     }
 
-    // TODO(sra-identity-and-auth): Enable this test once an auth-scheme override is respected when resolving the auth-scheme -
-    //  the V4 tests pass right now only because the V4 auth-scheme is the default for this client
-    @Disabled("Expected to fail as of now.")
     @Test
     public void test_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
         ProtocolQueryClient client = ProtocolQueryClient
@@ -119,7 +117,11 @@ public class SignerAndEndpointOverridesTest {
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4aEndpointProviderOverride())
             .region(Region.US_EAST_1)
-            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner))
+            .overrideConfiguration(
+                o -> o.putAdvancedOption(SIGNER, mockSigner)
+                      .putExecutionAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, Collections.singletonMap(
+                          "aws.auth#sigv4a", AwsV4aAuthScheme.create()
+                      )))
             .build();
 
         try {
@@ -136,9 +138,6 @@ public class SignerAndEndpointOverridesTest {
         );
     }
 
-    // TODO(sra-identity-and-auth): Enable this test once an auth-scheme override is respected when resolving the auth-scheme -
-    //  the V4 tests pass right now only because the V4 auth-scheme is the default for this client
-    @Disabled("Expected to fail as of now.")
     @Test
     public void testAsync_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
         ProtocolQueryAsyncClient client = ProtocolQueryAsyncClient
@@ -147,7 +146,11 @@ public class SignerAndEndpointOverridesTest {
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4aEndpointProviderOverride())
             .region(Region.US_EAST_1)
-            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner))
+            .overrideConfiguration(
+                o -> o.putAdvancedOption(SIGNER, mockSigner)
+                      .putExecutionAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, Collections.singletonMap(
+                          "aws.auth#sigv4a", AwsV4aAuthScheme.create()
+                      )))
             .build();
 
         try {
