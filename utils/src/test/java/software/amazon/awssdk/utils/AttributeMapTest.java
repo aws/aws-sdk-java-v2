@@ -19,11 +19,15 @@ package software.amazon.awssdk.utils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.Test;
 
 public class AttributeMapTest {
@@ -104,4 +108,52 @@ public class AttributeMapTest {
         verify(executor).shutdown();
     }
 
+    @Test
+    public void close_ExecutorDoesNotDeadlockOnClose() throws Exception {
+        SdkAutoCloseable closeable = mock(SdkAutoCloseable.class);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        AttributeMap attributeMap = AttributeMap.builder()
+                                                .put(CLOSEABLE_KEY, closeable)
+                                                .put(EXECUTOR_SERVICE_KEY, executor)
+                                                .build();
+
+        // Previously, running AttributeMap#close from a thread managed by the ExecutorService
+        // that's stored in that AttributeMap instance would result in a deadlock, where this
+        // invocation would time out. This verifies that that scenario no longer happens.
+        CompletableFuture.runAsync(attributeMap::close, executor).get(5L, TimeUnit.SECONDS);
+
+        verify(closeable).close();
+        assertThat(executor.isShutdown()).isTrue();
+    }
+
+    /**
+     * This tests that the {@link ExecutorService} which as of Java 21 implements the {@link AutoCloseable}
+     * interface, doesn't have its {@link AutoCloseable#close()} method called, but instead the expected
+     * {@link ExecutorService#shutdown()} method is.
+     *
+     * This test scenario can be removed when the SDK upgrades its minimum supported version to Java 21,
+     * whereupon this scenario will be handled by {@link AttributeMapTest#close_closesAll}.
+     */
+    @Test
+    public void close_shutsDownExecutorService() throws Exception {
+        SdkAutoCloseable closeable = mock(SdkAutoCloseable.class);
+        CloseableExecutorService executor = mock(CloseableExecutorService.class);
+
+        AttributeMap.builder()
+                    .put(CLOSEABLE_KEY, closeable)
+                    .put(EXECUTOR_SERVICE_KEY, executor)
+                    .build()
+                    .close();
+
+        verify(closeable).close();
+        verify(executor, never()).close();
+        verify(executor).shutdown();
+    }
+
+    /**
+     * Simulates the API contract of the ExecutorService as of Java 21, where it extends the
+     * {@link AutoCloseable} interface and is susceptible to being closed by {@link AttributeMap#close()}.
+     */
+    private interface CloseableExecutorService extends ExecutorService, AutoCloseable {}
 }
