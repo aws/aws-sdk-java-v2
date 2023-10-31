@@ -1,3 +1,73 @@
+# __2.21.11__ __2023-10-30__
+## __AWS CRT-based S3 Client__
+  - ### Features
+    - Add the cause of failure to the stacktrace if present for the AWS CRT-based S3 client. Related to [aws-crt-java#497](https://github.com/awslabs/aws-crt-java/issues/697).
+
+## __AWS Data Exchange__
+  - ### Features
+    - We added a new API action: SendDataSetNotification.
+
+## __AWS DataSync__
+  - ### Features
+    - Platform version changes to support AL1 deprecation initiative.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This feature allows customers to create a combination of manifest filtering, startover and time delay configuration that applies to all egress requests by default.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Introduced the ability to filter applications by their last assessment date and time and have included metrics for the application's estimated workload Recovery Time Objective (RTO) and estimated workload Recovery Point Objective (RPO).
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds InstanceId field for phone number APIs.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release added necessary API documents on creating a Wisdom knowledge base to integrate with S3.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release launches the CreateIntegration, DeleteIntegration, and DescribeIntegrations APIs to manage zero-ETL Integrations.
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - Updated ListOutpostsWithS3 API response to include S3OutpostArn for use with AWS RAM.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Introducing new API UpdateKxClusterCodeConfiguration, introducing new cache types for clusters and introducing new deployment modes for updating clusters.
+
+## __Redshift Serverless__
+  - ### Features
+    - Added support for custom domain names for Amazon Redshift Serverless workgroups. This feature enables customers to create a custom domain name and use ACM to generate fully secure connections to it.
+
+# __2.21.10__ __2023-10-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Updates the descriptions for the calls that manage web ACL associations, to provide information for customer-managed IAM policies.
+
+## __Amazon EMR__
+  - ### Features
+    - Updated CreateCluster API request and DescribeCluster API responses to include EbsRootVolumeIops, and EbsRootVolumeThroughput attributes that specify the user configured root volume IOPS and throughput for Amazon EBS root device volume. This feature will be available from Amazon EMR releases 6.15.0
+
+## __Amazon Neptune__
+  - ### Features
+    - Update TdeCredentialPassword type to SensitiveString
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Updated documentation to describe the case insensitivity for EndpointIds.
+
+## __Amazon Redshift__
+  - ### Features
+    - added support to create a dual stack cluster
+
 # __2.21.9__ __2023-10-26__
 ## __AWS Network Firewall__
   - ### Features

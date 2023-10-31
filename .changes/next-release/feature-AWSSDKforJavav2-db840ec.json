@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Introduce `AsyncRequestBody#fromInputStream(AsyncRequestBodyFromInputStreamConfiguration)` that allows users to specify the max read limit on the provided InputStream."
+}
