@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
-import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -34,6 +33,8 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.regions.Region;
 
+// TODO(sra-identity-auth): assert client is configured with SRA types like AUTH_SCHEMES, AUTH_SCHEME_PROVIDER,
+//  IDENTITY_PROVIDERS.
 public class ClientBuilderTest {
     @Test
     public void syncClient_includesDefaultProvider_includesDefaultSigner() {
@@ -42,8 +43,7 @@ public class ClientBuilderTest {
 
         assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
             .isInstanceOf(DefaultAwsTokenProvider.class);
-        assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
-            .isInstanceOf(BearerTokenSigner.class);
+        assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER)).isNull();;
     }
 
     @Test
@@ -90,8 +90,7 @@ public class ClientBuilderTest {
 
         assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
             .isInstanceOf(DefaultAwsTokenProvider.class);
-        assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
-            .isInstanceOf(BearerTokenSigner.class);
+        assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER)).isNull();
     }
 
     @Test

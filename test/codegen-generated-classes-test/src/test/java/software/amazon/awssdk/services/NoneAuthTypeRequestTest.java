@@ -42,6 +42,8 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -66,7 +68,8 @@ public class NoneAuthTypeRequestTest {
     @Before
     public void setup() throws IOException {
         credentialsProvider = mock(AwsCredentialsProvider.class);
-        when(credentialsProvider.resolveIdentity()).thenAnswer(
+        when(credentialsProvider.identityType()).thenReturn(AwsCredentialsIdentity.class);
+        when(credentialsProvider.resolveIdentity(any(ResolveIdentityRequest.class))).thenAnswer(
             invocationOnMock -> CompletableFuture.completedFuture(AwsBasicCredentials.create("123", "12344")));
 
         httpClient = mock(SdkHttpClient.class);
@@ -99,56 +102,56 @@ public class NoneAuthTypeRequestTest {
     public void sync_json_authorization_is_absent_for_noneAuthType() {
         jsonClient.operationWithNoneAuthType(o -> o.booleanMember(true));
         assertThat(getSyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
-        verify(credentialsProvider, times(0)).resolveIdentity();
+        verify(credentialsProvider, times(0)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void sync_json_authorization_is_present_for_defaultAuth() {
         jsonClient.jsonValuesOperation();
         assertThat(getSyncRequest().firstMatchingHeader("Authorization")).isPresent();
-        verify(credentialsProvider, times(1)).resolveIdentity();
+        verify(credentialsProvider, times(1)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void async_json_authorization_is_absent_for_noneAuthType() {
         jsonAsyncClient.operationWithNoneAuthType(o -> o.booleanMember(true));
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
-        verify(credentialsProvider, times(0)).resolveIdentity();
+        verify(credentialsProvider, times(0)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void async_json_authorization_is_present_for_defaultAuth() {
         jsonAsyncClient.jsonValuesOperation();
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isPresent();
-        verify(credentialsProvider, times(1)).resolveIdentity();
+        verify(credentialsProvider, times(1)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void sync_xml_authorization_is_absent_for_noneAuthType() {
         xmlClient.operationWithNoneAuthType(o -> o.booleanMember(true));
         assertThat(getSyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
-        verify(credentialsProvider, times(0)).resolveIdentity();
+        verify(credentialsProvider, times(0)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void sync_xml_authorization_is_present_for_defaultAuth() {
         xmlClient.jsonValuesOperation(json -> json.jsonValueMember("one"));
         assertThat(getSyncRequest().firstMatchingHeader("Authorization")).isPresent();
-        verify(credentialsProvider, times(1)).resolveIdentity();
+        verify(credentialsProvider, times(1)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void async_xml_authorization_is_absent_for_noneAuthType() {
         xmlAsyncClient.operationWithNoneAuthType(o -> o.booleanMember(true));
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
-        verify(credentialsProvider, times(0)).resolveIdentity();
+        verify(credentialsProvider, times(0)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void async_xml_authorization_is_present_for_defaultAuth() {
         xmlAsyncClient.jsonValuesOperation(json -> json.jsonValueMember("one"));
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isPresent();
-        verify(credentialsProvider, times(1)).resolveIdentity();
+        verify(credentialsProvider, times(1)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     private SdkHttpRequest getSyncRequest() {
