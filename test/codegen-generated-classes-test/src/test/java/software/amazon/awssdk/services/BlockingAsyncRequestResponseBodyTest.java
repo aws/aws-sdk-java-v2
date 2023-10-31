@@ -16,14 +16,20 @@
 package software.amazon.awssdk.services;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.allRequests;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.http.Fault;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,6 +41,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.apache.commons.lang.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -71,6 +78,44 @@ public class BlockingAsyncRequestResponseBodyTest {
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .build();
     }
+
+    @Test
+    public void blockingWithExecutor_inputStreamWithMark_shouldRetry() {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        int length = 1 << 20;
+        String content = RandomStringUtils.randomAscii(length);
+        StringInputStream stringInputStream = new StringInputStream(content);
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(stringInputStream);
+
+        try {
+
+            wireMock.stubFor(post(anyUrl())
+                        .inScenario("retry at connect reset")
+                        .whenScenarioStateIs(Scenario.STARTED)
+                        .willSetStateTo("first attempt")
+                        .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+
+            wireMock.stubFor(post(anyUrl())
+                        .inScenario("retry at connect reset")
+                        .whenScenarioStateIs("first attempt")
+                        .willSetStateTo("second attempt")
+                        .willReturn(aResponse()
+                                        .withStatus(200)
+                                        .withBody("{}")));
+
+            client.streamingInputOperation(StreamingInputOperationRequest.builder().build(),
+                                           AsyncRequestBody.fromInputStream(b -> b.inputStream(bufferedInputStream).contentLength(
+                                                                            (long) length).executor(executorService).maxReadLimit(length + 1))).join();
+            List<LoggedRequest> requests = wireMock.findAll(allRequests());
+            assertThat(requests.get(0))
+                .extracting(LoggedRequest::getBody)
+                .extracting(String::new)
+                .isEqualTo(content);
+        } finally {
+            executorService.shutdownNow();
+        }
+    }
+
 
     @Test
     public void blockingWithExecutor_sendsRightValues() {
