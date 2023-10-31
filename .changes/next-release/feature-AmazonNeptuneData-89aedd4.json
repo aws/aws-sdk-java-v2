@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon NeptuneData",
+    "contributor": "",
+    "description": "Minor change to not retry CancelledByUserException"
+}
