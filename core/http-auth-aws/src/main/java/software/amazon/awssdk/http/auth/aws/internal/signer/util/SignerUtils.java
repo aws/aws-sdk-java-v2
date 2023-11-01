@@ -225,8 +225,6 @@ public final class SignerUtils {
 
     public static byte[] hash(InputStream input) {
         try {
-            // TODO(sra-identity-and-auth): Performance testing to verify if we should cache message digest instances
-            //  (thread-local)
             MessageDigest md = getMessageDigestInstance();
             byte[] buf = new byte[4096];
             int read = 0;
