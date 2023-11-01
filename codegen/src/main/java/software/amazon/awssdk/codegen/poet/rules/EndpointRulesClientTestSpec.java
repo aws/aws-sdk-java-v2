@@ -111,7 +111,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
             b.addField(s3RegionEndpointSystemPropertySaveValueField());
         }
 
-        if (serviceHasNoMatchingTestCases()) {
+        if (!shouldGenerateClientEndpointTests()) {
             return b.build();
         }
 
@@ -663,10 +663,10 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         return skippedTests;
     }
 
-    private boolean serviceHasNoMatchingTestCases() {
-        boolean noTestCasesHaveOperationInputs = model.getEndpointTestSuiteModel().getTestCases().stream()
-                                                      .noneMatch(EndpointRulesClientTestSpec::testCaseHasOperationInputs);
-        return noTestCasesHaveOperationInputs && !shouldGenerateClientTestsOverride();
+    private boolean shouldGenerateClientEndpointTests() {
+        boolean someTestCasesHaveOperationInputs = model.getEndpointTestSuiteModel().getTestCases().stream()
+                                                        .anyMatch(t -> t.getOperationInputs() != null);
+        return shouldGenerateClientTestsOverride() || someTestCasesHaveOperationInputs;
     }
 
     /**
