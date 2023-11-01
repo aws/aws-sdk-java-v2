@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Support for batch transform input in Model dashboard"
+}
