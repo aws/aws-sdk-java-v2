@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Global Accelerator",
+    "contributor": "",
+    "description": "Global Accelerator now support accelerators with cross account endpoints."
+}
