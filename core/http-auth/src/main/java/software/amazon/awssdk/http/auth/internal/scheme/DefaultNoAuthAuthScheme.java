@@ -15,13 +15,8 @@
 
 package software.amazon.awssdk.http.auth.internal.scheme;
 
-import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
@@ -89,35 +84,21 @@ public final class DefaultNoAuthAuthScheme implements NoAuthAuthScheme {
         return new HttpSigner<AnonymousIdentity>() {
             @Override
             public SignedRequest sign(SignRequest<? extends AnonymousIdentity> request) {
-
-                return new SignedRequest() {
-                    @Override
-                    public SdkHttpRequest request() {
-                        return request.request();
-                    }
-
-                    @Override
-                    public Optional<ContentStreamProvider> payload() {
-                        return request.payload();
-                    }
-                };
+                return SignedRequest.builder()
+                                    .request(request.request())
+                                    .payload(request.payload().orElse(null))
+                                    .build();
             }
 
             @Override
             public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<?
                 extends AnonymousIdentity> request) {
-                AsyncSignedRequest result = new AsyncSignedRequest() {
-                    @Override
-                    public SdkHttpRequest request() {
-                        return request.request();
-                    }
-
-                    @Override
-                    public Optional<Publisher<ByteBuffer>> payload() {
-                        return request.payload();
-                    }
-                };
-                return CompletableFuture.completedFuture(result);
+                return CompletableFuture.completedFuture(
+                    AsyncSignedRequest.builder()
+                                      .request(request.request())
+                                      .payload(request.payload().orElse(null))
+                                      .build()
+                );
             }
         };
     }
