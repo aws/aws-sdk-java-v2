@@ -21,15 +21,18 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.authcrt.signer.AwsCrtV4aSigner;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
@@ -37,6 +40,7 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
@@ -51,7 +55,8 @@ import software.amazon.awssdk.services.protocolquery.endpoints.ProtocolQueryEndp
 
 /**
  * Tests to ensure that parameters set when endpoint and auth-scheme resolution occurs get propagated to the overriden
- * signer (i.e. pre-SRA signers).
+ * signer (i.e. pre-SRA signers). These tests also test that a different type of signer from the auth-scheme still has params
+ * propagated to it.
  */
 public class SignerAndEndpointOverridesTest {
 
@@ -62,14 +67,15 @@ public class SignerAndEndpointOverridesTest {
         this.interceptor = new CapturingInterceptor();
     }
 
-    @Test
-    void test_whenV4EndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
+    @ParameterizedTest
+    @MethodSource("provideSigners")
+    void test_whenV4EndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner(Signer signer) {
         ProtocolQueryClient client = ProtocolQueryClient
             .builder()
             .authSchemeProvider(v4AuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4EndpointProviderOverride())
-            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, Aws4Signer.create()).addExecutionInterceptor(interceptor))
+            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, signer).addExecutionInterceptor(interceptor))
             .build();
 
         assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("boom!");
@@ -78,14 +84,15 @@ public class SignerAndEndpointOverridesTest {
         assertEquals(Boolean.FALSE, interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
     }
 
-    @Test
-    void testAsync_whenV4EndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
+    @ParameterizedTest
+    @MethodSource("provideSigners")
+    void testAsync_whenV4EndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner(Signer signer) {
         ProtocolQueryAsyncClient client = ProtocolQueryAsyncClient
             .builder()
             .authSchemeProvider(v4AuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4EndpointProviderOverride())
-            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, Aws4Signer.create()).addExecutionInterceptor(interceptor))
+            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, signer).addExecutionInterceptor(interceptor))
             .build();
 
         assertThatThrownBy(() -> client.allTypes(r -> {}).join()).hasMessageContaining("boom!");
@@ -94,15 +101,16 @@ public class SignerAndEndpointOverridesTest {
         assertEquals(Boolean.FALSE, interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
     }
 
-    @Test
-    void test_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
+    @ParameterizedTest
+    @MethodSource("provideSigners")
+    void test_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner(Signer signer) {
         ProtocolQueryClient client = ProtocolQueryClient
             .builder()
             .authSchemeProvider(v4aAuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4aEndpointProviderOverride())
             .overrideConfiguration(
-                o -> o.putAdvancedOption(SIGNER, Aws4Signer.create())
+                o -> o.putAdvancedOption(SIGNER, signer)
                       .addExecutionInterceptor(interceptor)
                       .putExecutionAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, Collections.singletonMap(
                           "aws.auth#sigv4a", AwsV4aAuthScheme.create()
@@ -116,15 +124,16 @@ public class SignerAndEndpointOverridesTest {
         assertEquals(Boolean.FALSE, interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
     }
 
-    @Test
-    void testAsync_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner() {
+    @ParameterizedTest
+    @MethodSource("provideSigners")
+    void testAsync_whenV4aEndpointAuthSchemeWithSignerOverride_thenEndpointParamsShouldPropagateToSigner(Signer signer) {
         ProtocolQueryAsyncClient client = ProtocolQueryAsyncClient
             .builder()
             .authSchemeProvider(v4aAuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4aEndpointProviderOverride())
             .overrideConfiguration(
-                o -> o.putAdvancedOption(SIGNER, Aws4Signer.create())
+                o -> o.putAdvancedOption(SIGNER, signer)
                       .addExecutionInterceptor(interceptor)
                       .putExecutionAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, Collections.singletonMap(
                           "aws.auth#sigv4a", AwsV4aAuthScheme.create()
@@ -136,6 +145,10 @@ public class SignerAndEndpointOverridesTest {
         assertEquals("query-test-v4a",
                      interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME));
         assertEquals(Boolean.FALSE, interceptor.executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
+    }
+
+    private static List<Signer> provideSigners() {
+        return Arrays.asList(Aws4Signer.create(), AwsCrtV4aSigner.create());
     }
 
     private static ProtocolQueryAuthSchemeProvider v4AuthSchemeProviderOverride() {
@@ -200,7 +213,7 @@ public class SignerAndEndpointOverridesTest {
         };
     }
 
-    public static class CapturingInterceptor implements ExecutionInterceptor {
+    private static class CapturingInterceptor implements ExecutionInterceptor {
         private Context.BeforeTransmission context;
         private ExecutionAttributes executionAttributes;
 
