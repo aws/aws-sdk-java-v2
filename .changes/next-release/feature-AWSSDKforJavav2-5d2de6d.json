@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Makes SignedRequest and AsyncSignedRequest implement CopyableBuilder to allow modifications"
+}

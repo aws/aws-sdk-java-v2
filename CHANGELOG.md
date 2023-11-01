@@ -1,3 +1,57 @@
+# __2.21.13__ __2023-11-01__
+## __AWS Global Accelerator__
+  - ### Features
+    - Global Accelerator now support accelerators with cross account endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `cloudwatch-metric-publisher` to `aws-sdk-java` module so that it can be included in the bundle JAR.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds the BatchGetFlowAssociation API which returns flow associations (flow-resource) corresponding to the list of resourceArns supplied in the request. This release also adds IsDefault, LastModifiedRegion and LastModifiedTime fields to the responses of several Describe and List APIs.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support for Multi-AZ deployments for Provisioned RA3 clusters that provide 99.99% SLA availability.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for customized networking resources to Amazon RDS Custom.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Support for batch transform input in Model dashboard
+
+# __2.21.12__ __2023-10-31__
+## __AWS Amplify__
+  - ### Features
+    - Add backend field to CreateBranch and UpdateBranch requests. Add pagination support for ListApps, ListDomainAssociations, ListBranches, and ListJobs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Introduce `AsyncRequestBody#fromInputStream(AsyncRequestBodyFromInputStreamConfiguration)` that allows users to specify the max read limit on the provided InputStream.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Added name filter ability for ListDataSets API, added ForceUpdate for Updating environment and BatchJob submission using S3BatchJobIdentifier
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Automate attaching managed policies
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Capacity Blocks for ML are a new EC2 purchasing option for reserving GPU instances on a future date to support short duration machine learning (ML) workloads. Capacity Blocks automatically place instances close together inside Amazon EC2 UltraClusters for low-latency, high-throughput networking.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Minor change to not retry CancelledByUserException
+
+## __Amazon Translate__
+  - ### Features
+    - Added support for Brevity translation settings feature.
+
 # __2.21.11__ __2023-10-30__
 ## __AWS CRT-based S3 Client__
   - ### Features
@@ -1017,7 +1071,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
