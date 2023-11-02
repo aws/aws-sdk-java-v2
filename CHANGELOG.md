@@ -1,3 +1,33 @@
+# __2.21.14__ __2023-11-02__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner now supports using dual-stack address type for the public endpoint of your incoming traffic.
+
+## __AWS Glue__
+  - ### Features
+    - This release introduces Google BigQuery Source and Target in AWS Glue CodeGenConfigurationNode.
+
+## __AWS Network Firewall__
+  - ### Features
+    - This release introduces the stateless rule analyzer, which enables you to analyze your stateless rules for asymmetric routing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Makes SignedRequest and AsyncSignedRequest implement CopyableBuilder to allow modifications
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 API: Update to include new metrics PERCENT_NON_TALK_TIME, PERCENT_TALK_TIME, PERCENT_TALK_TIME_AGENT, PERCENT_TALK_TIME_CUSTOMER
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift adds support for shared credentials, which allows applications that are deployed on managed EC2 fleets to interact with other AWS resources.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Got confirmed from qmeixua@ about custom week features, and tested locally with aws cli and java sdk that the subtypes are showing up.
+
 # __2.21.13__ __2023-11-01__
 ## __AWS Global Accelerator__
   - ### Features
@@ -1071,7 +1101,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2812,7 +2842,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

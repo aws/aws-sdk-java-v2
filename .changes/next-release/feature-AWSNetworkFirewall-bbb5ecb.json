@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Firewall",
-    "contributor": "",
-    "description": "This release introduces the stateless rule analyzer, which enables you to analyze your stateless rules for asymmetric routing."
-}
