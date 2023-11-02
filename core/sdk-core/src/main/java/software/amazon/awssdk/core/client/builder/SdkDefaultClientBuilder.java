@@ -18,14 +18,9 @@ package software.amazon.awssdk.core.client.builder;
 import static software.amazon.awssdk.core.ClientType.ASYNC;
 import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
-import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION;
-import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
-import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.TOKEN_SIGNER;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_TYPE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_USER_AGENT;
@@ -33,12 +28,11 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.COMPRESS
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_ASYNC_HTTP_CLIENT_BUILDER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_COMPRESSION_CONFIGURATION;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SYNC_HTTP_CLIENT_BUILDER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULT_RETRY_MODE;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.HTTP_CLIENT_CONFIG;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.IDENTITY_PROVIDERS;
@@ -49,9 +43,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.SIGNER_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
-import static software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -99,7 +91,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -107,7 +98,6 @@ import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.OptionalUtils;
-import software.amazon.awssdk.utils.ScheduledExecutorUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
@@ -140,9 +130,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
-
-    private ClientOverrideConfiguration clientOverrideConfiguration;
     private final List<SdkPlugin> plugins = new ArrayList<>();
+
+    private ClientOverrideConfiguration overrideConfig;
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
@@ -236,49 +226,18 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return configuration;
     }
 
-    // TODO: delete this and make the method abstract when we break protected APIs
+    /**
+     * Apply the client override configuration to the provided configuration. This generally does not need to be overridden by
+     * child classes, but some previous client versions override it.
+     */
     protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
-        if (clientOverrideConfiguration == null) {
+        if (overrideConfig == null) {
             return configuration;
         }
-        SdkClientConfiguration.Builder builder = configuration.toBuilder();
 
-        Supplier<ProfileFile> profileFileSupplier =
-            OptionalUtils.firstPresent(clientOverrideConfiguration.defaultProfileFileSupplier(),
-                                       () -> clientOverrideConfiguration.defaultProfileFile()
-                                                                        .map(ProfileFileSupplier::fixedProfileFile))
-                         .orElse(null);
-
-        builder.option(SCHEDULED_EXECUTOR_SERVICE,
-                       clientOverrideConfiguration.scheduledExecutorService()
-                                                  .map(ScheduledExecutorUtils::unmanagedScheduledExecutor)
-                                                  .orElse(null));
-        builder.option(EXECUTION_INTERCEPTORS, clientOverrideConfiguration.executionInterceptors());
-        builder.option(RETRY_POLICY, clientOverrideConfiguration.retryPolicy().orElse(null));
-        builder.option(ADDITIONAL_HTTP_HEADERS, clientOverrideConfiguration.headers());
-        builder.option(SIGNER, clientOverrideConfiguration.advancedOption(SIGNER).orElse(null));
-        builder.option(USER_AGENT_SUFFIX, clientOverrideConfiguration.advancedOption(USER_AGENT_SUFFIX).orElse(null));
-        builder.option(USER_AGENT_PREFIX, clientOverrideConfiguration.advancedOption(USER_AGENT_PREFIX).orElse(null));
-        builder.option(API_CALL_TIMEOUT, clientOverrideConfiguration.apiCallTimeout().orElse(null));
-        builder.option(API_CALL_ATTEMPT_TIMEOUT, clientOverrideConfiguration.apiCallAttemptTimeout().orElse(null));
-        builder.option(DISABLE_HOST_PREFIX_INJECTION,
-                       clientOverrideConfiguration.advancedOption(DISABLE_HOST_PREFIX_INJECTION).orElse(null));
-        builder.option(PROFILE_FILE_SUPPLIER, profileFileSupplier);
-        builder.option(PROFILE_NAME, clientOverrideConfiguration.defaultProfileName().orElse(null));
-        builder.option(METRIC_PUBLISHERS, clientOverrideConfiguration.metricPublishers());
-        builder.option(EXECUTION_ATTRIBUTES, clientOverrideConfiguration.executionAttributes());
-        builder.option(TOKEN_SIGNER, clientOverrideConfiguration.advancedOption(TOKEN_SIGNER).orElse(null));
-        builder.option(CONFIGURED_COMPRESSION_CONFIGURATION, clientOverrideConfiguration.compressionConfiguration().orElse(null));
-
-        clientOverrideConfiguration.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
-            builder.option(ENDPOINT_OVERRIDDEN, value);
-        });
-
-        clientOverrideConfiguration.advancedOption(SIGNER).ifPresent(s -> {
-            builder.option(SIGNER_OVERRIDDEN, true);
-        });
-
-        return builder.build();
+        return configuration.toBuilder()
+                            .putAll(overrideConfig)
+                            .build();
     }
 
     /**
@@ -296,6 +255,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         Supplier<ProfileFile> defaultProfileFileSupplier = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
 
         configuration = configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
+                                                  .option(METRIC_PUBLISHERS, new ArrayList<>())
                                                   .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
                                                   .option(PROFILE_FILE_SUPPLIER, defaultProfileFileSupplier)
                                                   .lazyOption(PROFILE_FILE, conf -> conf.get(PROFILE_FILE_SUPPLIER).get())
@@ -304,7 +264,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                   .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
                                                   .option(USER_AGENT_SUFFIX, "")
                                                   .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                                  .option(IDENTITY_PROVIDERS, IdentityProviders.builder().build())
                                                   .option(CONFIGURED_COMPRESSION_CONFIGURATION,
                                                           CompressionConfiguration.builder().build()));
         return configuration;
@@ -344,11 +303,12 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
-                     .lazyOptionIfAbsent(SCHEDULED_EXECUTOR_SERVICE, c -> resolveScheduledExecutorService())
+                     .lazyOption(SCHEDULED_EXECUTOR_SERVICE, this::resolveScheduledExecutorService)
                      .lazyOptionIfAbsent(RETRY_POLICY, this::resolveRetryPolicy)
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .lazyOption(CLIENT_USER_AGENT, this::resolveClientUserAgent)
                      .lazyOption(COMPRESSION_CONFIGURATION, this::resolveCompressionConfiguration)
+                     .lazyOptionIfAbsent(IDENTITY_PROVIDERS, c -> IdentityProviders.builder().build())
                      .build();
     }
 
@@ -504,9 +464,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Finalize the internal SDK scheduled executor service that is used for scheduling tasks such as async retry attempts and
      * timeout task.
      */
-    private ScheduledExecutorService resolveScheduledExecutorService() {
-        return Executors.newScheduledThreadPool(5, new ThreadFactoryBuilder().threadNamePrefix("sdk-ScheduledExecutor")
-                                                                             .build());
+    private ScheduledExecutorService resolveScheduledExecutorService(LazyValueSource c) {
+        ScheduledExecutorService executor = c.get(CONFIGURED_SCHEDULED_EXECUTOR_SERVICE);
+        if (executor != null) {
+            return executor;
+        }
+
+        return Executors.newScheduledThreadPool(5, new ThreadFactoryBuilder().threadNamePrefix("sdk-ScheduledExecutor").build());
     }
 
     /**
@@ -557,8 +521,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     @Override
     public final B overrideConfiguration(ClientOverrideConfiguration overrideConfig) {
-        clientOverrideConfiguration = overrideConfig;
-
+        this.overrideConfig = overrideConfig;
         return thisBuilder();
     }
 
@@ -568,11 +531,10 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     @Override
     public final ClientOverrideConfiguration overrideConfiguration() {
-        if (clientOverrideConfiguration == null) {
+        if (overrideConfig == null) {
             return ClientOverrideConfiguration.builder().build();
         }
-
-        return clientOverrideConfiguration;
+        return overrideConfig;
     }
 
     public final B httpClient(SdkHttpClient httpClient) {
@@ -608,13 +570,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     @Override
     public final B addPlugin(SdkPlugin plugin) {
-        plugins.add(Validate.paramNotNull(plugin, "plugin"));
+        plugins.add(paramNotNull(plugin, "plugin"));
         return thisBuilder();
     }
 
     @Override
     public final List<SdkPlugin> plugins() {
-        return plugins;
+        return Collections.unmodifiableList(plugins);
     }
 
     /**
