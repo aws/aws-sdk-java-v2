@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -52,11 +55,11 @@ public final class AwsCredentialsProviderChain
                ToCopyableBuilder<AwsCredentialsProviderChain.Builder, AwsCredentialsProviderChain> {
     private static final Logger log = Logger.loggerFor(AwsCredentialsProviderChain.class);
 
-    private final List<AwsCredentialsProvider> credentialsProviders;
+    private final List<IdentityProvider<? extends AwsCredentialsIdentity>> credentialsProviders;
 
     private final boolean reuseLastProviderEnabled;
 
-    private volatile AwsCredentialsProvider lastUsedProvider;
+    private volatile IdentityProvider<? extends AwsCredentialsIdentity> lastUsedProvider;
 
     /**
      * @see #builder()
@@ -84,21 +87,31 @@ public final class AwsCredentialsProviderChain
         return builder().credentialsProviders(awsCredentialsProviders).build();
     }
 
+    /**
+     * Create an AWS credentials provider chain with default configuration that checks the given credential providers.
+     * @param awsCredentialsProviders The credentials providers that should be checked for credentials, in the order they should
+     *                                be checked.
+     * @return A credential provider chain that checks the provided credential providers in order.
+     */
+    public static AwsCredentialsProviderChain of(IdentityProvider<? extends AwsCredentialsIdentity>... awsCredentialsProviders) {
+        return builder().credentialsProviders(awsCredentialsProviders).build();
+    }
+
     @Override
     public AwsCredentials resolveCredentials() {
         if (reuseLastProviderEnabled && lastUsedProvider != null) {
-            return lastUsedProvider.resolveCredentials();
+            return CredentialUtils.toCredentials(CompletableFutureUtils.joinLikeSync(lastUsedProvider.resolveIdentity()));
         }
 
         List<String> exceptionMessages = null;
-        for (AwsCredentialsProvider provider : credentialsProviders) {
+        for (IdentityProvider<? extends AwsCredentialsIdentity> provider : credentialsProviders) {
             try {
-                AwsCredentials credentials = provider.resolveCredentials();
+                AwsCredentialsIdentity credentials = CompletableFutureUtils.joinLikeSync(provider.resolveIdentity());
 
                 log.debug(() -> "Loading credentials from " + provider);
 
                 lastUsedProvider = provider;
-                return credentials;
+                return CredentialUtils.toCredentials(credentials);
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
                 String message = provider + ": " + e.getMessage();
@@ -156,19 +169,43 @@ public final class AwsCredentialsProviderChain
         /**
          * Configure the credentials providers that should be checked for credentials, in the order they should be checked.
          */
-        Builder credentialsProviders(AwsCredentialsProvider... credentialsProviders);
+        Builder credentialsIdentityProviders(
+            Collection<? extends IdentityProvider<? extends AwsCredentialsIdentity>> credentialsProviders);
+
+        /**
+         * Configure the credentials providers that should be checked for credentials, in the order they should be checked.
+         */
+        default Builder credentialsProviders(AwsCredentialsProvider... credentialsProviders) {
+            return credentialsProviders((IdentityProvider<? extends AwsCredentialsIdentity>[]) credentialsProviders);
+        }
+
+        /**
+         * Configure the credentials providers that should be checked for credentials, in the order they should be checked.
+         */
+        default Builder credentialsProviders(IdentityProvider<? extends AwsCredentialsIdentity>... credentialsProviders) {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Add a credential provider to the chain, after the credential providers that have already been configured.
          */
-        Builder addCredentialsProvider(AwsCredentialsProvider credentialsProviders);
+        default Builder addCredentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            return addCredentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        }
+
+        /**
+         * Add a credential provider to the chain, after the credential providers that have already been configured.
+         */
+        default Builder addCredentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            throw new UnsupportedOperationException();
+        }
 
         AwsCredentialsProviderChain build();
     }
 
     private static final class BuilderImpl implements Builder {
         private Boolean reuseLastProviderEnabled = true;
-        private List<AwsCredentialsProvider> credentialsProviders = new ArrayList<>();
+        private List<IdentityProvider<? extends AwsCredentialsIdentity>> credentialsProviders = new ArrayList<>();
 
         private BuilderImpl() {
         }
@@ -199,13 +236,25 @@ public final class AwsCredentialsProviderChain
         }
 
         @Override
-        public Builder credentialsProviders(AwsCredentialsProvider... credentialsProviders) {
-            return credentialsProviders(Arrays.asList(credentialsProviders));
+        public Builder credentialsIdentityProviders(
+                Collection<? extends IdentityProvider<? extends AwsCredentialsIdentity>> credentialsProviders) {
+            this.credentialsProviders = new ArrayList<>(credentialsProviders);
+            return this;
+        }
+
+        public void setCredentialsIdentityProviders(
+                Collection<? extends IdentityProvider<? extends AwsCredentialsIdentity>> credentialsProviders) {
+            credentialsIdentityProviders(credentialsProviders);
         }
 
         @Override
-        public Builder addCredentialsProvider(AwsCredentialsProvider credentialsProviders) {
-            this.credentialsProviders.add(credentialsProviders);
+        public Builder credentialsProviders(IdentityProvider<? extends AwsCredentialsIdentity>... credentialsProviders) {
+            return credentialsIdentityProviders(Arrays.asList(credentialsProviders));
+        }
+
+        @Override
+        public Builder addCredentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            this.credentialsProviders.add(credentialsProvider);
             return this;
         }
 

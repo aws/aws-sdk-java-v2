@@ -44,7 +44,7 @@ import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HttpChecksumStageTest {
-    private static final String CHECKSUM_SPECS_HEADER = "ChecksumHeader";
+    private static final String CHECKSUM_SPECS_HEADER = "x-amz-checksum-sha256";
     private static final RequestBody REQUEST_BODY = RequestBody.fromString("TestBody");
     private static final AsyncRequestBody ASYNC_REQUEST_BODY = AsyncRequestBody.fromString("TestBody");
     private final HttpChecksumStage syncStage = new HttpChecksumStage(ClientType.SYNC);
@@ -112,7 +112,7 @@ public class HttpChecksumStageTest {
         assertThat(requestBuilder.headers().get("Content-encoding")).containsExactly("aws-chunked");
         assertThat(requestBuilder.headers().get("x-amz-content-sha256")).containsExactly("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
         assertThat(requestBuilder.headers().get("x-amz-decoded-content-length")).containsExactly("8");
-        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("79");
+        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("86");
 
         assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
@@ -130,7 +130,7 @@ public class HttpChecksumStageTest {
         assertThat(requestBuilder.headers().get("Content-encoding")).containsExactly("aws-chunked");
         assertThat(requestBuilder.headers().get("x-amz-content-sha256")).containsExactly("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
         assertThat(requestBuilder.headers().get("x-amz-decoded-content-length")).containsExactly("8");
-        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("79");
+        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("86");
 
         assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
