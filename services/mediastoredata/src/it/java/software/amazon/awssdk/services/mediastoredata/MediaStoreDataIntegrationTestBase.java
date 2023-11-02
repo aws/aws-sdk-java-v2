@@ -32,7 +32,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -42,7 +41,7 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.services.mediastore.MediaStoreClient;
-import software.amazon.awssdk.services.mediastore.model.Container;
+import software.amazon.awssdk.services.mediastore.model.ContainerInUseException;
 import software.amazon.awssdk.services.mediastore.model.ContainerStatus;
 import software.amazon.awssdk.services.mediastore.model.DescribeContainerResponse;
 import software.amazon.awssdk.testutils.Waiter;
@@ -70,10 +69,14 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
         CaptureTransferEncodingHeaderInterceptor.reset();
     }
 
-    protected static Container createContainer(String containerName) {
-        mediaStoreClient.createContainer(r -> r.containerName(containerName));
-        DescribeContainerResponse response = waitContainerToBeActive(containerName);
-        return response.container();
+    protected static String createContainerIfNotExistAndGetEndpoint(String containerName) {
+        try {
+            mediaStoreClient.createContainer(r -> r.containerName(containerName));
+            DescribeContainerResponse response = waitContainerToBeActive(containerName);
+            return response.container().endpoint();
+        } catch (ContainerInUseException e) {
+            return mediaStoreClient.describeContainer(r -> r.containerName(containerName)).container().endpoint();
+        }
     }
 
     private static DescribeContainerResponse waitContainerToBeActive(String containerName) {

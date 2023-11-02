@@ -63,7 +63,7 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
 
     @BeforeAll
     public static void setup() {
-        uri = URI.create(createContainer(CONTAINER_NAME).endpoint());
+        uri = URI.create(createContainerIfNotExistAndGetEndpoint(CONTAINER_NAME));
 
         CompressionConfiguration compressionConfiguration =
             CompressionConfiguration.builder()
