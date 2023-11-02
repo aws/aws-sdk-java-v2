@@ -52,9 +52,10 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
     protected static final String LARGEST_KEY_NAME = "16MB";
 
     protected static S3Client s3ApacheClient;
+    protected static ExecutorService futureThreadPool;
+
     private final S3Client testClient;
 
-    private final ExecutorService futureThreadPool = Executors.newFixedThreadPool(CONCURRENCY);
 
     // The JVM does a bunch under the hood, so leave some room for magic.
     private static final int ALLOWED_THREAD_OVERHEAD = 20;
