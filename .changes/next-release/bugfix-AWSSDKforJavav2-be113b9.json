@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "michaeldimchuk",
+    "description": "Fixed the AttributeMap#close method trying to close an ExecutorService instance instead of shutting it down, resulting in a deadlock starting with Java 21"
+}

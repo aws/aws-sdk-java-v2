@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.20.156-SNAPSHOT</version>
+        <version>2.21.15-SNAPSHOT</version>
     </parent>
     <artifactId>eventbridge</artifactId>
     <name>AWS Java SDK :: Services :: EventBridge</name>
@@ -56,7 +56,19 @@
             <artifactId>aws-json-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
         <!-- Test Dependencies -->
+        <!-- TODO(post-sra-identity-auth): auth-crt dependency can be removed as part of
+        cleanup after all services are on SRA -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>auth-crt</artifactId>
@@ -66,6 +78,12 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>route53</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws-crt</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>

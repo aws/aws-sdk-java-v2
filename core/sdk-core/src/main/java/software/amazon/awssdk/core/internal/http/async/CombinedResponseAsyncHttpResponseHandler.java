@@ -66,7 +66,7 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
         if (headersFuture != null) {        // Failure in marshalling calls this before prepare() so value is null
             headersFuture.completeExceptionally(error);
         }
-
+        
         successResponseHandler.onError(error);
         errorResponseHandler.onError(error);
     }

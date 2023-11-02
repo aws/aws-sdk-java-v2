@@ -1,0 +1,36 @@
+{
+    "version": "2.20.162",
+    "date": "2023-10-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Catalog Service",
+            "contributor": "",
+            "description": "This release adds support for Document type as an alternative for stringified JSON for StartChangeSet, DescribeChangeSet and DescribeEntity APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This release updates the max character limit of PreAuthenticationLoginBanner and PostAuthenticationLoginBanner to 4096 characters"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for Elastic Compute Cloud (EC2)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "After performing steps to repair the Active Directory configuration of a file system, use this action to initiate the process of attempting to recover to the file system."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "NullOption in FilterListConfiguration; Dataset schema/table max length increased; Support total placement for pivot table visual; Lenient mode relaxes the validation to create resources with definition; Data sources can be added to folders; Redshift data sources support IAM Role-based authentication"
+        }
+    ]
+}

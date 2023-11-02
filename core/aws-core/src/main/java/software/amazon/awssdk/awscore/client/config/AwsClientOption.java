@@ -21,15 +21,29 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOption;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.regions.Region;
 
 @SdkProtectedApi
 public final class AwsClientOption<T> extends ClientOption<T> {
     /**
+     * This option is deprecated in favor of {@link #CREDENTIALS_IDENTITY_PROVIDER}.
      * @see AwsClientBuilder#credentialsProvider(AwsCredentialsProvider)
      */
+    @Deprecated
+    // smithy codegen TODO: This could be removed when doing a minor version bump where we told customers we'll be breaking
+    //  protected APIs. Postpone this to when we do Smithy code generator migration, where we'll likely have to start
+    //  breaking a lot of protected things.
     public static final AwsClientOption<AwsCredentialsProvider> CREDENTIALS_PROVIDER =
             new AwsClientOption<>(AwsCredentialsProvider.class);
+
+    /**
+     * @see AwsClientBuilder#credentialsProvider(IdentityProvider)
+     */
+    public static final AwsClientOption<IdentityProvider<? extends AwsCredentialsIdentity>> CREDENTIALS_IDENTITY_PROVIDER =
+        new AwsClientOption<>(new UnsafeValueType(IdentityProvider.class));
 
     /**
      * AWS Region the client was configured with. Note that this is not always the signing region in the case of global
@@ -79,10 +93,22 @@ public final class AwsClientOption<T> extends ClientOption<T> {
 
     /**
      * Option to specific the {@link SdkTokenProvider} to use for bearer token authorization.
+     * This option is deprecated in favor or {@link #TOKEN_IDENTITY_PROVIDER}
      */
+    @Deprecated
     public static final AwsClientOption<SdkTokenProvider> TOKEN_PROVIDER = new AwsClientOption<>(SdkTokenProvider.class);
+
+    /**
+     * Option to specific the {@link SdkTokenProvider} to use for bearer token authorization.
+     */
+    public static final AwsClientOption<IdentityProvider<? extends TokenIdentity>> TOKEN_IDENTITY_PROVIDER =
+        new AwsClientOption<>(new UnsafeValueType(IdentityProvider.class));
 
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);
+    }
+
+    private AwsClientOption(UnsafeValueType valueType) {
+        super(valueType);
     }
 }

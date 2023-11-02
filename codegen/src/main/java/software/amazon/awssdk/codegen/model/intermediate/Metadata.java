@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.codegen.model.service.AuthType;
@@ -72,6 +73,8 @@ public class Metadata {
 
     private String endpointRulesPackageName;
 
+    private String authSchemePackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -106,6 +109,20 @@ public class Metadata {
 
     private String serviceId;
 
+    private List<AuthType> auth;
+
+    public List<AuthType> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<AuthType> auth) {
+        this.auth = auth;
+    }
+
+    public Metadata withAuth(List<AuthType> auth) {
+        this.auth = auth;
+        return this;
+    }
 
     public String getApiVersion() {
         return apiVersion;
@@ -721,6 +738,27 @@ public class Metadata {
 
     public String getFullInternalEndpointRulesPackageName() {
         return joinPackageNames(getFullEndpointRulesPackageName(), "internal");
+    }
+
+    public void setAuthSchemePackageName(String authSchemePackageName) {
+        this.authSchemePackageName = authSchemePackageName;
+    }
+
+    public Metadata withAuthSchemePackageName(String authSchemePackageName) {
+        setAuthSchemePackageName(authSchemePackageName);
+        return this;
+    }
+
+    public String getAuthSchemePackageName() {
+        return authSchemePackageName;
+    }
+
+    public String getFullAuthSchemePackageName() {
+        return joinPackageNames(rootPackageName, getAuthSchemePackageName());
+    }
+
+    public String getFullInternalAuthSchemePackageName() {
+        return joinPackageNames(getFullAuthSchemePackageName(), "internal");
     }
 
     public String getFullInternalPackageName() {

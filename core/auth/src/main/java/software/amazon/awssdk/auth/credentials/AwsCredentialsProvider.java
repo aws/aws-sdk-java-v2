@@ -15,7 +15,11 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 
 /**
  * Interface for loading {@link AwsCredentials} that are used for authentication.
@@ -27,7 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @FunctionalInterface
 @SdkPublicApi
-public interface AwsCredentialsProvider {
+public interface AwsCredentialsProvider extends IdentityProvider<AwsCredentialsIdentity> {
     /**
      * Returns {@link AwsCredentials} that can be used to authorize an AWS request. Each implementation of AWSCredentialsProvider
      * can choose its own strategy for loading credentials. For example, an implementation might load credentials from an existing
@@ -39,4 +43,14 @@ public interface AwsCredentialsProvider {
      * @return AwsCredentials which the caller can use to authorize an AWS request.
      */
     AwsCredentials resolveCredentials();
+
+    @Override
+    default Class<AwsCredentialsIdentity> identityType() {
+        return AwsCredentialsIdentity.class;
+    }
+
+    @Override
+    default CompletableFuture<AwsCredentialsIdentity> resolveIdentity(ResolveIdentityRequest request) {
+        return CompletableFuture.completedFuture(resolveCredentials());
+    }
 }
