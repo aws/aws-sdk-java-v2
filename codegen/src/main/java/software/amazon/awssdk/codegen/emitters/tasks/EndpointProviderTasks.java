@@ -118,10 +118,12 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
     }
 
     private boolean shouldGenerateClientEndpointTests() {
-        CustomizationConfig customizationConfig = generatorTaskParams.getModel().getCustomizationConfig();
-        boolean noTestCasesHaveOperationInputs = model.getEndpointTestSuiteModel().getTestCases().stream()
-                                                      .noneMatch(t -> t.getOperationInputs() != null);
-        return noTestCasesHaveOperationInputs && Boolean.TRUE.equals(customizationConfig.isGenerateEndpointClientTests());
+        boolean generateEndpointClientTests = generatorTaskParams.getModel()
+                                                                 .getCustomizationConfig()
+                                                                 .isGenerateEndpointClientTests();
+        boolean someTestCasesHaveOperationInputs = model.getEndpointTestSuiteModel().getTestCases().stream()
+                                                        .anyMatch(t -> t.getOperationInputs() != null);
+        return generateEndpointClientTests || someTestCasesHaveOperationInputs;
     }
 
     private boolean hasClientContextParams() {

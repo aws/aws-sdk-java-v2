@@ -21,7 +21,8 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.auth.spi.internal.signer.DefaultAsyncSignedRequest;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Represents a request with async payload that has been signed by {@link HttpSigner}.
@@ -29,19 +30,20 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface AsyncSignedRequest extends BaseSignedRequest<Publisher<ByteBuffer>> {
+public interface AsyncSignedRequest extends BaseSignedRequest<Publisher<ByteBuffer>>,
+                                            ToCopyableBuilder<AsyncSignedRequest.Builder, AsyncSignedRequest> {
 
     /**
      * Get a new builder for creating a {@link AsyncSignedRequest}.
      */
     static Builder builder() {
-        return new DefaultAsyncSignedRequest.BuilderImpl();
+        return DefaultAsyncSignedRequest.builder();
     }
 
     /**
      * A builder for a {@link AsyncSignedRequest}.
      */
     interface Builder extends BaseSignedRequest.Builder<Builder, Publisher<ByteBuffer>>,
-                              SdkBuilder<Builder, AsyncSignedRequest> {
+                              CopyableBuilder<AsyncSignedRequest.Builder, AsyncSignedRequest> {
     }
 }
