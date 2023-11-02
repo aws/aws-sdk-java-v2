@@ -99,15 +99,11 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final QueryServiceClientConfiguration serviceClientConfiguration;
-
     private final ScheduledExecutorService executorService;
 
-    protected DefaultQueryAsyncClient(QueryServiceClientConfiguration serviceClientConfiguration,
-                                      SdkClientConfiguration clientConfiguration) {
+    protected DefaultQueryAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
@@ -880,7 +876,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     @Override
     public final QueryServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new QueryServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override
@@ -917,13 +913,12 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         if (plugins.isEmpty()) {
             return clientConfiguration;
         }
-        QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
-            .builder(clientConfiguration.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        QueryServiceClientConfigurationBuilder serviceConfigBuilder = new QueryServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     @Override

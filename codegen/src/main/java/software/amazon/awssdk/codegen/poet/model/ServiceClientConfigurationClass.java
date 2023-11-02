@@ -20,7 +20,6 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
-import static software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils.Field;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
@@ -30,7 +29,7 @@ import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils.Field;
 
 public class ServiceClientConfigurationClass implements ClassSpec {
     private final ClassName defaultClientMetadataClassName;
@@ -58,16 +57,17 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                                         + "Implementation of {@link $T}",
                                                         AwsServiceClientConfiguration.class);
 
-        builder.addMethod(constructor());
+        builder.addMethod(constructor())
+               .addMethod(builderMethod());
+
         for (Field field : utils.serviceClientConfigurationFields()) {
-            addLocalFieldForDataIfNeeded(field, builder);
-            if (field.isLocalField()) {
-                builder.addMethod(getterForDataField(field));
+            if (!field.isInherited()) {
+                builder.addField(field.type(), field.name(), PRIVATE, FINAL);
+                builder.addMethod(field.localGetter());
             }
         }
 
-        return builder.addMethod(builderMethod())
-                      .addType(builderInterfaceSpec())
+        return builder.addType(builderInterfaceSpec())
                       .build();
     }
 
@@ -77,7 +77,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                                .addParameter(className().nestedClass("Builder"), "builder");
         builder.addStatement("super(builder)");
         for (Field field : utils.serviceClientConfigurationFields()) {
-            if (field.isLocalField()) {
+            if (!field.isInherited()) {
                 builder.addStatement("this.$L = builder.$L()", field.name(), field.name());
             }
         }
@@ -87,7 +87,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     private MethodSpec builderMethod() {
         return MethodSpec.methodBuilder("builder")
                          .addModifiers(PUBLIC, STATIC)
-                         .addStatement("return $T.builder()",
+                         .addStatement("return new $T()",
                                        utils.serviceClientConfigurationBuilderClassName())
                          .returns(className().nestedClass("Builder"))
                          .build();
@@ -96,96 +96,26 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     private TypeSpec builderInterfaceSpec() {
         TypeSpec.Builder builder = TypeSpec.interfaceBuilder("Builder")
                                            .addModifiers(PUBLIC)
-                                           .addSuperinterface(ClassName.get(AwsServiceClientConfiguration.class).nestedClass(
-                                               "Builder"))
+                                           .addSuperinterface(ClassName.get(AwsServiceClientConfiguration.class)
+                                                                       .nestedClass("Builder"))
                                            .addJavadoc("A builder for creating a {@link $T}", className());
         for (Field field : utils.serviceClientConfigurationFields()) {
-            builder.addMethod(baseSetterForField(field)
-                                  .addModifiers(ABSTRACT)
-                                  .build());
-            builder.addMethod(baseGetterForField(field)
-                                  .addModifiers(ABSTRACT)
-                                  .build());
+            MethodSpec.Builder setterMethod = field.setterSpec().toBuilder().addModifiers(ABSTRACT);
+            MethodSpec.Builder getterMethod = field.getterSpec().toBuilder().addModifiers(ABSTRACT);
+            if (field.isInherited()) {
+                setterMethod.addAnnotation(Override.class);
+                getterMethod.addAnnotation(Override.class);
+            }
+            builder.addMethod(setterMethod.build());
+            builder.addMethod(getterMethod.build());
+
         }
+
         builder.addMethod(MethodSpec.methodBuilder("build")
                                     .addAnnotation(Override.class)
                                     .addModifiers(PUBLIC, ABSTRACT)
                                     .returns(className())
                                     .build());
         return builder.build();
-    }
-
-    private void addLocalFieldForDataIfNeeded(Field field, TypeSpec.Builder builder) {
-        if (field.isLocalField()) {
-            builder.addField(field.type(), field.name(), PRIVATE, FINAL);
-        }
-    }
-
-    private MethodSpec.Builder baseSetterForField(Field field) {
-        MethodSpec fieldBuilderSetter = field.builderSetter();
-        if (fieldBuilderSetter != null) {
-            return fieldBuilderSetter.toBuilder()
-                                     .returns(className().nestedClass("Builder"));
-        }
-
-        MethodSpec.Builder builder = MethodSpec.methodBuilder(field.name())
-                                               .addModifiers(PUBLIC)
-                                               .addParameter(field.type(), field.name())
-                                               .addJavadoc("Sets the value for " + field.doc())
-                                               .returns(className().nestedClass("Builder"));
-        if (!field.isLocalField()) {
-            builder.addAnnotation(Override.class);
-        }
-        return builder;
-    }
-
-    private MethodSpec getterForDataField(Field field) {
-        return getterForField(field, "config", true);
-    }
-
-    private MethodSpec getterForField(Field field, String fieldName, boolean forDataGetter) {
-        MethodSpec fieldBuilderGetter = field.builderGetterImpl();
-        if (fieldBuilderGetter != null) {
-            return fieldBuilderGetter.toBuilder()
-                                     .returns(field.type())
-                                     .build();
-        }
-
-        MethodSpec.Builder builder = baseGetterForField(field);
-        if (!forDataGetter && field.isLocalField()) {
-            builder.addAnnotation(Override.class);
-        }
-        if (forDataGetter && field.isLocalField()) {
-            return builder.addStatement("return $L", field.name())
-                          .build();
-        }
-        if (field.optionClass() == null) {
-            return builder.addStatement("return $L", field.name())
-                          .build();
-        }
-        if (field.baseType() != null) {
-            return builder.addStatement("$T result = $L.option($T.$L)",
-                                        field.baseType(), fieldName, field.optionClass(), field.optionName())
-                          .beginControlFlow("if (result == null)")
-                          .addStatement("return null")
-                          .endControlFlow()
-                          .addStatement("return $T.isInstanceOf($T.class, result, $S + $T.class.getSimpleName())",
-                                        Validate.class, field.type(),
-                                        "Expected an instance of ", field.type())
-                          .build();
-        }
-        return builder.addStatement("return $L.option($T.$L)", fieldName, field.optionClass(), field.optionName())
-                      .build();
-    }
-
-    private MethodSpec.Builder baseGetterForField(Field field) {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder(field.name())
-                                               .addModifiers(PUBLIC)
-                                               .addJavadoc("Gets the value for " + field.doc())
-                                               .returns(field.type());
-        if (!field.isLocalField()) {
-            builder.addAnnotation(Override.class);
-        }
-        return builder;
     }
 }

@@ -26,20 +26,20 @@ public class TokenUtilsTest {
 
     @Test
     public void toSdkToken_null_returnsNull() {
-        assertThat(TokenUtils.toSdkToken(null)).isNull();
+        assertThat(software.amazon.awssdk.auth.credentials.TokenUtils.toSdkToken(null)).isNull();
     }
 
     @Test
     public void toSdkToken_SdkToken_returnsAsIs() {
         TokenIdentity input = TestBearerToken.create("t");
-        SdkToken output = TokenUtils.toSdkToken(input);
+        SdkToken output = software.amazon.awssdk.auth.credentials.TokenUtils.toSdkToken(input);
         assertThat(output).isSameAs(input);
     }
 
     @Test
     public void toSdkToken_TokenIdentity_returnsSdkToken() {
         TokenIdentity tokenIdentity = TokenIdentity.create("token");
-        SdkToken sdkToken = TokenUtils.toSdkToken(tokenIdentity);
+        SdkToken sdkToken = software.amazon.awssdk.auth.credentials.TokenUtils.toSdkToken(tokenIdentity);
         assertThat(sdkToken.token()).isEqualTo("token");
     }
 }

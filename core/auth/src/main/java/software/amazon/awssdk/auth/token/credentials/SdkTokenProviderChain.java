@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.token.credentials.internal.TokenUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
@@ -96,7 +95,8 @@ public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoClo
     @Override
     public SdkToken resolveToken() {
         if (reuseLastProviderEnabled && lastUsedProvider != null) {
-            return TokenUtils.toSdkToken(CompletableFutureUtils.joinLikeSync(lastUsedProvider.resolveIdentity()));
+            TokenIdentity tokenIdentity = CompletableFutureUtils.joinLikeSync(lastUsedProvider.resolveIdentity());
+            return software.amazon.awssdk.auth.credentials.TokenUtils.toSdkToken(tokenIdentity);
         }
 
         List<String> exceptionMessages = null;
@@ -107,7 +107,7 @@ public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoClo
                 log.debug(() -> "Loading token from " + provider);
 
                 lastUsedProvider = provider;
-                return TokenUtils.toSdkToken(token);
+                return software.amazon.awssdk.auth.credentials.TokenUtils.toSdkToken(token);
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
                 String message = provider + ": " + e.getMessage();

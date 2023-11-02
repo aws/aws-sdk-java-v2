@@ -51,14 +51,9 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration;
-
-    protected DefaultProtocolRestJsonWithCustomContentTypeClient(
-        ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration,
-        SdkClientConfiguration clientConfiguration) {
+    protected DefaultProtocolRestJsonWithCustomContentTypeClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -139,13 +134,13 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
         if (plugins.isEmpty()) {
             return clientConfiguration;
         }
-        ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder
-            .builder(clientConfiguration.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder serviceConfigBuilder = new ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder(
+            configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
@@ -156,7 +151,8 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
     @Override
     public final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder())
+            .build();
     }
 
     @Override

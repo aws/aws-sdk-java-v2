@@ -49,4 +49,8 @@
 
     <!-- Allow non-java.base usage in tests -->
     <suppress checks="software.amazon.awssdk.buildtools.checkstyle.NonJavaBaseModuleCheck" files=".*testutils.*"/>
+
+    <!-- Allow private field declaration before public, to have correct initialization order -->
+    <suppress checks="DeclarationOrder"
+              files=".*SdkAdvancedClientOption\.java$"/>
 </suppressions>

@@ -93,6 +93,13 @@ public final class SdkClientOption<T> extends ClientOption<T> {
             new SdkClientOption<>(ScheduledExecutorService.class);
 
     /**
+     * The internal SDK scheduled executor service that is set by the customer. This is likely only useful within configuration
+     * classes, and will be converted into a {@link #SCHEDULED_EXECUTOR_SERVICE} for the SDK's runtime.
+     */
+    public static final SdkClientOption<ScheduledExecutorService> CONFIGURED_SCHEDULED_EXECUTOR_SERVICE =
+        new SdkClientOption<>(ScheduledExecutorService.class);
+
+    /**
      * The asynchronous HTTP client implementation to make HTTP requests with.
      */
     public static final SdkClientOption<SdkAsyncHttpClient> ASYNC_HTTP_CLIENT =

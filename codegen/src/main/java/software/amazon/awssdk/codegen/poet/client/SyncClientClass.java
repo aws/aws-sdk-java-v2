@@ -119,8 +119,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addField(protocolMetadata())
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
     }
 
     @Override
@@ -172,7 +171,8 @@ public class SyncClientClass extends SyncClientInterface {
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
                          .returns(serviceClientConfigurationClassName)
-                         .addStatement("return this.serviceClientConfiguration")
+                         .addStatement("return new $T(this.clientConfiguration.toBuilder()).build()",
+                                       this.configurationUtils.serviceClientConfigurationBuilderClassName())
                          .build();
     }
 
@@ -185,11 +185,9 @@ public class SyncClientClass extends SyncClientInterface {
         MethodSpec.Builder builder
             = MethodSpec.constructorBuilder()
                         .addModifiers(PROTECTED)
-                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
-                        .addStatement("this.clientConfiguration = clientConfiguration")
-                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
+                        .addStatement("this.clientConfiguration = clientConfiguration");
 
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {

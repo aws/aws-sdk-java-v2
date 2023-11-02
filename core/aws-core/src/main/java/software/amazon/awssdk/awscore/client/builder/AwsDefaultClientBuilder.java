@@ -175,12 +175,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
                                                 this::resolveCredentialsIdentityProvider)
                             // CREDENTIALS_PROVIDER is also set, since older clients may be relying on it
-                            .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_PROVIDER, this::getCredentialsProvider)
+                            .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_PROVIDER, this::resolveCredentialsProvider)
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT, this::resolveEndpoint)
                             .lazyOption(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
                             .lazyOption(SdkClientOption.HTTP_CLIENT_CONFIG, this::resolveHttpClientConfig)
                             .applyMutation(this::configureRetryPolicy)
-                            .applyMutation(this::configureIdentityProviders)
+                            .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
                             .build();
     }
 
@@ -203,25 +203,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         return AttributeMap.empty();
     }
 
-    private void configureIdentityProviders(SdkClientConfiguration.Builder builder) {
-        IdentityProviders identityProviders = builder.option(SdkClientOption.IDENTITY_PROVIDERS);
-
-        builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, config -> {
-            IdentityProvider<? extends AwsCredentialsIdentity> identityProvider =
-                builder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
-
-            // Currently, it is not possible for identityProvider to be null as default provider is used while building the client
-            // if the clientConfig is null. However, we do want to support ability to unset an identity provider later.
-            // Moreover, putIdentityProvider will throw NPE on null, so adding the null check here. Also, validateClientOptions
-            // currently asserts it is not null, which will have to change when we allow unsetting default identity provider.
-            if (identityProvider == null) {
-                return identityProviders;
-            }
-
-            return identityProviders.toBuilder()
-                                    .putIdentityProvider(identityProvider)
-                                    .build();
-        });
+    private IdentityProviders resolveIdentityProviders(LazyValueSource config) {
+        // By default, all AWS clients get an identity provider for AWS credentials. Child classes may override this to specify
+        // AWS credentials and another identity type like Bearer credentials.
+        return IdentityProviders.builder()
+                                .putIdentityProvider(config.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                                .build();
     }
 
     private DefaultsMode resolveDefaultsMode(LazyValueSource config) {
@@ -344,7 +331,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                          .build();
     }
 
-    private AwsCredentialsProvider getCredentialsProvider(LazyValueSource config) {
+    private AwsCredentialsProvider resolveCredentialsProvider(LazyValueSource config) {
         return CredentialUtils.toCredentialsProvider(config.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER));
     }
 

@@ -18,7 +18,6 @@ package software.amazon.awssdk.awscore.internal.authcontext;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
-import software.amazon.awssdk.auth.token.credentials.internal.TokenUtils;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -78,7 +77,8 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
      */
     @Override
     public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
-        SdkToken token = TokenUtils.toSdkToken(resolveToken(defaultTokenProvider, metricCollector));
+        TokenIdentity tokenIdentity = resolveToken(defaultTokenProvider, metricCollector);
+        SdkToken token = software.amazon.awssdk.auth.credentials.TokenUtils.toSdkToken(tokenIdentity);
         executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, token);
     }
 

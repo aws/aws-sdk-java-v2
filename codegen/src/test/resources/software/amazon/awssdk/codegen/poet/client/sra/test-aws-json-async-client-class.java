@@ -129,15 +129,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final JsonServiceClientConfiguration serviceClientConfiguration;
-
     private final Executor executor;
 
-    protected DefaultJsonAsyncClient(JsonServiceClientConfiguration serviceClientConfiguration,
-                                     SdkClientConfiguration clientConfiguration) {
+    protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -1120,7 +1116,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     @Override
     public final JsonServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new JsonServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override
@@ -1162,13 +1158,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         if (plugins.isEmpty()) {
             return clientConfiguration;
         }
-        JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
-            .builder(clientConfiguration.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        JsonServiceClientConfigurationBuilder serviceConfigBuilder = new JsonServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
