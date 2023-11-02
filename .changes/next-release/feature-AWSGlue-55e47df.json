@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "This release introduces Google BigQuery Source and Target in AWS Glue CodeGenConfigurationNode."
+}
