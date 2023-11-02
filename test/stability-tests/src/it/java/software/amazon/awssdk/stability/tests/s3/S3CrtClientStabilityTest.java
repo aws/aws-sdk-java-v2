@@ -16,6 +16,8 @@
 package software.amazon.awssdk.stability.tests.s3;
 
 import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
@@ -47,6 +49,7 @@ public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
 
         // The underlying client has a thread per processor in its default configuration along with a DNS resolver thread.
         CRT_CLIENT_THREAD_COUNT = SystemInfo.getProcessorCount() + 1;
+
     }
 
     public S3CrtClientStabilityTest() {
@@ -57,6 +60,7 @@ public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
     public static void setup() {
         System.setProperty("aws.crt.debugnative", "true");
         s3ApacheClient.createBucket(b -> b.bucket(BUCKET_NAME));
+        futureThreadPool = Executors.newFixedThreadPool(CONCURRENCY);
     }
 
     @AfterAll
@@ -71,6 +75,12 @@ public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
         s3Client.close();
         s3ApacheClient.close();
         CrtResource.waitForNoResources();
+        futureThreadPool.shutdown();
+        try {
+            futureThreadPool.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+
+        }
     }
 
     @Override
