@@ -37,13 +37,16 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.mediastore.MediaStoreClient;
 import software.amazon.awssdk.services.mediastore.model.ContainerInUseException;
 import software.amazon.awssdk.services.mediastore.model.ContainerStatus;
 import software.amazon.awssdk.services.mediastore.model.DescribeContainerResponse;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
@@ -58,10 +61,19 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
     @BeforeAll
     public static void init() {
         credentialsProvider = getCredentialsProvider();
+        SdkHttpClient sdkHttpClient = ApacheHttpClient.builder().build();
         mediaStoreClient = MediaStoreClient.builder()
                                            .credentialsProvider(credentialsProvider)
-                                           .httpClient(ApacheHttpClient.builder().build())
+                                           .httpClient(sdkHttpClient)
                                            .build();
+        StsClient stsClient = StsClient.builder()
+                                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                       .region(Region.US_WEST_2)
+                                       .httpClient(sdkHttpClient)
+                                       .build();
+        String accountId = stsClient.getCallerIdentity().account();
+        String containerName = "do-not-delete-mediastoredata-tests-container-" + accountId;
+        uri = URI.create(createContainerIfNotExistAndGetEndpoint(containerName));
     }
 
     @AfterEach
