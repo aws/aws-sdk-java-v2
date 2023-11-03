@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Wireless",
+    "contributor": "",
+    "description": "Added LoRaWAN version 1.0.4 support"
+}
