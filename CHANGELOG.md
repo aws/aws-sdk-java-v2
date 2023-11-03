@@ -1,3 +1,29 @@
+# __2.21.15__ __2023-11-03__
+## __AWS Config__
+  - ### Features
+    - Updated ResourceType enum with new resource types onboarded by AWS Config in October 2023.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Added LoRaWAN version 1.0.4 support
+
+## __AWS Launch Wizard__
+  - ### Features
+    - AWS Launch Wizard is a service that helps reduce the time it takes to deploy applications to the cloud while providing a guided deployment experience.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed the AttributeMap#close method trying to close an ExecutorService instance instead of shutting it down, resulting in a deadlock starting with Java 21
+        - Contributed by: [@michaeldimchuk](https://github.com/michaeldimchuk)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat introduces Create Persistent Contact Association API, allowing customers to choose when to resume previous conversations from previous chats, eliminating the need to repeat themselves and allowing agents to provide personalized service with access to entire conversation history.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@michaeldimchuk](https://github.com/michaeldimchuk)
 # __2.21.14__ __2023-11-02__
 ## __AWS App Runner__
   - ### Features
@@ -1101,7 +1127,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -2842,7 +2868,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
