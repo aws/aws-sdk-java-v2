@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "bacek",
+    "description": "Add ability to override session duration in STS sessions with WebIdentity"
+}
