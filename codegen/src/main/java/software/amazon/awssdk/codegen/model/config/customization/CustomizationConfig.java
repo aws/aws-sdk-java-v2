@@ -259,6 +259,8 @@ public class CustomizationConfig {
 
     private List<String> interceptors = new ArrayList<>();
 
+    private List<String> sdkPlugins = new ArrayList<>();
+
     /**
      * Whether marshallers perform validations against members marked with RequiredTrait.
      */
@@ -698,7 +700,15 @@ public class CustomizationConfig {
     public void setInterceptors(List<String> interceptors) {
         this.interceptors = interceptors;
     }
-    
+
+    public List<String> getSdkPlugins() {
+        return sdkPlugins;
+    }
+
+    public void setSdkPlugins(List<String> sdkPlugins) {
+        this.sdkPlugins = sdkPlugins;
+    }
+
     public boolean isRequiredTraitValidationEnabled() {
         return requiredTraitValidationEnabled;
     }

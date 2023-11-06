@@ -113,10 +113,12 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> plugins = plugins();
-        if (plugins.isEmpty()) {
+        List<SdkPlugin> externalPlugins = plugins();
+        List<SdkPlugin> sdkPlugins = getSdkPlugins();
+        if (externalPlugins.isEmpty() && sdkPlugins.isEmpty()) {
             return config;
         }
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(sdkPlugins, externalPlugins);
         DatabaseServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = DatabaseServiceClientConfigurationBuilder
             .builder(config.toBuilder());
         serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
@@ -125,6 +127,11 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         }
         overrideConfiguration(serviceConfigBuilder.overrideConfiguration());
         return serviceConfigBuilder.buildSdkClientConfiguration();
+    }
+
+    protected List<SdkPlugin> getSdkPlugins() {
+        List<SdkPlugin> sdkPlugins = new ArrayList<>();
+        return sdkPlugins;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

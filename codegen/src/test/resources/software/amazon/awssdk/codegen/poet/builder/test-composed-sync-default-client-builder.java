@@ -132,10 +132,12 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> plugins = plugins();
-        if (plugins.isEmpty()) {
+        List<SdkPlugin> externalPlugins = plugins();
+        List<SdkPlugin> sdkPlugins = getSdkPlugins();
+        if (externalPlugins.isEmpty() && sdkPlugins.isEmpty()) {
             return config;
         }
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(sdkPlugins, externalPlugins);
         JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
             .builder(config.toBuilder());
         serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
@@ -144,6 +146,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         }
         overrideConfiguration(serviceConfigBuilder.overrideConfiguration());
         return serviceConfigBuilder.buildSdkClientConfiguration();
+    }
+
+    protected List<SdkPlugin> getSdkPlugins() {
+        List<SdkPlugin> sdkPlugins = new ArrayList<>();
+        return sdkPlugins;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
