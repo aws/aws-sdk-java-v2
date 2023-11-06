@@ -1,3 +1,44 @@
+# __2.21.16__ __2023-11-06__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports AWS Lambda compute.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release extends the GetReservationPurchaseRecommendation API to support recommendations for Amazon MemoryDB reservations.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Add partitional endpoint for iso-e.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added new API that allows Amazon Connect Outbound Campaigns to create contacts in Amazon Connect when ingesting your dial requests.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Update the input of CreateDBInstance and ModifyDBInstance to support setting CA Certificates. Update the output of DescribeDBInstance and DescribeDBEngineVersions to show current and supported CA certificates.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new US English voices - Danielle and Gregory. Danielle and Gregory are available as Neural voices only.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add partitional endpoints for iso-e and iso-f.
+
+## __AmazonMWAA__
+  - ### Features
+    - This release adds support for Apache Airflow version 2.7.2. This version release includes support for deferrable operators and triggers.
+
+## __s3__
+  - ### Features
+    - Move the service to the standardized AWS SDK architecture for identity and auth that was introduced in 2.21.0 release.
+
 # __2.21.15__ __2023-11-03__
 ## __AWS Config__
   - ### Features
@@ -2868,7 +2909,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
