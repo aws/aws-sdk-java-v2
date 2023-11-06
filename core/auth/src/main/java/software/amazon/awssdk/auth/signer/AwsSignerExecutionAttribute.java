@@ -18,11 +18,9 @@ package software.amazon.awssdk.auth.signer;
 import static software.amazon.awssdk.utils.CompletableFutureUtils.joinLikeSync;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
@@ -191,15 +189,7 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * {@code HttpSigner}.
      */
     @Deprecated
-    public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION =
-        ExecutionAttribute.derivedBuilder("PresignerExpiration",
-                                          Instant.class,
-                                          SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)
-                          .readMapping(AwsSignerExecutionAttribute::presignerExpirationReadMapping)
-                          .writeMapping(AwsSignerExecutionAttribute::presignerExpirationWriteMapping)
-                          .build();
-
-    private static Clock presignerExpirationClock = Clock.systemUTC();
+    public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION = new ExecutionAttribute("PresignerExpiration");
 
     private AwsSignerExecutionAttribute() {
     }
@@ -415,50 +405,6 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                         authScheme.signer(),
                                         authScheme.authSchemeOption()
                                                   .copy(o -> o.putSignerProperty(HttpSigner.SIGNING_CLOCK, clock)));
-    }
-
-    @SdkTestInternalApi
-    static void presignerExpirationClock(Clock clock) {
-        presignerExpirationClock = clock;
-    }
-
-    private static Instant presignerExpirationReadMapping(SelectedAuthScheme<?> authScheme) {
-        if (authScheme == null) {
-            return null;
-        }
-        Duration expirationDuration = authScheme.authSchemeOption().signerProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION);
-        if (expirationDuration == null) {
-            return null;
-        }
-
-        // This is kind of weird, since reading the value twice will give different values. That seems very unlikely to cause
-        // issues, though.
-        return presignerExpirationClock.instant().plus(expirationDuration);
-    }
-
-    private static <T extends Identity> SelectedAuthScheme<?> presignerExpirationWriteMapping(SelectedAuthScheme<T> authScheme,
-                                                                                              Instant expiration) {
-        Duration expirationDuration = expiration == null ? null
-                                                         : Duration.between(presignerExpirationClock.instant(), expiration);
-
-        if (authScheme == null) {
-            // This is an unusual use-case.
-            // Let's assume they're setting the expiration so that they can call the presigner directly. If that's true, then it
-            // doesn't really matter what we store other than the expiration.
-            return new SelectedAuthScheme<>(CompletableFuture.completedFuture(new UnsetIdentity()),
-                                            new UnsetHttpSigner(),
-                                            AuthSchemeOption.builder()
-                                                            .schemeId("unset")
-                                                            .putSignerProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION,
-                                                                               expirationDuration)
-                                                            .build());
-        }
-
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption()
-                                                  .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION,
-                                                                                 expirationDuration)));
     }
 
     private static class UnsetIdentity implements Identity {
