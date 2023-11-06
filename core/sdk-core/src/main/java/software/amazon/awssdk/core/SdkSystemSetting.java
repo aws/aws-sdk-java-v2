@@ -51,6 +51,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_WEB_IDENTITY_TOKEN_FILE("aws.webIdentityTokenFile", null),
 
     /**
+     * Configure the AWS session duration seconds.
+     */
+    AWS_SESSION_DURATION_SECONDS("aws.sessionDurationSeconds", null),
+
+    /**
      * Configure the AWS role arn.
      */
     AWS_ROLE_ARN("aws.roleArn", null),

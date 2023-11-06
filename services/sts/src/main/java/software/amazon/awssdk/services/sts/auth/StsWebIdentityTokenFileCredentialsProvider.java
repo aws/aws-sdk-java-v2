@@ -21,6 +21,7 @@ import static software.amazon.awssdk.utils.Validate.notNull;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -61,6 +62,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
 
     private final Path webIdentityTokenFile;
+    private final Duration roleSessionDuration;
     private final String roleArn;
     private final String roleSessionName;
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequestFromBuilder;
@@ -78,12 +80,17 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         String sessionName = builder.roleSessionName != null ? builder.roleSessionName :
                              SdkSystemSetting.AWS_ROLE_SESSION_NAME.getStringValue()
                                                                    .orElse("aws-sdk-java-" + System.currentTimeMillis());
+        Duration roleSessionDuration = builder.roleSessionDuration != null ? builder.roleSessionDuration
+                                                 : SdkSystemSetting.AWS_SESSION_DURATION_SECONDS.getIntegerValue()
+                                                                                                .map(v -> Duration.ofSeconds(v.longValue()))
+                                                                                                .orElse(null);
 
         WebIdentityTokenCredentialProperties credentialProperties =
             WebIdentityTokenCredentialProperties.builder()
                                                 .roleArn(roleArn)
                                                 .roleSessionName(builder.roleSessionName)
                                                 .webIdentityTokenFile(webIdentityTokenFile)
+                                                .roleSessionDuration(roleSessionDuration)
                                                 .build();
 
         this.assumeRoleWithWebIdentityRequest = builder.assumeRoleWithWebIdentityRequestSupplier != null
@@ -116,6 +123,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         this.credentialsProvider = credentialsProviderLocal;
 
         this.webIdentityTokenFile = builder.webIdentityTokenFile;
+        this.roleSessionDuration = builder.roleSessionDuration;
         this.roleArn = builder.roleArn;
         this.roleSessionName = builder.roleSessionName;
         this.assumeRoleWithWebIdentityRequestFromBuilder = builder.assumeRoleWithWebIdentityRequestSupplier;
@@ -154,6 +162,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         private String roleArn;
         private String roleSessionName;
         private Path webIdentityTokenFile;
+        private Duration roleSessionDuration;
         private Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequestSupplier;
         private StsClient stsClient;
 
@@ -166,6 +175,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
             this.roleArn = provider.roleArn;
             this.roleSessionName = provider.roleSessionName;
             this.webIdentityTokenFile = provider.webIdentityTokenFile;
+            this.roleSessionDuration = provider.roleSessionDuration;
             this.assumeRoleWithWebIdentityRequestSupplier = provider.assumeRoleWithWebIdentityRequestFromBuilder;
             this.stsClient = provider.stsClient;
         }
@@ -258,6 +268,23 @@ public final class StsWebIdentityTokenFileCredentialsProvider
             webIdentityTokenFile(webIdentityTokenFile);
         }
 
+        /**
+         * <p>
+         * Sets the session duration.
+         * By default this will be read from SdkSystemSetting.AWS_SESSION_DURATION_SECONDS.
+         * </p>
+         *
+         * @param roleSessionDurationSeconds role session duration in seconds
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder roleSessionDuration(Integer roleSessionDurationSeconds) {
+            this.roleSessionDuration = Duration.ofSeconds(roleSessionDurationSeconds);
+            return this;
+        }
+
+        public void setRoleSessionDuration(Integer roleSessionDurationSeconds) {
+            roleSessionDuration(roleSessionDurationSeconds);
+        }
 
         /**
          * Configure the {@link AssumeRoleWithWebIdentityRequest} that should be periodically sent to the STS service to update
