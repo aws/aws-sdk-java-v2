@@ -4,7 +4,7 @@
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-98-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-99-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -316,6 +316,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://www.dekies.de"><img src="https://avatars.githubusercontent.com/u/858827?v=4?s=100" width="100px;" alt="Dennis Kieselhorst"/><br /><sub><b>Dennis Kieselhorst</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=deki" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/psnilesh"><img src="https://avatars.githubusercontent.com/u/12656997?v=4?s=100" width="100px;" alt="Nilesh PS"/><br /><sub><b>Nilesh PS</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=psnilesh" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/swar8080"><img src="https://avatars.githubusercontent.com/u/17691679?v=4?s=100" width="100px;" alt="Steven Swartz"/><br /><sub><b>Steven Swartz</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=swar8080" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/michaeldimchuk"><img src="https://avatars.githubusercontent.com/u/22773297?v=4?s=100" width="100px;" alt="Michael Dimchuk"/><br /><sub><b>Michael Dimchuk</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=michaeldimchuk" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
