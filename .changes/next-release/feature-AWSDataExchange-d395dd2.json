@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Data Exchange",
-    "contributor": "",
-    "description": "Updated SendDataSetNotificationRequest Comment to be maximum length 4096."
-}
