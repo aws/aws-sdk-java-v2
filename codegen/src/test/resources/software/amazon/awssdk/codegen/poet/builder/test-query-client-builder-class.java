@@ -48,10 +48,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                  .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-                                  .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+                .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
+                .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
     }
 
     @Override
@@ -61,7 +61,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         endpointInterceptors.add(new QueryRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-            .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
+                .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -71,10 +71,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         if (identityProvider != null) {
             IdentityProviders identityProviders = config.option(SdkClientOption.IDENTITY_PROVIDERS);
             builder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders.toBuilder()
-                                                                                .putIdentityProvider(identityProvider).build());
+                    .putIdentityProvider(identityProvider).build());
         }
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.CLIENT_CONTEXT_PARAMS,
-                                                                                    clientContextParams.build());
+                clientContextParams.build());
         return builder.build();
     }
 
@@ -120,12 +120,14 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> plugins = plugins();
-        if (plugins.isEmpty()) {
+        List<SdkPlugin> externalPlugins = plugins();
+        List<SdkPlugin> sdkPlugins = getSdkPlugins();
+        if (externalPlugins.isEmpty() && sdkPlugins.isEmpty()) {
             return config;
         }
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(sdkPlugins, externalPlugins);
         QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
-            .builder(config.toBuilder());
+                .builder(config.toBuilder());
         serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
@@ -134,12 +136,17 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 
+    protected List<SdkPlugin> getSdkPlugins() {
+        List<SdkPlugin> sdkPlugins = new ArrayList<>();
+        return sdkPlugins;
+    }
+
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
-                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+                "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
-                         "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
+                "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                         "The 'tokenProvider' must be configured in the client builder.");
+                "The 'tokenProvider' must be configured in the client builder.");
     }
 }
