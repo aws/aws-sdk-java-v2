@@ -51,8 +51,7 @@ import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 /**
  * Verify that the "authtype" C2J trait for request type is honored for each requests.
  */
-// TODO(sra-identity-auth): These tests need the updates from https://github.com/aws/aws-sdk-java-v2/pull/4548/files (to the mock
-//  setup and verify) when switching to useSraAuth=true.
+// TODO(sra-identity-auth): Verify these tests pass for useSraAuht=true
 public class NoneAuthTypeRequestTest {
 
     private AwsCredentialsProvider credentialsProvider;
