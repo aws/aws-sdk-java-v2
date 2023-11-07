@@ -48,9 +48,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                                  .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
@@ -69,7 +69,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -131,7 +131,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         }
         List<SdkPlugin> plugins = CollectionUtils.mergeLists(sdkPlugins, externalPlugins);
         JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
-                .builder(config.toBuilder());
+            .builder(config.toBuilder());
         serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);

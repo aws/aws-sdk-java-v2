@@ -376,7 +376,7 @@ public class CustomizationConfig {
     }
 
     public void setCalculateCrc32FromCompressedData(
-            boolean calculateCrc32FromCompressedData) {
+        boolean calculateCrc32FromCompressedData) {
         this.calculateCrc32FromCompressedData = calculateCrc32FromCompressedData;
     }
 
@@ -575,9 +575,9 @@ public class CustomizationConfig {
     }
 
     public void setAllowEndpointOverrideForEndpointDiscoveryRequiredOperations(
-            boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations) {
+        boolean allowEndpointOverrideForEndpointDiscoveryRequiredOperations) {
         this.allowEndpointOverrideForEndpointDiscoveryRequiredOperations =
-                allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
+            allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
     }
 
     public Map<String, List<String>> getUseLegacyEventGenerationScheme() {
