@@ -17,10 +17,7 @@ package software.amazon.awssdk.services.mediastoredata;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,30 +26,21 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.services.mediastore.model.Container;
 import software.amazon.awssdk.services.mediastoredata.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.mediastoredata.model.ObjectNotFoundException;
 import software.amazon.awssdk.services.mediastoredata.model.PutObjectRequest;
-import software.amazon.awssdk.testutils.Waiter;
 
 /**
  * Integration test to verify Transfer-Encoding:chunked functionalities for all supported HTTP clients. Do not delete.
  */
 public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegrationTestBase {
-    protected static final String CONTAINER_NAME = "java-sdk-test-mediastoredata-transferencoding" + Instant.now().toEpochMilli();
     private static MediaStoreDataClient syncClientWithApache;
     private static MediaStoreDataClient syncClientWithUrlConnection;
     private static MediaStoreDataAsyncClient asyncClientWithNetty;
-    private static IdentityProvider<AwsCredentialsIdentity> credentialsProvider;
-    private static Container container;
     private static PutObjectRequest putObjectRequest;
     private static DeleteObjectRequest deleteObjectRequest;
 
     @BeforeAll
     public static void setup() {
-        uri = URI.create(createContainer(CONTAINER_NAME).endpoint());
         syncClientWithApache = MediaStoreDataClient.builder()
                                                    .endpointOverride(uri)
                                                    .credentialsProvider(credentialsProvider)
@@ -85,13 +73,8 @@ public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegr
     }
 
     @AfterAll
-    public static void tearDown() throws InterruptedException {
+    public static void tearDown() {
         syncClientWithApache.deleteObject(deleteObjectRequest);
-        Waiter.run(() -> syncClientWithApache.describeObject(r -> r.path("/foo")))
-              .untilException(ObjectNotFoundException.class)
-              .orFailAfter(Duration.ofMinutes(1));
-        Thread.sleep(1000);
-        mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
     }
 
     @Test
