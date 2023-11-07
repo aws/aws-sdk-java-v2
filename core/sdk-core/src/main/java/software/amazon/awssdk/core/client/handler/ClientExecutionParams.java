@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -52,6 +53,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private boolean hasInitialRequestEvent;
     private String hostPrefixExpression;
     private String operationName;
+    private SdkProtocolMetadata protocolMetadata;
     private URI discoveredEndpoint;
     private CredentialType credentialType;
     private MetricCollector metricCollector;
@@ -164,6 +166,18 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
      */
     public ClientExecutionParams<InputT, OutputT> withOperationName(String operationName) {
         this.operationName = operationName;
+        return this;
+    }
+
+    public SdkProtocolMetadata getProtocolMetadata() {
+        return protocolMetadata;
+    }
+
+    /**
+     * Sets the protocol metadata of the API.
+     */
+    public ClientExecutionParams<InputT, OutputT> withProtocolMetadata(SdkProtocolMetadata protocolMetadata) {
+        this.protocolMetadata = protocolMetadata;
         return this;
     }
 

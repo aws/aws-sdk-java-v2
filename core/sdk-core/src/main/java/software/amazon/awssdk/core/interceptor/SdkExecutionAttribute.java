@@ -19,6 +19,7 @@ import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
@@ -120,7 +121,7 @@ public class SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<ChecksumSpecs> RESOLVED_CHECKSUM_SPECS =
         ExecutionAttribute.mappedBuilder("ResolvedChecksumSpecs",
-                                         ChecksumSpecs.class,
+                                         () -> SdkInternalExecutionAttribute.INTERNAL_RESOLVED_CHECKSUM_SPECS,
                                          () -> SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)
                           .readMapping(SdkExecutionAttribute::signerChecksumReadMapping)
                           .writeMapping(SdkExecutionAttribute::signerChecksumWriteMapping)
@@ -138,13 +139,6 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
 
-    private static final ImmutableMap<Algorithm, ChecksumAlgorithm> CHECKSUM_ALGORITHM_MAP = ImmutableMap.of(
-        Algorithm.SHA256, SHA256,
-        Algorithm.SHA1, SHA1,
-        Algorithm.CRC32, CRC32,
-        Algorithm.CRC32C, CRC32C
-    );
-
     private static final ImmutableMap<ChecksumAlgorithm, Algorithm> ALGORITHM_MAP = ImmutableMap.of(
         SHA256, Algorithm.SHA256,
         SHA1, Algorithm.SHA1,
@@ -152,39 +146,45 @@ public class SdkExecutionAttribute {
         CRC32C, Algorithm.CRC32C
     );
 
+    private static final ImmutableMap<Algorithm, ChecksumAlgorithm> CHECKSUM_ALGORITHM_MAP = ImmutableMap.of(
+        Algorithm.SHA256, SHA256,
+        Algorithm.SHA1, SHA1,
+        Algorithm.CRC32, CRC32,
+        Algorithm.CRC32C, CRC32C
+    );
+
     protected SdkExecutionAttribute() {
     }
 
+    /**
+     * Map from the SelectedAuthScheme and the backing ChecksumSpecs value to a new value for ChecksumSpecs.
+     */
     private static <T extends Identity> ChecksumSpecs signerChecksumReadMapping(ChecksumSpecs checksumSpecs,
                                                                                 SelectedAuthScheme<T> authScheme) {
-        if (authScheme == null) {
-            return null;
+        if (checksumSpecs == null || authScheme == null) {
+            return checksumSpecs;
         }
 
         ChecksumAlgorithm checksumAlgorithm =
             authScheme.authSchemeOption().signerProperty(AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM);
 
-        if (checksumAlgorithm == null) {
-            return null;
-        }
-
-
         return ChecksumSpecs.builder()
-                            .algorithm(ALGORITHM_MAP.getOrDefault(checksumAlgorithm, null))
-                            .isRequestStreaming(checksumSpecs != null && checksumSpecs.isRequestStreaming())
-                            .isRequestChecksumRequired(checksumSpecs != null && checksumSpecs.isRequestChecksumRequired())
-                            .isValidationEnabled(checksumSpecs != null && checksumSpecs.isValidationEnabled())
-                            .headerName(checksumSpecs != null ? checksumSpecs.headerName() : null)
-                            .responseValidationAlgorithms(checksumSpecs != null ? checksumSpecs.responseValidationAlgorithms()
-                                                                                : null)
+                            .algorithm(checksumAlgorithm != null ? ALGORITHM_MAP.get(checksumAlgorithm) : null)
+                            .isRequestStreaming(checksumSpecs.isRequestStreaming())
+                            .isRequestChecksumRequired(checksumSpecs.isRequestChecksumRequired())
+                            .isValidationEnabled(checksumSpecs.isValidationEnabled())
+                            .headerName(checksumAlgorithm != null ? checksumHeaderName(checksumAlgorithm) : null)
+                            .responseValidationAlgorithms(checksumSpecs.responseValidationAlgorithms())
                             .build();
     }
 
+    /**
+     * Map from ChecksumSpecs to a SelectedAuthScheme with the CHECKSUM_ALGORITHM signer property set.
+     */
     private static <T extends Identity> SelectedAuthScheme<?> signerChecksumWriteMapping(SelectedAuthScheme<T> authScheme,
                                                                                          ChecksumSpecs checksumSpecs) {
-        ChecksumAlgorithm checksumAlgorithm =
-            checksumSpecs == null ? null
-                                  : CHECKSUM_ALGORITHM_MAP.getOrDefault(checksumSpecs.algorithm(), null);
+        ChecksumAlgorithm checksumAlgorithm = checksumSpecs == null ? null :
+                                              CHECKSUM_ALGORITHM_MAP.get(checksumSpecs.algorithm());
 
         if (authScheme == null) {
             // This is an unusual use-case.

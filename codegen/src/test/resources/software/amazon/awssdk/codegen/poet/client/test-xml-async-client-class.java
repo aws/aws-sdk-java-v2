@@ -19,6 +19,8 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransf
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
@@ -99,6 +101,9 @@ import software.amazon.awssdk.utils.Pair;
 final class DefaultXmlAsyncClient implements XmlAsyncClient {
     private static final Logger log = LoggerFactory.getLogger(DefaultXmlAsyncClient.class);
 
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.REST_XML).build();
+
     private final AsyncClientHandler clientHandler;
 
     private final AwsXmlProtocolFactory protocolFactory;
@@ -161,6 +166,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                              .withOperationName("APostOperation").withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).hostPrefixExpression(resolvedHostExpression)
                              .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationRequest));
@@ -219,6 +225,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
                              .withOperationName("APostOperationWithOutput").withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                              .withInput(aPostOperationWithOutputRequest));
@@ -274,6 +281,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<BearerAuthOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
                              .withOperationName("BearerAuthOperation").withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).credentialType(CredentialType.TOKEN)
                              .withMetricCollector(apiCallMetricCollector).withInput(bearerAuthOperationRequest));
@@ -345,6 +353,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<Void> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationRequest, EventStreamOperationResponse>()
                     .withOperationName("EventStreamOperation").withRequestConfiguration(clientConfiguration)
+                    .withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationRequest),
@@ -408,6 +417,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
                              .withOperationName("GetOperationWithChecksum")
                              .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
@@ -469,6 +479,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
                              .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
@@ -525,6 +536,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
                              .withOperationName("OperationWithNoneAuthType").withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
@@ -582,6 +594,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
                              .withOperationName("OperationWithRequestCompression")
                              .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
@@ -666,6 +679,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
                     .withOperationName("PutOperationWithChecksum")
+                    .withProtocolMetadata(protocolMetadata)
                     .withMarshaller(
                         AsyncStreamingRequestMarshaller.builder()
                                                        .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
@@ -750,6 +764,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                              .withOperationName("StreamingInputOperation")
                              .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(
                                  AsyncStreamingRequestMarshaller.builder()
                                                                 .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
@@ -817,7 +832,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation")
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)

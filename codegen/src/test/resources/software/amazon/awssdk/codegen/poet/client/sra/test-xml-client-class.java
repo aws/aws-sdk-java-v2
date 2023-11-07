@@ -6,6 +6,8 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
@@ -76,6 +78,9 @@ import software.amazon.awssdk.utils.Logger;
 final class DefaultXmlClient implements XmlClient {
     private static final Logger log = Logger.loggerFor(DefaultXmlClient.class);
 
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.REST_XML).build();
+
     private final SyncClientHandler clientHandler;
 
     private final AwsXmlProtocolFactory protocolFactory;
@@ -130,10 +135,10 @@ final class DefaultXmlClient implements XmlClient {
             String resolvedHostExpression = "foo-";
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withOperationName("APostOperation").withCombinedResponseHandler(responseHandler)
-                                             .withMetricCollector(apiCallMetricCollector).hostPrefixExpression(resolvedHostExpression)
-                                             .withRequestConfiguration(clientConfiguration).withInput(aPostOperationRequest)
-                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
+                                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                                             .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
+                                             .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -179,9 +184,9 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput").withCombinedResponseHandler(responseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withRequestConfiguration(clientConfiguration)
-                             .withInput(aPostOperationWithOutputRequest)
+                             .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -222,9 +227,10 @@ final class DefaultXmlClient implements XmlClient {
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
 
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                                             .withOperationName("BearerAuthOperation").withCombinedResponseHandler(responseHandler)
-                                             .withMetricCollector(apiCallMetricCollector).credentialType(CredentialType.TOKEN)
-                                             .withRequestConfiguration(clientConfiguration).withInput(bearerAuthOperationRequest)
+                                             .withOperationName("BearerAuthOperation").withProtocolMetadata(protocolMetadata)
+                                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                                             .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
+                                             .withInput(bearerAuthOperationRequest)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -268,6 +274,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
                              .withOperationName("GetOperationWithChecksum")
+                             .withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
@@ -320,6 +327,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
+                             .withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
@@ -368,9 +376,9 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType").withCombinedResponseHandler(responseHandler)
-                             .withMetricCollector(apiCallMetricCollector).withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithNoneAuthTypeRequest)
+                             .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -414,6 +422,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
                              .withOperationName("OperationWithRequestCompression")
+                             .withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
@@ -490,6 +499,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
                              .withOperationName("PutOperationWithChecksum")
+                             .withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
@@ -558,6 +568,7 @@ final class DefaultXmlClient implements XmlClient {
             return clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                              .withOperationName("StreamingInputOperation")
+                             .withProtocolMetadata(protocolMetadata)
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
@@ -616,9 +627,10 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation").withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
-                    .withInput(streamingOutputOperationRequest).withMetricCollector(apiCallMetricCollector)
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));

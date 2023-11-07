@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
 
 import java.security.MessageDigest;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.DigestAlgorithm;
 
 /**
  * Implementation of {@link SdkChecksum} to calculate an Sha-1 checksum.
@@ -57,11 +58,7 @@ public class Sha1Checksum implements SdkChecksum {
     }
 
     private MessageDigest getDigest() {
-        try {
-            return MessageDigest.getInstance("SHA-1");
-        } catch (Exception e) {
-            throw new IllegalStateException("Unexpected error creating SHA-1 checksum", e);
-        }
+        return DigestAlgorithm.SHA1.getDigest();
     }
 
     @Override

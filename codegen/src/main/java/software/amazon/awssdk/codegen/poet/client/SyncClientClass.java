@@ -40,6 +40,8 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -114,6 +116,7 @@ public class SyncClientClass extends SyncClientInterface {
     @Override
     protected void addFields(TypeSpec.Builder type) {
         type.addField(logger())
+            .addField(protocolMetadata())
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
@@ -144,6 +147,13 @@ public class SyncClientClass extends SyncClientInterface {
     private FieldSpec logger() {
         return FieldSpec.builder(Logger.class, "log", PRIVATE, STATIC, FINAL)
                         .initializer("$T.loggerFor($T.class)", Logger.class, className)
+                        .build();
+    }
+
+    private FieldSpec protocolMetadata() {
+        return FieldSpec.builder(AwsProtocolMetadata.class, "protocolMetadata", PRIVATE, STATIC, FINAL)
+                        .initializer("$T.builder().serviceProtocol($T.$L).build()",
+                                     AwsProtocolMetadata.class, AwsServiceProtocol.class, model.getMetadata().getProtocol())
                         .build();
     }
 

@@ -28,6 +28,10 @@ public final class DefaultSignedRequest
         super(builder);
     }
 
+    public static BuilderImpl builder() {
+        return new BuilderImpl();
+    }
+
     @Override
     public String toString() {
         return ToString.builder("SyncSignedRequest")
@@ -35,10 +39,18 @@ public final class DefaultSignedRequest
                        .build();
     }
 
+    @Override
+    public SignedRequest.Builder toBuilder() {
+        return SignedRequest.builder().request(request).payload(payload);
+    }
+
     @SdkInternalApi
     public static final class BuilderImpl
         extends DefaultBaseSignedRequest.BuilderImpl<SignedRequest.Builder, ContentStreamProvider>
         implements SignedRequest.Builder {
+
+        private BuilderImpl() {
+        }
 
         @Override
         public SignedRequest build() {

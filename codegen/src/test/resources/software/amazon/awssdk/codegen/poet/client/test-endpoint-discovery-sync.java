@@ -10,6 +10,8 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
@@ -56,6 +58,9 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestClient {
     private static final Logger log = Logger.loggerFor(DefaultEndpointDiscoveryTestClient.class);
+
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.AWS_JSON).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -115,9 +120,10 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "DescribeEndpoints");
 
             return clientHandler.execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
-                                             .withOperationName("DescribeEndpoints").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
-                                             .withInput(describeEndpointsRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withOperationName("DescribeEndpoints").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(describeEndpointsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -183,10 +189,10 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
             return clientHandler
                 .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
-                             .withOperationName("TestDiscoveryIdentifiersRequired").withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                             .withRequestConfiguration(clientConfiguration).withInput(testDiscoveryIdentifiersRequiredRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withOperationName("TestDiscoveryIdentifiersRequired").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .discoveredEndpoint(cachedEndpoint).withRequestConfiguration(clientConfiguration)
+                             .withInput(testDiscoveryIdentifiersRequiredRequest).withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -242,10 +248,10 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryOptional");
 
             return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
-                                             .withOperationName("TestDiscoveryOptional").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                                             .withRequestConfiguration(clientConfiguration).withInput(testDiscoveryOptionalRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withOperationName("TestDiscoveryOptional").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .discoveredEndpoint(cachedEndpoint).withRequestConfiguration(clientConfiguration)
+                                             .withInput(testDiscoveryOptionalRequest).withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -309,10 +315,10 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryRequired");
 
             return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
-                                             .withOperationName("TestDiscoveryRequired").withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).discoveredEndpoint(cachedEndpoint)
-                                             .withRequestConfiguration(clientConfiguration).withInput(testDiscoveryRequiredRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withOperationName("TestDiscoveryRequired").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .discoveredEndpoint(cachedEndpoint).withRequestConfiguration(clientConfiguration)
+                                             .withInput(testDiscoveryRequiredRequest).withMetricCollector(apiCallMetricCollector)
                                              .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));

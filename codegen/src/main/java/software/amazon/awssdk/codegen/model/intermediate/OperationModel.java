@@ -34,6 +34,8 @@ public class OperationModel extends DocumentationModel {
 
     private String operationName;
 
+    private String serviceProtocol;
+
     private boolean deprecated;
 
     private String deprecatedMessage;
@@ -91,6 +93,14 @@ public class OperationModel extends DocumentationModel {
 
     public String getMethodName() {
         return Utils.unCapitalize(operationName);
+    }
+
+    public String getServiceProtocol() {
+        return serviceProtocol;
+    }
+
+    public void setServiceProtocol(String serviceProtocol) {
+        this.serviceProtocol = serviceProtocol;
     }
 
     public boolean isDeprecated() {

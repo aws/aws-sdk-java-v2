@@ -56,6 +56,8 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -142,6 +144,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                .initializer("$T.getLogger($T.class)", LoggerFactory.class,
                                             className)
                                .build())
+            .addField(protocolMetadata())
             .addField(AsyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
@@ -204,6 +207,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(traditionalMethod(opModel));
         return methods.stream();
+    }
+
+    private FieldSpec protocolMetadata() {
+        return FieldSpec.builder(AwsProtocolMetadata.class, "protocolMetadata", PRIVATE, STATIC, FINAL)
+                        .initializer("$T.builder().serviceProtocol($T.$L).build()",
+                                     AwsProtocolMetadata.class, AwsServiceProtocol.class, model.getMetadata().getProtocol())
+                        .build();
     }
 
     private MethodSpec constructor(TypeSpec.Builder classBuilder) {

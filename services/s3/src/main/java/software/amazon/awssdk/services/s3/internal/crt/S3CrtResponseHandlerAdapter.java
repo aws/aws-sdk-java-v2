@@ -95,10 +95,8 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     @Override
     public void onFinished(S3FinishedResponseContext context) {
         int crtCode = context.getErrorCode();
-        int responseStatus = context.getResponseStatus();
-        byte[] errorPayload = context.getErrorPayload();
         if (crtCode != CRT.AWS_CRT_SUCCESS) {
-            handleError(crtCode, responseStatus, errorPayload);
+            handleError(context);
         } else {
             onSuccessfulResponseComplete();
         }
@@ -127,13 +125,19 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         failResponseHandlerAndFuture(sdkClientException);
     }
 
-    private void handleError(int crtCode, int responseStatus, byte[] errorPayload) {
+    private void handleError(S3FinishedResponseContext context) {
+        int crtCode = context.getErrorCode();
+        int responseStatus = context.getResponseStatus();
+        byte[] errorPayload = context.getErrorPayload();
+
         if (isErrorResponse(responseStatus) && errorPayload != null) {
             onErrorResponseComplete(errorPayload);
         } else {
+            Throwable cause = context.getCause();
+
             SdkClientException sdkClientException =
                 SdkClientException.create("Failed to send the request: " +
-                                          CRT.awsErrorString(crtCode));
+                                          CRT.awsErrorString(crtCode), cause);
             failResponseHandlerAndFuture(sdkClientException);
         }
     }
