@@ -53,10 +53,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                                  .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                  .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
+                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
     }
 
     @Override
@@ -139,7 +139,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         }
         List<SdkPlugin> plugins = CollectionUtils.mergeLists(sdkPlugins, externalPlugins);
         JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
-            .builder(config.toBuilder());
+                .builder(config.toBuilder());
         serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
@@ -155,6 +155,6 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                         "The 'tokenProvider' must be configured in the client builder.");
+                "The 'tokenProvider' must be configured in the client builder.");
     }
 }
