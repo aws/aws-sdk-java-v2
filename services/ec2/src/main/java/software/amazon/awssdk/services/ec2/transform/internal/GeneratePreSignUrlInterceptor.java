@@ -28,6 +28,7 @@ import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -146,13 +147,13 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
     // TODO(sra-identity-and-auth): add test case for SELECTED_AUTH_SCHEME case
     private AwsCredentials resolveCredentials(ExecutionAttributes attributes) {
         return attributes.getOptionalAttribute(SELECTED_AUTH_SCHEME)
-                         .map(selectedAuthScheme -> selectedAuthScheme.identity())
-                         .map(identityFuture -> CompletableFutureUtils.joinLikeSync(identityFuture))
+                         .map(SelectedAuthScheme::identity)
+                         .map(CompletableFutureUtils::joinLikeSync)
                          .filter(identity -> identity instanceof AwsCredentialsIdentity)
                          .map(identity -> {
                              AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
                              return CredentialUtils.toCredentials(awsCredentialsIdentity);
-                         }).orElse(attributes.getAttribute(AWS_CREDENTIALS));
+                         }).orElseGet(() -> attributes.getAttribute(AWS_CREDENTIALS));
     }
 
     /**
