@@ -42,8 +42,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
@@ -61,7 +61,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-            .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+                .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -95,12 +95,14 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> plugins = plugins();
-        if (plugins.isEmpty()) {
+        List<SdkPlugin> externalPlugins = plugins();
+        List<SdkPlugin> sdkPlugins = getSdkPlugins();
+        if (externalPlugins.isEmpty() && sdkPlugins.isEmpty()) {
             return config;
         }
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(sdkPlugins, externalPlugins);
         JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
-            .builder(config.toBuilder());
+                .builder(config.toBuilder());
         serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
@@ -109,8 +111,13 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 
+    protected List<SdkPlugin> getSdkPlugins() {
+        List<SdkPlugin> sdkPlugins = new ArrayList<>();
+        return sdkPlugins;
+    }
+
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
-                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+                "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
     }
 }

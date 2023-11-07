@@ -12,7 +12,7 @@ it enables you to easily work with [Amazon Web Services][aws] but also includes 
 non-blocking IO and pluggable HTTP implementation to further customize your applications. You can
 get started in minutes using ***Maven*** or any build system that supports MavenCentral as an
 artifact source.
-This is a sample change. 
+
 * [SDK Homepage][sdk-website]
 * [1.11 to 2.0 Changelog](docs/LaunchChangelog.md)
 * [Best Practices](docs/BestPractices.md)

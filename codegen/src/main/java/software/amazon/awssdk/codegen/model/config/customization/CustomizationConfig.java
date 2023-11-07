@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
@@ -96,7 +97,7 @@ public class CustomizationConfig {
     /**
      * Fully qualified name of the class that contains the custom http config. The class should expose a public static method
      * with name "defaultHttpConfig" that returns an {@link AttributeMap} containing the desired http config defaults.
-     *
+     * <p>
      * See SWF customization.config for an example.
      */
     private String serviceSpecificHttpConfig;
@@ -208,7 +209,7 @@ public class CustomizationConfig {
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private String userAgent;
-    
+
     private RetryMode defaultRetryMode;
 
     /**
@@ -258,6 +259,8 @@ public class CustomizationConfig {
     private boolean useGlobalEndpoint;
 
     private List<String> interceptors = new ArrayList<>();
+
+    private List<String> sdkPlugins = new ArrayList<>();
 
     /**
      * Whether marshallers perform validations against members marked with RequiredTrait.
@@ -698,7 +701,15 @@ public class CustomizationConfig {
     public void setInterceptors(List<String> interceptors) {
         this.interceptors = interceptors;
     }
-    
+
+    public List<String> getSdkPlugins() {
+        return sdkPlugins;
+    }
+
+    public void setSdkPlugins(List<String> sdkPlugins) {
+        this.sdkPlugins = sdkPlugins;
+    }
+
     public boolean isRequiredTraitValidationEnabled() {
         return requiredTraitValidationEnabled;
     }
