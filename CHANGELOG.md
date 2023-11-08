@@ -1,3 +1,20 @@
+# __2.21.17__ __2023-11-07__
+## __AWS Data Exchange__
+  - ### Features
+    - Updated SendDataSetNotificationRequest Comment to be maximum length 4096.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Added support for pre and post scripts in Amazon Data Lifecycle Manager EBS snapshot lifecycle policies.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This Amazon RDS release adds support for the multi-tenant configuration. In this configuration, an RDS DB instance can contain multiple tenant databases. In RDS for Oracle, a tenant database is a pluggable database (PDB).
+
 # __2.21.16__ __2023-11-06__
 ## __AWS CodeBuild__
   - ### Features
