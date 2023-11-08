@@ -83,7 +83,6 @@
     <inspection_tool class="ConfusingElse" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="reportWhenNoStatementFollow" value="true" />
     </inspection_tool>
-    <inspection_tool class="ConfusingMainMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ConfusingOctalEscape" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ConstantAssertCondition" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ConstantMathCall" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -132,6 +131,9 @@
     <inspection_tool class="ExtendsThrowable" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ExtendsUtilityClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ExternalizableWithSerializationMethods" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="ExtractMethodRecommender" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="minLength" value="633" />
+    </inspection_tool>
     <inspection_tool class="FieldAccessedSynchronizedAndUnsynchronized" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="countGettersAndSetters" value="false" />
     </inspection_tool>
@@ -249,7 +251,6 @@
       <option name="superClassString" value="java.awt.Component" />
     </inspection_tool>
     <inspection_tool class="NonSerializableObjectPassedToObjectStream" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="NonSerializableWithSerialVersionUIDField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonSerializableWithSerializationMethods" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonShortCircuitBoolean" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonStaticFinalLogger" enabled="true" level="WARNING" enabled_by_default="true">
@@ -306,7 +307,6 @@
       <option name="ignoreCloneable" value="false" />
     </inspection_tool>
     <inspection_tool class="RedundantLambdaParameterType" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="RedundantMethodOverride" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ReplaceAssignmentWithOperatorAssignment" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreLazyOperators" value="true" />
       <option name="ignoreObscureOperators" value="false" />
@@ -317,7 +317,6 @@
     <inspection_tool class="SameParameterValue" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SameReturnValue" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SerialPersistentFieldsWithWrongSignature" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="SerialVersionUIDNotStaticFinal" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SerializableHasSerialVersionUIDField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SerializableHasSerializationMethods" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreAnonymousInnerClasses" value="false" />
@@ -340,7 +339,6 @@
     <inspection_tool class="SimplifiableEqualsExpression" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SimplifyForEach" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="SingleStatementInBlock" enabled="false" level="INFORMATION" enabled_by_default="false" />
-    <inspection_tool class="SizeReplaceableByIsEmpty" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SleepWhileHoldingLock" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SocketResource" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="insideTryAllowed" value="false" />
@@ -358,14 +356,12 @@
     <inspection_tool class="StringConcatenationInFormatCall" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StringConcatenationInMessageFormatCall" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StringConcatenationMissingWhitespace" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
-    <inspection_tool class="StringEqualsEmptyString" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StringReplaceableByStringBuffer" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="onlyWarnOnLoop" value="true" />
     </inspection_tool>
     <inspection_tool class="SubtractionInCompareTo" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SuspiciousArrayCast" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SuspiciousLiteralUnderscore" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="SwitchStatementWithConfusingDeclaration" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SwitchStatementsWithoutDefault" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_ignoreFullyCoveredEnums" value="true" />
     </inspection_tool>
@@ -394,7 +390,6 @@
     <inspection_tool class="ThrowCaughtLocally" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreRethrownExceptions" value="false" />
     </inspection_tool>
-    <inspection_tool class="ThrowablePrintStackTrace" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThrowsRuntimeException" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TooBroadScope" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="m_allowConstructorAsInitializer" value="false" />
@@ -402,7 +397,6 @@
     </inspection_tool>
     <inspection_tool class="TransientFieldInNonSerializableClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TransientFieldNotInitialized" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="TrivialStringConcatenation" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TypeMayBeWeakened" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="useRighthandTypeAsWeakestTypeInAssignments" value="true" />
       <option name="useParameterizedTypeForCollectionMethods" value="true" />
@@ -448,7 +442,7 @@
     <inspection_tool class="WaitNotifyNotInSynchronizedContext" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="WaitOrAwaitWithoutTimeout" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="WaitWithoutCorrespondingNotify" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="unused" enabled="true" level="WARNING" enabled_by_default="true" field="packageLocal" method="packageLocal" ignoreAccessors="true" checkParameterExcludingHierarchy="false" isSelected="false">
+    <inspection_tool class="unused" enabled="true" level="WARNING" enabled_by_default="true" field="packageLocal" method="packageLocal" ignoreAccessors="true" checkParameterExcludingHierarchy="false">
       <option name="LOCAL_VARIABLE" value="true" />
       <option name="FIELD" value="true" />
       <option name="METHOD" value="true" />

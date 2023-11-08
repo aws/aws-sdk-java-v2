@@ -17,17 +17,17 @@ package software.amazon.awssdk.http.crt.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
-import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
-public final class CrtRequestContext {
-    private final HttpExecuteRequest request;
+public final class CrtAsyncRequestContext {
+    private final AsyncExecuteRequest request;
     private final long readBufferSize;
     private final HttpClientConnectionManager crtConnPool;
     private final MetricCollector metricCollector;
 
-    private CrtRequestContext(Builder builder) {
+    private CrtAsyncRequestContext(Builder builder) {
         this.request = builder.request;
         this.readBufferSize = builder.readBufferSize;
         this.crtConnPool = builder.crtConnPool;
@@ -38,7 +38,7 @@ public final class CrtRequestContext {
         return new Builder();
     }
 
-    public HttpExecuteRequest sdkRequest() {
+    public AsyncExecuteRequest sdkRequest() {
         return request;
     }
 
@@ -55,14 +55,14 @@ public final class CrtRequestContext {
     }
 
     public static final class Builder {
-        private HttpExecuteRequest request;
+        private AsyncExecuteRequest request;
         private long readBufferSize;
         private HttpClientConnectionManager crtConnPool;
 
         private Builder() {
         }
 
-        public Builder request(HttpExecuteRequest request) {
+        public Builder request(AsyncExecuteRequest request) {
             this.request = request;
             return this;
         }
@@ -77,8 +77,8 @@ public final class CrtRequestContext {
             return this;
         }
 
-        public CrtRequestContext build() {
-            return new CrtRequestContext(this);
+        public CrtAsyncRequestContext build() {
+            return new CrtAsyncRequestContext(this);
         }
     }
 }

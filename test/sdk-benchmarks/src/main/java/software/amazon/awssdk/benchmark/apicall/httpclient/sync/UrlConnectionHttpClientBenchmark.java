@@ -43,6 +43,7 @@ import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmar
 import software.amazon.awssdk.benchmark.utils.MockServer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 
 /**
@@ -68,6 +69,7 @@ public class UrlConnectionHttpClientBenchmark implements SdkHttpClientBenchmark 
                                                .buildWithDefaults(trustAllTlsAttributeMapBuilder().build());
         client = ProtocolRestJsonClient.builder()
                                        .endpointOverride(mockServer.getHttpsUri())
+                                       .region(Region.US_EAST_1)
                                        .httpClient(sdkHttpClient)
                                        .build();
         client.allTypes();
