@@ -20,7 +20,6 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.awaitCountdo
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.countDownUponCompletion;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
 
-import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -40,14 +39,13 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.profile.StackProfiler;
-import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockServer;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 
@@ -59,7 +57,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
+public class CrtHttpClientBenchmark implements SdkHttpClientBenchmark {
 
     private MockServer mockServer;
     private SdkHttpClient sdkHttpClient;
@@ -70,12 +68,12 @@ public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
     public void setup() throws Exception {
         mockServer = new MockServer();
         mockServer.start();
-        sdkHttpClient = ApacheHttpClient.builder()
+        sdkHttpClient = AwsCrtHttpClient.builder()
                                         .buildWithDefaults(trustAllTlsAttributeMapBuilder().build());
         client = ProtocolRestJsonClient.builder()
                                        .endpointOverride(mockServer.getHttpsUri())
-                                       .httpClient(sdkHttpClient)
                                        .region(Region.US_EAST_1)
+                                       .httpClient(sdkHttpClient)
                                        .build();
         executorService = Executors.newFixedThreadPool(CONCURRENT_CALLS);
 
@@ -112,9 +110,9 @@ public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
     public static void main(String... args) throws Exception {
 
         Options opt = new OptionsBuilder()
-            .include(ApacheHttpClientBenchmark.class.getSimpleName() + ".concurrentApiCall")
+            .include(CrtHttpClientBenchmark.class.getSimpleName() + ".concurrentApiCall")
             .addProfiler(StackProfiler.class)
             .build();
-        Collection<RunResult> run = new Runner(opt).run();
+        new Runner(opt).run();
     }
 }

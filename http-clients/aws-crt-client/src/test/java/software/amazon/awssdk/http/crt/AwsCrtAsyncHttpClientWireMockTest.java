@@ -23,30 +23,29 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.http.HttpTestUtils.createProvider;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
-import software.amazon.awssdk.http.ExecutableHttpRequest;
-import software.amazon.awssdk.http.HttpExecuteRequest;
-import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.RecordingResponseHandler;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
-import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 
-public class AwsCrtHttpClientWireMockTest {
+public class AwsCrtAsyncHttpClientWireMockTest {
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig()
                                                           .dynamicPort());
@@ -65,10 +64,10 @@ public class AwsCrtHttpClientWireMockTest {
 
     @Test
     public void closeClient_reuse_throwException() {
-        SdkHttpClient client = AwsCrtHttpClient.create();
+        SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.create();
 
         client.close();
-        assertThatThrownBy(() -> makeSimpleRequest(client, null)).hasMessageContaining("is closed");
+        assertThatThrownBy(() -> makeSimpleRequest(client)).hasMessageContaining("is closed");
     }
 
     @Test
@@ -76,17 +75,16 @@ public class AwsCrtHttpClientWireMockTest {
         AttributeMap attributeMap = AttributeMap.builder()
                                                 .put(PROTOCOL, Protocol.HTTP2)
                                                 .build();
-        assertThatThrownBy(() -> AwsCrtHttpClient.builder().buildWithDefaults(attributeMap))
+        assertThatThrownBy(() -> AwsCrtAsyncHttpClient.builder().buildWithDefaults(attributeMap))
             .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
     public void sendRequest_withCollector_shouldCollectMetrics() throws Exception {
 
-        try (SdkHttpClient client = AwsCrtHttpClient.builder().maxConcurrency(10).build()) {
-            MetricCollector collector = MetricCollector.create("test");
-            makeSimpleRequest(client, collector);
-            MetricCollection metrics = collector.collect();
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().maxConcurrency(10).build()) {
+            RecordingResponseHandler recorder = makeSimpleRequest(client);
+            MetricCollection metrics = recorder.collector().collect();
 
             assertThat(metrics.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("AwsCommonRuntime");
             assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(10);
@@ -98,31 +96,33 @@ public class AwsCrtHttpClientWireMockTest {
 
     @Test
     public void sharedEventLoopGroup_closeOneClient_shouldNotAffectOtherClients() throws Exception {
-        try (SdkHttpClient client = AwsCrtHttpClient.create()) {
-            makeSimpleRequest(client, null);
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.create()) {
+            makeSimpleRequest(client);
         }
 
-        try (SdkHttpClient anotherClient = AwsCrtHttpClient.create()) {
-            makeSimpleRequest(anotherClient, null);
+        try (SdkAsyncHttpClient anotherClient = AwsCrtAsyncHttpClient.create()) {
+            makeSimpleRequest(anotherClient);
         }
     }
 
     /**
-     * Make a simple request and wait for it to finish.
+     * Make a simple async request and wait for it to finish.
      *
      * @param client Client to make request with.
      */
-    private HttpExecuteResponse makeSimpleRequest(SdkHttpClient client, MetricCollector metricCollector) throws Exception {
+    private RecordingResponseHandler makeSimpleRequest(SdkAsyncHttpClient client) throws Exception {
         String body = randomAlphabetic(10);
         URI uri = URI.create("http://localhost:" + mockServer.port());
         stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)));
         SdkHttpRequest request = createRequest(uri);
-
-        HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
-        executeRequestBuilder.request(request)
-                             .contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]))
-                             .metricCollector(metricCollector);
-        ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
-        return executableRequest.call();
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+        client.execute(AsyncExecuteRequest.builder()
+                                          .request(request)
+                                          .requestContentPublisher(createProvider(""))
+                                          .responseHandler(recorder)
+                                          .metricCollector(recorder.collector())
+                                          .build());
+        recorder.completeFuture().get(5, TimeUnit.SECONDS);
+        return recorder;
     }
 }

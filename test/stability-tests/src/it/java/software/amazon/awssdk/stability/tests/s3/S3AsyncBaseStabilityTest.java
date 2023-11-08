@@ -24,12 +24,11 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -44,23 +43,14 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
 
-public abstract class S3BaseStabilityTest extends AwsTestBase {
-    private static final Logger log = Logger.loggerFor(S3BaseStabilityTest.class);
+public abstract class S3AsyncBaseStabilityTest extends AwsTestBase {
+    private static final Logger log = Logger.loggerFor(S3AsyncBaseStabilityTest.class);
     protected static final int CONCURRENCY = 100;
     protected static final int TOTAL_RUNS = 50;
-
-    protected static final String LARGEST_KEY_NAME = "16MB";
+    protected static final String LARGE_KEY_NAME = "2GB";
 
     protected static S3Client s3ApacheClient;
-    protected static ExecutorService futureThreadPool;
-
-    private final S3Client testClient;
-
-
-    // The JVM does a bunch under the hood, so leave some room for magic.
-    private static final int ALLOWED_THREAD_OVERHEAD = 20;
-
-    protected int allowedPeakThreads;
+    private final S3AsyncClient testClient;
 
     static {
         s3ApacheClient = S3Client.builder()
@@ -71,14 +61,7 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
                                  .build();
     }
 
-    protected S3BaseStabilityTest() {
-        this(null, 0);
-    }
-
-    protected S3BaseStabilityTest(S3Client testClient, int testClientThreadsUsed) {
-        // use the passed in known thread count for testClient, plus CONCURRENCY for the sync executor,
-        // and some room for the JVM to do weird things.
-        this.allowedPeakThreads = testClientThreadsUsed + CONCURRENCY + ALLOWED_THREAD_OVERHEAD;
+    public S3AsyncBaseStabilityTest(S3AsyncClient testClient) {
         this.testClient = testClient;
     }
 
@@ -102,10 +85,9 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
     protected abstract String getTestBucketName();
 
     protected void doGetBucketAcl_lowTpsLongInterval() {
-        IntFunction<CompletableFuture<?>> future =
-            i -> CompletableFuture.supplyAsync(() -> testClient.getBucketAcl(b -> b.bucket(getTestBucketName())), futureThreadPool);
+        IntFunction<CompletableFuture<?>> future = i -> testClient.getBucketAcl(b -> b.bucket(getTestBucketName()));
         String className = this.getClass().getSimpleName();
-        StabilityTestRunner.newRunner(allowedPeakThreads)
+        StabilityTestRunner.newRunner()
                 .testName(className + ".getBucketAcl_lowTpsLongInterval")
                 .futureFactory(future)
                 .requestCountPerRun(10)
@@ -117,14 +99,10 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
 
     protected String downloadLargeObjectToFile() {
         File randomTempFile = RandomTempFile.randomUncreatedFile();
-
-        StabilityTestRunner.newRunner(allowedPeakThreads)
-                .testName("S3StabilityTest.downloadLargeObjectToFile")
-            .futures(CompletableFuture.supplyAsync(() -> {
-                    testClient.getObject(b -> b.bucket(getTestBucketName())
-                                                      .key(LARGEST_KEY_NAME), ResponseTransformer.toFile(randomTempFile));
-                    return null;
-                }, futureThreadPool))
+        StabilityTestRunner.newRunner()
+                .testName("S3AsyncStabilityTest.downloadLargeObjectToFile")
+                .futures(testClient.getObject(b -> b.bucket(getTestBucketName()).key(LARGE_KEY_NAME),
+                        AsyncResponseTransformer.toFile(randomTempFile)))
                 .run();
 
 
@@ -138,40 +116,36 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
     }
 
     protected String uploadLargeObjectFromFile() {
+        RandomTempFile file = null;
         try {
-            RandomTempFile file = new RandomTempFile(16L * 1024 * 1024);
-
-            try {
-                String md5 = Md5Utils.md5AsBase64(file);
-                StabilityTestRunner.newRunner(allowedPeakThreads)
-                                   .testName("S3StabilityTest.uploadLargeObjectFromFile")
-                                   .futures(CompletableFuture.supplyAsync(() -> {
-                                       testClient.putObject(b -> b.bucket(getTestBucketName()).key(LARGEST_KEY_NAME), file.toPath());
-
-                                       return null;
-                                   }, futureThreadPool))
-                                   .run();
-                return md5;
-            } finally {
+            file = new RandomTempFile((long) 2e+9);
+            String md5 = Md5Utils.md5AsBase64(file);
+            StabilityTestRunner.newRunner()
+                    .testName("S3AsyncStabilityTest.uploadLargeObjectFromFile")
+                    .futures(testClient.putObject(b -> b.bucket(getTestBucketName()).key(LARGE_KEY_NAME),
+                            AsyncRequestBody.fromFile(file)))
+                    .run();
+            return md5;
+        } catch (IOException e) {
+            throw new RuntimeException("fail to create test file", e);
+        } finally {
+            if (file != null) {
                 file.delete();
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
     protected void putObject() {
         byte[] bytes = RandomStringUtils.randomAlphanumeric(10_000).getBytes();
 
-        IntFunction<CompletableFuture<?>> future = i -> CompletableFuture.supplyAsync(() -> {
+        IntFunction<CompletableFuture<?>> future = i -> {
             String keyName = computeKeyName(i);
-            testClient.putObject(b -> b.bucket(getTestBucketName()).key(keyName), RequestBody.fromBytes(bytes));
+            return testClient.putObject(b -> b.bucket(getTestBucketName()).key(keyName),
+                    AsyncRequestBody.fromBytes(bytes));
+        };
 
-            return null;
-        }, futureThreadPool);
-
-        StabilityTestRunner.newRunner(allowedPeakThreads)
-                .testName("S3StabilityTest.putObject")
+        StabilityTestRunner.newRunner()
+                .testName("S3AsyncStabilityTest.putObject")
                 .futureFactory(future)
                 .requestCountPerRun(CONCURRENCY)
                 .totalRuns(TOTAL_RUNS)
@@ -180,16 +154,14 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
     }
 
     protected void getObject() {
-        IntFunction<CompletableFuture<?>> future = i -> CompletableFuture.supplyAsync(() -> {
+        IntFunction<CompletableFuture<?>> future = i -> {
             String keyName = computeKeyName(i);
             Path path = RandomTempFile.randomUncreatedFile().toPath();
-            testClient.getObject(b -> b.bucket(getTestBucketName()).key(keyName), ResponseTransformer.toFile(path));
+            return testClient.getObject(b -> b.bucket(getTestBucketName()).key(keyName), AsyncResponseTransformer.toFile(path));
+        };
 
-            return null;
-        }, futureThreadPool);
-
-        StabilityTestRunner.newRunner(allowedPeakThreads)
-                .testName("S3StabilityTest.getObject")
+        StabilityTestRunner.newRunner()
+                .testName("S3AsyncStabilityTest.getObject")
                 .futureFactory(future)
                 .requestCountPerRun(CONCURRENCY)
                 .totalRuns(TOTAL_RUNS)
@@ -232,4 +204,5 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
             file.delete();
         }
     }
+
 }

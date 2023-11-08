@@ -23,17 +23,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.Collections.emptyMap;
-import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.http.HttpTestUtils.createProvider;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,29 +38,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpException;
-import software.amazon.awssdk.http.RecordingResponseHandler;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-import software.amazon.awssdk.utils.Logger;
 
 public class AwsCrtHttpClientSpiVerificationTest {
-    private static final Logger log = Logger.loggerFor(AwsCrtHttpClientSpiVerificationTest.class);
     private static final int TEST_BODY_LEN = 1024;
 
     @Rule
@@ -71,14 +59,14 @@ public class AwsCrtHttpClientSpiVerificationTest {
             .dynamicPort()
             .dynamicHttpsPort());
 
-    private static SdkAsyncHttpClient client;
+    private static SdkHttpClient client;
 
     @BeforeClass
     public static void setup() throws Exception {
-        client = AwsCrtAsyncHttpClient.builder()
-                                      .connectionHealthConfiguration(b -> b.minimumThroughputInBps(4068L)
+        client = AwsCrtHttpClient.builder()
+                                 .connectionHealthConfiguration(b -> b.minimumThroughputInBps(4068L)
                                                                            .minimumThroughputTimeout(Duration.ofSeconds(3)))
-                                      .build();
+                                 .build();
     }
 
     @AfterClass
@@ -93,47 +81,25 @@ public class AwsCrtHttpClientSpiVerificationTest {
         return randomData;
     }
 
-    @Test
-    public void signalsErrorViaOnErrorAndFuture() throws Exception {
-        stubFor(any(urlEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
 
-        CompletableFuture<Boolean> errorSignaled = new CompletableFuture<>();
-
-        SdkAsyncHttpResponseHandler handler = new TestResponseHandler() {
-            @Override
-            public void onError(Throwable error) {
-                errorSignaled.complete(true);
-            }
-        };
-
-        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(URI.create("http://localhost:" + mockServer.port()));
-
-        CompletableFuture<Void> executeFuture = client.execute(AsyncExecuteRequest.builder()
-                .request(request)
-                .responseHandler(handler)
-                .requestContentPublisher(new EmptyPublisher())
-                .build());
-
-        assertThat(errorSignaled.get(1, TimeUnit.SECONDS)).isTrue();
-        assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(IOException.class).hasRootCauseInstanceOf(HttpException.class);
-    }
-
-    @Test
-    public void requestFailed_connectionTimeout_shouldWrapException() {
-        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().connectionTimeout(Duration.ofNanos(1)).build()) {
+    @Test(expected = IOException.class)
+    public void requestFailed_connectionTimeout_shouldWrapException() throws IOException {
+        try (SdkHttpClient client = AwsCrtHttpClient.builder().connectionTimeout(Duration.ofNanos(1)).build()) {
             URI uri = URI.create("http://localhost:" + mockServer.port());
             stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
             SdkHttpRequest request = createRequest(uri);
-            RecordingResponseHandler recorder = new RecordingResponseHandler();
-            client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
-            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(IOException.class)
-                                                                                        .hasRootCauseInstanceOf(HttpException.class);
+            HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
+            executeRequestBuilder.request(request);
+            ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
+
+            executableRequest.call();
         }
     }
 
-    @Test
-    public void requestFailed_notRetryable_shouldNotWrapException() {
-        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().build()) {
+
+    @Test(expected = HttpException.class)
+    public void requestFailed_notRetryable_shouldNotWrapException() throws IOException {
+        try (SdkHttpClient client = AwsCrtHttpClient.builder().build()) {
             URI uri = URI.create("http://localhost:" + mockServer.port());
             // make it invalid by doing a non-zero content length with no request body...
             Map<String, List<String>> headers = new HashMap<>();
@@ -145,122 +111,61 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
             SdkHttpRequest request = createRequest(uri).toBuilder().headers(headers).build();
 
-            RecordingResponseHandler recorder = new RecordingResponseHandler();
-            client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(new EmptyPublisher()).responseHandler(recorder).build());
-            // invalid request should have returned an HttpException and not an IOException.
-            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS))
-                .hasCauseInstanceOf(HttpException.class).hasMessageContaining("does not match the previously declared length");
+            HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
+            executeRequestBuilder.request(request);
+            executeRequestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]));
+            ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
+            executableRequest.call();
         }
     }
 
-    @Test
-    public void callsOnStreamForEmptyResponseContent() throws Exception {
-        stubFor(any(urlEqualTo("/")).willReturn(aResponse().withStatus(204).withHeader("foo", "bar")));
-
-        CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
-        AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
-
-        SdkAsyncHttpResponseHandler handler = new TestResponseHandler() {
-            @Override
-            public void onHeaders(SdkHttpResponse headers) {
-                response.compareAndSet(null, headers);
-            }
-            @Override
-            public void onStream(Publisher<ByteBuffer> stream) {
-                super.onStream(stream);
-                streamReceived.complete(true);
-            }
-        };
-
-        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(URI.create("http://localhost:" + mockServer.port()));
-
-        CompletableFuture<Void> future = client.execute(AsyncExecuteRequest.builder()
-                .request(request)
-                .responseHandler(handler)
-                .requestContentPublisher(new EmptyPublisher())
-                .build());
-
-        future.get(60, TimeUnit.SECONDS);
-        assertThat(streamReceived.get(1, TimeUnit.SECONDS)).isTrue();
-        assertThat(response.get() != null).isTrue();
-        assertThat(response.get().statusCode() == 204).isTrue();
-        assertThat(response.get().headers().get("foo").isEmpty()).isFalse();
-    }
+    // the following test is commented out but here because I want anyone coming to this file to find out why I removed this test
+    // to know why. The SdkHttpClient interface has a different invariant regarding when a response stream is present than does
+    // the async subscriber model. SdkHttpClientTestSuite.validateResponse() asserts that the response stream is null
+    // on head requests. To meet that contract, we'd have to be null here as well. However, this test is supposed to
+    // check the exact opposite of that invariant. Since this test was ported from the async tests, we're going to assume
+    // this is an oversight between the sync and async APIs. However. that is why this test is removed.
+    //
+    //public void callsOnStreamForEmptyResponseContent();
 
     @Test
     public void testGetRequest() throws Exception {
         String path = "/testGetRequest";
         byte[] body = generateRandomBody(TEST_BODY_LEN);
-        String expectedBodyHash = sha256Hex(body).toUpperCase();
         stubFor(any(urlEqualTo(path)).willReturn(aResponse().withStatus(200)
                                                            .withHeader("Content-Length", Integer.toString(TEST_BODY_LEN))
                                                            .withHeader("foo", "bar")
                                                            .withBody(body)));
 
-        CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
-        AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
-        Sha256BodySubscriber bodySha256Subscriber = new Sha256BodySubscriber();
-        AtomicReference<Throwable> error = new AtomicReference<>(null);
-
-        SdkAsyncHttpResponseHandler handler = new SdkAsyncHttpResponseHandler() {
-            @Override
-            public void onHeaders(SdkHttpResponse headers) {
-                response.compareAndSet(null, headers);
-            }
-            @Override
-            public void onStream(Publisher<ByteBuffer> stream) {
-                stream.subscribe(bodySha256Subscriber);
-                streamReceived.complete(true);
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                error.compareAndSet(null, t);
-            }
-        };
-
         URI uri = URI.create("http://localhost:" + mockServer.port());
         SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(uri, path, null, SdkHttpMethod.GET, emptyMap());
 
-        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
-                .request(request)
-                .responseHandler(handler)
-                .requestContentPublisher(new EmptyPublisher())
-                .build());
+        HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
+        executeRequestBuilder.request(request);
+        ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
+        HttpExecuteResponse response = executableRequest.call();
 
-        future.get(60, TimeUnit.SECONDS);
-        assertThat(error.get()).isNull();
-        assertThat(streamReceived.get(1, TimeUnit.SECONDS)).isTrue();
-        assertThat(bodySha256Subscriber.getFuture().get(60, TimeUnit.SECONDS)).isEqualTo(expectedBodyHash);
-        assertThat(response.get().statusCode()).isEqualTo(200);
-        assertThat(response.get().headers().get("foo").isEmpty()).isFalse();
+        assertThat(response.responseBody().isPresent()).isTrue();
+        byte[] readBody = new byte[TEST_BODY_LEN];
+        assertThat(response.responseBody().get().read(readBody)).isEqualTo(TEST_BODY_LEN);
+        assertThat(readBody).isEqualTo(body);
+        assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+        assertThat(response.httpResponse().headers().get("foo").isEmpty()).isFalse();
     }
 
 
     private void makePutRequest(String path, byte[] reqBody, int expectedStatus) throws Exception {
-        CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
-        AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
-        AtomicReference<Throwable> error = new AtomicReference<>(null);
-
-        Subscriber<ByteBuffer> subscriber = CrtHttpClientTestUtils.createDummySubscriber();
-
-        SdkAsyncHttpResponseHandler handler = CrtHttpClientTestUtils.createTestResponseHandler(response,
-                streamReceived, error, subscriber);
-
         URI uri = URI.create("http://localhost:" + mockServer.port());
         SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(uri, path, reqBody, SdkHttpMethod.PUT, emptyMap());
+        HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
+        executeRequestBuilder.request(request);
+        executeRequestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(reqBody));
+        ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
+        HttpExecuteResponse response = executableRequest.call();
 
-        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
-                                            .request(request)
-                                            .responseHandler(handler)
-                                            .requestContentPublisher(new SdkTestHttpContentPublisher(reqBody))
-                                            .build());
-        future.get(60, TimeUnit.SECONDS);
-        assertThat(error.get()).isNull();
-        assertThat(streamReceived.get(60, TimeUnit.SECONDS)).isTrue();
-        assertThat(response.get().statusCode()).isEqualTo(expectedStatus);
+        assertThat(response.responseBody().isPresent()).isFalse();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
-
 
     @Test
     public void testPutRequest() throws Exception {
@@ -273,45 +178,5 @@ public class AwsCrtHttpClientSpiVerificationTest {
         byte[] randomBody = generateRandomBody(TEST_BODY_LEN);
         stubFor(any(urlEqualTo(pathExpect404)).willReturn(aResponse().withStatus(404)));
         makePutRequest(pathExpect404, randomBody, 404);
-    }
-
-
-
-    private static class TestResponseHandler implements SdkAsyncHttpResponseHandler {
-        @Override
-        public void onHeaders(SdkHttpResponse headers) {
-        }
-
-        @Override
-        public void onStream(Publisher<ByteBuffer> stream) {
-            stream.subscribe(new DrainingSubscriber<>());
-        }
-
-        @Override
-        public void onError(Throwable error) {
-        }
-    }
-
-    private static class DrainingSubscriber<T> implements Subscriber<T> {
-        private Subscription subscription;
-
-        @Override
-        public void onSubscribe(Subscription subscription) {
-            this.subscription = subscription;
-            this.subscription.request(Long.MAX_VALUE);
-        }
-
-        @Override
-        public void onNext(T t) {
-            this.subscription.request(1);
-        }
-
-        @Override
-        public void onError(Throwable throwable) {
-        }
-
-        @Override
-        public void onComplete() {
-        }
     }
 }

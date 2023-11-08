@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 /**
  * Testing the scenario where h1 server sends 5xx errors.
  */
-public class H1ServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
+public class H1SAsyncServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
 
     @BeforeAll
     public static void beforeAll() {

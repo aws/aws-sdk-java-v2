@@ -44,7 +44,7 @@ import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * A set of tests validating that the functionality implemented by a {@link SdkHttpClient}.
- *
+ * <p>
  * This is used by an HTTP plugin implementation by extending this class and implementing the abstract methods to provide this
  * suite with a testable HTTP client implementation.
  */
@@ -95,7 +95,7 @@ public abstract class SdkHttpClientDefaultTestSuite {
     }
 
     @Test
-    public void validatesHttpsCertificateIssuer() throws Exception {
+    public void validatesHttpsCertificateIssuer() {
         SdkHttpClient client = createSdkHttpClient();
 
         SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort(), SdkHttpMethod.POST);
@@ -185,7 +185,9 @@ public abstract class SdkHttpClientDefaultTestSuite {
                                                                       .putHeader("Host", uri.getHost())
                                                                       .putHeader("User-Agent", "hello-world!");
         if (method != SdkHttpMethod.HEAD) {
-            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)));
+            byte[] content = "Body".getBytes(StandardCharsets.UTF_8);
+            requestBuilder.putHeader("Content-Length", Integer.toString(content.length));
+            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(content));
         }
 
         return requestBuilder.build();
