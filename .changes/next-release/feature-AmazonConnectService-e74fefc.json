@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "This release clarifies in our public documentation that InstanceId is a requirement for SearchUsers API requests."
+}
