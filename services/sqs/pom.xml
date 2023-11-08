@@ -49,7 +49,7 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>aws-query-protocol</artifactId>
+            <artifactId>aws-json-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
