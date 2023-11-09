@@ -1,3 +1,40 @@
+# __2.21.20__ __2023-11-09__
+## __AWS CloudFormation__
+  - ### Features
+    - Added new ConcurrencyMode feature for AWS CloudFormation StackSets for faster deployments to target accounts.
+
+## __AWS CloudTrail__
+  - ### Features
+    - The Insights in Lake feature lets customers enable CloudTrail Insights on a source CloudTrail Lake event data store and create a destination event data store to collect Insights events based on unusual management event activity in the source event data store.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Custom runtime on Amazon Linux 2023 (provided.al2023) support to AWS Lambda.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Update to support new APIs for delivery of logs from AWS services.
+
+## __Amazon Comprehend__
+  - ### Features
+    - This release adds support for toxicity detection and prompt safety classification.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the ability to integrate customer lambda functions with Connect attachments for scanning and updates the ListIntegrationAssociations API to support filtering on IntegrationArn.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS EBS now supports Block Public Access for EBS Snapshots. This release introduces the EnableSnapshotBlockPublicAccess, DisableSnapshotBlockPublicAccess and GetSnapshotBlockPublicAccessState APIs to manage account-level public access settings for EBS Snapshots in an AWS Region.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding EKS Anywhere subscription related operations.
+
+## __Amazon Omics__
+  - ### Features
+    - Support UBAM filetype for Omics Storage and make referenceArn optional
+
 # __2.21.19__ __2023-11-08__
 ## __Amazon Simple Queue Service__
   - ### Features
@@ -2980,7 +3017,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

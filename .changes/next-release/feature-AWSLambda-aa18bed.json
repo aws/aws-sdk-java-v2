@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "contributor": "",
-    "description": "Add Custom runtime on Amazon Linux 2023 (provided.al2023) support to AWS Lambda."
-}
