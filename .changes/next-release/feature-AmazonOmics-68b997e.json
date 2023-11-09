@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Omics",
+    "contributor": "",
+    "description": "Support UBAM filetype for Omics Storage and make referenceArn optional"
+}
