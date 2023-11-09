@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "contributor": "",
+    "description": "Added new ConcurrencyMode feature for AWS CloudFormation StackSets for faster deployments to target accounts."
+}
