@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Queue Service",
+    "contributor": "",
+    "description": "This release enables customers to call SQS using AWS JSON-1.0 protocol and bug fix."
+}
