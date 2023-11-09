@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt.internal;
+package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMonitoringOptions;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
@@ -26,7 +26,7 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
@@ -39,6 +39,7 @@ import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -47,8 +48,8 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 /**
  * Common functionality and configuration for the CRT Http clients.
  */
-@SdkInternalApi
-public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
+@SdkProtectedApi
+abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private static final Logger log = Logger.loggerFor(AwsCrtHttpClientBase.class);
 
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
@@ -66,7 +67,7 @@ public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
-    protected AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
+    AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
         if (config.get(PROTOCOL) == Protocol.HTTP2) {
             throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtHttpClient yet. Use "
                                                + "NettyNioAsyncHttpClient instead.");
@@ -108,7 +109,7 @@ public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         return subresource;
     }
 
-    protected String clientName() {
+    String clientName() {
         return AWS_COMMON_RUNTIME;
     }
 
@@ -145,7 +146,7 @@ public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
      * existing pool.  If we add all of execute() to the scope, we include, at minimum a JNI call to the native
      * pool implementation.
      */
-    protected HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
+    HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
         synchronized (this) {
             if (isClosed) {
                 throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
@@ -157,7 +158,7 @@ public abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         }
     }
 
-    protected URI poolKey(SdkHttpRequest sdkRequest) {
+    URI poolKey(SdkHttpRequest sdkRequest) {
         return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(),
                                           sdkRequest.port(), null, null, null));
     }
