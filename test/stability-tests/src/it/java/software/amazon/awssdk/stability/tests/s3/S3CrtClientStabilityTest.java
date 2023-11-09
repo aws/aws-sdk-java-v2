@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 
 /**
- * Stability tests for {@link S3CrtAsyncClient}
+ * Stability tests for S3 sync client using {@link AwsCrtHttpClient}.
  */
 public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
     private static final String BUCKET_NAME = String.format("s3crthttpclientstabilitytests%d", System.currentTimeMillis());
