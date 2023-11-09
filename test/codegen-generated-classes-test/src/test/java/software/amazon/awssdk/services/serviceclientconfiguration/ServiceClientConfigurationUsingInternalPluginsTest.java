@@ -49,7 +49,7 @@ public class ServiceClientConfigurationUsingInternalPluginsTest {
     }
 
     @Test
-    void syncClientWithoutEndpointOverride_serviceClientConfiguration_shouldReturnEmptyOptional() {
+    void syncClientWithoutEndpointOverride_serviceClientConfiguration_shouldReturnCorrectEndpointOverride() {
         ProtocolRestXmlInternalPluginsClient client = ProtocolRestXmlInternalPluginsClient.builder()
                                                                                           .build();
         URI endpointOverride = client.serviceClientConfiguration().endpointOverride().orElse(null);
