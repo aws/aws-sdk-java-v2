@@ -2482,7 +2482,6 @@
         "sourceFileType",
         "subjectId",
         "sampleId",
-        "referenceArn",
         "name"
       ],
       "members":{
@@ -3376,7 +3375,8 @@
       "enum":[
         "FASTQ",
         "BAM",
-        "CRAM"
+        "CRAM",
+        "UBAM"
       ]
     },
     "Filter":{
@@ -6522,7 +6522,7 @@
           "documentation":"<p>A status to filter on.</p>"
         },
         "referenceArn":{
-          "shape":"ReferenceArn",
+          "shape":"ReferenceArnFilter",
           "documentation":"<p>A genome reference ARN to filter on.</p>"
         },
         "createdAfter":{
@@ -6771,6 +6771,12 @@
       "max":127,
       "min":1,
       "pattern":"arn:.+"
+    },
+    "ReferenceArnFilter":{
+      "type":"string",
+      "max":127,
+      "min":0,
+      "pattern":"$|^arn:.+"
     },
     "ReferenceDescription":{
       "type":"string",
@@ -7896,8 +7902,7 @@
         "sourceFiles",
         "sourceFileType",
         "subjectId",
-        "sampleId",
-        "referenceArn"
+        "sampleId"
       ],
       "members":{
         "sourceFiles":{
