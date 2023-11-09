@@ -18,7 +18,7 @@ package software.amazon.awssdk.codegen.poet.plugins;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 
-public class TestPlugin1 implements SdkPlugin {
+public class InternalTestPlugin2 implements SdkPlugin {
 
     @Override
     public void configureClient(SdkServiceClientConfiguration.Builder config) {

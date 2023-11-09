@@ -96,7 +96,7 @@ public class CustomizationConfig {
     /**
      * Fully qualified name of the class that contains the custom http config. The class should expose a public static method
      * with name "defaultHttpConfig" that returns an {@link AttributeMap} containing the desired http config defaults.
-     * <p>
+     *
      * See SWF customization.config for an example.
      */
     private String serviceSpecificHttpConfig;
@@ -259,7 +259,7 @@ public class CustomizationConfig {
 
     private List<String> interceptors = new ArrayList<>();
 
-    private List<String> sdkPlugins = new ArrayList<>();
+    private List<String> internalPlugins = new ArrayList<>();
 
     /**
      * Whether marshallers perform validations against members marked with RequiredTrait.
@@ -701,12 +701,12 @@ public class CustomizationConfig {
         this.interceptors = interceptors;
     }
 
-    public List<String> getSdkPlugins() {
-        return sdkPlugins;
+    public List<String> getInternalPlugins() {
+        return internalPlugins;
     }
 
-    public void setSdkPlugins(List<String> sdkPlugins) {
-        this.sdkPlugins = sdkPlugins;
+    public void setInternalPlugins(List<String> internalPlugins) {
+        this.internalPlugins = internalPlugins;
     }
 
     public boolean isRequiredTraitValidationEnabled() {

@@ -178,7 +178,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(setOverridesMethod());
         addServiceHttpConfigIfNeeded(builder, model);
         builder.addMethod(invokePluginsMethod());
-        builder.addMethod(getSdkPluginsMethod());
+        builder.addMethod(internalPluginsMethod());
         builder.addMethod(validateClientOptionsMethod());
 
 
@@ -722,22 +722,23 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private MethodSpec invokePluginsMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("invokePlugins")
-            .addAnnotation(Override.class)
+                                               .addAnnotation(Override.class)
                                                .addModifiers(PROTECTED)
                                                .addParameter(SdkClientConfiguration.class, "config")
                                                .returns(SdkClientConfiguration.class);
-        builder.addStatement("$T externalPlugins = plugins()",
+
+        builder.addStatement("$T internalPlugins = internalPlugins()",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class));
 
-        builder.addStatement("$T sdkPlugins = getSdkPlugins()",
+        builder.addStatement("$T externalPlugins = plugins()",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class))
-               .beginControlFlow("if (externalPlugins.isEmpty() && sdkPlugins.isEmpty())")
+               .beginControlFlow("if (internalPlugins.isEmpty() && externalPlugins.isEmpty())")
                .addStatement("return config")
                .endControlFlow();
 
-        builder.addStatement("$T plugins = $T.mergeLists(sdkPlugins, externalPlugins)",
-                ParameterizedTypeName.get(List.class, SdkPlugin.class),
-                CollectionUtils.class);
+        builder.addStatement("$T plugins = $T.mergeLists(internalPlugins, externalPlugins)",
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class),
+                             CollectionUtils.class);
 
         builder.addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(config.toBuilder())",
                              configurationUtils.serviceClientConfigurationBuilderClassName());
@@ -750,30 +751,30 @@ public class BaseClientBuilderClass implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec getSdkPluginsMethod() {
+    private MethodSpec internalPluginsMethod() {
 
         ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
-                .get(ClassName.get(List.class), ClassName.get(SdkPlugin.class));
+            .get(ClassName.get(List.class), ClassName.get(SdkPlugin.class));
 
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("getSdkPlugins")
-                .addModifiers(PROTECTED)
-                .returns(parameterizedTypeName);
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("internalPlugins")
+                                               .addModifiers(PRIVATE)
+                                               .returns(parameterizedTypeName);
 
-        builder.addStatement("$T sdkPlugins = new $T<>()",
-                ParameterizedTypeName.get(List.class, SdkPlugin.class),
-                ArrayList.class);
+        builder.addStatement("$T internalPlugins = new $T<>()",
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class),
+                             ArrayList.class);
 
-        List<ClassName> sdkPlugins = new ArrayList<>();
+        List<ClassName> internalPlugins = new ArrayList<>();
 
-        for (String sdkPlugin : model.getCustomizationConfig().getSdkPlugins()) {
-            sdkPlugins.add(ClassName.bestGuess(sdkPlugin));
+        for (String internalPlugin : model.getCustomizationConfig().getInternalPlugins()) {
+            internalPlugins.add(ClassName.bestGuess(internalPlugin));
         }
 
-        for (ClassName sdkPlugin : sdkPlugins) {
-            builder.addStatement("sdkPlugins.add(new $T())", sdkPlugin);
+        for (ClassName internalPlugin : internalPlugins) {
+            builder.addStatement("internalPlugins.add(new $T())", internalPlugin);
         }
 
-        builder.addStatement("return sdkPlugins");
+        builder.addStatement("return internalPlugins");
         return builder.build();
     }
 

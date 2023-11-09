@@ -12,8 +12,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.codegen.poet.plugins.TestPlugin1;
-import software.amazon.awssdk.codegen.poet.plugins.TestPlugin2;
+import software.amazon.awssdk.codegen.poet.plugins.InternalTestPlugin1;
+import software.amazon.awssdk.codegen.poet.plugins.InternalTestPlugin2;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -216,12 +216,12 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
+        List<SdkPlugin> internalPlugins = internalPlugins();
         List<SdkPlugin> externalPlugins = plugins();
-        List<SdkPlugin> sdkPlugins = getSdkPlugins();
-        if (externalPlugins.isEmpty() && sdkPlugins.isEmpty()) {
+        if (internalPlugins.isEmpty() && externalPlugins.isEmpty()) {
             return config;
         }
-        List<SdkPlugin> plugins = CollectionUtils.mergeLists(sdkPlugins, externalPlugins);
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
         JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
             .builder(config.toBuilder());
         serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
@@ -232,11 +232,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return serviceConfigBuilder.buildSdkClientConfiguration();
     }
 
-    protected List<SdkPlugin> getSdkPlugins() {
-        List<SdkPlugin> sdkPlugins = new ArrayList<>();
-        sdkPlugins.add(new TestPlugin1());
-        sdkPlugins.add(new TestPlugin2());
-        return sdkPlugins;
+    private List<SdkPlugin> internalPlugins() {
+        List<SdkPlugin> internalPlugins = new ArrayList<>();
+        internalPlugins.add(new InternalTestPlugin1());
+        internalPlugins.add(new InternalTestPlugin2());
+        return internalPlugins;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
