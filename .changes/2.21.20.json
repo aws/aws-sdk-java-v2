@@ -1,0 +1,60 @@
+{
+    "version": "2.21.20",
+    "date": "2023-11-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Added new ConcurrencyMode feature for AWS CloudFormation StackSets for faster deployments to target accounts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "The Insights in Lake feature lets customers enable CloudTrail Insights on a source CloudTrail Lake event data store and create a destination event data store to collect Insights events based on unusual management event activity in the source event data store."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add Custom runtime on Amazon Linux 2023 (provided.al2023) support to AWS Lambda."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Update to support new APIs for delivery of logs from AWS services."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "contributor": "",
+            "description": "This release adds support for toxicity detection and prompt safety classification."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds the ability to integrate customer lambda functions with Connect attachments for scanning and updates the ListIntegrationAssociations API to support filtering on IntegrationArn."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "AWS EBS now supports Block Public Access for EBS Snapshots. This release introduces the EnableSnapshotBlockPublicAccess, DisableSnapshotBlockPublicAccess and GetSnapshotBlockPublicAccessState APIs to manage account-level public access settings for EBS Snapshots in an AWS Region."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adding EKS Anywhere subscription related operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "Support UBAM filetype for Omics Storage and make referenceArn optional"
+        }
+    ]
+}
