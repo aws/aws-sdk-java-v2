@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Comprehend",
+    "contributor": "",
+    "description": "This release adds support for toxicity detection and prompt safety classification."
+}
