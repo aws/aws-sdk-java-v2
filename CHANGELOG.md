@@ -1,3 +1,57 @@
+# __2.21.19__ __2023-11-08__
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release enables customers to call SQS using AWS JSON-1.0 protocol and bug fix.
+
+# __2.21.18__ __2023-11-08__
+## __AWS DataSync__
+  - ### Features
+    - This change allows for 0 length access keys and secret keys for object storage locations. Users can now pass in empty string credentials.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Node 20 (nodejs20.x) support to AWS Lambda.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub enhances Resiliency Score, providing actionable recommendations to improve application resilience. Amazon Elastic Kubernetes Service (EKS) operational recommendations have been added to help improve the resilience posture of your applications.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to add/view comment authors through CreateRelatedItem and SearchRelatedItems API. For more information see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release clarifies in our public documentation that InstanceId is a requirement for SearchUsers API requests.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added API support for new GuardDuty EKS Audit Log finding types.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - AWS Lex now supports selective log capture in conversation logs. When you enable this option within the conversation log settings, only the utterances that trigger intents and slots specified in session attributes will be logged.
+
+## __Amazon Omics__
+  - ### Features
+    - Adding Run UUID and Run Output URI: GetRun and StartRun API response has two new fields "uuid" and "runOutputUri".
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This Amazon RDS release adds support for patching the OS of an RDS Custom for Oracle DB instance. You can now upgrade the database or operating system using the modify-db-instance command.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release enables customers to call SQS using AWS JSON-1.0 protocol.
+
+## __Redshift Serverless__
+  - ### Features
+    - Added a new parameter in the workgroup that helps you control your cost for compute resources. This feature provides a ceiling for RPUs that Amazon Redshift Serverless can scale up to. When automatic compute scaling is required, having a higher value for MaxRPU can enhance query throughput.
+
 # __2.21.17__ __2023-11-07__
 ## __AWS Data Exchange__
   - ### Features
@@ -2926,7 +2980,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
