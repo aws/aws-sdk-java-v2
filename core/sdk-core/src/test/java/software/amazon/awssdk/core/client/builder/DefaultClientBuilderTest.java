@@ -82,7 +82,6 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.ScheduledExecutorUtils.UnmanagedScheduledExecutorService;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
@@ -140,7 +139,7 @@ public class DefaultClientBuilderTest {
                                              .build();
         Supplier<ProfileFile> profileFileSupplier = () -> profileFile;
         String profileName = "name";
-        ScheduledExecutorService scheduledExecutorService = Mockito.spy(Executors.newScheduledThreadPool(1));
+        ScheduledExecutorService scheduledExecutorService = mock(ScheduledExecutorService.class);
 
         ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
             .executionInterceptors(interceptors)
