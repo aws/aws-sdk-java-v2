@@ -1,3 +1,45 @@
+# __2.21.21__ __2023-11-10__
+## __AWS Control Tower__
+  - ### Features
+    - AWS Control Tower supports tagging for enabled controls. This release introduces TagResource, UntagResource and ListTagsForResource APIs to manage tags in existing enabled controls. It updates EnabledControl API to tag resources at creation time.
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - This release adds support for tagging and customers can now tag report definitions. Additionally, ReportStatus is now added to report definition to show when the last delivered time stamp and if it succeeded or not.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes the ability to specify any input source as the primary input for corresponding follow modes, and allows users to specify fit and fill behaviors without resizing content.
+
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Add paginators to GetEntitlements.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 adds API updates to enable ENA Express at instance launch time.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for zero-ETL integrations.
+
+## __Amazon S3__
+  - ### Features
+    - Create a plugin framework for Code-gen to consume plugins specified in customization.config and configure them on the client instance
+        - Contributed by: [@anirudh9391](https://github.com/anirudh9391)
+
+## __Firewall Management Service__
+  - ### Features
+    - Adds optimizeUnassociatedWebACL flag to ManagedServiceData, updates third-party firewall examples, and other minor documentation updates.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix an issue where data received on a channel while it was idling was not handled until the channel was leased again for a request. This caused issues such as late notification of channel closes, manifesting as channels being closed at the beginning of a request.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@anirudh9391](https://github.com/anirudh9391)
 # __2.21.20__ __2023-11-09__
 ## __AWS CloudFormation__
   - ### Features
@@ -1276,7 +1318,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -3017,7 +3059,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
