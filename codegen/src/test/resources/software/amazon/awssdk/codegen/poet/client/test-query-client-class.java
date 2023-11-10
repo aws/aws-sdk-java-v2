@@ -97,13 +97,9 @@ final class DefaultQueryClient implements QueryClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final QueryServiceClientConfiguration serviceClientConfiguration;
-
-    protected DefaultQueryClient(QueryServiceClientConfiguration serviceClientConfiguration,
-                                 SdkClientConfiguration clientConfiguration) {
+    protected DefaultQueryClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
     }
 
@@ -808,13 +804,12 @@ final class DefaultQueryClient implements QueryClient {
         if (plugins.isEmpty()) {
             return clientConfiguration;
         }
-        QueryServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = QueryServiceClientConfigurationBuilder
-            .builder(clientConfiguration.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        QueryServiceClientConfigurationBuilder serviceConfigBuilder = new QueryServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     private AwsQueryProtocolFactory init() {
@@ -828,7 +823,7 @@ final class DefaultQueryClient implements QueryClient {
 
     @Override
     public final QueryServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new QueryServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override

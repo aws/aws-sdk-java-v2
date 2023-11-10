@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "SdkPlugins can now see and modify all configuration set on the client, including default values"
+}

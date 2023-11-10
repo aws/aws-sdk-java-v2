@@ -121,7 +121,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
             return true;
         }
 
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || !(o instanceof ExecutionAttributes)) {
             return false;
         }
 

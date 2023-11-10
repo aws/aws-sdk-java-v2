@@ -18,6 +18,7 @@ package software.amazon.awssdk.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,8 +54,6 @@ import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 /**
  * Verify that the "authtype" C2J trait for request type is honored for each requests.
  */
-// TODO(sra-identity-auth): These tests need the updates from https://github.com/aws/aws-sdk-java-v2/pull/4548/files (to the mock
-//  setup and verify) when switching to useSraAuth=true.
 public class NoneAuthTypeRequestTest {
 
     private AwsCredentialsProvider credentialsProvider;
@@ -67,7 +66,7 @@ public class NoneAuthTypeRequestTest {
 
     @Before
     public void setup() throws IOException {
-        credentialsProvider = mock(AwsCredentialsProvider.class);
+        credentialsProvider = spy(AwsCredentialsProvider.class);
         when(credentialsProvider.identityType()).thenReturn(AwsCredentialsIdentity.class);
         when(credentialsProvider.resolveIdentity(any(ResolveIdentityRequest.class))).thenAnswer(
             invocationOnMock -> CompletableFuture.completedFuture(AwsBasicCredentials.create("123", "12344")));

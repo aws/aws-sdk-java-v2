@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.emitters.tasks;
 
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
-import software.amazon.awssdk.codegen.poet.model.SdkClientConfigurationUtilGeneratorTask;
 
 /**
  * Common generator tasks.
@@ -24,7 +23,6 @@ import software.amazon.awssdk.codegen.poet.model.SdkClientConfigurationUtilGener
 class CommonGeneratorTasks extends CompositeGeneratorTask {
     CommonGeneratorTasks(GeneratorTaskParams params) {
         super(new CommonClientGeneratorTasks(params),
-              new SdkClientConfigurationUtilGeneratorTask(params),
               new SyncClientGeneratorTasks(params),
               new MarshallerGeneratorTasks(params),
               new ModelClassGeneratorTasks(params),

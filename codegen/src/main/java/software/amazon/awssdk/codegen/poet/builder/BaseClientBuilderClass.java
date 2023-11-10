@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
@@ -54,7 +55,6 @@ import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -82,7 +82,6 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
-    private final ClassName sdkClientConfigurationUtilClassName;
     private final String basePackage;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
@@ -93,8 +92,6 @@ public class BaseClientBuilderClass implements ClassSpec {
         this.basePackage = model.getMetadata().getFullClientPackageName();
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
-        this.sdkClientConfigurationUtilClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
-                                                                 "SdkClientConfigurationUtil");
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
@@ -175,7 +172,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                 builder.addMethod(defaultTokenAuthSignerMethod());
             }
         }
-        builder.addMethod(setOverridesMethod());
         addServiceHttpConfigIfNeeded(builder, model);
         builder.addMethod(invokePluginsMethod());
         builder.addMethod(validateClientOptionsMethod());
@@ -256,6 +252,8 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         if (AuthUtils.usesBearerAuth(model)) {
+            builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
+                            AwsClientOption.class, TokenUtils.class);
             builder.addCode(".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
             if (!authSchemeSpecUtils.useSraAuth()) {
                 builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
@@ -362,18 +360,24 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         // Update configuration
         builder.addStatement("$T builder = config.toBuilder()", SdkClientConfiguration.Builder.class);
+        builder.addCode("builder.lazyOption($T.IDENTITY_PROVIDERS, c -> {", SdkClientOption.class)
+               .addStatement("$1T.Builder result = $1T.builder()", IdentityProviders.class);
         if (AuthUtils.usesBearerAuth(model)) {
-            builder.addStatement("$T<? extends $T> identityProvider = config.option($T.TOKEN_IDENTITY_PROVIDER)",
-                                 IdentityProvider.class, TokenIdentity.class, AwsClientOption.class);
-            builder.beginControlFlow("if (identityProvider != null)");
-            builder.addStatement("$T identityProviders = config.option($T.IDENTITY_PROVIDERS)",
-                                 IdentityProviders.class, SdkClientOption.class);
-
-            builder.addStatement("builder.option($T.IDENTITY_PROVIDERS, identityProviders.toBuilder()"
-                                 + ".putIdentityProvider(identityProvider).build())", SdkClientOption.class);
-
+            builder.addStatement("$T<?> tokenIdentityProvider = c.get($T.TOKEN_IDENTITY_PROVIDER)",
+                                 IdentityProvider.class, AwsClientOption.class);
+            builder.beginControlFlow("if (tokenIdentityProvider != null)");
+            builder.addStatement("result.putIdentityProvider(tokenIdentityProvider)");
             builder.endControlFlow();
         }
+        if (AuthUtils.usesAwsAuth(model)) {
+            builder.addStatement("$T<?> credentialsIdentityProvider = c.get($T.CREDENTIALS_IDENTITY_PROVIDER)",
+                                 IdentityProvider.class, AwsClientOption.class);
+            builder.beginControlFlow("if (credentialsIdentityProvider != null)", AwsClientOption.class);
+            builder.addStatement("result.putIdentityProvider(credentialsIdentityProvider)");
+            builder.endControlFlow();
+        }
+        builder.addStatement("return result.build()")
+               .addCode("});");
 
         builder.addCode("builder.option($1T.EXECUTION_INTERCEPTORS, interceptors)", SdkClientOption.class);
 
@@ -715,7 +719,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addStatement("schemes.put($1N.schemeId(), $1N)", instanceVariable);
         }
         builder.addStatement("schemes.putAll(this.additionalAuthSchemes)");
-        builder.addStatement("return $T.unmodifiableMap(schemes)", Collections.class);
+        builder.addStatement("return schemes", Collections.class);
         return builder.build();
     }
 
@@ -730,32 +734,16 @@ public class BaseClientBuilderClass implements ClassSpec {
                .beginControlFlow("if (plugins.isEmpty())")
                .addStatement("return config")
                .endControlFlow();
-        builder.addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(config.toBuilder())",
-                             configurationUtils.serviceClientConfigurationBuilderClassName());
-        builder.addStatement("serviceConfigBuilder.overrideConfiguration(overrideConfiguration())");
-        builder.beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
-               .addStatement("plugin.configureClient(serviceConfigBuilder)")
-               .endControlFlow();
-        builder.addStatement("overrideConfiguration(serviceConfigBuilder.overrideConfiguration())");
-        builder.addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()");
-        return builder.build();
-    }
 
-    private MethodSpec setOverridesMethod() {
-        return MethodSpec.methodBuilder("setOverrides")
-                         .addModifiers(PROTECTED)
-                         .addAnnotation(Override.class)
-                         .addParameter(SdkClientConfiguration.class, "configuration")
-                         .returns(SdkClientConfiguration.class)
-                         .addStatement("$T overrideConfiguration = overrideConfiguration()",
-                                       ClientOverrideConfiguration.class)
-                         .beginControlFlow("if (overrideConfiguration == null)")
-                         .addStatement("return configuration")
-                         .endControlFlow()
-                         .addStatement("return $T.copyOverridesToConfiguration(overrideConfiguration, configuration.toBuilder())"
-                                       + ".build()",
-                                       sdkClientConfigurationUtilClassName)
-                         .build();
+
+        builder.addStatement("$T configuration = config.toBuilder()", SdkClientConfiguration.Builder.class)
+               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)",
+                             configurationUtils.serviceClientConfigurationBuilderClassName())
+               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("plugin.configureClient(serviceConfigBuilder)")
+               .endControlFlow()
+               .addStatement("return configuration.build()");
+        return builder.build();
     }
 
     @Override

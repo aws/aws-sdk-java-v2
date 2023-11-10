@@ -57,11 +57,30 @@ public class EndpointProviderSpec implements ClassSpec {
                                       .addMethod(toIdentifierValueMap())
                                       .addAnnotation(SdkInternalApi.class);
 
-        MethodSpec ruleSetMethod = ruleSetBuildMethod(b);
-
-        b.addMethod(ruleSetMethod);
+        b.addMethod(ruleSetBuildMethod(b));
+        b.addMethod(equalsMethod());
+        b.addMethod(hashCodeMethod());
 
         return b.build();
+    }
+
+    private MethodSpec equalsMethod() {
+        return MethodSpec.methodBuilder("equals")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(boolean.class)
+                         .addParameter(Object.class, "rhs")
+                         .addStatement("return rhs != null && getClass().equals(rhs.getClass())")
+                         .build();
+    }
+
+    private MethodSpec hashCodeMethod() {
+        return MethodSpec.methodBuilder("hashCode")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(int.class)
+                         .addStatement("return getClass().hashCode()")
+                         .build();
     }
 
     @Override

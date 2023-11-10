@@ -98,13 +98,9 @@ final class DefaultJsonClient implements JsonClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final JsonServiceClientConfiguration serviceClientConfiguration;
-
-    protected DefaultJsonClient(JsonServiceClientConfiguration serviceClientConfiguration,
-                                SdkClientConfiguration clientConfiguration) {
+    protected DefaultJsonClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -916,13 +912,12 @@ final class DefaultJsonClient implements JsonClient {
         if (plugins.isEmpty()) {
             return clientConfiguration;
         }
-        JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
-            .builder(clientConfiguration.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        JsonServiceClientConfigurationBuilder serviceConfigBuilder = new JsonServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
@@ -938,7 +933,7 @@ final class DefaultJsonClient implements JsonClient {
 
     @Override
     public final JsonServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new JsonServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override
