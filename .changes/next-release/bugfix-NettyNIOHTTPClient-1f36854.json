@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Netty NIO HTTP Client",
-    "contributor": "",
-    "description": "Fix an issue where data received on a channel while it was idling was not handled until the channel was leased again for a request. This caused issues such as late notification of channel closes, manifesting as channels being closed at the beginning of a request."
-}

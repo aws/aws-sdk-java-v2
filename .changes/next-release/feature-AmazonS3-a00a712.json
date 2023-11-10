@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "anirudh9391",
-    "description": "Create a plugin framework for Code-gen to consume plugins specified in customization.config and configure them on the client instance"
-}

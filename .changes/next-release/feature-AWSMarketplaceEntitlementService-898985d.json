@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Marketplace Entitlement Service",
-    "contributor": "",
-    "description": "Add paginators to GetEntitlements."
-}
