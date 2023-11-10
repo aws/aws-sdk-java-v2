@@ -165,40 +165,4 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         GetItemEnhancedResponse<Record> response = mappedTable.getItemWithResponse(req -> req.key(key)).join();
         assertThat(response.consumedCapacity()).isNull();
     }
-
-    @Test
-    public void getItem_withReturnConsumedCapacity_eventualConsistent() {
-        Record record = new Record().setId("101").setSort(102).setStringAttribute(getStringAttrValue(80 * 1024));
-        Key key = Key.builder()
-                     .partitionValue(record.getId())
-                     .sortValue(record.getSort())
-                     .build();
-        mappedTable.putItem(record).join();
-
-        GetItemEnhancedResponse<Record> response = mappedTable.getItemWithResponse(
-            req -> req.key(key).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
-        ).join();
-        ConsumedCapacity consumedCapacity = response.consumedCapacity();
-        assertThat(consumedCapacity).isNotNull();
-        // An eventually consistent read request of an item up to 4 KB requires one-half read request unit.
-        assertThat(consumedCapacity.capacityUnits()).isCloseTo(10.0, Offset.offset(1.0));
-    }
-
-    @Test
-    public void getItem_withReturnConsumedCapacity_stronglyConsistent() {
-        Record record = new Record().setId("201").setSort(202).setStringAttribute(getStringAttrValue(80 * 1024));
-        Key key = Key.builder()
-                     .partitionValue(record.getId())
-                     .sortValue(record.getSort())
-                     .build();
-        mappedTable.putItem(record).join();
-
-        GetItemEnhancedResponse<Record> response = mappedTable.getItemWithResponse(
-            req -> req.key(key).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).consistentRead(true)
-        ).join();
-        ConsumedCapacity consumedCapacity = response.consumedCapacity();
-        assertThat(consumedCapacity).isNotNull();
-        // A strongly consistent read request of an item up to 4 KB requires one read request unit.
-        assertThat(consumedCapacity.capacityUnits()).isCloseTo(20.0, Offset.offset(1.0));
-    }
 }

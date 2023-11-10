@@ -12,6 +12,8 @@ import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.codegen.poet.plugins.InternalTestPlugin1;
+import software.amazon.awssdk.codegen.poet.plugins.InternalTestPlugin2;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -186,16 +188,25 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> plugins = plugins();
-        if (plugins.isEmpty()) {
+        List<SdkPlugin> internalPlugins = internalPlugins();
+        List<SdkPlugin> externalPlugins = plugins();
+        if (internalPlugins.isEmpty() && externalPlugins.isEmpty()) {
             return config;
         }
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
         SdkClientConfiguration.Builder configuration = config.toBuilder();
         JsonServiceClientConfigurationBuilder serviceConfigBuilder = new JsonServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
         return configuration.build();
+    }
+
+    private List<SdkPlugin> internalPlugins() {
+        List<SdkPlugin> internalPlugins = new ArrayList<>();
+        internalPlugins.add(new InternalTestPlugin1());
+        internalPlugins.add(new InternalTestPlugin2());
+        return internalPlugins;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

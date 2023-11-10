@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,16 +149,22 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> plugins = plugins();
-        if (plugins.isEmpty()) {
+        List<SdkPlugin> internalPlugins = internalPlugins();
+        List<SdkPlugin> externalPlugins = plugins();
+        if (internalPlugins.isEmpty() && externalPlugins.isEmpty()) {
             return config;
         }
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
         SdkClientConfiguration.Builder configuration = config.toBuilder();
         QueryServiceClientConfigurationBuilder serviceConfigBuilder = new QueryServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
         return configuration.build();
+    }
+
+    private List<SdkPlugin> internalPlugins() {
+        return Collections.emptyList();
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

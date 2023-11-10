@@ -3,7 +3,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
@@ -15,9 +15,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.Logger;
 
-// TODO(sra-identity-auth): seems like this can be SdkInternalApi, similar to other .resource files in this folder,
-//  since they are generated in each service module
-@SdkProtectedApi
+@SdkInternalApi
 public final class AuthSchemeUtils {
     private static final Logger LOG = Logger.loggerFor(AuthSchemeUtils.class);
 

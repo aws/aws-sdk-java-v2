@@ -1,3 +1,304 @@
+# __2.21.21__ __2023-11-10__
+## __AWS Control Tower__
+  - ### Features
+    - AWS Control Tower supports tagging for enabled controls. This release introduces TagResource, UntagResource and ListTagsForResource APIs to manage tags in existing enabled controls. It updates EnabledControl API to tag resources at creation time.
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - This release adds support for tagging and customers can now tag report definitions. Additionally, ReportStatus is now added to report definition to show when the last delivered time stamp and if it succeeded or not.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes the ability to specify any input source as the primary input for corresponding follow modes, and allows users to specify fit and fill behaviors without resizing content.
+
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Add paginators to GetEntitlements.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 adds API updates to enable ENA Express at instance launch time.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for zero-ETL integrations.
+
+## __Amazon S3__
+  - ### Features
+    - Create a plugin framework for Code-gen to consume plugins specified in customization.config and configure them on the client instance
+        - Contributed by: [@anirudh9391](https://github.com/anirudh9391)
+
+## __Firewall Management Service__
+  - ### Features
+    - Adds optimizeUnassociatedWebACL flag to ManagedServiceData, updates third-party firewall examples, and other minor documentation updates.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix an issue where data received on a channel while it was idling was not handled until the channel was leased again for a request. This caused issues such as late notification of channel closes, manifesting as channels being closed at the beginning of a request.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@anirudh9391](https://github.com/anirudh9391)
+# __2.21.20__ __2023-11-09__
+## __AWS CloudFormation__
+  - ### Features
+    - Added new ConcurrencyMode feature for AWS CloudFormation StackSets for faster deployments to target accounts.
+
+## __AWS CloudTrail__
+  - ### Features
+    - The Insights in Lake feature lets customers enable CloudTrail Insights on a source CloudTrail Lake event data store and create a destination event data store to collect Insights events based on unusual management event activity in the source event data store.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Custom runtime on Amazon Linux 2023 (provided.al2023) support to AWS Lambda.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Update to support new APIs for delivery of logs from AWS services.
+
+## __Amazon Comprehend__
+  - ### Features
+    - This release adds support for toxicity detection and prompt safety classification.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the ability to integrate customer lambda functions with Connect attachments for scanning and updates the ListIntegrationAssociations API to support filtering on IntegrationArn.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS EBS now supports Block Public Access for EBS Snapshots. This release introduces the EnableSnapshotBlockPublicAccess, DisableSnapshotBlockPublicAccess and GetSnapshotBlockPublicAccessState APIs to manage account-level public access settings for EBS Snapshots in an AWS Region.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding EKS Anywhere subscription related operations.
+
+## __Amazon Omics__
+  - ### Features
+    - Support UBAM filetype for Omics Storage and make referenceArn optional
+
+# __2.21.19__ __2023-11-08__
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release enables customers to call SQS using AWS JSON-1.0 protocol and bug fix.
+
+# __2.21.18__ __2023-11-08__
+## __AWS DataSync__
+  - ### Features
+    - This change allows for 0 length access keys and secret keys for object storage locations. Users can now pass in empty string credentials.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Node 20 (nodejs20.x) support to AWS Lambda.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub enhances Resiliency Score, providing actionable recommendations to improve application resilience. Amazon Elastic Kubernetes Service (EKS) operational recommendations have been added to help improve the resilience posture of your applications.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to add/view comment authors through CreateRelatedItem and SearchRelatedItems API. For more information see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release clarifies in our public documentation that InstanceId is a requirement for SearchUsers API requests.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added API support for new GuardDuty EKS Audit Log finding types.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - AWS Lex now supports selective log capture in conversation logs. When you enable this option within the conversation log settings, only the utterances that trigger intents and slots specified in session attributes will be logged.
+
+## __Amazon Omics__
+  - ### Features
+    - Adding Run UUID and Run Output URI: GetRun and StartRun API response has two new fields "uuid" and "runOutputUri".
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This Amazon RDS release adds support for patching the OS of an RDS Custom for Oracle DB instance. You can now upgrade the database or operating system using the modify-db-instance command.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release enables customers to call SQS using AWS JSON-1.0 protocol.
+
+## __Redshift Serverless__
+  - ### Features
+    - Added a new parameter in the workgroup that helps you control your cost for compute resources. This feature provides a ceiling for RPUs that Amazon Redshift Serverless can scale up to. When automatic compute scaling is required, having a higher value for MaxRPU can enhance query throughput.
+
+# __2.21.17__ __2023-11-07__
+## __AWS Data Exchange__
+  - ### Features
+    - Updated SendDataSetNotificationRequest Comment to be maximum length 4096.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Added support for pre and post scripts in Amazon Data Lifecycle Manager EBS snapshot lifecycle policies.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This Amazon RDS release adds support for the multi-tenant configuration. In this configuration, an RDS DB instance can contain multiple tenant databases. In RDS for Oracle, a tenant database is a pluggable database (PDB).
+
+# __2.21.16__ __2023-11-06__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports AWS Lambda compute.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release extends the GetReservationPurchaseRecommendation API to support recommendations for Amazon MemoryDB reservations.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Add partitional endpoint for iso-e.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added new API that allows Amazon Connect Outbound Campaigns to create contacts in Amazon Connect when ingesting your dial requests.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Update the input of CreateDBInstance and ModifyDBInstance to support setting CA Certificates. Update the output of DescribeDBInstance and DescribeDBEngineVersions to show current and supported CA certificates.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new US English voices - Danielle and Gregory. Danielle and Gregory are available as Neural voices only.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add partitional endpoints for iso-e and iso-f.
+
+## __AmazonMWAA__
+  - ### Features
+    - This release adds support for Apache Airflow version 2.7.2. This version release includes support for deferrable operators and triggers.
+
+## __s3__
+  - ### Features
+    - Move the service to the standardized AWS SDK architecture for identity and auth that was introduced in 2.21.0 release.
+
+# __2.21.15__ __2023-11-03__
+## __AWS Config__
+  - ### Features
+    - Updated ResourceType enum with new resource types onboarded by AWS Config in October 2023.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Added LoRaWAN version 1.0.4 support
+
+## __AWS Launch Wizard__
+  - ### Features
+    - AWS Launch Wizard is a service that helps reduce the time it takes to deploy applications to the cloud while providing a guided deployment experience.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed the AttributeMap#close method trying to close an ExecutorService instance instead of shutting it down, resulting in a deadlock starting with Java 21
+        - Contributed by: [@michaeldimchuk](https://github.com/michaeldimchuk)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat introduces Create Persistent Contact Association API, allowing customers to choose when to resume previous conversations from previous chats, eliminating the need to repeat themselves and allowing agents to provide personalized service with access to entire conversation history.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@michaeldimchuk](https://github.com/michaeldimchuk)
+# __2.21.14__ __2023-11-02__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner now supports using dual-stack address type for the public endpoint of your incoming traffic.
+
+## __AWS Glue__
+  - ### Features
+    - This release introduces Google BigQuery Source and Target in AWS Glue CodeGenConfigurationNode.
+
+## __AWS Network Firewall__
+  - ### Features
+    - This release introduces the stateless rule analyzer, which enables you to analyze your stateless rules for asymmetric routing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Makes SignedRequest and AsyncSignedRequest implement CopyableBuilder to allow modifications
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 API: Update to include new metrics PERCENT_NON_TALK_TIME, PERCENT_TALK_TIME, PERCENT_TALK_TIME_AGENT, PERCENT_TALK_TIME_CUSTOMER
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift adds support for shared credentials, which allows applications that are deployed on managed EC2 fleets to interact with other AWS resources.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release introduces Float Decimal Type as SubType in QuickSight SPICE datasets and Custom week start and Custom timezone options in Analysis and Dashboard.
+
+# __2.21.13__ __2023-11-01__
+## __AWS Global Accelerator__
+  - ### Features
+    - Global Accelerator now support accelerators with cross account endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `cloudwatch-metric-publisher` to `aws-sdk-java` module so that it can be included in the bundle JAR.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds the BatchGetFlowAssociation API which returns flow associations (flow-resource) corresponding to the list of resourceArns supplied in the request. This release also adds IsDefault, LastModifiedRegion and LastModifiedTime fields to the responses of several Describe and List APIs.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support for Multi-AZ deployments for Provisioned RA3 clusters that provide 99.99% SLA availability.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for customized networking resources to Amazon RDS Custom.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Support for batch transform input in Model dashboard
+
+# __2.21.12__ __2023-10-31__
+## __AWS Amplify__
+  - ### Features
+    - Add backend field to CreateBranch and UpdateBranch requests. Add pagination support for ListApps, ListDomainAssociations, ListBranches, and ListJobs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Introduce `AsyncRequestBody#fromInputStream(AsyncRequestBodyFromInputStreamConfiguration)` that allows users to specify the max read limit on the provided InputStream.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Added name filter ability for ListDataSets API, added ForceUpdate for Updating environment and BatchJob submission using S3BatchJobIdentifier
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Automate attaching managed policies
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Capacity Blocks for ML are a new EC2 purchasing option for reserving GPU instances on a future date to support short duration machine learning (ML) workloads. Capacity Blocks automatically place instances close together inside Amazon EC2 UltraClusters for low-latency, high-throughput networking.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Minor change to not retry CancelledByUserException
+
+## __Amazon Translate__
+  - ### Features
+    - Added support for Brevity translation settings feature.
+
 # __2.21.11__ __2023-10-30__
 ## __AWS CRT-based S3 Client__
   - ### Features

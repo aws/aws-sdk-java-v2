@@ -25,7 +25,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import org.assertj.core.data.Offset;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +33,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
@@ -209,25 +207,19 @@ public class S3PresignerTest {
                                                                                             .key("bar")
                                                                                             .overrideConfiguration(override))))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("NoOpSigner");
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
     }
 
     @Test
     public void getObject_Sigv4PresignerHonorsSignatureDuration() {
-        AwsRequestOverrideConfiguration override =
-            AwsRequestOverrideConfiguration.builder()
-                                           .signer(AwsS3V4Signer.create())
-                                           .build();
-
         PresignedGetObjectRequest presigned =
             presigner.presignGetObject(r -> r.signatureDuration(Duration.ofSeconds(1234))
                                              .getObjectRequest(gor -> gor.bucket("a")
-                                                                         .key("b")
-                                                                         .overrideConfiguration(override)));
+                                                                         .key("b")));
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();
-            assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
+            assertThat(Integer.parseInt(expires)).isEqualTo(1234);
         });
     }
 
@@ -319,25 +311,19 @@ public class S3PresignerTest {
                                                                                             .key("bar")
                                                                                             .overrideConfiguration(override))))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("NoOpSigner");
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
     }
 
     @Test
     public void putObject_Sigv4PresignerHonorsSignatureDuration() {
-        AwsRequestOverrideConfiguration override =
-            AwsRequestOverrideConfiguration.builder()
-                                           .signer(AwsS3V4Signer.create())
-                                           .build();
-
         PresignedPutObjectRequest presigned =
             presigner.presignPutObject(r -> r.signatureDuration(Duration.ofSeconds(1234))
                                              .putObjectRequest(gor -> gor.bucket("a")
-                                                                         .key("b")
-                                                                         .overrideConfiguration(override)));
+                                                                         .key("b")));
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();
-            assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
+            assertThat(Integer.parseInt(expires)).isEqualTo(1234);
         });
     }
 
@@ -429,25 +415,19 @@ public class S3PresignerTest {
                                                                                                     .key("bar")
                                                                                                     .overrideConfiguration(override))))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("NoOpSigner");
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
     }
 
     @Test
     public void deleteObject_Sigv4PresignerHonorsSignatureDuration() {
-        AwsRequestOverrideConfiguration override =
-            AwsRequestOverrideConfiguration.builder()
-                                           .signer(AwsS3V4Signer.create())
-                                           .build();
-
         PresignedDeleteObjectRequest presigned =
             presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofSeconds(1234))
                                                 .deleteObjectRequest(delo -> delo.bucket("a")
-                                                                               .key("b")
-                                                                               .overrideConfiguration(override)));
+                                                                                 .key("b")));
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();
-            assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
+            assertThat(Integer.parseInt(expires)).isEqualTo(1234);
         });
     }
 

@@ -53,6 +53,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
@@ -400,7 +401,7 @@ public class AwsExecutionContextBuilderTest {
         SelectedAuthScheme<?> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(AwsCredentialsIdentity.create("ak", "sk")),
             mock(HttpSigner.class),
-            AuthSchemeOption.builder().schemeId("blah-value-does-not-matter").build()
+            AuthSchemeOption.builder().schemeId(AwsV4AuthScheme.SCHEME_ID).build()
         );
         ExecutionAttributes executionAttributes =
             ExecutionAttributes.builder()

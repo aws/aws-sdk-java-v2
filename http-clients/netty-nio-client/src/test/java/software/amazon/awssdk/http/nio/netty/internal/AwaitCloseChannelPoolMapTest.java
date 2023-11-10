@@ -268,4 +268,42 @@ public class AwaitCloseChannelPoolMapTest {
         verify(provider).keyManagers();
     }
 
+    @Test
+    public void acquireChannel_autoReadDisabled() {
+        channelPoolMap = AwaitCloseChannelPoolMap.builder()
+                                                 .sdkChannelOptions(new SdkChannelOptions())
+                                                 .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                                 .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
+                                                 .protocol(Protocol.HTTP1_1)
+                                                 .maxStreams(100)
+                                                 .sslProvider(SslProvider.OPENSSL)
+                                                 .build();
+
+        ChannelPool channelPool = channelPoolMap.newPool(URI.create("https://localhost:" + mockProxy.port()));
+
+        Channel channel = channelPool.acquire().awaitUninterruptibly().getNow();
+
+        assertThat(channel.config().isAutoRead()).isFalse();
+    }
+
+    @Test
+    public void releaseChannel_autoReadEnabled() {
+        channelPoolMap = AwaitCloseChannelPoolMap.builder()
+                                                 .sdkChannelOptions(new SdkChannelOptions())
+                                                 .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                                                 .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
+                                                 .protocol(Protocol.HTTP1_1)
+                                                 .maxStreams(100)
+                                                 .sslProvider(SslProvider.OPENSSL)
+                                                 .build();
+
+        ChannelPool channelPool = channelPoolMap.newPool(URI.create("https://localhost:" + mockProxy.port()));
+
+        Channel channel = channelPool.acquire().awaitUninterruptibly().getNow();
+
+        channelPool.release(channel).awaitUninterruptibly();
+
+        assertThat(channel.config().isAutoRead()).isTrue();
+    }
+
 }
