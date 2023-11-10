@@ -63,6 +63,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -81,7 +82,6 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.ScheduledExecutorUtils.UnmanagedScheduledExecutorService;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
@@ -133,13 +133,13 @@ public class DefaultClientBuilderTest {
         String prefix = "prefix";
         Duration apiCallTimeout = Duration.ofMillis(42);
         Duration apiCallAttemptTimeout = Duration.ofMillis(43);
-        Supplier<ProfileFile> profileFileSupplier = () -> null;
         ProfileFile profileFile = ProfileFile.builder()
                                              .content(new StringInputStream(""))
                                              .type(ProfileFile.Type.CONFIGURATION)
                                              .build();
+        Supplier<ProfileFile> profileFileSupplier = () -> profileFile;
         String profileName = "name";
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService scheduledExecutorService = mock(ScheduledExecutorService.class);
 
         ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
             .executionInterceptors(interceptors)
@@ -152,7 +152,6 @@ public class DefaultClientBuilderTest {
             .apiCallAttemptTimeout(apiCallAttemptTimeout)
             .putAdvancedOption(DISABLE_HOST_PREFIX_INJECTION, Boolean.TRUE)
             .defaultProfileFileSupplier(profileFileSupplier)
-            .defaultProfileFile(profileFile)
             .defaultProfileName(profileName)
             .metricPublishers(metricPublishers)
             .executionAttributes(executionAttributes)
@@ -171,13 +170,17 @@ public class DefaultClientBuilderTest {
         assertThat(builderOverrideConfig.apiCallTimeout()).isEqualTo(Optional.of(apiCallTimeout));
         assertThat(builderOverrideConfig.apiCallAttemptTimeout()).isEqualTo(Optional.of(apiCallAttemptTimeout));
         assertThat(builderOverrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION)).isEqualTo(Optional.of(Boolean.TRUE));
-        assertThat(builderOverrideConfig.defaultProfileFileSupplier()).isEqualTo(Optional.of(profileFileSupplier));
+        assertThat(builderOverrideConfig.defaultProfileFileSupplier()).hasValue(profileFileSupplier);
         assertThat(builderOverrideConfig.defaultProfileFile()).isEqualTo(Optional.of(profileFile));
         assertThat(builderOverrideConfig.defaultProfileName()).isEqualTo(Optional.of(profileName));
         assertThat(builderOverrideConfig.metricPublishers()).isEqualTo(metricPublishers);
         assertThat(builderOverrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes.getAttributes());
         assertThat(builderOverrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE)).isEqualTo(Optional.of(Boolean.TRUE));
-        assertThat(builderOverrideConfig.scheduledExecutorService().get()).isEqualTo(scheduledExecutorService);
+
+        Runnable runnable = () -> {
+        };
+        builderOverrideConfig.scheduledExecutorService().get().submit(runnable);
+        verify(scheduledExecutorService).submit(runnable);
     }
 
     @Test
@@ -212,7 +215,7 @@ public class DefaultClientBuilderTest {
         interceptors.add(interceptor);
 
         RetryPolicy retryPolicy = RetryPolicy.builder().build();
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService scheduledExecutorService = Mockito.spy(Executors.newScheduledThreadPool(1));
 
         Map<String, List<String>> headers = new HashMap<>();
         List<String> headerValues = new ArrayList<>();
@@ -283,9 +286,13 @@ public class DefaultClientBuilderTest {
         assertThat(config.option(METRIC_PUBLISHERS)).contains(metricPublisher);
         assertThat(config.option(EXECUTION_ATTRIBUTES).getAttribute(execAttribute)).isEqualTo("value");
         assertThat(config.option(ENDPOINT_OVERRIDDEN)).isEqualTo(Boolean.TRUE);
-        UnmanagedScheduledExecutorService customScheduledExecutorService =
-            (UnmanagedScheduledExecutorService) config.option(SCHEDULED_EXECUTOR_SERVICE);
-        assertThat(customScheduledExecutorService.scheduledExecutorService()).isEqualTo(scheduledExecutorService);
+
+        // Ensure that the SDK won't close the scheduled executor service we provided.
+        config.close();
+        config.option(SCHEDULED_EXECUTOR_SERVICE).shutdownNow();
+        config.option(SCHEDULED_EXECUTOR_SERVICE).shutdown();
+        Mockito.verify(scheduledExecutorService, never()).shutdown();
+        Mockito.verify(scheduledExecutorService, never()).shutdownNow();
     }
 
     @Test

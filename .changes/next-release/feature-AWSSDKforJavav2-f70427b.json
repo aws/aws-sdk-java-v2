@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "The `serviceClientConfiguration` from SDK clients now includes the defaults set by the SDK."
+}

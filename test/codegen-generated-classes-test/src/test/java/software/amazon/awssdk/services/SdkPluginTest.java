@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static software.amazon.awssdk.profiles.ProfileFile.Type.CONFIGURATION;
 
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -46,11 +47,11 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -82,6 +83,7 @@ import software.amazon.awssdk.services.protocolrestjson.auth.scheme.ProtocolRest
 import software.amazon.awssdk.services.protocolrestjson.endpoints.ProtocolRestJsonEndpointProvider;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
@@ -103,16 +105,13 @@ public class SdkPluginTest {
 
         String profileFileContent =
             "[default]\n"
-            + ProfileProperty.AWS_ACCESS_KEY_ID + " = akid-from-profile\n"
-            + ProfileProperty.AWS_SECRET_ACCESS_KEY + " = skid-from-profile\n"
-            + ProfileProperty.AWS_SESSION_TOKEN + " = stok-from-profile\n"
-            + ProfileProperty.DEFAULTS_MODE + " = standard\n"
-            + ProfileProperty.USE_DUALSTACK_ENDPOINT + " = true\n"
-            + ProfileProperty.USE_FIPS_ENDPOINT + " = true";
+            + ProfileProperty.USE_FIPS_ENDPOINT + " = true"
+            + "[profile some-profile]\n"
+            + ProfileProperty.USE_FIPS_ENDPOINT + " = false";
 
         ProfileFile nonDefaultProfileFile =
             ProfileFile.builder()
-                       .type(ProfileFile.Type.CONFIGURATION)
+                       .type(CONFIGURATION)
                        .content(new StringInputStream(profileFileContent))
                        .build();
 
@@ -126,8 +125,7 @@ public class SdkPluginTest {
                     assertThat(v).isEqualTo(removePathAndQueryString(r.httpRequest().getUri()));
                 }),
             new TestCase<ProtocolRestJsonEndpointProvider>("endpointProvider")
-                .defaultClientValue(ProtocolRestJsonEndpointProvider.defaultProvider())
-                .defaultRequestValue(ProtocolRestJsonEndpointProvider.defaultProvider())
+                .defaultValue(ProtocolRestJsonEndpointProvider.defaultProvider())
                 .nonDefaultValue(a -> CompletableFuture.completedFuture(Endpoint.builder()
                                                                                 .url(URI.create("https://example.aws"))
                                                                                 .build()))
@@ -140,8 +138,7 @@ public class SdkPluginTest {
                         .isEqualTo(v.resolveEndpoint(x -> {}).join().url());
                 }),
             new TestCase<Map<String, AuthScheme<?>>>("authSchemes")
-                .defaultClientValue(defaultAuthSchemes)
-                .defaultRequestValue(defaultAuthSchemes)
+                .defaultValue(defaultAuthSchemes)
                 .nonDefaultValue(nonDefaultAuthSchemes)
                 .clientSetter((b, v) -> v.forEach((x, scheme) -> b.putAuthScheme(scheme)))
                 .pluginSetter((b, v) -> v.forEach((x, scheme) -> b.putAuthScheme(scheme)))
@@ -150,8 +147,7 @@ public class SdkPluginTest {
                     assertThat(a.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES)).containsEntry(id, s);
                 })),
             new TestCase<Region>("region")
-                .defaultClientValue(Region.US_WEST_2)
-                .defaultRequestValue(Region.US_WEST_2)
+                .defaultValue(Region.US_WEST_2)
                 .nonDefaultValue(Region.US_EAST_1)
                 .clientSetter(AwsClientBuilder::region)
                 .pluginSetter(ProtocolRestJsonServiceClientConfiguration.Builder::region)
@@ -164,8 +160,7 @@ public class SdkPluginTest {
                     assertThat(r.httpRequest().getUri().getHost()).contains(v.id());
                 }),
             new TestCase<AwsCredentialsProvider>("credentialsProvider")
-                .defaultClientValue(DEFAULT_CREDENTIALS)
-                .defaultRequestValue(DEFAULT_CREDENTIALS)
+                .defaultValue(DEFAULT_CREDENTIALS)
                 .nonDefaultValue(DEFAULT_CREDENTIALS::resolveCredentials)
                 .clientSetter(AwsClientBuilder::credentialsProvider)
                 .requestSetter(AwsRequestOverrideConfiguration.Builder::credentialsProvider)
@@ -178,8 +173,7 @@ public class SdkPluginTest {
                                                                       .contains(v.resolveCredentials().accessKeyId());
                 }),
             new TestCase<ProtocolRestJsonAuthSchemeProvider>("authSchemeProvider")
-                .defaultClientValue(ProtocolRestJsonAuthSchemeProvider.defaultProvider())
-                .defaultRequestValue(ProtocolRestJsonAuthSchemeProvider.defaultProvider())
+                .defaultValue(ProtocolRestJsonAuthSchemeProvider.defaultProvider())
                 .nonDefaultValue(p -> singletonList(AuthSchemeOption.builder().schemeId(NoAuthAuthScheme.SCHEME_ID).build()))
                 .clientSetter(ProtocolRestJsonClientBuilder::authSchemeProvider)
                 .pluginSetter(ProtocolRestJsonServiceClientConfiguration.Builder::authSchemeProvider)
@@ -191,8 +185,7 @@ public class SdkPluginTest {
                     assertThat(r.httpRequest().firstMatchingHeader("Authorization")).isNotPresent();
                 }),
             new TestCase<Map<String, List<String>>>("override.headers")
-                .defaultClientValue(emptyMap())
-                .defaultRequestValue(emptyMap())
+                .defaultValue(emptyMap())
                 .nonDefaultValue(singletonMap("foo", singletonList("bar")))
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.headers(v)))
                 .requestSetter(AwsRequestOverrideConfiguration.Builder::headers)
@@ -202,23 +195,24 @@ public class SdkPluginTest {
                     v.forEach((key, value) -> assertThat(r.httpRequest().headers().get(key)).isEqualTo(value));
                 }),
             new TestCase<RetryPolicy>("override.retryPolicy")
-                .defaultClientValue(null) // TODO: Plugins should see default values
-                .defaultRequestValue(null)
+                .defaultValue(RetryPolicy.defaultRetryPolicy())
                 .nonDefaultValue(RetryPolicy.builder(RetryMode.STANDARD).numRetries(1).build())
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.retryPolicy(v)))
                 .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.retryPolicy(v))))
-                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().retryPolicy().orElse(null)).isEqualTo(v))
+                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().retryPolicy().get().numRetries())
+                    .isEqualTo(v.numRetries()))
                 .beforeTransmissionValidator((r, a, v) -> {
                     assertThat(r.httpRequest().firstMatchingHeader("amz-sdk-request"))
                         .hasValue("attempt=1; max=" + (v.numRetries() + 1));
                 }),
             new TestCase<List<ExecutionInterceptor>>("override.executionInterceptors")
-                .defaultClientValue(emptyList())
-                .defaultRequestValue(emptyList())
+                .defaultValue(emptyList())
                 .nonDefaultValue(singletonList(new FlagSettingInterceptor()))
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.executionInterceptors(v)))
-                .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.executionInterceptors(v))))
-                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().executionInterceptors()).isEqualTo(v))
+                .pluginSetter((b, v) -> {
+                    b.overrideConfiguration(b.overrideConfiguration().copy(c -> v.forEach(c::addExecutionInterceptor)));
+                })
+                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().executionInterceptors()).containsAll(v))
                 .beforeTransmissionValidator((r, a, v) -> {
                     if (v.stream().anyMatch(i -> i instanceof FlagSettingInterceptor)) {
                         assertThat(a.getAttribute(FlagSettingInterceptor.FLAG)).isEqualTo(true);
@@ -227,12 +221,23 @@ public class SdkPluginTest {
                     }
                 }),
             new TestCase<ScheduledExecutorService>("override.scheduledExecutorService")
-                .defaultClientValue(null)
-                .defaultRequestValue(null)
+                .defaultValue(null)
                 .nonDefaultValue(mockScheduledExecutor)
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.scheduledExecutorService(v)))
                 .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.scheduledExecutorService(v))))
-                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().scheduledExecutorService().orElse(null)).isEqualTo(v))
+                .pluginValidator((c, v) -> {
+                    Optional<ScheduledExecutorService> executor = c.overrideConfiguration().scheduledExecutorService();
+                    if (v != null) {
+                        // The SDK should decorate the non-default-value. Ensure that's what happened.
+                        Runnable runnable = () -> {};
+                        v.submit(runnable);
+                        assertThat(v).isEqualTo(mockScheduledExecutor);
+                        Mockito.verify(v, times(1)).submit(eq(runnable));
+                    } else {
+                        // Null means we're using the default, and the default should be specified by the runtime.
+                        assertThat(executor).isPresent();
+                    }
+                })
                 .clientConfigurationValidator((c, v) -> {
                     ScheduledExecutorService configuredService = c.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
                     if (mockScheduledExecutor.equals(v)) {
@@ -242,23 +247,22 @@ public class SdkPluginTest {
                         assertThat(v).isEqualTo(mockScheduledExecutor);
                         Mockito.verify(v, times(1)).submit(eq(runnable));
                     } else {
-                        // This isn't our configured mock, so it shouldn't decorate the value.
-                        assertThat(configuredService).isEqualTo(v);
+                        assertThat(configuredService).isNotNull();
                     }
                 }),
             new TestCase<Map<SdkAdvancedClientOption<?>, ?>>("override.advancedOptions")
-                .defaultClientValue(emptyMap())
-                .defaultRequestValue(emptyMap())
+                .defaultValue(emptyMap())
                 .nonDefaultValue(singletonMap(SdkAdvancedClientOption.USER_AGENT_PREFIX, "foo"))
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.advancedOptions(v)))
-                .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.advancedOptions(v))))
+                .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> {
+                    v.forEach((option, value) -> unsafePutOption(c, option, value));
+                })))
                 .pluginValidator((c, v) -> {
                     v.forEach((o, ov) -> assertThat(c.overrideConfiguration().advancedOption(o).orElse(null)).isEqualTo(ov));
                 })
                 .clientConfigurationValidator((c, v) -> v.forEach((o, ov) -> assertThat(c.option(o)).isEqualTo(ov))),
             new TestCase<Duration>("override.apiCallTimeout")
-                .defaultClientValue(null)
-                .defaultRequestValue(null)
+                .defaultValue(null)
                 .nonDefaultValue(Duration.ofSeconds(5))
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.apiCallTimeout(v)))
                 .requestSetter(AwsRequestOverrideConfiguration.Builder::apiCallTimeout)
@@ -266,8 +270,7 @@ public class SdkPluginTest {
                 .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().apiCallTimeout().orElse(null)).isEqualTo(v))
                 .clientConfigurationValidator((c, v) -> assertThat(c.option(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(v)),
             new TestCase<Duration>("override.apiCallAttemptTimeout")
-                .defaultClientValue(null)
-                .defaultRequestValue(null)
+                .defaultValue(null)
                 .nonDefaultValue(Duration.ofSeconds(3))
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.apiCallAttemptTimeout(v)))
                 .requestSetter(AwsRequestOverrideConfiguration.Builder::apiCallAttemptTimeout)
@@ -275,83 +278,56 @@ public class SdkPluginTest {
                 .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().apiCallAttemptTimeout().orElse(null)).isEqualTo(v))
                 .clientConfigurationValidator((c, v) -> assertThat(c.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT)).isEqualTo(v)),
             new TestCase<Supplier<ProfileFile>>("override.defaultProfileFileSupplier")
-                .defaultClientValue(null)
-                .defaultRequestValue(null)
+                .defaultValue(new Lazy<>(ProfileFile::defaultProfileFile)::getValue)
                 .nonDefaultValue(() -> nonDefaultProfileFile)
-                .clientSetter((b, v) -> {
-                    if (v != null) {
-                        b.credentialsProvider(null)
-                         .overrideConfiguration(c -> c.defaultProfileFileSupplier(v));
-                    } else {
-                        // Do not override the creds if the profile file supplier is null, otherwise we won't have any creds.
-                        b.overrideConfiguration(c -> c.defaultProfileFileSupplier(null));
-                    }
-                })
+                .clientSetter((b, v) -> b.overrideConfiguration(c -> c.defaultProfileFileSupplier(v)))
                 .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.defaultProfileFileSupplier(v))))
-                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().defaultProfileFileSupplier().orElse(null)).isEqualTo(v))
+                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().defaultProfileFileSupplier().get().get()).isEqualTo(v.get()))
                 .clientConfigurationValidator((c, v) -> {
                     Supplier<ProfileFile> supplier = c.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
-                    assertThat(supplier).isEqualTo(v);
+                    assertThat(supplier.get()).isEqualTo(v.get());
 
-                    Optional<Profile> defaultProfile = supplier.get().profile("default");
+                    Optional<Profile> defaultProfile = v.get().profile("default");
                     defaultProfile.ifPresent(profile -> {
-                        // TODO: The codegen'd client configuration objects that plugins get cannot set the profile file and have
-                        // it affect credentials, because the credentials are cached within the configuration objects. That
-                        // should be fixed.
-                        // AwsCredentialsIdentity credentials = c.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER).resolveIdentity().join();
-                        // profile.property(ProfileProperty.AWS_ACCESS_KEY_ID).ifPresent(akid -> {
-                        //     assertThat(credentials.accessKeyId()).isEqualTo(akid);
-                        // });
-                        // profile.property(ProfileProperty.AWS_SECRET_ACCESS_KEY).ifPresent(skid -> {
-                        //     assertThat(credentials.secretAccessKey()).isEqualTo(skid);
-                        // });
-                        // profile.property(ProfileProperty.AWS_SESSION_TOKEN).ifPresent(stok -> {
-                        //     assertThat(credentials).asInstanceOf(InstanceOfAssertFactories.type(AwsSessionCredentialsIdentity.class))
-                        //                            .extracting(AwsSessionCredentialsIdentity::sessionToken)
-                        //                            .isEqualTo(stok);
-                        // });
-                        profile.booleanProperty(ProfileProperty.USE_FIPS_ENDPOINT).ifPresent(ufe -> {
-                            assertThat(c.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isEqualTo(ufe);
-                        });
-                        profile.property(ProfileProperty.DEFAULTS_MODE).ifPresent(d -> {
-                            assertThat(c.option(AwsClientOption.DEFAULTS_MODE)).isEqualTo(DefaultsMode.fromValue(d));
-                        });
-                        profile.booleanProperty(ProfileProperty.USE_DUALSTACK_ENDPOINT).ifPresent(ude -> {
-                            assertThat(c.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED)).isEqualTo(ude);
+                        profile.booleanProperty(ProfileProperty.USE_FIPS_ENDPOINT).ifPresent(d -> {
+                            assertThat(c.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isEqualTo(d);
                         });
                     });
+                    if (!defaultProfile.isPresent()) {
+                        assertThat(c.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isIn(null, false);
+                    }
                 }),
             new TestCase<ProfileFile>("override.defaultProfileFile")
-                .defaultClientValue(null)
-                .defaultRequestValue(null)
+                .defaultValue(ProfileFile.defaultProfileFile())
                 .nonDefaultValue(nonDefaultProfileFile)
-                .clientSetter((b, v) -> {
-                    if (v != null) {
-                        b.credentialsProvider(null)
-                         .overrideConfiguration(c -> c.defaultProfileFile(v));
-                    } else {
-                        // Do not override the creds if the profile file is null, otherwise we won't have any creds.
-                        b.overrideConfiguration(c -> c.defaultProfileFile(null));
-                    }
-                })
+                .clientSetter((b, v) -> b.overrideConfiguration(c -> c.defaultProfileFile(v)))
                 .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.defaultProfileFile(v))))
-                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().defaultProfileFile().orElse(null)).isEqualTo(v))
+                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().defaultProfileFile()).hasValue(v))
                 .clientConfigurationValidator((c, v) -> assertThat(c.option(SdkClientOption.PROFILE_FILE)).isEqualTo(v)),
             new TestCase<String>("override.defaultProfileName")
-                .defaultClientValue(null)
-                .defaultRequestValue(null)
+                .defaultValue("default")
                 .nonDefaultValue("some-profile")
-                .clientSetter((b, v) -> b.overrideConfiguration(c -> c.defaultProfileName(v)))
-                .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.defaultProfileName(v))))
+                .clientSetter((b, v) -> b.overrideConfiguration(c -> c.defaultProfileName(v)
+                                                                      .defaultProfileFile(nonDefaultProfileFile)))
+                .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.defaultProfileName(v)
+                                                                                                     .defaultProfileFile(nonDefaultProfileFile))))
                 .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().defaultProfileName().orElse(null)).isEqualTo(v))
                 .clientConfigurationValidator((c, v) -> {
-                    // TODO: when default values are fixed, validate that the "v" profile is actually used by checking some
-                    // setting (e.g. region, credentials).
                     assertThat(c.option(SdkClientOption.PROFILE_NAME)).isEqualTo(v);
+                    ProfileFile profileFile = c.option(SdkClientOption.PROFILE_FILE_SUPPLIER).get();
+
+                    Optional<Profile> configuredProfile = profileFile.profile(v);
+                    configuredProfile.ifPresent(profile -> {
+                        profile.booleanProperty(ProfileProperty.USE_FIPS_ENDPOINT).ifPresent(d -> {
+                            assertThat(c.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isEqualTo(d);
+                        });
+                    });
+                    if (!configuredProfile.isPresent()) {
+                        assertThat(c.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isIn(null, false);
+                    }
                 }),
             new TestCase<List<MetricPublisher>>("override.metricPublishers")
-                .defaultClientValue(emptyList())
-                .defaultRequestValue(emptyList())
+                .defaultValue(emptyList())
                 .nonDefaultValue(singletonList(mockMetricPublisher))
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.metricPublishers(v)))
                 .requestSetter(AwsRequestOverrideConfiguration.Builder::metricPublishers)
@@ -361,8 +337,7 @@ public class SdkPluginTest {
                     assertThat(c.option(SdkClientOption.METRIC_PUBLISHERS)).containsAll(v);
                 }),
             new TestCase<ExecutionAttributes>("override.executionAttributes")
-                .defaultClientValue(new ExecutionAttributes())
-                .defaultRequestValue(new ExecutionAttributes())
+                .defaultValue(new ExecutionAttributes())
                 .nonDefaultValue(new ExecutionAttributes().putAttribute(FlagSettingInterceptor.FLAG, true))
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.executionAttributes(v)))
                 .requestSetter(AwsRequestOverrideConfiguration.Builder::executionAttributes)
@@ -372,8 +347,10 @@ public class SdkPluginTest {
                     assertThat(a.getAttribute(FlagSettingInterceptor.FLAG)).isTrue();
                 }),
             new TestCase<CompressionConfiguration>("override.compressionConfiguration")
-                .defaultClientValue(null)
-                .defaultRequestValue(null)
+                .defaultValue(CompressionConfiguration.builder()
+                                                      .requestCompressionEnabled(true)
+                                                      .minimumCompressionThresholdInBytes(10_240)
+                                                      .build())
                 .nonDefaultValue(CompressionConfiguration.builder()
                                                          .requestCompressionEnabled(true)
                                                          .minimumCompressionThresholdInBytes(1)
@@ -386,11 +363,17 @@ public class SdkPluginTest {
         );
     }
 
+    private static <T> void unsafePutOption(ClientOverrideConfiguration.Builder config,
+                                            SdkAdvancedClientOption<T> option,
+                                            Object value) {
+        config.putAdvancedOption(option, option.convertValue(value));
+
+    }
+
     @ParameterizedTest
     @MethodSource("testCases")
     public <T> void validateTestCaseData(TestCase<T> testCase) {
-        assertThat(testCase.defaultClientValue).isNotEqualTo(testCase.nonDefaultValue);
-        assertThat(testCase.defaultRequestValue).isNotEqualTo(testCase.nonDefaultValue);
+        assertThat(testCase.defaultValue).isNotEqualTo(testCase.nonDefaultValue);
     }
 
     @ParameterizedTest
@@ -402,15 +385,14 @@ public class SdkPluginTest {
         SdkPlugin plugin = config -> {
             ProtocolRestJsonServiceClientConfiguration.Builder conf =
                 (ProtocolRestJsonServiceClientConfiguration.Builder) config;
-            testCase.pluginValidator.accept(conf, testCase.defaultClientValue);
+            testCase.pluginValidator.accept(conf, testCase.defaultValue);
             timesCalled.incrementAndGet();
         };
 
         ProtocolRestJsonClient client = clientBuilder.addPlugin(plugin).build();
-        // TODO: Uncomment when the default values in the test case actually match what is used
-        // if (testCase.clientConfigurationValidator != null) {
-        //     testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.defaultClientValue);
-        // }
+        if (testCase.clientConfigurationValidator != null) {
+            testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.defaultValue);
+        }
         assertThat(timesCalled).hasValue(1);
     }
 
@@ -423,15 +405,14 @@ public class SdkPluginTest {
         SdkPlugin plugin = config -> {
             ProtocolRestJsonServiceClientConfiguration.Builder conf =
                 (ProtocolRestJsonServiceClientConfiguration.Builder) config;
-            testCase.pluginValidator.accept(conf, testCase.defaultRequestValue);
+            testCase.pluginValidator.accept(conf, testCase.defaultValue);
             timesCalled.incrementAndGet();
         };
 
         ProtocolRestJsonClient client = clientBuilder.httpClient(succeedingHttpClient()).build();
-        // TODO: Uncomment when the default values in the test case actually match what is used
-        // if (testCase.clientConfigurationValidator != null) {
-        //     testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.defaultRequestValue);
-        // }
+        if (testCase.clientConfigurationValidator != null) {
+            testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.defaultValue);
+        }
         client.allTypes(r -> r.overrideConfiguration(c -> c.addPlugin(plugin)));
         assertThat(timesCalled).hasValue(1);
     }
@@ -452,10 +433,9 @@ public class SdkPluginTest {
 
         ProtocolRestJsonClient client = clientBuilder.addPlugin(plugin).build();
 
-        // TODO: Uncomment when the default values in the test case actually match what is used
-        // if (testCase.clientConfigurationValidator != null) {
-        //     testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.nonDefaultValue);
-        // }
+        if (testCase.clientConfigurationValidator != null) {
+            testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.nonDefaultValue);
+        }
 
         assertThat(timesCalled).hasValue(1);
     }
@@ -509,10 +489,9 @@ public class SdkPluginTest {
 
         ProtocolRestJsonClient client = clientBuilder.httpClient(succeedingHttpClient()).build();
 
-        // TODO: Uncomment when the default values in the test case actually match what is used
-        // if (testCase.clientConfigurationValidator != null) {
-        //     testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.defaultClientValue);
-        // }
+        if (testCase.clientConfigurationValidator != null) {
+            testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.defaultValue);
+        }
 
         client.allTypes(r -> r.overrideConfiguration(overrideConfig));
         assertThat(timesCalled).hasValue(1);
@@ -522,7 +501,7 @@ public class SdkPluginTest {
     @MethodSource("testCases")
     public <T> void clientPluginSetValueIsUsed(TestCase<T> testCase) {
         ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
-        testCase.clientSetter.accept(clientBuilder, testCase.defaultClientValue);
+        testCase.clientSetter.accept(clientBuilder, testCase.defaultValue);
 
         AtomicInteger timesPluginCalled = new AtomicInteger(0);
         SdkPlugin plugin = config -> {
@@ -563,7 +542,7 @@ public class SdkPluginTest {
     @MethodSource("testCases")
     public <T> void requestPluginSetValueIsUsed(TestCase<T> testCase) {
         ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
-        testCase.clientSetter.accept(clientBuilder, testCase.defaultClientValue);
+        testCase.clientSetter.accept(clientBuilder, testCase.defaultValue);
 
         AtomicInteger timesPluginCalled = new AtomicInteger(0);
         SdkPlugin plugin = config -> {
@@ -588,10 +567,10 @@ public class SdkPluginTest {
             AwsRequestOverrideConfiguration.builder()
                                            .addPlugin(plugin)
                                            .applyMutation(c -> {
-                                               // TODO(sra-identity-auth): request-level plugins should see request-level
+                                               // TODO(sra-identity-auth): request-level plugins should override request-level
                                                // configuration
                                                // if (testCase.requestSetter != null) {
-                                               //     testCase.requestSetter.accept(c, testCase.defaultRequestValue);
+                                               //     testCase.requestSetter.accept(c, testCase.defaultValue);
                                                // }
                                            })
                                            .build();
@@ -601,10 +580,9 @@ public class SdkPluginTest {
                          .overrideConfiguration(c -> c.addExecutionInterceptor(validatingInterceptor))
                          .build();
 
-        // TODO: Uncomment when the default values in the test case actually match what is used
-        // if (testCase.clientConfigurationValidator != null) {
-        //     testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.defaultClientValue);
-        // }
+        if (testCase.clientConfigurationValidator != null) {
+            testCase.clientConfigurationValidator.accept(extractClientConfiguration(client), testCase.defaultValue);
+        }
 
         client.allTypes(r -> r.overrideConfiguration(requestConfig));
 
@@ -613,9 +591,7 @@ public class SdkPluginTest {
     }
 
     private static ProtocolRestJsonClientBuilder defaultClientBuilder() {
-        return ProtocolRestJsonClient.builder()
-                                     .region(Region.US_WEST_2)
-                                     .credentialsProvider(DEFAULT_CREDENTIALS);
+        return ProtocolRestJsonClient.builder().region(Region.US_WEST_2).credentialsProvider(DEFAULT_CREDENTIALS);
     }
 
     private SdkClientConfiguration extractClientConfiguration(ProtocolRestJsonClient client) {
@@ -632,8 +608,7 @@ public class SdkPluginTest {
 
     static class TestCase<T> {
         private final String configName;
-        T defaultClientValue; // TODO: Can there not be a difference between client and request here?
-        T defaultRequestValue;
+        T defaultValue;
         T nonDefaultValue;
         BiConsumer<ProtocolRestJsonClientBuilder, T> clientSetter;
         BiConsumer<AwsRequestOverrideConfiguration.Builder, T> requestSetter;
@@ -647,13 +622,8 @@ public class SdkPluginTest {
             this.configName = configName;
         }
 
-        public TestCase<T> defaultClientValue(T defaultClientValue) {
-            this.defaultClientValue = defaultClientValue;
-            return this;
-        }
-
-        public TestCase<T> defaultRequestValue(T defaultRequestValue) {
-            this.defaultRequestValue = defaultRequestValue;
+        public TestCase<T> defaultValue(T defaultValue) {
+            this.defaultValue = defaultValue;
             return this;
         }
 

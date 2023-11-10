@@ -55,14 +55,9 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration;
-
-    protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(
-        ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration,
-        SdkClientConfiguration clientConfiguration) {
+    protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -124,7 +119,8 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
     @Override
     public final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder())
+            .build();
     }
 
     @Override
@@ -158,13 +154,13 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
         if (plugins.isEmpty()) {
             return clientConfiguration;
         }
-        ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder
-            .builder(clientConfiguration.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder serviceConfigBuilder = new ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder(
+            configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
