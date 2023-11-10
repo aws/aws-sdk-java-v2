@@ -208,7 +208,7 @@ public class CustomizationConfig {
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private String userAgent;
-    
+
     private RetryMode defaultRetryMode;
 
     /**
@@ -258,6 +258,8 @@ public class CustomizationConfig {
     private boolean useGlobalEndpoint;
 
     private List<String> interceptors = new ArrayList<>();
+
+    private List<String> internalPlugins = new ArrayList<>();
 
     /**
      * Whether marshallers perform validations against members marked with RequiredTrait.
@@ -698,7 +700,15 @@ public class CustomizationConfig {
     public void setInterceptors(List<String> interceptors) {
         this.interceptors = interceptors;
     }
-    
+
+    public List<String> getInternalPlugins() {
+        return internalPlugins;
+    }
+
+    public void setInternalPlugins(List<String> internalPlugins) {
+        this.internalPlugins = internalPlugins;
+    }
+
     public boolean isRequiredTraitValidationEnabled() {
         return requiredTraitValidationEnabled;
     }
