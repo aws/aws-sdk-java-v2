@@ -375,13 +375,16 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
          */
         private <T> T internalGet(Value<?> requester, Key<T> key) {
             Validate.notNull(key, "Key to retrieve must not be null.");
-            Value<?> value = attributes.computeIfAbsent(key, k -> {
-                checkCopyOnUpdate();
-                return new ConstantValue<>(null);
-            });
+            Value<?> value;
             if (requester != null) {
                 checkCopyOnUpdate();
+                value = attributes.computeIfAbsent(key, k -> new ConstantValue<>(null));
                 dependencyGraph.addDependency(requester, value);
+            } else {
+                value = attributes.get(key);
+                if (value == null) {
+                    return null;
+                }
             }
             return key.convertValue(resolveValue(value));
         }
