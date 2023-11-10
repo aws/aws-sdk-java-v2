@@ -455,13 +455,25 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
         }
 
         private void valueUpdated(Value<?> oldValue, Value<?> newValue) {
-            invalidateConsumerCaches(oldValue);
+            if (oldValue == newValue) {
+                // Optimization: if we didn't actually update the value, do nothing.
+                return;
+            }
+
+            CachedValue<?> oldCachedValue = oldValue.cachedValue();
+            CachedValue<?> newCachedValue = newValue.cachedValue();
+
+            if (!CachedValue.haveSameCachedValues(oldCachedValue, newCachedValue)) {
+                // Optimization: don't invalidate consumer caches if the value hasn't changed.
+                invalidateConsumerCaches(oldValue);
+            }
 
             Set<Value<?>> oldValueDependents = dependents.remove(oldValue);
             if (oldValueDependents != null) {
                 dependents.put(newValue, oldValueDependents);
             }
 
+            // TODO: Explore optimizations to not have to update every dependent value.
             dependents.values().forEach(v -> {
                 if (v.remove(oldValue)) {
                     v.add(newValue);
@@ -474,7 +486,6 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
             unloadQueue.add(value);
             while (!unloadQueue.isEmpty()) {
                 Value<?> toUnload = unloadQueue.poll();
-
                 toUnload.clearCache();
                 Set<Value<?>> toUnloadDependents = dependents.remove(toUnload);
                 if (toUnloadDependents != null) {
@@ -506,6 +517,11 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
          * If this value is cached, clear that cache.
          */
         void clearCache();
+
+        /**
+         * Read the cached value. This will return null if there is no value currently cached.
+         */
+        CachedValue<T> cachedValue();
     }
 
     /**
@@ -530,6 +546,11 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
 
         @Override
         public void clearCache() {
+        }
+
+        @Override
+        public CachedValue<T> cachedValue() {
+            return new CachedValue<>(value);
         }
 
         @Override
@@ -595,6 +616,14 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
         }
 
         @Override
+        public CachedValue<T> cachedValue() {
+            if (!valueCached) {
+                return null;
+            }
+            return new CachedValue<>(value);
+        }
+
+        @Override
         public void close() {
             closeIfPossible(value);
         }
@@ -605,6 +634,22 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
                 return "Value(" + value + ")";
             }
             return "Value(<<lazy>>)";
+        }
+    }
+
+    private static class CachedValue<T> {
+        private final T value;
+        private CachedValue(T value) {
+            this.value = value;
+        }
+
+        public static boolean haveSameCachedValues(CachedValue<?> lhs, CachedValue<?> rhs) {
+            // If one is null, we can't guarantee that they have the same cached value.
+            if (lhs == null || rhs == null) {
+                return false;
+            }
+
+            return lhs.value == rhs.value;
         }
     }
 
