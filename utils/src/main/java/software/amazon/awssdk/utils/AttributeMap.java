@@ -639,11 +639,12 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
 
     private static class CachedValue<T> {
         private final T value;
+
         private CachedValue(T value) {
             this.value = value;
         }
 
-        public static boolean haveSameCachedValues(CachedValue<?> lhs, CachedValue<?> rhs) {
+        private static boolean haveSameCachedValues(CachedValue<?> lhs, CachedValue<?> rhs) {
             // If one is null, we can't guarantee that they have the same cached value.
             if (lhs == null || rhs == null) {
                 return false;
