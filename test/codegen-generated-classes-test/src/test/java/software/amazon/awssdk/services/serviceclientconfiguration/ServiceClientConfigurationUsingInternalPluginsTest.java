@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.protocolrestxmlinternalplugins.ProtocolRe
 public class ServiceClientConfigurationUsingInternalPluginsTest {
     private static final SdkPlugin NOOP_PLUGIN = config -> {};
 
-    private static final URI ENDPOINT_OVERRIDE_INTERNAL_TEST_PLUGIN_URI = URI.create("https://w.amazon.com/bin/view/Main/");
+    private static final URI ENDPOINT_OVERRIDE_INTERNAL_TEST_PLUGIN_URI = URI.create("foobar.com");
 
     @Test
     void syncClientWithExternalPluginEndpointOverride_serviceClientConfiguration_shouldReturnCorrectEndpointOverride() {

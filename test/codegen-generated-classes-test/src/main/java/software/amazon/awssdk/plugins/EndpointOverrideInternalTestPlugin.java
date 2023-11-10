@@ -23,7 +23,7 @@ public class EndpointOverrideInternalTestPlugin implements SdkPlugin {
 
     @Override
     public void configureClient(SdkServiceClientConfiguration.Builder config) {
-        URI uri = URI.create("https://w.amazon.com/bin/view/Main/");
+        URI uri = URI.create("foobar.com");
         config.endpointOverride(uri);
     }
 }
