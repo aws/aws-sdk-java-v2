@@ -215,7 +215,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
 
-        // Finalize configuration after plugins are applied
+        // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
         configuration = finalizeAsyncConfiguration(configuration);
         configuration = finalizeConfiguration(configuration);

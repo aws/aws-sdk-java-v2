@@ -531,8 +531,7 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
 
         @Override
         public void close() {
-            IoUtils.closeIfCloseable(value, null);
-            shutdownIfExecutorService(value);
+            closeIfPossible(value);
         }
 
         @Override
@@ -594,8 +593,7 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
 
         @Override
         public void close() {
-            IoUtils.closeIfCloseable(value, null);
-            shutdownIfExecutorService(value);
+            closeIfPossible(value);
         }
 
         @Override
@@ -617,10 +615,14 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
         }
     }
 
-    private static void shutdownIfExecutorService(Object object) {
+    private static void closeIfPossible(Object object) {
+        // We're explicitly checking for whether the provided object is an ExecutorService instance, because as of
+        // Java 21, it extends AutoCloseable, which triggers an ExecutorService#close call, which in turn can
+        // result in deadlocks. Instead, we safely shut it down, and close any other objects that are closeable.
         if (object instanceof ExecutorService) {
-            ExecutorService executor = (ExecutorService) object;
-            executor.shutdown();
+            ((ExecutorService) object).shutdown();
+        } else {
+            IoUtils.closeIfCloseable(object, null);
         }
     }
 }
