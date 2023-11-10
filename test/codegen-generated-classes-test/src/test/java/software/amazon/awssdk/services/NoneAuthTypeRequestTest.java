@@ -54,10 +54,6 @@ import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 /**
  * Verify that the "authtype" C2J trait for request type is honored for each requests.
  */
-<<<<<<< HEAD
-=======
-// TODO(sra-identity-auth): Verify these tests pass for useSraAuht=true
->>>>>>> upstream/master
 public class NoneAuthTypeRequestTest {
 
     private AwsCredentialsProvider credentialsProvider;
