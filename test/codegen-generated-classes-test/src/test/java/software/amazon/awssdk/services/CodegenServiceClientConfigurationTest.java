@@ -54,8 +54,9 @@ public class CodegenServiceClientConfigurationTest {
     @ParameterizedTest
     @MethodSource("testCases")
     <T> void externalInternalTransforms_preserves_propertyValues(TestCase<T> testCase) {
-        ProtocolRestJsonServiceClientConfigurationBuilder.BuilderInternal builder =
-            ProtocolRestJsonServiceClientConfigurationBuilder.builder(SdkClientConfiguration.builder());
+        SdkClientConfiguration.Builder clientConfig = SdkClientConfiguration.builder();
+        ProtocolRestJsonServiceClientConfigurationBuilder builder =
+            new ProtocolRestJsonServiceClientConfigurationBuilder(clientConfig);
 
         // Verify that initially the value is null for properties with direct mapping.
         if (testCase.hasDirectMapping) {
@@ -74,12 +75,9 @@ public class CodegenServiceClientConfigurationTest {
         // Assert that we can retrieve the same value
         assertThat(testCase.dataGetter.apply(config)).isEqualTo(testCase.value);
 
-        // Validate round trip
-        SdkClientConfiguration clientConfig = builder.buildSdkClientConfiguration();
-
         // Build a new builder with the created client config
-        ProtocolRestJsonServiceClientConfigurationBuilder.BuilderInternal anotherBuilder =
-            ProtocolRestJsonServiceClientConfigurationBuilder.builder(clientConfig.toBuilder());
+        ProtocolRestJsonServiceClientConfigurationBuilder anotherBuilder =
+            new ProtocolRestJsonServiceClientConfigurationBuilder(clientConfig);
 
         // Assert that we can retrieve the same value
         if (testCase.hasDirectMapping) {

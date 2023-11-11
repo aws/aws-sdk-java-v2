@@ -1,16 +1,17 @@
 package software.amazon.awssdk.services.json;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -25,7 +26,6 @@ import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.json.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -47,12 +47,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                  .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
-                                  .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-                                  .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+        return config.merge(c -> c
+            .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+            .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+            .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+            .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
+            .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                        p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+            .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
+            .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
     }
 
     @Override
@@ -75,12 +78,18 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             .option(SdkClientOption.PROFILE_NAME));
         ServiceConfiguration finalServiceConfig = serviceConfigBuilder.build();
         SdkClientConfiguration.Builder builder = config.toBuilder();
-        IdentityProvider<? extends TokenIdentity> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
-        if (identityProvider != null) {
-            IdentityProviders identityProviders = config.option(SdkClientOption.IDENTITY_PROVIDERS);
-            builder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders.toBuilder()
-                                                                                .putIdentityProvider(identityProvider).build());
-        }
+        builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, c -> {
+            IdentityProviders.Builder result = IdentityProviders.builder();
+            IdentityProvider<?> tokenIdentityProvider = c.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
+            if (tokenIdentityProvider != null) {
+                result.putIdentityProvider(tokenIdentityProvider);
+            }
+            IdentityProvider<?> credentialsIdentityProvider = c.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
+            if (credentialsIdentityProvider != null) {
+                result.putIdentityProvider(credentialsIdentityProvider);
+            }
+            return result.build();
+        });
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.SERVICE_CONFIGURATION,
                                                                                     finalServiceConfig);
         return builder.build();
@@ -122,15 +131,6 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     @Override
-    protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
-        ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
-        if (overrideConfiguration == null) {
-            return configuration;
-        }
-        return SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, configuration.toBuilder()).build();
-    }
-
-    @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
         List<SdkPlugin> internalPlugins = internalPlugins();
         List<SdkPlugin> externalPlugins = plugins();
@@ -138,19 +138,16 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             return config;
         }
         List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
-        JsonServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = JsonServiceClientConfigurationBuilder
-            .builder(config.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = config.toBuilder();
+        JsonServiceClientConfigurationBuilder serviceConfigBuilder = new JsonServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        overrideConfiguration(serviceConfigBuilder.overrideConfiguration());
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     private List<SdkPlugin> internalPlugins() {
-        List<SdkPlugin> internalPlugins = new ArrayList<>();
-        return internalPlugins;
+        return Collections.emptyList();
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

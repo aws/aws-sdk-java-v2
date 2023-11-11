@@ -15,7 +15,6 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsServiceClientConfiguration;
 import software.amazon.awssdk.services.jsonprotocoltests.auth.scheme.JsonProtocolTestsAuthSchemeProvider;
@@ -23,203 +22,153 @@ import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class JsonProtocolTestsServiceClientConfigurationBuilder {
-    public static JsonProtocolTestsServiceClientConfiguration.Builder builder() {
-        return new BuilderImpl();
+public class JsonProtocolTestsServiceClientConfigurationBuilder implements JsonProtocolTestsServiceClientConfiguration.Builder {
+    private final SdkClientConfiguration.Builder config;
+
+    public JsonProtocolTestsServiceClientConfigurationBuilder() {
+        this(SdkClientConfiguration.builder());
     }
 
-    public static BuilderInternal builder(SdkClientConfiguration.Builder builder) {
-        return new BuilderImpl(builder);
+    public JsonProtocolTestsServiceClientConfigurationBuilder(SdkClientConfiguration.Builder config) {
+        this.config = config;
     }
 
-    public interface BuilderInternal extends JsonProtocolTestsServiceClientConfiguration.Builder {
-        SdkClientConfiguration buildSdkClientConfiguration();
+    /**
+     * Sets the value for client override configuration
+     */
+    @Override
+    public JsonProtocolTestsServiceClientConfiguration.Builder overrideConfiguration(
+        ClientOverrideConfiguration overrideConfiguration) {
+        config.putAll(overrideConfiguration);
+        return this;
     }
 
-    public static class BuilderImpl implements BuilderInternal {
-        private final SdkClientConfiguration.Builder internalBuilder;
+    /**
+     * Gets the value for client override configuration
+     */
+    @Override
+    public ClientOverrideConfiguration overrideConfiguration() {
+        return config.asOverrideConfigurationBuilder().build();
+    }
 
-        private ClientOverrideConfiguration overrideConfiguration;
-
-        private URI endpointOverride;
-
-        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
-
-        private Map<String, AuthScheme<?>> authSchemes;
-
-        private BuilderImpl() {
-            this.internalBuilder = SdkClientConfiguration.builder();
+    /**
+     * Sets the value for endpoint override
+     */
+    @Override
+    public JsonProtocolTestsServiceClientConfiguration.Builder endpointOverride(URI endpointOverride) {
+        if (endpointOverride != null) {
+            config.option(SdkClientOption.ENDPOINT, endpointOverride);
+            config.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
+        } else {
+            config.option(SdkClientOption.ENDPOINT, null);
+            config.option(SdkClientOption.ENDPOINT_OVERRIDDEN, false);
         }
+        return this;
+    }
 
-        private BuilderImpl(SdkClientConfiguration.Builder internalBuilder) {
-            this.internalBuilder = internalBuilder;
-            if (Boolean.TRUE.equals(internalBuilder.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
-                this.endpointOverride = internalBuilder.option(SdkClientOption.ENDPOINT);
-            }
-            this.credentialsProvider = internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
-            Map<String, AuthScheme<?>> authSchemes = internalBuilder.option(SdkClientOption.AUTH_SCHEMES);
-            if (authSchemes != null) {
-                authSchemes = new HashMap<>(authSchemes);
-            }
-            this.authSchemes = authSchemes;
+    /**
+     * Gets the value for endpoint override
+     */
+    @Override
+    public URI endpointOverride() {
+        if (Boolean.TRUE.equals(config.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
+            return config.option(SdkClientOption.ENDPOINT);
         }
+        return null;
+    }
 
-        /**
-         * Sets the value for client override configuration
-         */
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration.Builder overrideConfiguration(
-                ClientOverrideConfiguration overrideConfiguration) {
-            this.overrideConfiguration = overrideConfiguration;
-            return this;
-        }
+    /**
+     * Sets the value for endpoint provider
+     */
+    @Override
+    public JsonProtocolTestsServiceClientConfiguration.Builder endpointProvider(EndpointProvider endpointProvider) {
+        config.option(SdkClientOption.ENDPOINT_PROVIDER, endpointProvider);
+        return this;
+    }
 
-        /**
-         * Gets the value for client override configuration
-         */
-        @Override
-        public ClientOverrideConfiguration overrideConfiguration() {
-            return overrideConfiguration;
-        }
+    /**
+     * Gets the value for endpoint provider
+     */
+    @Override
+    public EndpointProvider endpointProvider() {
+        return config.option(SdkClientOption.ENDPOINT_PROVIDER);
+    }
 
-        /**
-         * Sets the value for endpoint override
-         */
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration.Builder endpointOverride(URI endpointOverride) {
-            this.endpointOverride = endpointOverride;
-            return this;
-        }
+    /**
+     * Sets the value for AWS region
+     */
+    @Override
+    public JsonProtocolTestsServiceClientConfiguration.Builder region(Region region) {
+        config.option(AwsClientOption.AWS_REGION, region);
+        return this;
+    }
 
-        /**
-         * Gets the value for endpoint override
-         */
-        @Override
-        public URI endpointOverride() {
-            return endpointOverride;
-        }
+    /**
+     * Gets the value for AWS region
+     */
+    @Override
+    public Region region() {
+        return config.option(AwsClientOption.AWS_REGION);
+    }
 
-        /**
-         * Sets the value for endpoint provider
-         */
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration.Builder endpointProvider(EndpointProvider endpointProvider) {
-            internalBuilder.option(SdkClientOption.ENDPOINT_PROVIDER, endpointProvider);
-            return this;
-        }
+    /**
+     * Sets the value for credentials provider
+     */
+    @Override
+    public JsonProtocolTestsServiceClientConfiguration.Builder credentialsProvider(
+        IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+        config.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, credentialsProvider);
+        return this;
+    }
 
-        /**
-         * Gets the value for endpoint provider
-         */
-        @Override
-        public EndpointProvider endpointProvider() {
-            return internalBuilder.option(SdkClientOption.ENDPOINT_PROVIDER);
-        }
+    /**
+     * Gets the value for credentials provider
+     */
+    @Override
+    public IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
+        return config.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
+    }
 
-        /**
-         * Sets the value for AWS region
-         */
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration.Builder region(Region region) {
-            internalBuilder.option(AwsClientOption.AWS_REGION, region);
-            return this;
-        }
+    @Override
+    public JsonProtocolTestsServiceClientConfiguration.Builder putAuthScheme(AuthScheme<?> authScheme) {
+        config.computeOptionIfAbsent(SdkClientOption.AUTH_SCHEMES, HashMap::new).put(authScheme.schemeId(), authScheme);
+        return this;
+    }
 
-        /**
-         * Gets the value for AWS region
-         */
-        @Override
-        public Region region() {
-            return internalBuilder.option(AwsClientOption.AWS_REGION);
-        }
+    /**
+     * Gets the value for auth schemes
+     */
+    @Override
+    public Map<String, AuthScheme<?>> authSchemes() {
+        Map<String, AuthScheme<?>> authSchemes = config.option(SdkClientOption.AUTH_SCHEMES);
+        return Collections.unmodifiableMap(authSchemes == null ? Collections.emptyMap() : authSchemes);
+    }
 
-        /**
-         * Sets the value for credentials provider
-         */
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration.Builder credentialsProvider(
-                IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-            this.credentialsProvider = credentialsProvider;
-            return this;
-        }
+    /**
+     * Sets the value for auth scheme provider
+     */
+    @Override
+    public JsonProtocolTestsServiceClientConfiguration.Builder authSchemeProvider(
+        JsonProtocolTestsAuthSchemeProvider authSchemeProvider) {
+        config.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
+        return this;
+    }
 
-        /**
-         * Gets the value for credentials provider
-         */
-        @Override
-        public IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
-            return credentialsProvider;
+    /**
+     * Gets the value for auth scheme provider
+     */
+    @Override
+    public JsonProtocolTestsAuthSchemeProvider authSchemeProvider() {
+        AuthSchemeProvider result = config.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
+        if (result == null) {
+            return null;
         }
+        return Validate.isInstanceOf(JsonProtocolTestsAuthSchemeProvider.class, result, "Expected an instance of "
+                                                                                        + JsonProtocolTestsAuthSchemeProvider.class.getSimpleName());
+    }
 
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration.Builder putAuthScheme(AuthScheme<?> authScheme) {
-            if (authSchemes == null) {
-                authSchemes = new HashMap<>();
-            }
-            authSchemes.put(authScheme.schemeId(), authScheme);
-            return this;
-        }
-
-        @Override
-        public Map<String, AuthScheme<?>> authSchemes() {
-            if (authSchemes == null) {
-                return Collections.emptyMap();
-            }
-            return Collections.unmodifiableMap(new HashMap<>(authSchemes));
-        }
-
-        /**
-         * Sets the value for auth scheme provider
-         */
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration.Builder authSchemeProvider(
-                JsonProtocolTestsAuthSchemeProvider authSchemeProvider) {
-            internalBuilder.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
-            return this;
-        }
-
-        /**
-         * Gets the value for auth scheme provider
-         */
-        @Override
-        public JsonProtocolTestsAuthSchemeProvider authSchemeProvider() {
-            AuthSchemeProvider result = internalBuilder.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
-            if (result == null) {
-                return null;
-            }
-            return Validate.isInstanceOf(JsonProtocolTestsAuthSchemeProvider.class, result, "Expected an instance of "
-                    + JsonProtocolTestsAuthSchemeProvider.class.getSimpleName());
-        }
-
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration build() {
-            return new JsonProtocolTestsServiceClientConfiguration(this);
-        }
-
-        @Override
-        public SdkClientConfiguration buildSdkClientConfiguration() {
-            if (overrideConfiguration != null) {
-                SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, internalBuilder);
-            }
-            if (endpointOverride != null) {
-                internalBuilder.option(SdkClientOption.ENDPOINT, endpointOverride);
-                internalBuilder.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
-            }
-            if (credentialsProvider != null
-                    && !credentialsProvider.equals(internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))) {
-                internalBuilder.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, credentialsProvider);
-                IdentityProviders identityProviders = internalBuilder.option(SdkClientOption.IDENTITY_PROVIDERS);
-                if (identityProviders == null) {
-                    identityProviders = IdentityProviders.builder().putIdentityProvider(credentialsProvider).build();
-                } else {
-                    identityProviders = identityProviders.toBuilder().putIdentityProvider(credentialsProvider).build();
-                }
-                internalBuilder.option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders);
-            }
-            if (authSchemes != null && !authSchemes.equals(internalBuilder.option(SdkClientOption.AUTH_SCHEMES))) {
-                internalBuilder.option(SdkClientOption.AUTH_SCHEMES, authSchemes());
-            }
-            return internalBuilder.build();
-        }
+    @Override
+    public JsonProtocolTestsServiceClientConfiguration build() {
+        return new JsonProtocolTestsServiceClientConfiguration(this);
     }
 }

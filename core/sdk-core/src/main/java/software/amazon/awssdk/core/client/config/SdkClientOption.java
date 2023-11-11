@@ -93,16 +93,56 @@ public final class SdkClientOption<T> extends ClientOption<T> {
             new SdkClientOption<>(ScheduledExecutorService.class);
 
     /**
+     * The internal SDK scheduled executor service that is set by the customer. This is likely only useful within configuration
+     * classes, and will be converted into a {@link #SCHEDULED_EXECUTOR_SERVICE} for the SDK's runtime.
+     */
+    public static final SdkClientOption<ScheduledExecutorService> CONFIGURED_SCHEDULED_EXECUTOR_SERVICE =
+        new SdkClientOption<>(ScheduledExecutorService.class);
+
+    /**
      * The asynchronous HTTP client implementation to make HTTP requests with.
      */
     public static final SdkClientOption<SdkAsyncHttpClient> ASYNC_HTTP_CLIENT =
             new SdkClientOption<>(SdkAsyncHttpClient.class);
 
     /**
+     * An asynchronous HTTP client set by the customer. This is likely only useful within configuration classes, and
+     * will be converted into a {@link #ASYNC_HTTP_CLIENT} for the SDK's runtime.
+     */
+    public static final SdkClientOption<SdkAsyncHttpClient> CONFIGURED_ASYNC_HTTP_CLIENT =
+        new SdkClientOption<>(SdkAsyncHttpClient.class);
+
+    /**
+     * An asynchronous HTTP client builder set by the customer. This is likely only useful within configuration classes, and
+     * will be converted into a {@link #ASYNC_HTTP_CLIENT} for the SDK's runtime.
+     */
+    public static final SdkClientOption<SdkAsyncHttpClient.Builder<?>> CONFIGURED_ASYNC_HTTP_CLIENT_BUILDER =
+        new SdkClientOption<>(new UnsafeValueType(SdkAsyncHttpClient.Builder.class));
+
+    /**
      * The HTTP client implementation to make HTTP requests with.
      */
     public static final SdkClientOption<SdkHttpClient> SYNC_HTTP_CLIENT =
             new SdkClientOption<>(SdkHttpClient.class);
+
+    /**
+     * An HTTP client set by the customer. This is likely only useful within configuration classes, and
+     * will be converted into a {@link #SYNC_HTTP_CLIENT} for the SDK's runtime.
+     */
+    public static final SdkClientOption<SdkHttpClient> CONFIGURED_SYNC_HTTP_CLIENT =
+        new SdkClientOption<>(SdkHttpClient.class);
+
+    /**
+     * An HTTP client builder set by the customer. This is likely only useful within configuration classes, and
+     * will be converted into a {@link #SYNC_HTTP_CLIENT} for the SDK's runtime.
+     */
+    public static final SdkClientOption<SdkHttpClient.Builder<?>> CONFIGURED_SYNC_HTTP_CLIENT_BUILDER =
+        new SdkClientOption<>(new UnsafeValueType(SdkAsyncHttpClient.Builder.class));
+
+    /**
+     * Configuration that should be used to build the {@link #SYNC_HTTP_CLIENT} or {@link #ASYNC_HTTP_CLIENT}.
+     */
+    public static final SdkClientOption<AttributeMap> HTTP_CLIENT_CONFIG = new SdkClientOption<>(AttributeMap.class);
 
     /**
      * The type of client used to make requests.
@@ -212,7 +252,13 @@ public final class SdkClientOption<T> extends ClientOption<T> {
         new SdkClientOption<>(AttributeMap.class);
 
     /**
-     * Option to specify the compression configuration settings.
+     * Configuration of the COMPRESSION_CONFIGURATION. Unlike {@link #COMPRESSION_CONFIGURATION}, this may contain null values.
+     */
+    public static final SdkClientOption<CompressionConfiguration> CONFIGURED_COMPRESSION_CONFIGURATION =
+        new SdkClientOption<>(CompressionConfiguration.class);
+
+    /**
+     * Option used by the rest of the SDK to read the {@link CompressionConfiguration}. This will never contain null values.
      */
     public static final SdkClientOption<CompressionConfiguration> COMPRESSION_CONFIGURATION =
         new SdkClientOption<>(CompressionConfiguration.class);

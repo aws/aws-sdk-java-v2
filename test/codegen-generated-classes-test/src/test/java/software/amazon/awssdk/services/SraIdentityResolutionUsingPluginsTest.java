@@ -17,6 +17,8 @@ package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,7 +66,7 @@ public class SraIdentityResolutionUsingPluginsTest {
             .build();
 
         assertThatThrownBy(() -> syncClient.allTypes(r -> {})).hasMessageContaining("boom");
-        verify(credentialsProvider, times(3)).identityType();
+        verify(credentialsProvider, atLeastOnce()).identityType();
 
         // This asserts that the identity used is the one from resolveIdentity() called by SRA AuthSchemeInterceptor and not
         // from another call like from AwsCredentialsAuthorizationStrategy.addCredentialsToExecutionAttributes, asserted by

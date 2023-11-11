@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.client.config;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.signer.Signer;
 
@@ -30,6 +33,8 @@ import software.amazon.awssdk.core.signer.Signer;
  */
 @SdkPublicApi
 public class SdkAdvancedClientOption<T> extends ClientOption<T> {
+    private static final Set<SdkAdvancedClientOption<?>> OPTIONS = ConcurrentHashMap.newKeySet();
+
     /**
      * Set the prefix of the user agent that is sent with each request to AWS.
      */
@@ -50,7 +55,6 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
      */
     public static final SdkAdvancedClientOption<Signer> TOKEN_SIGNER = new SdkAdvancedClientOption<>(Signer.class);
 
-
     /**
      * SDK uses endpoint trait and hostPrefix trait specified in service model to modify
      * the endpoint host that the API request is sent to.
@@ -62,5 +66,13 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
 
     protected SdkAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);
+        OPTIONS.add(this);
+    }
+
+    /**
+     * Retrieve all of the advanced client options loaded so far.
+     */
+    static Set<SdkAdvancedClientOption<?>> options() {
+        return Collections.unmodifiableSet(OPTIONS);
     }
 }

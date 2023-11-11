@@ -13,16 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token.credentials.internal;
+package software.amazon.awssdk.auth.credentials;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
-// TODO(sra-identity-and-auth): Delete this once more SRA work is done where signers are using the new Identity types and this
-//  conversion is not necessary.
-@SdkInternalApi
-public class TokenUtils {
+@SdkProtectedApi
+public final class TokenUtils {
 
     private TokenUtils() {
     }
@@ -49,5 +50,28 @@ public class TokenUtils {
             return (SdkToken) tokenIdentity;
         }
         return () -> tokenIdentity.token();
+    }
+
+    /**
+     * Converts an {@link IdentityProvider<? extends TokenIdentity>} to {@link SdkTokenProvider} based on
+     * {@link #toSdkToken(TokenIdentity)}.
+     *
+     * <p>Usage of the new IdentityProvider type is preferred over SdkTokenProvider. But some places may need to still
+     * convert to the older SdkTokenProvider type to work with existing code.
+     * </p>
+     *
+     * @param identityProvider The {@link IdentityProvider<? extends TokenIdentity>} to convert
+     * @return The corresponding {@link SdkTokenProvider}
+     */
+    public static SdkTokenProvider toSdkTokenProvider(
+            IdentityProvider<? extends TokenIdentity> identityProvider) {
+        if (identityProvider == null) {
+            return null;
+        }
+        if (identityProvider instanceof SdkTokenProvider) {
+            return (SdkTokenProvider) identityProvider;
+        }
+
+        return () -> toSdkToken(CompletableFutureUtils.joinLikeSync(identityProvider.resolveIdentity()));
     }
 }
