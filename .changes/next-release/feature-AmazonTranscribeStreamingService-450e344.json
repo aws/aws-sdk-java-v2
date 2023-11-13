@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Streaming Service",
+    "contributor": "",
+    "description": "This release enables customers to call the AWS Transcribe streaming service with the capability of identifying multiple languages in the stream."
+}
