@@ -1,6 +1,0 @@
-{
-    "type": "documentation",
-    "category": "Amazon CodeCatalyst",
-    "contributor": "",
-    "description": "If you see a NullPointerException from DefaultCodeCatalystBaseClientBuilder after upgrading to this version, ensure you're not using an old version of codecatalyst."
-}

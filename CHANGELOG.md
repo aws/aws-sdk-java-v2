@@ -1,3 +1,42 @@
+# __2.21.22__ __2023-11-13__
+## __AWS Data Exchange__
+  - ### Features
+    - Removed Required trait for DataSet.OriginDetails.ProductId.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Added new Db2 LUW Target endpoint with related endpoint settings. New executeTimeout endpoint setting for mysql endpoint. New ReplicationDeprovisionTime field for serverless describe-replications.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - SdkPlugins can now see and modify all configuration set on the client, including default values
+    - The `serviceClientConfiguration` from SDK clients now includes the defaults set by the SDK.
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - When the customer associates a resource collection to their application with this new feature, then a new application tag will be applied to all supported resources that are part of that collection. This allows customers to more easily find the application that is associated with those resources.
+
+## __Amazon CodeCatalyst__
+  - ### Documentations
+    - If you see a NullPointerException from DefaultCodeCatalystBaseClientBuilder after upgrading to this version, ensure you're not using an old version of codecatalyst.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adds a Client Token parameter to the ECS RunTask API. The Client Token parameter allows for idempotent RunTask requests.
+
+## __Amazon EMR__
+  - ### Features
+    - Updated GetClusterSessionCredentials API to allow Amazon SageMaker Studio to connect to EMR on EC2 clusters to support IdentityCenter/PEZ integration.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds the new EC2 DescribeInstanceTopology API, which you can use to retrieve the network topology of your running instances on select platform types to determine their relative proximity to each other.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release enables customers to call the AWS Transcribe streaming service with the capability of identifying multiple languages in the stream.
+
 # __2.21.21__ __2023-11-10__
 ## __AWS Control Tower__
   - ### Features
@@ -1318,7 +1357,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
