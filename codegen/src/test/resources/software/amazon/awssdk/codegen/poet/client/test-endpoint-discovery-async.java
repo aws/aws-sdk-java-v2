@@ -70,15 +70,11 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration;
-
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
 
-    protected DefaultEndpointDiscoveryTestAsyncClient(EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration,
-                                                      SdkClientConfiguration clientConfiguration) {
+    protected DefaultEndpointDiscoveryTestAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache
@@ -377,7 +373,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
     @Override
     public final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new EndpointDiscoveryTestServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override
@@ -411,13 +407,13 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
         if (plugins.isEmpty()) {
             return clientConfiguration;
         }
-        EndpointDiscoveryTestServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = EndpointDiscoveryTestServiceClientConfigurationBuilder
-            .builder(clientConfiguration.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        EndpointDiscoveryTestServiceClientConfigurationBuilder serviceConfigBuilder = new EndpointDiscoveryTestServiceClientConfigurationBuilder(
+            configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

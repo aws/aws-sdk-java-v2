@@ -27,15 +27,15 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
         this.authSchemeProvider = builder.authSchemeProvider();
     }
 
+    public static Builder builder() {
+        return new JsonProtocolTestsServiceClientConfigurationBuilder();
+    }
+
     /**
      * Gets the value for auth scheme provider
      */
     public JsonProtocolTestsAuthSchemeProvider authSchemeProvider() {
         return authSchemeProvider;
-    }
-
-    public static Builder builder() {
-        return JsonProtocolTestsServiceClientConfigurationBuilder.builder();
     }
 
     /**
