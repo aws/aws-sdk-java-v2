@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Data Exchange",
+    "contributor": "",
+    "description": "Removed Required trait for DataSet.OriginDetails.ProductId."
+}
