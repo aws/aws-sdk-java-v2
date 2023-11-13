@@ -104,15 +104,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final XmlServiceClientConfiguration serviceClientConfiguration;
-
     private final Executor executor;
 
-    protected DefaultXmlAsyncClient(XmlServiceClientConfiguration serviceClientConfiguration,
-                                    SdkClientConfiguration clientConfiguration) {
+    protected DefaultXmlAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -846,7 +842,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
     @Override
     public final XmlServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new XmlServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override
@@ -883,13 +879,12 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         if (plugins.isEmpty()) {
             return clientConfiguration;
         }
-        XmlServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = XmlServiceClientConfigurationBuilder
-            .builder(clientConfiguration.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        XmlServiceClientConfigurationBuilder serviceConfigBuilder = new XmlServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
     }
 
     @Override

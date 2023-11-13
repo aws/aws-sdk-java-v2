@@ -29,6 +29,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.w3c.dom.Attr;
 
 public class AttributeMapTest {
 
@@ -109,6 +111,80 @@ public class AttributeMapTest {
     }
 
     @Test
+    public void lazyAttributes_resolvedWhenRead() {
+        AttributeMap map = mapWithLazyString();
+        assertThat(map.get(STRING_KEY)).isEqualTo("5");
+    }
+
+    @Test
+    public void lazyAttributesBuilder_resolvedWhenRead() {
+        AttributeMap.Builder map = mapBuilderWithLazyString();
+        assertThat(map.get(STRING_KEY)).isEqualTo("5");
+
+        map.put(INTEGER_KEY, 6);
+        assertThat(map.get(STRING_KEY)).isEqualTo("6");
+    }
+
+    @Test
+    public void lazyAttributes_resultCached() {
+        AttributeMap.Builder map = mapBuilderWithLazyString();
+        String originalGet = map.get(STRING_KEY);
+        assertThat(map.get(STRING_KEY)).isSameAs(originalGet);
+
+        map.put(CLOSEABLE_KEY, null);
+        assertThat(map.get(STRING_KEY)).isSameAs(originalGet);
+    }
+
+    @Test
+    public void lazyAttributesBuilder_resolvedWhenBuilt() {
+        Runnable lazyRead = mock(Runnable.class);
+        AttributeMap.Builder map = mapBuilderWithLazyString(lazyRead);
+        verify(lazyRead, never()).run();
+
+        map.build();
+        verify(lazyRead, Mockito.times(1)).run();
+    }
+
+    @Test
+    public void lazyAttributes_notReResolvedAfterToBuilderBuild() {
+        Runnable lazyRead = mock(Runnable.class);
+        AttributeMap.Builder map = mapBuilderWithLazyString(lazyRead);
+        verify(lazyRead, never()).run();
+
+        AttributeMap builtMap = map.build();
+        verify(lazyRead, Mockito.times(1)).run();
+
+        builtMap.toBuilder().build().toBuilder().build();
+        verify(lazyRead, Mockito.times(1)).run();
+    }
+
+    @Test
+    public void changesInBuilder_doNotAffectBuiltMap() {
+        AttributeMap.Builder builder = mapBuilderWithLazyString();
+        AttributeMap map = builder.build();
+
+        builder.put(INTEGER_KEY, 6);
+        assertThat(builder.get(INTEGER_KEY)).isEqualTo(6);
+        assertThat(builder.get(STRING_KEY)).isEqualTo("6");
+
+        assertThat(map.get(INTEGER_KEY)).isEqualTo(5);
+        assertThat(map.get(STRING_KEY)).isEqualTo("5");
+    }
+
+    @Test
+    public void changesInToBuilder_doNotAffectBuiltMap() {
+        AttributeMap map = mapWithLazyString();
+        AttributeMap.Builder builder = map.toBuilder();
+
+        builder.put(INTEGER_KEY, 6);
+        assertThat(builder.get(INTEGER_KEY)).isEqualTo(6);
+        assertThat(builder.get(STRING_KEY)).isEqualTo("6");
+
+        assertThat(map.get(INTEGER_KEY)).isEqualTo(5);
+        assertThat(map.get(STRING_KEY)).isEqualTo("5");
+    }
+
+    @Test
     public void close_ExecutorDoesNotDeadlockOnClose() throws Exception {
         SdkAutoCloseable closeable = mock(SdkAutoCloseable.class);
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -156,4 +232,21 @@ public class AttributeMapTest {
      * {@link AutoCloseable} interface and is susceptible to being closed by {@link AttributeMap#close()}.
      */
     private interface CloseableExecutorService extends ExecutorService, AutoCloseable {}
+
+    private static AttributeMap mapWithLazyString() {
+        return mapBuilderWithLazyString().build();
+    }
+
+    private static AttributeMap.Builder mapBuilderWithLazyString() {
+        return mapBuilderWithLazyString(() -> {});
+    }
+
+    private static AttributeMap.Builder mapBuilderWithLazyString(Runnable runOnLazyRead) {
+        return AttributeMap.builder()
+                           .putLazy(STRING_KEY, c -> {
+                               runOnLazyRead.run();
+                               return Integer.toString(c.get(INTEGER_KEY));
+                           })
+                           .put(INTEGER_KEY, 5);
+    }
 }

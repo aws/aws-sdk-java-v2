@@ -133,11 +133,6 @@
             <artifactId>endpoints-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>profiles</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
 
         <!--Test Dependencies-->
         <dependency>

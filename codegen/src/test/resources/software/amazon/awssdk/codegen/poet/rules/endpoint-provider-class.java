@@ -326,4 +326,14 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                         Parameter.builder().name("operationContextParam").type(ParameterType.fromValue("string"))
                                  .required(false).build()).build()).addRule(endpointRule_0()).build();
     }
+
+    @Override
+    public boolean equals(Object rhs) {
+        return rhs != null && getClass().equals(rhs.getClass());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

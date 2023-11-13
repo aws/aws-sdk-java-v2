@@ -22,18 +22,15 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -43,16 +40,14 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
 
 public class ServiceClientConfigurationUtils {
-    private static final List<Field> BASE_FIELDS = baseServiceClientConfigurationFields();
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final ClassName configurationClassName;
     private final ClassName configurationBuilderClassName;
-    private final ClassName sdkClientConfigurationUtilClassName;
+    private final List<Field> fields;
 
     public ServiceClientConfigurationUtils(IntermediateModel model) {
         String basePackage = model.getMetadata().getFullClientPackageName();
@@ -60,10 +55,8 @@ public class ServiceClientConfigurationUtils {
         configurationClassName = ClassName.get(basePackage, serviceId + "ServiceClientConfiguration");
         configurationBuilderClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
                                                       serviceId + "ServiceClientConfigurationBuilder");
-        sdkClientConfigurationUtilClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
-                                                            "SdkClientConfigurationUtil");
         authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
-
+        fields = fields();
     }
 
     /**
@@ -85,237 +78,269 @@ public class ServiceClientConfigurationUtils {
      * mapping to the {@link SdkClientConfiguration} class.
      */
     public List<Field> serviceClientConfigurationFields() {
-        List<Field> fields = new ArrayList<>();
-        fields.add(overrideConfigurationField());
-        fields.addAll(BASE_FIELDS);
-        fields.add(Field.builder("authSchemeProvider", authSchemeSpecUtils.providerInterfaceName())
-                        .doc("auth scheme provider")
-                        .optionClass(SdkClientOption.class)
-                        .optionValue(SdkClientOption.AUTH_SCHEME_PROVIDER)
-                        .baseType(ClassName.get(AuthSchemeProvider.class))
-                        .build());
-        return fields;
+        return Collections.unmodifiableList(fields);
+    }
+
+    private List<Field> fields() {
+        return Arrays.asList(
+            overrideConfigurationField(),
+            endpointOverrideField(),
+            endpointProviderField(),
+            regionField(),
+            credentialsProviderField(),
+            authSchemesField(),
+            authSchemeProviderField()
+        );
     }
 
     private Field overrideConfigurationField() {
-        Field.Builder builder = Field.builder("overrideConfiguration", ClientOverrideConfiguration.class)
-                                     .doc("client override configuration")
-                                     .definingClass(SdkServiceClientConfiguration.class);
-
-        builder.copyToConfiguration(
-            CodeBlock.builder()
-                     .beginControlFlow("if (overrideConfiguration != null)")
-                     .addStatement("$T.copyOverridesToConfiguration(overrideConfiguration, internalBuilder)",
-                                   sdkClientConfigurationUtilClassName)
-                     .endControlFlow()
-                     .build()
-        );
-
-        return builder.build();
+        return fieldBuilder("overrideConfiguration", ClientOverrideConfiguration.class)
+                    .doc("client override configuration")
+                    .localSetter(basicLocalSetterCode("overrideConfiguration"))
+                    .localGetter(basicLocalGetterCode("overrideConfiguration"))
+                    .configSetter(overrideConfigurationConfigSetter())
+                    .configGetter(overrideConfigurationConfigGetter())
+                    .build();
     }
 
-    private static List<Field> baseServiceClientConfigurationFields() {
-        return Arrays.asList(
-            endpointOverrideField(),
-            Field.builder("endpointProvider", EndpointProvider.class)
-                 .doc("endpoint provider")
-                 .definingClass(SdkServiceClientConfiguration.class)
-                 .optionClass(SdkClientOption.class)
-                 .optionValue(SdkClientOption.ENDPOINT_PROVIDER)
-                 .build(),
-            Field.builder("region", Region.class)
-                 .doc("AWS region")
-                 .definingClass(AwsServiceClientConfiguration.class)
-                 .optionClass(AwsClientOption.class)
-                 .optionValue(AwsClientOption.AWS_REGION)
-                 .build(),
-            credentialsProviderField(),
-            authSchemesField()
-        );
+    private CodeBlock overrideConfigurationConfigSetter() {
+        return CodeBlock.builder()
+                        .addStatement("config.putAll(overrideConfiguration)",
+                                      SdkClientConfiguration.class)
+                        .addStatement("return this")
+                        .build();
     }
 
-    private static Field endpointOverrideField() {
-        Field.Builder builder = Field.builder("endpointOverride", URI.class)
-                                     .doc("endpoint override")
-                                     .definingClass(SdkServiceClientConfiguration.class);
-        builder.constructFromConfiguration(
-            CodeBlock.builder()
-                     .beginControlFlow("if (Boolean.TRUE.equals(internalBuilder.option($T.$L)))",
-                                       SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT_OVERRIDDEN,
-                                                                        SdkClientOption.class))
-                     .addStatement("this.endpointOverride = internalBuilder.option($T.$L)",
-                                   SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT,
-                                                                    SdkClientOption.class))
-                     .endControlFlow()
-                     .build()
-        );
-
-        builder.copyToConfiguration(
-            CodeBlock.builder()
-                     .beginControlFlow("if (endpointOverride != null)")
-                     .addStatement("internalBuilder.option($T.$L, endpointOverride)",
-                                   SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT, SdkClientOption.class))
-                     .addStatement("internalBuilder.option($T.$L, true)",
-                                   SdkClientOption.class, fieldName(SdkClientOption.ENDPOINT_OVERRIDDEN, SdkClientOption.class))
-                     .endControlFlow()
-                     .build()
-        );
-
-        return builder.build();
+    private CodeBlock overrideConfigurationConfigGetter() {
+        return CodeBlock.of("return config.asOverrideConfigurationBuilder().build();");
     }
 
-    private static Field credentialsProviderField() {
-        Field.Builder builder = Field.builder("credentialsProvider",
-                                              ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
-                                                                        WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class)))
-                                     .doc("credentials provider")
-                                     .definingClass(AwsServiceClientConfiguration.class);
+    private Field endpointOverrideField() {
+        return fieldBuilder("endpointOverride", URI.class)
+                    .doc("endpoint override")
+                    .localSetter(basicLocalSetterCode("endpointOverride"))
+                    .localGetter(basicLocalGetterCode("endpointOverride"))
+                    .configSetter(endpointOverrideConfigSetter())
+                    .configGetter(endpointOverrideConfigGetter())
+                    .build();
+    }
 
-        builder.constructFromConfiguration(
-            CodeBlock.builder()
-                     .addStatement("this.credentialsProvider = internalBuilder.option($T.$L)",
-                                   AwsClientOption.class, fieldName(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
-                                                                    AwsClientOption.class))
-                     .build()
-        );
+    private CodeBlock endpointOverrideConfigSetter() {
+        return CodeBlock.builder()
+                        .beginControlFlow("if (endpointOverride != null)")
+                        .addStatement("config.option($T.ENDPOINT, endpointOverride)", SdkClientOption.class)
+                        .addStatement("config.option($T.ENDPOINT_OVERRIDDEN, true)", SdkClientOption.class)
+                        .nextControlFlow("else")
+                        .addStatement("config.option($T.ENDPOINT, null)", SdkClientOption.class)
+                        .addStatement("config.option($T.ENDPOINT_OVERRIDDEN, false)", SdkClientOption.class)
+                        .endControlFlow()
+                        .addStatement("return this")
+                        .build();
+    }
 
-        builder.copyToConfiguration(
-            // TODO(sra-plugins)
-            // This code duplicates the logic here
-            // https://github.com/aws/aws-sdk-java-v2/blob/fa9dbcce47637486e3f7d4d366ab6509b535342a/core/aws-core/src/main/java/software/amazon/awssdk/awscore/client/builder/AwsDefaultClientBuilder.java#L212
-            // That adds the credentialsProvider to the identityProviders class. This is for request level plugins,
-            // to be able to support credentialsProvider overrides.
-            CodeBlock.builder()
-                     .beginControlFlow("if (credentialsProvider != null &&"
-                                       + " !credentialsProvider.equals(internalBuilder.option($T.$L)))",
-                                       AwsClientOption.class, fieldName(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
-                                                                        AwsClientOption.class))
-                     .addStatement("internalBuilder.option($T.$L, credentialsProvider)",
-                                   AwsClientOption.class, fieldName(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
-                                                                    AwsClientOption.class))
-                     .addStatement("$T identityProviders = internalBuilder.option($T.$L)",
-                                   IdentityProviders.class, SdkClientOption.class,
-                                   fieldName(SdkClientOption.IDENTITY_PROVIDERS, SdkClientOption.class))
-                     .beginControlFlow("if (identityProviders == null)")
-                     .addStatement("identityProviders = $T.builder().putIdentityProvider(credentialsProvider).build()",
-                                   IdentityProviders.class)
-                     .nextControlFlow(" else ")
-                     .addStatement("identityProviders = identityProviders.toBuilder()"
-                                   + ".putIdentityProvider(credentialsProvider)"
-                                   + ".build()")
-                     .endControlFlow()
-                     .addStatement("internalBuilder.option($T.$L, identityProviders)",
-                                   SdkClientOption.class, fieldName(SdkClientOption.IDENTITY_PROVIDERS, SdkClientOption.class))
-                     .endControlFlow()
-                     .build()
-        );
+    private CodeBlock endpointOverrideConfigGetter() {
+        return CodeBlock.builder()
+                        .beginControlFlow("if (Boolean.TRUE.equals(config.option($T.ENDPOINT_OVERRIDDEN)))",
+                                          SdkClientOption.class)
+                        .addStatement("return config.option($T.ENDPOINT)", SdkClientOption.class)
+                        .endControlFlow()
+                        .addStatement("return null")
+                        .build();
+    }
 
-        return builder.build();
+    private Field endpointProviderField() {
+        return fieldBuilder("endpointProvider", EndpointProvider.class)
+                    .doc("endpoint provider")
+                    .localSetter(basicLocalSetterCode("endpointProvider"))
+                    .localGetter(basicLocalGetterCode("endpointProvider"))
+                    .configSetter(basicConfigSetterCode(SdkClientOption.ENDPOINT_PROVIDER, "endpointProvider"))
+                    .configGetter(basicConfigGetterCode(SdkClientOption.ENDPOINT_PROVIDER))
+                    .build();
+    }
+
+    private Field regionField() {
+        return fieldBuilder("region", Region.class)
+                    .doc("AWS region")
+                    .localSetter(basicLocalSetterCode("region"))
+                    .localGetter(basicLocalGetterCode("region"))
+                    .configSetter(basicConfigSetterCode(AwsClientOption.AWS_REGION, "region"))
+                    .configGetter(basicConfigGetterCode(AwsClientOption.AWS_REGION))
+                    .build();
+    }
+
+    private Field credentialsProviderField() {
+        TypeName awsIdentityProviderType =
+            ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
+                                      WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class));
+
+        return fieldBuilder("credentialsProvider", awsIdentityProviderType)
+                    .doc("credentials provider")
+                    .localSetter(basicLocalSetterCode("credentialsProvider"))
+                    .localGetter(basicLocalGetterCode("credentialsProvider"))
+                    .configSetter(basicConfigSetterCode(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, "credentialsProvider"))
+                    .configGetter(basicConfigGetterCode(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                    .build();
     }
 
 
-    private static Field authSchemesField() {
+    private Field authSchemesField() {
         TypeName authSchemeGenericType = ParameterizedTypeName.get(ClassName.get(AuthScheme.class),
                                                                    WildcardTypeName.subtypeOf(Object.class));
         TypeName authSchemesType = ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class),
                                                              authSchemeGenericType);
-        Field.Builder builder = Field.builder("authSchemes",
-                                              authSchemesType)
-                                     .doc("auth schemes")
-                                     .definingClass(SdkServiceClientConfiguration.class);
 
-        builder.constructFromConfiguration(
-            CodeBlock.builder()
-                     .addStatement("$T authSchemes = internalBuilder.option($T.$L)",
-                                   authSchemesType, SdkClientOption.class,
-                                   fieldName(SdkClientOption.AUTH_SCHEMES, SdkClientOption.class))
-                     .beginControlFlow("if (authSchemes != null)")
-                     .addStatement("authSchemes = new $T<>(authSchemes)", HashMap.class)
-                     .endControlFlow()
-                     .addStatement("this.authSchemes = authSchemes")
-                     .build()
-        );
-
-        builder.copyToConfiguration(
-            CodeBlock.builder()
-                     .beginControlFlow("if (authSchemes != null &&"
-                                       + " !authSchemes.equals(internalBuilder.option($T.$L)))",
-                                       SdkClientOption.class, fieldName(SdkClientOption.AUTH_SCHEMES,
-                                                                        SdkClientOption.class))
-                     .addStatement("internalBuilder.option($T.$L, authSchemes())",
-                                   SdkClientOption.class, fieldName(SdkClientOption.AUTH_SCHEMES,
-                                                                    SdkClientOption.class))
-                     .endControlFlow()
-                     .build()
-        );
-
-        builder.builderSetterImpl(
-            MethodSpec.methodBuilder("putAuthScheme")
-                      .addModifiers(Modifier.PUBLIC)
-                      .addAnnotation(Override.class)
-                      .addParameter(authSchemeGenericType, "authScheme")
-                      .beginControlFlow("if (authSchemes == null)")
-                      .addStatement("authSchemes = new $T<>()", HashMap.class)
-                      .endControlFlow()
-                      .addStatement("authSchemes.put(authScheme.schemeId(), authScheme)")
-                      .addStatement("return this")
-                      .build()
-        );
-
-        builder.builderSetter(
-            MethodSpec.methodBuilder("putAuthScheme")
-                      .addModifiers(Modifier.PUBLIC)
-                      .addAnnotation(Override.class)
-                      .addParameter(authSchemeGenericType, "authScheme")
-                      .build()
-        );
-
-        builder.builderGetterImpl(
-            MethodSpec.methodBuilder("authSchemes")
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .returns(authSchemesType)
-                .beginControlFlow("if (authSchemes == null)")
-                .addStatement("return $T.emptyMap()", Collections.class)
-                .endControlFlow()
-                .addStatement("return $T.unmodifiableMap(new $T<>(authSchemes))", Collections.class, HashMap.class)
-                .build()
-        );
-
-        return builder.build();
+        return fieldBuilder("authSchemes", authSchemesType)
+                    .doc("auth schemes")
+                    .setterSpec(authSchemesSetterSpec())
+                    .localSetter(authSchemesLocalSetter())
+                    .localGetter(authSchemesLocalGetter())
+                    .configSetter(authSchemesConfigSetter())
+                    .configGetter(authSchemeConfigGetter())
+                    .build();
     }
 
-    static class Field {
+    private MethodSpec authSchemesSetterSpec() {
+        TypeName authScheme = ParameterizedTypeName.get(ClassName.get(AuthScheme.class),
+                                                        WildcardTypeName.subtypeOf(Object.class));
+        return MethodSpec.methodBuilder("putAuthScheme")
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(authScheme, "authScheme")
+                         .returns(configurationClassName.nestedClass("Builder"))
+                         .build();
+    }
+
+    private CodeBlock authSchemesLocalSetter() {
+        return CodeBlock.builder()
+                        .beginControlFlow("if (this.authSchemes == null)")
+                        .addStatement("this.authSchemes = new HashMap<>()")
+                        .endControlFlow()
+                        .addStatement("this.authSchemes.put(authScheme.schemeId(), authScheme)")
+                        .addStatement("return this")
+                        .build();
+    }
+
+    private CodeBlock authSchemesLocalGetter() {
+        return CodeBlock.builder()
+                        .addStatement("return $1T.unmodifiableMap(authSchemes == null ? $1T.emptyMap() : authSchemes)",
+                                      Collections.class)
+                        .build();
+    }
+
+    private CodeBlock authSchemesConfigSetter() {
+        return CodeBlock.builder()
+                        .addStatement("config.computeOptionIfAbsent($T.AUTH_SCHEMES, $T::new)"
+                                      + ".put(authScheme.schemeId(), authScheme)",
+                                      SdkClientOption.class, HashMap.class)
+                        .addStatement("return this")
+                        .build();
+    }
+
+    private CodeBlock authSchemeConfigGetter() {
+        return CodeBlock.builder()
+                        .addStatement("$T<$T, $T<?>> authSchemes = config.option($T.AUTH_SCHEMES)",
+                                      Map.class, String.class, AuthScheme.class, SdkClientOption.class)
+                        .addStatement("return $1T.unmodifiableMap(authSchemes == null ? $1T.emptyMap() : authSchemes)",
+                                      Collections.class)
+                        .build();
+    }
+
+    private Field authSchemeProviderField() {
+        return fieldBuilder("authSchemeProvider", authSchemeSpecUtils.providerInterfaceName())
+                    .doc("auth scheme provider")
+                    .isInherited(false)
+                    .localSetter(basicLocalSetterCode("authSchemeProvider"))
+                    .localGetter(basicLocalGetterCode("authSchemeProvider"))
+                    .configSetter(basicConfigSetterCode(SdkClientOption.AUTH_SCHEME_PROVIDER, "authSchemeProvider"))
+                    .configGetter(authSchemeProviderConfigGetter())
+                    .build();
+    }
+
+    private CodeBlock authSchemeProviderConfigGetter() {
+        return CodeBlock.builder()
+                        .addStatement("$T result = config.option($T.AUTH_SCHEME_PROVIDER)",
+                                      AuthSchemeProvider.class, SdkClientOption.class)
+                        .beginControlFlow("if (result == null)")
+                        .addStatement("return null")
+                        .endControlFlow()
+                        .addStatement("return $1T.isInstanceOf($2T.class, result, \"Expected an instance of \" + $2T.class"
+                                      + ".getSimpleName())",
+                                      Validate.class, authSchemeSpecUtils.providerInterfaceName())
+                        .build();
+    }
+
+    private CodeBlock basicLocalSetterCode(String fieldName) {
+        return CodeBlock.builder()
+                        .addStatement("this.$1N = $1N", fieldName)
+                        .addStatement("return this")
+                        .build();
+    }
+
+    private CodeBlock basicLocalGetterCode(String fieldName) {
+        return CodeBlock.of("return $N;", fieldName);
+    }
+
+    private CodeBlock basicConfigSetterCode(ClientOption<?> option, String parameterName) {
+        return CodeBlock.builder()
+                        .addStatement("config.option($T.$N, $N)", option.getClass(), fieldName(option), parameterName)
+                        .addStatement("return this")
+                        .build();
+    }
+
+    private CodeBlock basicConfigGetterCode(ClientOption<?> option) {
+        return CodeBlock.of("return config.option($T.$N);", option.getClass(), fieldName(option));
+    }
+
+    public class Field {
         private final String name;
         private final TypeName type;
-        private final Class<? extends SdkServiceClientConfiguration> definingClass;
-        private final Class<? extends ClientOption> optionClass;
-        private final String optionName;
         private final String doc;
-        private final TypeName baseType;
-        private final CodeBlock constructFromConfiguration;
-        private final CodeBlock copyToConfiguration;
-        private final MethodSpec builderSetterImpl;
-        private final MethodSpec builderSetter;
-        private final MethodSpec builderGetterImpl;
+        private final boolean isInherited;
+        private final MethodSpec setterSpec;
+        private final MethodSpec getterSpec;
+        private final MethodSpec localSetter;
+        private final MethodSpec localGetter;
+        private final MethodSpec configSetter;
+        private final MethodSpec configGetter;
 
-        Field(Field.Builder builder) {
+        Field(FieldBuilder builder) {
             this.name = Validate.paramNotNull(builder.name, "name");
             this.type = Validate.paramNotNull(builder.type, "type");
-            this.definingClass = builder.definingClass;
             this.doc = Validate.paramNotNull(builder.doc, "doc");
-            this.optionClass = builder.optionClass;
-            this.optionName = builder.optionName;
-            this.baseType = builder.baseType;
-            this.constructFromConfiguration = builder.constructFromConfiguration;
-            this.copyToConfiguration = builder.copyToConfiguration;
-            this.builderSetterImpl = builder.builderSetterImpl;
-            this.builderSetter = builder.builderSetter;
-            this.builderGetterImpl = builder.builderGetterImpl;
+            this.isInherited = Validate.paramNotNull(builder.isInherited, "isInherited");
+            Validate.paramNotNull(builder.localSetter, "localSetter");
+            Validate.paramNotNull(builder.localGetter, "localGetter");
+            Validate.paramNotNull(builder.configSetter, "configSetter");
+            Validate.paramNotNull(builder.configGetter, "configGetter");
+
+            this.setterSpec = setterSpec(builder.setterSpec);
+            this.getterSpec = getterSpec(builder.getterSpec);
+            this.localSetter = setterSpec.toBuilder().addCode(builder.localSetter).build();
+            this.localGetter = getterSpec.toBuilder().addCode(builder.localGetter).build();
+            this.configSetter = setterSpec.toBuilder().addCode(builder.configSetter).build();
+            this.configGetter = getterSpec.toBuilder().addCode(builder.configGetter).build();
         }
 
-        public boolean isLocalField() {
-            return definingClass == null;
+        private MethodSpec setterSpec(MethodSpec setterSpec) {
+            if (setterSpec != null) {
+                return setterSpec;
+            }
+            return MethodSpec.methodBuilder(name)
+                             .addJavadoc("Sets the value for " + doc)
+                             .addModifiers(Modifier.PUBLIC)
+                             .returns(configurationClassName.nestedClass("Builder"))
+                             .addParameter(type, name)
+                             .build();
+        }
+
+        private MethodSpec getterSpec(MethodSpec getterSpec) {
+            if (getterSpec != null) {
+                return getterSpec;
+            }
+            return MethodSpec.methodBuilder(name)
+                             .addJavadoc("Gets the value for " + doc)
+                             .addModifiers(Modifier.PUBLIC)
+                             .returns(type)
+                             .build();
         }
 
         public String name() {
@@ -326,148 +351,116 @@ public class ServiceClientConfigurationUtils {
             return type;
         }
 
-        public Class<? extends SdkServiceClientConfiguration> definingClass() {
-            return definingClass;
-        }
-
-        public Class<? extends ClientOption> optionClass() {
-            return optionClass;
-        }
-
-        public String optionName() {
-            return optionName;
-        }
-
         public String doc() {
             return doc;
         }
 
-        public TypeName baseType() {
-            return baseType;
+        public boolean isInherited() {
+            return isInherited;
         }
 
-        public CodeBlock constructFromConfiguration() {
-            return constructFromConfiguration;
+        public MethodSpec setterSpec() {
+            return setterSpec;
         }
 
-        public CodeBlock copyToConfiguration() {
-            return copyToConfiguration;
+        public MethodSpec getterSpec() {
+            return getterSpec;
         }
 
-        public MethodSpec builderSetterImpl() {
-            return builderSetterImpl;
+        public MethodSpec localSetter() {
+            return localSetter;
         }
 
-        public MethodSpec builderSetter() {
-            return builderSetter;
+        public MethodSpec localGetter() {
+            return localGetter;
         }
 
-        public MethodSpec builderGetterImpl() {
-            return builderGetterImpl;
+        public MethodSpec configSetter() {
+            return configSetter;
         }
 
-        public static Field.Builder builder() {
-            return new Field.Builder();
+        public MethodSpec configGetter() {
+            return configGetter;
+        }
+    }
+
+    public FieldBuilder fieldBuilder(String name, TypeName type) {
+        return new FieldBuilder().name(name).type(type);
+    }
+
+    public FieldBuilder fieldBuilder(String name, Class<?> type) {
+        return new FieldBuilder().name(name).type(type);
+    }
+
+    private class FieldBuilder {
+        private String name;
+        private TypeName type;
+        private String doc;
+        private Boolean isInherited = true;
+        private MethodSpec setterSpec;
+        private MethodSpec getterSpec;
+        private CodeBlock localSetter;
+        private CodeBlock localGetter;
+        private CodeBlock configSetter;
+        private CodeBlock configGetter;
+
+        public FieldBuilder name(String name) {
+            this.name = name;
+            return this;
         }
 
-        public static Field.Builder builder(String name, TypeName type) {
-            return new Field.Builder()
-                .name(name)
-                .type(type);
+        public FieldBuilder type(Class<?> type) {
+            this.type = ClassName.get(type);
+            return this;
         }
 
-        public static Field.Builder builder(String name, Class<?> type) {
-            return new Field.Builder()
-                .name(name)
-                .type(type);
+        public FieldBuilder type(TypeName type) {
+            this.type = type;
+            return this;
         }
 
-        static class Builder {
-            private String name;
-            private TypeName type;
-            private String doc;
-            private Class<? extends SdkServiceClientConfiguration> definingClass;
-            private Class<? extends ClientOption> optionClass;
-            private ClientOption<?> value;
-            private String optionName;
-            private TypeName baseType;
-            private CodeBlock constructFromConfiguration;
-            private CodeBlock copyToConfiguration;
-            private MethodSpec builderSetterImpl;
-            private MethodSpec builderSetter;
-            private MethodSpec builderGetterImpl;
+        public FieldBuilder doc(String doc) {
+            this.doc = doc;
+            return this;
+        }
 
-            public Field.Builder name(String name) {
-                this.name = name;
-                return this;
-            }
+        public FieldBuilder isInherited(Boolean inherited) {
+            isInherited = inherited;
+            return this;
+        }
 
-            public Field.Builder type(Class<?> type) {
-                this.type = ClassName.get(type);
-                return this;
-            }
+        public FieldBuilder setterSpec(MethodSpec setterSpec) {
+            this.setterSpec = setterSpec;
+            return this;
+        }
 
-            public Field.Builder type(TypeName type) {
-                this.type = type;
-                return this;
-            }
+        public FieldBuilder getterSpec(MethodSpec getterSpec) {
+            this.getterSpec = getterSpec;
+            return this;
+        }
 
-            public Field.Builder doc(String doc) {
-                this.doc = doc;
-                return this;
-            }
+        public FieldBuilder localSetter(CodeBlock localSetter) {
+            this.localSetter = localSetter;
+            return this;
+        }
 
-            public Field.Builder optionClass(Class<? extends ClientOption> optionClass) {
-                this.optionClass = optionClass;
-                return this;
-            }
+        public FieldBuilder localGetter(CodeBlock localGetter) {
+            this.localGetter = localGetter;
+            return this;
+        }
 
-            public Field.Builder optionValue(ClientOption<?> value) {
-                this.value = value;
-                return this;
-            }
+        public FieldBuilder configSetter(CodeBlock configSetter) {
+            this.configSetter = configSetter;
+            return this;
+        }
 
-            public Field.Builder baseType(TypeName baseType) {
-                this.baseType = baseType;
-                return this;
-            }
+        public FieldBuilder configGetter(CodeBlock configGetter) {
+            this.configGetter = configGetter;
+            return this;
+        }
 
-            public Field.Builder definingClass(Class<? extends SdkServiceClientConfiguration> definingClass) {
-                this.definingClass = definingClass;
-                return this;
-            }
-
-            public Field.Builder constructFromConfiguration(CodeBlock constructFromConfiguration) {
-                this.constructFromConfiguration = constructFromConfiguration;
-                return this;
-            }
-
-            public Field.Builder copyToConfiguration(CodeBlock copyToConfiguration) {
-                this.copyToConfiguration = copyToConfiguration;
-                return this;
-            }
-
-            public Field.Builder builderSetterImpl(MethodSpec builderSetter) {
-                this.builderSetterImpl = builderSetter;
-                return this;
-            }
-
-            public Field.Builder builderSetter(MethodSpec builderSetter) {
-                this.builderSetter = builderSetter;
-                return this;
-            }
-
-            public Field.Builder builderGetterImpl(MethodSpec builderGetterImpl) {
-                this.builderGetterImpl = builderGetterImpl;
-                return this;
-            }
-
-            public Field build() {
-                if (value != null && optionClass != null) {
-                    optionName = fieldName(value, optionClass);
-                }
-                return new Field(this);
-            }
+        public Field build() {
+            return new Field(this);
         }
     }
 
@@ -482,8 +475,8 @@ public class ServiceClientConfigurationUtils {
      * This method uses the fully qualified names in the reflection package to avoid polluting this class imports. Adapted from
      * https://stackoverflow.com/a/35416606
      */
-    private static String fieldName(Object fieldObject, Class<?> parent) {
-        java.lang.reflect.Field[] allFields = parent.getFields();
+    private static String fieldName(Object fieldObject) {
+        java.lang.reflect.Field[] allFields = fieldObject.getClass().getFields();
         for (java.lang.reflect.Field field : allFields) {
             int modifiers = field.getModifiers();
             if (!java.lang.reflect.Modifier.isStatic(modifiers)) {
@@ -503,6 +496,6 @@ public class ServiceClientConfigurationUtils {
         }
         throw new java.util.NoSuchElementException(String.format("cannot find constant %s in class %s",
                                                                  fieldObject,
-                                                                 parent.getClass().getName()));
+                                                                 fieldObject.getClass().getName()));
     }
 }
