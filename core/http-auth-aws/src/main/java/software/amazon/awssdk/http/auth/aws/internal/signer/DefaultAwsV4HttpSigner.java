@@ -313,7 +313,11 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEncrypted = "https".equals(request.request().protocol());
 
-        return !isAnonymous && (isPayloadSigningEnabled || !isEncrypted);
+        if (isPayloadSigningEnabled) {
+            return !isAnonymous;
+        }
+
+        return !isAnonymous && !isEncrypted;
     }
 
     private static boolean isEventStreaming(SdkHttpRequest request) {
