@@ -22,6 +22,9 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
 
 import java.net.URI;
 import java.time.Duration;
@@ -36,7 +39,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
@@ -51,6 +57,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 
 public class S3CrtAsyncHttpClientTest {
@@ -72,11 +79,15 @@ public class S3CrtAsyncHttpClientTest {
         contentPublisher = Mockito.mock(SdkHttpContentPublisher.class);
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
-                                                                 .credentialsProvider(null)
+                                                                 .credentialsProvider(
+                                                                     StaticCredentialsProvider.create(AwsBasicCredentials.create("FOO", "BARR")))
                                                                  .checksumValidationEnabled(true)
+                                                                 .signingRegion("us-west-2")
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client,
+                                                   S3CrtAsyncHttpClient.builder()
+                                                                       .s3ClientConfiguration(s3NativeClientConfiguration));
     }
 
     private static Stream<Integer> ports() {
@@ -238,7 +249,8 @@ public class S3CrtAsyncHttpClientTest {
                                                                  .checksumValidationEnabled(false)
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
+                                                                                 .s3ClientConfiguration(s3NativeClientConfiguration));
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")
@@ -264,7 +276,8 @@ public class S3CrtAsyncHttpClientTest {
                                                                  .checksumValidationEnabled(false)
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
+                                                                                 .s3ClientConfiguration(s3NativeClientConfiguration));
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")
@@ -306,6 +319,52 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
+    public void s3Express_shouldUseS3ExpressSigner() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(true)
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "PutObject")
+                                                                            .putHttpExecutionAttribute(SIGNING_REGION,
+                                                                                                       Region.AP_SOUTH_1)
+                                                                            .putHttpExecutionAttribute(SIGNING_NAME, "s3express")
+                                                                            .putHttpExecutionAttribute(USE_S3_EXPRESS_AUTH, true)
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
+        AwsSigningConfig signingConfig = actual.getSigningConfig();
+        assertThat(signingConfig.getRegion()).isEqualTo("ap-south-1");
+        assertThat(signingConfig.getAlgorithm()).isEqualTo(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_S3EXPRESS);
+        assertThat(signingConfig.getService()).isEqualTo("s3express");
+    }
+
+    @Test
+    public void nonS3Express_shouldUseDefaultSigner() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(true)
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "PutObject")
+                                                                            .putHttpExecutionAttribute(SIGNING_REGION,
+                                                                                                       Region.AP_SOUTH_1)
+                                                                            .putHttpExecutionAttribute(USE_S3_EXPRESS_AUTH, false)
+                                                                            .putHttpExecutionAttribute(SIGNING_NAME, "s3")
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
+        AwsSigningConfig signingConfig = actual.getSigningConfig();
+        assertThat(signingConfig.getRegion()).isEqualTo("ap-south-1");
+        assertThat(signingConfig.getAlgorithm()).isEqualTo(AwsSigningConfig.AwsSigningAlgorithm.SIGV4);
+        assertThat(signingConfig.getService()).isEqualTo("s3");
+    }
+
+    @Test
     public void closeHttpClient_shouldCloseUnderlyingResources() {
         asyncHttpClient.close();
         verify(s3Client).close();
@@ -314,10 +373,11 @@ public class S3CrtAsyncHttpClientTest {
 
     @Test
     void build_shouldPassThroughParameters() {
+        String signingRegion = "us-west-2";
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
                                        .maxConcurrency(100)
-                                       .signingRegion("us-west-2")
+                                       .signingRegion(signingRegion)
                                        .thresholdInBytes(1024L)
                                        .standardRetryOptions(
                                            new StandardRetryOptions()

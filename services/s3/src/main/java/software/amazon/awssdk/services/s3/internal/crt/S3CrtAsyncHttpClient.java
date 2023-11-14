@@ -22,7 +22,9 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -70,9 +73,28 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
+        this.s3ClientOptions = createS3ClientOption();
+
+        this.crtS3Client = new S3Client(s3ClientOptions);
+    }
+
+    @SdkTestInternalApi
+    S3CrtAsyncHttpClient(S3Client crtS3Client,
+                         Builder builder) {
+        s3NativeClientConfiguration = builder.clientConfiguration;
+        s3ClientOptions = createS3ClientOption();
+        this.crtS3Client = crtS3Client;
+    }
+
+    @SdkTestInternalApi
+    public S3ClientOptions s3ClientOptions() {
+        return s3ClientOptions;
+    }
+
+    private S3ClientOptions createS3ClientOption() {
         Long initialWindowSize = s3NativeClientConfiguration.readBufferSizeInBytes();
 
-        this.s3ClientOptions =
+        S3ClientOptions options =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
                                  .withEndpoint(s3NativeClientConfiguration.endpointOverride() == null ? null :
                                                s3NativeClientConfiguration.endpointOverride().toString())
@@ -82,39 +104,26 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withMultipartUploadThreshold(s3NativeClientConfiguration.thresholdInBytes())
                                  .withComputeContentMd5(false)
+                                 .withEnableS3Express(true)
                                  .withMaxConnections(s3NativeClientConfiguration.maxConcurrency())
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps())
                                  .withInitialReadWindowSize(initialWindowSize)
                                  .withReadBackpressureEnabled(true);
 
         if (s3NativeClientConfiguration.standardRetryOptions() != null) {
-            this.s3ClientOptions.withStandardRetryOptions(s3NativeClientConfiguration.standardRetryOptions());
+            options.withStandardRetryOptions(s3NativeClientConfiguration.standardRetryOptions());
         }
         if (Boolean.FALSE.equals(s3NativeClientConfiguration.isUseEnvironmentVariableValues())) {
-            s3ClientOptions.withProxyEnvironmentVariableSetting(disabledHttpProxyEnvironmentVariableSetting());
+            options.withProxyEnvironmentVariableSetting(disabledHttpProxyEnvironmentVariableSetting());
         }
-        Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(s3ClientOptions::withProxyOptions);
+        Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(options::withProxyOptions);
         Optional.ofNullable(s3NativeClientConfiguration.connectionTimeout())
                 .map(Duration::toMillis)
                 .map(NumericUtils::saturatedCast)
-                .ifPresent(s3ClientOptions::withConnectTimeoutMs);
+                .ifPresent(options::withConnectTimeoutMs);
         Optional.ofNullable(s3NativeClientConfiguration.httpMonitoringOptions())
-                .ifPresent(s3ClientOptions::withHttpMonitoringOptions);
-
-        this.crtS3Client = new S3Client(s3ClientOptions);
-    }
-
-    @SdkTestInternalApi
-    S3CrtAsyncHttpClient(S3Client crtS3Client,
-                         S3NativeClientConfiguration nativeClientConfiguration) {
-        this.crtS3Client = crtS3Client;
-        this.s3NativeClientConfiguration = nativeClientConfiguration;
-        this.s3ClientOptions = null;
-    }
-
-    @SdkTestInternalApi
-    public S3ClientOptions s3ClientOptions() {
-        return s3ClientOptions;
+                .ifPresent(options::withHttpMonitoringOptions);
+        return options;
     }
 
     @Override
@@ -122,20 +131,23 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         URI uri = asyncRequest.request().getUri();
         HttpRequest httpRequest = toCrtRequest(asyncRequest);
+        SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
         S3CrtResponseHandlerAdapter responseHandler =
             new S3CrtResponseHandlerAdapter(executeFuture,
                                             asyncRequest.responseHandler(),
-                                            asyncRequest.httpExecutionAttributes().getAttribute(CRT_PROGRESS_LISTENER));
+                                            httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER));
 
         S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
 
-        HttpChecksum httpChecksum = asyncRequest.httpExecutionAttributes().getAttribute(HTTP_CHECKSUM);
-        ResumeToken resumeToken = asyncRequest.httpExecutionAttributes().getAttribute(CRT_PAUSE_RESUME_TOKEN);
-        Region signingRegion = asyncRequest.httpExecutionAttributes().getAttribute(SIGNING_REGION);
-        Path requestFilePath = asyncRequest.httpExecutionAttributes().getAttribute(OBJECT_FILE_PATH);
+        HttpChecksum httpChecksum = httpExecutionAttributes.getAttribute(HTTP_CHECKSUM);
+        ResumeToken resumeToken = httpExecutionAttributes.getAttribute(CRT_PAUSE_RESUME_TOKEN);
+        Region signingRegion = httpExecutionAttributes.getAttribute(SIGNING_REGION);
+        Path requestFilePath = httpExecutionAttributes.getAttribute(OBJECT_FILE_PATH);
         ChecksumConfig checksumConfig =
             checksumConfig(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
         URI endpoint = getEndpoint(uri);
+
+        AwsSigningConfig defaultS3SigningConfig = awsSigningConfig(signingRegion, httpExecutionAttributes);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
@@ -144,18 +156,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withEndpoint(endpoint)
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken)
-            .withRequestFilePath(requestFilePath);
-
-        // Create a new SigningConfig object only if the signing region has changed from the previously configured region.
-        if (signingRegion != null && !s3ClientOptions.getRegion().equals(signingRegion.id())) {
-            requestOptions.withSigningConfig(
-                AwsSigningConfig.getDefaultS3SigningConfig(signingRegion.id(),
-                                                           s3ClientOptions.getCredentialsProvider()));
-        }
+            .withRequestFilePath(requestFilePath)
+            .withSigningConfig(defaultS3SigningConfig);
 
         S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
         S3MetaRequestPauseObservable observable =
-            asyncRequest.httpExecutionAttributes().getAttribute(METAREQUEST_PAUSE_OBSERVABLE);
+            httpExecutionAttributes.getAttribute(METAREQUEST_PAUSE_OBSERVABLE);
 
         responseHandler.metaRequest(s3MetaRequest);
 
@@ -167,6 +173,22 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return executeFuture;
     }
 
+    private AwsSigningConfig awsSigningConfig(Region signingRegion, SdkHttpExecutionAttributes httpExecutionAttributes) {
+        AwsSigningConfig defaultS3SigningConfig =
+            AwsSigningConfig.getDefaultS3SigningConfig(s3ClientOptions.getRegion(), s3ClientOptions.getCredentialsProvider());
+
+        // Override the region only if the signing region has changed from the previously configured region.
+        if (signingRegion != null && !s3ClientOptions.getRegion().equals(signingRegion.id())) {
+            defaultS3SigningConfig.setRegion(signingRegion.id());
+        }
+
+        defaultS3SigningConfig.setService(httpExecutionAttributes.getAttribute(SIGNING_NAME));
+
+        if (Boolean.TRUE.equals(httpExecutionAttributes.getAttribute(USE_S3_EXPRESS_AUTH))) {
+            defaultS3SigningConfig.setAlgorithm(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_S3EXPRESS);
+        }
+        return defaultS3SigningConfig;
+    }
 
     private static URI getEndpoint(URI uri) {
         return invokeSafely(() -> new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), null, null, null));
