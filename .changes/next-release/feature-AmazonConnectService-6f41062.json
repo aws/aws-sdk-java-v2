@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Introducing SegmentAttributes parameter for StartChatContact API"
-}

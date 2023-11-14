@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Step Functions",
-    "contributor": "",
-    "description": "This release adds support to redrive executions in AWS Step Functions with a new RedriveExecution operation."
-}
