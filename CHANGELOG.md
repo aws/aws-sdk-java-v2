@@ -1,3 +1,56 @@
+# __2.21.23__ __2023-11-14__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup - Features: Provide Job Summary for your backup activity.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This feature provides the ability for the collaboration creator to configure either the member who can run queries or a different member in the collaboration to be billed for query compute costs.
+
+## __AWS Glue__
+  - ### Features
+    - Introduces new storage optimization APIs to support automatic compaction of Apache Iceberg tables.
+
+## __AWS IoT__
+  - ### Features
+    - This release introduces new attributes in API CreateSecurityProfile, UpdateSecurityProfile and DescribeSecurityProfile to support management of Metrics Export for AWS IoT Device Defender Detect.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Python 3.12 (python3.12) support to AWS Lambda
+
+## __AWS MediaTailor__
+  - ### Features
+    - Removed unnecessary default values.
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Resource Explorer supports multi-account search. You can now use Resource Explorer to search and discover resources across AWS accounts within your organization or organizational unit.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Signer__
+  - ### Features
+    - Documentation updates for AWS Signer
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support to redrive executions in AWS Step Functions with a new RedriveExecution operation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Introducing SegmentAttributes parameter for StartChatContact API
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - Added support (via new LogConfiguration field in CreatePipe and UpdatePipe APIs) for logging to Amazon CloudWatch Logs, Amazon Simple Storage Service (Amazon S3), and Amazon Kinesis Data Firehose
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release makes Model Registry Inference Specification fields as not required.
+
 # __2.21.22__ __2023-11-13__
 ## __AWS Data Exchange__
   - ### Features
