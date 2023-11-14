@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EventBridge Pipes",
+    "contributor": "",
+    "description": "Added support (via new LogConfiguration field in CreatePipe and UpdatePipe APIs) for logging to Amazon CloudWatch Logs, Amazon Simple Storage Service (Amazon S3), and Amazon Kinesis Data Firehose"
+}
