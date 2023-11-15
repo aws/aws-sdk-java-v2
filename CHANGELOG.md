@@ -1,3 +1,56 @@
+# __2.21.24__ __2023-11-15__
+## __AWS CloudTrail__
+  - ### Features
+    - The Lake Repricing feature lets customers configure a BillingMode for an event data store. The BillingMode determines the cost for ingesting and storing events and the default and maximum retention period for the event data store.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Java 21 (java21) support to AWS Lambda
+
+## __AWS S3 Control__
+  - ### Features
+    - Add 5 APIs to create, update, get, list, delete S3 Storage Lens group(eg. CreateStorageLensGroup), 3 APIs for tagging(TagResource,UntagResource,ListTagsForResource), and update to StorageLensConfiguration to allow metrics to be aggregated on Storage Lens groups.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Update the default value of MaxResult to 50.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - This release adds functionality for retrieving information about workflows and workflow runs and starting workflow runs in Amazon CodeCatalyst.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS EBS now supports Snapshot Lock, giving users the ability to lock an EBS Snapshot to prohibit deletion of the snapshot. This release introduces the LockSnapshot, UnlockSnapshot & DescribeLockedSnapshots APIs to manage lock configuration for snapshots. The release also includes the dl2q_24xlarge.
+
+## __Amazon Redshift__
+  - ### Features
+    - The custom domain name SDK for Amazon Redshift provisioned clusters is updated with additional required parameters for modify and delete operations. Additionally, users can provide domain names with longer top-level domains.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for support for upgrading RDS for MySQL snapshots from version 5.7 to version 8.0.
+
+## __AmazonMWAA__
+  - ### Features
+    - This Amazon MWAA release adds support for customer-managed VPC endpoints. This lets you choose whether to create, and manage your environment's VPC endpoints, or to have Amazon MWAA create, and manage them for you.
+
+## __Auto Scaling__
+  - ### Features
+    - This release introduces Instance Maintenance Policy, a new EC2 Auto Scaling capability that allows customers to define whether instances are launched before or after existing instances are terminated during instance replacement operations.
+
+## __FinSpace Public API__
+  - ### Features
+    - Adding deprecated trait to APIs in this name space.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Adding deprecated trait on Dataset Browser Environment APIs
+
 # __2.21.23__ __2023-11-14__
 ## __AWS Backup__
   - ### Features
