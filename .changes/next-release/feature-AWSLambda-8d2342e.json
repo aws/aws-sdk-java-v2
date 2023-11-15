@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "contributor": "",
-    "description": "Add Java 21 (java21) support to AWS Lambda"
-}
