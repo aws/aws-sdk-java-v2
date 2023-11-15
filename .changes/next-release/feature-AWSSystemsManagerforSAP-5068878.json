@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Systems Manager for SAP",
+    "contributor": "",
+    "description": "Update the default value of MaxResult to 50."
+}
