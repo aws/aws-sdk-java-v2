@@ -264,6 +264,38 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
+    public void sign_WithPayloadSigningFalseAndHttpAndNoPayload_DelegatesToUnsignedPayloadSigner() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest ->
+                httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .payload(null)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+    }
+
+    @Test
+    public void signAsync_WithPayloadSigningFalseAndHttpAndNoPayload_DelegatesToUnsignedPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest ->
+                httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .payload(null)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+    }
+
+    @Test
     public void sign_WithEventStreamContentTypeWithoutHttpAuthAwsEventStreamModule_throws() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
