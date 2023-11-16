@@ -1,3 +1,88 @@
+# __2.21.25__ __2023-11-16__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - DRM_TOP_LEVEL_COMPACT allows placing content protection elements at the MPD level and referenced at the AdaptationSet level
+
+## __AWS Glue__
+  - ### Features
+    - Introduces new column statistics APIs to support statistics generation for tables within the Glue Data Catalog.
+
+## __AWS IoT__
+  - ### Features
+    - GA release the ability to index and search devices based on their GeoLocation data. With GeoQueries you can narrow your search to retrieve devices located in the desired geographic boundary.
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for logging configuration in Lambda Functions. Customers will have more control how their function logs are captured and to which cloud watch log group they are delivered also.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Instances bound to a single AWS account, API operations for managing instances and applications, and assignments to applications are now supported. Trusted identity propagation is also supported, with new API operations for managing trusted token issuers and application grants and scopes.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Introduces new APIs ListIncidentFindings and BatchGetIncidentFindings to use findings related to an incident.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Introduced S3StorageOptions for servers to enable directory listing optimizations and added Type fields to logical directory mappings.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - This release includes updates to the Dev Environment APIs to include an optional vpcConnectionName parameter that supports using Dev Environments with Amazon VPC.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - This release adds support for Amazon Data Lifecycle Manager default policies for EBS snapshots and EBS-backed AMIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Enable use of tenant-specific PublicSigningKeyUrl from device trust providers and onboard jumpcloud as a new device trust provider.
+
+## __Amazon FSx__
+  - ### Features
+    - Enables customers to update their PerUnitStorageThroughput on their Lustre file systems.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - This release introduces server side composition and recording for stages.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for configuring Macie to assume an IAM role when retrieving sample occurrences of sensitive data reported by findings.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Amazon Pinpoint now offers additional operations as part of version 2 of the SMS and voice APIs. This release includes 26 new APIs to create and manage phone number registrations, add verified destination numbers, and request sender IDs.
+
+## __Amazon Polly__
+  - ### Features
+    - Add new engine - long-form - dedicated for longer content, such as news articles, training materials, or marketing videos.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Custom permission support for QuickSight roles; Three new datasources STARBURST, TRINO, BIGQUERY; Lenient mode changes the default behavior to allow for exporting and importing with certain UI allowed errors, Support for permissions and tags export and import.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Studio now supports Trainium instance types - trn1.2xlarge, trn1.32xlarge, trn1n.32xlarge.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release introduces the ability to filter automation execution steps which have parent steps. In addition, runbook variable information is returned by GetAutomationExecution and parent step information is returned by the DescribeAutomationStepExecutions API.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds the Image Lifecycle Management feature to automate the process of deprecating, disabling and deleting outdated images and their associated resources.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Added a new API response field which determines if there is an action required from the customer regarding their cluster.
+
 # __2.21.24__ __2023-11-15__
 ## __AWS CloudTrail__
   - ### Features
@@ -1463,7 +1548,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
