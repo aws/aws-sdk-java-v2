@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -95,8 +96,9 @@ public class ContainerCredentialsEndpointProviderTest {
                              Pair.of(TOKEN_FILE_ENV, "/full/path/to/token/file")
                          ),
                          AWS_CONTAINER_SERVICE_ENDPOINT.defaultValue(),
-                         new Result().type("headerError").reason("Failed to read authorization token from '/full/path/to/token/file':"
-                                                           + " no such file or directory")),
+                         new Result().type("headerError")
+                                     .reason("Failed to read /full/path/to/token/file.")
+                                     .causeClass(NoSuchFileException.class)),
 
             Arguments.of("https URI",
                          Collections.singletonList(Pair.of(FULL_URI_ENV, HTTPS_VALID_URI)),
@@ -221,7 +223,7 @@ public class ContainerCredentialsEndpointProviderTest {
         }
         else if ("headerError".equals(expected.type)){
             Assertions.assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> provider.headers())
-                      .withMessageContaining(expected.reason);
+                      .withMessageContaining(expected.reason).withCauseInstanceOf(expected.causeClass);
         }else {
             throw new IllegalStateException("Unknown expected.type " +expected.type);
         }
@@ -348,6 +350,7 @@ public class ContainerCredentialsEndpointProviderTest {
         private String type;
         SdkHttpFullRequest sdkRequest;
         String reason;
+        Class<? extends Throwable> causeClass;
 
 
         Result type(String type){
@@ -362,5 +365,11 @@ public class ContainerCredentialsEndpointProviderTest {
             this.reason = reason;
             return this;
         }
+
+        Result causeClass(Class<? extends Throwable>  causeClass){
+            this.causeClass = causeClass;
+            return this;
+        }
+
     }
 }

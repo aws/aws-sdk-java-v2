@@ -237,10 +237,6 @@ public final class ContainerCredentialsProvider
 
         private String readToken(String filePath) {
             Path path = Paths.get(filePath);
-            if (!Files.exists(path)) {
-                throw SdkClientException.create(
-                    String.format("Failed to read authorization token from '%s': no such file or directory", filePath));
-            }
             try {
                 return new String(Files.readAllBytes(path), UTF_8);
             } catch (IOException e) {
