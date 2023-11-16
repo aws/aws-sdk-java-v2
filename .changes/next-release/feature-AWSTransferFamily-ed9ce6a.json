@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "contributor": "",
-    "description": "Introduced S3StorageOptions for servers to enable directory listing optimizations and added Type fields to logical directory mappings."
-}

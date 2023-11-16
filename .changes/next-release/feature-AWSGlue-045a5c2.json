@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Introduces new column statistics APIs to support statistics generation for tables within the Glue Data Catalog."
-}

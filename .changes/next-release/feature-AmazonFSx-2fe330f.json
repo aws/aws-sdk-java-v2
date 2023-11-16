@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon FSx",
-    "contributor": "",
-    "description": "Enables customers to update their PerUnitStorageThroughput on their Lustre file systems."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Enable use of tenant-specific PublicSigningKeyUrl from device trust providers and onboard jumpcloud as a new device trust provider."
-}

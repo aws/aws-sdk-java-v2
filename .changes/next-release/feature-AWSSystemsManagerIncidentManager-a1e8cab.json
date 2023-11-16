@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Systems Manager Incident Manager",
-    "contributor": "",
-    "description": "Introduces new APIs ListIncidentFindings and BatchGetIncidentFindings to use findings related to an incident."
-}

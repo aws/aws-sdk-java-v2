@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaPackage",
-    "contributor": "",
-    "description": "DRM_TOP_LEVEL_COMPACT allows placing content protection elements at the MPD level and referenced at the AdaptationSet level"
-}
