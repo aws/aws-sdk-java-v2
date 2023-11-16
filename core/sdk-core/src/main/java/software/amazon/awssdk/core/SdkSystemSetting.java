@@ -114,6 +114,13 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_CONTAINER_AUTHORIZATION_TOKEN("aws.containerAuthorizationToken", null),
 
     /**
+     * The absolute file path containing the authorization token in plain text to pass to a container metadata
+     * service, only used when {@link #AWS_CONTAINER_CREDENTIALS_FULL_URI} is specified.
+     * @see #AWS_CONTAINER_CREDENTIALS_FULL_URI
+     */
+    AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE("aws.containerAuthorizationTokenFile", null),
+
+    /**
      * Explicitly identify the default synchronous HTTP implementation the SDK will use. Useful
      * when there are multiple implementations on the classpath or as a performance optimization
      * since implementation discovery requires classpath scanning.
