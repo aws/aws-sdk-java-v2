@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Registry",
+    "contributor": "",
+    "description": "Documentation and operational updates for Amazon ECR, adding support for pull through cache rules for upstream registries that require authentication."
+}
