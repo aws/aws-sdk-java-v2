@@ -159,7 +159,6 @@
         <module>iotanalytics</module>
         <module>kinesisvideoarchivedmedia</module>
         <module>kinesisvideomedia</module>
-        <module>macie</module>
         <module>mediatailor</module>
         <module>pi</module>
         <module>pinpointemail</module>
