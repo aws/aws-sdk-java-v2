@@ -720,11 +720,6 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>macie</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>managedblockchain</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
