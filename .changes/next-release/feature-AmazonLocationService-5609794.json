@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service",
+    "contributor": "",
+    "description": "Remove default value and allow nullable for request parameters having minimum value larger than zero."
+}
