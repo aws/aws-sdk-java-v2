@@ -1100,7 +1100,7 @@
         "requestUri":"/{Bucket}?publicAccessBlock"
       },
       "input":{"shape":"PutPublicAccessBlockRequest"},
-      "documentation":"<p>Creates or modifies the <code>PublicAccessBlock</code> configuration for an Amazon S3 bucket. To use this operation, you must have the <code>s3:PutBucketPublicAccessBlock</code> permission. For more information about Amazon S3 permissions, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html\">Specifying Permissions in a Policy</a>.</p> <important> <p>When Amazon S3 evaluates the <code>PublicAccessBlock</code> configuration for a bucket or an object, it checks the <code>PublicAccessBlock</code> configuration for both the bucket (or the bucket that contains the object) and the bucket owner's account. If the <code>PublicAccessBlock</code> configurations are different between the bucket and the account, S3 uses the most restrictive combination of the bucket-level and account-level settings.</p> </important> <p>For more information about when Amazon S3 considers a bucket or an object public, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html#access-control-block-public-access-policy-status\">The Meaning of \"Public\"</a>.</p> <p>The following operations are related to <code>PutPublicAccessBlock</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetPublicAccessBlock.html\">GetPublicAccessBlock</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeletePublicAccessBlock.html\">DeletePublicAccessBlock</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicyStatus.html\">GetBucketPolicyStatus</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html\">Using Amazon S3 Block Public Access</a> </p> </li> </ul>",
+      "documentation":"<p>Creates or modifies the <code>PublicAccessBlock</code> configuration for an Amazon S3 bucket. To use this operation, you must have the <code>s3:PutBucketPublicAccessBlock</code> permission. For more information about Amazon S3 permissions, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html\">Specifying Permissions in a Policy</a>.</p> <important> <p>When Amazon S3 evaluates the <code>PublicAccessBlock</code> configuration for a bucket or an object, it checks the <code>PublicAccessBlock</code> configuration for both the bucket (or the bucket that contains the object) and the bucket owner's account. If the <code>PublicAccessBlock</code> configurations are different between the bucket and the account, Amazon S3 uses the most restrictive combination of the bucket-level and account-level settings.</p> </important> <p>For more information about when Amazon S3 considers a bucket or an object public, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html#access-control-block-public-access-policy-status\">The Meaning of \"Public\"</a>.</p> <p>The following operations are related to <code>PutPublicAccessBlock</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetPublicAccessBlock.html\">GetPublicAccessBlock</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeletePublicAccessBlock.html\">DeletePublicAccessBlock</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketPolicyStatus.html\">GetBucketPolicyStatus</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html\">Using Amazon S3 Block Public Access</a> </p> </li> </ul>",
       "httpChecksum":{
         "requestAlgorithmMember":"ChecksumAlgorithm",
         "requestChecksumRequired":true
@@ -1284,7 +1284,10 @@
     },
     "AccessPointArn":{"type":"string"},
     "AccountId":{"type":"string"},
-    "AllowQuotedRecordDelimiter":{"type":"boolean"},
+    "AllowQuotedRecordDelimiter":{
+      "type":"boolean",
+      "box":true
+    },
     "AllowedHeader":{"type":"string"},
     "AllowedHeaders":{
       "type":"list",
@@ -1458,7 +1461,10 @@
         "authenticated-read"
       ]
     },
-    "BucketKeyEnabled":{"type":"boolean"},
+    "BucketKeyEnabled":{
+      "type":"boolean",
+      "box":true
+    },
     "BucketLifecycleConfiguration":{
       "type":"structure",
       "required":["Rules"],
@@ -1534,10 +1540,22 @@
         "locationName":"Bucket"
       }
     },
-    "BypassGovernanceRetention":{"type":"boolean"},
-    "BytesProcessed":{"type":"long"},
-    "BytesReturned":{"type":"long"},
-    "BytesScanned":{"type":"long"},
+    "BypassGovernanceRetention":{
+      "type":"boolean",
+      "box":true
+    },
+    "BytesProcessed":{
+      "type":"long",
+      "box":true
+    },
+    "BytesReturned":{
+      "type":"long",
+      "box":true
+    },
+    "BytesScanned":{
+      "type":"long",
+      "box":true
+    },
     "CORSConfiguration":{
       "type":"structure",
       "required":["CORSRules"],
@@ -1970,7 +1988,10 @@
       },
       "documentation":"<p>A container for describing a condition that must be met for the specified redirect to apply. For example, 1. If request is for pages in the <code>/docs</code> folder, redirect to the <code>/documents</code> folder. 2. If request results in HTTP error 4xx, redirect request to another host where you might process the error.</p>"
     },
-    "ConfirmRemoveSelfBucketAccess":{"type":"boolean"},
+    "ConfirmRemoveSelfBucketAccess":{
+      "type":"boolean",
+      "box":true
+    },
     "ContentDisposition":{"type":"string"},
     "ContentEncoding":{"type":"string"},
     "ContentLanguage":{"type":"string"},
@@ -2745,8 +2766,14 @@
       "type":"timestamp",
       "timestampFormat":"iso8601"
     },
-    "Days":{"type":"integer"},
-    "DaysAfterInitiation":{"type":"integer"},
+    "Days":{
+      "type":"integer",
+      "box":true
+    },
+    "DaysAfterInitiation":{
+      "type":"integer",
+      "box":true
+    },
     "DefaultRetention":{
       "type":"structure",
       "members":{
@@ -3383,7 +3410,10 @@
     "DisplayName":{"type":"string"},
     "ETag":{"type":"string"},
     "EmailAddress":{"type":"string"},
-    "EnableRequestProgress":{"type":"boolean"},
+    "EnableRequestProgress":{
+      "type":"boolean",
+      "box":true
+    },
     "EncodingType":{
       "type":"string",
       "documentation":"<p>Requests Amazon S3 to encode the object keys in the response and specifies the encoding method to use. An object key can contain any Unicode character; however, the XML 1.0 parser cannot parse some characters, such as characters with an ASCII value from 0 to 10. For characters that are not supported in XML 1.0, you can add this parameter to request that Amazon S3 encode the keys in the response.</p>",
@@ -3418,7 +3448,10 @@
       },
       "documentation":"<p>Specifies encryption-related information for an Amazon S3 bucket that is a destination for replicated objects.</p>"
     },
-    "End":{"type":"long"},
+    "End":{
+      "type":"long",
+      "box":true
+    },
     "EndEvent":{
       "type":"structure",
       "members":{
@@ -3536,7 +3569,10 @@
         "Disabled"
       ]
     },
-    "ExpiredObjectDeleteMarker":{"type":"boolean"},
+    "ExpiredObjectDeleteMarker":{
+      "type":"boolean",
+      "box":true
+    },
     "Expires":{"type":"timestamp"},
     "ExposeHeader":{"type":"string"},
     "ExposeHeaders":{
@@ -3549,7 +3585,10 @@
       "type":"string",
       "enum":["SQL"]
     },
-    "FetchOwner":{"type":"boolean"},
+    "FetchOwner":{
+      "type":"boolean",
+      "box":true
+    },
     "FieldDelimiter":{"type":"string"},
     "FileHeaderInfo":{
       "type":"string",
@@ -4879,7 +4918,10 @@
         }
       }
     },
-    "GetObjectResponseStatusCode":{"type":"integer"},
+    "GetObjectResponseStatusCode":{
+      "type":"integer",
+      "box":true
+    },
     "GetObjectRetentionOutput":{
       "type":"structure",
       "members":{
@@ -5570,7 +5612,10 @@
       "member":{"shape":"IntelligentTieringConfiguration"},
       "flattened":true
     },
-    "IntelligentTieringDays":{"type":"integer"},
+    "IntelligentTieringDays":{
+      "type":"integer",
+      "box":true
+    },
     "IntelligentTieringFilter":{
       "type":"structure",
       "members":{
@@ -5778,11 +5823,26 @@
       },
       "documentation":"<p>Specifies the schedule for generating inventory results.</p>"
     },
-    "IsEnabled":{"type":"boolean"},
-    "IsLatest":{"type":"boolean"},
-    "IsPublic":{"type":"boolean"},
-    "IsRestoreInProgress":{"type":"boolean"},
-    "IsTruncated":{"type":"boolean"},
+    "IsEnabled":{
+      "type":"boolean",
+      "box":true
+    },
+    "IsLatest":{
+      "type":"boolean",
+      "box":true
+    },
+    "IsPublic":{
+      "type":"boolean",
+      "box":true
+    },
+    "IsRestoreInProgress":{
+      "type":"boolean",
+      "box":true
+    },
+    "IsTruncated":{
+      "type":"boolean",
+      "box":true
+    },
     "JSONInput":{
       "type":"structure",
       "members":{
@@ -6829,7 +6889,10 @@
       ]
     },
     "Marker":{"type":"string"},
-    "MaxAgeSeconds":{"type":"integer"},
+    "MaxAgeSeconds":{
+      "type":"integer",
+      "box":true
+    },
     "MaxKeys":{"type":"integer"},
     "MaxParts":{"type":"integer"},
     "MaxUploads":{"type":"integer"},
@@ -6947,7 +7010,10 @@
         "Disabled"
       ]
     },
-    "Minutes":{"type":"integer"},
+    "Minutes":{
+      "type":"integer",
+      "box":true
+    },
     "MissingMeta":{"type":"integer"},
     "MultipartUpload":{
       "type":"structure",
@@ -6991,7 +7057,10 @@
     },
     "NextKeyMarker":{"type":"string"},
     "NextMarker":{"type":"string"},
-    "NextPartNumberMarker":{"type":"integer"},
+    "NextPartNumberMarker":{
+      "type":"integer",
+      "box":true
+    },
     "NextToken":{"type":"string"},
     "NextUploadIdMarker":{"type":"string"},
     "NextVersionIdMarker":{"type":"string"},
@@ -7227,7 +7296,10 @@
       "type":"string",
       "enum":["Enabled"]
     },
-    "ObjectLockEnabledForBucket":{"type":"boolean"},
+    "ObjectLockEnabledForBucket":{
+      "type":"boolean",
+      "box":true
+    },
     "ObjectLockLegalHold":{
       "type":"structure",
       "members":{
@@ -7334,9 +7406,18 @@
       },
       "documentation":"<p>A container for elements related to an individual part.</p>"
     },
-    "ObjectSize":{"type":"long"},
-    "ObjectSizeGreaterThanBytes":{"type":"long"},
-    "ObjectSizeLessThanBytes":{"type":"long"},
+    "ObjectSize":{
+      "type":"long",
+      "box":true
+    },
+    "ObjectSizeGreaterThanBytes":{
+      "type":"long",
+      "box":true
+    },
+    "ObjectSizeLessThanBytes":{
+      "type":"long",
+      "box":true
+    },
     "ObjectStorageClass":{
       "type":"string",
       "enum":[
@@ -7534,7 +7615,10 @@
       "member":{"shape":"Part"},
       "flattened":true
     },
-    "PartsCount":{"type":"integer"},
+    "PartsCount":{
+      "type":"integer",
+      "box":true
+    },
     "PartsList":{
       "type":"list",
       "member":{"shape":"ObjectPart"},
@@ -7570,7 +7654,10 @@
       "documentation":"<p>The container element for a bucket's policy status.</p>"
     },
     "Prefix":{"type":"string"},
-    "Priority":{"type":"integer"},
+    "Priority":{
+      "type":"integer",
+      "box":true
+    },
     "Progress":{
       "type":"structure",
       "members":{
@@ -9227,7 +9314,10 @@
       "member":{"shape":"QueueConfiguration"},
       "flattened":true
     },
-    "Quiet":{"type":"boolean"},
+    "Quiet":{
+      "type":"boolean",
+      "box":true
+    },
     "QuoteCharacter":{"type":"string"},
     "QuoteEscapeCharacter":{"type":"string"},
     "QuoteFields":{
@@ -9979,9 +10069,18 @@
       "member":{"shape":"ServerSideEncryptionRule"},
       "flattened":true
     },
-    "Setting":{"type":"boolean"},
-    "Size":{"type":"long"},
-    "SkipValidation":{"type":"boolean"},
+    "Setting":{
+      "type":"boolean",
+      "box":true
+    },
+    "Size":{
+      "type":"long",
+      "box":true
+    },
+    "SkipValidation":{
+      "type":"boolean",
+      "box":true
+    },
     "SourceSelectionCriteria":{
       "type":"structure",
       "members":{
@@ -10014,7 +10113,10 @@
         "Disabled"
       ]
     },
-    "Start":{"type":"long"},
+    "Start":{
+      "type":"long",
+      "box":true
+    },
     "StartAfter":{"type":"string"},
     "Stats":{
       "type":"structure",
@@ -10112,7 +10214,10 @@
       },
       "documentation":"<p>A container of a key value name pair.</p>"
     },
-    "TagCount":{"type":"integer"},
+    "TagCount":{
+      "type":"integer",
+      "box":true
+    },
     "TagSet":{
       "type":"list",
       "member":{
@@ -10655,7 +10760,10 @@
       }
     },
     "Value":{"type":"string"},
-    "VersionCount":{"type":"integer"},
+    "VersionCount":{
+      "type":"integer",
+      "box":true
+    },
     "VersionIdMarker":{"type":"string"},
     "VersioningConfiguration":{
       "type":"structure",
@@ -10944,7 +11052,10 @@
       },
       "payload":"Body"
     },
-    "Years":{"type":"integer"}
+    "Years":{
+      "type":"integer",
+      "box":true
+    }
   },
   "documentation":"<p/>",
   "clientContextParams":{

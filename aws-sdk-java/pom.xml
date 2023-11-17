@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.21.25</version>
+        <version>2.21.26</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>aws-sdk-java</artifactId>
@@ -526,11 +526,6 @@ Amazon AutoScaling, etc).</description>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>machinelearning</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>macie</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
@@ -1816,6 +1811,11 @@ Amazon AutoScaling, etc).</description>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>launchwizard</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>trustedadvisor</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>

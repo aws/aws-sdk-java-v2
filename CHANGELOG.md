@@ -1,3 +1,133 @@
+# __2.21.26__ __2023-11-17__
+## __AWS App Mesh__
+  - ### Features
+    - Change the default value of these fields from 0 to null: MaxConnections, MaxPendingRequests, MaxRequests, HealthCheckThreshold, PortNumber, and HealthCheckPolicy -> port. Users are not expected to perceive the change, except that badRequestException is thrown when required fields missing configured.
+
+## __AWS Cloud9__
+  - ### Features
+    - A minor doc only update related to changing the date of an API change.
+
+## __AWS CloudFormation__
+  - ### Features
+    - This release adds a new flag ImportExistingResources to CreateChangeSet. Specify this parameter on a CREATE- or UPDATE-type change set to import existing resources with custom names instead of recreating them.
+
+## __AWS CodePipeline__
+  - ### Features
+    - CodePipeline now supports overriding source revisions to achieve manual re-deploy of a past revision
+
+## __AWS CodeStar connections__
+  - ### Features
+    - This release adds support for the CloudFormation Git sync feature. Git sync enables updating a CloudFormation stack from a template stored in a Git repository.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive has now added support for per-output static image overlay.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the EKS container host to the allowed loopback addresses for ContainerCredentialsProvider. Validate the loopback addresses even for RelativeURI after they have been resolved.
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Adding support for `sso-oauth:CreateTokenWithIAM`.
+
+## __AWS Security Token Service__
+  - ### Features
+    - API updates for the AWS Security Token Service
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Improves support for configuring RefreshToken and TokenExchange grants on applications.
+
+## __Amazon Athena__
+  - ### Features
+    - Adding SerivicePreProcessing time metric
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - Adds new querying capabilities for running data queries on a monitor
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds WISDOM_QUICK_RESPONSES as new IntegrationType of Connect IntegrationAssociation resource and bug fixes.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release adds QuickResponse as a new Wisdom resource and Wisdom APIs for import, create, read, search, update and delete QuickResponse resources.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Added support for SAP HANA in Amazon Data Lifecycle Manager EBS snapshot lifecycle policies with pre and post scripts.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - Documentation and operational updates for Amazon ECR, adding support for pull through cache rules for upstream registries that require authentication.
+
+## __Amazon EMR__
+  - ### Features
+    - Launch support for IAM Identity Center Trusted Identity Propagation and workspace storage encryption using AWS KMS in EMR Studio
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds new features for Amazon VPC IP Address Manager (IPAM) Allowing a choice between Free and Advanced Tiers, viewing public IP address insights across regions and in Amazon Cloudwatch, use IPAM to plan your subnet IPs within a VPC and bring your own autonomous system number to IPAM.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Introduces a new rule state ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS for matching with Get, List and Describe AWS API call events from CloudTrail.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - TargetParameters now properly supports BatchJobParameters.ArrayProperties.Size and BatchJobParameters.RetryStrategy.Attempts being optional, and EcsTaskParameters.Overrides.EphemeralStorage.SizeInGiB now properly required when setting EphemeralStorage
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - type & defaulting refinement to various range properties
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - type & defaulting refinement to various range properties
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Docs only build to bring up-to-date with public docs.
+
+## __Amazon Location Service__
+  - ### Features
+    - Remove default value and allow nullable for request parameters having minimum value larger than zero.
+
+## __Amazon OpenSearch Ingestion__
+  - ### Features
+    - Add support for enabling a persistent buffer when creating or updating an OpenSearch Ingestion pipeline. Add tags to Pipeline and PipelineSummary response models.
+
+## __Amazon Redshift__
+  - ### Features
+    - Updated SDK for Amazon Redshift, which you can use to configure a connection with IAM Identity Center to manage access to databases. With these, you can create a connection through a managed application. You can also change a managed application, delete it, or get information about an existing one.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for option groups and replica enhancements to Amazon RDS Custom.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Removes all default 0 values for numbers and false values for booleans
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adding BatchIsAuthorized API which supports multiple authorization requests against a PolicyStore
+
+## __Application Migration Service__
+  - ### Features
+    - Removed invalid and unnecessary default values.
+
+## __Redshift Serverless__
+  - ### Features
+    - Updated SDK for Amazon Redshift Serverless, which provides the ability to configure a connection with IAM Identity Center to manage user and group access to databases.
+
+## __TrustedAdvisor Public API__
+  - ### Features
+    - AWS Trusted Advisor introduces new APIs to enable you to programmatically access Trusted Advisor best practice checks, recommendations, and prioritized recommendations. Trusted Advisor APIs enable you to integrate Trusted Advisor with your operational tools to automate your workloads.
+
 # __2.21.25__ __2023-11-16__
 ## __AWS Elemental MediaPackage__
   - ### Features
@@ -1548,7 +1678,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -3289,7 +3419,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
