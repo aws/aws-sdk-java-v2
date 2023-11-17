@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Serverless",
+    "contributor": "",
+    "description": "Updated SDK for Amazon Redshift Serverless, which provides the ability to configure a connection with IAM Identity Center to manage user and group access to databases."
+}
