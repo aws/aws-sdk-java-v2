@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "This release adds support for option groups and replica enhancements to Amazon RDS Custom."
-}

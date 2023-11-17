@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge Pipes",
-    "contributor": "",
-    "description": "TargetParameters now properly supports BatchJobParameters.ArrayProperties.Size and BatchJobParameters.RetryStrategy.Attempts being optional, and EcsTaskParameters.Overrides.EphemeralStorage.SizeInGiB now properly required when setting EphemeralStorage"
-}

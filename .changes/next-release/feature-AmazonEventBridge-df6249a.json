@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge",
-    "contributor": "",
-    "description": "Introduces a new rule state ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS for matching with Get, List and Describe AWS API call events from CloudTrail."
-}

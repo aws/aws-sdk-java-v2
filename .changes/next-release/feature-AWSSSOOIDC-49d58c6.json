@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SSO OIDC",
-    "contributor": "",
-    "description": "Adding support for `sso-oauth:CreateTokenWithIAM`."
-}

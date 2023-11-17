@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR",
-    "contributor": "",
-    "description": "Launch support for IAM Identity Center Trusted Identity Propagation and workspace storage encryption using AWS KMS in EMR Studio"
-}
