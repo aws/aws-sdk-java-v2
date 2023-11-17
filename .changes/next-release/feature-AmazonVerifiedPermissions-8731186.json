@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Verified Permissions",
+    "contributor": "",
+    "description": "Adding BatchIsAuthorized API which supports multiple authorization requests against a PolicyStore"
+}
