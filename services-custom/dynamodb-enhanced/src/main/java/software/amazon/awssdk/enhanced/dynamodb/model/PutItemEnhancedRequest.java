@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
  * Defines parameters used to write an item to a DynamoDb table using the putItem() operation (such as
@@ -43,6 +44,7 @@ public final class PutItemEnhancedRequest<T> {
     private final String returnValues;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
+    private final String returnValuesOnConditionCheckFailure;
 
     private PutItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
@@ -50,6 +52,7 @@ public final class PutItemEnhancedRequest<T> {
         this.returnValues = builder.returnValues;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
+        this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
     /**
@@ -71,7 +74,8 @@ public final class PutItemEnhancedRequest<T> {
                                .conditionExpression(conditionExpression)
                                .returnValues(returnValues)
                                .returnConsumedCapacity(returnConsumedCapacity)
-                               .returnItemCollectionMetrics(returnItemCollectionMetrics);
+                               .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                               .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
     /**
@@ -146,6 +150,14 @@ public final class PutItemEnhancedRequest<T> {
         return returnItemCollectionMetrics;
     }
 
+    public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
+        return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
+    }
+
+    public String returnValuesOnConditionCheckFailureAsString() {
+        return returnValuesOnConditionCheckFailure;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -159,7 +171,8 @@ public final class PutItemEnhancedRequest<T> {
                && Objects.equals(conditionExpression, that.conditionExpression)
                && Objects.equals(returnValues, that.returnValues)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
-               && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
+               && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
+               && Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
     }
 
     @Override
@@ -169,6 +182,7 @@ public final class PutItemEnhancedRequest<T> {
         result = 31 * result + (returnValues != null ? returnValues.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
+        result = 31 * result + (returnValuesOnConditionCheckFailure != null ? returnValuesOnConditionCheckFailure.hashCode() : 0);
         return result;
     }
 
@@ -184,6 +198,7 @@ public final class PutItemEnhancedRequest<T> {
         private String returnValues;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
+        private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
         }
@@ -271,6 +286,17 @@ public final class PutItemEnhancedRequest<T> {
          */
         public Builder<T> returnItemCollectionMetrics(String returnItemCollectionMetrics) {
             this.returnItemCollectionMetrics = returnItemCollectionMetrics;
+            return this;
+        }
+
+        public Builder<T> returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
+                                                       returnValuesOnConditionCheckFailure.toString();
+            return this;
+        }
+
+        public Builder<T> returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
             return this;
         }
 
