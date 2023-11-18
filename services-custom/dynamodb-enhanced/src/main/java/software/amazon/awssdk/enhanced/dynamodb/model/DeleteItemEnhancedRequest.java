@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
  * Defines parameters used to remove an item from a DynamoDb table using the deleteItem() operation (such as
@@ -44,12 +45,14 @@ public final class DeleteItemEnhancedRequest {
     private final Expression conditionExpression;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
+    private final String returnValuesOnConditionCheckFailure;
 
     private DeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
         this.conditionExpression = builder.conditionExpression;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
+        this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
     /**
@@ -66,7 +69,8 @@ public final class DeleteItemEnhancedRequest {
         return builder().key(key)
                         .conditionExpression(conditionExpression)
                         .returnConsumedCapacity(returnConsumedCapacity)
-                        .returnItemCollectionMetrics(returnItemCollectionMetrics);
+                        .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                        .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
     /**
@@ -122,6 +126,14 @@ public final class DeleteItemEnhancedRequest {
         return returnItemCollectionMetrics;
     }
 
+    public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
+        return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
+    }
+
+    public String returnValuesOnConditionCheckFailureAsString() {
+        return returnValuesOnConditionCheckFailure;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -134,7 +146,8 @@ public final class DeleteItemEnhancedRequest {
         return Objects.equals(key, that.key)
                && Objects.equals(conditionExpression, that.conditionExpression)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
-               && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
+               && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
+               && Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
     }
 
     @Override
@@ -143,6 +156,7 @@ public final class DeleteItemEnhancedRequest {
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
+        result = 31 * result + (returnValuesOnConditionCheckFailure != null ? returnValuesOnConditionCheckFailure.hashCode() : 0);
         return result;
     }
 
@@ -157,6 +171,7 @@ public final class DeleteItemEnhancedRequest {
         private Expression conditionExpression;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
+        private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
         }
@@ -237,6 +252,17 @@ public final class DeleteItemEnhancedRequest {
          */
         public Builder returnItemCollectionMetrics(String returnItemCollectionMetrics) {
             this.returnItemCollectionMetrics = returnItemCollectionMetrics;
+            return this;
+        }
+
+        public Builder returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
+                                                       returnValuesOnConditionCheckFailure.toString();
+            return this;
+        }
+
+        public Builder returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
             return this;
         }
 
