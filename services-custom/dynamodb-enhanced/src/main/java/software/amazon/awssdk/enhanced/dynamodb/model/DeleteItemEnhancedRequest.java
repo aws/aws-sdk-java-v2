@@ -126,10 +126,21 @@ public final class DeleteItemEnhancedRequest {
         return returnItemCollectionMetrics;
     }
 
+    /**
+     * Whether to return the item on condition check failure.
+     *
+     * @see DeleteItemRequest#returnValuesOnConditionCheckFailure()
+     */
     public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
         return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
     }
 
+    /**
+     * Whether to return the item on condition check failure.
+     * <p>
+     * Similar to {@link #returnValuesOnConditionCheckFailure()} but return the value as a string. This is useful in situations
+     * where the value is not defined in {@link ReturnValuesOnConditionCheckFailure}.
+     */
     public String returnValuesOnConditionCheckFailureAsString() {
         return returnValuesOnConditionCheckFailure;
     }
@@ -255,12 +266,22 @@ public final class DeleteItemEnhancedRequest {
             return this;
         }
 
+        /**
+         * Whether to return the item on condition check failure.
+         *
+         * @see DeleteItemRequest.Builder#returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure)
+         */
         public Builder returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
                                                        returnValuesOnConditionCheckFailure.toString();
             return this;
         }
 
+        /**
+         * Whether to return the item on condition check failure.
+         *
+         * @see DeleteItemRequest.Builder#returnValuesOnConditionCheckFailure(String)
+         */
         public Builder returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
             return this;

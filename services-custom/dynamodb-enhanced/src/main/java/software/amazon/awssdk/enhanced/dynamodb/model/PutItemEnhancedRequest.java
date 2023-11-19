@@ -150,10 +150,21 @@ public final class PutItemEnhancedRequest<T> {
         return returnItemCollectionMetrics;
     }
 
+    /**
+     * Whether to return the item on condition check failure.
+     *
+     * @see PutItemRequest#returnValuesOnConditionCheckFailure()
+     */
     public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
         return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
     }
 
+    /**
+     * Whether to return the item on condition check failure.
+     * <p>
+     * Similar to {@link #returnValuesOnConditionCheckFailure()} but return the value as a string. This is useful in situations
+     * where the value is not defined in {@link ReturnValuesOnConditionCheckFailure}.
+     */
     public String returnValuesOnConditionCheckFailureAsString() {
         return returnValuesOnConditionCheckFailure;
     }
@@ -289,12 +300,22 @@ public final class PutItemEnhancedRequest<T> {
             return this;
         }
 
+        /**
+         * Whether to return the item on condition check failure.
+         *
+         * @see PutItemRequest.Builder#returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure)
+         */
         public Builder<T> returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
                                                        returnValuesOnConditionCheckFailure.toString();
             return this;
         }
 
+        /**
+         * Whether to return the item on condition check failure.
+         *
+         * @see PutItemRequest.Builder#returnValuesOnConditionCheckFailure(String)
+         */
         public Builder<T> returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
             return this;
