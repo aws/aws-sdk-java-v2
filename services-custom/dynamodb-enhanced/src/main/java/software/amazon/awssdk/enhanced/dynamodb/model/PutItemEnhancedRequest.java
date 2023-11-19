@@ -305,7 +305,9 @@ public final class PutItemEnhancedRequest<T> {
          *
          * @see PutItemRequest.Builder#returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure)
          */
-        public Builder<T> returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+        public Builder<T> returnValuesOnConditionCheckFailure(
+            ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
                                                        returnValuesOnConditionCheckFailure.toString();
             return this;

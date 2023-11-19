@@ -224,7 +224,8 @@ public class PutItemOperation<T>
         requestBuilder = requestBuilder.returnValues(enhancedRequest.returnValuesAsString());
         requestBuilder = requestBuilder.returnConsumedCapacity(enhancedRequest.returnConsumedCapacityAsString());
         requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
-        requestBuilder = requestBuilder.returnValuesOnConditionCheckFailure(enhancedRequest.returnValuesOnConditionCheckFailureAsString());
+        requestBuilder =
+            requestBuilder.returnValuesOnConditionCheckFailure(enhancedRequest.returnValuesOnConditionCheckFailureAsString());
         return requestBuilder;
     }
 }

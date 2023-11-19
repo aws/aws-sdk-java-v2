@@ -271,7 +271,9 @@ public final class DeleteItemEnhancedRequest {
          *
          * @see DeleteItemRequest.Builder#returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure)
          */
-        public Builder returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+        public Builder returnValuesOnConditionCheckFailure(
+            ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
                                                        returnValuesOnConditionCheckFailure.toString();
             return this;
