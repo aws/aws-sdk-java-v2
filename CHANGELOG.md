@@ -1,3 +1,20 @@
+# __2.21.27__ __2023-11-20__
+## __AWS CodeStar connections__
+  - ### Features
+    - This release updates a few CodeStar Connections related APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Amazon DocumentDB updates for new cluster storage configuration: Amazon DocumentDB I/O-Optimized.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Security group referencing over Transit gateways, enabling you to simplify Security group management and control of instance-to-instance traffic across VPCs that are connected by Transit gateway.
+
 # __2.21.26__ __2023-11-17__
 ## __AWS App Mesh__
   - ### Features
@@ -1678,7 +1695,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
