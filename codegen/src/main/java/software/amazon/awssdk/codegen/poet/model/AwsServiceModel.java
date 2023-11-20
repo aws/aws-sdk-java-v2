@@ -657,6 +657,10 @@ public class AwsServiceModel implements ClassSpec {
 
     private CodeBlock existenceCheckStatement(MemberModel member, ClassName autoConstructClass) {
         String variableName = member.getVariable().getVariableName();
+        if ("ReceiveMessageResult".equals(shapeModel.getC2jName()) && "messages".equals(variableName)) {
+            return CodeBlock.of("return $N != null && !($N instanceof $T) && !$N.isEmpty();", variableName, variableName,
+                                autoConstructClass, variableName);
+        }
         return CodeBlock.of("return $N != null && !($N instanceof $T);", variableName, variableName, autoConstructClass);
     }
 
