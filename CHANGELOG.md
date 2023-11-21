@@ -1,3 +1,36 @@
+# __2.21.28__ __2023-11-21__
+## __AWS IoT SiteWise__
+  - ### Features
+    - Adds 1/ user-defined unique identifier for asset and model metadata, 2/ asset model components, and 3/ query API for asset metadata and telemetry data. Supports 4/ multi variate anomaly detection using Amazon Lookout for Equipment, 5/ warm storage tier, and 6/ buffered ingestion of time series data.
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds following support. 1. New APIs for metadata bulk operations. 2. Modify the component type API to support composite component types - nesting component types within one another. 3. New list APIs for components and properties. 4. Support the larger scope digital twin modeling.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - This release adds support for CloudFront KeyValueStore, a globally managed key value datastore associated with CloudFront Functions.
+
+## __Amazon CloudFront KeyValueStore__
+  - ### Features
+    - This release adds support for CloudFront KeyValueStore, a globally managed key value datastore associated with CloudFront Functions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add support for automatic date based partitioning in S3 Server Access Logs.
+
+## __Inspector Scan__
+  - ### Features
+    - This release adds support for the new Amazon Inspector Scan API. The new Inspector Scan API can synchronously scan SBOMs adhering to the CycloneDX v1.5 format.
+
 # __2.21.27__ __2023-11-20__
 ## __AWS CodeStar connections__
   - ### Features
