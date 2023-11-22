@@ -1,3 +1,16 @@
+# __2.21.29__ __2023-11-22__
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 Batch Operations now manages buckets or prefixes in a single step.
+
+## __Amazon Kinesis__
+  - ### Features
+    - This release adds support for resource based policies on streams and consumers.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This feature adds the end user license agreement status as a model access configuration parameter.
+
 # __2.21.28__ __2023-11-21__
 ## __AWS IoT SiteWise__
   - ### Features
@@ -1728,7 +1741,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
