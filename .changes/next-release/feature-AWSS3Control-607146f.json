@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3 Control",
+    "contributor": "",
+    "description": "Amazon S3 Batch Operations now manages buckets or prefixes in a single step."
+}
