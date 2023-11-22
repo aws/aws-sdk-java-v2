@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "This feature adds the end user license agreement status as a model access configuration parameter."
+}
