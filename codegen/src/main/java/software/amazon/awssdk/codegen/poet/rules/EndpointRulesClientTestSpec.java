@@ -71,8 +71,8 @@ import software.amazon.awssdk.utils.Validate;
 
 public class EndpointRulesClientTestSpec implements ClassSpec {
     /**
-     * Many of the services, (especially the services whose rules are completely auto generated), share a same set of tests
-     * that fail for the SDK (with a valid reason).
+     * Many of the services, (especially the services whose rules are completely auto generated), share a same set of tests that
+     * fail for the SDK (with a valid reason).
      */
     private static final Map<String, String> GLOBAL_SKIP_ENDPOINT_TESTS;
 
@@ -220,8 +220,6 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                                          .returns(ParameterizedTypeName.get(List.class, SyncTestCase.class));
 
 
-
-
         b.addCode("return $T.asList(", Arrays.class);
 
         EndpointTestSuiteModel endpointTestSuiteModel = model.getEndpointTestSuiteModel();
@@ -243,7 +241,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                               SyncTestCase.class,
                               test.getDocumentation(),
                               syncOperationCallLambda(opModel, test.getParams(), opInput.getOperationParams()),
-                              TestGeneratorUtils.createExpect(test.getExpect(), opModel, opInput.getOperationParams()),
+                              TestGeneratorUtils.createExpect(
+                                  model.getCustomizationConfig(), test.getExpect(), opModel, opInput.getOperationParams()),
                               getSkipReasonBlock(test.getDocumentation()));
 
                     if (operationInputsIter.hasNext()) {
@@ -259,7 +258,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                           SyncTestCase.class,
                           test.getDocumentation(),
                           syncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
-                          TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
+                          TestGeneratorUtils.createExpect(
+                              model.getCustomizationConfig(), test.getExpect(), defaultOpModel, null),
                           getSkipReasonBlock(test.getDocumentation()));
             }
         }
@@ -393,7 +393,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                               AsyncTestCase.class,
                               test.getDocumentation(),
                               asyncOperationCallLambda(opModel, test.getParams(), opInput.getOperationParams()),
-                              TestGeneratorUtils.createExpect(test.getExpect(), opModel, opInput.getOperationParams()),
+                              TestGeneratorUtils.createExpect(
+                                  model.getCustomizationConfig(), test.getExpect(), opModel, opInput.getOperationParams()),
                               getSkipReasonBlock(test.getDocumentation()));
 
                     if (operationInputsIter.hasNext()) {
@@ -409,7 +410,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                           AsyncTestCase.class,
                           test.getDocumentation(),
                           asyncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
-                          TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
+                          TestGeneratorUtils.createExpect(
+                              model.getCustomizationConfig(), test.getExpect(), defaultOpModel, null),
                           getSkipReasonBlock(test.getDocumentation()));
             }
         }
@@ -677,8 +679,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
     }
 
     /**
-     * Some services can run tests without operation inputs if there are other conditions that allow
-     * codegen to create a functioning test case
+     * Some services can run tests without operation inputs if there are other conditions that allow codegen to create a
+     * functioning test case
      */
     private boolean shouldGenerateClientTestsOverride() {
         return model.getCustomizationConfig().isGenerateEndpointClientTests();
@@ -729,11 +731,11 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         if (endpointRulesSpecUtils.isS3()) {
             b.beginControlFlow("if (regionalEndpointPropertySaveValue != null)")
-             .addStatement("$T.setProperty($L, regionalEndpointPropertySaveValue)", System.class,
+                .addStatement("$T.setProperty($L, regionalEndpointPropertySaveValue)", System.class,
                            s3RegionalEndpointSystemPropertyCode())
-             .endControlFlow()
-             .beginControlFlow("else")
-             .addStatement("$T.clearProperty($L)", System.class, s3RegionalEndpointSystemPropertyCode())
+                .endControlFlow()
+                .beginControlFlow("else")
+                .addStatement("$T.clearProperty($L)", System.class, s3RegionalEndpointSystemPropertyCode())
                 .endControlFlow();
         }
         return b.build();

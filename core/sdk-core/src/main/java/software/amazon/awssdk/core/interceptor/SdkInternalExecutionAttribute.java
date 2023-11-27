@@ -16,7 +16,9 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
@@ -101,6 +103,27 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("IsDiscoveredEndpoint");
 
     /**
+     * The nano time that the current API call attempt began.
+     */
+    public static final ExecutionAttribute<Long> API_CALL_ATTEMPT_START_NANO_TIME =
+        new ExecutionAttribute<>("ApiCallAttemptStartNanoTime");
+
+    /**
+     * The nano time that reading the response headers is complete.
+     */
+    public static final ExecutionAttribute<Long> HEADERS_READ_END_NANO_TIME =
+        new ExecutionAttribute<>("HeadersReadEndNanoTime");
+
+    /**
+     * The running count of bytes in the response body that have been read by the client. This is updated atomically as the
+     * response is being read.
+     * <p>
+     * This attribute is set before every API call attempt.
+     */
+    public static final ExecutionAttribute<AtomicLong> RESPONSE_BYTES_READ =
+        new ExecutionAttribute<>("ResponseBytesRead");
+
+    /**
      * The auth scheme provider used to resolve the auth scheme for a request.
      */
     public static final ExecutionAttribute<AuthSchemeProvider> AUTH_SCHEME_RESOLVER =
@@ -133,6 +156,9 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<SdkProtocolMetadata> PROTOCOL_METADATA =
         new ExecutionAttribute<>("ProtocolMetadata");
+
+    public static final ExecutionAttribute<SdkClient> SDK_CLIENT =
+        new ExecutionAttribute<>("SdkClient");
 
     /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.

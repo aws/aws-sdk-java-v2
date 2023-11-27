@@ -71,6 +71,10 @@ public final class AuthSchemeSpecUtils {
         return intermediateModel.getMetadata().getFullInternalAuthSchemePackageName();
     }
 
+    public String baseClientPackageName() {
+        return intermediateModel.getMetadata().getFullClientPackageName();
+    }
+
     public ClassName parametersInterfaceName() {
         return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "AuthSchemeParams");
     }

@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add `cloudwatch-metric-publisher` to `aws-sdk-java` module so that it can be included in the bundle JAR."
+}

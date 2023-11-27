@@ -32,7 +32,6 @@ import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
-import software.amazon.awssdk.services.query.endpoints.internal.AuthSchemeUtils;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -46,7 +45,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
         List<AuthSchemeOption> authOptions = resolveAuthOptions(context, executionAttributes);
         SelectedAuthScheme<? extends Identity> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
-        AuthSchemeUtils.putSelectedAuthScheme(executionAttributes, selectedAuthScheme);
+        putSelectedAuthScheme(executionAttributes, selectedAuthScheme);
     }
 
     private List<AuthSchemeOption> resolveAuthOptions(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
@@ -67,7 +66,8 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         for (AuthSchemeOption authOption : authOptions) {
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
             SelectedAuthScheme<? extends Identity> selectedAuthScheme = trySelectAuthScheme(authOption, authScheme,
-                                                                                            identityProviders, discardedReasons, metricCollector);
+                                                                                            identityProviders, discardedReasons,
+                                                                                            metricCollector, executionAttributes);
             if (selectedAuthScheme != null) {
                 if (!discardedReasons.isEmpty()) {
                     LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
@@ -100,7 +100,8 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
 
     private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,
                                                                            IdentityProviders identityProviders, List<Supplier<String>> discardedReasons,
-                                                                           MetricCollector metricCollector) {
+                                                                           MetricCollector metricCollector,
+                                                                           ExecutionAttributes executionAttributes) {
         if (authScheme == null) {
             discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
             return null;
@@ -133,5 +134,18 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
             return CoreMetric.TOKEN_FETCH_DURATION;
         }
         return null;
+    }
+
+    private <T extends Identity> void putSelectedAuthScheme(ExecutionAttributes attributes,
+                                                            SelectedAuthScheme<T> selectedAuthScheme) {
+        SelectedAuthScheme<?> existingAuthScheme = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (existingAuthScheme != null) {
+            AuthSchemeOption.Builder selectedOption = selectedAuthScheme.authSchemeOption().toBuilder();
+            existingAuthScheme.authSchemeOption().forEachIdentityProperty(selectedOption::putIdentityPropertyIfAbsent);
+            existingAuthScheme.authSchemeOption().forEachSignerProperty(selectedOption::putSignerPropertyIfAbsent);
+            selectedAuthScheme = new SelectedAuthScheme<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(),
+                                                          selectedOption.build());
+        }
+        attributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
     }
 }

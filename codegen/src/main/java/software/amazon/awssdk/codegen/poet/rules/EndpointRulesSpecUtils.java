@@ -185,6 +185,10 @@ public class EndpointRulesSpecUtils {
         return "S3Control".equals(intermediateModel.getMetadata().getServiceName());
     }
 
+    public boolean useS3Express() {
+        return intermediateModel.getCustomizationConfig().getS3ExpressAuthSupport();
+    }
+
     public TypeName resolverReturnType() {
         return ParameterizedTypeName.get(CompletableFuture.class, Endpoint.class);
     }

@@ -131,10 +131,10 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
     private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
         List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
-        if (plugins.isEmpty()) {
-            return clientConfiguration;
-        }
         SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        if (plugins.isEmpty()) {
+            return configuration.build();
+        }
         ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder serviceConfigBuilder = new ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder(
             configuration);
         for (SdkPlugin plugin : plugins) {
