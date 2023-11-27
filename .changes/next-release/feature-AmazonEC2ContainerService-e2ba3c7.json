@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "Adds a new 'type' property to the Setting structure. Adds a new AccountSetting - guardDutyActivate for ECS."
+}
