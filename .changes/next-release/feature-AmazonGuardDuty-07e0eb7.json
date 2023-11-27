@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Add support for Runtime Monitoring for ECS and ECS-EC2."
-}
