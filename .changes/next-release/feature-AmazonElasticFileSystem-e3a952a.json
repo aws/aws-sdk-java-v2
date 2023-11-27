@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic File System",
+    "contributor": "",
+    "description": "Adding support for EFS Archive lifecycle configuration."
+}
