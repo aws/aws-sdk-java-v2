@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Blockchain",
+    "contributor": "",
+    "description": "Add optional NetworkType property to Accessor APIs"
+}
