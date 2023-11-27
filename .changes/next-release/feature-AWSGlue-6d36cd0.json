@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "add observations support to DQ CodeGen config model + update document for connectiontypes supported by ConnectorData entities"
-}
