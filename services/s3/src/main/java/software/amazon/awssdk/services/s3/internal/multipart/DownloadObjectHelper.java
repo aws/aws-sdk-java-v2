@@ -41,7 +41,7 @@ public class DownloadObjectHelper {
         if (!StringUtils.isEmpty(getObjectRequest.range()) || Objects.isNull(getObjectRequest.partNumber())) {
             return s3.getObject(getObjectRequest, asyncResponseTransformer);
         }
-        IndividualPartsDownloader<T> downloader = new IndividualPartsDownloader<>(s3, apiCallBufferSize);
+        MultipartDownloader<T> downloader = new MultipartDownloader<>(s3, apiCallBufferSize);
         return downloader.getObject(getObjectRequest, asyncResponseTransformer);
     }
 }

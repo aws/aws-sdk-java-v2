@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
@@ -48,9 +49,9 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  * @param <T> Type that the response handler produces. I.E. the type you are transforming the response into.
  */
 @SdkInternalApi
-public class IndividualPartsDownloader<T> {
+public class MultipartDownloader<T> {
 
-    private static final Logger log = Logger.loggerFor(IndividualPartsDownloader.class);
+    private static final Logger log = Logger.loggerFor(MultipartDownloader.class);
 
     /**
      * The {@link S3AsyncClient} delegate that will perform individual Get Object requests
@@ -82,9 +83,8 @@ public class IndividualPartsDownloader<T> {
     private Integer totalParts;
 
     /**
-     * Out of all parts that are being downloaded, this field indicated the furthest one.
-     * For example, if part 3, 4 and 5 are being downloaded, and we are waiting for buffer to be available to dowload part 6,
-     * this field will have value '5'.
+     * Out of all parts that are being downloaded, this field indicated the furthest one. For example, if part 3, 4 and 5 are
+     * being downloaded, and we are waiting for buffer to be available to dowload part 6, this field will have value '5'.
      */
     private final AtomicInteger highestDownloadingPart = new AtomicInteger(0);
 
@@ -93,6 +93,11 @@ public class IndividualPartsDownloader<T> {
      * {@link AsyncResponseTransformer}.
      */
     private final AtomicLong completedParts = new AtomicLong(0);
+
+    /**
+     * Indicates if this multipart request is cancelled, ususally due to an individual part failure
+     */
+    private final AtomicBoolean isCancelled = new AtomicBoolean(false);
 
     /**
      * The maximum amount of memory buffer configured.
@@ -115,7 +120,7 @@ public class IndividualPartsDownloader<T> {
      */
     private final PriorityQueue<PartBuffer> bufferedParts = new PriorityQueue<>(Comparator.comparingInt(p -> p.partNumber));
 
-    IndividualPartsDownloader(S3AsyncClient s3AsyncClient, long maxMemBufferSizeInBytes) {
+    MultipartDownloader(S3AsyncClient s3AsyncClient, long maxMemBufferSizeInBytes) {
         this.s3AsyncClient = s3AsyncClient;
         this.maxMemBufferSizeInBytes = maxMemBufferSizeInBytes;
     }
@@ -129,8 +134,7 @@ public class IndividualPartsDownloader<T> {
 
         GetObjectRequest firstPartRequest = getObjectRequest.copy(b -> b.partNumber(1));
 
-        MultiGetAsyncResponseTransformer multiResponseTransformer =
-            new MultiGetAsyncResponseTransformer(asyncResponseTransformer);
+        MultiGetAsyncResponseTransformer multiResponseTransformer = new MultiGetAsyncResponseTransformer();
         log.info(() -> String.format("sending GetObject request for part %d", 1));
         this.highestDownloadingPart.incrementAndGet();
         CompletableFuture<T> response = s3AsyncClient.getObject(firstPartRequest, multiResponseTransformer);
@@ -139,6 +143,11 @@ public class IndividualPartsDownloader<T> {
     }
 
     private void sendGetRequestIfBufferIsAvailable() {
+        // do not send more request if multipart encountered an error
+        if (isCancelled.get()) {
+            return;
+        }
+
         if (!bufferIsFull() && !completedLastPart() && highestDownloadingPart.get() < totalParts) {
             highestDownloadingPart.incrementAndGet();
             log.info(() -> String.format("sending GetObject request for part %d", highestDownloadingPart.get()));
@@ -163,18 +172,13 @@ public class IndividualPartsDownloader<T> {
     /**
      * The AsyncResponseTransformer of the first GetObject request being used
      */
-    private class MultiGetAsyncResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, T> {
+    private final class MultiGetAsyncResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, T> {
 
-        private AsyncResponseTransformer<GetObjectResponse, T> responseTransformer;
         private GetObjectResponse response;
-
-        public MultiGetAsyncResponseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
-            this.responseTransformer = responseTransformer;
-        }
 
         @Override
         public CompletableFuture<T> prepare() {
-            CompletableFuture<T> asyncResponseTransformerFuture = this.responseTransformer.prepare();
+            CompletableFuture<T> asyncResponseTransformerFuture = responseTransformer.prepare();
             asyncResponseTransformerFuture.whenComplete((t, e) -> {
                 if (e != null) {
                     returnFuture.completeExceptionally(e);
@@ -190,31 +194,31 @@ public class IndividualPartsDownloader<T> {
         public void onResponse(GetObjectResponse response) {
             this.response = response;
             totalParts = response.partsCount();
-            if (totalParts == null || totalParts > 1) {
+            if (!isSinglePartObject()) {
                 log.info(() -> String.format("Total parts: %d. Using multipart Get with part number", totalParts));
-                completedParts.incrementAndGet();
                 sendGetRequestIfBufferIsAvailable();
             }
             // todo: if parts, just use the first response for now.
             //  But we might need to construct a custom response object instead.
-            this.responseTransformer.onResponse(response);
+            responseTransformer.onResponse(response);
         }
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            if (totalParts == null || totalParts <= 1) {
+            if (isSinglePartObject()) {
                 // do not use multipart
-                this.responseTransformer.onStream(publisher);
+                responseTransformer.onStream(publisher);
                 return;
             }
             publisher.subscribe(new IndividualBodyPartSubscriber(1, response));
-            this.responseTransformer.onStream(SdkPublisher.adapt(bodyPartsPublisher));
+            responseTransformer.onStream(SdkPublisher.adapt(bodyPartsPublisher));
         }
 
         @Override
         public void exceptionOccurred(Throwable error) {
             log.info(() -> "MultiGetAsyncResponseTransformer exceptionOccurred : " + error.toString());
-            this.responseTransformer.exceptionOccurred(error);
+            isCancelled.set(true);
+            responseTransformer.exceptionOccurred(error);
         }
     }
 
@@ -222,12 +226,13 @@ public class IndividualPartsDownloader<T> {
      * Subscriber to each of the individual body parts being received. Manages the buffering of each individual part body into
      * memory, and flushing of the buffer once it is full.
      */
-    private class IndividualBodyPartSubscriber implements Subscriber<ByteBuffer> {
+    private final class IndividualBodyPartSubscriber implements Subscriber<ByteBuffer> {
         private final int partNumber;
         private final PartBuffer partsToRequest;
         private final GetObjectResponse response;
+        private Subscription subscription;
 
-        public IndividualBodyPartSubscriber(int partNumber, GetObjectResponse response) {
+        private IndividualBodyPartSubscriber(int partNumber, GetObjectResponse response) {
             this.partNumber = partNumber;
             this.response = response;
             this.partsToRequest = new PartBuffer(partNumber, response.contentLength());
@@ -236,19 +241,21 @@ public class IndividualPartsDownloader<T> {
 
         @Override
         public void onSubscribe(Subscription s) {
-            s.request(response.contentLength());
+            this.subscription = s;
+            s.request(this.response.contentLength());
         }
 
         @Override
         public void onNext(ByteBuffer body) {
-            partsToRequest.put(body);
+            this.partsToRequest.put(body);
             totalMemBufferedInBytes.addAndGet(body.capacity());
         }
 
         @Override
         public void onError(Throwable t) {
-            log.info(() -> String.format("IndividualPartSubscriber[%d] onError: %s", partNumber, t));
-            // todo(exception handling) cancel subscription?
+            log.error(() -> String.format("IndividualPartSubscriber[%d] onError: %s", partNumber, t), t);
+            this.subscription.cancel();
+            isCancelled.set(true);
             responseTransformer.exceptionOccurred(t);
         }
 
@@ -256,10 +263,28 @@ public class IndividualPartsDownloader<T> {
         public void onComplete() {
             completedParts.incrementAndGet();
             if (bufferIsFull() || completedLastPart()) {
-                // send full buffer to downstream publisher
+                // send full buffer to provided AsyncResponseTransformer
+                log.info(() -> String.format(
+                    "IndividualBodyPartSubscriber[%d] sending full buffer to downstream publisher", partNumber));
+                // int total = bufferedParts
+                //     .stream()
+                //     .map(p -> {
+                //         p.buffer.position(0);
+                //         return p.buffer.capacity();
+                //     }).mapToInt(i -> i)
+                //     .sum();
+                // ByteBuffer bb = ByteBuffer.allocate(total);
                 while (!bufferedParts.isEmpty()) {
-                    PartBuffer part = bufferedParts.poll();
-                    part.sendToPublisher();
+                    // ByteBuffer buffered = bufferedParts.poll().buffer;
+                    // bb.put(buffered);
+                    // PartBuffer part = bufferedParts.poll();
+                    // part.sendToPublisher();
+                    // bb.position(0);
+                    SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+                    responseTransformer.onStream(SdkPublisher.adapt(publisher));
+                    bufferedParts.poll().buffer.position(0);
+                    publisher.send(bufferedParts.poll().buffer);
+                    // bodyPartsPublisher.send(bb);
                 }
                 totalMemBufferedInBytes.set(0);
 
@@ -289,17 +314,21 @@ public class IndividualPartsDownloader<T> {
         }
     }
 
+    private boolean isSinglePartObject() {
+        return totalParts == null || totalParts < 2;
+    }
+
     private boolean bufferIsFull() {
         return totalMemBufferedInBytes.get() >= maxMemBufferSizeInBytes;
     }
 
     private boolean completedLastPart() {
-        return completedParts.get() == totalParts;
+        return completedParts.get() >= totalParts;
     }
 
     private class PartBuffer {
-        int partNumber;
-        final ByteBuffer buffer;
+        private final int partNumber;
+        private final ByteBuffer buffer;
 
         PartBuffer(int partNumber, Long contentLength) {
             this.partNumber = partNumber;
