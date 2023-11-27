@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "contributor": "",
+    "description": "Adds new TestState operation which accepts the definition of a single state and executes it. You can test a state without creating a state machine or updating an existing state machine."
+}
