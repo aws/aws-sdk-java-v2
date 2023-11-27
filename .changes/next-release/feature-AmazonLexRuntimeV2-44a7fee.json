@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Runtime V2",
+    "contributor": "",
+    "description": "This release introduces support for interpretationSource in the runtime service response."
+}
