@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize Runtime",
+    "contributor": "",
+    "description": "Enables metadata in recommendations and next best action recommendations"
+}
