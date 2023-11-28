@@ -1,3 +1,61 @@
+# __2.21.33__ __2023-11-28__
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for S3 Express One Zone, and InvocationSchemaVersion 2.0 for S3 Batch Operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for external access findings for S3 directory buckets to help you easily identify cross-account access. Updated service API, documentation, and paginators.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release introduces Agents for Amazon Bedrock
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces Agents for Amazon Bedrock Runtime
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release adds support for customization types, model life cycle status and minor versions/aliases for model identifiers.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support for minor versions/aliases for invoke model identifier.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces DetectProfileObjectType API to auto generate object type mapping.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added support for following capabilities: Amazon Connect's in-app, web, and video calling. Two-way SMS integrations. Contact Lens real-time chat analytics feature. Amazon Connect Analytics Datalake capability. Capability to configure real time chat rules.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Amazon Q in Connect, an LLM-enhanced evolution of Amazon Connect Wisdom. This release adds generative AI support to Amazon Q Connect QueryAssistant and GetRecommendations APIs.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for S3 Express One Zone.
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q - a generative AI powered application that your employees can use to ask questions and get answers from knowledge spread across disparate content repositories, summarize reports, write articles, take actions, and much more - all within their company's connected content repositories.
+
+# __2.21.32__ __2023-11-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Launching Amazon ElastiCache Serverless that enables you to create a cache in under a minute without any capacity management. ElastiCache Serverless monitors the cache's memory, CPU, and network usage and scales both vertically and horizontally to support your application's requirements.
+
 # __2.21.31__ __2023-11-27__
 ## __AWS AppSync__
   - ### Features
@@ -1939,7 +1997,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes

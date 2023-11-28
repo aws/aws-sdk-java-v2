@@ -2478,7 +2478,7 @@
         },
         "WebsiteRedirectLocation":{
           "shape":"WebsiteRedirectLocation",
-          "documentation":"<p>If the bucket is configured as a website, redirects requests for this object to another object in the same bucket or to an external URL. Amazon S3 stores the value of this header in the object metadata. This value is unique to each object and is not copied when using the <code>x-amz-metadata-directive</code> header. Instead, you may opt to provide this header in combination with the directive.</p>",
+          "documentation":"<p>If the destination bucket is configured as a website, redirects requests for this object copy to another object in the same bucket or to an external URL. Amazon S3 stores the value of this header in the object metadata. This value is unique to each object and is not copied when using the <code>x-amz-metadata-directive</code> header. Instead, you may opt to provide this header in combination with the <code>x-amz-metadata-directive</code> header.</p> <note> <p>This functionality is not supported for directory buckets.</p> </note>",
           "location":"header",
           "locationName":"x-amz-website-redirect-location"
         },

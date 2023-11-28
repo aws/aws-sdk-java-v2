@@ -93,7 +93,7 @@
         },
         "DisableS3ExpressSessionAuth": {
             "required": false,
-            "documentation": "Internal parameter to indicate whether S3Express session auth should be disabled",
+            "documentation": "Parameter to indicate whether S3Express session auth should be disabled",
             "type": "Boolean"
         }
     },
