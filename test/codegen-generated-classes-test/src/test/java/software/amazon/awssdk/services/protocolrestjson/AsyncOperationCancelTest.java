@@ -21,15 +21,11 @@ import static org.mockito.Mockito.when;
 
 import io.reactivex.Flowable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -96,9 +92,6 @@ public class AsyncOperationCancelTest {
         assertThat(executeFuture.isCancelled()).isTrue();
     }
 
-    // TODO(sra-identity-and-auth): This test passes now (8/4/2023) because current client codegen uses signer override for
-    //  event stream operation. But with subsequent codegen changes for SRA, event stream won't have a signer override. And we may
-    //  need to check that this test still works.
     @Test
     public void testEventStreamingOperation() throws InterruptedException {
         CompletableFuture<Void> responseFuture =

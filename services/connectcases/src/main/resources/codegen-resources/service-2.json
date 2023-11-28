@@ -68,7 +68,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Creates a case in the specified Cases domain. Case system and custom fields are taken as an array id/value pairs with a declared data types.</p> <note> <p>The following fields are required when creating a case:</p> <pre><code> &lt;ul&gt; &lt;li&gt; &lt;p&gt; &lt;code&gt;customer_id&lt;/code&gt; - You must provide the full customer profile ARN in this format: &lt;code&gt;arn:aws:profile:your AWS Region:your AWS account ID:domains/profiles domain name/profiles/profile ID&lt;/code&gt; &lt;/p&gt; &lt;/li&gt; &lt;li&gt; &lt;p&gt; &lt;code&gt;title&lt;/code&gt; &lt;/p&gt; &lt;/li&gt; &lt;/ul&gt; &lt;/note&gt; </code></pre>",
+      "documentation":"<p>Creates a case in the specified Cases domain. Case system and custom fields are taken as an array id/value pairs with a declared data types.</p> <p>The following fields are required when creating a case:</p> <pre><code> &lt;ul&gt; &lt;li&gt; &lt;p&gt; &lt;code&gt;customer_id&lt;/code&gt; - You must provide the full customer profile ARN in this format: &lt;code&gt;arn:aws:profile:your_AWS_Region:your_AWS_account ID:domains/your_profiles_domain_name/profiles/profile_ID&lt;/code&gt; &lt;/p&gt; &lt;/li&gt; &lt;li&gt; &lt;p&gt; &lt;code&gt;title&lt;/code&gt; &lt;/p&gt; &lt;/li&gt; &lt;/ul&gt; </code></pre>",
       "idempotent":true
     },
     "CreateDomain":{
@@ -149,7 +149,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Creates a related item (comments, tasks, and contacts) and associates it with a case.</p> <note> <p>A Related Item is a resource that is associated with a case. It may or may not have an external identifier linking it to an external resource (for example, a <code>contactArn</code>). All Related Items have their own internal identifier, the <code>relatedItemArn</code>. Examples of related items include <code>comments</code> and <code>contacts</code>.</p> </note>",
+      "documentation":"<p>Creates a related item (comments, tasks, and contacts) and associates it with a case.</p> <note> <ul> <li> <p>A Related Item is a resource that is associated with a case. It may or may not have an external identifier linking it to an external resource (for example, a <code>contactArn</code>). All Related Items have their own internal identifier, the <code>relatedItemArn</code>. Examples of related items include <code>comments</code> and <code>contacts</code>.</p> </li> <li> <p>If you provide a value for <code>performedBy.userArn</code> you must also have <a href=\"https://docs.aws.amazon.com/connect/latest/APIReference/API_DescribeUser.html\">DescribeUser</a> permission on the ARN of the user that you provide.</p> </li> </ul> <pre><code> &lt;/note&gt; </code></pre>",
       "idempotent":true
     },
     "CreateTemplate":{
@@ -425,7 +425,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>API for adding case event publishing configuration</p>"
+      "documentation":"<p>Adds case event publishing configuration. For a complete list of fields you can add to the event message, see <a href=\"https://docs.aws.amazon.com/connect/latest/adminguide/case-fields.html\">Create case fields</a> in the <i>Amazon Connect Administrator Guide</i> </p>"
     },
     "SearchCases":{
       "name":"SearchCases",
@@ -805,7 +805,7 @@
     },
     "CommentBody":{
       "type":"string",
-      "max":1000,
+      "max":3000,
       "min":1
     },
     "CommentBodyTextType":{
@@ -1111,6 +1111,10 @@
           "documentation":"<p>The unique identifier of the Cases domain. </p>",
           "location":"uri",
           "locationName":"domainId"
+        },
+        "performedBy":{
+          "shape":"UserUnion",
+          "documentation":"<p>Represents the creator of the related item.</p>"
         },
         "type":{
           "shape":"RelatedItemType",
@@ -1576,7 +1580,7 @@
     },
     "FieldValueUnionStringValueString":{
       "type":"string",
-      "max":500,
+      "max":1500,
       "min":0
     },
     "GetCaseEventConfigurationRequest":{
@@ -2607,6 +2611,10 @@
           "shape":"RelatedItemContent",
           "documentation":"<p>Represents the content of a particular type of related item.</p>"
         },
+        "performedBy":{
+          "shape":"UserUnion",
+          "documentation":"<p>Represents the creator of the related item.</p>"
+        },
         "relatedItemId":{
           "shape":"RelatedItemId",
           "documentation":"<p>Unique identifier of a related item.</p>"
@@ -2891,7 +2899,7 @@
       "members":{
         "content":{
           "shape":"LayoutContent",
-          "documentation":"<p>Information about which fields will be present in the layout, the order of the fields, and a read-only attribute of the field. </p>"
+          "documentation":"<p>Information about which fields will be present in the layout, the order of the fields.</p>"
         },
         "domainId":{
           "shape":"DomainId",
@@ -2961,6 +2969,22 @@
       "type":"structure",
       "members":{
       }
+    },
+    "UserArn":{
+      "type":"string",
+      "max":500,
+      "min":1
+    },
+    "UserUnion":{
+      "type":"structure",
+      "members":{
+        "userArn":{
+          "shape":"UserArn",
+          "documentation":"<p>Represents the Amazon Connect ARN of the user.</p>"
+        }
+      },
+      "documentation":"<p>Represents the identity of the person who performed the action.</p>",
+      "union":true
     },
     "ValidationException":{
       "type":"structure",

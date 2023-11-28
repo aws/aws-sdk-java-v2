@@ -656,6 +656,19 @@ public final class Validate {
         return num;
     }
 
+    public static Long isNotNegativeOrNull(Long num, String fieldName) {
+
+        if (num == null) {
+            return null;
+        }
+
+        if (num < 0) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return num;
+    }
+
     public static long isNotNegative(long num, String fieldName) {
 
         if (num < 0) {

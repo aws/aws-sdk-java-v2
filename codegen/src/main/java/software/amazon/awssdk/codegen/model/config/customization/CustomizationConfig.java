@@ -208,7 +208,7 @@ public class CustomizationConfig {
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private String userAgent;
-    
+
     private RetryMode defaultRetryMode;
 
     /**
@@ -257,12 +257,21 @@ public class CustomizationConfig {
 
     private boolean useGlobalEndpoint;
 
+    private boolean useS3ExpressSessionAuth;
+
     private List<String> interceptors = new ArrayList<>();
+
+    private List<String> internalPlugins = new ArrayList<>();
 
     /**
      * Whether marshallers perform validations against members marked with RequiredTrait.
      */
     private boolean requiredTraitValidationEnabled = false;
+
+    /**
+     * Whether SRA based auth logic should be used.
+     */
+    private boolean useSraAuth = false;
 
     /**
      * Whether to generate auth scheme params based on endpoint params.
@@ -283,6 +292,13 @@ public class CustomizationConfig {
      * Customization to attach map of Custom client param configs that can be set on a client builder.
      */
     private Map<String, ClientContextParam> customClientContextParams;
+
+    private boolean s3ExpressAuthSupport;
+
+    /**
+     * Customization related to auth scheme derived from endpoints.
+     */
+    private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
 
     private CustomizationConfig() {
     }
@@ -678,6 +694,14 @@ public class CustomizationConfig {
         this.useGlobalEndpoint = useGlobalEndpoint;
     }
 
+    public boolean useS3ExpressSessionAuth() {
+        return useS3ExpressSessionAuth;
+    }
+
+    public void setUseS3ExpressSessionAuth(boolean useS3ExpressSessionAuth) {
+        this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
+    }
+
     public Map<String, String> getSkipEndpointTests() {
         return skipEndpointTests;
     }
@@ -693,13 +717,31 @@ public class CustomizationConfig {
     public void setInterceptors(List<String> interceptors) {
         this.interceptors = interceptors;
     }
-    
+
+    public List<String> getInternalPlugins() {
+        return internalPlugins;
+    }
+
+    public void setInternalPlugins(List<String> internalPlugins) {
+        this.internalPlugins = internalPlugins;
+    }
+
     public boolean isRequiredTraitValidationEnabled() {
         return requiredTraitValidationEnabled;
     }
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public void setUseSraAuth(boolean useSraAuth) {
+        this.useSraAuth = useSraAuth;
+    }
+
+    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
+    //  useSraAuth==true branch going forward.
+    public boolean useSraAuth() {
+        return useSraAuth;
     }
 
     public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
@@ -731,6 +773,14 @@ public class CustomizationConfig {
         this.customClientContextParams = customClientContextParams;
     }
 
+    public boolean getS3ExpressAuthSupport() {
+        return s3ExpressAuthSupport;
+    }
+
+    public void setS3ExpressAuthSupport(boolean s3ExpressAuthSupport) {
+        this.s3ExpressAuthSupport = s3ExpressAuthSupport;
+    }
+
     public MultipartCustomization getMultipartCustomization() {
         return this.multipartCustomization;
     }
@@ -738,4 +788,13 @@ public class CustomizationConfig {
     public void setMultipartCustomization(MultipartCustomization multipartCustomization) {
         this.multipartCustomization = multipartCustomization;
     }
+
+    public EndpointAuthSchemeConfig getEndpointAuthSchemeConfig() {
+        return endpointAuthSchemeConfig;
+    }
+
+    public void setEndpointAuthSchemeConfig(EndpointAuthSchemeConfig endpointAuthSchemeConfig) {
+        this.endpointAuthSchemeConfig = endpointAuthSchemeConfig;
+    }
+
 }

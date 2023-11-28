@@ -59,6 +59,16 @@
       },
       "authtype": "none"
     },
+    "OperationWithRequestCompression": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "requestCompression": {
+        "encodings": ["gzip"]
+      }
+    },
     "APostOperation": {
       "name": "APostOperation",
       "http": {
@@ -315,7 +325,7 @@
     "ChecksumStructure":{
       "type":"structure",
       "members":{
-        "stringMember":{"shape":"subMember"},
+        "Body":{"shape":"Body"},
         "ChecksumMode":{
           "shape":"ChecksumMode",
           "location":"header",
@@ -327,7 +337,7 @@
           "locationName":"x-amz-checksum-algorithm"
         }
       },
-      "payload":"stringMember"
+      "payload":"Body"
     },
     "String":{"type":"string"},
     "BearerAuthOperationRequest": {

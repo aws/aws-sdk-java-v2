@@ -18,11 +18,13 @@ package software.amazon.awssdk.codegen.poet.auth.scheme;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,17 +41,24 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.identity.SdkIdentityProperty;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -83,7 +92,9 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addMethod(generateResolveAuthOptions())
                .addMethod(generateSelectAuthScheme())
                .addMethod(generateAuthSchemeParams())
-               .addMethod(generateTrySelectAuthScheme());
+               .addMethod(generateTrySelectAuthScheme())
+               .addMethod(generateGetIdentityMetric())
+               .addMethod(putSelectedAuthSchemeMethodSpec());
         return builder.build();
     }
 
@@ -100,8 +111,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                              listOf(AuthSchemeOption.class))
                .addStatement("$T selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes)",
                              wildcardSelectedAuthScheme())
-               .addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
-                             SdkInternalExecutionAttribute.class);
+               .addStatement("putSelectedAuthScheme(executionAttributes, selectedAuthScheme)");
         return builder.build();
     }
 
@@ -186,19 +196,21 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                                .addParameter(listOf(AuthSchemeOption.class), "authOptions")
                                                .addParameter(ExecutionAttributes.class, "executionAttributes");
 
-        builder.addStatement("$T authSchemes = executionAttributes.getAttribute($T.AUTH_SCHEMES)",
+        builder.addStatement("$T metricCollector = executionAttributes.getAttribute($T.API_CALL_METRIC_COLLECTOR)",
+                             MetricCollector.class, SdkExecutionAttribute.class)
+               .addStatement("$T authSchemes = executionAttributes.getAttribute($T.AUTH_SCHEMES)",
                              mapOf(String.class, wildcardAuthScheme()),
                              SdkInternalExecutionAttribute.class)
-               .addStatement("$T identityResolvers = executionAttributes.getAttribute($T.IDENTITY_PROVIDER_CONFIGURATION)",
-                             IdentityProviderConfiguration.class, SdkInternalExecutionAttribute.class)
+               .addStatement("$T identityProviders = executionAttributes.getAttribute($T.IDENTITY_PROVIDERS)",
+                             IdentityProviders.class, SdkInternalExecutionAttribute.class)
                .addStatement("$T discardedReasons = new $T<>()",
                              listOfStringSuppliers(), ArrayList.class);
 
         builder.beginControlFlow("for ($T authOption : authOptions)", AuthSchemeOption.class);
         {
             builder.addStatement("$T authScheme = authSchemes.get(authOption.schemeId())", wildcardAuthScheme())
-                   .addStatement("$T selectedAuthScheme = "
-                                 + "trySelectAuthScheme(authOption, authScheme, identityResolvers, discardedReasons)",
+                   .addStatement("$T selectedAuthScheme = trySelectAuthScheme(authOption, authScheme, identityProviders, "
+                                 + "discardedReasons, metricCollector, executionAttributes)",
                                  wildcardSelectedAuthScheme());
             builder.beginControlFlow("if (selectedAuthScheme != null)");
             {
@@ -219,18 +231,17 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         return builder.build();
     }
 
+    //TODO (s3express) Review "general" identity properties and their propagation
     private MethodSpec generateTrySelectAuthScheme() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("trySelectAuthScheme")
                                                .addModifiers(Modifier.PRIVATE)
                                                .returns(namedSelectedAuthScheme())
-                                               .addParameter(AuthSchemeOption.class,
-                                                             "authOption")
-                                               .addParameter(namedAuthScheme(),
-                                                             "authScheme")
-                                               .addParameter(IdentityProviderConfiguration.class,
-                                                             "identityProviders")
-                                               .addParameter(listOfStringSuppliers(),
-                                                             "discardedReasons")
+                                               .addParameter(AuthSchemeOption.class, "authOption")
+                                               .addParameter(namedAuthScheme(), "authScheme")
+                                               .addParameter(IdentityProviders.class, "identityProviders")
+                                               .addParameter(listOfStringSuppliers(), "discardedReasons")
+                                               .addParameter(MetricCollector.class, "metricCollector")
+                                               .addParameter(ExecutionAttributes.class, "executionAttributes")
                                                .addTypeVariable(TypeVariableName.get("T", Identity.class));
 
         builder.beginControlFlow("if (authScheme == null)");
@@ -255,10 +266,78 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                              ResolveIdentityRequest.class,
                              ResolveIdentityRequest.class);
         builder.addStatement("authOption.forEachIdentityProperty(identityRequestBuilder::putProperty)");
-        builder.addStatement("$T identity = identityProvider.resolveIdentity(identityRequestBuilder.build())",
-                             namedIdentityFuture());
+        if (endpointRulesSpecUtils.isS3()) {
+            builder.addStatement("identityRequestBuilder.putProperty($T.SDK_CLIENT, "
+                                 + "executionAttributes.getAttribute($T.SDK_CLIENT))",
+                                 SdkIdentityProperty.class,
+                                 SdkInternalExecutionAttribute.class);
+        }
+        builder.addStatement("$T identity", namedIdentityFuture());
+        builder.addStatement("$T metric = getIdentityMetric(identityProvider)", durationSdkMetric());
+        builder.beginControlFlow("if (metric == null)")
+               .addStatement("identity = identityProvider.resolveIdentity(identityRequestBuilder.build())")
+               .nextControlFlow("else")
+               .addStatement("identity = $T.reportDuration("
+                             + "() -> identityProvider.resolveIdentity(identityRequestBuilder.build()), metricCollector, metric)",
+                             MetricUtils.class)
+               .endControlFlow();
 
         builder.addStatement("return new $T<>(identity, authScheme.signer(), authOption)", SelectedAuthScheme.class);
+        return builder.build();
+    }
+
+    private MethodSpec generateGetIdentityMetric() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("getIdentityMetric")
+                                               .addModifiers(Modifier.PRIVATE)
+                                               .returns(durationSdkMetric())
+                                               .addParameter(wildcardIdentityProvider(), "identityProvider");
+
+        builder.addStatement("Class<?> identityType = identityProvider.identityType()")
+               .beginControlFlow("if (identityType == $T.class)", AwsCredentialsIdentity.class)
+               .addStatement("return $T.CREDENTIALS_FETCH_DURATION", CoreMetric.class)
+               .endControlFlow()
+               .beginControlFlow("if (identityType == $T.class)", TokenIdentity.class)
+               .addStatement("return $T.TOKEN_FETCH_DURATION", CoreMetric.class)
+               .endControlFlow()
+               .addStatement("return null");
+
+        return builder.build();
+    }
+
+    private MethodSpec putSelectedAuthSchemeMethodSpec() {
+        String attributeParamName = "attributes";
+        String selectedAuthSchemeParamName = "selectedAuthScheme";
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("putSelectedAuthScheme")
+                                               .addModifiers(Modifier.PRIVATE)
+                                               .addTypeVariable(TypeVariableName.get("T", Identity.class))
+                                               .addParameter(ExecutionAttributes.class, attributeParamName)
+                                               .addParameter(ParameterSpec.builder(
+                                                   ParameterizedTypeName.get(ClassName.get(SelectedAuthScheme.class),
+                                                                             TypeVariableName.get("T")),
+                                                   selectedAuthSchemeParamName).build());
+        builder.addStatement("$T existingAuthScheme = $N.getAttribute($T.SELECTED_AUTH_SCHEME)",
+                             ParameterizedTypeName.get(ClassName.get(SelectedAuthScheme.class),
+                                                       WildcardTypeName.subtypeOf(Object.class)),
+                             attributeParamName,
+                             SdkInternalExecutionAttribute.class);
+
+        builder.beginControlFlow("if (existingAuthScheme != null)")
+               .addStatement("$T selectedOption = $N.authSchemeOption().toBuilder()",
+                             AuthSchemeOption.Builder.class, selectedAuthSchemeParamName)
+               .addStatement("existingAuthScheme.authSchemeOption().forEachIdentityProperty"
+                             + "(selectedOption::putIdentityPropertyIfAbsent)")
+               .addStatement("existingAuthScheme.authSchemeOption().forEachSignerProperty"
+                             + "(selectedOption::putSignerPropertyIfAbsent)")
+               .addStatement("$N = new $T<>($N.identity(), $N.signer(), selectedOption.build())",
+                             selectedAuthSchemeParamName,
+                             SelectedAuthScheme.class,
+                             selectedAuthSchemeParamName,
+                             selectedAuthSchemeParamName);
+        builder.endControlFlow();
+
+        builder.addStatement("$N.putAttribute($T.SELECTED_AUTH_SCHEME, $N)",
+                             attributeParamName, SdkInternalExecutionAttribute.class, selectedAuthSchemeParamName);
+
         return builder.build();
     }
 
@@ -278,6 +357,12 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         return ParameterizedTypeName.get(ClassName.get(IdentityProvider.class), TypeVariableName.get("T"));
     }
 
+    // IdentityProvider<?>
+    private TypeName wildcardIdentityProvider() {
+        return ParameterizedTypeName.get(ClassName.get(IdentityProvider.class), WildcardTypeName.subtypeOf(Object.class));
+    }
+
+    // CompletableFuture<? extends T>
     private TypeName namedIdentityFuture() {
         return ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                                          WildcardTypeName.subtypeOf(TypeVariableName.get("T")));
@@ -320,6 +405,11 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
     // List<values>
     private TypeName listOf(Object valueType) {
         return ParameterizedTypeName.get(ClassName.get(List.class), toTypeName(valueType));
+    }
+
+    // SdkMetric<Duration>
+    private ParameterizedTypeName durationSdkMetric() {
+        return ParameterizedTypeName.get(ClassName.get(SdkMetric.class), toTypeName(Duration.class));
     }
 
     private TypeName toTypeName(Object valueType) {

@@ -48,6 +48,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private boolean hasRequiresLengthMember;
     private boolean wrapper;
     private boolean simpleMethod;
+    private String requestSignerClassFqcn;
     private EndpointDiscovery endpointDiscovery;
 
     private List<MemberModel> members;
@@ -561,6 +562,18 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void setHttpStatusCode(Integer httpStatusCode) {
         this.httpStatusCode = httpStatusCode;
+    }
+
+    public boolean isRequestSignerAware() {
+        return requestSignerClassFqcn != null;
+    }
+
+    public String getRequestSignerClassFqcn() {
+        return requestSignerClassFqcn;
+    }
+
+    public void setRequestSignerClassFqcn(String authorizerClass) {
+        this.requestSignerClassFqcn = authorizerClass;
     }
 
     public EndpointDiscovery getEndpointDiscovery() {

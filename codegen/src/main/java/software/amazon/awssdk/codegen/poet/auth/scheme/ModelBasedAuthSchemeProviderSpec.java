@@ -34,7 +34,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 
 public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;

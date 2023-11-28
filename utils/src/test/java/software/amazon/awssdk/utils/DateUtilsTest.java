@@ -20,6 +20,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
@@ -39,6 +40,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Test;
 
 public class DateUtilsTest {
@@ -293,6 +296,14 @@ public class DateUtilsTest {
                   Instant parsed = DateUtils.parseUnixTimestampInstant(String.valueOf(serverSpecificDateFormat));
                   assertEquals(instant, parsed);
               });
+    }
+
+    @Test
+    public void parseUnixTimestampInstant_longerThan20Char_throws() {
+        String largeNum = Stream.generate(() -> "9").limit(21).collect(Collectors.joining());
+        assertThatThrownBy(() -> DateUtils.parseUnixTimestampInstant(largeNum))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("20");
     }
 
 }

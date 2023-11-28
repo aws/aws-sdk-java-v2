@@ -46,10 +46,10 @@ import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.EndpointProvider;
-import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
-import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
@@ -76,6 +76,8 @@ public final class AwsExecutionContextBuilder {
             clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES),
             originalRequest.overrideConfiguration().map(c -> c.executionAttributes()).orElse(null));
 
+        executionAttributes.putAttributeIfAbsent(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR, metricCollector);
+
         executionAttributes
             .putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG,
@@ -89,6 +91,7 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkInternalExecutionAttribute.HAS_INITIAL_REQUEST_EVENT, executionParams.hasInitialRequestEvent())
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, clientConfig.option(SdkClientOption.CLIENT_TYPE))
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfig.option(SdkClientOption.SERVICE_NAME))
+            .putAttribute(SdkInternalExecutionAttribute.PROTOCOL_METADATA, executionParams.getProtocolMetadata())
             .putAttribute(SdkExecutionAttribute.PROFILE_FILE, clientConfig.option(SdkClientOption.PROFILE_FILE_SUPPLIER) != null ?
                                                               clientConfig.option(SdkClientOption.PROFILE_FILE_SUPPLIER).get() :
                                                               null)
@@ -107,11 +110,11 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(SdkClientOption.CLIENT_CONTEXT_PARAMS))
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
                           clientConfig.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION))
+            .putAttribute(SdkInternalExecutionAttribute.SDK_CLIENT, clientConfig.option(SdkClientOption.SDK_CLIENT))
             .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN))
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT,
                           clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
             .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes));
-
 
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
@@ -127,7 +130,7 @@ public final class AwsExecutionContextBuilder {
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
         Signer signer = null;
-        if (useOldSigner(executionAttributes, interceptorContext)) {
+        if (loadOldSigner(executionAttributes, originalRequest)) {
             AuthorizationStrategyFactory authorizationStrategyFactory =
                 new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
             AuthorizationStrategy authorizationStrategy =
@@ -150,37 +153,31 @@ public final class AwsExecutionContextBuilder {
                                .build();
     }
 
-    private static boolean useOldSigner(ExecutionAttributes executionAttributes, InterceptorContext interceptorContext) {
-        SelectedAuthScheme<?> selectedAuthScheme =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-        boolean useOldSigner = isAuthenticatedWithoutAuthScheme(selectedAuthScheme, executionAttributes)
-                               || hasOverriddenSignerWithAuthScheme(selectedAuthScheme, executionAttributes, interceptorContext);
-        return useOldSigner;
-    }
+    /**
+     * We will load the old (non-SRA) signer if this client seems like an old version or the customer has provided a signer
+     * override. We assume that if there's no auth schemes defined, we're on the old code path.
+     * <p>
+     * In addition, if authType=none, we don't need to use the old signer, even if overridden.
+     */
+    private static boolean loadOldSigner(ExecutionAttributes attributes, SdkRequest request) {
+        Map<String, AuthScheme<?>> authSchemes = attributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
+        if (authSchemes == null) {
+            // pre SRA case.
+            // We used to set IS_NONE_AUTH_TYPE_REQUEST = false when authType=none. Yes, false.
+            return attributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
+        }
 
-    // SelectedAuthScheme being null, implies old (pre SRA) generated client
-    private static boolean isAuthenticatedWithoutAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
-                                                            ExecutionAttributes executionAttributes) {
-        return selectedAuthScheme == null && isAuthenticatedRequest(executionAttributes);
-    }
-
-    // There used to be codegen logic (pre SRA) that used to set this attribute when authType=none.
-    // With SRA, this attribute is not needed (so not set) in newly (post SRA) generated clients. For newly generated clients,
-    // this method would always return false.
-    private static boolean isAuthenticatedRequest(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
-    }
-
-    // SelectedAuthScheme being non-null implies new (post SRA) generated client.
-    // If old Signer is still provided via overrides (existing customer code), we want to continue using that signer.
-    // However, we don't want to use that overridden signer if the selected auth scheme is `smithy.api#noAuth` (would
-    // happen when operation has authType=none).
-    private static boolean hasOverriddenSignerWithAuthScheme(SelectedAuthScheme<?> selectedAuthScheme,
-                                                             ExecutionAttributes executionAttributes,
-                                                             InterceptorContext interceptorContext) {
-        return SignerOverrideUtils.isSignerOverridden(interceptorContext.request(), executionAttributes)
-               && selectedAuthScheme != null
-               && !NoAuthAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId());
+        // post SRA case.
+        // By default, SRA uses new HttpSigner, so we shouldn't use old non-SRA Signer, unless the customer has provided a signer
+        // override.
+        // But, if the operation was modeled as authTpye=None, we don't want to use the provided overridden Signer either. In
+        // post SRA, modeled authType=None would default to NoAuthAuthScheme.
+        // Note, for authType=None operation, technically, customer could override the AuthSchemeProvider and select a different
+        // AuthScheme (than NoAuthAuthScheme). In this case, we are choosing to use the customer's overridden Signer.
+        SelectedAuthScheme<?> selectedAuthScheme = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        return SignerOverrideUtils.isSignerOverridden(request, attributes) &&
+               selectedAuthScheme != null &&
+               !NoAuthAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId());
     }
 
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
@@ -197,27 +194,26 @@ public final class AwsExecutionContextBuilder {
         //  over client.
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
-        IdentityProviderConfiguration identityProviders = resolveIdentityProviderConfiguration(originalRequest, clientConfig);
+        IdentityProviders identityProviders = resolveIdentityProviders(originalRequest, clientConfig);
 
         executionAttributes
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes)
-            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION, identityProviders);
+            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
     }
 
     // TODO(sra-identity-and-auth): This is hard coding the logic for the credentialsIdentityProvider from
     //  AwsRequestOverrideConfiguration. Currently, AwsRequestOverrideConfiguration does not support overriding the
     //  tokenIdentityProvider. When adding that support this method will need to be updated.
-    private static IdentityProviderConfiguration resolveIdentityProviderConfiguration(SdkRequest originalRequest,
-                                                                                      SdkClientConfiguration clientConfig) {
-        IdentityProviderConfiguration identityProviderConfiguration =
-            clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
+    private static IdentityProviders resolveIdentityProviders(SdkRequest originalRequest,
+                                                              SdkClientConfiguration clientConfig) {
+        IdentityProviders identityProviders =
+            clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
 
-        // identityProviderConfiguration can be null, for new core with old client. In this case, even if
-        // AwsRequestOverrideConfiguration has credentialsIdentityProvider set (because it is in new core), it is ok to not setup
-        // IDENTITY_PROVIDER_CONFIGURATION, as old client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also
-        // needed for SRA logic.
-        if (identityProviderConfiguration == null) {
+        // identityProviders can be null, for new core with old client. In this case, even if AwsRequestOverrideConfiguration
+        // has credentialsIdentityProvider set (because it is in new core), it is ok to not setup IDENTITY_PROVIDERS, as old
+        // client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also needed for SRA logic.
+        if (identityProviders == null) {
             return null;
         }
 
@@ -226,8 +222,8 @@ public final class AwsExecutionContextBuilder {
                               .map(c -> (AwsRequestOverrideConfiguration) c)
                               .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                               .map(identityProvider ->
-                                       identityProviderConfiguration.copy(b -> b.putIdentityProvider(identityProvider)))
-                              .orElse(identityProviderConfiguration);
+                                       identityProviders.copy(b -> b.putIdentityProvider(identityProvider)))
+                              .orElse(identityProviders);
     }
 
     /**

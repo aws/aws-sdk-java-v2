@@ -61,8 +61,8 @@ public class S3CrtResponseHandlerAdapterTest {
         future = new CompletableFuture<>();
         sdkResponseHandler = new TestResponseHandler();
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
-                                                                 sdkResponseHandler);
-
+                                                                 sdkResponseHandler,
+                                                                 null);
         responseHandlerAdapter.metaRequest(s3MetaRequest);
     }
 
@@ -132,6 +132,22 @@ public class S3CrtResponseHandlerAdapterTest {
         assertThat(actualException).isInstanceOf(SdkClientException.class).hasMessageContaining(message);
         assertThat(future).isCompletedExceptionally();
         assertThatThrownBy(() -> future.join()).hasRootCauseInstanceOf(SdkClientException.class).hasMessageContaining(message);
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
+    public void requestFailedWithCause_shouldCompleteFutureExceptionallyWithCause() {
+        RuntimeException cause = new RuntimeException("error");
+        S3FinishedResponseContext s3FinishedResponseContext = stubResponseContext(1, 0, null);
+        when(s3FinishedResponseContext.getCause()).thenReturn(cause);
+
+        responseHandlerAdapter.onFinished(s3FinishedResponseContext);
+        Throwable actualException = sdkResponseHandler.error;
+        String message = "Failed to send the request";
+        assertThat(actualException).isInstanceOf(SdkClientException.class).hasMessageContaining(message);
+        assertThat(future).isCompletedExceptionally();
+
+        assertThatThrownBy(() -> future.join()).hasRootCause(cause).hasMessageContaining(message);
         verify(s3MetaRequest).close();
     }
 

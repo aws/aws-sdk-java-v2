@@ -15,15 +15,15 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.util.SignerUtils.computeSignature;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.computeSignature;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * A class which calculates a rolling signature of arbitrary data using HMAC-SHA256.
- * Each time a signature is calculated, the prior calculation is incorporated, hence "rolling".
+ * A class which calculates a rolling signature of arbitrary data using HMAC-SHA256. Each time a signature is calculated, the
+ * prior calculation is incorporated, hence "rolling".
  */
 @SdkInternalApi
 public final class RollingSigner {

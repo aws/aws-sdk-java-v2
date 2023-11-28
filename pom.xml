@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.20.131-SNAPSHOT</version>
+    <version>2.21.34-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -84,6 +84,7 @@
         <module>test/auth-tests</module>
         <module>test/region-testing</module>
         <module>test/ruleset-testing-core</module>
+        <module>test/old-client-version-compatibility-test</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
@@ -91,9 +92,9 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.20.130</awsjavasdk.previous.version>
-        <jackson.version>2.13.2</jackson.version>
-        <jackson.databind.version>2.13.4.2</jackson.databind.version>
+        <awsjavasdk.previous.version>2.21.33</awsjavasdk.previous.version>
+        <jackson.version>2.15.2</jackson.version>
+        <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.12.0</commons.lang.version>
@@ -101,24 +102,24 @@
         <slf4j.version>1.7.30</slf4j.version>
         <log4j.version>2.17.1</log4j.version>
         <commons.io.version>2.11.0</commons.io.version>
-        <equalsverifier.version>3.7.1</equalsverifier.version>
+        <equalsverifier.version>3.15.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
-        <netty.version>4.1.94.Final</netty.version>
+        <netty.version>4.1.100.Final</netty.version>
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spotbugs.version>4.2.3</spotbugs.version>
+        <spotbugs.version>4.7.3.5</spotbugs.version>
         <javapoet.verion>1.13.0</javapoet.verion>
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
         <org.eclipse.text.version>3.5.101</org.eclipse.text.version>
         <rxjava.version>2.2.21</rxjava.version>
         <commons-codec.verion>1.15</commons-codec.verion>
         <jmh.version>1.29</jmh.version>
-        <awscrt.version>0.24.0</awscrt.version>
+        <awscrt.version>0.28.0</awscrt.version>
 
         <!--Test dependencies -->
-        <junit5.version>5.8.1</junit5.version>
+        <junit5.version>5.10.0</junit5.version>
         <mockito.junit5.version>4.6.0</mockito.junit5.version>
         <junit4.version>4.13.2</junit4.version> <!-- Used to resolve conflicts in transitive dependencies -->
         <hamcrest.version>1.3</hamcrest.version>
@@ -131,11 +132,12 @@
         <netty-open-ssl-version>2.0.61.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.16.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
-        <blockhound.version>1.0.6.RELEASE</blockhound.version>
+        <blockhound.version>1.0.8.RELEASE</blockhound.version>
         <jetty.version>9.4.45.v20220203</jetty.version>
+        <bytebuddy.version>1.14.8</bytebuddy.version>
 
         <!-- build plugin dependencies-->
-        <maven.surefire.version>3.0.0-M5</maven.surefire.version>
+        <maven.surefire.version>3.1.2</maven.surefire.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
@@ -145,7 +147,7 @@
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <checkstyle.version>8.42</checkstyle.version>
-        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
@@ -155,6 +157,7 @@
         <maven-archetype-plugin.version>3.2.1</maven-archetype-plugin.version>
         <!-- Whenever we update maven-wrapper-plugin version, we need to run mvn wrapper:wrapper to update the Maven Wrapper files(mvnw, .maven and mvnw.cmd) -->
         <maven-wrapper-plugin.version>3.1.0</maven-wrapper-plugin.version>
+        <ant.version>1.10.14</ant.version>
 
         <!-- These properties are used by Step functions for its dependencies -->
         <json-path.version>2.4.0</json-path.version>
@@ -169,7 +172,7 @@
         <httpcomponents.httpcore.version>4.4.13</httpcomponents.httpcore.version>
 
         <!-- Reactive Streams version -->
-        <reactive-streams.version>1.0.3</reactive-streams.version>
+        <reactive-streams.version>1.0.4</reactive-streams.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
@@ -256,7 +259,6 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.version}</version>
                     <configuration>
-                        <argLine>${argLine}</argLine>
                         <excludes>
                             <exclude>**/*StabilityTest.java</exclude>
                             <exclude>**/*StabilityTests.java</exclude>
@@ -370,6 +372,11 @@
                             <groupId>software.amazon.awssdk</groupId>
                             <artifactId>build-tools</artifactId>
                             <version>1.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.apache.ant</groupId>
+                            <artifactId>ant</artifactId>
+                            <version>${ant.version}</version>
                         </dependency>
                     </dependencies>
                     <executions>
@@ -485,6 +492,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <failOnWarning>true</failOnWarning>
                     <ignoreNonCompile>true</ignoreNonCompile>
                     <ignoredUsedUndeclaredDependencies>
                         <!--Ignore used undeclared test dependencies -->
@@ -511,6 +519,16 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                         <!-- Declared by the codegen maven plugins (lite and normal). Not used directly but used to override a transitive dependecy -->
                         <ignoredUnusedDeclaredDependency>org.codehaus.plexus:plexus-utils</ignoredUnusedDeclaredDependency>
+
+                        <!-- TODO(post-sra-identity-auth): Once everything is switched to useSraAuth=true, remove this-->
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
+
+			<!-- TODO(post-sra-identity-auth): With move to SRA Identity & Auth, most clients won't need a
+                             dependency on auth module. But cannot remove it from services/pom.xml until all services
+                             have switched. Some service modules may still need it, because they have tests that use the
+                             old interfaces, but that should become a test scoped dependency in modules where needed.
+                             And the line below removed. -->
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
@@ -619,9 +637,9 @@
                             <includeModule>dynamodb-enhanced</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
-                            <includeModule>s3</includeModule>
+<!--                            <includeModule>s3</includeModule>-->
                             <includeModule>s3-control</includeModule>
-                            <includeModule>sqs</includeModule>
+<!--                            <includeModule>sqs</includeModule>-->
                             <includeModule>rds</includeModule>
                             <includeModule>apigateway</includeModule>
                             <includeModule>polly</includeModule>
@@ -630,13 +648,13 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <exclude>software.amazon.awssdk.utils.async.InputStreamSubscriber</exclude>
-
                             <!-- Moving the interface methods to new SRA super interfaces causes japicmp to complain -->
                             <exclude>software.amazon.awssdk.auth.credentials.AwsCredentials</exclude>
                             <exclude>software.amazon.awssdk.auth.token.credentials.SdkToken</exclude>
-                            <!-- exclude S3CrtAsyncClientBuilder temporarily TODO: re-enable -->
-                            <exclude>software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder</exclude>
+                            <!-- exclude ObjectPart size change TODO: re-enable -->
+                            <exclude>software.amazon.awssdk.services.s3.model.ObjectPart</exclude>
+                            <!-- exclude mappedBuilder change, TODO: remove after merged -->
+                            <exclude>software.amazon.awssdk.core.interceptor.ExecutionAttribute</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
@@ -712,6 +730,13 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--batch</arg>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
@@ -1007,9 +1032,8 @@
                             <show>public</show>
                             <author>false</author>
                             <version>true</version>
-                            <!-- Disable index because jquery-ui version used is old -->
-                            <!-- Re-enable it when it's fixed in newer versions of JDK -->
-                            <noindex>true</noindex>
+                            <!-- Whether to enable search button -->
+                            <noindex>false</noindex>
                             <use>false</use>
                             <source>8</source>
                             <notree>true</notree>

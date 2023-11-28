@@ -17,6 +17,10 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.net.URL;
@@ -25,7 +29,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import org.assertj.core.data.Offset;
+import java.util.List;
+import java.util.function.Consumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +39,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
@@ -44,9 +48,13 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.model.CreateSessionRequest;
+import software.amazon.awssdk.services.s3.model.CreateSessionResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
+import software.amazon.awssdk.services.s3.model.SessionCredentials;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
@@ -54,6 +62,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 public class S3PresignerTest {
     private static final URI FAKE_URL;
     private static final String BUCKET = "some-bucket";
+    private static final String EXPRESS_ENDPOINT = "s3express";
+    private static final String PRESIGN_EXPRESS_SESSION_HEADER = "X-Amz-S3session-Token";
 
     private S3Presigner presigner;
 
@@ -208,25 +218,19 @@ public class S3PresignerTest {
                                                                                             .key("bar")
                                                                                             .overrideConfiguration(override))))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("NoOpSigner");
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
     }
 
     @Test
     public void getObject_Sigv4PresignerHonorsSignatureDuration() {
-        AwsRequestOverrideConfiguration override =
-            AwsRequestOverrideConfiguration.builder()
-                                           .signer(AwsS3V4Signer.create())
-                                           .build();
-
         PresignedGetObjectRequest presigned =
             presigner.presignGetObject(r -> r.signatureDuration(Duration.ofSeconds(1234))
                                              .getObjectRequest(gor -> gor.bucket("a")
-                                                                         .key("b")
-                                                                         .overrideConfiguration(override)));
+                                                                         .key("b")));
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();
-            assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
+            assertThat(Integer.parseInt(expires)).isEqualTo(1234);
         });
     }
 
@@ -318,25 +322,123 @@ public class S3PresignerTest {
                                                                                             .key("bar")
                                                                                             .overrideConfiguration(override))))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("NoOpSigner");
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
     }
 
     @Test
     public void putObject_Sigv4PresignerHonorsSignatureDuration() {
-        AwsRequestOverrideConfiguration override =
-            AwsRequestOverrideConfiguration.builder()
-                                           .signer(AwsS3V4Signer.create())
-                                           .build();
-
         PresignedPutObjectRequest presigned =
             presigner.presignPutObject(r -> r.signatureDuration(Duration.ofSeconds(1234))
                                              .putObjectRequest(gor -> gor.bucket("a")
-                                                                         .key("b")
-                                                                         .overrideConfiguration(override)));
+                                                                         .key("b")));
 
         assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
             assertThat(expires).containsOnlyDigits();
-            assertThat(Integer.parseInt(expires)).isCloseTo(1234, Offset.offset(2));
+            assertThat(Integer.parseInt(expires)).isEqualTo(1234);
+        });
+    }
+
+    @Test
+    public void deleteObject_IsNotUrlCompatible() {
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                                 .key("bar")));
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+        assertThat(presigned.signedHeaders().keySet()).containsExactlyInAnyOrder("host");
+        assertThat(presigned.signedPayload()).isEmpty();
+    }
+
+    @Test
+    public void deleteObject_EndpointOverrideIsIncludedInPresignedUrl() {
+        S3Presigner presigner = presignerBuilder().endpointOverride(URI.create("http://foo.com")).build();
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                                 .key("bar")));
+
+        assertThat(presigned.url().toString()).startsWith("http://foo34343434.foo.com/bar?");
+        assertThat(presigned.signedHeaders().get("host")).containsExactly("foo34343434.foo.com");
+        assertThat(presigned.signedPayload()).isEmpty();
+    }
+
+    @Test
+    public void deleteObject_CredentialsCanBeOverriddenAtTheRequestLevel() {
+        AwsCredentials clientCredentials = AwsBasicCredentials.create("a", "a");
+        AwsCredentials requestCredentials = AwsBasicCredentials.create("b", "b");
+
+        S3Presigner presigner = presignerBuilder().credentialsProvider(() -> clientCredentials).build();
+
+
+        AwsRequestOverrideConfiguration overrideConfiguration =
+            AwsRequestOverrideConfiguration.builder()
+                                           .credentialsProvider(() -> requestCredentials)
+                                           .build();
+
+        PresignedDeleteObjectRequest presignedWithClientCredentials =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                               .key("bar")));
+
+        PresignedDeleteObjectRequest presignedWithRequestCredentials =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                               .key("bar")
+                                                                               .overrideConfiguration(overrideConfiguration)));
+
+
+        assertThat(presignedWithClientCredentials.httpRequest().rawQueryParameters().get("X-Amz-Credential").get(0))
+            .startsWith("a");
+        assertThat(presignedWithRequestCredentials.httpRequest().rawQueryParameters().get("X-Amz-Credential").get(0))
+            .startsWith("b");
+    }
+
+    @Test
+    public void deleteObject_AdditionalHeadersAndQueryStringsCanBeAdded() {
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder()
+                                           .putHeader("X-Amz-AdditionalHeader", "foo1")
+                                           .putRawQueryParameter("additionalQueryParam", "foo2")
+                                           .build();
+
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                               .key("bar")
+                                                                               .overrideConfiguration(override)));
+
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+        assertThat(presigned.signedHeaders()).containsOnlyKeys("host", "x-amz-additionalheader");
+        assertThat(presigned.signedHeaders().get("x-amz-additionalheader")).containsExactly("foo1");
+        assertThat(presigned.httpRequest().headers()).containsKeys("x-amz-additionalheader");
+        assertThat(presigned.httpRequest().rawQueryParameters().get("additionalQueryParam").get(0)).isEqualTo("foo2");
+    }
+
+    @Test
+    public void deleteObject_NonSigV4SignersRaisesException() {
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder()
+                                           .signer(new NoOpSigner())
+                                           .build();
+
+        assertThatThrownBy(() -> presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                                                     .deleteObjectRequest(delo -> delo.bucket("foo34343434")
+                                                                                                    .key("bar")
+                                                                                                    .overrideConfiguration(override))))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Only SigV4 signers are supported at this time");
+    }
+
+    @Test
+    public void deleteObject_Sigv4PresignerHonorsSignatureDuration() {
+        PresignedDeleteObjectRequest presigned =
+            presigner.presignDeleteObject(r -> r.signatureDuration(Duration.ofSeconds(1234))
+                                                .deleteObjectRequest(delo -> delo.bucket("a")
+                                                                                 .key("b")));
+
+        assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0)).satisfies(expires -> {
+            assertThat(expires).containsOnlyDigits();
+            assertThat(Integer.parseInt(expires)).isEqualTo(1234);
         });
     }
 
@@ -530,27 +632,25 @@ public class S3PresignerTest {
             .hasMessageContaining("Invalid configuration: region from ARN `us-east-1` does not match client region `us-west-2` and UseArnRegion is `false`");
     }
 
+    @Test
+    public void accessPointArn_multiRegion_useArnRegionTrue_correctEndpointAndSigner() {
+        String customEndpoint = "https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com";
+        String accessPointArn = "arn:aws:s3::12345678910:accesspoint:mfzwi23gnjvgw.mrap";
 
-    // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
-    // @Test
-    // public void accessPointArn_multiRegion_useArnRegionTrue_correctEndpointAndSigner() {
-    //     String customEndpoint = "https://mfzwi23gnjvgw.mrap.accesspoint.s3-global.amazonaws.com";
-    //     String accessPointArn = "arn:aws:s3::12345678910:accesspoint:mfzwi23gnjvgw.mrap";
-    //
-    //     S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
-    //                                                                                    .useArnRegionEnabled(true)
-    //                                                                                    .build())
-    //                                               .build();
-    //
-    //     PresignedGetObjectRequest presignedRequest =
-    //         presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
-    //                                          .getObjectRequest(go -> go.bucket(accessPointArn)
-    //                                                                    .key("bar")));
-    //
-    //     assertThat(presignedRequest.httpRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0))
-    //         .isEqualTo("AWS4-ECDSA-P256-SHA256");
-    //     assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
-    // }
+        S3Presigner presigner = presignerBuilder().serviceConfiguration(S3Configuration.builder()
+                                                                                       .useArnRegionEnabled(true)
+                                                                                       .build())
+                                                  .build();
+
+        PresignedGetObjectRequest presignedRequest =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(accessPointArn)
+                                                                       .key("bar")));
+
+        assertThat(presignedRequest.httpRequest().rawQueryParameters().get("X-Amz-Algorithm").get(0))
+            .isEqualTo("AWS4-ECDSA-P256-SHA256");
+        assertThat(presignedRequest.url().toString()).startsWith(customEndpoint);
+    }
 
     @Test
     public void outpostArn_usWest_calculatesCorrectSignature() {
@@ -679,6 +779,199 @@ public class S3PresignerTest {
                 System.clearProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property());
             }
         }
+    }
+
+    @Test
+    public void getObject_s3Express_withAuthEnabled_containsS3ExpressSessionTokenAndUsesZonalEndpoint() {
+        boolean disableS3ExpressSessionAuth = false;
+        this.presigner = presignerWithS3ExpressWithMockS3Client(disableS3ExpressSessionAuth);
+        String bucketName = "s3expresstestbucket--use1-az1--x-s3";
+
+        PresignedGetObjectRequest presigned =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")));
+
+        assertThat(presigned.isBrowserExecutable()).isTrue();
+
+        verifyS3ExpressGetRequest(presigned, bucketName, disableS3ExpressSessionAuth);
+    }
+
+    @Test
+    public void putObject_s3Express_withAuthEnabled_containsS3ExpressSessionTokenAndUsesZonalEndpoint() {
+        boolean disableS3ExpressSessionAuth = false;
+        this.presigner = presignerWithS3ExpressWithMockS3Client(disableS3ExpressSessionAuth);
+        String bucketName = "s3expresstestbucket--use1-az1--x-s3";
+
+        PresignedPutObjectRequest presigned =
+            presigner.presignPutObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .putObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")));
+
+        assertThat(presigned.signedHeaders().keySet()).containsExactly( "host");
+        List<String> host = presigned.signedHeaders().get("host");
+        assertThat(host).hasSize(1);
+        assertThat(host.get(0)).contains(String.format("%s.%s-use1-az1", bucketName, EXPRESS_ENDPOINT));
+        assertThat(presigned.signedPayload()).isEmpty();
+        assertThat(presigned.url().toString()).contains(PRESIGN_EXPRESS_SESSION_HEADER);
+    }
+
+    @Test
+    public void getObject_s3Express_withAuthEnabled_bucketNameMissingDash_throwsSdkClientException() {
+        boolean disableS3ExpressSessionAuth = false;
+        this.presigner = presignerWithS3ExpressWithMockS3Client(disableS3ExpressSessionAuth);
+        String bucketName = "s3expresstestbucket-use1-az1--x-s3";
+
+        assertThrows(SdkClientException.class, () ->
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")))
+        );
+    }
+
+    @Test
+    public void getObject_s3Express_withAuthEnabled_bucketNameMissingZone_throwsSdkClientException() {
+        boolean disableS3ExpressSessionAuth = false;
+        this.presigner = presignerWithS3ExpressWithMockS3Client(disableS3ExpressSessionAuth);
+        String bucketName = "s3expresstestbucket---x-s3";
+
+        assertThrows(SdkClientException.class, () ->
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")))
+        );
+    }
+
+    @Test
+    public void getObject_s3Express_withAuthEnabled_bucketNameMissingZoneMissingDash_throwsSdkClientException() {
+        boolean disableS3ExpressSessionAuth = false;
+        this.presigner = presignerWithS3ExpressWithMockS3Client(disableS3ExpressSessionAuth);
+        String bucketName = "s3expresstestbucket--x-s3";
+
+        assertThrows(SdkClientException.class, () ->
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")))
+        );
+    }
+
+    @Test
+    public void getObject_s3Express_withAuthEnabled_bucketNameWrongSuffix_doesNotContainS3ExpressSessionToken() {
+        boolean disableS3ExpressSessionAuth = false;
+        this.presigner = presignerWithS3ExpressWithMockS3Client(disableS3ExpressSessionAuth);
+        String bucketName = "s3expresstestbucket--use1-az1-v-s3";
+
+        PresignedGetObjectRequest presigned =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")));
+
+        assertThat(presigned.isBrowserExecutable()).isTrue();
+        assertThat(presigned.signedHeaders().keySet()).containsExactly("host");
+        assertThat(presigned.url().toString()).doesNotContain(PRESIGN_EXPRESS_SESSION_HEADER);
+        assertThat(presigned.signedPayload()).isEmpty();
+    }
+
+    @Test
+    public void getObject_s3Express_withAuthEnabled_bucketNameWrongSuffixAlias_doesNotContainS3ExpressSessionToken() {
+        boolean disableS3ExpressSessionAuth = false;
+        this.presigner = presignerWithS3ExpressWithMockS3Client(disableS3ExpressSessionAuth);
+        String bucketName = "s3expresstestbucket--use1-az1--x-s3alias";
+
+        PresignedGetObjectRequest presigned =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")));
+
+        assertThat(presigned.isBrowserExecutable()).isTrue();
+        assertThat(presigned.signedHeaders().keySet()).containsExactly("host");
+        assertThat(presigned.url().toString()).doesNotContain(PRESIGN_EXPRESS_SESSION_HEADER);
+        assertThat(presigned.signedPayload()).isEmpty();
+    }
+
+    @Test
+    public void getObject_s3Express_withAuthDisabled_doesNotContainS3ExpressSessionToken() {
+        boolean disableS3ExpressSessionAuth = true;
+        this.presigner = presignerWithS3ExpressWithMockS3Client(disableS3ExpressSessionAuth);
+        String bucketName = "s3expresstestbucket--use1-az1--x-s3";
+
+        PresignedGetObjectRequest presigned =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")));
+        assertThat(presigned.isBrowserExecutable()).isTrue();
+        verifyS3ExpressGetRequest(presigned, bucketName, disableS3ExpressSessionAuth);
+    }
+
+    @Test
+    public void getObject_s3Express_noSuppliedS3Client_authEnabled_doesNotContainS3ExpressSessionToken() {
+        boolean disableS3ExpressSessionAuth = false;
+        S3Client s3Client = null;
+        this.presigner = presignerForS3Express(disableS3ExpressSessionAuth, s3Client);
+        String bucketName = "s3expresstestbucket--use1-az1--x-s3";
+
+        PresignedGetObjectRequest presigned =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")));
+        boolean expectNoSessionHeader = true;
+        verifyS3ExpressGetRequest(presigned, bucketName, expectNoSessionHeader);
+    }
+
+    @Test
+    public void getObject_s3Express_noSuppliedS3Client_authDisabled_doesNotContainS3ExpressSessionToken() {
+        boolean disableS3ExpressSessionAuth = true;
+        S3Client s3Client = null;
+        this.presigner = presignerForS3Express(disableS3ExpressSessionAuth, s3Client);
+        String bucketName = "s3expresstestbucket--use1-az1--x-s3";
+
+        PresignedGetObjectRequest presigned =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket(bucketName)
+                                                                       .key("s3expressKey")));
+        assertThat(presigned.isBrowserExecutable()).isTrue();
+        boolean expectNoSessionHeader = true;
+        verifyS3ExpressGetRequest(presigned, bucketName, expectNoSessionHeader);
+    }
+
+    private void verifyS3ExpressGetRequest(PresignedGetObjectRequest presigned, String bucketName,
+                                           boolean disableS3ExpressSessionAuth) {
+        assertThat(presigned.signedHeaders().keySet()).containsExactly( "host");
+        List<String> host = presigned.signedHeaders().get("host");
+        assertThat(host).hasSize(1);
+        assertThat(host.get(0)).contains(String.format("%s.%s-use1-az1", bucketName, EXPRESS_ENDPOINT));
+        assertThat(presigned.signedPayload()).isEmpty();
+        if (disableS3ExpressSessionAuth) {
+            assertThat(presigned.url().toString()).doesNotContain(PRESIGN_EXPRESS_SESSION_HEADER);
+        } else {
+            assertThat(presigned.url().toString()).contains(PRESIGN_EXPRESS_SESSION_HEADER);
+        }
+    }
+
+    private S3Presigner presignerWithS3ExpressWithMockS3Client(boolean disableS3ExpressSessionAuth) {
+        S3Client mockS3SyncClient = mock(S3Client.class);
+        when(mockS3SyncClient.createSession((Consumer<CreateSessionRequest.Builder>) any())).thenReturn(
+            createS3ExpressSessionResponse());
+
+        return presignerForS3Express(disableS3ExpressSessionAuth, mockS3SyncClient);
+    }
+
+    private S3Presigner presignerForS3Express(boolean disableS3ExpressSessionAuth, S3Client s3Client) {
+        return S3Presigner.builder()
+                          .s3Client(s3Client)
+                          .disableS3ExpressSessionAuth(disableS3ExpressSessionAuth)
+                          .build();
+    }
+
+    private CreateSessionResponse createS3ExpressSessionResponse() {
+        return CreateSessionResponse.builder()
+                                    .credentials(SessionCredentials.builder()
+                                                                  .accessKeyId("AccessKeyId")
+                                                                  .secretAccessKey("SecretAccessKey")
+                                                                  .sessionToken("s3expressSessionToken")
+                                                                  .expiration(Instant.now().plus(Duration.ofMinutes(5)))
+                                                                  .build())
+                                    .build();
     }
 
 

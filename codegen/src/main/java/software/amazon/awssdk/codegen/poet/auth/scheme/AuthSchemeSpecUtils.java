@@ -34,18 +34,21 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
-import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 
 public final class AuthSchemeSpecUtils {
     private static final Set<String> DEFAULT_AUTH_SCHEME_PARAMS = Collections.unmodifiableSet(setOf("region", "operation"));
     private final IntermediateModel intermediateModel;
+    private final boolean useSraAuth;
     private final Set<String> allowedEndpointAuthSchemeParams;
     private final boolean allowedEndpointAuthSchemeParamsConfigured;
 
     public AuthSchemeSpecUtils(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         CustomizationConfig customization = intermediateModel.getCustomizationConfig();
+        this.useSraAuth = customization.useSraAuth();
         if (customization.getAllowedEndpointAuthSchemeParamsConfigured()) {
             this.allowedEndpointAuthSchemeParams = Collections.unmodifiableSet(
                 new HashSet<>(customization.getAllowedEndpointAuthSchemeParams()));
@@ -56,12 +59,20 @@ public final class AuthSchemeSpecUtils {
         }
     }
 
+    public boolean useSraAuth() {
+        return useSraAuth;
+    }
+
     private String basePackage() {
         return intermediateModel.getMetadata().getFullAuthSchemePackageName();
     }
 
     private String internalPackage() {
         return intermediateModel.getMetadata().getFullInternalAuthSchemePackageName();
+    }
+
+    public String baseClientPackageName() {
+        return intermediateModel.getMetadata().getFullClientPackageName();
     }
 
     public ClassName parametersInterfaceName() {
@@ -197,6 +208,8 @@ public final class AuthSchemeSpecUtils {
             // sigv4a is not modeled but needed for the endpoints based auth-scheme cases.
             result.add(AwsV4aAuthScheme.class);
         }
+        // Make the no-auth scheme available.
+        result.add(NoAuthAuthScheme.class);
         return result;
     }
 

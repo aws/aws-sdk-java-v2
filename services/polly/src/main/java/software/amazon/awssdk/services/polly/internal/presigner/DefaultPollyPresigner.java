@@ -48,11 +48,11 @@ import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
@@ -211,10 +211,10 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                 .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration)
                 .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, PollyAuthSchemeProvider.defaultProvider())
                 .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
-                .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION,
-                              IdentityProviderConfiguration.builder()
-                                                           .putIdentityProvider(credentialsProvider())
-                                                           .build());
+                .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS,
+                              IdentityProviders.builder()
+                                               .putIdentityProvider(credentialsProvider())
+                                               .build());
     }
 
     private Map<String, AuthScheme<?>> authSchemes() {

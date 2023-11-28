@@ -187,29 +187,32 @@ public final class JsonProtocolUnmarshaller {
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response) throws IOException {
-        if (hasPayloadMembersOnUnmarshall(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo) && response.content().isPresent()) {
-            JsonNode jsonNode = parser.parse(response.content().get());
-            return unmarshall(sdkPojo, response, jsonNode);
-        } else {
-            return unmarshall(sdkPojo, response, null);
-        }
+        JsonNode jsonNode = hasJsonPayload(sdkPojo, response) ? parser.parse(response.content().get()) : null;
+        return unmarshall(sdkPojo, response, jsonNode);
     }
 
-    private boolean hasExplicitBlobPayloadMember(SdkPojo sdkPojo) {
+    private boolean hasJsonPayload(SdkPojo sdkPojo, SdkHttpFullResponse response) {
         return sdkPojo.sdkFields()
                       .stream()
-                      .anyMatch(f -> isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.SDK_BYTES);
+                      .anyMatch(f -> isPayloadMemberOnUnmarshall(f) && !isExplicitBlobPayloadMember(f)
+                                     && !isExplicitStringPayloadMember(f))
+               && response.content().isPresent();
+    }
+
+    private boolean isExplicitBlobPayloadMember(SdkField<?> f) {
+        return isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.SDK_BYTES;
+    }
+
+    private boolean isExplicitStringPayloadMember(SdkField<?> f) {
+        return isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.STRING;
     }
 
     private static boolean isExplicitPayloadMember(SdkField<?> f) {
         return f.containsTrait(PayloadTrait.class);
     }
 
-    private boolean hasPayloadMembersOnUnmarshall(SdkPojo sdkPojo) {
-        return sdkPojo.sdkFields()
-                .stream()
-                .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD
-                        || MarshallerUtil.locationInUri(f.location()));
+    private boolean isPayloadMemberOnUnmarshall(SdkField<?> f) {
+        return f.location() == MarshallLocation.PAYLOAD || MarshallerUtil.isInUri(f.location());
     }
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
@@ -233,6 +236,13 @@ public final class JsonProtocolUnmarshaller {
                     field.set(sdkPojo, SdkBytes.fromInputStream(responseContent.get()));
                 } else {
                     field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
+                }
+            } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.STRING) {
+                Optional<AbortableInputStream> responseContent = context.response().content();
+                if (responseContent.isPresent()) {
+                    field.set(sdkPojo, SdkBytes.fromInputStream(responseContent.get()).asUtf8String());
+                } else {
+                    field.set(sdkPojo, "");
                 }
             } else {
                 JsonNode jsonFieldContent = getJsonNode(jsonContent, field);

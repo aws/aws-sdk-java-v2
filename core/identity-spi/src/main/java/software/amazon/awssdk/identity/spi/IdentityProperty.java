@@ -16,9 +16,12 @@
 package software.amazon.awssdk.identity.spi;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -30,25 +33,48 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @ThreadSafe
 public final class IdentityProperty<T> {
-    private final Class<T> clazz;
+    private static final ConcurrentMap<Pair<String, String>, IdentityProperty<?>> NAME_HISTORY = new ConcurrentHashMap<>();
+
+    private final String namespace;
     private final String name;
 
-    private IdentityProperty(Class<T> clazz, String name) {
-        Validate.paramNotNull(clazz, "clazz");
+    private IdentityProperty(String namespace, String name) {
+        Validate.paramNotBlank(namespace, "namespace");
         Validate.paramNotBlank(name, "name");
 
-        this.clazz = clazz;
+        this.namespace = namespace;
         this.name = name;
+        ensureUnique();
     }
 
-    public static <T> IdentityProperty<T> create(Class<T> clazz, String name) {
-        return new IdentityProperty<>(clazz, name);
+    /**
+     * Create a property.
+     *
+     * @param <T> the type of the property.
+     * @param namespace the class *where* the property is being defined
+     * @param name the name for the property
+     * @throws IllegalArgumentException if a property with this namespace and name already exist
+     */
+    public static <T> IdentityProperty<T> create(Class<?> namespace, String name) {
+        return new IdentityProperty<>(namespace.getName(), name);
+    }
+
+    private void ensureUnique() {
+        IdentityProperty<?> prev = NAME_HISTORY.putIfAbsent(Pair.of(namespace, name), this);
+        Validate.isTrue(prev == null,
+                        "No duplicate IdentityProperty names allowed but both IdentityProperties %s and %s have the same "
+                        + "namespace (%s) and name (%s). IdentityProperty should be referenced from a shared static constant to "
+                        + "protect against erroneous or unexpected collisions.",
+                        Integer.toHexString(System.identityHashCode(prev)),
+                        Integer.toHexString(System.identityHashCode(this)),
+                        namespace,
+                        name);
     }
 
     @Override
     public String toString() {
         return ToString.builder("IdentityProperty")
-                       .add("clazz", clazz)
+                       .add("namespace", namespace)
                        .add("name", name)
                        .build();
     }
@@ -64,14 +90,14 @@ public final class IdentityProperty<T> {
 
         IdentityProperty<?> that = (IdentityProperty<?>) o;
 
-        return Objects.equals(clazz, that.clazz) &&
+        return Objects.equals(namespace, that.namespace) &&
                Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + Objects.hashCode(clazz);
+        hashCode = 31 * hashCode + Objects.hashCode(namespace);
         hashCode = 31 * hashCode + Objects.hashCode(name);
         return hashCode;
     }

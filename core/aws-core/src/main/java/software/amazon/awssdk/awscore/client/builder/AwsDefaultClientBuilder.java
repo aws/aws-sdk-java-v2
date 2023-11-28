@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.awscore.client.builder;
 
-import static software.amazon.awssdk.awscore.client.config.AwsClientOption.DEFAULTS_MODE;
-
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -51,12 +49,14 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
@@ -124,31 +124,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     protected abstract String serviceName();
 
     @Override
-    protected final AttributeMap childHttpConfig() {
-        return serviceHttpConfig();
-    }
-
-    /**
-     * Return HTTP related defaults with the following chain of priorities.
-     * <ol>
-     * <li>Service-Specific Defaults</li>
-     * <li>Defaults vended by {@link DefaultsMode}</li>
-     * </ol>
-     */
-    @Override
-    protected final AttributeMap childHttpConfig(SdkClientConfiguration configuration) {
-        AttributeMap attributeMap = serviceHttpConfig();
-        return mergeSmartHttpDefaults(configuration, attributeMap);
-    }
-
-    /**
-     * Optionally overridden by child classes to define service-specific HTTP configuration defaults.
-     */
-    protected AttributeMap serviceHttpConfig() {
-        return AttributeMap.empty();
-    }
-
-    @Override
     protected final SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
         SdkClientConfiguration config = mergeServiceDefaults(configuration);
         config = config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
@@ -183,54 +158,83 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     @Override
     protected final SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
         configuration = finalizeServiceConfiguration(configuration);
-
-        configuration = configuration.toBuilder()
-                                     .option(AwsClientOption.AWS_REGION, resolveRegion(configuration))
-                                     .option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED,
-                                             resolveDualstackEndpointEnabled(configuration))
-                                     .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, resolveFipsEndpointEnabled(configuration))
-                                     .build();
-
-        configuration = mergeSmartDefaults(configuration);
-
-        IdentityProvider<? extends AwsCredentialsIdentity> identityProvider = resolveCredentialsIdentityProvider(configuration);
-        SdkClientConfiguration.Builder configBuilder =
-            configuration.toBuilder()
-                         .option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, identityProvider)
-                        // CREDENTIALS_PROVIDER is also set, since older clients may be relying on it
-                        .option(AwsClientOption.CREDENTIALS_PROVIDER, toCredentialsProvider(identityProvider))
-                        .option(SdkClientOption.ENDPOINT, resolveEndpoint(configuration))
-                        .option(SdkClientOption.EXECUTION_INTERCEPTORS, addAwsInterceptors(configuration))
-                        .option(AwsClientOption.SIGNING_REGION, resolveSigningRegion(configuration))
-                        .option(SdkClientOption.RETRY_POLICY, resolveAwsRetryPolicy(configuration));
-
-        // Add the identityProvider to the IdentityProviders configured for the client.
-        // Currently it is not possible for identityProvider to be null as default provider is used while building the client if
-        // the clientConfig is null. However, we do want to support ability to unset a identity provider later.
-        // Moreover, putIdentityProvider will throw NPE on null, so adding the null check here. Also, validateClientOptions
-        // currently asserts it is not null, which will have to change when we allow unsetting default identity provider.
-        if (identityProvider != null) {
-            configBuilder.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION,
-                                 configuration.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION)
-                                              .toBuilder()
-                                              .putIdentityProvider(identityProvider)
-                                              .build());
-        }
-
-        return configBuilder.build();
+        configuration = finalizeAwsConfiguration(configuration);
+        return configuration;
     }
 
-    private SdkClientConfiguration mergeSmartDefaults(SdkClientConfiguration configuration) {
-        DefaultsMode defaultsMode = resolveDefaultsMode(configuration);
-        AttributeMap defaultConfig = DefaultsModeConfiguration.defaultConfig(defaultsMode);
+    private SdkClientConfiguration finalizeAwsConfiguration(SdkClientConfiguration configuration) {
         return configuration.toBuilder()
-                            .option(DEFAULTS_MODE, defaultsMode)
-                            .build()
-                            .merge(c -> c.option(SdkClientOption.DEFAULT_RETRY_MODE,
-                                                 defaultConfig.get(SdkClientOption.DEFAULT_RETRY_MODE))
-                                         .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                                                 defaultConfig.get(
-                                                     ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT)));
+                            .option(SdkClientOption.EXECUTION_INTERCEPTORS, addAwsInterceptors(configuration))
+                            .lazyOptionIfAbsent(AwsClientOption.AWS_REGION, this::resolveRegion)
+                            .lazyOptionIfAbsent(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, this::resolveDualstackEndpointEnabled)
+                            .lazyOptionIfAbsent(AwsClientOption.FIPS_ENDPOINT_ENABLED, this::resolveFipsEndpointEnabled)
+                            .lazyOption(AwsClientOption.DEFAULTS_MODE, this::resolveDefaultsMode)
+                            .lazyOption(SdkClientOption.DEFAULT_RETRY_MODE, this::resolveDefaultRetryMode)
+                            .lazyOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                        this::resolveDefaultS3UsEast1RegionalEndpoint)
+                            .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
+                                                this::resolveCredentialsIdentityProvider)
+                            // CREDENTIALS_PROVIDER is also set, since older clients may be relying on it
+                            .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_PROVIDER, this::resolveCredentialsProvider)
+                            .lazyOptionIfAbsent(SdkClientOption.ENDPOINT, this::resolveEndpoint)
+                            .lazyOption(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
+                            .lazyOption(SdkClientOption.HTTP_CLIENT_CONFIG, this::resolveHttpClientConfig)
+                            .applyMutation(this::configureRetryPolicy)
+                            .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
+                            .build();
+    }
+
+    /**
+     * Return HTTP related defaults with the following chain of priorities.
+     * <ol>
+     * <li>Service-Specific Defaults</li>
+     * <li>Defaults vended by {@link DefaultsMode}</li>
+     * </ol>
+     */
+    private AttributeMap resolveHttpClientConfig(LazyValueSource config) {
+        AttributeMap attributeMap = serviceHttpConfig();
+        return mergeSmartHttpDefaults(config, attributeMap);
+    }
+
+    /**
+     * Optionally overridden by child classes to define service-specific HTTP configuration defaults.
+     */
+    protected AttributeMap serviceHttpConfig() {
+        return AttributeMap.empty();
+    }
+
+    private IdentityProviders resolveIdentityProviders(LazyValueSource config) {
+        // By default, all AWS clients get an identity provider for AWS credentials. Child classes may override this to specify
+        // AWS credentials and another identity type like Bearer credentials.
+        return IdentityProviders.builder()
+                                .putIdentityProvider(config.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                                .build();
+    }
+
+    private DefaultsMode resolveDefaultsMode(LazyValueSource config) {
+        DefaultsMode configuredMode = config.get(AwsClientOption.CONFIGURED_DEFAULTS_MODE);
+        if (configuredMode == null) {
+            configuredMode = DefaultsModeResolver.create()
+                                                 .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                 .profileName(config.get(SdkClientOption.PROFILE_NAME))
+                                                 .resolve();
+        }
+
+        if (configuredMode != DefaultsMode.AUTO) {
+            return configuredMode;
+        }
+
+        return autoDefaultsModeDiscovery.discover(config.get(AwsClientOption.AWS_REGION));
+    }
+
+    private RetryMode resolveDefaultRetryMode(LazyValueSource config) {
+        return DefaultsModeConfiguration.defaultConfig(config.get(AwsClientOption.DEFAULTS_MODE))
+                                        .get(SdkClientOption.DEFAULT_RETRY_MODE);
+    }
+
+    private String resolveDefaultS3UsEast1RegionalEndpoint(LazyValueSource config) {
+        return DefaultsModeConfiguration.defaultConfig(config.get(AwsClientOption.DEFAULTS_MODE))
+                                        .get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT);
     }
 
     /**
@@ -243,59 +247,45 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     /**
      * Merged the HTTP defaults specified for each {@link DefaultsMode}
      */
-    private AttributeMap mergeSmartHttpDefaults(SdkClientConfiguration configuration, AttributeMap attributeMap) {
-        DefaultsMode defaultsMode = configuration.option(DEFAULTS_MODE);
+    private AttributeMap mergeSmartHttpDefaults(LazyValueSource config, AttributeMap attributeMap) {
+        DefaultsMode defaultsMode = config.get(AwsClientOption.DEFAULTS_MODE);
         return attributeMap.merge(DefaultsModeConfiguration.defaultHttpConfig(defaultsMode));
     }
 
     /**
      * Resolve the signing region from the default-applied configuration.
      */
-    private Region resolveSigningRegion(SdkClientConfiguration config) {
+    private Region resolveSigningRegion(LazyValueSource config) {
         return ServiceMetadata.of(serviceEndpointPrefix())
-                              .signingRegion(config.option(AwsClientOption.AWS_REGION));
+                              .signingRegion(config.get(AwsClientOption.AWS_REGION));
     }
 
     /**
      * Resolve the endpoint from the default-applied configuration.
      */
-    private URI resolveEndpoint(SdkClientConfiguration config) {
-        return Optional.ofNullable(config.option(SdkClientOption.ENDPOINT))
-                       .orElseGet(() -> endpointFromConfig(config));
-    }
-
-    private URI endpointFromConfig(SdkClientConfiguration config) {
+    private URI resolveEndpoint(LazyValueSource config) {
         return new DefaultServiceEndpointBuilder(serviceEndpointPrefix(), DEFAULT_ENDPOINT_PROTOCOL)
-            .withRegion(config.option(AwsClientOption.AWS_REGION))
-            .withProfileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-            .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
+            .withRegion(config.get(AwsClientOption.AWS_REGION))
+            .withProfileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+            .withProfileName(config.get(SdkClientOption.PROFILE_NAME))
             .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                               config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-            .withDualstackEnabled(config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-            .withFipsEnabled(config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED))
+                               config.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+            .withDualstackEnabled(config.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+            .withFipsEnabled(config.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
             .getServiceEndpoint();
     }
 
     /**
      * Resolve the region that should be used based on the customer's configuration.
      */
-    private Region resolveRegion(SdkClientConfiguration config) {
-        return config.option(AwsClientOption.AWS_REGION) != null
-               ? config.option(AwsClientOption.AWS_REGION)
-               : regionFromDefaultProvider(config);
-    }
-
-    /**
-     * Load the region from the default region provider if enabled.
-     */
-    private Region regionFromDefaultProvider(SdkClientConfiguration config) {
-        Boolean defaultRegionDetectionEnabled = config.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION);
+    private Region resolveRegion(LazyValueSource config) {
+        Boolean defaultRegionDetectionEnabled = config.get(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION);
         if (defaultRegionDetectionEnabled != null && !defaultRegionDetectionEnabled) {
             throw new IllegalStateException("No region was configured, and use-region-provider-chain was disabled.");
         }
 
-        Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
-        String profileName = config.option(SdkClientOption.PROFILE_NAME);
+        Supplier<ProfileFile> profileFile = config.get(SdkClientOption.PROFILE_FILE_SUPPLIER);
+        String profileName = config.get(SdkClientOption.PROFILE_NAME);
         return DefaultAwsRegionProviderChain.builder()
                                             .profileFile(profileFile)
                                             .profileName(profileName)
@@ -303,39 +293,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                             .getRegion();
     }
 
-    private DefaultsMode resolveDefaultsMode(SdkClientConfiguration config) {
-        DefaultsMode defaultsMode;
-        defaultsMode = config.option(AwsClientOption.DEFAULTS_MODE) != null ? config.option(AwsClientOption.DEFAULTS_MODE) :
-                       DefaultsModeResolver.create()
-                                           .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                           .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                           .resolve();
-
-        if (defaultsMode == DefaultsMode.AUTO) {
-            defaultsMode = autoDefaultsModeDiscovery.discover(config.option(AwsClientOption.AWS_REGION));
-            DefaultsMode finalDefaultsMode = defaultsMode;
-            log.debug(() -> String.format("Resolved %s client's AUTO configuration mode to %s", serviceName(),
-                                          finalDefaultsMode));
-        }
-
-        return defaultsMode;
-    }
-
     /**
      * Resolve whether a dualstack endpoint should be used for this client.
      */
-    private Boolean resolveDualstackEndpointEnabled(SdkClientConfiguration config) {
-        return config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED) != null
-               ? config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED)
-               : resolveUseDualstackFromDefaultProvider(config);
-    }
-
-    /**
-     * Load the dualstack endpoint setting from the default provider logic.
-     */
-    private Boolean resolveUseDualstackFromDefaultProvider(SdkClientConfiguration config) {
-        Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
-        String profileName = config.option(SdkClientOption.PROFILE_NAME);
+    private Boolean resolveDualstackEndpointEnabled(LazyValueSource config) {
+        Supplier<ProfileFile> profileFile = config.get(SdkClientOption.PROFILE_FILE_SUPPLIER);
+        String profileName = config.get(SdkClientOption.PROFILE_NAME);
         return DualstackEnabledProvider.builder()
                                        .profileFile(profileFile)
                                        .profileName(profileName)
@@ -345,20 +308,11 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
-     * Resolve whether a dualstack endpoint should be used for this client.
+     * Resolve whether a fips endpoint should be used for this client.
      */
-    private Boolean resolveFipsEndpointEnabled(SdkClientConfiguration config) {
-        return config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED) != null
-               ? config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)
-               : resolveUseFipsFromDefaultProvider(config);
-    }
-
-    /**
-     * Load the dualstack endpoint setting from the default provider logic.
-     */
-    private Boolean resolveUseFipsFromDefaultProvider(SdkClientConfiguration config) {
-        Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
-        String profileName = config.option(SdkClientOption.PROFILE_NAME);
+    private Boolean resolveFipsEndpointEnabled(LazyValueSource config) {
+        Supplier<ProfileFile> profileFile = config.get(SdkClientOption.PROFILE_FILE_SUPPLIER);
+        String profileName = config.get(SdkClientOption.PROFILE_NAME);
         return FipsEnabledProvider.builder()
                                   .profileFile(profileFile)
                                   .profileName(profileName)
@@ -370,39 +324,34 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     /**
      * Resolve the credentials that should be used based on the customer's configuration.
      */
-    private IdentityProvider<? extends AwsCredentialsIdentity> resolveCredentialsIdentityProvider(SdkClientConfiguration config) {
-        return config.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER) != null
-               ? config.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER)
-               : DefaultCredentialsProvider.builder()
-                                           .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                           .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                           .build();
+    private IdentityProvider<? extends AwsCredentialsIdentity> resolveCredentialsIdentityProvider(LazyValueSource config) {
+        return DefaultCredentialsProvider.builder()
+                                         .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                         .profileName(config.get(SdkClientOption.PROFILE_NAME))
+                                         .build();
     }
 
-    // If resolveCredentialsIdentityProvider returns a DefaultCredentialsProvider (which is the more common usage), this avoids
-    // wrapping it in another AwsCredentialsProvider.
-    private AwsCredentialsProvider toCredentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> identityProvider) {
-        return identityProvider instanceof AwsCredentialsProvider ? (AwsCredentialsProvider) identityProvider :
-               CredentialUtils.toCredentialsProvider(identityProvider);
+    private AwsCredentialsProvider resolveCredentialsProvider(LazyValueSource config) {
+        return CredentialUtils.toCredentialsProvider(config.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER));
     }
 
-
-
-    private RetryPolicy resolveAwsRetryPolicy(SdkClientConfiguration config) {
+    private void configureRetryPolicy(SdkClientConfiguration.Builder config) {
         RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
-
         if (policy != null) {
             if (policy.additionalRetryConditionsAllowed()) {
-                return AwsRetryPolicy.addRetryConditions(policy);
-            } else {
-                return policy;
+                config.option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.addRetryConditions(policy));
             }
+            return;
         }
 
+        config.lazyOption(SdkClientOption.RETRY_POLICY, this::resolveAwsRetryPolicy);
+    }
+
+    private RetryPolicy resolveAwsRetryPolicy(LazyValueSource config) {
         RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
+                                       .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                       .profileName(config.get(SdkClientOption.PROFILE_NAME))
+                                       .defaultRetryMode(config.get(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
         return AwsRetryPolicy.forRetryMode(retryMode);
     }
@@ -477,7 +426,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     @Override
     public final BuilderT defaultsMode(DefaultsMode defaultsMode) {
-        clientConfiguration.option(DEFAULTS_MODE, defaultsMode);
+        clientConfiguration.option(AwsClientOption.CONFIGURED_DEFAULTS_MODE, defaultsMode);
         return thisBuilder();
     }
 

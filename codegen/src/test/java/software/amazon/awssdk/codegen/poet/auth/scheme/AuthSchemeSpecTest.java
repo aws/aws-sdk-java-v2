@@ -150,9 +150,9 @@ public class AuthSchemeSpecTest {
                     .build(),
             // Service with operations with auth none
             TestCase.builder()
-                    .modelProvider(ClientTestModels::serviceWithNoAuth)
+                    .modelProvider(ClientTestModels::operationWithNoAuth)
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
-                    .caseName("service-with-no-auth")
+                    .caseName("ops-with-no-auth")
                     .outputFileSuffix("default-provider")
                     .build(),
             // Service with signature version with the same value as S3

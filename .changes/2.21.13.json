@@ -1,0 +1,42 @@
+{
+    "version": "2.21.13",
+    "date": "2023-11-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "contributor": "",
+            "description": "Global Accelerator now support accelerators with cross account endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add `cloudwatch-metric-publisher` to `aws-sdk-java` module so that it can be included in the bundle JAR."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adds the BatchGetFlowAssociation API which returns flow associations (flow-resource) corresponding to the list of resourceArns supplied in the request. This release also adds IsDefault, LastModifiedRegion and LastModifiedTime fields to the responses of several Describe and List APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Added support for Multi-AZ deployments for Provisioned RA3 clusters that provide 99.99% SLA availability."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for customized networking resources to Amazon RDS Custom."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Support for batch transform input in Model dashboard"
+        }
+    ]
+}

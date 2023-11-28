@@ -17,9 +17,14 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -37,18 +42,30 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedReques
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPage;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPagePublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
     private static class Record1 {
         private Integer id;
+        private String stringAttr;
 
         private Integer getId() {
             return id;
         }
 
+        private String getStringAttr() {
+            return stringAttr;
+        }
+
         private Record1 setId(Integer id) {
             this.id = id;
+            return this;
+        }
+
+        private Record1 setStringAttr(String str) {
+            this.stringAttr = str;
             return this;
         }
 
@@ -57,24 +74,34 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Record1 record1 = (Record1) o;
-            return Objects.equals(id, record1.id);
+            return Objects.equals(id, record1.id) && Objects.equals(stringAttr, record1.stringAttr);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id);
+            return Objects.hash(id, stringAttr);
         }
     }
 
     private static class Record2 {
         private Integer id;
+        private String stringAttr;
 
         private Integer getId() {
             return id;
         }
 
+        private String getStringAttr() {
+            return stringAttr;
+        }
+
         private Record2 setId(Integer id) {
             this.id = id;
+            return this;
+        }
+
+        private Record2 setStringAttr(String str) {
+            this.stringAttr = str;
             return this;
         }
 
@@ -83,12 +110,12 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Record2 record2 = (Record2) o;
-            return Objects.equals(id, record2.id);
+            return Objects.equals(id, record2.id) && Objects.equals(stringAttr, record2.stringAttr);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id);
+            return Objects.hash(id, stringAttr);
         }
     }
 
@@ -99,6 +126,9 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
                                                             .getter(Record1::getId)
                                                             .setter(Record1::setId)
                                                             .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("str_1")
+                                                           .getter(Record1::getStringAttr)
+                                                           .setter(Record1::setStringAttr))
                          .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
@@ -108,26 +138,29 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
                                                             .getter(Record2::getId)
                                                             .setter(Record2::setId)
                                                             .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("str_1")
+                                                           .getter(Record2::getStringAttr)
+                                                           .setter(Record2::setStringAttr))
                          .build();
 
-    private DynamoDbEnhancedAsyncClient enhancedAsyncClient =
+    private final DynamoDbEnhancedAsyncClient enhancedAsyncClient =
         DefaultDynamoDbEnhancedAsyncClient.builder()
                                           .dynamoDbClient(getDynamoDbAsyncClient())
                                           .build();
 
-    private DynamoDbAsyncTable<Record1> mappedTable1 = enhancedAsyncClient.table(getConcreteTableName("table-name-1"),
-                                                                                 TABLE_SCHEMA_1);
-    private DynamoDbAsyncTable<Record2> mappedTable2 = enhancedAsyncClient.table(getConcreteTableName("table-name-2"),
-                                                                                 TABLE_SCHEMA_2);
+    private final String tableName1 = getConcreteTableName("table-name-1");
+    private final String tableName2 = getConcreteTableName("table-name-2");
+    private final DynamoDbAsyncTable<Record1> mappedTable1 = enhancedAsyncClient.table(tableName1, TABLE_SCHEMA_1);
+    private final DynamoDbAsyncTable<Record2> mappedTable2 = enhancedAsyncClient.table(tableName2, TABLE_SCHEMA_2);
 
     private static final List<Record1> RECORDS_1 =
         IntStream.range(0, 2)
-                 .mapToObj(i -> new Record1().setId(i))
+                 .mapToObj(i -> new Record1().setId(i).setStringAttr(getStringAttrValue(80_000)))
                  .collect(Collectors.toList());
 
     private static final List<Record2> RECORDS_2 =
         IntStream.range(0, 2)
-                 .mapToObj(i -> new Record2().setId(i))
+                 .mapToObj(i -> new Record2().setId(i).setStringAttr(getStringAttrValue(40_000)))
                  .collect(Collectors.toList());
 
     @Before
@@ -139,10 +172,10 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
     @After
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
-                                                               .tableName(getConcreteTableName("table-name-1"))
+                                                               .tableName(tableName1)
                                                                .build()).join();
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
-                                                               .tableName(getConcreteTableName("table-name-2"))
+                                                               .tableName(tableName2)
                                                                .build()).join();
     }
 
@@ -160,6 +193,8 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
         List<BatchGetResultPage> results = drainPublisher(publisher, 1);
         assertThat(results.size(), is(1));
         BatchGetResultPage page = results.get(0);
+        assertThat(page.consumedCapacity(), empty());
+
         List<Record1> record1List = page.resultsForTable(mappedTable1);
         assertThat(record1List.size(), is(2));
         assertThat(record1List, containsInAnyOrder(RECORDS_1.get(0), RECORDS_1.get(1)));
@@ -222,6 +257,61 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
         assertThat(record2List, containsInAnyOrder(RECORDS_2.toArray()));
     }
 
+    @Test
+    public void getRecordsFromMultipleTables_withReturnConsumedCapacity() {
+        insertRecords();
+
+        SdkPublisher<BatchGetResultPage> publisher = batchGetResultPageSdkPublisherForBothTables(ReturnConsumedCapacity.TOTAL);
+
+        List<BatchGetResultPage> results = drainPublisher(publisher, 1);
+        assertThat(results.size(), is(1));
+        BatchGetResultPage page = results.get(0);
+        assertThat(page.consumedCapacity(), not(nullValue()));
+        assertThat(page.consumedCapacity(), hasSize(2));
+
+        assertThat(page.consumedCapacity(), containsInAnyOrder(
+            ConsumedCapacity.builder().tableName(tableName1).capacityUnits(20.0).build(),
+            ConsumedCapacity.builder().tableName(tableName2).capacityUnits(10.0).build()
+        ));
+
+        List<Record1> record1List = page.resultsForTable(mappedTable1);
+        assertThat(record1List.size(), is(2));
+        assertThat(record1List, containsInAnyOrder(RECORDS_1.get(0), RECORDS_1.get(1)));
+
+        List<Record2> record2List = page.resultsForTable(mappedTable2);
+        assertThat(record2List.size(), is(2));
+        assertThat(record2List, containsInAnyOrder(RECORDS_2.get(0), RECORDS_2.get(1)));
+    }
+
+    @Test
+    public void notFoundRecords_withReturnConsumedCapacity() {
+        insertRecords();
+
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
+            requestWithNotFoundRecord().toBuilder()
+                                       .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                       .build();
+
+        SdkPublisher<BatchGetResultPage> publisher = enhancedAsyncClient.batchGetItem(batchGetItemEnhancedRequest);
+
+        List<BatchGetResultPage> results = drainPublisher(publisher, 1);
+        assertThat(results.size(), is(1));
+        BatchGetResultPage page = results.get(0);
+        assertThat(page.consumedCapacity(), containsInAnyOrder(
+            ConsumedCapacity.builder().tableName(tableName1).capacityUnits(10.0).build(),
+            ConsumedCapacity.builder().tableName(tableName2).capacityUnits(10.0).build()
+        ));
+
+        List<Record1> record1List = page.resultsForTable(mappedTable1);
+        assertThat(record1List.size(), is(1));
+        assertThat(record1List.get(0).getId(), is(0));
+
+        List<Record2> record2List = page.resultsForTable(mappedTable2);
+        assertThat(record2List.size(), is(2));
+        assertThat(record2List, containsInAnyOrder(RECORDS_2.get(0), RECORDS_2.get(1)));
+
+    }
+
     private BatchGetItemEnhancedRequest requestWithNotFoundRecord() {
         return BatchGetItemEnhancedRequest.builder()
                                           .readBatches(
@@ -245,23 +335,36 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private BatchGetResultPagePublisher batchGetResultPageSdkPublisherForBothTables() {
-        return enhancedAsyncClient.batchGetItem(r -> r.readBatches(
-            ReadBatch.builder(Record1.class)
-                     .mappedTableResource(mappedTable1)
-                     .addGetItem(i -> i.key(k -> k.partitionValue(0)))
-                     .build(),
-            ReadBatch.builder(Record2.class)
-                     .mappedTableResource(mappedTable2)
-                     .addGetItem(i -> i.key(k -> k.partitionValue(0)))
-                     .build(),
-            ReadBatch.builder(Record2.class)
-                     .mappedTableResource(mappedTable2)
-                     .addGetItem(i -> i.key(k -> k.partitionValue(1)))
-                     .build(),
-            ReadBatch.builder(Record1.class)
-                     .mappedTableResource(mappedTable1)
-                     .addGetItem(i -> i.key(k -> k.partitionValue(1)))
-                     .build()));
+        return batchGetResultPageSdkPublisherForBothTables(null);
+    }
+
+    private BatchGetResultPagePublisher batchGetResultPageSdkPublisherForBothTables(ReturnConsumedCapacity retConsumedCapacity) {
+        return enhancedAsyncClient.batchGetItem(
+                r -> r.returnConsumedCapacity(retConsumedCapacity)
+                      .readBatches(
+                            ReadBatch.builder(Record1.class)
+                                     .mappedTableResource(mappedTable1)
+                                     .addGetItem(i -> i.key(k -> k.partitionValue(0)))
+                                     .build(),
+                            ReadBatch.builder(Record2.class)
+                                     .mappedTableResource(mappedTable2)
+                                     .addGetItem(i -> i.key(k -> k.partitionValue(0)))
+                                     .build(),
+                            ReadBatch.builder(Record2.class)
+                                     .mappedTableResource(mappedTable2)
+                                     .addGetItem(i -> i.key(k -> k.partitionValue(1)))
+                                     .build(),
+                            ReadBatch.builder(Record1.class)
+                                     .mappedTableResource(mappedTable1)
+                                     .addGetItem(i -> i.key(k -> k.partitionValue(1)))
+                                     .build()
+                      )
+        );
+    }
+
+    private static String getStringAttrValue(int nChars) {
+        char[] bytes = new char[nChars];
+        Arrays.fill(bytes, 'a');
+        return new String(bytes);
     }
 }
-

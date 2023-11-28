@@ -702,8 +702,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -721,10 +721,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "ap-northeast-1",
                 "UseFIPS": false,
-                "Region": "ap-northeast-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -734,8 +734,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -753,10 +753,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "ap-south-1",
                 "UseFIPS": false,
-                "Region": "ap-south-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -766,8 +766,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -785,10 +785,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "ap-southeast-1",
                 "UseFIPS": false,
-                "Region": "ap-southeast-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -798,8 +798,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -817,10 +817,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "ap-southeast-2",
                 "UseFIPS": false,
-                "Region": "ap-southeast-2"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -830,8 +830,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -849,10 +849,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "aws-global",
                 "UseFIPS": false,
-                "Region": "aws-global"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -862,8 +862,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -881,10 +881,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "ca-central-1",
                 "UseFIPS": false,
-                "Region": "ca-central-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -894,8 +894,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -913,10 +913,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "eu-central-1",
                 "UseFIPS": false,
-                "Region": "eu-central-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -926,8 +926,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -945,10 +945,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "eu-north-1",
                 "UseFIPS": false,
-                "Region": "eu-north-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -958,8 +958,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -977,10 +977,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "eu-west-1",
                 "UseFIPS": false,
-                "Region": "eu-west-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -990,8 +990,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -1009,10 +1009,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "eu-west-2",
                 "UseFIPS": false,
-                "Region": "eu-west-2"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -1022,8 +1022,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -1041,10 +1041,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "eu-west-3",
                 "UseFIPS": false,
-                "Region": "eu-west-3"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -1054,8 +1054,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -1073,10 +1073,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "sa-east-1",
                 "UseFIPS": false,
-                "Region": "sa-east-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -1086,8 +1086,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -1105,10 +1105,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "us-east-1",
                 "UseFIPS": false,
-                "Region": "us-east-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -1118,8 +1118,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -1137,10 +1137,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "us-east-2",
                 "UseFIPS": false,
-                "Region": "us-east-2"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -1150,8 +1150,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -1169,10 +1169,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "us-west-1",
                 "UseFIPS": false,
-                "Region": "us-west-1"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -1182,8 +1182,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-1"
                             }
                         ]
@@ -1201,10 +1201,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "us-west-2",
                 "UseFIPS": false,
-                "Region": "us-west-2"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -1214,8 +1214,8 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "signingName": "sts",
                                 "name": "sigv4",
+                                "signingName": "sts",
                                 "signingRegion": "us-east-3"
                             }
                         ]
@@ -1233,10 +1233,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
+                "Region": "us-east-3",
                 "UseFIPS": false,
-                "Region": "us-east-3"
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true
             }
         },
         {
@@ -1257,10 +1257,10 @@
                 }
             ],
             "params": {
-                "UseGlobalEndpoint": true,
-                "UseDualStack": false,
-                "UseFIPS": false,
                 "Region": "us-west-1",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "UseGlobalEndpoint": true,
                 "Endpoint": "https://example.com"
             }
         },
@@ -1272,10 +1272,10 @@
                 }
             },
             "params": {
-                "Endpoint": "https://example.com",
-                "UseGlobalEndpoint": false,
+                "UseFIPS": false,
                 "UseDualStack": false,
-                "UseFIPS": false
+                "UseGlobalEndpoint": false,
+                "Endpoint": "https://example.com"
             }
         }
     ],

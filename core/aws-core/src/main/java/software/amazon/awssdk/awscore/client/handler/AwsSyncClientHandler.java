@@ -41,11 +41,8 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 @SdkProtectedApi
 public final class AwsSyncClientHandler extends SdkSyncClientHandler implements SyncClientHandler {
 
-    private final SdkClientConfiguration clientConfiguration;
-
     public AwsSyncClientHandler(SdkClientConfiguration clientConfiguration) {
         super(clientConfiguration);
-        this.clientConfiguration = clientConfiguration;
         AwsClientOptionValidation.validateSyncClientOptions(clientConfiguration);
     }
 
@@ -66,6 +63,7 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams) {
+        SdkClientConfiguration clientConfiguration = resolveRequestConfiguration(executionParams);
         return AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration);
     }
 

@@ -6,20 +6,12 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
-import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
-import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
-import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
-import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.Logger;
@@ -110,29 +102,6 @@ public final class AwsEndpointProviderUtils {
         return endpoint.toBuilder().url(newUrl).build();
     }
 
-    public static Endpoint valueAsEndpointOrThrow(Value value) {
-        if (value instanceof Value.Endpoint) {
-            Value.Endpoint endpoint = value.expectEndpoint();
-            Endpoint.Builder builder = Endpoint.builder();
-            builder.url(URI.create(endpoint.getUrl()));
-
-            Map<String, List<String>> headers = endpoint.getHeaders();
-            if (headers != null) {
-                headers.forEach((name, values) -> values.forEach(v -> builder.putHeader(name, v)));
-            }
-
-            addKnownProperties(builder, endpoint.getProperties());
-
-            return builder.build();
-        } else if (value instanceof Value.Str) {
-            String errorMsg = value.expectString();
-            throw SdkClientException.create(errorMsg);
-        } else {
-            throw SdkClientException.create("Rule engine return neither an endpoint result or error value. Returned value was:"
-                    + value);
-        }
-    }
-
     /**
      * This sets the request URI to the resolved URI returned by the endpoint provider. There are some things to be
      * careful about to make this work properly:
@@ -185,73 +154,6 @@ public final class AwsEndpointProviderUtils {
         String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPath, "");
         String finalPath = SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
         return finalPath;
-    }
-
-    /**
-     * Merge the resolved endpoint auth scheme settings into the selected auth scheme. Endpoint auth schemes settings
-     * take priority over settings already set in the selected auth scheme.
-     */
-    public static <T extends Identity> SelectedAuthScheme<T> mergeIntoResolvedAuthScheme(
-            List<EndpointAuthScheme> endpointAuthSchemes, SelectedAuthScheme<T> selectedAuthScheme) {
-        for (EndpointAuthScheme endpointAuthScheme : endpointAuthSchemes) {
-            if (!endpointAuthScheme.schemeId().equals(selectedAuthScheme.authSchemeOption().schemeId())) {
-                // Don't include signer properties for auth options that don't match our selected auth scheme
-                continue;
-            }
-
-            if (endpointAuthScheme instanceof SigV4AuthScheme) {
-                SigV4AuthScheme v4AuthScheme = (SigV4AuthScheme) endpointAuthScheme;
-                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption().toBuilder()
-                        .applyMutation(o -> overrideV4SignerProperties(o, v4AuthScheme)).build();
-                return new SelectedAuthScheme<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), authSchemeOption);
-            }
-
-            if (endpointAuthScheme instanceof SigV4aAuthScheme) {
-                SigV4aAuthScheme v4aAuthScheme = (SigV4aAuthScheme) endpointAuthScheme;
-                AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption().toBuilder()
-                        .applyMutation(o -> overrideV4aSignerProperties(o, v4aAuthScheme)).build();
-                return new SelectedAuthScheme<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), authSchemeOption);
-            }
-        }
-
-        return selectedAuthScheme;
-    }
-
-    private static void overrideV4SignerProperties(AuthSchemeOption.Builder option, SigV4AuthScheme endpointAuthScheme) {
-        if (endpointAuthScheme.isDisableDoubleEncodingSet()) {
-            option.putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, !endpointAuthScheme.disableDoubleEncoding());
-        }
-        if (endpointAuthScheme.signingRegion() != null) {
-            option.putSignerProperty(AwsV4HttpSigner.REGION_NAME, endpointAuthScheme.signingRegion());
-        }
-        if (endpointAuthScheme.signingName() != null) {
-            option.putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, endpointAuthScheme.signingName());
-        }
-    }
-
-    private static void overrideV4aSignerProperties(AuthSchemeOption.Builder option, SigV4aAuthScheme endpointAuthScheme) {
-        if (endpointAuthScheme.isDisableDoubleEncodingSet()) {
-            option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !endpointAuthScheme.disableDoubleEncoding());
-        }
-        if (endpointAuthScheme.signingRegionSet() != null) {
-            option.putSignerProperty(AwsV4aHttpSigner.REGION_NAME, String.join(",", endpointAuthScheme.signingRegionSet()));
-        }
-        if (endpointAuthScheme.signingName() != null) {
-            option.putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, endpointAuthScheme.signingName());
-        }
-    }
-
-    private static void addKnownProperties(Endpoint.Builder builder, Map<String, Value> properties) {
-        properties.forEach((n, v) -> {
-            switch (n) {
-            case "authSchemes":
-                builder.putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, AuthSchemeUtils.createAuthSchemes(v));
-                break;
-            default:
-                LOG.debug(() -> "Ignoring unknown endpoint property: " + n);
-                break;
-            }
-        });
     }
 
     private static void validatePrefixIsHostNameCompliant(String prefix) {

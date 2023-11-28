@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.eventstreams;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ import software.amazon.awssdk.services.eventstreamrestjson.model.InputEventStrea
 import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
 
-//@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class EventMarshallingTest {
     @Mock
     public SdkAsyncHttpClient mockHttpClient;
@@ -75,9 +76,7 @@ public class EventMarshallingTest {
         eventDecoder = new MessageDecoder();
     }
 
-    // TODO(sra-identity-and-auth): This test no longer works, it's unclear as of why not but seems related to the changes in
-    // the signing stage.
-    //@Test
+    @Test
     public void testMarshalling_setsCorrectEventType() {
         List<InputEventStream> inputEvents = Stream.of(
                 InputEventStream.inputEventBuilder().build(),

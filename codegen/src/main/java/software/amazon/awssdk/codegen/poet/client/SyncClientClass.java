@@ -21,11 +21,13 @@ import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
@@ -38,6 +40,8 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -45,12 +49,16 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -71,6 +79,8 @@ public class SyncClientClass extends SyncClientInterface {
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
+    private final ServiceClientConfigurationUtils configurationUtils;
+    private final boolean useSraAuth;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         super(taskParams.getModel());
@@ -79,6 +89,8 @@ public class SyncClientClass extends SyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
+        this.configurationUtils = new ServiceClientConfigurationUtils(model);
+        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -106,14 +118,19 @@ public class SyncClientClass extends SyncClientInterface {
     @Override
     protected void addFields(TypeSpec.Builder type) {
         type.addField(logger())
+            .addField(protocolMetadata())
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
     }
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
+        if (!useSraAuth) {
+            if (model.containsRequestSigners()) {
+                type.addMethod(applySignerOverrideMethod(poetExtensions, model));
+            }
+        }
 
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
@@ -124,13 +141,21 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethod(resolveMetricPublishersMethod());
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
-
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
+                                                          "S3".equals(model.getMetadata().getServiceName())));
         type.addMethod(protocolSpec.initProtocolFactory(model));
     }
 
     private FieldSpec logger() {
         return FieldSpec.builder(Logger.class, "log", PRIVATE, STATIC, FINAL)
                         .initializer("$T.loggerFor($T.class)", Logger.class, className)
+                        .build();
+    }
+
+    private FieldSpec protocolMetadata() {
+        return FieldSpec.builder(AwsProtocolMetadata.class, "protocolMetadata", PRIVATE, STATIC, FINAL)
+                        .initializer("$T.builder().serviceProtocol($T.$L).build()",
+                                     AwsProtocolMetadata.class, AwsServiceProtocol.class, model.getMetadata().getProtocol())
                         .build();
     }
 
@@ -149,7 +174,8 @@ public class SyncClientClass extends SyncClientInterface {
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
                          .returns(serviceClientConfigurationClassName)
-                         .addStatement("return this.serviceClientConfiguration")
+                         .addStatement("return new $T(this.clientConfiguration.toBuilder()).build()",
+                                       this.configurationUtils.serviceClientConfigurationBuilderClassName())
                          .build();
     }
 
@@ -162,11 +188,10 @@ public class SyncClientClass extends SyncClientInterface {
         MethodSpec.Builder builder
             = MethodSpec.constructorBuilder()
                         .addModifiers(PROTECTED)
-                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
-                        .addStatement("this.clientConfiguration = clientConfiguration")
-                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
+                        .addStatement("this.clientConfiguration = clientConfiguration");
+
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -215,8 +240,11 @@ public class SyncClientClass extends SyncClientInterface {
 
     private MethodSpec traditionalMethod(OperationModel opModel) {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
-                                                       .addAnnotation(Override.class)
-                                                       .addCode(protocolSpec.responseHandler(model, opModel));
+                                                       .addAnnotation(Override.class);
+        if (!useSraAuth) {
+            method.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
+        }
+        method.addCode(protocolSpec.responseHandler(model, opModel));
 
         protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);
 
@@ -277,6 +305,8 @@ public class SyncClientClass extends SyncClientInterface {
             method.endControlFlow();
         }
 
+        method.addStatement("$T clientConfiguration = updateSdkClientConfiguration($L, this.clientConfiguration)",
+                            SdkClientConfiguration.class, opModel.getInput().getVariableName());
         method.addStatement("$T<$T> metricPublishers = "
                             + "resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
                             List.class,
@@ -386,5 +416,35 @@ public class SyncClientClass extends SyncClientInterface {
         return builder.addAnnotation(Override.class)
                       .addStatement("return $T.builder().client(this).build()",
                                     poetExtensions.getSyncWaiterInterface());
+    }
+
+    protected static MethodSpec updateSdkClientConfigurationMethod(
+        TypeName serviceClientConfigurationBuilderClassName,
+        boolean shouldAddClientReference) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(SdkRequest.class, "request")
+                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .returns(SdkClientConfiguration.class);
+
+        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
+                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
+               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
+
+        if (shouldAddClientReference) {
+            builder.addStatement("configuration.option($T.SDK_CLIENT, this)", SdkClientOption.class);
+        }
+
+        builder.beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return configuration.build()")
+               .endControlFlow()
+               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
+               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("plugin.configureClient(serviceConfigBuilder)")
+               .endControlFlow()
+               .addStatement("return configuration.build()");
+
+        return builder.build();
     }
 }

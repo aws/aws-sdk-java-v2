@@ -16,25 +16,22 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.auth.aws.signer.V4Context;
-import software.amazon.awssdk.http.auth.aws.signer.V4PayloadSigner;
 
 /**
  * A default implementation of a payload signer that is a no-op, since payloads are most commonly unsigned.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public class DefaultV4PayloadSigner implements V4PayloadSigner {
     @Override
-    public ContentStreamProvider sign(ContentStreamProvider payload, V4Context v4Context) {
+    public ContentStreamProvider sign(ContentStreamProvider payload, V4RequestSigningResult requestSigningResult) {
         return payload;
     }
 
     @Override
-    public Publisher<ByteBuffer> sign(Publisher<ByteBuffer> payload, CompletableFuture<V4Context> futureV4Context) {
+    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4RequestSigningResult requestSigningResult) {
         return payload;
     }
 }

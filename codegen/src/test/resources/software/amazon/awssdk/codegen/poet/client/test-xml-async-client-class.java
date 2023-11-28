@@ -6,19 +6,27 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkPojoBuilder;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
@@ -31,14 +39,17 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
+import software.amazon.awssdk.services.xml.internal.XmlServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.xml.model.APostOperationRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationResponse;
 import software.amazon.awssdk.services.xml.model.APostOperationWithOutputRequest;
@@ -56,6 +67,8 @@ import software.amazon.awssdk.services.xml.model.OperationWithChecksumRequiredRe
 import software.amazon.awssdk.services.xml.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.xml.model.OperationWithNoneAuthTypeRequest;
 import software.amazon.awssdk.services.xml.model.OperationWithNoneAuthTypeResponse;
+import software.amazon.awssdk.services.xml.model.OperationWithRequestCompressionRequest;
+import software.amazon.awssdk.services.xml.model.OperationWithRequestCompressionResponse;
 import software.amazon.awssdk.services.xml.model.PutOperationWithChecksumRequest;
 import software.amazon.awssdk.services.xml.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.xml.model.StreamingInputOperationRequest;
@@ -63,6 +76,7 @@ import software.amazon.awssdk.services.xml.model.StreamingInputOperationResponse
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.xml.model.XmlException;
+import software.amazon.awssdk.services.xml.model.XmlRequest;
 import software.amazon.awssdk.services.xml.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.BearerAuthOperationRequestMarshaller;
@@ -70,6 +84,7 @@ import software.amazon.awssdk.services.xml.transform.EventStreamOperationRequest
 import software.amazon.awssdk.services.xml.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.OperationWithNoneAuthTypeRequestMarshaller;
+import software.amazon.awssdk.services.xml.transform.OperationWithRequestCompressionRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.PutOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.StreamingOutputOperationRequestMarshaller;
@@ -86,21 +101,20 @@ import software.amazon.awssdk.utils.Pair;
 final class DefaultXmlAsyncClient implements XmlAsyncClient {
     private static final Logger log = LoggerFactory.getLogger(DefaultXmlAsyncClient.class);
 
+    private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
+                                                                                   .serviceProtocol(AwsServiceProtocol.REST_XML).build();
+
     private final AsyncClientHandler clientHandler;
 
     private final AwsXmlProtocolFactory protocolFactory;
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final XmlServiceClientConfiguration serviceClientConfiguration;
-
     private final Executor executor;
 
-    protected DefaultXmlAsyncClient(XmlServiceClientConfiguration serviceClientConfiguration,
-                                    SdkClientConfiguration clientConfiguration) {
+    protected DefaultXmlAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -130,6 +144,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -146,7 +161,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                             .withOperationName("APostOperation")
+                             .withOperationName("APostOperation").withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).hostPrefixExpression(resolvedHostExpression)
                              .withMetricCollector(apiCallMetricCollector).withInput(aPostOperationRequest));
@@ -188,6 +204,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     @Override
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
         APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationWithOutputRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -202,7 +220,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput")
+                             .withOperationName("APostOperationWithOutput").withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                              .withInput(aPostOperationWithOutputRequest));
@@ -240,6 +259,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     @Override
     public CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
         BearerAuthOperationRequest bearerAuthOperationRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(bearerAuthOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -247,6 +268,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
+            bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
 
             HttpResponseHandler<Response<BearerAuthOperationResponse>> responseHandler = protocolFactory
                 .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
@@ -254,7 +276,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
             CompletableFuture<BearerAuthOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                             .withOperationName("BearerAuthOperation")
+                             .withOperationName("BearerAuthOperation").withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).credentialType(CredentialType.TOKEN)
                              .withMetricCollector(apiCallMetricCollector).withInput(bearerAuthOperationRequest));
@@ -292,6 +315,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     @Override
     public CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
                                                         EventStreamOperationResponseHandler asyncResponseHandler) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(eventStreamOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, eventStreamOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -323,7 +348,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
             CompletableFuture<Void> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationRequest, EventStreamOperationResponse>()
-                    .withOperationName("EventStreamOperation")
+                    .withOperationName("EventStreamOperation").withRequestConfiguration(clientConfiguration)
+                    .withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withMetricCollector(apiCallMetricCollector).withInput(eventStreamOperationRequest),
@@ -369,6 +395,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     @Override
     public CompletableFuture<GetOperationWithChecksumResponse> getOperationWithChecksum(
         GetOperationWithChecksumRequest getOperationWithChecksumRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getOperationWithChecksumRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -384,6 +412,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<GetOperationWithChecksumResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
                              .withOperationName("GetOperationWithChecksum")
+                             .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
@@ -427,6 +457,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     @Override
     public CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
         OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithChecksumRequiredRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
                                                                          operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -442,6 +474,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<OperationWithChecksumRequiredResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
+                             .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
@@ -481,6 +515,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     @Override
     public CompletableFuture<OperationWithNoneAuthTypeResponse> operationWithNoneAuthType(
         OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithNoneAuthTypeRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -495,11 +531,73 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
             CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType")
+                             .withOperationName("OperationWithNoneAuthType").withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
                              .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
+            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
+            return whenCompleteFuture;
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
+     * Invokes the OperationWithRequestCompression operation asynchronously.
+     *
+     * @param operationWithRequestCompressionRequest
+     * @return A Java Future containing the result of the OperationWithRequestCompression operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>XmlException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample XmlAsyncClient.OperationWithRequestCompression
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/xml-service-2010-05-08/OperationWithRequestCompression"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithRequestCompressionResponse> operationWithRequestCompression(
+        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithRequestCompressionRequest,
+                                                                                  this.clientConfiguration);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithRequestCompression");
+
+            HttpResponseHandler<Response<OperationWithRequestCompressionResponse>> responseHandler = protocolFactory
+                .createCombinedResponseHandler(OperationWithRequestCompressionResponse::builder,
+                                               new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+
+            CompletableFuture<OperationWithRequestCompressionResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
+                             .withOperationName("OperationWithRequestCompression")
+                             .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
+                             .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
+                             .withCombinedResponseHandler(responseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+                                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
+                             .withInput(operationWithRequestCompressionRequest));
+            CompletableFuture<OperationWithRequestCompressionResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -552,6 +650,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
         PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putOperationWithChecksumRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -563,6 +663,9 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .wrapWithEndOfStreamFuture(asyncResponseTransformer);
             asyncResponseTransformer = pair.left();
             CompletableFuture<Void> endOfStreamFuture = pair.right();
+            if (!isSignerOverridden(clientConfiguration)) {
+                putOperationWithChecksumRequest = applySignerOverride(putOperationWithChecksumRequest, AsyncAws4Signer.create());
+            }
 
             HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
                 PutOperationWithChecksumResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
@@ -572,12 +675,14 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
                     .withOperationName("PutOperationWithChecksum")
+                    .withProtocolMetadata(protocolMetadata)
                     .withMarshaller(
                         AsyncStreamingRequestMarshaller.builder()
                                                        .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
                                                        .asyncRequestBody(requestBody).build())
                     .withResponseHandler(responseHandler)
                     .withErrorResponseHandler(errorResponseHandler)
+                    .withRequestConfiguration(clientConfiguration)
                     .withMetricCollector(apiCallMetricCollector)
                     .putExecutionAttribute(
                         SdkInternalExecutionAttribute.HTTP_CHECKSUM,
@@ -634,6 +739,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
         StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -641,6 +748,9 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
+            if (!isSignerOverridden(clientConfiguration)) {
+                streamingInputOperationRequest = applySignerOverride(streamingInputOperationRequest, AsyncAws4Signer.create());
+            }
 
             HttpResponseHandler<Response<StreamingInputOperationResponse>> responseHandler = protocolFactory
                 .createCombinedResponseHandler(StreamingInputOperationResponse::builder,
@@ -649,6 +759,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                              .withOperationName("StreamingInputOperation")
+                             .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(
                                  AsyncStreamingRequestMarshaller.builder()
                                                                 .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
@@ -695,6 +807,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
         StreamingOutputOperationRequest streamingOutputOperationRequest,
         AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingOutputOperationRequest,
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
             .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
@@ -714,11 +828,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation")
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withMetricCollector(apiCallMetricCollector).withInput(streamingOutputOperationRequest),
-                asyncResponseTransformer);
+                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                    .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
@@ -742,7 +856,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
     @Override
     public final XmlServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+        return new XmlServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override
@@ -772,6 +886,34 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    private <T extends XmlRequest> T applySignerOverride(T request, Signer signer) {
+        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
+            return request;
+        }
+        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+    }
+
+    private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
+        return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
+    }
+
+    private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
+        List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
+        if (plugins.isEmpty()) {
+            return configuration.build();
+        }
+        XmlServiceClientConfigurationBuilder serviceConfigBuilder = new XmlServiceClientConfigurationBuilder(configuration);
+        for (SdkPlugin plugin : plugins) {
+            plugin.configureClient(serviceConfigBuilder);
+        }
+        return configuration.build();
     }
 
     @Override

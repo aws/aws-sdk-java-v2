@@ -17,8 +17,8 @@ package software.amazon.awssdk.awscore.internal.authcontext;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
-import software.amazon.awssdk.auth.token.credentials.internal.TokenUtils;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -29,13 +29,18 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * An authorization strategy for tokens that can resolve a compatible signer as
  * well as provide a resolved token as an execution attribute.
+ *
+ * @deprecated This is only used for compatibility with pre-SRA authorization logic. After we are comfortable that the new code
+ * paths are working, we should migrate old clients to the new code paths (where possible) and delete this code.
  */
+@Deprecated
 @SdkInternalApi
 public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
 
@@ -73,8 +78,8 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
      */
     @Override
     public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
-        SdkToken token = TokenUtils.toSdkToken(resolveToken(defaultTokenProvider, metricCollector));
-        // TODO: Should the signer be changed to use TokenIdentity? Maybe with Signer SRA work, not now.
+        TokenIdentity tokenIdentity = resolveToken(defaultTokenProvider, metricCollector);
+        SdkToken token = TokenUtils.toSdkToken(tokenIdentity);
         executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, token);
     }
 
@@ -82,8 +87,9 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
                                               MetricCollector metricCollector) {
         Validate.notNull(tokenProvider, "No token provider exists to resolve a token from.");
 
-        // TODO: Exception handling for join()?
-        Pair<TokenIdentity, Duration> measured = MetricUtils.measureDuration(() -> tokenProvider.resolveIdentity().join());
+        // TODO(sra-identity-and-auth): internal issue SMITHY-1677. avoid join for async clients.
+        Pair<TokenIdentity, Duration> measured =
+            MetricUtils.measureDuration(() -> CompletableFutureUtils.joinLikeSync(tokenProvider.resolveIdentity()));
         metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, measured.right());
         TokenIdentity token = measured.left();
 

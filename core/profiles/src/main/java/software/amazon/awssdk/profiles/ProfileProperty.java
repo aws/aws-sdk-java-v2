@@ -103,6 +103,8 @@ public final class ProfileProperty {
      */
     public static final String S3_US_EAST_1_REGIONAL_ENDPOINT = "s3_us_east_1_regional_endpoint";
 
+    public static final String DISABLE_S3_EXPRESS_AUTH = "s3_disable_express_session_auth";
+
     /**
      * The "retry mode" to be used for clients created using the currently-configured profile. Values supported by all SDKs are
      * "legacy" and "standard". See the {@code RetryMode} class JavaDoc for more information.
@@ -145,6 +147,18 @@ public final class ProfileProperty {
     public static final String EC2_METADATA_SERVICE_ENDPOINT_MODE = "ec2_metadata_service_endpoint_mode";
 
     public static final String EC2_METADATA_SERVICE_ENDPOINT = "ec2_metadata_service_endpoint";
+
+    /**
+     * Whether request compression is disabled for operations marked with the RequestCompression trait. The default value is
+     * false, i.e., request compression is enabled.
+     */
+    public static final String DISABLE_REQUEST_COMPRESSION = "disable_request_compression";
+
+    /**
+     * The minimum compression size in bytes, inclusive, for a request to be compressed. The default value is 10_240.
+     * The value must be non-negative and no greater than 10_485_760.
+     */
+    public static final String REQUEST_MIN_COMPRESSION_SIZE_BYTES = "request_min_compression_size_bytes";
 
     private ProfileProperty() {
     }

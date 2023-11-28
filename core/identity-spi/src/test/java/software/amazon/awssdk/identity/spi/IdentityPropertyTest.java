@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.identity.spi;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.UUID;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +26,18 @@ public class IdentityPropertyTest {
     @Test
     public void equalsHashcode() {
         EqualsVerifier.forClass(IdentityProperty.class)
-                      .withNonnullFields("clazz", "name")
+                      .withNonnullFields("namespace", "name")
                       .verify();
+    }
+
+    @Test
+    public void namesMustBeUnique() {
+        String propertyName = UUID.randomUUID().toString();
+
+        IdentityProperty.create(getClass(), propertyName);
+        assertThatThrownBy(() -> IdentityProperty.create(getClass(), propertyName))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining(getClass().getName())
+            .hasMessageContaining(propertyName);
     }
 }

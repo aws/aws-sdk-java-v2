@@ -536,7 +536,7 @@
       "members":{
         "AccessType":{
           "shape":"AccessType",
-          "documentation":"<p>The type of authentication used to access content from <code>HttpConfiguration::BaseUrl</code> on your source location. Accepted value: <code>S3_SIGV4</code>.</p> <p> <code>S3_SIGV4</code> - AWS Signature Version 4 authentication for Amazon S3 hosted virtual-style access. If your source location base URL is an Amazon S3 bucket, MediaTailor can use AWS Signature Version 4 (SigV4) authentication to access the bucket where your source content is stored. Your MediaTailor source location baseURL must follow the S3 virtual hosted-style request URL format. For example, https://bucket-name.s3.Region.amazonaws.com/key-name.</p> <p>Before you can use <code>S3_SIGV4</code>, you must meet these requirements:</p> <p>• You must allow MediaTailor to access your S3 bucket by granting mediatailor.amazonaws.com principal access in IAM. For information about configuring access in IAM, see Access management in the IAM User Guide.</p> <p>• The mediatailor.amazonaws.com service principal must have permissions to read all top level manifests referenced by the VodSource packaging configurations.</p> <p>• The caller of the API must have s3:GetObject IAM permissions to read all top level manifests referenced by your MediaTailor VodSource packaging configurations.</p>"
+          "documentation":"<p>The type of authentication used to access content from <code>HttpConfiguration::BaseUrl</code> on your source location.</p> <p> <code>S3_SIGV4</code> - AWS Signature Version 4 authentication for Amazon S3 hosted virtual-style access. If your source location base URL is an Amazon S3 bucket, MediaTailor can use AWS Signature Version 4 (SigV4) authentication to access the bucket where your source content is stored. Your MediaTailor source location baseURL must follow the S3 virtual hosted-style request URL format. For example, https://bucket-name.s3.Region.amazonaws.com/key-name.</p> <p>Before you can use <code>S3_SIGV4</code>, you must meet these requirements:</p> <p>• You must allow MediaTailor to access your S3 bucket by granting mediatailor.amazonaws.com principal access in IAM. For information about configuring access in IAM, see Access management in the IAM User Guide.</p> <p>• The mediatailor.amazonaws.com service principal must have permissions to read all top level manifests referenced by the VodSource packaging configurations.</p> <p>• The caller of the API must have s3:GetObject IAM permissions to read all top level manifests referenced by your MediaTailor VodSource packaging configurations.</p> <p> <code>AUTODETECT_SIGV4</code> - AWS Signature Version 4 authentication for a set of supported services: MediaPackage Version 2 and Amazon S3 hosted virtual-style access. If your source location base URL is a MediaPackage Version 2 endpoint or an Amazon S3 bucket, MediaTailor can use AWS Signature Version 4 (SigV4) authentication to access the resource where your source content is stored.</p> <p>Before you can use <code>AUTODETECT_SIGV4</code> with a MediaPackage Version 2 endpoint, you must meet these requirements:</p> <p>• You must grant MediaTailor access to your MediaPackage endpoint by granting <code>mediatailor.amazonaws.com</code> principal access in an Origin Access policy on the endpoint.</p> <p>• Your MediaTailor source location base URL must be a MediaPackage V2 endpoint.</p> <p>• The caller of the API must have <code>mediapackagev2:GetObject</code> IAM permissions to read all top level manifests referenced by the MediaTailor source packaging configurations.</p> <p>Before you can use <code>AUTODETECT_SIGV4</code> with an Amazon S3 bucket, you must meet these requirements:</p> <p>• You must grant MediaTailor access to your S3 bucket by granting <code>mediatailor.amazonaws.com</code> principal access in IAM. For more information about configuring access in IAM, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html\">Access management</a> in the <i>IAM User Guide.</i>.</p> <p>• The <code>mediatailor.amazonaws.com</code> service principal must have permissions to read all top-level manifests referenced by the <code>VodSource</code> packaging configurations.</p> <p>• The caller of the API must have <code>s3:GetObject</code> IAM permissions to read all top level manifests referenced by your MediaTailor <code>VodSource</code> packaging configurations.</p>"
         },
         "SecretsManagerAccessTokenConfiguration":{
           "shape":"SecretsManagerAccessTokenConfiguration",
@@ -549,7 +549,8 @@
       "type":"string",
       "enum":[
         "S3_SIGV4",
-        "SECRETS_MANAGER_ACCESS_TOKEN"
+        "SECRETS_MANAGER_ACCESS_TOKEN",
+        "AUTODETECT_SIGV4"
       ]
     },
     "AdBreak":{
@@ -585,6 +586,22 @@
     "AdBreakMetadataList":{
       "type":"list",
       "member":{"shape":"KeyValuePair"}
+    },
+    "AdBreakOpportunities":{
+      "type":"list",
+      "member":{"shape":"AdBreakOpportunity"},
+      "documentation":"<p>The list of ad break opportunities detected within the VOD source.</p>"
+    },
+    "AdBreakOpportunity":{
+      "type":"structure",
+      "required":["OffsetMillis"],
+      "members":{
+        "OffsetMillis":{
+          "shape":"__long",
+          "documentation":"<p>The offset in milliseconds from the start of the VOD source at which an ad marker was detected.</p>"
+        }
+      },
+      "documentation":"<p>A location at which a zero-duration ad marker was detected in a VOD source manifest.</p>"
     },
     "AdMarkerPassthrough":{
       "type":"structure",
@@ -1837,6 +1854,10 @@
     "DescribeVodSourceResponse":{
       "type":"structure",
       "members":{
+        "AdBreakOpportunities":{
+          "shape":"AdBreakOpportunities",
+          "documentation":"<p>The ad break opportunities within the VOD source.</p>"
+        },
         "Arn":{
           "shape":"__string",
           "documentation":"<p>The ARN of the VOD source.</p>"
@@ -2528,6 +2549,7 @@
     },
     "MaxResults":{
       "type":"integer",
+      "box":true,
       "max":100,
       "min":1
     },
@@ -3758,14 +3780,22 @@
       },
       "documentation":"<p>VOD source configuration parameters.</p>"
     },
-    "__boolean":{"type":"boolean"},
-    "__integer":{"type":"integer"},
+    "__boolean":{
+      "type":"boolean",
+      "box":true
+    },
+    "__integer":{
+      "type":"integer",
+      "box":true
+    },
     "__integerMin1":{
       "type":"integer",
+      "box":true,
       "min":1
     },
     "__integerMin1Max100":{
       "type":"integer",
+      "box":true,
       "max":100,
       "min":1
     },
@@ -3821,7 +3851,10 @@
       "type":"list",
       "member":{"shape":"__string"}
     },
-    "__long":{"type":"long"},
+    "__long":{
+      "type":"long",
+      "box":true
+    },
     "__mapOf__string":{
       "type":"map",
       "key":{"shape":"__string"},

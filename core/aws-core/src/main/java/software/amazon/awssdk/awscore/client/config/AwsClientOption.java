@@ -82,7 +82,12 @@ public final class AwsClientOption<T> extends ClientOption<T> {
     public static final AwsClientOption<String> ENDPOINT_PREFIX = new AwsClientOption<>(String.class);
 
     /**
-     * Option to specify the {@link DefaultsMode}
+     * Configuration of the DEFAULTS_MODE. Unlike {@link #DEFAULTS_MODE}, this may be {@link DefaultsMode#AUTO}.
+     */
+    public static final AwsClientOption<DefaultsMode> CONFIGURED_DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
+
+    /**
+     * Option used by the rest of the SDK to read the {@link DefaultsMode}. This will never be {@link DefaultsMode#AUTO}.
      */
     public static final AwsClientOption<DefaultsMode> DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
 

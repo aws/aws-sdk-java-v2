@@ -32,26 +32,31 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.signing.DefaultS3Presigner;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.AbortMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
+import software.amazon.awssdk.services.s3.s3express.S3ExpressSessionCredentials;
 
 /**
  * Enables signing an S3 {@link SdkRequest} so that it can be executed without requiring any additional authentication on the
@@ -69,7 +74,8 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
  * Pre-signed requests are only valid for a finite period of time, referred to as the signature duration. This signature
  * duration is configured when the request is generated, and cannot be longer than 7 days. Attempting to generate a signature
  * longer than 7 days in the future will fail at generation time. Attempting to use a pre-signed request after the signature
- * duration has passed will result in an access denied response from the service.
+ * duration has passed will result in an access denied response from the service. For S3Express requests, the signature
+ * duration cannot be longer than 5 minutes. This is due to S3Express credentials having a short lifespan of only 5 minutes.
  * <p/>
  *
  * <h3>Example Usage</h3>
@@ -116,7 +122,8 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
  *
  * Some pre-signed requests can be executed by a web browser. These "browser compatible" pre-signed requests
  * do not require the customer to send anything other than a "host" header when performing an HTTP GET against
- * the pre-signed URL.
+ * the pre-signed URL. For S3Express requests, an additional "x-amz-s3session-token" header will be
+ * included.
  * <p/>
  *
  * Whether a pre-signed request is "browser compatible" can be determined by checking the
@@ -217,6 +224,38 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
  *             IoUtils.copy(content, System.out);
  *         }
  *     }
+ * </pre>
+ *
+ * <h2>S3Express</h2>
+ * <p>
+ * When pre-signing S3Express requests, no special configuration is required if you want to presign using
+ * regular IAM / Sigv4 credentials, which are more long-lived than S3 express session credentials. In order to presign
+ * using S3 express session credentials, you must provide an S3Client that can make the extra call to S3 in order to fetch
+ * them. For more information, see {@link S3Presigner.Builder#s3Client(S3Client)} and
+ * {@link S3Presigner.Builder#disableS3ExpressSessionAuth(Boolean)}. The latter option can be used to explicitly disable
+ * session auth.
+ * <p>
+ *
+ * <h3>Example Usage</h3>
+ * <p>
+ *
+ * <pre>
+ * {@code
+ *
+ *    //Create a standard S3Presigner that will presign S3 express bucket requests with Sigv4 credentials
+ *    S3Presigner presigner = S3Presigner.builder()
+ *                                       .build();
+ *
+ *    //Create an S3Presigner that will presign S3 express bucket requests with session credentials
+ *    S3Presigner presigner = S3Presigner.builder()
+ *                                       .s3Client(s3Client)
+ *                                       .build();
+ *
+ *    //Create an S3Presigner that explicitly disallows presigning S3 express bucket requests with session credentials
+ *    S3Presigner presigner = S3Presigner.builder()
+ *                                       .disableS3ExpressSessionAuth(true)
+ *                                       .build();
+ * }
  * </pre>
  */
 @SdkPublicApi
@@ -340,6 +379,50 @@ public interface S3Presigner extends SdkPresigner {
         request.accept(builder);
         return presignPutObject(builder.build());
     }
+
+    /**
+     * Presign a {@link DeleteObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p>
+     * <b>Example Usage</b>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Create a DeleteObjectRequest to be pre-signed
+     *     DeleteObjectRequest deleteObjectRequest = ...;
+     *
+     *     // Create a PutObjectPresignRequest to specify the signature duration
+     *     DeleteObjectPresignRequest deleteObjectPresignRequest =
+     *         DeleteObjectPresignRequest.builder()
+     *                                   .signatureDuration(Duration.ofMinutes(10))
+     *                                   .deleteObjectRequest(deleteObjectRequest)
+     *                                   .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedDeleteObjectRequest presignedDeleteObjectRequest =
+     *         presigner.presignDeleteObject(deleteObjectPresignRequest);
+     * }
+     * </pre>
+     */
+    PresignedDeleteObjectRequest presignDeleteObject(DeleteObjectPresignRequest request);
+
+    /**
+     * Presign a {@link DeleteObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p>
+     * This is a shorter method of invoking {@link #presignDeleteObject(DeleteObjectPresignRequest)} without needing
+     * to call {@code DeleteObjectPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignDeleteObject(PresignedDeleteObjectRequest)
+     */
+    default PresignedDeleteObjectRequest presignDeleteObject(Consumer<DeleteObjectPresignRequest.Builder> request) {
+        DeleteObjectPresignRequest.Builder builder = DeleteObjectPresignRequest.builder();
+        request.accept(builder);
+        return presignDeleteObject(builder.build());
+    }
+
 
     /**
      * Presign a {@link CreateMultipartUploadRequest} so that it can be executed at a later time without requiring additional
@@ -535,11 +618,40 @@ public interface S3Presigner extends SdkPresigner {
          */
         Builder serviceConfiguration(S3Configuration serviceConfiguration);
 
+        /**
+         * Explicitly disable using S3 express session credentials when presigning a request with an S3 express bucket name.
+         * This value is by default false, which means that {@link S3ExpressSessionCredentials} will be used for presigning
+         * the request <b>if</b> an {@link #s3Client(S3Client)} is also configured on the presigner.
+         * <p>
+         * Note: If this option and {@link #s3Client(S3Client)} is not configured, S3 express presigning works,
+         * but session auth will be disabled
+         *
+         * @param disableS3ExpressSessionAuth - whether to disable S3 express session auth or not
+         * @return this Builder
+         */
+        Builder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth);
+
+        /**
+         * Supply an S3 client for presigning S3 express requests that require S3 express session credentials,
+         * {@link S3ExpressSessionCredentials}. These session credentials are short-lived. If the client isn't supplied, a
+         * presigned request targeting an S3 express bucket will use standard Sigv4 credentials for signing.
+         * This results in the same behavior as disabling S3 session auth using {@link #disableS3ExpressSessionAuth(Boolean)}.
+         * <p>
+         * Note: If this option and {@link #disableS3ExpressSessionAuth(Boolean)} is not configured, S3 express presigning works,
+         * but session auth will be disabled
+         *
+         * @param s3Client {@link S3Client}
+         * @return this Builder
+         */
+        Builder s3Client(S3Client s3Client);
+
         @Override
         Builder region(Region region);
 
         @Override
-        Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+        default Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        }
 
         @Override
         Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider);

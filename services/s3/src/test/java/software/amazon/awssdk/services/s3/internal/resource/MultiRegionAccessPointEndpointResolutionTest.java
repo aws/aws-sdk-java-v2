@@ -21,7 +21,6 @@ import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResp
 
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -51,7 +50,6 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_correctlyRewritesEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder().build()).build();
@@ -60,7 +58,6 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_useArnRegionEnabled_correctlyRewritesEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().serviceConfiguration(S3Configuration.builder()
@@ -137,7 +134,6 @@ public class MultiRegionAccessPointEndpointResolutionTest {
     }
 
     @Test
-    @Disabled // TODO(sra-identity-and-auth): AwsV4aAuthScheme.signer throws UnsupportedOperationException
     public void multiRegionArn_differentRegion_useArnRegionTrue() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().build();

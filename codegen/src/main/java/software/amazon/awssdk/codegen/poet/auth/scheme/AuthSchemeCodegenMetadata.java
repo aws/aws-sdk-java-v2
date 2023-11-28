@@ -21,10 +21,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import software.amazon.awssdk.codegen.model.service.AuthType;
-import software.amazon.awssdk.http.auth.BearerAuthScheme;
-import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.spi.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.utils.Validate;
 
 public final class AuthSchemeCodegenMetadata {

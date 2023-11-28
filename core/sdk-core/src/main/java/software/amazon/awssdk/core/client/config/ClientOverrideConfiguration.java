@@ -15,19 +15,42 @@
 
 package software.amazon.awssdk.core.client.config;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.COMPRESSION_CONFIGURATION;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_COMPRESSION_CONFIGURATION;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SCHEDULED_EXECUTOR_SERVICE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
+import static software.amazon.awssdk.utils.ScheduledExecutorUtils.unmanagedScheduledExecutor;
+import static software.amazon.awssdk.utils.ScheduledExecutorUtils.unwrapUnmanagedScheduledExecutor;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
+import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -36,6 +59,7 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -53,57 +77,111 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 public final class ClientOverrideConfiguration
         implements ToCopyableBuilder<ClientOverrideConfiguration.Builder, ClientOverrideConfiguration> {
+    /**
+     * The set of options modified by this ClientOverrideConfiguration. This is used when the ClientOverrideConfiguration
+     * is created from a {@link SdkClientConfiguration} to filter out properties that this object doesn't use.
+     *
+     * This is important so that unrelated configuration values don't "pass through" from when this object is created
+     * from a SdkClientConfiguration and then converted back.
+     */
+    private static final Set<ClientOption<?>> CLIENT_OVERRIDE_OPTIONS;
+
+    /**
+     * The set of options that can be visible from this ClientOverrideConfiguration, but can't be modified directly. For
+     * example, when this ClientOverrideConfiguration is created from an SdkClientConfiguration, we want the
+     * {@link SdkClientOption#COMPRESSION_CONFIGURATION} to be visible to {@link #compressionConfiguration()} even though
+     * the setting that this object manipulates is {@link SdkClientOption#CONFIGURED_COMPRESSION_CONFIGURATION}.
+     *
+     * In practice, this means that when we create a ClientOverrideConfiguration from a SdkClientConfiguration, these
+     * values can be read by users of the ClientOverrideConfiguration, but these values won't be included in the result
+     * of {@link #asSdkClientConfiguration()}.
+     */
+    private static final Set<ClientOption<?>> RESOLVED_OPTIONS;
+
+    static {
+        Set<ClientOption<?>> options = new HashSet<>();
+        options.add(ADDITIONAL_HTTP_HEADERS);
+        options.add(EXECUTION_INTERCEPTORS);
+        options.add(METRIC_PUBLISHERS);
+        options.add(EXECUTION_ATTRIBUTES);
+        options.add(CONFIGURED_COMPRESSION_CONFIGURATION);
+        options.add(CONFIGURED_SCHEDULED_EXECUTOR_SERVICE);
+        options.add(RETRY_POLICY);
+        options.add(API_CALL_TIMEOUT);
+        options.add(API_CALL_ATTEMPT_TIMEOUT);
+        options.add(PROFILE_FILE_SUPPLIER);
+        options.add(PROFILE_NAME);
+        CLIENT_OVERRIDE_OPTIONS = Collections.unmodifiableSet(options);
+
+        Set<ClientOption<?>> resolvedOptions = new HashSet<>();
+        resolvedOptions.add(COMPRESSION_CONFIGURATION);
+        resolvedOptions.add(SCHEDULED_EXECUTOR_SERVICE);
+        RESOLVED_OPTIONS = Collections.unmodifiableSet(resolvedOptions);
+    }
+
+    private final SdkClientConfiguration config;
+    private final SdkClientConfiguration resolvedConfig;
+
     private final Map<String, List<String>> headers;
-    private final RetryPolicy retryPolicy;
     private final List<ExecutionInterceptor> executionInterceptors;
-    private final AttributeMap advancedOptions;
-    private final Duration apiCallAttemptTimeout;
-    private final Duration apiCallTimeout;
-    private final ProfileFile defaultProfileFile;
-    private final String defaultProfileName;
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
-    private final ScheduledExecutorService scheduledExecutorService;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
      */
-    private ClientOverrideConfiguration(Builder builder) {
-        this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
-        this.retryPolicy = builder.retryPolicy();
-        this.executionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.executionInterceptors()));
-        this.advancedOptions = builder.advancedOptions();
-        this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
-        this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
-        this.defaultProfileFile = builder.defaultProfileFile();
-        this.defaultProfileName = builder.defaultProfileName();
-        this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
-        this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
-        this.scheduledExecutorService = builder.scheduledExecutorService();
+    @SdkInternalApi
+    ClientOverrideConfiguration(SdkClientConfiguration config, SdkClientConfiguration resolvedConfig) {
+        this.config = config;
+        this.resolvedConfig = resolvedConfig;
+
+        // Store separately any mutable types, so that modifications to the underlying option (e.g. from the builder) would not
+        // be visible to users of this configuration
+        Map<String, List<String>> headers = config.option(ADDITIONAL_HTTP_HEADERS);
+        this.headers = headers == null
+                       ? emptyMap()
+                       : CollectionUtils.deepUnmodifiableMap(headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+
+        List<ExecutionInterceptor> interceptors = config.option(EXECUTION_INTERCEPTORS);
+        this.executionInterceptors = interceptors == null
+                                     ? emptyList()
+                                     : Collections.unmodifiableList(new ArrayList<>(interceptors));
+
+
+        List<MetricPublisher> metricPublishers = config.option(METRIC_PUBLISHERS);
+        this.metricPublishers = metricPublishers == null
+                                ? emptyList()
+                                : Collections.unmodifiableList(new ArrayList<>(metricPublishers));
+
+        ExecutionAttributes executionAttributes = config.option(EXECUTION_ATTRIBUTES);
+        this.executionAttributes = executionAttributes == null
+                                   ? new ExecutionAttributes()
+                                   : ExecutionAttributes.unmodifiableExecutionAttributes(executionAttributes);
+
+        Validate.isPositiveOrNull(apiCallTimeout().orElse(null), "apiCallTimeout");
+        Validate.isPositiveOrNull(apiCallAttemptTimeout().orElse(null), "apiCallAttemptTimeout");
     }
 
     @Override
-    @ToBuilderIgnoreField("advancedOptions")
+    @ToBuilderIgnoreField({"config", "resolvedConfig"})
     public Builder toBuilder() {
-        return new DefaultClientOverrideConfigurationBuilder()
-            .advancedOptions(advancedOptions.toBuilder())
+        return new DefaultBuilder(this.config.toBuilder(), this.resolvedConfig.toBuilder())
             .headers(headers)
-            .retryPolicy(retryPolicy)
-            .apiCallTimeout(apiCallTimeout)
-            .apiCallAttemptTimeout(apiCallAttemptTimeout)
             .executionInterceptors(executionInterceptors)
-            .defaultProfileFile(defaultProfileFile)
-            .defaultProfileName(defaultProfileName)
             .executionAttributes(executionAttributes)
-            .metricPublishers(metricPublishers)
-            .scheduledExecutorService(scheduledExecutorService);
+            .metricPublishers(metricPublishers);
     }
 
     /**
      * Create a {@link Builder}, used to create a {@link ClientOverrideConfiguration}.
      */
     public static Builder builder() {
-        return new DefaultClientOverrideConfigurationBuilder();
+        return new DefaultBuilder();
+    }
+
+    @SdkInternalApi
+    SdkClientConfiguration asSdkClientConfiguration() {
+        return config;
     }
 
     /**
@@ -124,7 +202,7 @@ public final class ClientOverrideConfiguration
      * @see Builder#retryPolicy(RetryPolicy)
      */
     public Optional<RetryPolicy> retryPolicy() {
-        return Optional.ofNullable(retryPolicy);
+        return Optional.ofNullable(config.option(RETRY_POLICY));
     }
 
     /**
@@ -133,7 +211,7 @@ public final class ClientOverrideConfiguration
      * @see Builder#putAdvancedOption(SdkAdvancedClientOption, Object)
      */
     public <T> Optional<T> advancedOption(SdkAdvancedClientOption<T> option) {
-        return Optional.ofNullable(advancedOptions.get(option));
+        return Optional.ofNullable(config.option(option));
     }
 
     /**
@@ -153,6 +231,13 @@ public final class ClientOverrideConfiguration
      * user to manually close the executor once all clients utilizing it have been closed.</b>
      */
     public Optional<ScheduledExecutorService> scheduledExecutorService() {
+        // If the client override configuration is accessed from a plugin or a client, we want the actual executor service we're
+        // using to be available. For that reason, we should check the SCHEDULED_EXECUTOR_SERVICE.
+        ScheduledExecutorService scheduledExecutorService = resolvedConfig.option(SCHEDULED_EXECUTOR_SERVICE);
+        if (scheduledExecutorService == null) {
+            // Unwrap the executor to ensure that read-after-write returns the same values.
+            scheduledExecutorService = unwrapUnmanagedScheduledExecutor(config.option(CONFIGURED_SCHEDULED_EXECUTOR_SERVICE));
+        }
         return Optional.ofNullable(scheduledExecutorService);
     }
 
@@ -172,7 +257,7 @@ public final class ClientOverrideConfiguration
      * @see Builder#apiCallTimeout(Duration)
      */
     public Optional<Duration> apiCallTimeout() {
-        return Optional.ofNullable(apiCallTimeout);
+        return Optional.ofNullable(config.option(API_CALL_TIMEOUT));
     }
 
     /**
@@ -191,7 +276,16 @@ public final class ClientOverrideConfiguration
      * @see Builder#apiCallAttemptTimeout(Duration)
      */
     public Optional<Duration> apiCallAttemptTimeout() {
-        return Optional.ofNullable(apiCallAttemptTimeout);
+        return Optional.ofNullable(config.option(API_CALL_ATTEMPT_TIMEOUT));
+    }
+
+    /**
+     * The profile file supplier that should be used by default for all profile-based configuration in the SDK client.
+     *
+     * @see Builder#defaultProfileFileSupplier(Supplier)
+     */
+    public Optional<Supplier<ProfileFile>> defaultProfileFileSupplier() {
+        return Optional.ofNullable(config.option(PROFILE_FILE_SUPPLIER));
     }
 
     /**
@@ -200,7 +294,7 @@ public final class ClientOverrideConfiguration
      * @see Builder#defaultProfileFile(ProfileFile)
      */
     public Optional<ProfileFile> defaultProfileFile() {
-        return Optional.ofNullable(defaultProfileFile);
+        return Optional.ofNullable(config.option(PROFILE_FILE_SUPPLIER)).map(Supplier::get);
     }
 
     /**
@@ -209,7 +303,7 @@ public final class ClientOverrideConfiguration
      * @see Builder#defaultProfileName(String)
      */
     public Optional<String> defaultProfileName() {
-        return Optional.ofNullable(defaultProfileName);
+        return Optional.ofNullable(config.option(PROFILE_NAME));
     }
 
     /**
@@ -230,19 +324,37 @@ public final class ClientOverrideConfiguration
         return executionAttributes;
     }
 
+    /**
+     * The compression configuration object, which includes options to enable/disable compression and set the minimum
+     * compression threshold.
+     *
+     * @see Builder#compressionConfiguration(CompressionConfiguration)
+     */
+    public Optional<CompressionConfiguration> compressionConfiguration() {
+
+        // If the client override configuration is accessed from a plugin or a client, we want the compression configuration
+        // we're using to be available. For that reason, we should check the COMPRESSION_CONFIGURATION.
+        CompressionConfiguration compressionConfig = resolvedConfig.option(COMPRESSION_CONFIGURATION);
+        if (compressionConfig == null) {
+            compressionConfig = config.option(CONFIGURED_COMPRESSION_CONFIGURATION);
+        }
+        return Optional.ofNullable(compressionConfig);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ClientOverrideConfiguration")
-                .add("headers", headers)
-                .add("retryPolicy", retryPolicy)
-                .add("apiCallTimeout", apiCallTimeout)
-                .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
-                .add("executionInterceptors", executionInterceptors)
-                .add("advancedOptions", advancedOptions)
-                .add("profileFile", defaultProfileFile)
-                .add("profileName", defaultProfileName)
-                .add("scheduledExecutorService", scheduledExecutorService)
-                .build();
+                       .add("headers", headers())
+                       .add("retryPolicy", retryPolicy().orElse(null))
+                       .add("apiCallTimeout", apiCallTimeout().orElse(null))
+                       .add("apiCallAttemptTimeout", apiCallAttemptTimeout().orElse(null))
+                       .add("executionInterceptors", executionInterceptors())
+                       .add("profileFileSupplier", defaultProfileFileSupplier().orElse(null))
+                       .add("profileFile", defaultProfileFile().orElse(null))
+                       .add("profileName", defaultProfileName().orElse(null))
+                       .add("scheduledExecutorService", scheduledExecutorService().orElse(null))
+                       .add("compressionConfiguration", compressionConfiguration().orElse(null))
+                       .build();
     }
 
     /**
@@ -362,6 +474,11 @@ public final class ClientOverrideConfiguration
          * <b>The SDK will not automatically close the executor when the client is closed. It is the responsibility of the
          * user to manually close the executor once all clients utilizing it have been closed.</b>
          *
+         * <p>
+         * When modifying this option from an {@link SdkPlugin}, it is strongly recommended to decorate the
+         * {@link #scheduledExecutorService()}. If you will be replacing it entirely, you MUST shut it down to prevent the
+         * resources being leaked.
+         *
          * @see ClientOverrideConfiguration#scheduledExecutorService()
          */
         Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService);
@@ -441,6 +558,23 @@ public final class ClientOverrideConfiguration
         Duration apiCallAttemptTimeout();
 
         /**
+         * Configure a {@link ProfileFileSupplier} that should be used by default for all profile-based configuration in the SDK
+         * client.
+         *
+         * <p>This is equivalent to setting {@link #defaultProfileFile(ProfileFile)}, except the supplier is read every time
+         * the configuration is requested. It's recommended to use {@link ProfileFileSupplier} that provides configurable
+         * caching for the reading of the profile file.
+         *
+         * <p>If this is not set, the {@link ProfileFile#defaultProfileFile()} is used.
+         *
+         * @see #defaultProfileFile(ProfileFile)
+         * @see #defaultProfileName(String)
+         */
+        Builder defaultProfileFileSupplier(Supplier<ProfileFile> defaultProfileFile);
+
+        Supplier<ProfileFile> defaultProfileFileSupplier();
+
+        /**
          * Configure the profile file that should be used by default for all profile-based configuration in the SDK client.
          *
          * <p>This is equivalent to setting the {@link ProfileFileSystemSetting#AWS_CONFIG_FILE} and
@@ -455,6 +589,7 @@ public final class ClientOverrideConfiguration
          *
          * <p>If this is not set, the {@link ProfileFile#defaultProfileFile()} is used.
          *
+         * @see #defaultProfileFileSupplier(Supplier)
          * @see #defaultProfileName(String)
          */
         Builder defaultProfileFile(ProfileFile defaultProfileFile);
@@ -513,28 +648,54 @@ public final class ClientOverrideConfiguration
         <T> Builder putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
         ExecutionAttributes executionAttributes();
+
+        /**
+         * Sets the {@link CompressionConfiguration} for this client.
+         */
+        Builder compressionConfiguration(CompressionConfiguration compressionConfiguration);
+
+        /**
+         * Sets the {@link CompressionConfiguration} for this client.
+         */
+        default Builder compressionConfiguration(Consumer<CompressionConfiguration.Builder> compressionConfiguration) {
+            return compressionConfiguration(CompressionConfiguration.builder()
+                                                                    .applyMutation(compressionConfiguration)
+                                                                    .build());
+        }
+
+        CompressionConfiguration compressionConfiguration();
     }
 
     /**
      * An SDK-internal implementation of {@link ClientOverrideConfiguration.Builder}.
      */
-    private static final class DefaultClientOverrideConfigurationBuilder implements Builder {
-        private Map<String, List<String>> headers = new HashMap<>();
-        private RetryPolicy retryPolicy;
-        private List<ExecutionInterceptor> executionInterceptors = new ArrayList<>();
-        private AttributeMap.Builder advancedOptions = AttributeMap.builder();
-        private Duration apiCallTimeout;
-        private Duration apiCallAttemptTimeout;
-        private ProfileFile defaultProfileFile;
-        private String defaultProfileName;
-        private List<MetricPublisher> metricPublishers = new ArrayList<>();
-        private ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder();
-        private ScheduledExecutorService scheduledExecutorService;
+    @SdkInternalApi
+    static final class DefaultBuilder implements Builder {
+        private final SdkClientConfiguration.Builder config;
+        private final SdkClientConfiguration.Builder resolvedConfig;
+
+        @SdkInternalApi
+        DefaultBuilder(SdkClientConfiguration.Builder config) {
+            this();
+            RESOLVED_OPTIONS.forEach(o -> copyValue(o, config, this.resolvedConfig));
+            CLIENT_OVERRIDE_OPTIONS.forEach(o -> copyValue(o, config, this.config));
+            SdkAdvancedClientOption.options().forEach(o -> copyValue(o, config, this.config));
+        }
+
+        private DefaultBuilder() {
+            this(SdkClientConfiguration.builder(), SdkClientConfiguration.builder());
+        }
+
+        private DefaultBuilder(SdkClientConfiguration.Builder config,
+                               SdkClientConfiguration.Builder resolvedConfig) {
+            this.config = config;
+            this.resolvedConfig = resolvedConfig;
+        }
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
             Validate.paramNotNull(headers, "headers");
-            this.headers = CollectionUtils.deepCopyMap(headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+            this.config.option(ADDITIONAL_HTTP_HEADERS, CollectionUtils.deepCopyMap(headers, this::newHeaderMap));
             return this;
         }
 
@@ -544,20 +705,21 @@ public final class ClientOverrideConfiguration
 
         @Override
         public Map<String, List<String>> headers() {
-            return CollectionUtils.unmodifiableMapOfLists(headers);
+            return CollectionUtils.unmodifiableMapOfLists(config.option(ADDITIONAL_HTTP_HEADERS));
         }
 
         @Override
         public Builder putHeader(String header, List<String> values) {
             Validate.paramNotNull(header, "header");
             Validate.paramNotNull(values, "values");
-            headers.put(header, new ArrayList<>(values));
+            config.computeOptionIfAbsent(ADDITIONAL_HTTP_HEADERS, this::newHeaderMap)
+                  .put(header, new ArrayList<>(values));
             return this;
         }
 
         @Override
         public Builder retryPolicy(RetryPolicy retryPolicy) {
-            this.retryPolicy = retryPolicy;
+            config.option(RETRY_POLICY, retryPolicy);
             return this;
         }
 
@@ -567,19 +729,19 @@ public final class ClientOverrideConfiguration
 
         @Override
         public RetryPolicy retryPolicy() {
-            return retryPolicy;
+            return config.option(RETRY_POLICY);
         }
 
         @Override
         public Builder executionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
             Validate.paramNotNull(executionInterceptors, "executionInterceptors");
-            this.executionInterceptors = new ArrayList<>(executionInterceptors);
+            config.option(EXECUTION_INTERCEPTORS, new ArrayList<>(executionInterceptors));
             return this;
         }
 
         @Override
         public Builder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
-            this.executionInterceptors.add(executionInterceptor);
+            config.computeOptionIfAbsent(EXECUTION_INTERCEPTORS, ArrayList::new).add(executionInterceptor);
             return this;
         }
 
@@ -589,36 +751,42 @@ public final class ClientOverrideConfiguration
 
         @Override
         public List<ExecutionInterceptor> executionInterceptors() {
-            return Collections.unmodifiableList(executionInterceptors);
+            List<ExecutionInterceptor> interceptors = config.option(EXECUTION_INTERCEPTORS);
+            return Collections.unmodifiableList(interceptors == null ? emptyList() : interceptors);
         }
 
         @Override
-        public ScheduledExecutorService scheduledExecutorService()
-        {
-            return scheduledExecutorService;
+        public ScheduledExecutorService scheduledExecutorService() {
+            // If the client override configuration is accessed from a plugin or a client, we want the actual executor service
+            // we're using to be available. For that reason, we should check the SCHEDULED_EXECUTOR_SERVICE.
+            ScheduledExecutorService resolvedExecutor = resolvedConfig.option(SCHEDULED_EXECUTOR_SERVICE);
+            if (resolvedExecutor != null) {
+                return resolvedExecutor;
+            }
+
+            // Unwrap the unmanaged executor to preserve read-after-write consistency.
+            return unwrapUnmanagedScheduledExecutor(config.option(CONFIGURED_SCHEDULED_EXECUTOR_SERVICE));
         }
 
         @Override
         public Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService) {
-            this.scheduledExecutorService = scheduledExecutorService;
+            // For read-after-write consistency, just remove the SCHEDULED_EXECUTOR_SERVICE when this is set.
+            resolvedConfig.option(SCHEDULED_EXECUTOR_SERVICE, null);
+            config.option(CONFIGURED_SCHEDULED_EXECUTOR_SERVICE,
+                          unmanagedScheduledExecutor(scheduledExecutorService));
             return this;
         }
 
         @Override
         public <T> Builder putAdvancedOption(SdkAdvancedClientOption<T> option, T value) {
-            this.advancedOptions.put(option, value);
+            config.option(option, value);
             return this;
         }
 
         @Override
         public Builder advancedOptions(Map<SdkAdvancedClientOption<?>, ?> advancedOptions) {
-            this.advancedOptions = AttributeMap.builder();
-            this.advancedOptions.putAll(advancedOptions);
-            return this;
-        }
-
-        private Builder advancedOptions(AttributeMap.Builder attributeMap) {
-            this.advancedOptions = attributeMap;
+            SdkAdvancedClientOption.options().forEach(o -> this.config.option(o, null));
+            this.config.putAll(advancedOptions);
             return this;
         }
 
@@ -628,12 +796,14 @@ public final class ClientOverrideConfiguration
 
         @Override
         public AttributeMap advancedOptions() {
-            return advancedOptions.build();
+            AttributeMap.Builder resultBuilder = AttributeMap.builder();
+            SdkAdvancedClientOption.options().forEach(o -> setValue(o, resultBuilder));
+            return resultBuilder.build();
         }
 
         @Override
         public Builder apiCallTimeout(Duration apiCallTimeout) {
-            this.apiCallTimeout = apiCallTimeout;
+            config.option(API_CALL_TIMEOUT, apiCallTimeout);
             return this;
         }
 
@@ -643,12 +813,12 @@ public final class ClientOverrideConfiguration
 
         @Override
         public Duration apiCallTimeout() {
-            return apiCallTimeout;
+            return config.option(API_CALL_TIMEOUT);
         }
 
         @Override
         public Builder apiCallAttemptTimeout(Duration apiCallAttemptTimeout) {
-            this.apiCallAttemptTimeout = apiCallAttemptTimeout;
+            config.option(API_CALL_ATTEMPT_TIMEOUT, apiCallAttemptTimeout);
             return this;
         }
 
@@ -658,35 +828,47 @@ public final class ClientOverrideConfiguration
 
         @Override
         public Duration apiCallAttemptTimeout() {
-            return apiCallAttemptTimeout;
+            return config.option(API_CALL_ATTEMPT_TIMEOUT);
+        }
+
+        @Override
+        public Builder defaultProfileFileSupplier(Supplier<ProfileFile> defaultProfileFileSupplier) {
+            config.option(PROFILE_FILE_SUPPLIER, defaultProfileFileSupplier);
+            return this;
+        }
+
+        @Override
+        public Supplier<ProfileFile> defaultProfileFileSupplier() {
+            return config.option(PROFILE_FILE_SUPPLIER);
         }
 
         @Override
         public ProfileFile defaultProfileFile() {
-            return this.defaultProfileFile;
+            Supplier<ProfileFile> supplier = defaultProfileFileSupplier();
+            return supplier == null ? null : supplier.get();
         }
 
         @Override
         public Builder defaultProfileFile(ProfileFile defaultProfileFile) {
-            this.defaultProfileFile = defaultProfileFile;
+            defaultProfileFileSupplier(ProfileFileSupplier.fixedProfileFile(defaultProfileFile));
             return this;
         }
 
         @Override
         public String defaultProfileName() {
-            return this.defaultProfileName;
+            return config.option(PROFILE_NAME);
         }
 
         @Override
         public Builder defaultProfileName(String defaultProfileName) {
-            this.defaultProfileName = defaultProfileName;
+            config.option(PROFILE_NAME, defaultProfileName);
             return this;
         }
 
         @Override
         public Builder metricPublishers(List<MetricPublisher> metricPublishers) {
             Validate.paramNotNull(metricPublishers, "metricPublishers");
-            this.metricPublishers = new ArrayList<>(metricPublishers);
+            config.option(METRIC_PUBLISHERS, new ArrayList<>(metricPublishers));
             return this;
         }
 
@@ -697,36 +879,85 @@ public final class ClientOverrideConfiguration
         @Override
         public Builder addMetricPublisher(MetricPublisher metricPublisher) {
             Validate.paramNotNull(metricPublisher, "metricPublisher");
-            this.metricPublishers.add(metricPublisher);
+            config.computeOptionIfAbsent(METRIC_PUBLISHERS, ArrayList::new).add(metricPublisher);
             return this;
         }
 
         @Override
         public List<MetricPublisher> metricPublishers() {
-            return Collections.unmodifiableList(metricPublishers);
+            List<MetricPublisher> metricPublishers = config.option(METRIC_PUBLISHERS);
+            return Collections.unmodifiableList(metricPublishers == null ? emptyList() : metricPublishers);
         }
 
         @Override
         public Builder executionAttributes(ExecutionAttributes executionAttributes) {
             Validate.paramNotNull(executionAttributes, "executionAttributes");
-            this.executionAttributes = executionAttributes.toBuilder();
+            config.option(EXECUTION_ATTRIBUTES, executionAttributes);
             return this;
         }
 
         @Override
         public <T> Builder putExecutionAttribute(ExecutionAttribute<T> executionAttribute, T value) {
-            this.executionAttributes.put(executionAttribute, value);
+            config.computeOptionIfAbsent(EXECUTION_ATTRIBUTES, ExecutionAttributes::new)
+                  .putAttribute(executionAttribute, value);
             return this;
         }
 
         @Override
         public ExecutionAttributes executionAttributes() {
-            return executionAttributes.build();
+            ExecutionAttributes attributes = config.option(EXECUTION_ATTRIBUTES);
+            return attributes == null ? new ExecutionAttributes() : attributes;
+        }
+
+        @Override
+        public Builder compressionConfiguration(CompressionConfiguration compressionConfiguration) {
+            // For read-after-write consistency, just remove the COMPRESSION_CONFIGURATION when this is set.
+            resolvedConfig.option(COMPRESSION_CONFIGURATION, null);
+            config.option(CONFIGURED_COMPRESSION_CONFIGURATION, compressionConfiguration);
+            return this;
+        }
+
+        public void setRequestCompressionEnabled(CompressionConfiguration compressionConfiguration) {
+            compressionConfiguration(compressionConfiguration);
+        }
+
+        @Override
+        public CompressionConfiguration compressionConfiguration() {
+            // If the client override configuration is accessed from a plugin or a client, we want the actual configuration
+            // we're using to be available. For that reason, we should check the COMPRESSION_CONFIGURATION.
+            CompressionConfiguration resolvedCompressionConfig = resolvedConfig.option(COMPRESSION_CONFIGURATION);
+            if (resolvedCompressionConfig != null) {
+                return resolvedCompressionConfig;
+            }
+            return config.option(CONFIGURED_COMPRESSION_CONFIGURATION);
         }
 
         @Override
         public ClientOverrideConfiguration build() {
-            return new ClientOverrideConfiguration(this);
+            return new ClientOverrideConfiguration(config.build(), resolvedConfig.build());
+        }
+
+        private Map<String, List<String>> newHeaderMap() {
+            return new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        }
+
+        private <T> void copyValue(ClientOption<T> option,
+                                   SdkClientConfiguration.Builder src,
+                                   SdkClientConfiguration.Builder dst) {
+            T value = src.option(option);
+            if (value != null) {
+                dst.option(option, value);
+            }
+        }
+
+
+        private <T> void setValue(ClientOption<T> option,
+                                  AttributeMap.Builder dst) {
+
+            T value = config.option(option);
+            if (value != null) {
+                dst.put(option, value);
+            }
         }
     }
 }

@@ -58,8 +58,8 @@ public class InputStreamSubscriberTest {
         publisher.subscribe(subscriber);
         publisher.complete();
         assertThat(subscriber.read()).isEqualTo(-1);
-        assertThat(subscriber.read(new byte[0])).isEqualTo(-1);
-        assertThat(subscriber.read(new byte[0], 0, 0)).isEqualTo(-1);
+        assertThat(subscriber.read(new byte[1])).isEqualTo(-1);
+        assertThat(subscriber.read(new byte[1], 0, 1)).isEqualTo(-1);
     }
 
     @Test
@@ -69,8 +69,8 @@ public class InputStreamSubscriberTest {
         publisher.subscribe(subscriber);
         publisher.error(exception);
         assertThatThrownBy(() -> subscriber.read()).isEqualTo(exception);
-        assertThatThrownBy(() -> subscriber.read(new byte[0])).isEqualTo(exception);
-        assertThatThrownBy(() -> subscriber.read(new byte[0], 0, 0)).isEqualTo(exception);
+        assertThatThrownBy(() -> subscriber.read(new byte[1])).isEqualTo(exception);
+        assertThatThrownBy(() -> subscriber.read(new byte[1], 0, 1)).isEqualTo(exception);
     }
 
     @Test
@@ -128,8 +128,15 @@ public class InputStreamSubscriberTest {
         publisher.subscribe(subscriber);
         subscriber.close();
         assertThatThrownBy(() -> subscriber.read()).isInstanceOf(CancellationException.class);
-        assertThatThrownBy(() -> subscriber.read(new byte[0])).isInstanceOf(CancellationException.class);
-        assertThatThrownBy(() -> subscriber.read(new byte[0], 0, 0)).isInstanceOf(CancellationException.class);
+        assertThatThrownBy(() -> subscriber.read(new byte[1])).isInstanceOf(CancellationException.class);
+        assertThatThrownBy(() -> subscriber.read(new byte[1], 0, 1)).isInstanceOf(CancellationException.class);
+    }
+
+    @Test
+    public void readByteArray_0Len_returns0() {
+        publisher.subscribe(subscriber);
+
+        assertThat(subscriber.read(new byte[1], 0, 0)).isEqualTo(0);
     }
 
     public static List<Arguments> stochastic_methodCallsSeemThreadSafe_parameters() {

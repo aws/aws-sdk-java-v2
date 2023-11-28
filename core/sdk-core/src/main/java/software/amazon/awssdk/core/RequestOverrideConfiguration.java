@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -51,8 +52,9 @@ public abstract class RequestOverrideConfiguration {
     private final Signer signer;
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
-
     private final EndpointProvider endpointProvider;
+    private final CompressionConfiguration compressionConfiguration;
+    private final List<SdkPlugin> plugins;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -64,6 +66,8 @@ public abstract class RequestOverrideConfiguration {
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
         this.endpointProvider = builder.endpointProvider();
+        this.compressionConfiguration = builder.compressionConfiguration();
+        this.plugins = Collections.unmodifiableList(new ArrayList<>(builder.plugins()));
     }
 
     /**
@@ -148,6 +152,14 @@ public abstract class RequestOverrideConfiguration {
     }
 
     /**
+     * Return the plugins that will be used to update the configuration used by the request.
+     */
+    @SdkPreviewApi
+    public List<SdkPlugin> plugins() {
+        return plugins;
+    }
+
+    /**
      * Returns the additional execution attributes to be added to this request.
      * This collection of attributes is added in addition to the attributes set on the client.
      * An attribute value added on the client within the collection of attributes is superseded by an
@@ -163,6 +175,15 @@ public abstract class RequestOverrideConfiguration {
      */
     public Optional<EndpointProvider> endpointProvider() {
         return Optional.ofNullable(endpointProvider);
+    }
+
+    /**
+     * Returns the compression configuration object, if present, which includes options to enable/disable compression and set
+     * the minimum compression threshold. This compression config object supersedes the compression config object set on the
+     * client.
+     */
+    public Optional<CompressionConfiguration> compressionConfiguration() {
+        return Optional.ofNullable(compressionConfiguration);
     }
 
     @Override
@@ -182,7 +203,9 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(signer, that.signer) &&
                Objects.equals(metricPublishers, that.metricPublishers) &&
                Objects.equals(executionAttributes, that.executionAttributes) &&
-               Objects.equals(endpointProvider, that.endpointProvider);
+               Objects.equals(endpointProvider, that.endpointProvider) &&
+               Objects.equals(compressionConfiguration, that.compressionConfiguration) &&
+               Objects.equals(plugins, that.plugins);
     }
 
     @Override
@@ -197,6 +220,8 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
         hashCode = 31 * hashCode + Objects.hashCode(executionAttributes);
         hashCode = 31 * hashCode + Objects.hashCode(endpointProvider);
+        hashCode = 31 * hashCode + Objects.hashCode(compressionConfiguration);
+        hashCode = 31 * hashCode + Objects.hashCode(plugins);
         return hashCode;
     }
 
@@ -439,6 +464,49 @@ public abstract class RequestOverrideConfiguration {
         EndpointProvider endpointProvider();
 
         /**
+         * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest,
+         * for this setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
+         *
+         * @param compressionConfiguration Request compression configuration object for this request.
+         */
+        B compressionConfiguration(CompressionConfiguration compressionConfiguration);
+
+        /**
+         * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest,
+         * for this setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
+         *
+         * @param compressionConfigurationConsumer A {@link Consumer} that accepts a {@link CompressionConfiguration.Builder}
+         *
+         * @return This object for method chaining
+         */
+        B compressionConfiguration(Consumer<CompressionConfiguration.Builder> compressionConfigurationConsumer);
+
+        CompressionConfiguration compressionConfiguration();
+
+        /**
+         * Sets the plugins used to update the configuration used by this request.
+         *
+         * @param plugins The list of plugins for this request.
+         * @return This object for method chaining.
+         */
+        @SdkPreviewApi
+        B plugins(List<SdkPlugin> plugins);
+
+        /**
+         * Add a plugin used to update the configuration used by this request.
+         *
+         * @param plugin The plugin to add.
+         */
+        @SdkPreviewApi
+        B addPlugin(SdkPlugin plugin);
+
+        /**
+         * Returns the list of registered plugins
+         */
+        @SdkPreviewApi
+        List<SdkPlugin> plugins();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -455,8 +523,9 @@ public abstract class RequestOverrideConfiguration {
         private Signer signer;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
-
         private EndpointProvider endpointProvider;
+        private CompressionConfiguration compressionConfiguration;
+        private List<SdkPlugin> plugins = new ArrayList<>();
 
 
         protected BuilderImpl() {
@@ -472,6 +541,8 @@ public abstract class RequestOverrideConfiguration {
             metricPublishers(sdkRequestOverrideConfig.metricPublishers());
             executionAttributes(sdkRequestOverrideConfig.executionAttributes());
             endpointProvider(sdkRequestOverrideConfig.endpointProvider);
+            compressionConfiguration(sdkRequestOverrideConfig.compressionConfiguration);
+            plugins(sdkRequestOverrideConfig.plugins);
         }
 
         @Override
@@ -626,7 +697,6 @@ public abstract class RequestOverrideConfiguration {
             executionAttributes(executionAttributes);
         }
 
-
         @Override
         public B endpointProvider(EndpointProvider endpointProvider) {
             this.endpointProvider = endpointProvider;
@@ -640,6 +710,42 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public EndpointProvider endpointProvider() {
             return endpointProvider;
+        }
+
+        @Override
+        public B compressionConfiguration(CompressionConfiguration compressionConfiguration) {
+            this.compressionConfiguration = compressionConfiguration;
+            return (B) this;
+        }
+
+        @Override
+        public B compressionConfiguration(Consumer<CompressionConfiguration.Builder> compressionConfigurationConsumer) {
+            CompressionConfiguration.Builder b = CompressionConfiguration.builder();
+            compressionConfigurationConsumer.accept(b);
+            compressionConfiguration(b.build());
+            return (B) this;
+        }
+
+        @Override
+        public CompressionConfiguration compressionConfiguration() {
+            return compressionConfiguration;
+        }
+
+        @Override
+        public B plugins(List<SdkPlugin> plugins) {
+            this.plugins = new ArrayList<>(plugins);
+            return (B) this;
+        }
+
+        @Override
+        public B addPlugin(SdkPlugin plugin) {
+            this.plugins.add(plugin);
+            return (B) this;
+        }
+
+        @Override
+        public List<SdkPlugin> plugins() {
+            return Collections.unmodifiableList(plugins);
         }
     }
 }

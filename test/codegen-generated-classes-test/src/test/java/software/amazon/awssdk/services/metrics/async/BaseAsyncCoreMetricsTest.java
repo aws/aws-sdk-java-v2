@@ -26,8 +26,10 @@ import static org.mockito.Mockito.verify;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -135,6 +137,73 @@ public abstract class BaseAsyncCoreMetricsTest {
         verifySuccessfulApiCallAttemptCollection(successfulAttempt);
     }
 
+    @Test
+    public void apiCall_apiAttempt_ttfbSeparateFromResponseBody() {
+        stubDelayedSuccessfulResponse();
+        callable().get().join();
+        addDelayIfNeeded();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(publisher()).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+        List<Duration> ttfbValues =
+            capturedCollection.children().stream()
+                              .flatMap(mc -> mc.metricValues(CoreMetric.TIME_TO_FIRST_BYTE).stream())
+                              .collect(Collectors.toList());
+
+        assertThat(ttfbValues).isNotEmpty();
+        // Reading the entire body will take 1s, ensure the actual time is less than that.
+        for (Duration ttfb : ttfbValues) {
+            assertThat(ttfb).isBetween(Duration.ofMillis(0), Duration.ofMillis(999));
+        }
+    }
+
+    @Test
+    public void apiCall_apiAttempt_ttlbIncludesReadingFullResponse() {
+        stubDelayedSuccessfulResponse();
+        callable().get().join();
+        addDelayIfNeeded();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(publisher()).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+        List<Duration> ttlbValues =
+            capturedCollection.children().stream()
+                              .flatMap(mc -> mc.metricValues(CoreMetric.TIME_TO_LAST_BYTE).stream())
+                              .collect(Collectors.toList());
+
+        assertThat(ttlbValues).isNotEmpty();
+        // Reading the entire body will take 1s, TTLB should be greater than that.
+        for (Duration ttlb : ttlbValues) {
+            assertThat(ttlb).isGreaterThan(Duration.ofMillis(1000));
+        }
+    }
+
+    // Throughput is defined as (bytes read) / (TTLB - TTFB). Ensure the value matches exactly this calculation.
+    @Test
+    public void apiCall_apiAttempt_throughputCalculatedCorrectly() {
+        stubSuccessfulResponse();
+        callable().get().join();
+        addDelayIfNeeded();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(publisher()).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+
+        List<MetricCollection> perAttemptMetrics = capturedCollection.children();
+        assertThat(perAttemptMetrics).isNotEmpty();
+        for (MetricCollection attemptMetrics : perAttemptMetrics) {
+            Duration ttfb = attemptMetrics.metricValues(CoreMetric.TIME_TO_FIRST_BYTE).get(0);
+            Duration ttlb = attemptMetrics.metricValues(CoreMetric.TIME_TO_LAST_BYTE).get(0);
+
+            double expectedThroughput = (2.0 / ttlb.minus(ttfb).toNanos()) * Duration.ofSeconds(1).toNanos();
+            assertThat(attemptMetrics.metricValues(CoreMetric.READ_THROUGHPUT).get(0)).isEqualTo(expectedThroughput);
+        }
+    }
+
     /**
      * Adds delay after calling CompletableFuture.join to wait for publisher to get metrics.
      */
@@ -197,9 +266,8 @@ public abstract class BaseAsyncCoreMetricsTest {
             .containsExactly(SERVICE_ID);
         assertThat(capturedCollection.metricValues(CoreMetric.OPERATION_NAME))
             .containsExactly(operationName());
-        // TODO(sra-identity-and-auth): Metric is currently not published. Re-enable after it is published.
-        // assertThat(capturedCollection.metricValues(CoreMetric.CREDENTIALS_FETCH_DURATION).get(0))
-        //     .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(capturedCollection.metricValues(CoreMetric.CREDENTIALS_FETCH_DURATION).get(0))
+            .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.MARSHALLING_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
@@ -215,6 +283,16 @@ public abstract class BaseAsyncCoreMetricsTest {
                                            .withFixedDelay((int) FIXED_DELAY.toMillis())
                                            .withHeader("x-amz-id-2", EXTENDED_REQUEST_ID)
                                            .withBody("{}")));
+    }
+
+    void stubDelayedSuccessfulResponse() {
+        stubFor(post(anyUrl())
+                    .willReturn(aResponse().withStatus(200)
+                                           .withHeader("x-amz-request-id", REQUEST_ID)
+                                           .withHeader("x-amz-id-2", EXTENDED_REQUEST_ID)
+                                           .withBody("{}")
+                                           // response will be sent in 2 chunks with delay of 500ms between each chunk
+                                           .withChunkedDribbleDelay(2, 1000)));
     }
 
     void stubErrorResponse() {

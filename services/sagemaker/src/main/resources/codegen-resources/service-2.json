@@ -137,7 +137,7 @@
         {"shape":"ResourceInUse"},
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an Autopilot job also referred to as Autopilot experiment or AutoML job.</p> <note> <p>We recommend using the new versions <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateAutoMLJobV2.html\">CreateAutoMLJobV2</a> and <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJobV2.html\">DescribeAutoMLJobV2</a>, which offer backward compatibility.</p> <p> <code>CreateAutoMLJobV2</code> can manage tabular problem types identical to those of its previous version <code>CreateAutoMLJob</code>, as well as non-tabular problem types such as image or text classification.</p> <p>Find guidelines about how to migrate a <code>CreateAutoMLJob</code> to <code>CreateAutoMLJobV2</code> in <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development-create-experiment-api.html#autopilot-create-experiment-api-migrate-v1-v2\">Migrate a CreateAutoMLJob to CreateAutoMLJobV2</a>.</p> </note> <p>You can find the best-performing model after you run an AutoML job by calling <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJobV2.html\">DescribeAutoMLJobV2</a> (recommended) or <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJob.html\">DescribeAutoMLJob</a>.</p>"
+      "documentation":"<p>Creates an Autopilot job also referred to as Autopilot experiment or AutoML job.</p> <note> <p>We recommend using the new versions <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateAutoMLJobV2.html\">CreateAutoMLJobV2</a> and <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJobV2.html\">DescribeAutoMLJobV2</a>, which offer backward compatibility.</p> <p> <code>CreateAutoMLJobV2</code> can manage tabular problem types identical to those of its previous version <code>CreateAutoMLJob</code>, as well as time-series forecasting, non-tabular problem types such as image or text classification, and text generation (LLMs fine-tuning).</p> <p>Find guidelines about how to migrate a <code>CreateAutoMLJob</code> to <code>CreateAutoMLJobV2</code> in <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development-create-experiment-api.html#autopilot-create-experiment-api-migrate-v1-v2\">Migrate a CreateAutoMLJob to CreateAutoMLJobV2</a>.</p> </note> <p>You can find the best-performing model after you run an AutoML job by calling <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJobV2.html\">DescribeAutoMLJobV2</a> (recommended) or <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJob.html\">DescribeAutoMLJob</a>.</p>"
     },
     "CreateAutoMLJobV2":{
       "name":"CreateAutoMLJobV2",
@@ -151,7 +151,7 @@
         {"shape":"ResourceInUse"},
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Creates an Autopilot job also referred to as Autopilot experiment or AutoML job V2.</p> <note> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateAutoMLJobV2.html\">CreateAutoMLJobV2</a> and <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJobV2.html\">DescribeAutoMLJobV2</a> are new versions of <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateAutoMLJob.html\">CreateAutoMLJob</a> and <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJob.html\">DescribeAutoMLJob</a> which offer backward compatibility.</p> <p> <code>CreateAutoMLJobV2</code> can manage tabular problem types identical to those of its previous version <code>CreateAutoMLJob</code>, as well as non-tabular problem types such as image or text classification.</p> <p>Find guidelines about how to migrate a <code>CreateAutoMLJob</code> to <code>CreateAutoMLJobV2</code> in <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development-create-experiment-api.html#autopilot-create-experiment-api-migrate-v1-v2\">Migrate a CreateAutoMLJob to CreateAutoMLJobV2</a>.</p> </note> <p>For the list of available problem types supported by <code>CreateAutoMLJobV2</code>, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLProblemTypeConfig.html\">AutoMLProblemTypeConfig</a>.</p> <p>You can find the best-performing model after you run an AutoML job V2 by calling <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJobV2.html\">DescribeAutoMLJobV2</a>.</p>"
+      "documentation":"<p>Creates an Autopilot job also referred to as Autopilot experiment or AutoML job V2.</p> <note> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateAutoMLJobV2.html\">CreateAutoMLJobV2</a> and <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJobV2.html\">DescribeAutoMLJobV2</a> are new versions of <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateAutoMLJob.html\">CreateAutoMLJob</a> and <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJob.html\">DescribeAutoMLJob</a> which offer backward compatibility.</p> <p> <code>CreateAutoMLJobV2</code> can manage tabular problem types identical to those of its previous version <code>CreateAutoMLJob</code>, as well as time-series forecasting, non-tabular problem types such as image or text classification, and text generation (LLMs fine-tuning).</p> <p>Find guidelines about how to migrate a <code>CreateAutoMLJob</code> to <code>CreateAutoMLJobV2</code> in <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development-create-experiment-api.html#autopilot-create-experiment-api-migrate-v1-v2\">Migrate a CreateAutoMLJob to CreateAutoMLJobV2</a>.</p> </note> <p>For the list of available problem types supported by <code>CreateAutoMLJobV2</code>, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLProblemTypeConfig.html\">AutoMLProblemTypeConfig</a>.</p> <p>You can find the best-performing model after you run an AutoML job V2 by calling <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeAutoMLJobV2.html\">DescribeAutoMLJobV2</a>.</p>"
     },
     "CreateCodeRepository":{
       "name":"CreateCodeRepository",
@@ -319,7 +319,7 @@
         {"shape":"ResourceInUse"},
         {"shape":"ResourceLimitExceeded"}
       ],
-      "documentation":"<p>Create a new <code>FeatureGroup</code>. A <code>FeatureGroup</code> is a group of <code>Features</code> defined in the <code>FeatureStore</code> to describe a <code>Record</code>. </p> <p>The <code>FeatureGroup</code> defines the schema and features contained in the FeatureGroup. A <code>FeatureGroup</code> definition is composed of a list of <code>Features</code>, a <code>RecordIdentifierFeatureName</code>, an <code>EventTimeFeatureName</code> and configurations for its <code>OnlineStore</code> and <code>OfflineStore</code>. Check <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html\">Amazon Web Services service quotas</a> to see the <code>FeatureGroup</code>s quota for your Amazon Web Services account.</p> <important> <p>You must include at least one of <code>OnlineStoreConfig</code> and <code>OfflineStoreConfig</code> to create a <code>FeatureGroup</code>.</p> </important>"
+      "documentation":"<p>Create a new <code>FeatureGroup</code>. A <code>FeatureGroup</code> is a group of <code>Features</code> defined in the <code>FeatureStore</code> to describe a <code>Record</code>. </p> <p>The <code>FeatureGroup</code> defines the schema and features contained in the <code>FeatureGroup</code>. A <code>FeatureGroup</code> definition is composed of a list of <code>Features</code>, a <code>RecordIdentifierFeatureName</code>, an <code>EventTimeFeatureName</code> and configurations for its <code>OnlineStore</code> and <code>OfflineStore</code>. Check <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html\">Amazon Web Services service quotas</a> to see the <code>FeatureGroup</code>s quota for your Amazon Web Services account.</p> <p>Note that it can take approximately 10-15 minutes to provision an <code>OnlineStore</code> <code>FeatureGroup</code> with the <code>InMemory</code> <code>StorageType</code>.</p> <important> <p>You must include at least one of <code>OnlineStoreConfig</code> and <code>OfflineStoreConfig</code> to create a <code>FeatureGroup</code>.</p> </important>"
     },
     "CreateFlowDefinition":{
       "name":"CreateFlowDefinition",
@@ -983,7 +983,7 @@
       "errors":[
         {"shape":"ResourceNotFound"}
       ],
-      "documentation":"<p>Delete the <code>FeatureGroup</code> and any data that was written to the <code>OnlineStore</code> of the <code>FeatureGroup</code>. Data cannot be accessed from the <code>OnlineStore</code> immediately after <code>DeleteFeatureGroup</code> is called. </p> <p>Data written into the <code>OfflineStore</code> will not be deleted. The Amazon Web Services Glue database and tables that are automatically created for your <code>OfflineStore</code> are not deleted. </p>"
+      "documentation":"<p>Delete the <code>FeatureGroup</code> and any data that was written to the <code>OnlineStore</code> of the <code>FeatureGroup</code>. Data cannot be accessed from the <code>OnlineStore</code> immediately after <code>DeleteFeatureGroup</code> is called. </p> <p>Data written into the <code>OfflineStore</code> will not be deleted. The Amazon Web Services Glue database and tables that are automatically created for your <code>OfflineStore</code> are not deleted. </p> <p>Note that it can take approximately 10-15 minutes to delete an <code>OnlineStore</code> <code>FeatureGroup</code> with the <code>InMemory</code> <code>StorageType</code>.</p>"
     },
     "DeleteFlowDefinition":{
       "name":"DeleteFlowDefinition",
@@ -3709,6 +3709,7 @@
       "max":256,
       "pattern":".*"
     },
+    "AcceptEula":{"type":"boolean"},
     "AccountId":{
       "type":"string",
       "pattern":"^\\d+$"
@@ -3895,6 +3896,32 @@
       "max":15,
       "min":1
     },
+    "AdditionalS3DataSource":{
+      "type":"structure",
+      "required":[
+        "S3DataType",
+        "S3Uri"
+      ],
+      "members":{
+        "S3DataType":{
+          "shape":"AdditionalS3DataSourceDataType",
+          "documentation":"<p>The data type of the additional data source that you specify for use in inference or training. </p>"
+        },
+        "S3Uri":{
+          "shape":"S3Uri",
+          "documentation":"<p>The uniform resource identifier (URI) used to identify an additional data source used in inference or training.</p>"
+        },
+        "CompressionType":{
+          "shape":"CompressionType",
+          "documentation":"<p>The type of compression used for an additional data source used in inference or training. Specify <code>None</code> if your additional data source is not compressed.</p>"
+        }
+      },
+      "documentation":"<p>A data source used for training or inference that is in addition to the input dataset or model data.</p>"
+    },
+    "AdditionalS3DataSourceDataType":{
+      "type":"string",
+      "enum":["S3Object"]
+    },
     "AgentVersion":{
       "type":"structure",
       "required":[
@@ -3960,7 +3987,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:algorithm/.*"
+      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:algorithm/[\\S]{1,2048}$"
     },
     "AlgorithmImage":{
       "type":"string",
@@ -4302,7 +4329,10 @@
         "ml.g5.48xlarge",
         "ml.geospatial.interactive",
         "ml.p4d.24xlarge",
-        "ml.p4de.24xlarge"
+        "ml.p4de.24xlarge",
+        "ml.trn1.2xlarge",
+        "ml.trn1.32xlarge",
+        "ml.trn1n.32xlarge"
       ]
     },
     "AppList":{
@@ -5014,7 +5044,7 @@
         },
         "ContentType":{
           "shape":"ContentType",
-          "documentation":"<p>The content type of the data from the input source. The following are the allowed content types for different problems:</p> <ul> <li> <p>For tabular problem types: <code>text/csv;header=present</code> or <code>x-application/vnd.amazon+parquet</code>. The default value is <code>text/csv;header=present</code>.</p> </li> <li> <p>For image classification: <code>image/png</code>, <code>image/jpeg</code>, or <code>image/*</code>. The default value is <code>image/*</code>.</p> </li> <li> <p>For text classification: <code>text/csv;header=present</code> or <code>x-application/vnd.amazon+parquet</code>. The default value is <code>text/csv;header=present</code>.</p> </li> <li> <p>For time-series forecasting: <code>text/csv;header=present</code> or <code>x-application/vnd.amazon+parquet</code>. The default value is <code>text/csv;header=present</code>.</p> </li> </ul>"
+          "documentation":"<p>The content type of the data from the input source. The following are the allowed content types for different problems:</p> <ul> <li> <p>For tabular problem types: <code>text/csv;header=present</code> or <code>x-application/vnd.amazon+parquet</code>. The default value is <code>text/csv;header=present</code>.</p> </li> <li> <p>For image classification: <code>image/png</code>, <code>image/jpeg</code>, or <code>image/*</code>. The default value is <code>image/*</code>.</p> </li> <li> <p>For text classification: <code>text/csv;header=present</code> or <code>x-application/vnd.amazon+parquet</code>. The default value is <code>text/csv;header=present</code>.</p> </li> <li> <p>For time-series forecasting: <code>text/csv;header=present</code> or <code>x-application/vnd.amazon+parquet</code>. The default value is <code>text/csv;header=present</code>.</p> </li> <li> <p>For text generation (LLMs fine-tuning): <code>text/csv;header=present</code> or <code>x-application/vnd.amazon+parquet</code>. The default value is <code>text/csv;header=present</code>.</p> </li> </ul>"
         },
         "CompressionType":{
           "shape":"CompressionType",
@@ -5032,7 +5062,7 @@
       "members":{
         "MaxCandidates":{
           "shape":"MaxCandidates",
-          "documentation":"<p>The maximum number of times a training job is allowed to run.</p> <p>For text and image classification, as well as time-series forecasting problem types, the supported value is 1. For tabular problem types, the maximum value is 750.</p>"
+          "documentation":"<p>The maximum number of times a training job is allowed to run.</p> <p>For text and image classification, time-series forecasting, as well as text generation (LLMs fine-tuning) problem types, the supported value is 1. For tabular problem types, the maximum value is 750.</p>"
         },
         "MaxRuntimePerTrainingJobInSeconds":{
           "shape":"MaxRuntimePerTrainingJobInSeconds",
@@ -5089,10 +5119,10 @@
       "members":{
         "MetricName":{
           "shape":"AutoMLMetricEnum",
-          "documentation":"<p>The name of the objective metric used to measure the predictive quality of a machine learning system. During training, the model's parameters are updated iteratively to optimize its performance based on the feedback provided by the objective metric when evaluating the model on the validation dataset.</p> <p>For the list of all available metrics supported by Autopilot, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-metrics-validation.html#autopilot-metrics\">Autopilot metrics</a>.</p> <p>If you do not specify a metric explicitly, the default behavior is to automatically use:</p> <ul> <li> <p>For tabular problem types:</p> <ul> <li> <p>Regression: <code>MSE</code>.</p> </li> <li> <p>Binary classification: <code>F1</code>.</p> </li> <li> <p>Multiclass classification: <code>Accuracy</code>.</p> </li> </ul> </li> <li> <p>For image or text classification problem types: <code>Accuracy</code> </p> </li> <li> <p>For time-series forecasting problem types: <code>AverageWeightedQuantileLoss</code> </p> </li> </ul>"
+          "documentation":"<p>The name of the objective metric used to measure the predictive quality of a machine learning system. During training, the model's parameters are updated iteratively to optimize its performance based on the feedback provided by the objective metric when evaluating the model on the validation dataset.</p> <p>The list of available metrics supported by Autopilot and the default metric applied when you do not specify a metric name explicitly depend on the problem type.</p> <ul> <li> <p>For tabular problem types:</p> <ul> <li> <p>List of available metrics: </p> <ul> <li> <p> Regression: <code>InferenceLatency</code>, <code>MAE</code>, <code>MSE</code>, <code>R2</code>, <code>RMSE</code> </p> </li> <li> <p> Binary classification: <code>Accuracy</code>, <code>AUC</code>, <code>BalancedAccuracy</code>, <code>F1</code>, <code>InferenceLatency</code>, <code>LogLoss</code>, <code>Precision</code>, <code>Recall</code> </p> </li> <li> <p> Multiclass classification: <code>Accuracy</code>, <code>BalancedAccuracy</code>, <code>F1macro</code>, <code>InferenceLatency</code>, <code>LogLoss</code>, <code>PrecisionMacro</code>, <code>RecallMacro</code> </p> </li> </ul> <p>For a description of each metric, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-metrics-validation.html#autopilot-metrics\">Autopilot metrics for classification and regression</a>.</p> </li> <li> <p>Default objective metrics:</p> <ul> <li> <p>Regression: <code>MSE</code>.</p> </li> <li> <p>Binary classification: <code>F1</code>.</p> </li> <li> <p>Multiclass classification: <code>Accuracy</code>.</p> </li> </ul> </li> </ul> </li> <li> <p>For image or text classification problem types:</p> <ul> <li> <p>List of available metrics: <code>Accuracy</code> </p> <p>For a description of each metric, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/text-classification-data-format-and-metric.html\">Autopilot metrics for text and image classification</a>.</p> </li> <li> <p>Default objective metrics: <code>Accuracy</code> </p> </li> </ul> </li> <li> <p>For time-series forecasting problem types:</p> <ul> <li> <p>List of available metrics: <code>RMSE</code>, <code>wQL</code>, <code>Average wQL</code>, <code>MASE</code>, <code>MAPE</code>, <code>WAPE</code> </p> <p>For a description of each metric, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/timeseries-objective-metric.html\">Autopilot metrics for time-series forecasting</a>.</p> </li> <li> <p>Default objective metrics: <code>AverageWeightedQuantileLoss</code> </p> </li> </ul> </li> <li> <p>For text generation problem types (LLMs fine-tuning): Fine-tuning language models in Autopilot does not require setting the <code>AutoMLJobObjective</code> field. Autopilot fine-tunes LLMs without requiring multiple candidates to be trained and evaluated. Instead, using your dataset, Autopilot directly fine-tunes your target model to enhance a default objective metric, the cross-entropy loss. After fine-tuning a language model, you can evaluate the quality of its generated text using different metrics. For a list of the available metrics, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-llms-finetuning-metrics.html\">Metrics for fine-tuning LLMs in Autopilot</a>.</p> </li> </ul>"
         }
       },
-      "documentation":"<p>Specifies a metric to minimize or maximize as the objective of a job.</p>"
+      "documentation":"<p>Specifies a metric to minimize or maximize as the objective of an AutoML job.</p>"
     },
     "AutoMLJobObjectiveType":{
       "type":"string",
@@ -5247,7 +5277,14 @@
         "MAPE",
         "MASE",
         "WAPE",
-        "AverageWeightedQuantileLoss"
+        "AverageWeightedQuantileLoss",
+        "Rouge1",
+        "Rouge2",
+        "RougeL",
+        "RougeLSum",
+        "Perplexity",
+        "ValidationLoss",
+        "TrainingLoss"
       ]
     },
     "AutoMLMode":{
@@ -5307,11 +5344,15 @@
         },
         "TabularJobConfig":{
           "shape":"TabularJobConfig",
-          "documentation":"<p>Settings used to configure an AutoML job V2 for a tabular problem type (regression, classification).</p>"
+          "documentation":"<p>Settings used to configure an AutoML job V2 for the tabular problem type (regression, classification).</p>"
         },
         "TimeSeriesForecastingJobConfig":{
           "shape":"TimeSeriesForecastingJobConfig",
-          "documentation":"<p>Settings used to configure an AutoML job V2 for a time-series forecasting problem type.</p> <note> <p>The <code>TimeSeriesForecastingJobConfig</code> problem type is only available in private beta. Contact Amazon Web Services Support or your account manager to learn more about access privileges.</p> </note>"
+          "documentation":"<p>Settings used to configure an AutoML job V2 for the time-series forecasting problem type.</p>"
+        },
+        "TextGenerationJobConfig":{
+          "shape":"TextGenerationJobConfig",
+          "documentation":"<p>Settings used to configure an AutoML job V2 for the text generation (LLMs fine-tuning) problem type.</p> <note> <p>The text generation models that support fine-tuning in Autopilot are currently accessible exclusively in regions supported by Canvas. Refer to the documentation of Canvas for the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/canvas.html\">full list of its supported Regions</a>.</p> </note>"
         }
       },
       "documentation":"<p>A collection of settings specific to the problem type used to configure an AutoML job V2. There must be one and only one config of the following type.</p>",
@@ -5323,7 +5364,8 @@
         "ImageClassification",
         "TextClassification",
         "Tabular",
-        "TimeSeriesForecasting"
+        "TimeSeriesForecasting",
+        "TextGeneration"
       ]
     },
     "AutoMLProblemTypeResolvedAttributes":{
@@ -5331,10 +5373,14 @@
       "members":{
         "TabularResolvedAttributes":{
           "shape":"TabularResolvedAttributes",
-          "documentation":"<p>Defines the resolved attributes for the <code>TABULAR</code> problem type.</p>"
+          "documentation":"<p>The resolved attributes for the tabular problem type.</p>"
+        },
+        "TextGenerationResolvedAttributes":{
+          "shape":"TextGenerationResolvedAttributes",
+          "documentation":"<p>The resolved attributes for the text generation problem type.</p>"
         }
       },
-      "documentation":"<p>The resolved attributes specific to the problem type of an AutoML job V2.</p>",
+      "documentation":"<p>Stores resolved attributes specific to the problem type of an AutoML job V2.</p>",
       "union":true
     },
     "AutoMLProcessingUnit":{
@@ -5474,6 +5520,12 @@
     "BacktestResultsLocation":{
       "type":"string",
       "min":1
+    },
+    "BaseModelName":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"
     },
     "BatchDataCaptureConfig":{
       "type":"structure",
@@ -5640,6 +5692,10 @@
         "EndTimeOffset":{
           "shape":"MonitoringTimeOffsetString",
           "documentation":"<p>If specified, monitoring jobs subtract this time from the end time. For information about using offsets for scheduling monitoring jobs, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality-schedule.html\">Schedule Model Quality Monitoring Jobs</a>.</p>"
+        },
+        "ExcludeFeaturesAttribute":{
+          "shape":"ExcludeFeaturesAttribute",
+          "documentation":"<p>The attributes of the input data to exclude from the analysis.</p>"
         }
       },
       "documentation":"<p>Input object for the batch transform job.</p>"
@@ -5851,7 +5907,7 @@
       "members":{
         "TimeSeriesForecastingSettings":{
           "shape":"TimeSeriesForecastingSettings",
-          "documentation":"<p>Time series forecast settings for the Canvas application.</p>"
+          "documentation":"<p>Time series forecast settings for the SageMaker Canvas application.</p>"
         },
         "ModelRegisterSettings":{
           "shape":"ModelRegisterSettings",
@@ -5860,6 +5916,18 @@
         "WorkspaceSettings":{
           "shape":"WorkspaceSettings",
           "documentation":"<p>The workspace settings for the SageMaker Canvas application.</p>"
+        },
+        "IdentityProviderOAuthSettings":{
+          "shape":"IdentityProviderOAuthSettings",
+          "documentation":"<p>The settings for connecting to an external data source with OAuth.</p>"
+        },
+        "KendraSettings":{
+          "shape":"KendraSettings",
+          "documentation":"<p>The settings for document querying.</p>"
+        },
+        "DirectDeploySettings":{
+          "shape":"DirectDeploySettings",
+          "documentation":"<p>The model deployment settings for the SageMaker Canvas application.</p>"
         }
       },
       "documentation":"<p>The SageMaker Canvas application settings.</p>"
@@ -5898,14 +5966,14 @@
       "members":{
         "CsvContentTypes":{
           "shape":"CsvContentTypes",
-          "documentation":"<p>The list of all content type headers that SageMaker will treat as CSV and capture accordingly.</p>"
+          "documentation":"<p>The list of all content type headers that Amazon SageMaker will treat as CSV and capture accordingly.</p>"
         },
         "JsonContentTypes":{
           "shape":"JsonContentTypes",
           "documentation":"<p>The list of all content type headers that SageMaker will treat as JSON and capture accordingly.</p>"
         }
       },
-      "documentation":"<p>Configuration specifying how to treat different headers. If no headers are specified SageMaker will by default base64 encode when capturing the data.</p>"
+      "documentation":"<p>Configuration specifying how to treat different headers. If no headers are specified Amazon SageMaker will by default base64 encode when capturing the data.</p>"
     },
     "CaptureMode":{
       "type":"string",
@@ -6503,7 +6571,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:code-repository/.*"
+      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:code-repository/[\\S]{1,2048}$"
     },
     "CodeRepositoryContains":{
       "type":"string",
@@ -6625,6 +6693,17 @@
       "min":1,
       "pattern":"[\\w-]+_[0-9a-zA-Z]+"
     },
+    "CollectionConfig":{
+      "type":"structure",
+      "members":{
+        "VectorConfig":{
+          "shape":"VectorConfig",
+          "documentation":"<p>Configuration for your vector collection type.</p> <ul> <li> <p> <code>Dimension</code>: The number of elements in your vector.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Configuration for your collection.</p>",
+      "union":true
+    },
     "CollectionConfiguration":{
       "type":"structure",
       "members":{
@@ -6657,6 +6736,14 @@
       "value":{"shape":"ConfigValue"},
       "max":20,
       "min":0
+    },
+    "CollectionType":{
+      "type":"string",
+      "enum":[
+        "List",
+        "Set",
+        "Vector"
+      ]
     },
     "CompilationJobArn":{
       "type":"string",
@@ -7034,6 +7121,12 @@
       },
       "documentation":"<p>A flag to indicating that automatic model tuning (AMT) has detected model convergence, defined as a lack of significant improvement (1% or less) against an objective metric.</p>"
     },
+    "CountryCode":{
+      "type":"string",
+      "max":2,
+      "min":2,
+      "pattern":"[A-Z]{2}"
+    },
     "CreateActionRequest":{
       "type":"structure",
       "required":[
@@ -7319,7 +7412,7 @@
         },
         "AutoMLJobInputDataConfig":{
           "shape":"AutoMLJobInputDataConfig",
-          "documentation":"<p>An array of channel objects describing the input data and their location. Each channel is a named input source. Similar to the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateAutoMLJob.html#sagemaker-CreateAutoMLJob-request-InputDataConfig\">InputDataConfig</a> attribute in the <code>CreateAutoMLJob</code> input parameters. The supported formats depend on the problem type:</p> <ul> <li> <p>For tabular problem types: <code>S3Prefix</code>, <code>ManifestFile</code>.</p> </li> <li> <p>For image classification: <code>S3Prefix</code>, <code>ManifestFile</code>, <code>AugmentedManifestFile</code>.</p> </li> <li> <p>For text classification: <code>S3Prefix</code>.</p> </li> <li> <p>For time-series forecasting: <code>S3Prefix</code>.</p> </li> </ul>"
+          "documentation":"<p>An array of channel objects describing the input data and their location. Each channel is a named input source. Similar to the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateAutoMLJob.html#sagemaker-CreateAutoMLJob-request-InputDataConfig\">InputDataConfig</a> attribute in the <code>CreateAutoMLJob</code> input parameters. The supported formats depend on the problem type:</p> <ul> <li> <p>For tabular problem types: <code>S3Prefix</code>, <code>ManifestFile</code>.</p> </li> <li> <p>For image classification: <code>S3Prefix</code>, <code>ManifestFile</code>, <code>AugmentedManifestFile</code>.</p> </li> <li> <p>For text classification: <code>S3Prefix</code>.</p> </li> <li> <p>For time-series forecasting: <code>S3Prefix</code>.</p> </li> <li> <p>For text generation (LLMs fine-tuning): <code>S3Prefix</code>.</p> </li> </ul>"
         },
         "OutputDataConfig":{
           "shape":"AutoMLOutputDataConfig",
@@ -7343,7 +7436,7 @@
         },
         "AutoMLJobObjective":{
           "shape":"AutoMLJobObjective",
-          "documentation":"<p>Specifies a metric to minimize or maximize as the objective of a job. If not specified, the default objective metric depends on the problem type. For the list of default values per problem type, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLJobObjective.html\">AutoMLJobObjective</a>.</p> <note> <p>For tabular problem types, you must either provide both the <code>AutoMLJobObjective</code> and indicate the type of supervised learning problem in <code>AutoMLProblemTypeConfig</code> (<code>TabularJobConfig.ProblemType</code>), or none at all.</p> </note>"
+          "documentation":"<p>Specifies a metric to minimize or maximize as the objective of a job. If not specified, the default objective metric depends on the problem type. For the list of default values per problem type, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLJobObjective.html\">AutoMLJobObjective</a>.</p> <note> <ul> <li> <p>For tabular problem types: You must either provide both the <code>AutoMLJobObjective</code> and indicate the type of supervised learning problem in <code>AutoMLProblemTypeConfig</code> (<code>TabularJobConfig.ProblemType</code>), or none at all.</p> </li> <li> <p>For text generation problem types (LLMs fine-tuning): Fine-tuning language models in Autopilot does not require setting the <code>AutoMLJobObjective</code> field. Autopilot fine-tunes LLMs without requiring multiple candidates to be trained and evaluated. Instead, using your dataset, Autopilot directly fine-tunes your target model to enhance a default objective metric, the cross-entropy loss. After fine-tuning a language model, you can evaluate the quality of its generated text using different metrics. For a list of the available metrics, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-llms-finetuning-metrics.html\">Metrics for fine-tuning LLMs in Autopilot</a>.</p> </li> </ul> </note>"
         },
         "ModelDeployConfig":{
           "shape":"ModelDeployConfig",
@@ -7532,7 +7625,7 @@
         "StoppingCondition":{"shape":"MonitoringStoppingCondition"},
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>(Optional) An array of key-value pairs. For more information, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html#allocation-whatURL\">Using Cost Allocation Tags</a> in the <i>Amazon Web Services Billing and Cost Management User Guide</i>.</p>"
+          "documentation":"<p>(Optional) An array of key-value pairs. For more information, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html#allocation-whatURL\"> Using Cost Allocation Tags</a> in the <i>Amazon Web Services Billing and Cost Management User Guide</i>.</p>"
         }
       }
     },
@@ -8416,7 +8509,7 @@
         "StoppingCondition":{"shape":"MonitoringStoppingCondition"},
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>(Optional) An array of key-value pairs. For more information, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html#allocation-whatURL\">Using Cost Allocation Tags</a> in the <i>Amazon Web Services Billing and Cost Management User Guide</i>.</p>"
+          "documentation":"<p>(Optional) An array of key-value pairs. For more information, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html#allocation-whatURL\"> Using Cost Allocation Tags</a> in the <i>Amazon Web Services Billing and Cost Management User Guide</i>.</p>"
         }
       }
     },
@@ -8546,7 +8639,7 @@
         "StoppingCondition":{"shape":"MonitoringStoppingCondition"},
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>(Optional) An array of key-value pairs. For more information, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html#allocation-whatURL\">Using Cost Allocation Tags</a> in the <i>Amazon Web Services Billing and Cost Management User Guide</i>.</p>"
+          "documentation":"<p>(Optional) An array of key-value pairs. For more information, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html#allocation-whatURL\"> Using Cost Allocation Tags</a> in the <i>Amazon Web Services Billing and Cost Management User Guide</i>.</p>"
         }
       }
     },
@@ -8711,6 +8804,10 @@
         "AdditionalInferenceSpecifications":{
           "shape":"AdditionalInferenceSpecifications",
           "documentation":"<p>An array of additional Inference Specification objects. Each additional Inference Specification specifies artifacts based on this model package that can be used on inference endpoints. Generally used with SageMaker Neo to store the compiled artifacts. </p>"
+        },
+        "SkipModelValidation":{
+          "shape":"SkipModelValidation",
+          "documentation":"<p>Indicates if you want to skip model validation.</p>"
         }
       }
     },
@@ -8764,7 +8861,7 @@
         "StoppingCondition":{"shape":"MonitoringStoppingCondition"},
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>(Optional) An array of key-value pairs. For more information, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html#allocation-whatURL\">Using Cost Allocation Tags</a> in the <i>Amazon Web Services Billing and Cost Management User Guide</i>.</p>"
+          "documentation":"<p>(Optional) An array of key-value pairs. For more information, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html#allocation-whatURL\"> Using Cost Allocation Tags</a> in the <i>Amazon Web Services Billing and Cost Management User Guide</i>.</p>"
         }
       }
     },
@@ -9703,7 +9800,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a Amazon Web Services Key Management Service key that SageMaker uses to encrypt the captured data at rest using Amazon S3 server-side encryption.</p> <p>The KmsKeyId can be any of the following formats: </p> <ul> <li> <p>Key ID: <code>1234abcd-12ab-34cd-56ef-1234567890ab</code> </p> </li> <li> <p>Key ARN: <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code> </p> </li> <li> <p>Alias name: <code>alias/ExampleAlias</code> </p> </li> <li> <p>Alias name ARN: <code>arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias</code> </p> </li> </ul>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of an Key Management Service key that SageMaker uses to encrypt the captured data at rest using Amazon S3 server-side encryption.</p> <p>The KmsKeyId can be any of the following formats: </p> <ul> <li> <p>Key ID: <code>1234abcd-12ab-34cd-56ef-1234567890ab</code> </p> </li> <li> <p>Key ARN: <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code> </p> </li> <li> <p>Alias name: <code>alias/ExampleAlias</code> </p> </li> <li> <p>Alias name ARN: <code>arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias</code> </p> </li> </ul>"
         },
         "CaptureOptions":{
           "shape":"CaptureOptionList",
@@ -9825,7 +9922,7 @@
         },
         "RecordPreprocessorSourceUri":{
           "shape":"S3Uri",
-          "documentation":"<p>An Amazon S3 URI to a script that is called per row prior to running analysis. It can base64 decode the payload and convert it into a flatted json so that the built-in container can use the converted data. Applicable only for the built-in (first party) containers.</p>"
+          "documentation":"<p>An Amazon S3 URI to a script that is called per row prior to running analysis. It can base64 decode the payload and convert it into a flattened JSON so that the built-in container can use the converted data. Applicable only for the built-in (first party) containers.</p>"
         },
         "PostAnalyticsProcessorSourceUri":{
           "shape":"S3Uri",
@@ -9874,6 +9971,13 @@
         }
       },
       "documentation":"<p>Describes the location of the channel data.</p>"
+    },
+    "DataSourceName":{
+      "type":"string",
+      "enum":[
+        "SalesforceGenie",
+        "Snowflake"
+      ]
     },
     "Database":{
       "type":"string",
@@ -10841,6 +10945,16 @@
         }
       }
     },
+    "DerivedInformation":{
+      "type":"structure",
+      "members":{
+        "DerivedDataInputConfig":{
+          "shape":"DataInputConfig",
+          "documentation":"<p>The data input configuration that SageMaker Neo automatically derived for the model. When SageMaker Neo derives this information, you don't need to specify the data input configuration when you create a compilation job.</p>"
+        }
+      },
+      "documentation":"<p>Information that SageMaker Neo automatically derived about the model.</p>"
+    },
     "DescribeActionRequest":{
       "type":"structure",
       "required":["ActionName"],
@@ -11489,6 +11603,10 @@
         "VpcConfig":{
           "shape":"NeoVpcConfig",
           "documentation":"<p>A <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_VpcConfig.html\">VpcConfig</a> object that specifies the VPC that you want your compilation job to connect to. Control access to your models by configuring the VPC. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/neo-vpc.html\">Protect Compilation Jobs by Using an Amazon Virtual Private Cloud</a>.</p>"
+        },
+        "DerivedInformation":{
+          "shape":"DerivedInformation",
+          "documentation":"<p>Information that SageMaker Neo automatically derived about the model.</p>"
         }
       }
     },
@@ -11766,6 +11884,10 @@
         "SingleSignOnManagedApplicationInstanceId":{
           "shape":"String256",
           "documentation":"<p>The IAM Identity Center managed application instance ID.</p>"
+        },
+        "SingleSignOnApplicationArn":{
+          "shape":"SingleSignOnApplicationArn",
+          "documentation":"<p>The ARN of the application managed by SageMaker in IAM Identity Center. This value is only returned for domains created after September 19, 2023.</p>"
         },
         "Status":{
           "shape":"DomainStatus",
@@ -13194,7 +13316,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Identity and Access Management (IAM) role that has read permission to the input data location and write permission to the output data location in Amazon S3.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that has read permission to the input data location and write permission to the output data location in Amazon S3.</p>"
         },
         "StoppingCondition":{"shape":"MonitoringStoppingCondition"}
       }
@@ -13385,7 +13507,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Identity and Access Management (IAM) role that has read permission to the input data location and write permission to the output data location in Amazon S3.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that has read permission to the input data location and write permission to the output data location in Amazon S3.</p>"
         },
         "StoppingCondition":{"shape":"MonitoringStoppingCondition"}
       }
@@ -13604,6 +13726,10 @@
         "AdditionalInferenceSpecifications":{
           "shape":"AdditionalInferenceSpecifications",
           "documentation":"<p>An array of additional Inference Specification objects. Each additional Inference Specification specifies artifacts based on this model package that can be used on inference endpoints. Generally used with SageMaker Neo to store the compiled artifacts.</p>"
+        },
+        "SkipModelValidation":{
+          "shape":"SkipModelValidation",
+          "documentation":"<p>Indicates if you want to skip model validation.</p>"
         }
       }
     },
@@ -14974,7 +15100,7 @@
       "type":"string",
       "max":40,
       "min":1,
-      "pattern":"[\\S\\s]+"
+      "pattern":"^[-a-zA-Z0-9_.,;:! ]*$"
     },
     "DeviceFleetArn":{
       "type":"string",
@@ -14984,7 +15110,7 @@
       "type":"string",
       "max":800,
       "min":1,
-      "pattern":"[\\S\\s]+"
+      "pattern":"^[-a-zA-Z0-9_.,;:! ]*$"
     },
     "DeviceFleetSummaries":{
       "type":"list",
@@ -15128,6 +15254,21 @@
     "Devices":{
       "type":"list",
       "member":{"shape":"Device"}
+    },
+    "Dimension":{
+      "type":"integer",
+      "max":8192,
+      "min":1
+    },
+    "DirectDeploySettings":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"FeatureStatus",
+          "documentation":"<p>Describes whether model deployment permissions are enabled or disabled in the Canvas application.</p>"
+        }
+      },
+      "documentation":"<p>The model deployment settings for the SageMaker Canvas application.</p> <note> <p>In order to enable model deployment for Canvas, the SageMaker Domain's or user profile's Amazon Web Services IAM execution role must have the <code>AmazonSageMakerCanvasDirectDeployAccess</code> policy attached. You can also turn on model deployment permissions through the SageMaker Domain's or user profile's settings in the SageMaker console.</p> </note>"
     },
     "DirectInternetAccess":{
       "type":"string",
@@ -15979,7 +16120,7 @@
         },
         "S3DataDistributionType":{
           "shape":"ProcessingS3DataDistributionType",
-          "documentation":"<p>Whether input data distributed in Amazon S3 is fully replicated or sharded by an S3 key. Defaults to <code>FullyReplicated</code> </p>"
+          "documentation":"<p>Whether input data distributed in Amazon S3 is fully replicated or sharded by an Amazon S3 key. Defaults to <code>FullyReplicated</code> </p>"
         },
         "FeaturesAttribute":{
           "shape":"String",
@@ -16004,6 +16145,10 @@
         "EndTimeOffset":{
           "shape":"MonitoringTimeOffsetString",
           "documentation":"<p>If specified, monitoring jobs substract this time from the end time. For information about using offsets for scheduling monitoring jobs, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality-schedule.html\">Schedule Model Quality Monitoring Jobs</a>.</p>"
+        },
+        "ExcludeFeaturesAttribute":{
+          "shape":"ExcludeFeaturesAttribute",
+          "documentation":"<p>The attributes of the input data to exclude from the analysis.</p>"
         }
       },
       "documentation":"<p>Input object for the endpoint</p>"
@@ -16243,6 +16388,10 @@
       "max":1024,
       "pattern":"[\\S\\s]*"
     },
+    "ExcludeFeaturesAttribute":{
+      "type":"string",
+      "max":100
+    },
     "ExecutionRoleIdentityConfig":{
       "type":"string",
       "enum":[
@@ -16468,6 +16617,14 @@
         "FeatureType":{
           "shape":"FeatureType",
           "documentation":"<p>The value type of a feature. Valid values are Integral, Fractional, or String.</p>"
+        },
+        "CollectionType":{
+          "shape":"CollectionType",
+          "documentation":"<p>A grouping of elements where each element within the collection must have the same feature type (<code>String</code>, <code>Integral</code>, or <code>Fractional</code>).</p> <ul> <li> <p> <code>List</code>: An ordered collection of elements.</p> </li> <li> <p> <code>Set</code>: An unordered collection of unique elements.</p> </li> <li> <p> <code>Vector</code>: A specialized list that represents a fixed-size array of elements. The vector dimension is determined by you. Must have elements with fractional feature types. </p> </li> </ul>"
+        },
+        "CollectionConfig":{
+          "shape":"CollectionConfig",
+          "documentation":"<p>Configuration for your collection.</p>"
         }
       },
       "documentation":"<p>A list of features. You must include <code>FeatureName</code> and <code>FeatureType</code>. Valid feature <code>FeatureType</code>s are <code>Integral</code>, <code>Fractional</code> and <code>String</code>. </p>"
@@ -17320,7 +17477,9 @@
     },
     "GitConfigUrl":{
       "type":"string",
-      "pattern":"^https://([^/]+)/?(.*)$"
+      "max":1024,
+      "min":11,
+      "pattern":"^https://([^/]+)/?.{3,1016}$"
     },
     "Group":{
       "type":"string",
@@ -17344,6 +17503,22 @@
       "member":{"shape":"Group"},
       "max":10,
       "min":1
+    },
+    "HolidayConfig":{
+      "type":"list",
+      "member":{"shape":"HolidayConfigAttributes"},
+      "max":1,
+      "min":1
+    },
+    "HolidayConfigAttributes":{
+      "type":"structure",
+      "members":{
+        "CountryCode":{
+          "shape":"CountryCode",
+          "documentation":"<p>The country code for the holiday calendar.</p> <p>For the list of public holiday calendars supported by AutoML job V2, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-timeseries-forecasting-holiday-calendars.html#holiday-country-codes\">Country Codes</a>. Use the country code corresponding to the country of your choice.</p>"
+        }
+      },
+      "documentation":"<p>Stores the holiday featurization attributes applicable to each item of time-series datasets during the training of a forecasting model. This allows the model to identify patterns associated with specific holidays.</p>"
     },
     "HookParameters":{
       "type":"map",
@@ -18172,7 +18347,7 @@
           "documentation":"<p>The name of the metric to use for the objective metric.</p>"
         }
       },
-      "documentation":"<p>Defines the objective metric for a hyperparameter tuning job. Hyperparameter tuning uses the value of this metric to evaluate the training jobs it launches, and returns the training job that results in either the highest or lowest value for this metric, depending on the value you specify for the <code>Type</code> parameter.</p>"
+      "documentation":"<p>Defines the objective metric for a hyperparameter tuning job. Hyperparameter tuning uses the value of this metric to evaluate the training jobs it launches, and returns the training job that results in either the highest or lowest value for this metric, depending on the value you specify for the <code>Type</code> parameter. If you want to define a custom objective metric, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-define-metrics-variables.html\">Define metrics and environment variables</a>.</p>"
     },
     "HyperParameterTuningJobObjectiveType":{
       "type":"string",
@@ -18456,6 +18631,29 @@
       "max":128,
       "min":32
     },
+    "IdentityProviderOAuthSetting":{
+      "type":"structure",
+      "members":{
+        "DataSourceName":{
+          "shape":"DataSourceName",
+          "documentation":"<p>The name of the data source that you're connecting to. Canvas currently supports OAuth for Snowflake and Salesforce Data Cloud.</p>"
+        },
+        "Status":{
+          "shape":"FeatureStatus",
+          "documentation":"<p>Describes whether OAuth for a data source is enabled or disabled in the Canvas application.</p>"
+        },
+        "SecretArn":{
+          "shape":"SecretArn",
+          "documentation":"<p>The ARN of an Amazon Web Services Secrets Manager secret that stores the credentials from your identity provider, such as the client ID and secret, authorization URL, and token URL. </p>"
+        }
+      },
+      "documentation":"<p>The Amazon SageMaker Canvas application setting where you configure OAuth for connecting to an external data source, such as Snowflake.</p>"
+    },
+    "IdentityProviderOAuthSettings":{
+      "type":"list",
+      "member":{"shape":"IdentityProviderOAuthSetting"},
+      "max":20
+    },
     "Image":{
       "type":"structure",
       "required":[
@@ -18520,7 +18718,7 @@
           "documentation":"<p>How long a job is allowed to run, or how many candidates a job is allowed to generate.</p>"
         }
       },
-      "documentation":"<p>Stores the configuration information for the image classification problem of an AutoML job V2.</p>"
+      "documentation":"<p>The collection of settings used by an AutoML job V2 for the image classification problem type.</p>"
     },
     "ImageConfig":{
       "type":"structure",
@@ -19088,11 +19286,7 @@
     },
     "InferenceSpecification":{
       "type":"structure",
-      "required":[
-        "Containers",
-        "SupportedContentTypes",
-        "SupportedResponseMIMETypes"
-      ],
+      "required":["Containers"],
       "members":{
         "Containers":{
           "shape":"ModelPackageContainerDefinitionList",
@@ -19139,7 +19333,6 @@
       "type":"structure",
       "required":[
         "S3Uri",
-        "DataInputConfig",
         "Framework"
       ],
       "members":{
@@ -19453,6 +19646,16 @@
       "type":"integer",
       "max":3600,
       "min":0
+    },
+    "KendraSettings":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"FeatureStatus",
+          "documentation":"<p>Describes whether the document querying feature is enabled or disabled in the Canvas application.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon SageMaker Canvas application setting where you configure document querying.</p>"
     },
     "KernelDisplayName":{
       "type":"string",
@@ -20600,7 +20803,7 @@
         },
         "SortOrder":{
           "shape":"SortOrder",
-          "documentation":"<p>The sort order for results. The default is <code>Descending</code>.</p>"
+          "documentation":"<p>Whether to sort the results in <code>Ascending</code> or <code>Descending</code> order. The default is <code>Descending</code>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -21939,7 +22142,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If the response is truncated, Amazon SageMaker returns this token. To retrieve the next set of jobs, use it in the subsequent request.</p>"
+          "documentation":"<p>The token returned if the response is truncated. To retrieve the next set of job executions, use it in the next request.</p>"
         }
       }
     },
@@ -22153,7 +22356,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If the response is truncated, Amazon SageMaker returns this token. To retrieve the next set of jobs, use it in the subsequent request.</p>"
+          "documentation":"<p>The token returned if the response is truncated. To retrieve the next set of job executions, use it in the next request.</p>"
         }
       }
     },
@@ -22307,7 +22510,7 @@
         },
         "SortOrder":{
           "shape":"SortOrder",
-          "documentation":"<p>The sort order for results. The default is <code>Descending</code>.</p>"
+          "documentation":"<p>Whether to sort the results in <code>Ascending</code> or <code>Descending</code> order. The default is <code>Descending</code>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -22490,7 +22693,7 @@
         },
         "SortBy":{
           "shape":"MonitoringExecutionSortKey",
-          "documentation":"<p>Whether to sort results by <code>Status</code>, <code>CreationTime</code>, <code>ScheduledTime</code> field. The default is <code>CreationTime</code>.</p>"
+          "documentation":"<p>Whether to sort the results by the <code>Status</code>, <code>CreationTime</code>, or <code>ScheduledTime</code> field. The default is <code>CreationTime</code>.</p>"
         },
         "SortOrder":{
           "shape":"SortOrder",
@@ -22552,7 +22755,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If the response is truncated, Amazon SageMaker returns this token. To retrieve the next set of jobs, use it in the subsequent reques</p>"
+          "documentation":"<p>The token returned if the response is truncated. To retrieve the next set of job executions, use it in the next request.</p>"
         }
       }
     },
@@ -22565,7 +22768,7 @@
         },
         "SortBy":{
           "shape":"MonitoringScheduleSortKey",
-          "documentation":"<p>Whether to sort results by <code>Status</code>, <code>CreationTime</code>, <code>ScheduledTime</code> field. The default is <code>CreationTime</code>.</p>"
+          "documentation":"<p>Whether to sort the results by the <code>Status</code>, <code>CreationTime</code>, or <code>ScheduledTime</code> field. The default is <code>CreationTime</code>.</p>"
         },
         "SortOrder":{
           "shape":"SortOrder",
@@ -22623,7 +22826,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If the response is truncated, Amazon SageMaker returns this token. To retrieve the next set of jobs, use it in the subsequent request.</p>"
+          "documentation":"<p>The token returned if the response is truncated. To retrieve the next set of job executions, use it in the next request.</p>"
         }
       }
     },
@@ -23747,6 +23950,12 @@
       "type":"integer",
       "min":0
     },
+    "MaxPendingTimeInSeconds":{
+      "type":"integer",
+      "documentation":"Maximum job scheduler pending time in seconds.",
+      "max":2419200,
+      "min":7200
+    },
     "MaxPercentageOfInputDatasetLabeled":{
       "type":"integer",
       "max":100,
@@ -24004,6 +24213,17 @@
         }
       },
       "documentation":"<p>The properties of a model as returned by the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Search.html\">Search</a> API.</p>"
+    },
+    "ModelAccessConfig":{
+      "type":"structure",
+      "required":["AcceptEula"],
+      "members":{
+        "AcceptEula":{
+          "shape":"AcceptEula",
+          "documentation":"<p>Specifies agreement to the model end-user license agreement (EULA). The <code>AcceptEula</code> value must be explicitly defined as <code>True</code> in order to accept the EULA that this model requires. You are responsible for reviewing and complying with any applicable license terms and making sure they are acceptable for your use case before downloading or using a model.</p>"
+        }
+      },
+      "documentation":"<p>The access configuration file for the ML model. You can explicitly accept the model end-user license agreement (EULA) within the <code>ModelAccessConfig</code>. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/jumpstart-foundation-models-choose.html#jumpstart-foundation-models-choose-eula\">End-user license agreements</a>.</p>"
     },
     "ModelApprovalStatus":{
       "type":"string",
@@ -24580,7 +24800,8 @@
           "shape":"MonitoringAlertSummaryList",
           "documentation":"<p>A JSON array where each element is a summary for a monitoring alert.</p>"
         },
-        "LastMonitoringExecutionSummary":{"shape":"MonitoringExecutionSummary"}
+        "LastMonitoringExecutionSummary":{"shape":"MonitoringExecutionSummary"},
+        "BatchTransformInput":{"shape":"BatchTransformInput"}
       },
       "documentation":"<p>A monitoring schedule for a model displayed in the Amazon SageMaker Model Dashboard.</p>"
     },
@@ -24660,7 +24881,7 @@
         },
         "ConfigUri":{
           "shape":"S3Uri",
-          "documentation":"<p>JSON formatted S3 file that defines explainability parameters. For more information on this JSON configuration file, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-config-json-monitor-model-explainability-parameters.html\">Configure model explainability parameters</a>.</p>"
+          "documentation":"<p>JSON formatted Amazon S3 file that defines explainability parameters. For more information on this JSON configuration file, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-config-json-monitor-model-explainability-parameters.html\">Configure model explainability parameters</a>.</p>"
         },
         "Environment":{
           "shape":"MonitoringEnvironmentMap",
@@ -24733,7 +24954,7 @@
       "members":{
         "Percentile":{
           "shape":"String64",
-          "documentation":"<p>The model latency percentile threshold. For custom load tests, specify the value as <code>P95</code>.</p>"
+          "documentation":"<p>The model latency percentile threshold. Acceptable values are <code>P95</code> and <code>P99</code>. For custom load tests, specify the value as <code>P95</code>.</p>"
         },
         "ValueInMilliseconds":{
           "shape":"Integer",
@@ -24966,6 +25187,10 @@
         "DriftCheckBaselines":{
           "shape":"DriftCheckBaselines",
           "documentation":"<p>Represents the drift check baselines that can be used when the model monitor is set using the model package.</p>"
+        },
+        "SkipModelValidation":{
+          "shape":"SkipModelValidation",
+          "documentation":"<p>Indicates if you want to skip model validation.</p>"
         }
       },
       "documentation":"<p>A versioned model that can be deployed for SageMaker inference.</p>"
@@ -24974,7 +25199,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:model-package/.*"
+      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:model-package/[\\S]{1,2048}$"
     },
     "ModelPackageArnList":{
       "type":"list",
@@ -25025,6 +25250,10 @@
         "NearestModelName":{
           "shape":"String",
           "documentation":"<p>The name of a pre-trained machine learning benchmarked by Amazon SageMaker Inference Recommender model that matches your model. You can find a list of benchmarked models by calling <code>ListModelMetadata</code>.</p>"
+        },
+        "AdditionalS3DataSource":{
+          "shape":"AdditionalS3DataSource",
+          "documentation":"<p>The additional data source that is used during inference in the Docker container for your model package.</p>"
         }
       },
       "documentation":"<p>Describes the Docker container for the model package.</p>"
@@ -25076,7 +25305,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:model-package-group/.*"
+      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:model-package-group/[\\S]{1,2048}$"
     },
     "ModelPackageGroupSortBy":{
       "type":"string",
@@ -25198,7 +25427,6 @@
     "ModelPackageSummary":{
       "type":"structure",
       "required":[
-        "ModelPackageName",
         "ModelPackageArn",
         "CreationTime",
         "ModelPackageStatus"
@@ -25329,7 +25557,7 @@
         },
         "RecordPreprocessorSourceUri":{
           "shape":"S3Uri",
-          "documentation":"<p>An Amazon S3 URI to a script that is called per row prior to running analysis. It can base64 decode the payload and convert it into a flatted json so that the built-in container can use the converted data. Applicable only for the built-in (first party) containers.</p>"
+          "documentation":"<p>An Amazon S3 URI to a script that is called per row prior to running analysis. It can base64 decode the payload and convert it into a flattened JSON so that the built-in container can use the converted data. Applicable only for the built-in (first party) containers.</p>"
         },
         "PostAnalyticsProcessorSourceUri":{
           "shape":"S3Uri",
@@ -25371,7 +25599,7 @@
           "documentation":"<p>The ground truth label provided for the model.</p>"
         }
       },
-      "documentation":"<p>The input for the model quality monitoring job. Currently endponts are supported for input for model quality monitoring jobs.</p>"
+      "documentation":"<p>The input for the model quality monitoring job. Currently endpoints are supported for input for model quality monitoring jobs.</p>"
     },
     "ModelRegisterSettings":{
       "type":"structure",
@@ -25655,7 +25883,7 @@
         },
         "RecordPreprocessorSourceUri":{
           "shape":"S3Uri",
-          "documentation":"<p>An Amazon S3 URI to a script that is called per row prior to running analysis. It can base64 decode the payload and convert it into a flatted json so that the built-in container can use the converted data. Applicable only for the built-in (first party) containers.</p>"
+          "documentation":"<p>An Amazon S3 URI to a script that is called per row prior to running analysis. It can base64 decode the payload and convert it into a flattened JSON so that the built-in container can use the converted data. Applicable only for the built-in (first party) containers.</p>"
         },
         "PostAnalyticsProcessorSourceUri":{
           "shape":"S3Uri",
@@ -25704,7 +25932,7 @@
         },
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance(s) that run the model monitoring job.</p>"
+          "documentation":"<p>The Key Management Service (KMS) key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance(s) that run the model monitoring job.</p>"
         }
       },
       "documentation":"<p>Configuration for the cluster used to run model monitoring jobs.</p>"
@@ -25884,7 +26112,7 @@
         },
         "MonitoringOutputConfig":{
           "shape":"MonitoringOutputConfig",
-          "documentation":"<p>The array of outputs from the monitoring job to be uploaded to Amazon Simple Storage Service (Amazon S3).</p>"
+          "documentation":"<p>The array of outputs from the monitoring job to be uploaded to Amazon S3.</p>"
         },
         "MonitoringResources":{
           "shape":"MonitoringResources",
@@ -25922,7 +26150,7 @@
       "type":"string",
       "max":63,
       "min":1,
-      "pattern":"^[a-zA-Z0-9](-*[a-zA-Z0-9])*$"
+      "pattern":"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}$"
     },
     "MonitoringJobDefinitionSortKey":{
       "type":"string",
@@ -25968,7 +26196,7 @@
       "members":{
         "Line":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates if the file should be read as a json object per line. </p>"
+          "documentation":"<p>Indicates if the file should be read as a JSON object per line. </p>"
         }
       },
       "documentation":"<p>Represents the JSON dataset format used when running a monitoring job.</p>"
@@ -26014,7 +26242,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt the model artifacts at rest using Amazon S3 server-side encryption.</p>"
+          "documentation":"<p>The Key Management Service (KMS) key that Amazon SageMaker uses to encrypt the model artifacts at rest using Amazon S3 server-side encryption.</p>"
         }
       },
       "documentation":"<p>The output configuration for monitoring jobs.</p>"
@@ -26770,6 +26998,10 @@
         "TtlDuration":{
           "shape":"TtlDuration",
           "documentation":"<p>Time to live duration, where the record is hard deleted after the expiration time is reached; <code>ExpiresAt</code> = <code>EventTime</code> + <code>TtlDuration</code>. For information on HardDelete, see the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_feature_store_DeleteRecord.html\">DeleteRecord</a> API in the Amazon SageMaker API Reference guide.</p>"
+        },
+        "StorageType":{
+          "shape":"StorageType",
+          "documentation":"<p>Option for different tiers of low latency storage for real-time data retrieval.</p> <ul> <li> <p> <code>Standard</code>: A managed low latency data store for feature groups.</p> </li> <li> <p> <code>InMemory</code>: A managed data store for feature groups that supports very low latency retrieval. </p> </li> </ul>"
         }
       },
       "documentation":"<p>Use this to specify the Amazon Web Services Key Management Service (KMS) Key ID, or <code>KMSKeyId</code>, for at rest data encryption. You can turn <code>OnlineStore</code> on or off by specifying the <code>EnableOnlineStore</code> flag at General Assembly.</p> <p>The default value is <code>False</code>.</p>"
@@ -27510,7 +27742,7 @@
       "type":"string",
       "max":256,
       "min":1,
-      "pattern":"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,255}$"
+      "pattern":"^[A-Za-z0-9\\-_]*$"
     },
     "PipelineStatus":{
       "type":"string",
@@ -28310,7 +28542,8 @@
         "ml.inf2.xlarge",
         "ml.inf2.8xlarge",
         "ml.inf2.24xlarge",
-        "ml.inf2.48xlarge"
+        "ml.inf2.48xlarge",
+        "ml.p5.48xlarge"
       ]
     },
     "ProductionVariantList":{
@@ -28629,7 +28862,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:project:.*"
+      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:project/[\\S]{1,2048}$"
     },
     "ProjectEntityName":{
       "type":"string",
@@ -29217,7 +29450,7 @@
         },
         "JobDurationInSeconds":{
           "shape":"JobDurationInSeconds",
-          "documentation":"<p>Specifies the maximum duration of the job, in seconds. The maximum value is 7200.</p>"
+          "documentation":"<p>Specifies the maximum duration of the job, in seconds. The maximum value is 18,000 seconds.</p>"
         },
         "TrafficPattern":{
           "shape":"TrafficPattern",
@@ -30098,6 +30331,10 @@
         "CompressionType":{
           "shape":"ModelCompressionType",
           "documentation":"<p>Specifies how the ML model data is prepared.</p> <p>If you choose <code>Gzip</code> and choose <code>S3Object</code> as the value of <code>S3DataType</code>, <code>S3Uri</code> identifies an object that is a gzip-compressed TAR archive. SageMaker will attempt to decompress and untar the object during model deployment.</p> <p>If you choose <code>None</code> and chooose <code>S3Object</code> as the value of <code>S3DataType</code>, <code>S3Uri</code> identifies an object that represents an uncompressed ML model to deploy.</p> <p>If you choose None and choose <code>S3Prefix</code> as the value of <code>S3DataType</code>, <code>S3Uri</code> identifies a key name prefix, under which all objects represents the uncompressed ML model to deploy.</p> <p>If you choose None, then SageMaker will follow rules below when creating model data files under /opt/ml/model directory for use by your inference code:</p> <ul> <li> <p>If you choose <code>S3Object</code> as the value of <code>S3DataType</code>, then SageMaker will split the key of the S3 object referenced by <code>S3Uri</code> by slash (/), and use the last part as the filename of the file holding the content of the S3 object.</p> </li> <li> <p>If you choose <code>S3Prefix</code> as the value of <code>S3DataType</code>, then for each S3 object under the key name pefix referenced by <code>S3Uri</code>, SageMaker will trim its key by the prefix, and use the remainder as the path (relative to <code>/opt/ml/model</code>) of the file holding the content of the S3 object. SageMaker will split the remainder by slash (/), using intermediate parts as directory names and the last part as filename of the file holding the content of the S3 object.</p> </li> <li> <p>Do not use any of the following as file names or directory names:</p> <ul> <li> <p>An empty or blank string</p> </li> <li> <p>A string which contains null bytes</p> </li> <li> <p>A string longer than 255 bytes</p> </li> <li> <p>A single dot (<code>.</code>)</p> </li> <li> <p>A double dot (<code>..</code>)</p> </li> </ul> </li> <li> <p>Ambiguous file names will result in model deployment failure. For example, if your uncompressed ML model consists of two S3 objects <code>s3://mybucket/model/weights</code> and <code>s3://mybucket/model/weights/part1</code> and you specify <code>s3://mybucket/model/</code> as the value of <code>S3Uri</code> and <code>S3Prefix</code> as the value of <code>S3DataType</code>, then it will result in name clash between <code>/opt/ml/model/weights</code> (a regular file) and <code>/opt/ml/model/weights/</code> (a directory).</p> </li> <li> <p>Do not organize the model artifacts in <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-folders.html\">S3 console using folders</a>. When you create a folder in S3 console, S3 creates a 0-byte object with a key set to the folder name you provide. They key of the 0-byte object ends with a slash (/) which violates SageMaker restrictions on model artifact file names, leading to model deployment failure. </p> </li> </ul>"
+        },
+        "ModelAccessConfig":{
+          "shape":"ModelAccessConfig",
+          "documentation":"<p>Specifies the access configuration file for the ML model. You can explicitly accept the model end-user license agreement (EULA) within the <code>ModelAccessConfig</code>. You are responsible for reviewing and complying with any applicable license terms and making sure they are acceptable for your use case before downloading or using a model.</p>"
         }
       },
       "documentation":"<p>Specifies the S3 location of ML model data to deploy.</p>"
@@ -30220,7 +30457,15 @@
       "members":{
         "ScheduleExpression":{
           "shape":"ScheduleExpression",
-          "documentation":"<p>A cron expression that describes details about the monitoring schedule.</p> <p>Currently the only supported cron expressions are:</p> <ul> <li> <p>If you want to set the job to start every hour, please use the following:</p> <p> <code>Hourly: cron(0 * ? * * *)</code> </p> </li> <li> <p>If you want to start the job daily:</p> <p> <code>cron(0 [00-23] ? * * *)</code> </p> </li> </ul> <p>For example, the following are valid cron expressions:</p> <ul> <li> <p>Daily at noon UTC: <code>cron(0 12 ? * * *)</code> </p> </li> <li> <p>Daily at midnight UTC: <code>cron(0 0 ? * * *)</code> </p> </li> </ul> <p>To support running every 6, 12 hours, the following are also supported:</p> <p> <code>cron(0 [00-23]/[01-24] ? * * *)</code> </p> <p>For example, the following are valid cron expressions:</p> <ul> <li> <p>Every 12 hours, starting at 5pm UTC: <code>cron(0 17/12 ? * * *)</code> </p> </li> <li> <p>Every two hours starting at midnight: <code>cron(0 0/2 ? * * *)</code> </p> </li> </ul> <note> <ul> <li> <p>Even though the cron expression is set to start at 5PM UTC, note that there could be a delay of 0-20 minutes from the actual requested time to run the execution. </p> </li> <li> <p>We recommend that if you would like a daily schedule, you do not provide this parameter. Amazon SageMaker will pick a time for running every day.</p> </li> </ul> </note>"
+          "documentation":"<p>A cron expression that describes details about the monitoring schedule.</p> <p>The supported cron expressions are:</p> <ul> <li> <p>If you want to set the job to start every hour, use the following:</p> <p> <code>Hourly: cron(0 * ? * * *)</code> </p> </li> <li> <p>If you want to start the job daily:</p> <p> <code>cron(0 [00-23] ? * * *)</code> </p> </li> <li> <p>If you want to run the job one time, immediately, use the following keyword:</p> <p> <code>NOW</code> </p> </li> </ul> <p>For example, the following are valid cron expressions:</p> <ul> <li> <p>Daily at noon UTC: <code>cron(0 12 ? * * *)</code> </p> </li> <li> <p>Daily at midnight UTC: <code>cron(0 0 ? * * *)</code> </p> </li> </ul> <p>To support running every 6, 12 hours, the following are also supported:</p> <p> <code>cron(0 [00-23]/[01-24] ? * * *)</code> </p> <p>For example, the following are valid cron expressions:</p> <ul> <li> <p>Every 12 hours, starting at 5pm UTC: <code>cron(0 17/12 ? * * *)</code> </p> </li> <li> <p>Every two hours starting at midnight: <code>cron(0 0/2 ? * * *)</code> </p> </li> </ul> <note> <ul> <li> <p>Even though the cron expression is set to start at 5PM UTC, note that there could be a delay of 0-20 minutes from the actual requested time to run the execution. </p> </li> <li> <p>We recommend that if you would like a daily schedule, you do not provide this parameter. Amazon SageMaker will pick a time for running every day.</p> </li> </ul> </note> <p>You can also specify the keyword <code>NOW</code> to run the monitoring job immediately, one time, without recurring.</p>"
+        },
+        "DataAnalysisStartTime":{
+          "shape":"String",
+          "documentation":"<p>Sets the start time for a monitoring job window. Express this time as an offset to the times that you schedule your monitoring jobs to run. You schedule monitoring jobs with the <code>ScheduleExpression</code> parameter. Specify this offset in ISO 8601 duration format. For example, if you want to monitor the five hours of data in your dataset that precede the start of each monitoring job, you would specify: <code>\"-PT5H\"</code>.</p> <p>The start time that you specify must not precede the end time that you specify by more than 24 hours. You specify the end time with the <code>DataAnalysisEndTime</code> parameter.</p> <p>If you set <code>ScheduleExpression</code> to <code>NOW</code>, this parameter is required.</p>"
+        },
+        "DataAnalysisEndTime":{
+          "shape":"String",
+          "documentation":"<p>Sets the end time for a monitoring job window. Express this time as an offset to the times that you schedule your monitoring jobs to run. You schedule monitoring jobs with the <code>ScheduleExpression</code> parameter. Specify this offset in ISO 8601 duration format. For example, if you want to end the window one hour before the start of each monitoring job, you would specify: <code>\"-PT1H\"</code>.</p> <p>The end time that you specify must not follow the start time that you specify by more than 24 hours. You specify the start time with the <code>DataAnalysisStartTime</code> parameter.</p> <p>If you set <code>ScheduleExpression</code> to <code>NOW</code>, this parameter is required.</p>"
         }
       },
       "documentation":"<p>Configuration details about the monitoring schedule.</p>"
@@ -30458,14 +30703,11 @@
     },
     "SelectiveExecutionConfig":{
       "type":"structure",
-      "required":[
-        "SourcePipelineExecutionArn",
-        "SelectedSteps"
-      ],
+      "required":["SelectedSteps"],
       "members":{
         "SourcePipelineExecutionArn":{
           "shape":"PipelineExecutionArn",
-          "documentation":"<p>The ARN from a reference execution of the current pipeline. Used to copy input collaterals needed for the selected steps to run. The execution status of the pipeline can be either <code>Failed</code> or <code>Success</code>.</p>"
+          "documentation":"<p>The ARN from a reference execution of the current pipeline. Used to copy input collaterals needed for the selected steps to run. The execution status of the pipeline can be either <code>Failed</code> or <code>Success</code>.</p> <p>This field is required if the steps you specify for <code>SelectedSteps</code> depend on output collaterals from any non-specified pipeline steps. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-selective-ex.html\">Selective Execution for Pipeline Steps</a>.</p>"
         },
         "SelectedSteps":{
           "shape":"SelectedStepList",
@@ -30688,9 +30930,20 @@
       },
       "documentation":"<p>A configuration for a shuffle option for input data in a channel. If you use <code>S3Prefix</code> for <code>S3DataType</code>, the results of the S3 key prefix matches are shuffled. If you use <code>ManifestFile</code>, the order of the S3 object references in the <code>ManifestFile</code> is shuffled. If you use <code>AugmentedManifestFile</code>, the order of the JSON lines in the <code>AugmentedManifestFile</code> is shuffled. The shuffling order is determined using the <code>Seed</code> value.</p> <p>For Pipe input mode, when <code>ShuffleConfig</code> is specified shuffling is done at the start of every epoch. With large datasets, this ensures that the order of the training data is different for each epoch, and it helps reduce bias and possible overfitting. In a multi-node training job when <code>ShuffleConfig</code> is combined with <code>S3DataDistributionType</code> of <code>ShardedByS3Key</code>, the data is shuffled across nodes so that the content sent to a particular node on the first epoch might be sent to a different node on the second epoch.</p>"
     },
+    "SingleSignOnApplicationArn":{
+      "type":"string",
+      "pattern":"^arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):sso::[0-9]+:application\\/[a-zA-Z0-9-_.]+\\/apl-[a-zA-Z0-9]+$"
+    },
     "SingleSignOnUserIdentifier":{
       "type":"string",
       "pattern":"UserName"
+    },
+    "SkipModelValidation":{
+      "type":"string",
+      "enum":[
+        "All",
+        "None"
+      ]
     },
     "SnsTopicArn":{
       "type":"string",
@@ -31304,9 +31557,20 @@
         "MaxWaitTimeInSeconds":{
           "shape":"MaxWaitTimeInSeconds",
           "documentation":"<p>The maximum length of time, in seconds, that a managed Spot training job has to complete. It is the amount of time spent waiting for Spot capacity plus the amount of time the job can run. It must be equal to or greater than <code>MaxRuntimeInSeconds</code>. If the job does not complete during this time, SageMaker ends the job.</p> <p>When <code>RetryStrategy</code> is specified in the job request, <code>MaxWaitTimeInSeconds</code> specifies the maximum time for all of the attempts in total, not each individual attempt.</p>"
+        },
+        "MaxPendingTimeInSeconds":{
+          "shape":"MaxPendingTimeInSeconds",
+          "documentation":"<p>The maximum length of time, in seconds, that a training or compilation job can be pending before it is stopped.</p>"
         }
       },
       "documentation":"<p>Specifies a limit to how long a model training job or model compilation job can run. It also specifies how long a managed spot training job has to complete. When the job reaches the time limit, SageMaker ends the training or compilation job. Use this API to cap model training costs.</p> <p>To stop a training job, SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p> <p>The training algorithms provided by SageMaker automatically save the intermediate results of a model training job when possible. This attempt to save artifacts is only a best effort case as model might not be in a state from which it can be saved. For example, if training has just started, the model might not be ready to save. When saved, this intermediate data is a valid model artifact. You can use it to create a model with <code>CreateModel</code>.</p> <note> <p>The Neural Topic Model (NTM) currently does not support saving intermediate model artifacts. When training NTMs, make sure that the maximum runtime is sufficient for the training job to complete.</p> </note>"
+    },
+    "StorageType":{
+      "type":"string",
+      "enum":[
+        "Standard",
+        "InMemory"
+      ]
     },
     "String":{"type":"string"},
     "String1024":{
@@ -31513,7 +31777,7 @@
           "documentation":"<p>If specified, this column name indicates which column of the dataset should be treated as sample weights for use by the objective metric during the training, evaluation, and the selection of the best model. This column is not considered as a predictive feature. For more information on Autopilot metrics, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-metrics-validation.html\">Metrics and validation</a>.</p> <p>Sample weights should be numeric, non-negative, with larger values indicating which rows are more important than others. Data points that have invalid or no weight value are excluded.</p> <p>Support for sample weights is available in <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLAlgorithmConfig.html\">Ensembling</a> mode only.</p>"
         }
       },
-      "documentation":"<p>The collection of settings used by an AutoML job V2 for the <code>TABULAR</code> problem type.</p>"
+      "documentation":"<p>The collection of settings used by an AutoML job V2 for the tabular problem type.</p>"
     },
     "TabularResolvedAttributes":{
       "type":"structure",
@@ -31523,7 +31787,7 @@
           "documentation":"<p>The type of supervised learning problem available for the model candidates of the AutoML job V2 (Binary Classification, Multiclass Classification, Regression). For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-datasets-problem-types.html#autopilot-problem-types\"> Amazon SageMaker Autopilot problem types</a>.</p>"
         }
       },
-      "documentation":"<p>The resolved attributes specific to the <code>TABULAR</code> problem type.</p>"
+      "documentation":"<p>The resolved attributes specific to the tabular problem type.</p>"
     },
     "Tag":{
       "type":"structure",
@@ -31791,7 +32055,28 @@
           "documentation":"<p>The name of the column used to provide the class labels. It should not be same as the content column.</p>"
         }
       },
-      "documentation":"<p>Stores the configuration information for the text classification problem of an AutoML job V2.</p>"
+      "documentation":"<p>The collection of settings used by an AutoML job V2 for the text classification problem type.</p>"
+    },
+    "TextGenerationJobConfig":{
+      "type":"structure",
+      "members":{
+        "CompletionCriteria":{"shape":"AutoMLJobCompletionCriteria"},
+        "BaseModelName":{
+          "shape":"BaseModelName",
+          "documentation":"<p>The name of the base model to fine-tune. Autopilot supports fine-tuning a variety of large language models. For information on the list of supported models, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-llms-finetuning-models.html#autopilot-llms-finetuning-supported-llms\">Text generation models supporting fine-tuning in Autopilot</a>. If no <code>BaseModelName</code> is provided, the default model used is Falcon-7B-Instruct. </p>"
+        }
+      },
+      "documentation":"<p>The collection of settings used by an AutoML job V2 for the text generation problem type.</p> <note> <p>The text generation models that support fine-tuning in Autopilot are currently accessible exclusively in regions supported by Canvas. Refer to the documentation of Canvas for the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/canvas.html\">full list of its supported Regions</a>.</p> </note>"
+    },
+    "TextGenerationResolvedAttributes":{
+      "type":"structure",
+      "members":{
+        "BaseModelName":{
+          "shape":"BaseModelName",
+          "documentation":"<p>The name of the base model to fine-tune.</p>"
+        }
+      },
+      "documentation":"<p>The resolved attributes specific to the text generation problem type.</p>"
     },
     "ThingName":{
       "type":"string",
@@ -31857,9 +32142,13 @@
         "TimeSeriesConfig":{
           "shape":"TimeSeriesConfig",
           "documentation":"<p>The collection of components that defines the time-series.</p>"
+        },
+        "HolidayConfig":{
+          "shape":"HolidayConfig",
+          "documentation":"<p>The collection of holiday featurization attributes used to incorporate national holiday information into your forecasting model.</p>"
         }
       },
-      "documentation":"<p>The collection of settings used by an AutoML job V2 for the time-series forecasting problem type.</p> <note> <p>The <code>TimeSeriesForecastingJobConfig</code> problem type is only available in private beta. Contact Amazon Web Services Support or your account manager to learn more about access privileges.</p> </note>"
+      "documentation":"<p>The collection of settings used by an AutoML job V2 for the time-series forecasting problem type.</p>"
     },
     "TimeSeriesForecastingSettings":{
       "type":"structure",
@@ -31972,7 +32261,7 @@
     "TrainingContainerEntrypoint":{
       "type":"list",
       "member":{"shape":"TrainingContainerEntrypointString"},
-      "max":10,
+      "max":100,
       "min":1
     },
     "TrainingContainerEntrypointString":{
@@ -31989,7 +32278,7 @@
       "type":"map",
       "key":{"shape":"TrainingEnvironmentKey"},
       "value":{"shape":"TrainingEnvironmentValue"},
-      "max":48
+      "max":100
     },
     "TrainingEnvironmentValue":{
       "type":"string",
@@ -32445,6 +32734,10 @@
         "SupportedTuningJobObjectiveMetrics":{
           "shape":"HyperParameterTuningJobObjectives",
           "documentation":"<p>A list of the metrics that the algorithm emits that can be used as the objective metric in a hyperparameter tuning job.</p>"
+        },
+        "AdditionalS3DataSource":{
+          "shape":"AdditionalS3DataSource",
+          "documentation":"<p>The additional data source used during the training job.</p>"
         }
       },
       "documentation":"<p>Defines how the algorithm is used for a training job.</p>"
@@ -34669,6 +34962,17 @@
     "VariantWeight":{
       "type":"float",
       "min":0
+    },
+    "VectorConfig":{
+      "type":"structure",
+      "required":["Dimension"],
+      "members":{
+        "Dimension":{
+          "shape":"Dimension",
+          "documentation":"<p>The number of elements in your vector.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for your vector collection type.</p>"
     },
     "VendorGuidance":{
       "type":"string",

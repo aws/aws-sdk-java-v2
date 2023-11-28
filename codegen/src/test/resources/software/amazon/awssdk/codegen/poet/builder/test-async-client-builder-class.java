@@ -1,12 +1,10 @@
 package software.amazon.awssdk.services.json;
 
-import java.net.URI;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
@@ -34,20 +32,7 @@ final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<J
     protected final JsonAsyncClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.asyncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
-        JsonServiceClientConfiguration serviceClientConfiguration = initializeServiceClientConfig(clientConfiguration);
-        JsonAsyncClient client = new DefaultJsonAsyncClient(serviceClientConfiguration, clientConfiguration);
+        JsonAsyncClient client = new DefaultJsonAsyncClient(clientConfiguration);
         return client;
-    }
-
-    private JsonServiceClientConfiguration initializeServiceClientConfig(SdkClientConfiguration clientConfig) {
-        URI endpointOverride = null;
-        EndpointProvider endpointProvider = clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER);
-        if (clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
-            && Boolean.TRUE.equals(clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
-            endpointOverride = clientConfig.option(SdkClientOption.ENDPOINT);
-        }
-        return JsonServiceClientConfiguration.builder().overrideConfiguration(overrideConfiguration())
-                                             .region(clientConfig.option(AwsClientOption.AWS_REGION)).endpointOverride(endpointOverride)
-                                             .endpointProvider(endpointProvider).build();
     }
 }

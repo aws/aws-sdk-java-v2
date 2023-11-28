@@ -80,8 +80,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *     String policyVersion = getPolicyResponse.defaultVersionId();
  *     GetPolicyVersionResponse getPolicyVersionResponse =
  *         iam.getPolicyVersion(r -> r.policyArn(policyArn).versionId(policyVersion));
- *
- *     IamPolicy policy = IamPolicy.fromJson(getPolicyVersionResponse.policyVersion().document());
+ * 
+ *     String decodedPolicy = URLDecoder.decode(getPolicyVersionResponse.policyVersion().document(), StandardCharsets.UTF_8);
+ *     IamPolicy policy = IamPolicy.fromJson(decodedPolicy);
  *
  *     IamStatement newStatement = policy.statements().get(0).copy(s -> s.addAction("dynamodb:GetItem"));
  *     IamPolicy newPolicy = policy.copy(p -> p.statements(Arrays.asList(newStatement)));

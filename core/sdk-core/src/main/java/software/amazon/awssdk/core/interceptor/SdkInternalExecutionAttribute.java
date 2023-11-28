@@ -16,16 +16,21 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
-import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -98,28 +103,70 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("IsDiscoveredEndpoint");
 
     /**
+     * The nano time that the current API call attempt began.
+     */
+    public static final ExecutionAttribute<Long> API_CALL_ATTEMPT_START_NANO_TIME =
+        new ExecutionAttribute<>("ApiCallAttemptStartNanoTime");
+
+    /**
+     * The nano time that reading the response headers is complete.
+     */
+    public static final ExecutionAttribute<Long> HEADERS_READ_END_NANO_TIME =
+        new ExecutionAttribute<>("HeadersReadEndNanoTime");
+
+    /**
+     * The running count of bytes in the response body that have been read by the client. This is updated atomically as the
+     * response is being read.
+     * <p>
+     * This attribute is set before every API call attempt.
+     */
+    public static final ExecutionAttribute<AtomicLong> RESPONSE_BYTES_READ =
+        new ExecutionAttribute<>("ResponseBytesRead");
+
+    /**
      * The auth scheme provider used to resolve the auth scheme for a request.
      */
-    public static final ExecutionAttribute<AuthSchemeProvider> AUTH_SCHEME_RESOLVER = new ExecutionAttribute<>(
-        "AuthSchemeProvider");
+    public static final ExecutionAttribute<AuthSchemeProvider> AUTH_SCHEME_RESOLVER =
+        new ExecutionAttribute<>("AuthSchemeProvider");
 
     /**
      * The auth schemes available for a request.
      */
-    public static final ExecutionAttribute<Map<String, AuthScheme<?>>> AUTH_SCHEMES = new ExecutionAttribute<>(
-        "AuthSchemes");
+    public static final ExecutionAttribute<Map<String, AuthScheme<?>>> AUTH_SCHEMES = new ExecutionAttribute<>("AuthSchemes");
 
     /**
-     * The {@link IdentityProviderConfiguration} for a request.
+     * The {@link IdentityProviders} for a request.
      */
-    public static final ExecutionAttribute<IdentityProviderConfiguration> IDENTITY_PROVIDER_CONFIGURATION =
-        new ExecutionAttribute<>("IdentityProviderConfiguration");
+    public static final ExecutionAttribute<IdentityProviders> IDENTITY_PROVIDERS = new ExecutionAttribute<>("IdentityProviders");
 
     /**
      * The selected auth scheme for a request.
      */
-    public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME = new ExecutionAttribute<>(
-        "SelectedAuthScheme");
+    public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME =
+        new ExecutionAttribute<>("SelectedAuthScheme");
+
+    /**
+     * The supported compression algorithms for an operation, and whether the operation is streaming or not.
+     */
+    public static final ExecutionAttribute<RequestCompression> REQUEST_COMPRESSION =
+        new ExecutionAttribute<>("RequestCompression");
+
+    /**
+     * The key under which the protocol metadata is stored.
+     */
+    public static final ExecutionAttribute<SdkProtocolMetadata> PROTOCOL_METADATA =
+        new ExecutionAttribute<>("ProtocolMetadata");
+
+    public static final ExecutionAttribute<SdkClient> SDK_CLIENT =
+        new ExecutionAttribute<>("SdkClient");
+
+    /**
+     * The backing attribute for RESOLVED_CHECKSUM_SPECS.
+     * This holds the real ChecksumSpecs value, and is used to map to the ChecksumAlgorithm signer property
+     * in the SELECTED_AUTH_SCHEME execution attribute.
+     */
+    static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
+        new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
 
     private SdkInternalExecutionAttribute() {
     }

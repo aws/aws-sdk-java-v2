@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.20.131-SNAPSHOT</version>
+        <version>2.21.34-SNAPSHOT</version>
     </parent>
     <artifactId>codecatalyst</artifactId>
     <name>AWS Java SDK :: Services :: Code Catalyst</name>
@@ -59,12 +59,6 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-auth</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <!-- TODO(sra-identity-and-auth): CodeCatalyst shouldn't depend on http-auth-aws, because it doesn't use it -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>http-auth-aws</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

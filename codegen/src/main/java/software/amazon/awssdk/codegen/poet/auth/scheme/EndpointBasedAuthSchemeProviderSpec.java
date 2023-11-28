@@ -36,13 +36,13 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.http.auth.aws.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.aws.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.AwsV4aAuthScheme;
-import software.amazon.awssdk.http.auth.aws.AwsV4aHttpSigner;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -147,6 +147,9 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.beginControlFlow("switch(name)");
         addAuthSchemeSwitchSigV4Case(spec);
         addAuthSchemeSwitchSigV4aCase(spec);
+        if (endpointRulesSpecUtils.useS3Express()) {
+            addAuthSchemeSwitchS3ExpressCase(spec);
+        }
         addAuthSchemeSwitchDefaultCase(spec);
         spec.endControlFlow();
     }
@@ -173,21 +176,33 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                           SigV4aAuthScheme.class, Validate.class, SigV4aAuthScheme.class,
                           "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s");
 
-        spec.addStatement("$T signingRegionSet = sigv4aAuthScheme.signingRegionSet()", ParameterizedTypeName.get(List.class,
-                                                                                                                 String.class));
-        spec.beginControlFlow("if (signingRegionSet.size() == 0)")
-            .addStatement("throw $T.create($S)", SdkClientException.class, "Signing region set is empty")
-            .endControlFlow();
-
-        spec.beginControlFlow("if (signingRegionSet.size() > 1)")
-            .addStatement("throw $T.create($S)", SdkClientException.class, "Don't know how to set scope of > 1 region")
-            .endControlFlow();
+        spec.addStatement("$1T regionSet = $1T.create(sigv4aAuthScheme.signingRegionSet())", RegionSet.class);
 
         spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4aAuthScheme.SCHEME_ID)
             .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())", AwsV4aHttpSigner.class)
-            .addCode(".putSignerProperty($T.REGION_NAME, signingRegionSet.get(0))", AwsV4aHttpSigner.class)
+            .addCode(".putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class)
             .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4aAuthScheme.disableDoubleEncoding())",
                      AwsV4aHttpSigner.class)
+            .addCode(".build());");
+        spec.addStatement("break");
+    }
+
+    private void addAuthSchemeSwitchS3ExpressCase(MethodSpec.Builder spec) {
+        spec.addCode("case $S:", "sigv4-s3express");
+        ClassName s3ExpressEndpointAuthScheme = ClassName.get(
+            authSchemeSpecUtils.baseClientPackageName() + ".endpoints.authscheme",
+            "S3ExpressEndpointAuthScheme");
+        spec.addStatement("$T s3ExpressAuthScheme = $T.isInstanceOf($T.class, authScheme, $S, authScheme.getClass().getName())",
+                          s3ExpressEndpointAuthScheme, Validate.class, s3ExpressEndpointAuthScheme,
+                          "Expecting auth scheme of class S3ExpressAuthScheme, got instead object of class %s");
+
+        ClassName s3ExpressAuthScheme = ClassName.get(authSchemeSpecUtils.baseClientPackageName() + ".s3express",
+                                                      "S3ExpressAuthScheme");
+        spec.addCode("options.add($T.builder().schemeId($T.SCHEME_ID)", AuthSchemeOption.class, s3ExpressAuthScheme)
+            .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, s3ExpressAuthScheme.signingName())", AwsV4HttpSigner.class)
+            .addCode(".putSignerProperty($T.REGION_NAME, s3ExpressAuthScheme.signingRegion())", AwsV4HttpSigner.class)
+            .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !s3ExpressAuthScheme.disableDoubleEncoding())",
+                     AwsV4HttpSigner.class)
             .addCode(".build());");
         spec.addStatement("break");
     }

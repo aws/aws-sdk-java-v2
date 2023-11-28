@@ -64,6 +64,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final Duration connectionTimeout;
     private final HttpMonitoringOptions httpMonitoringOptions;
 
+    private final Boolean useEnvironmentVariableProxyOptionsValues;
+
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
                              builder.signingRegion;
@@ -113,6 +115,20 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             this.httpMonitoringOptions = null;
         }
         this.standardRetryOptions = builder.standardRetryOptions;
+        this.useEnvironmentVariableProxyOptionsValues = resolveUseEnvironmentVariableValues(builder);
+    }
+
+    private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
+        if (builder != null && builder.httpConfiguration != null) {
+            if (builder.httpConfiguration.proxyConfiguration() != null) {
+                return builder.httpConfiguration.proxyConfiguration().isUseEnvironmentVariableValues();
+            }
+        }
+        return true;
+    }
+
+    public Boolean isUseEnvironmentVariableValues() {
+        return useEnvironmentVariableProxyOptionsValues;
     }
 
     public HttpMonitoringOptions httpMonitoringOptions() {
@@ -142,6 +158,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
     public CredentialsProvider credentialsProvider() {
         return credentialsProvider;
+    }
+
+    public TlsContext tlsContext() {
+        return tlsContext;
     }
 
     public long partSizeBytes() {

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ClientType;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactio
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumStage;
@@ -44,6 +46,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmu
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.QueryParametersToBodyStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage;
@@ -79,7 +82,8 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
      * @return A builder used to configure and execute a HTTP request.
      */
     public RequestExecutionBuilder requestExecutionBuilder() {
-        return new RequestExecutionBuilderImpl();
+        return new RequestExecutionBuilderImpl()
+            .httpClientDependencies(httpClientDependencies);
     }
 
     /**
@@ -105,6 +109,16 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
          */
         RequestExecutionBuilder executionContext(ExecutionContext executionContext);
 
+        RequestExecutionBuilder httpClientDependencies(HttpClientDependencies httpClientDependencies);
+
+        HttpClientDependencies httpClientDependencies();
+
+        default RequestExecutionBuilder httpClientDependencies(Consumer<HttpClientDependencies.Builder> mutator) {
+            HttpClientDependencies.Builder builder = httpClientDependencies().toBuilder();
+            mutator.accept(builder);
+            return httpClientDependencies(builder.build());
+        }
+
         /**
          * Executes the request with the given configuration.
          *
@@ -128,8 +142,9 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         }
     }
 
-    private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
+    private static class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
+        private HttpClientDependencies httpClientDependencies;
         private SdkHttpFullRequest request;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
@@ -154,6 +169,17 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         }
 
         @Override
+        public RequestExecutionBuilder httpClientDependencies(HttpClientDependencies httpClientDependencies) {
+            this.httpClientDependencies = httpClientDependencies;
+            return this;
+        }
+
+        @Override
+        public HttpClientDependencies httpClientDependencies() {
+            return this.httpClientDependencies;
+        }
+
+        @Override
         public <OutputT> OutputT execute(HttpResponseHandler<Response<OutputT>> responseHandler) {
             // TODO: We currently have two ways of passing messages to the HTTP client: through the request or through the
             // execution interceptor context. We should combine these two methods when we refactor the way request execution
@@ -172,6 +198,8 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .then(ApplyUserAgentStage::new)
                                .then(MergeCustomHeadersStage::new)
                                .then(MergeCustomQueryParamsStage::new)
+                               .then(QueryParametersToBodyStage::new)
+                               .then(() -> new CompressRequestStage(httpClientDependencies))
                                .then(() -> new HttpChecksumStage(ClientType.SYNC))
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
@@ -207,7 +235,5 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                           .executionContext(executionContext)
                                           .build();
         }
-
     }
-
 }
