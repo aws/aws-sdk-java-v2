@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.21.33-SNAPSHOT</version>
+        <version>2.21.33</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -387,6 +387,10 @@
         <module>eksauth</module>
         <module>workspacesthinclient</module>
         <module>b2bi</module>
+        <module>bedrockagentruntime</module>
+        <module>qbusiness</module>
+        <module>qconnect</module>
+        <module>bedrockagent</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
