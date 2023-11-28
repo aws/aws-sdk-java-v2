@@ -19,28 +19,39 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
+import com.squareup.javapoet.WildcardTypeName;
+import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.codegen.model.config.customization.EndpointAuthSchemeConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 public class EndpointProviderSpec implements ClassSpec {
     private static final String RULE_SET_FIELD_NAME = "ENDPOINT_RULE_SET";
+    private static final String LOGGER_FIELD_NAME = "LOG";
 
     private final IntermediateModel intermediateModel;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
-
 
     public EndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
@@ -49,18 +60,145 @@ public class EndpointProviderSpec implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
+        FieldSpec endpointAuthSchemeStrategyFieldSpec = endpointAuthSchemeStrategyFieldSpec();
         TypeSpec.Builder b = PoetUtils.createClassBuilder(className())
                                       .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                       .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
+                                      .addField(logger())
                                       .addField(ruleSet())
+                                      .addField(endpointAuthSchemeStrategyFieldSpec)
                                       .addMethod(resolveEndpointMethod())
                                       .addMethod(toIdentifierValueMap())
                                       .addAnnotation(SdkInternalApi.class);
 
+        MethodSpec constructorMethod = constructorMethodSpec(endpointAuthSchemeStrategyFieldSpec.name);
+        MethodSpec valueAsEndpointOrThrowMethod = valueAsEndpointOrThrowMethodSpec();
+
+        b.addMethod(constructorMethod);
+        b.addMethod(valueAsEndpointOrThrowMethod);
         b.addMethod(ruleSetBuildMethod(b));
         b.addMethod(equalsMethod());
         b.addMethod(hashCodeMethod());
+        addKnownPropertiesMethodSpec(b, endpointAuthSchemeStrategyFieldSpec.name);
 
+        return b.build();
+    }
+
+    private FieldSpec endpointAuthSchemeStrategyFieldSpec() {
+        return FieldSpec.builder(endpointRulesSpecUtils.rulesRuntimeClassName("EndpointAuthSchemeStrategy"),
+                                 "endpointAuthSchemeStrategy", Modifier.PRIVATE, Modifier.FINAL)
+                        .build();
+    }
+
+    private MethodSpec constructorMethodSpec(String endpointAuthSchemeFieldName) {
+        MethodSpec.Builder b = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
+        EndpointAuthSchemeConfig endpointAuthSchemeConfig =
+            intermediateModel.getCustomizationConfig().getEndpointAuthSchemeConfig();
+        String factoryLocalVarName = "endpointAuthSchemeStrategyFactory";
+        if (endpointAuthSchemeConfig != null && endpointAuthSchemeConfig.getAuthSchemeStrategyFactoryClass() != null) {
+            String endpointAuthSchemeStrategyFactory = endpointAuthSchemeConfig.getAuthSchemeStrategyFactoryClass();
+            b.addStatement("$T $N = new $T()",
+                           endpointRulesSpecUtils.rulesRuntimeClassName("EndpointAuthSchemeStrategyFactory"),
+                           factoryLocalVarName,
+                           PoetUtils.classNameFromFqcn(endpointAuthSchemeStrategyFactory));
+        } else {
+            b.addStatement("$T $N = new $T()",
+                           endpointRulesSpecUtils.rulesRuntimeClassName("EndpointAuthSchemeStrategyFactory"),
+                           factoryLocalVarName,
+                           endpointRulesSpecUtils.rulesRuntimeClassName("DefaultEndpointAuthSchemeStrategyFactory"));
+        }
+        b.addStatement("this.$N = $N.endpointAuthSchemeStrategy()", endpointAuthSchemeFieldName, factoryLocalVarName);
+        return b.build();
+    }
+
+    private MethodSpec valueAsEndpointOrThrowMethodSpec() {
+        String valueParamName = "value";
+        ParameterSpec param = ParameterSpec.builder(endpointRulesSpecUtils.rulesRuntimeClassName("Value"), valueParamName)
+                                           .build();
+        MethodSpec.Builder b = MethodSpec.methodBuilder("valueAsEndpointOrThrow")
+                                         .returns(ClassName.get(Endpoint.class))
+                                         .addParameter(param);
+
+        CodeBlock.Builder methodCode =
+            CodeBlock.builder()
+                     .beginControlFlow("if ($N instanceof $T)",
+                                       valueParamName,
+                                       endpointRulesSpecUtils.rulesRuntimeClassName("Value.Endpoint"))
+                     .addStatement("$T endpoint = $N.expectEndpoint()",
+                                   endpointRulesSpecUtils.rulesRuntimeClassName("Value.Endpoint"), valueParamName)
+                     .addStatement("$T builder = Endpoint.builder()", Endpoint.Builder.class)
+                     .addStatement("builder.url($T.create(endpoint.getUrl()))", URI.class)
+                     .addStatement("$T headers = endpoint.getHeaders()",
+                                   ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                             TypeName.get(String.class),
+                                                             ParameterizedTypeName.get(List.class, String.class)))
+                     .beginControlFlow("if (headers != null)")
+                     .addStatement("headers.forEach((name, values) -> values.forEach(v -> builder.putHeader(name, v)))")
+                     .endControlFlow()
+                     .addStatement("addKnownProperties(builder, endpoint.getProperties())")
+                     .addStatement("return builder.build()")
+
+                     .nextControlFlow("else if ($N instanceof $T)",
+                                      valueParamName,
+                                      endpointRulesSpecUtils.rulesRuntimeClassName("Value.Str"))
+                     .addStatement("$T errorMsg = $N.expectString()", String.class, valueParamName)
+                     .beginControlFlow("if (errorMsg.contains($S) && errorMsg.contains($S))",
+                                       "Invalid ARN", ":s3:::")
+                     .addStatement("errorMsg += $S", ". Use the bucket name instead of simple bucket ARNs in "
+                                                     + "GetBucketLocationRequest.")
+                     .endControlFlow()
+                     .addStatement("throw $T.create(errorMsg)", SdkClientException.class)
+                     .nextControlFlow("else")
+                     .addStatement("throw SdkClientException.create($S + $N)",
+                                   "Rule engine return neither an endpoint result or error value. Returned value was: ",
+                                   valueParamName)
+                     .endControlFlow();
+
+        b.addCode(methodCode.build());
+        return b.build();
+    }
+
+    private void addKnownPropertiesMethodSpec(TypeSpec.Builder b, String endpointAuthSpecStrategyFieldName) {
+        EndpointAuthSchemeConfig endpointAuthSchemeConfig =
+            intermediateModel.getCustomizationConfig().getEndpointAuthSchemeConfig();
+        if (endpointAuthSchemeConfig != null && endpointAuthSchemeConfig.getKnownEndpointProperties() != null) {
+            addKnownEndpointPropertiesMethodOverride(b, endpointAuthSchemeConfig.getKnownEndpointProperties());
+        } else {
+            b.addMethod(defaultAddKnownEndpointPropertyMethod(endpointAuthSpecStrategyFieldName));
+        }
+    }
+
+    private MethodSpec defaultAddKnownEndpointPropertyMethod(String endpointAuthSpecStrategyFieldName) {
+        String builderParamName = "builder";
+        String propertiesParamName = "properties";
+        MethodSpec.Builder b = addKnowPropertiesSignature(builderParamName, propertiesParamName);
+
+        CodeBlock.Builder switchStatementCode = CodeBlock.builder();
+        switchStatementCode.beginControlFlow("switch (n)")
+                           .add("case $S:\n", "authSchemes").indent()
+                           .add(CodeBlock.builder()
+                                         .addStatement("$N.putAttribute($T.AUTH_SCHEMES, $N.createAuthSchemes(v))",
+                                                       builderParamName,
+                                                       AwsEndpointAttribute.class,
+                                                       endpointAuthSpecStrategyFieldName)
+                                         .build())
+                           .addStatement("break")
+                           .add("default:\n").indent()
+                           .add(CodeBlock.builder()
+                                         .addStatement("$N.debug(() -> $S + n)",
+                                                       LOGGER_FIELD_NAME,
+                                                       "Ignoring unknown endpoint property: ")
+                                         .build())
+                           .addStatement("break")
+                           .endControlFlow();
+        CodeBlock.Builder methodCode = CodeBlock.builder();
+        CodeBlock lambda = CodeBlock.builder()
+                                    .add("(n, v) -> {\n").indent()
+                                    .add(switchStatementCode.build())
+                                    .unindent().add("}")
+                                    .build();
+        methodCode.add("$N.forEach($L);", propertiesParamName, lambda);
+        b.addCode(methodCode.build());
         return b.build();
     }
 
@@ -83,11 +221,70 @@ public class EndpointProviderSpec implements ClassSpec {
                          .build();
     }
 
+    private void addKnownEndpointPropertiesMethodOverride(TypeSpec.Builder b, String knowPropertyExpression) {
+        MethodSpec singlePropertyMethod =
+            MethodSpec.methodBuilder("addKnownProperty")
+                      .addModifiers(Modifier.PRIVATE)
+                      .addTypeVariable(TypeVariableName.get("T"))
+                      .addParameter(ParameterSpec.builder(
+                          ParameterizedTypeName.get(endpointRulesSpecUtils.rulesRuntimeClassName("EndpointAttributeProvider"),
+                                                    TypeVariableName.get("T")),
+                          "provider").build())
+                      .addParameter(Endpoint.Builder.class, "builder")
+                      .addParameter(endpointRulesSpecUtils.rulesRuntimeClassName("Value"), "value")
+                      .addStatement("builder.putAttribute(provider.attributeKey(), provider.attributeValue(value))")
+                      .build();
+        b.addMethod(singlePropertyMethod);
+
+        String builderParamName = "builder";
+        String propertiesParamName = "properties";
+        MethodSpec.Builder methodBuilder = addKnowPropertiesSignature(builderParamName, propertiesParamName);
+
+        TypeName wildcardEndpointAttrType = ParameterizedTypeName.get(
+            endpointRulesSpecUtils.rulesRuntimeClassName("EndpointAttributeProvider"),
+            WildcardTypeName.subtypeOf(Object.class));
+        methodBuilder.addStatement("$T knownProperties = $N",
+                                   ParameterizedTypeName.get(ClassName.get(List.class), wildcardEndpointAttrType),
+                                   knowPropertyExpression);
+        methodBuilder.beginControlFlow("for ($T p: knownProperties)", wildcardEndpointAttrType);
+        methodBuilder.beginControlFlow("if ($N.containsKey(p.propertyName()))", propertiesParamName);
+        methodBuilder.addStatement("$N(p, $N, $N.get(p.propertyName()))",
+                                   singlePropertyMethod.name,
+                                   builderParamName,
+                                   propertiesParamName);
+        methodBuilder.endControlFlow();
+        methodBuilder.endControlFlow();
+
+        b.addMethod(methodBuilder.build());
+    }
+
+    private MethodSpec.Builder addKnowPropertiesSignature(String builderParamName, String propertiesParamName) {
+        ParameterSpec builderParam = ParameterSpec.builder(ClassName.get(Endpoint.Builder.class), builderParamName).build();
+        ParameterSpec propertiesParam = ParameterSpec
+            .builder(ParameterizedTypeName.get(
+                         ClassName.get(Map.class),
+                         ClassName.get(String.class),
+                         endpointRulesSpecUtils.rulesRuntimeClassName("Value")),
+                     propertiesParamName)
+            .build();
+        return MethodSpec.methodBuilder("addKnownProperties")
+                         .addModifiers(Modifier.PRIVATE)
+                         .addParameter(builderParam)
+                         .addParameter(propertiesParam);
+    }
+
     @Override
     public ClassName className() {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
                              "Default" + endpointRulesSpecUtils.providerInterfaceName().simpleName());
+    }
+
+    private FieldSpec logger() {
+        return FieldSpec.builder(Logger.class, LOGGER_FIELD_NAME)
+                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        .initializer("$T.loggerFor($T.class)", Logger.class, className())
+                        .build();
     }
 
     private FieldSpec ruleSet() {
@@ -161,9 +358,8 @@ public class EndpointProviderSpec implements ClassSpec {
                        paramsName);
 
         b.beginControlFlow("try");
-        b.addStatement("return $T.completedFuture($T.valueAsEndpointOrThrow($N))",
+        b.addStatement("return $T.completedFuture(valueAsEndpointOrThrow($N))",
                        CompletableFuture.class,
-                       endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"),
                        "res");
         b.endControlFlow();
         b.beginControlFlow("catch ($T error)", Exception.class);
@@ -189,14 +385,14 @@ public class EndpointProviderSpec implements ClassSpec {
 
         Map<String, ParameterModel> parameters = intermediateModel.getEndpointRuleSetModel().getParameters();
         parameters.entrySet().stream()
-                             .filter(e -> Boolean.TRUE.equals(e.getValue().isRequired()))
-                             .forEach(e -> {
-                                 b.addStatement("$T.notNull($N.$N(), $S)",
-                                                Validate.class,
-                                                "endpointParams",
-                                                endpointRulesSpecUtils.paramMethodName(e.getKey()),
-                                                String.format("Parameter '%s' must not be null", e.getKey()));
-                             });
+                  .filter(e -> Boolean.TRUE.equals(e.getValue().isRequired()))
+                  .forEach(e -> {
+                      b.addStatement("$T.notNull($N.$N(), $S)",
+                                     Validate.class,
+                                     "endpointParams",
+                                     endpointRulesSpecUtils.paramMethodName(e.getKey()),
+                                     String.format("Parameter '%s' must not be null", e.getKey()));
+                  });
 
         return b.build();
     }

@@ -98,32 +98,6 @@ public final class AwsEndpointProviderUtils {
         return endpoint.toBuilder().url(newUrl).build();
     }
 
-    public static Endpoint valueAsEndpointOrThrow(Value value) {
-        if (value instanceof Value.Endpoint) {
-            Value.Endpoint endpoint = value.expectEndpoint();
-            Endpoint.Builder builder = Endpoint.builder();
-            builder.url(URI.create(endpoint.getUrl()));
-
-            Map<String, List<String>> headers = endpoint.getHeaders();
-            if (headers != null) {
-                headers.forEach((name, values) -> values.forEach(v -> builder.putHeader(name, v)));
-            }
-
-            addKnownProperties(builder, endpoint.getProperties());
-
-            return builder.build();
-        } else if (value instanceof Value.Str) {
-            String errorMsg = value.expectString();
-            if (errorMsg.contains("Invalid ARN") && errorMsg.contains(":s3:::")) {
-                            errorMsg += ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest.";
-                        }
-            throw SdkClientException.create(errorMsg);
-        } else {
-            throw SdkClientException.create("Rule engine return neither an endpoint result or error value. Returned value was:"
-                    + value);
-        }
-    }
-
     /**
      * This sets the request URI to the resolved URI returned by the endpoint provider. There are some things to be
      * careful about to make this work properly:
@@ -176,19 +150,6 @@ public final class AwsEndpointProviderUtils {
         String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPath, "");
         String finalPath = SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
         return finalPath;
-    }
-
-    private static void addKnownProperties(Endpoint.Builder builder, Map<String, Value> properties) {
-        properties.forEach((n, v) -> {
-            switch (n) {
-            case "authSchemes":
-                builder.putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, AuthSchemeUtils.createAuthSchemes(v));
-                break;
-            default:
-                LOG.debug(() -> "Ignoring unknown endpoint property: " + n);
-                break;
-            }
-        });
     }
 
     private static void validatePrefixIsHostNameCompliant(String prefix) {

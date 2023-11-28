@@ -163,6 +163,8 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_S3_US_EAST_1_REGIONAL_ENDPOINT("aws.s3UseUsEast1RegionalEndpoint", null),
 
+    AWS_S3_DISABLE_EXPRESS_SESSION_AUTH("aws.disableS3ExpressAuth", null),
+
     /**
      * Which {@link RetryMode} to use for the default {@link RetryPolicy}, when one is not specified at the client level.
      */

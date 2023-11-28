@@ -172,6 +172,10 @@ public final class LruCache<K, V>  {
         return new Builder<>(supplier);
     }
 
+    public static <K, V> LruCache.Builder<K, V> builder() {
+        return new Builder<>(null);
+    }
+
     public static final class Builder<K, V> {
 
         private final Function<K, V> supplier;

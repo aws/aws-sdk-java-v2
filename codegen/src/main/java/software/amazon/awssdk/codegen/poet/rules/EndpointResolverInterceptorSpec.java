@@ -20,11 +20,13 @@ import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
+import software.amazon.awssdk.codegen.model.config.customization.EndpointAuthSchemeConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
@@ -63,6 +66,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -73,6 +77,7 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
@@ -100,12 +105,17 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
+        FieldSpec endpointAuthSchemeStrategyFieldSpec = endpointAuthSchemeStrategyFieldSpec();
         TypeSpec.Builder b = PoetUtils.createClassBuilder(className())
                                       .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                       .addAnnotation(SdkInternalApi.class)
                                       .addSuperinterface(ExecutionInterceptor.class);
 
-        b.addMethod(modifyRequestMethod());
+        if (!useSraAuth) {
+            b.addField(endpointAuthSchemeStrategyFieldSpec);
+            b.addMethod(constructorMethodSpec(endpointAuthSchemeStrategyFieldSpec.name));
+        }
+        b.addMethod(modifyRequestMethod(endpointAuthSchemeStrategyFieldSpec.name));
         b.addMethod(modifyHttpRequestMethod());
         b.addMethod(ruleParams());
 
@@ -135,7 +145,13 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         return endpointRulesSpecUtils.resolverInterceptorName();
     }
 
-    private MethodSpec modifyRequestMethod() {
+    private FieldSpec endpointAuthSchemeStrategyFieldSpec() {
+        return FieldSpec.builder(endpointRulesSpecUtils.rulesRuntimeClassName("EndpointAuthSchemeStrategy"),
+                                 "endpointAuthSchemeStrategy", Modifier.PRIVATE, Modifier.FINAL)
+                        .build();
+    }
+
+    private MethodSpec modifyRequestMethod(String endpointAuthSchemeStrategyFieldName) {
 
         MethodSpec.Builder b = MethodSpec.methodBuilder("modifyRequest")
                                          .addModifiers(Modifier.PUBLIC)
@@ -156,8 +172,15 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("$1T $2N = ($1T) executionAttributes.getAttribute($3T.ENDPOINT_PROVIDER)",
                        endpointRulesSpecUtils.providerInterfaceName(), providerVar, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("try");
+        b.addStatement("long resolveEndpointStart = $T.nanoTime()", System.class);
         b.addStatement("$T endpoint = $N.resolveEndpoint(ruleParams(result, executionAttributes)).join()",
                        Endpoint.class, providerVar);
+        b.addStatement("$1T resolveEndpointDuration = $1T.ofNanos($2T.nanoTime() - resolveEndpointStart)", Duration.class,
+                       System.class);
+        b.addStatement("$T metricCollector = executionAttributes.getOptionalAttribute($T.API_CALL_METRIC_COLLECTOR)",
+                       ParameterizedTypeName.get(Optional.class, MetricCollector.class), SdkExecutionAttribute.class);
+        b.addStatement("metricCollector.ifPresent(mc -> mc.reportMetric($T.ENDPOINT_RESOLVE_DURATION, resolveEndpointDuration))",
+                       CoreMetric.class);
         b.beginControlFlow("if (!$T.disableHostPrefixInjection(executionAttributes))",
                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
         b.addStatement("$T hostPrefix = hostPrefix(executionAttributes.getAttribute($T.OPERATION_NAME), result)",
@@ -185,8 +208,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         // For pre SRA client, use Signer as determined by endpoint resolved auth scheme
         if (!useSraAuth) {
             b.beginControlFlow("if (endpointAuthSchemes != null)");
-            b.addStatement("$T chosenAuthScheme = $T.chooseAuthScheme(endpointAuthSchemes)", EndpointAuthScheme.class,
-                           endpointRulesSpecUtils.rulesRuntimeClassName("AuthSchemeUtils"));
+            b.addStatement("$T chosenAuthScheme = $N.chooseAuthScheme(endpointAuthSchemes)", EndpointAuthScheme.class,
+                           endpointAuthSchemeStrategyFieldName);
             b.addStatement("$T<$T> signerProvider = signerProvider(chosenAuthScheme)", Supplier.class, Signer.class);
             b.addStatement("result = $T.overrideSignerIfNotOverridden(result, executionAttributes, signerProvider)",
                            SignerOverrideUtils.class);
@@ -574,6 +597,9 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         if (dependsOnHttpAuthAws) {
             method.addCode(copyV4EndpointSignerPropertiesToAuth());
             method.addCode(copyV4aEndpointSignerPropertiesToAuth());
+            if (endpointRulesSpecUtils.useS3Express()) {
+                method.addCode(copyS3ExpressEndpointSignerPropertiesToAuth());
+            }
         }
 
         method.addStatement("throw new $T(\"Endpoint auth scheme '\" + endpointAuthScheme.name() + \"' cannot be mapped to the "
@@ -641,6 +667,35 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         return code.build();
     }
 
+    private CodeBlock copyS3ExpressEndpointSignerPropertiesToAuth() {
+        CodeBlock.Builder code = CodeBlock.builder();
+        ClassName s3ExpressEndpointAuthSchemeClassName = ClassName.get(
+            model.getMetadata().getFullClientPackageName() + ".endpoints.authscheme",
+            "S3ExpressEndpointAuthScheme");
+        code.beginControlFlow("if (endpointAuthScheme instanceof $T)", s3ExpressEndpointAuthSchemeClassName);
+        code.addStatement("$1T s3ExpressAuthScheme = ($1T) endpointAuthScheme", s3ExpressEndpointAuthSchemeClassName);
+
+        code.beginControlFlow("if (s3ExpressAuthScheme.isDisableDoubleEncodingSet())");
+        code.addStatement("option.putSignerProperty($T.DOUBLE_URL_ENCODE, !s3ExpressAuthScheme.disableDoubleEncoding())",
+                          AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (s3ExpressAuthScheme.signingRegion() != null)");
+        code.addStatement("option.putSignerProperty($T.REGION_NAME, s3ExpressAuthScheme.signingRegion())",
+                          AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.beginControlFlow("if (s3ExpressAuthScheme.signingName() != null)");
+        code.addStatement("option.putSignerProperty($T.SERVICE_SIGNING_NAME, s3ExpressAuthScheme.signingName())",
+                          AwsV4HttpSigner.class);
+        code.endControlFlow();
+
+        code.addStatement("return new $T<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build())",
+                          SelectedAuthScheme.class);
+        code.endControlFlow();
+        return code.build();
+    }
+
     private MethodSpec signerProviderMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("signerProvider")
                                                .addModifiers(Modifier.PRIVATE)
@@ -671,5 +726,24 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                              "Don't know how to create signer for auth scheme: ");
 
         return builder.build();
+    }
+
+    private MethodSpec constructorMethodSpec(String endpointAuthSchemeFieldName) {
+        MethodSpec.Builder b = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
+        EndpointAuthSchemeConfig endpointAuthSchemeConfig = model.getCustomizationConfig().getEndpointAuthSchemeConfig();
+        String factoryLocalVarName = "endpointAuthSchemeStrategyFactory";
+        if (endpointAuthSchemeConfig != null && endpointAuthSchemeConfig.getAuthSchemeStrategyFactoryClass() != null) {
+            b.addStatement("$T $N = new $T()",
+                           endpointRulesSpecUtils.rulesRuntimeClassName("EndpointAuthSchemeStrategyFactory"),
+                           factoryLocalVarName,
+                           PoetUtils.classNameFromFqcn(endpointAuthSchemeConfig.getAuthSchemeStrategyFactoryClass()));
+        } else {
+            b.addStatement("$T $N = new $T()",
+                           endpointRulesSpecUtils.rulesRuntimeClassName("EndpointAuthSchemeStrategyFactory"),
+                           factoryLocalVarName,
+                           endpointRulesSpecUtils.rulesRuntimeClassName("DefaultEndpointAuthSchemeStrategyFactory"));
+        }
+        b.addStatement("this.$N = $N.endpointAuthSchemeStrategy()", endpointAuthSchemeFieldName, factoryLocalVarName);
+        return b.build();
     }
 }

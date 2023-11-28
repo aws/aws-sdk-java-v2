@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.model.rules.endpoints;
 import com.fasterxml.jackson.core.TreeNode;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.utils.ToString;
 
 public class ExpectModel {
     private String error;
@@ -37,6 +38,14 @@ public class ExpectModel {
 
     public void setEndpoint(Endpoint endpoint) {
         this.endpoint = endpoint;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ExpectModel")
+                       .add("error", error)
+                       .add("endpoint", endpoint)
+                       .build();
     }
 
     public static class Endpoint {
@@ -66,6 +75,15 @@ public class ExpectModel {
 
         public void setProperties(Map<String, TreeNode> properties) {
             this.properties = properties;
+        }
+
+        @Override
+        public String toString() {
+            return ToString.builder("Endpoint")
+                           .add("url", url)
+                           .add("headers", headers)
+                           .add("properties", properties)
+                           .build();
         }
     }
 }

@@ -172,7 +172,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 type.addMethod(isSignerOverriddenOnClientMethod());
             }
         }
-        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
+                                                          "S3".equals(model.getMetadata().getServiceName())));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
     }
 
@@ -292,7 +293,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     protected static MethodSpec updateSdkClientConfigurationMethod(
-        TypeName serviceClientConfigurationBuilderClassName) {
+        TypeName serviceClientConfigurationBuilderClassName,
+        boolean shouldAddClientReference) {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
                                                .addModifiers(PRIVATE)
                                                .addParameter(SdkRequest.class, "request")
@@ -302,10 +304,15 @@ public final class AsyncClientClass extends AsyncClientInterface {
         builder.addStatement("$T plugins = request.overrideConfiguration()\n"
                              + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class))
-               .beginControlFlow("if (plugins.isEmpty())")
-               .addStatement("return clientConfiguration")
+               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
+
+        if (shouldAddClientReference) {
+            builder.addStatement("configuration.option($T.SDK_CLIENT, this)", SdkClientOption.class);
+        }
+
+        builder.beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return configuration.build()")
                .endControlFlow()
-               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class)
                .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
                .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
