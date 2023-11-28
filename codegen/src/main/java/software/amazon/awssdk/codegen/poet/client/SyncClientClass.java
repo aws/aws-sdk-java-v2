@@ -20,7 +20,6 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
-import static software.amazon.awssdk.codegen.poet.client.AsyncClientClass.updateSdkClientConfigurationMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
@@ -28,6 +27,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
@@ -57,6 +57,8 @@ import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -139,7 +141,8 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethod(resolveMetricPublishersMethod());
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
-        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
+                                                          "S3".equals(model.getMetadata().getServiceName())));
         type.addMethod(protocolSpec.initProtocolFactory(model));
     }
 
@@ -413,5 +416,35 @@ public class SyncClientClass extends SyncClientInterface {
         return builder.addAnnotation(Override.class)
                       .addStatement("return $T.builder().client(this).build()",
                                     poetExtensions.getSyncWaiterInterface());
+    }
+
+    protected static MethodSpec updateSdkClientConfigurationMethod(
+        TypeName serviceClientConfigurationBuilderClassName,
+        boolean shouldAddClientReference) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(SdkRequest.class, "request")
+                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .returns(SdkClientConfiguration.class);
+
+        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
+                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
+               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
+
+        if (shouldAddClientReference) {
+            builder.addStatement("configuration.option($T.SDK_CLIENT, this)", SdkClientOption.class);
+        }
+
+        builder.beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return configuration.build()")
+               .endControlFlow()
+               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
+               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("plugin.configureClient(serviceConfigBuilder)")
+               .endControlFlow()
+               .addStatement("return configuration.build()");
+
+        return builder.build();
     }
 }

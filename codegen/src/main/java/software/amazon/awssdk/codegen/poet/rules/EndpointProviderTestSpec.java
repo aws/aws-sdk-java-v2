@@ -29,6 +29,7 @@ import java.util.Map;
 import javax.lang.model.element.Modifier;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestModel;
@@ -84,11 +85,12 @@ public class EndpointProviderTestSpec implements ClassSpec {
 
         b.addStatement("$T testCases = new $T<>()", returnType, ArrayList.class);
 
+        CustomizationConfig customizationConfig = model.getCustomizationConfig();
         model.getEndpointTestSuiteModel().getTestCases().forEach(test -> {
             b.addStatement("testCases.add(new $T($L, $L))",
                            EndpointProviderTestCase.class,
                            createTestCase(test),
-                           TestGeneratorUtils.createExpect(test.getExpect(), null, null));
+                           TestGeneratorUtils.createExpect(customizationConfig, test.getExpect(), null, null));
         });
 
         b.addStatement("return testCases");
