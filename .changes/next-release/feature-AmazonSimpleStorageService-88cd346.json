@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "Adds support for S3 Express One Zone."
+}
