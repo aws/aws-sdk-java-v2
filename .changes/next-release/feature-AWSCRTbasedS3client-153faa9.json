@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT-based S3 client",
-    "contributor": "",
-    "description": "Add S3 express support for the AWS CRT-based S3 client."
-}
