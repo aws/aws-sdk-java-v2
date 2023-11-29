@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Adds SDK support for Amazon S3 Express One Zone. For usage, consult Javadocs and the official documentation. Note that users can switch off CreateSession authentication and use the regular credential providers to sign requests by using the `disableS3ExpressSessionAuth` option on the client builder, environment variables, system properties or the config file."
-}

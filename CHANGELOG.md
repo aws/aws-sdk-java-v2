@@ -1,3 +1,48 @@
+# __2.21.34__ __2023-11-29__
+## __AWS CRT-based S3 client__
+  - ### Features
+    - Add S3 express support for the AWS CRT-based S3 client.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - AWS Clean Rooms now provides differential privacy to protect against user-identification attempts and machine learning modeling to allow two parties to identify similar users in their data.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `cloudwatch-metric-publisher` to `aws-sdk-java` module so that it can be included in the bundle JAR.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Launching Amazon OpenSearch Service support for new zero-ETL integration with Amazon S3. Customers can now manage their direct query data sources to Amazon S3 programatically
+
+## __Amazon S3__
+  - ### Features
+    - Adds SDK support for Amazon S3 Express One Zone. For usage, consult Javadocs and the official documentation. Note that users can switch off CreateSession authentication and use the regular credential providers to sign requests by using the `disableS3ExpressSessionAuth` option on the client builder, environment variables, system properties or the config file.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - This release adds InferenceComponentName to InvokeEndpoint and InvokeEndpointWithResponseStream APIs to get inferences from the deployed InferenceComponents.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds following support 1/ Improved SDK tooling for model deployment. 2/ New Inference Component based features to lower inference costs and latency 3/ SageMaker HyperPod management. 4/ Additional parameters for FM Fine Tuning in Autopilot
+
+## __Application Auto Scaling__
+  - ### Features
+    - Amazon SageMaker customers can now use Application Auto Scaling to automatically scale the number of Inference Component copies across an endpoint to meet the varying demand of their workloads.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Amazon OpenSearch Serverless collections support an additional attribute called standby-replicas. This allows to specify whether a collection should have redundancy enabled.
+
+## __cleanrooms-ml__
+  - ### Features
+    - Public Preview SDK release of AWS Clean Rooms ML APIs
+
 # __2.21.33__ __2023-11-28__
 ## __AWS S3 Control__
   - ### Features
