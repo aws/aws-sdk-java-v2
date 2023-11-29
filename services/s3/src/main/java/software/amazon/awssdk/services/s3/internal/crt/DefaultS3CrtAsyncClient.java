@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES;
 
 import java.net.URI;
@@ -58,6 +61,7 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
+import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressUtils;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -129,6 +133,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             .accelerate(builder.accelerate)
                             .forcePathStyle(builder.forcePathStyle)
                             .crossRegionAccessEnabled(builder.crossRegionAccessEnabled)
+                            .putAuthScheme(new CrtS3ExpressNoOpAuthScheme())
                             .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder))
                             .build();
     }
@@ -309,6 +314,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                        .put(SIGNING_REGION, executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
                        .put(S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH,
                             executionAttributes.getAttribute(OBJECT_FILE_PATH))
+                       .put(USE_S3_EXPRESS_AUTH, S3ExpressUtils.useS3ExpressAuthScheme(executionAttributes))
+                       .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
                        .build();
 
             // For putObject and getObject, we rely on CRT to perform checksum validation

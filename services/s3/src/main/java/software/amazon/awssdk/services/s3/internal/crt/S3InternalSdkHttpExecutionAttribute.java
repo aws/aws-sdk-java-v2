@@ -40,9 +40,14 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
     public static final S3InternalSdkHttpExecutionAttribute<Region> SIGNING_REGION =
         new S3InternalSdkHttpExecutionAttribute<>(Region.class);
 
+    public static final S3InternalSdkHttpExecutionAttribute<String> SIGNING_NAME =
+        new S3InternalSdkHttpExecutionAttribute<>(String.class);
+
     public static final S3InternalSdkHttpExecutionAttribute<Path> OBJECT_FILE_PATH =
         new S3InternalSdkHttpExecutionAttribute<>(Path.class);
 
+    public static final S3InternalSdkHttpExecutionAttribute<Boolean> USE_S3_EXPRESS_AUTH =
+        new S3InternalSdkHttpExecutionAttribute<>(Boolean.class);
 
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);
