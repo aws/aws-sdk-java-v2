@@ -389,40 +389,42 @@ public class S3CrtAsyncHttpClientTest {
                                                                                 .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
                                                                                 .build())
                                        .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        assertThat(clientOptions.getConnectTimeoutMs()).isEqualTo(1000);
-        assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(1024);
-        assertThat(clientOptions.getStandardRetryOptions().getBackoffRetryOptions().getMaxRetries()).isEqualTo(7);
-        assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
-        assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
-            assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
-            assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
-        });
-        assertThat(clientOptions.getProxyOptions()).satisfies(options -> {
-            assertThat(options.getHost()).isEqualTo("127.0.0.1");
-            assertThat(options.getPort()).isEqualTo(8080);
-        });
-        assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
-            assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
-            assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
-        });
-        assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getConnectTimeoutMs()).isEqualTo(1000);
+            assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(1024);
+            assertThat(clientOptions.getStandardRetryOptions().getBackoffRetryOptions().getMaxRetries()).isEqualTo(7);
+            assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
+            assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
+                assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
+                assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
+            });
+            assertThat(clientOptions.getProxyOptions()).satisfies(options -> {
+                assertThat(options.getHost()).isEqualTo("127.0.0.1");
+                assertThat(options.getPort()).isEqualTo(8080);
+            });
+            assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
+                assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
+                assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
+            });
+            assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
+        }
     }
 
     @Test
     void build_partSizeConfigured_shouldApplyToThreshold() {
-        long partSizeInBytes = 10L;
+        long partSizeInBytes = 1024 * 8L;
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
                                        .partSizeInBytes(partSizeInBytes)
                                        .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        assertThat(clientOptions.getPartSize()).isEqualTo(partSizeInBytes);
-        assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(clientOptions.getPartSize());
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getPartSize()).isEqualTo(partSizeInBytes);
+            assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(clientOptions.getPartSize());
+        }
     }
 
     @Test
@@ -430,14 +432,15 @@ public class S3CrtAsyncHttpClientTest {
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
                                        .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        assertThat(clientOptions.getConnectTimeoutMs()).isZero();
-        assertThat(clientOptions.getMaxConnections()).isZero();
-        assertThat(clientOptions.getMonitoringOptions()).isNull();
-        assertThat(clientOptions.getProxyOptions()).isNull();
-        assertThat(clientOptions.getMonitoringOptions()).isNull();
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getConnectTimeoutMs()).isZero();
+            assertThat(clientOptions.getMaxConnections()).isZero();
+            assertThat(clientOptions.getMonitoringOptions()).isNull();
+            assertThat(clientOptions.getProxyOptions()).isNull();
+            assertThat(clientOptions.getMonitoringOptions()).isNull();
+        }
     }
 
     private static Stream<Arguments> s3CrtHttpConfigurations() {
@@ -488,14 +491,15 @@ public class S3CrtAsyncHttpClientTest {
             S3NativeClientConfiguration.builder()
                                        .httpConfiguration(s3CrtHttpConfiguration)
                                        .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        if (environmentVariableType == null) {
-            assertThat(clientOptions.getHttpProxyEnvironmentVariableSetting()).isNull();
-        } else {
-            assertThat(clientOptions.getHttpProxyEnvironmentVariableSetting().getEnvironmentVariableType())
-                .isEqualTo(environmentVariableType);
+        try(S3CrtAsyncHttpClient client =
+            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            if (environmentVariableType == null) {
+                assertThat(clientOptions.getHttpProxyEnvironmentVariableSetting()).isNull();
+            } else {
+                assertThat(clientOptions.getHttpProxyEnvironmentVariableSetting().getEnvironmentVariableType())
+                    .isEqualTo(environmentVariableType);
+            }
         }
     }
 
