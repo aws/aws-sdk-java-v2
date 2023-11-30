@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Adds observation and analyzer support to the GetDataQualityResult and BatchGetDataQualityResult APIs."
-}
