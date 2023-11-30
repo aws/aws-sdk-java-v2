@@ -61,6 +61,8 @@
         <module>http-clients</module>
         <module>codegen-maven-plugin</module>
         <module>bundle</module>
+        <module>bundle-sdk</module>
+        <module>bundle-logging-bridge</module>
         <module>build-tools</module>
         <module>metric-publishers</module>
         <module>release-scripts</module>

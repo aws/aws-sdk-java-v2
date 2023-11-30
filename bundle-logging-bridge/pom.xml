@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
@@ -19,24 +19,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>aws-sdk-java-pom</artifactId>
         <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java-pom</artifactId>
         <version>2.21.32-SNAPSHOT</version>
     </parent>
+    <artifactId>bundle-logging-bridge</artifactId>
+    <packaging>jar</packaging>
 
-    <artifactId>third-party</artifactId>
-    <name>AWS Java SDK :: Third Party</name>
-    <packaging>pom</packaging>
-    <description>
-        The AWS SDK for Java - Third Party is an umbrella module that contains child modules which are shaded third-
-        party dependencies.
-    </description>
+    <name>AWS Java SDK :: Bundle Logging Bridge</name>
+    <url>https://aws.amazon.com/sdkforjava</url>
 
-    <modules>
-        <module>third-party-jackson-core</module>
-        <module>third-party-jackson-dataformat-cbor</module>
-        <module>third-party-slf4j-api</module>
-    </modules>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <sonar.skip>true</sonar.skip>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -50,18 +46,27 @@
         </dependencies>
     </dependencyManagement>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <!-- Do not check for usage of dependencies, this module exists just for shading. -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <configuration>
-                        <skip>true</skip>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- Provided scope as the 'thirdparty.org.slf4j' will be in the shaded bundle ill be in the bundle -->
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>third-party-slf4j-api</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- Brought in by bundle user SLF4J impl -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
 </project>
