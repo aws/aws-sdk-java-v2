@@ -1,3 +1,16 @@
+# __2.21.36__ __2023-11-30__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - This release adds a new capability, zonal autoshift. You can configure zonal autoshift so that AWS shifts traffic for a resource away from an Availability Zone, on your behalf, when AWS determines that there is an issue that could potentially affect customers in the Availability Zone.
+
+## __AWS Glue__
+  - ### Features
+    - Adds observation and analyzer support to the GetDataQualityResult and BatchGetDataQualityResult APIs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for 1/ Code Editor, based on Code-OSS, Visual Studio Code Open Source, a new fully managed IDE option in SageMaker Studio 2/ JupyterLab, a new fully managed JupyterLab IDE experience in SageMaker Studio
+
 # __2.21.35__ __2023-11-29__
 ## __AWS Marketplace Agreement Service__
   - ### Features
@@ -2063,7 +2076,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -3804,7 +3817,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
