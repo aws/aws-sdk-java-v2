@@ -36,6 +36,7 @@ import static software.amazon.awssdk.utils.ScheduledExecutorUtils.unwrapUnmanage
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -705,7 +706,8 @@ public final class ClientOverrideConfiguration
 
         @Override
         public Map<String, List<String>> headers() {
-            return CollectionUtils.unmodifiableMapOfLists(config.option(ADDITIONAL_HTTP_HEADERS));
+            Map<String, List<String>> option = Validate.getOrDefault(config.option(ADDITIONAL_HTTP_HEADERS), HashMap::new);
+            return CollectionUtils.unmodifiableMapOfLists(option);
         }
 
         @Override

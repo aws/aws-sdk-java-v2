@@ -278,4 +278,16 @@ public class ClientOverrideConfigurationTest {
         ClientOverrideConfiguration overrideConfig = builder.build();
         assertThat(overrideConfig.executionAttributes().getAttribute(addedAttribute)).isEqualTo(addedValue);
     }
+
+    @Test
+    void builder_headersWithEmptyAdditionalHeaders_shouldReturnEmptyMap_shouldNotThrowNullPointerException() {
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+        Map<String, List<String>> headers = builder.headers();
+        assertThat(headers).isEmpty(); // <--- should not throw NPE
+        Map<String, List<String>> newHeaders = new HashMap<>();
+        newHeaders.put("my-key", Collections.singletonList("my-value"));
+        newHeaders.putAll(headers); // <--- should not throw NPE
+        assertThat(newHeaders).containsEntry("my-key", Collections.singletonList("my-value"))
+            .hasSize(1);
+    }
 }
