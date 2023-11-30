@@ -31,6 +31,8 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.services.sqs.endpoints.SqsClientContextParams;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
@@ -77,7 +80,8 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
         SdkResponse response = context.response();
         SdkRequest originalRequest = context.request();
-        if (response != null) {
+
+        if (response != null && validateMessageMD5Enabled(executionAttributes)) {
             if (originalRequest instanceof SendMessageRequest) {
                 SendMessageRequest sendMessageRequest = (SendMessageRequest) originalRequest;
                 SendMessageResponse sendMessageResult = (SendMessageResponse) response;
@@ -93,6 +97,12 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
                 sendMessageBatchOperationMd5Check(sendMessageBatchRequest, sendMessageBatchResult);
             }
         }
+    }
+
+    private static boolean validateMessageMD5Enabled(ExecutionAttributes executionAttributes) {
+        AttributeMap clientContextParams = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
+        Boolean disableMd5Validation = clientContextParams.get(SqsClientContextParams.DISABLE_DEFAULT_CHECKSUM_VALIDATION);
+        return disableMd5Validation == null || !disableMd5Validation;
     }
 
     /**

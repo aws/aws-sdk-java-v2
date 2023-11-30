@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SQS",
+    "contributor": "",
+    "description": "Adds a client builder option to disable the default MD5 checksum validation for SendMessage, ReceiveMessage and SendMessageBatch"
+}
