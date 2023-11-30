@@ -32,7 +32,6 @@ import software.amazon.awssdk.identity.spi.internal.DefaultAwsCredentialsIdentit
 @SdkPublicApi
 @ThreadSafe
 public interface AwsCredentialsIdentity extends Identity {
-
     /**
      * Retrieve the AWS access key, used to identify the user interacting with services.
      */

@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.CompressionConfiguration;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -262,6 +263,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<CompressionConfiguration> COMPRESSION_CONFIGURATION =
         new SdkClientOption<>(CompressionConfiguration.class);
+
+    /**
+     * Option to specify a reference to the SDK client in use.
+     */
+    public static final SdkClientOption<SdkClient> SDK_CLIENT = new SdkClientOption<>(SdkClient.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

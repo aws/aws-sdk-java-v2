@@ -19,8 +19,10 @@ import static software.amazon.awssdk.core.internal.util.MetricUtils.collectHttpM
 import static software.amazon.awssdk.core.internal.util.MetricUtils.createAttemptMetricsCollector;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
@@ -48,6 +50,7 @@ public final class ApiCallAttemptMetricCollectionStage<OutputT> implements Reque
         context.attemptMetricCollector(apiCallAttemptMetrics);
         reportBackoffDelay(context);
 
+        resetBytesRead(context);
         try {
             Response<OutputT> response = wrapped.execute(input, context);
             collectHttpMetrics(apiCallAttemptMetrics, response.httpResponse());
@@ -60,6 +63,10 @@ public final class ApiCallAttemptMetricCollectionStage<OutputT> implements Reque
             reportErrorType(context, e);
             throw e;
         }
+    }
+
+    private void resetBytesRead(RequestExecutionContext context) {
+        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ, new AtomicLong(0));
     }
 
     private void reportBackoffDelay(RequestExecutionContext context) {

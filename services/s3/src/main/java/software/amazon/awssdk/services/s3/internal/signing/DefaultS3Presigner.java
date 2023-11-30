@@ -83,6 +83,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 import software.amazon.awssdk.services.s3.auth.scheme.internal.S3AuthSchemeInterceptor;
@@ -91,6 +92,7 @@ import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3RequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointInterceptor;
 import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
+import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressAuthSchemeProvider;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -113,6 +115,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
+import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
 import software.amazon.awssdk.services.s3.transform.AbortMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.CompleteMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.CreateMultipartUploadRequestMarshaller;
@@ -146,8 +149,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final CompleteMultipartUploadRequestMarshaller completeMultipartUploadRequestMarshaller;
     private final AbortMultipartUploadRequestMarshaller abortMultipartUploadRequestMarshaller;
     private final SdkClientConfiguration clientConfiguration;
-    private final AttributeMap clientContextParams;
     private final UseGlobalEndpointResolver useGlobalEndpointResolver;
+    private final Boolean disableS3ExpressSessionAuth;
+    private final S3Client s3Client;
 
     private DefaultS3Presigner(Builder b) {
         super(b);
@@ -173,6 +177,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         if (dualstackEnabled() != null) {
             serviceConfigBuilder.dualstackEnabled(dualstackEnabled());
         }
+        this.disableS3ExpressSessionAuth = b.disableS3ExpressSessionAuth;
+        this.s3Client = b.s3Client;
 
         this.serviceConfiguration = serviceConfigBuilder.build();
 
@@ -205,8 +211,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         // Copied from DefaultS3Client#abortMultipartUpload
         this.abortMultipartUploadRequestMarshaller = new AbortMultipartUploadRequestMarshaller(protocolFactory);
-
-        this.clientContextParams = createClientContextParams();
 
         this.useGlobalEndpointResolver = createUseGlobalEndpointResolver();
     }
@@ -352,7 +356,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         Instant expiration = signingInstant.plus(expirationDuration);
 
         ExecutionContext execCtx =
-            invokeInterceptorsAndCreateExecutionContext(presignRequest, requestToPresign, operationName, expiration);
+            invokeInterceptorsAndCreateExecutionContext(requestToPresign, operationName, expiration);
 
         callBeforeMarshallingHooks(execCtx);
         marshalRequestAndUpdateContext(execCtx, requestToPresignType, requestMarshaller);
@@ -374,8 +378,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     /**
      * Creates an execution context from the provided request information.
      */
-    private ExecutionContext invokeInterceptorsAndCreateExecutionContext(PresignRequest presignRequest,
-                                                                         SdkRequest sdkRequest,
+    private ExecutionContext invokeInterceptorsAndCreateExecutionContext(SdkRequest sdkRequest,
                                                                          String operationName,
                                                                          Instant expiration) {
 
@@ -396,10 +399,19 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, serviceConfiguration.dualstackEnabled())
             .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, useGlobalEndpointResolver.resolve(region()))
-            .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams)
-            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, S3AuthSchemeProvider.defaultProvider())
+            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER,
+                          S3ExpressAuthSchemeProvider.create(S3AuthSchemeProvider.defaultProvider()))
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, resolveIdentityProviders(sdkRequest));
+
+        Boolean resolvedDisableS3ExpressSessionAuth = disableS3ExpressSessionAuth;
+        if (s3Client != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.SDK_CLIENT, s3Client);
+        } else {
+            resolvedDisableS3ExpressSessionAuth = Boolean.TRUE;
+        }
+        AttributeMap clientContextParams = createClientContextParams(resolvedDisableS3ExpressSessionAuth);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams);
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
 
@@ -434,11 +446,13 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
 
     private Map<String, AuthScheme<?>> authSchemes() {
-        Map<String, AuthScheme<?>> schemes = new HashMap<>(2);
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(3);
         AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
         schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
         AwsV4aAuthScheme awsV4aAuthScheme = AwsV4aAuthScheme.create();
         schemes.put(awsV4aAuthScheme.schemeId(), awsV4aAuthScheme);
+        S3ExpressAuthScheme s3ExpressAuthScheme = S3ExpressAuthScheme.create();
+        schemes.put(s3ExpressAuthScheme.schemeId(), s3ExpressAuthScheme);
         return Collections.unmodifiableMap(schemes);
     }
 
@@ -631,7 +645,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                         .signedPayload(signedPayload);
     }
 
-    private AttributeMap createClientContextParams() {
+    private AttributeMap createClientContextParams(Boolean resolvedDisableS3ExpressSessionAuth) {
         AttributeMap.Builder params = AttributeMap.builder();
 
         params.put(S3ClientContextParams.USE_ARN_REGION, serviceConfiguration.useArnRegionEnabled());
@@ -639,7 +653,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                 !serviceConfiguration.multiRegionEnabled());
         params.put(S3ClientContextParams.FORCE_PATH_STYLE, serviceConfiguration.pathStyleAccessEnabled());
         params.put(S3ClientContextParams.ACCELERATE, serviceConfiguration.accelerateModeEnabled());
-
+        params.put(S3ClientContextParams.DISABLE_S3_EXPRESS_SESSION_AUTH, resolvedDisableS3ExpressSessionAuth);
         return params.build();
     }
 
@@ -662,6 +676,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         implements S3Presigner.Builder {
 
         private S3Configuration serviceConfiguration;
+        private Boolean disableS3ExpressSessionAuth;
+        private S3Client s3Client;
 
         private Builder() {
         }
@@ -677,6 +693,18 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         @Override
         public Builder serviceConfiguration(S3Configuration serviceConfiguration) {
             this.serviceConfiguration = serviceConfiguration;
+            return this;
+        }
+
+        @Override
+        public Builder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth) {
+            this.disableS3ExpressSessionAuth = disableS3ExpressSessionAuth;
+            return this;
+        }
+
+        @Override
+        public Builder s3Client(S3Client s3Client) {
+            this.s3Client = s3Client;
             return this;
         }
 
