@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Catalog Service",
+    "contributor": "",
+    "description": "This release enhances the ListEntities API to support new entity type-specific strongly typed filters in the request and entity type-specific strongly typed summaries in the response."
+}
