@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -283,10 +284,11 @@ public class ClientOverrideConfigurationTest {
     void builder_headersWithEmptyAdditionalHeaders_shouldReturnEmptyMap_shouldNotThrowNullPointerException() {
         ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
         Map<String, List<String>> headers = builder.headers();
-        assertThat(headers).isEmpty(); // <--- should not throw NPE
+        assertDoesNotThrow(() -> headers.isEmpty());
+        assertThat(headers).isNotNull();
         Map<String, List<String>> newHeaders = new HashMap<>();
         newHeaders.put("my-key", Collections.singletonList("my-value"));
-        newHeaders.putAll(headers); // <--- should not throw NPE
+        assertDoesNotThrow(() -> newHeaders.putAll(headers));
         assertThat(newHeaders).containsEntry("my-key", Collections.singletonList("my-value"))
             .hasSize(1);
     }
