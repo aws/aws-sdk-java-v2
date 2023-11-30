@@ -40,8 +40,7 @@ class UnmodifiableMapOfLists<T, U> implements Map<T, List<U>>, Serializable {
     private final Map<T, List<U>> delegate;
 
     UnmodifiableMapOfLists(Map<T, List<U>> delegate) {
-        Validate.notNull(delegate, "delegate must not be null");
-        this.delegate = delegate;
+        this.delegate = Validate.paramNotNull(delegate, "delegate");
     }
 
     @Override
