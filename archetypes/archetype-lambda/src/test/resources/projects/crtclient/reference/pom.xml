@@ -1,11 +1,10 @@
-#parse ( "global.vm")
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>${groupId}</groupId>
-    <artifactId>${artifactId}</artifactId>
-    <version>${version}</version>
+    <groupId>software.amazonaws.test</groupId>
+    <artifactId>test-crt-artifact</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,12 +13,9 @@
         <maven.shade.plugin.version>3.2.1</maven.shade.plugin.version>
         <maven.compiler.plugin.version>3.6.1</maven.compiler.plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
-        <aws.java.sdk.version>${javaSdkVersion}</aws.java.sdk.version>
+        <aws.java.sdk.version>2.21.0</aws.java.sdk.version>
         <aws.lambda.java.version>1.2.3</aws.lambda.java.version>
         <junit5.version>5.10.1</junit5.version>
-#if( $httpClient == 'netty-nio-client')
-        <netty.openssl.version>${nettyOpenSslVersion}</netty.openssl.version>
-#end
     </properties>
 
     <dependencyManagement>
@@ -37,7 +33,7 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>${moduleName}</artifactId>
+            <artifactId>s3</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>software.amazon.awssdk</groupId>
@@ -52,18 +48,9 @@
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>${httpClient}</artifactId>
+            <artifactId>aws-crt-client</artifactId>
         </dependency>
 
-#if( $httpClient == 'netty-nio-client')
-        <!-- Adding netty-tcnative dependency so that netty async client uses openSSL as sslProvider if supported
-        See https://github.com/aws/aws-sdk-java-v2/blob/master/docs/BestPractices.md#use-openssl-for-netty-async-client -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-tcnative-boringssl-static</artifactId>
-            <version>${netty.openssl.version}</version>
-        </dependency>
-#end
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-lambda-java-core</artifactId>
@@ -92,7 +79,7 @@
                 <version>${maven.shade.plugin.version}</version>
                 <configuration>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <finalName>${artifactId}</finalName>
+                    <finalName>test-crt-artifact</finalName>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
