@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Q Connect",
+    "contributor": "",
+    "description": "This release adds the PutFeedback API and allows providing feedback against the specified assistant for the specified target."
+}
