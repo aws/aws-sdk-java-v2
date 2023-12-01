@@ -705,7 +705,9 @@ public final class ClientOverrideConfiguration
 
         @Override
         public Map<String, List<String>> headers() {
-            return CollectionUtils.unmodifiableMapOfLists(config.option(ADDITIONAL_HTTP_HEADERS));
+            Map<String, List<String>> option = Validate
+                .getOrDefault(config.option(ADDITIONAL_HTTP_HEADERS), Collections::emptyMap);
+            return CollectionUtils.unmodifiableMapOfLists(option);
         }
 
         @Override
