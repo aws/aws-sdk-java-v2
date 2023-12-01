@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.services.s3.utils;
 
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Optional;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -23,11 +27,12 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 
 public class CaptureChecksumValidationInterceptor implements ExecutionInterceptor {
-    private   Algorithm validationAlgorithm;
-    private  ChecksumValidation responseValidation;
-    private  String requestChecksumInTrailer;
-    private  String requestChecksumInHeader;
-    private  String contentEncoding;
+    private Algorithm validationAlgorithm;
+    private ChecksumValidation responseValidation;
+    private String requestChecksumInTrailer;
+    private String requestChecksumInHeader;
+    private String contentEncoding;
+    private Optional<InputStream> responseBody;
 
     public String contentEncoding() {
         return contentEncoding;
@@ -48,12 +53,17 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
     public String requestChecksumInHeader() {
         return requestChecksumInHeader;
     }
+
+    public Optional<InputStream> responseBody() {
+        return responseBody;
+    }
+
     public void reset() {
         validationAlgorithm = null;
         responseValidation = null;
         requestChecksumInTrailer = null;
         requestChecksumInHeader = null;
-
+        responseBody = Optional.empty();
     }
 
     @Override

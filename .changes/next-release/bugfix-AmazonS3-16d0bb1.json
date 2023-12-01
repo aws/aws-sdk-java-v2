@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixes double checksum validation for GetObject. Now when ChecksumMode is enabled, x-amz-te:append-md5 will not be sent, and only the flexible checksum will be validated. If ChecksumMode is enabled and no ChecksumAlgorithm was specified when putting the object, no validation will be performed."
+}

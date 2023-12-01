@@ -35,7 +35,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingAsyncRequestBody;
-import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingPublisher;
+import software.amazon.awssdk.services.s3.checksums.S3ChecksumValidatingPublisher;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @SdkInternalApi
@@ -72,7 +72,7 @@ public final class AsyncChecksumValidationInterceptor implements ExecutionInterc
             SdkChecksum checksum = new Md5Checksum();
             executionAttributes.putAttribute(CHECKSUM, checksum);
             if (contentLength > 0) {
-                return Optional.of(new ChecksumValidatingPublisher(context.responsePublisher().get(), checksum, contentLength));
+                return Optional.of(new S3ChecksumValidatingPublisher(context.responsePublisher().get(), checksum, contentLength));
             }
         }
 

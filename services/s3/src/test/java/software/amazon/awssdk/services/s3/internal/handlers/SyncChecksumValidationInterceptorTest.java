@@ -50,7 +50,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingInputStream;
-import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream;
+import software.amazon.awssdk.services.s3.checksums.S3ChecksumValidatingInputStream;
 import software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor.ChecksumCalculatingStreamProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -110,7 +110,7 @@ public class SyncChecksumValidationInterceptorTest {
             InterceptorTestUtils.modifyHttpResponse(GetObjectRequest.builder().build(), sdkHttpResponse);
         Optional<InputStream> publisher = interceptor.modifyHttpResponseContent(modifyHttpResponse,
                                                                                 getExecutionAttributes());
-        assertThat(publisher.get()).isExactlyInstanceOf(ChecksumValidatingInputStream.class);
+        assertThat(publisher.get()).isExactlyInstanceOf(S3ChecksumValidatingInputStream.class);
     }
 
     @Test

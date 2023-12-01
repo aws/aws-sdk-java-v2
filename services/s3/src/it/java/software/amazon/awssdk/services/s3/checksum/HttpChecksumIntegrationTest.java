@@ -24,24 +24,32 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtS3V4aSigner;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
+import software.amazon.awssdk.core.internal.io.ChecksumValidatingInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.checksums.S3ChecksumValidatingInputStream;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -50,7 +58,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
-import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
@@ -149,7 +156,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient() throws InterruptedException {
+    public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient() {
         s3Https.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
@@ -173,8 +180,6 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void syncValidSignedTrailerChecksumCalculatedBySdkClient() {
-
-
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
@@ -198,13 +203,10 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
         assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(text).isEqualTo("Hello world");
-
     }
 
     @Test
     public void syncValidSignedTrailerChecksumCalculatedBySdkClient_Empty_String() {
-
-
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
@@ -230,7 +232,6 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void syncValidSignedTrailerChecksumCalculatedBySdkClientWithSigv4a() {
-
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
@@ -254,7 +255,6 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void syncValidSignedTrailerChecksumCalculatedBySdkClientWithSigv4a_withContentEncoding() {
-
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
@@ -334,7 +334,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void syncUnsignedPayloadMultiPartForHugeMessage() throws InterruptedException {
+    public void syncUnsignedPayloadMultiPartForHugeMessage() {
         s3Https.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
@@ -360,8 +360,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
 
     @Test
-    public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient_withSmallFileRequestBody() throws InterruptedException,
-                                                                                                        IOException {
+    public void syncValidUnsignedTrailerChecksumCalculatedBySdkClient_withSmallFileRequestBody() throws IOException {
         File randomFileOfFixedLength = new RandomTempFile(10 * KB);
 
         s3Https.putObject(PutObjectRequest.builder()
@@ -410,4 +409,90 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
         assertThat(text).isEqualTo(new String(bytes));
     }
 
+    private static Stream<Arguments> getObjectChecksumValidationParams() {
+        return Stream.of(Arguments.of(true, ChecksumAlgorithm.CRC32, ChecksumMode.ENABLED),
+                         Arguments.of(true, null, ChecksumMode.ENABLED),
+                         Arguments.of(true, ChecksumAlgorithm.CRC32, null),
+                         Arguments.of(true, null, null),
+                         Arguments.of(false, ChecksumAlgorithm.CRC32, ChecksumMode.ENABLED),
+                         Arguments.of(false, null, ChecksumMode.ENABLED),
+                         Arguments.of(false, ChecksumAlgorithm.CRC32, null),
+                         Arguments.of(false, null, null));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getObjectChecksumValidationParams")
+    public void testGetObjectChecksumValidation(boolean checksumValidationEnabled, ChecksumAlgorithm checksumAlgorithm,
+                                                ChecksumMode checksumMode) {
+        S3Client s3 = s3ClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
+                                       .serviceConfiguration(S3Configuration.builder()
+                                                                            .checksumValidationEnabled(checksumValidationEnabled)
+                                                                            .build())
+                                       .endpointOverride(URI.create("http://s3." + DEFAULT_REGION + ".amazonaws.com"))
+                                       .build();
+
+        s3.putObject(PutObjectRequest.builder()
+                                     .bucket(BUCKET)
+                                     .key(KEY)
+                                     .checksumAlgorithm(checksumAlgorithm)
+                                     .build(), RequestBody.fromString("Hello world"));
+
+        s3.getObject(GetObjectRequest.builder()
+                                     .bucket(BUCKET)
+                                     .key(KEY)
+                                     .checksumMode(checksumMode)
+                                     .build());
+
+        validateChecksumValidation(checksumValidationEnabled, checksumAlgorithm, checksumMode);
+        interceptor.reset();
+    }
+
+    private void validateChecksumValidation(boolean checksumValidationEnabled, ChecksumAlgorithm checksumAlgorithm,
+                                               ChecksumMode checksumMode) {
+        assertThat(interceptor.responseBody()).isPresent();
+
+        if (checksumValidationEnabled) {
+            if (checksumMode == ChecksumMode.ENABLED) {
+                if (checksumAlgorithm == null) {
+                    assertIsNotWrappedWithAnyValidators();
+                } else {
+                    assertIsOnlyWrappedWithFlexibleChecksumValidator();
+                }
+            } else {
+                assertIsOnlyWrappedWithMd5Validator();
+            }
+        } else {
+            if (checksumMode == ChecksumMode.ENABLED) {
+                if (checksumAlgorithm == null) {
+                    assertIsNotWrappedWithAnyValidators();
+                } else {
+                    assertIsOnlyWrappedWithFlexibleChecksumValidator();
+                }
+            } else {
+                assertIsNotWrappedWithAnyValidators();
+            }
+        }
+    }
+
+    private void assertIsOnlyWrappedWithMd5Validator() {
+        InputStream inputStream = interceptor.responseBody().get();
+        assertThat(inputStream).isNotInstanceOf(ChecksumValidatingInputStream.class)
+                               .isInstanceOf(S3ChecksumValidatingInputStream.class);
+        S3ChecksumValidatingInputStream md5Validator = (S3ChecksumValidatingInputStream) inputStream;
+        assertThat(md5Validator.delegate()).isNotInstanceOf(ChecksumValidatingInputStream.class);
+    }
+
+    private void assertIsOnlyWrappedWithFlexibleChecksumValidator() {
+        InputStream inputStream = interceptor.responseBody().get();
+        assertThat(inputStream).isNotInstanceOf(S3ChecksumValidatingInputStream.class)
+                               .isInstanceOf(ChecksumValidatingInputStream.class);
+        ChecksumValidatingInputStream flexibleChecksumValidator = (ChecksumValidatingInputStream) inputStream;
+        assertThat(flexibleChecksumValidator.delegate()).isNotInstanceOf(S3ChecksumValidatingInputStream.class);
+    }
+
+    private void assertIsNotWrappedWithAnyValidators() {
+        InputStream inputStream = interceptor.responseBody().get();
+        assertThat(inputStream).isNotInstanceOf(S3ChecksumValidatingInputStream.class)
+                               .isNotInstanceOf(ChecksumValidatingInputStream.class);
+    }
 }

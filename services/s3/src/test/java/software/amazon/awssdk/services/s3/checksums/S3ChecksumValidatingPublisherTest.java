@@ -36,9 +36,9 @@ import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
- * Unit test for ChecksumValidatingPublisher
+ * Unit test for S3ChecksumValidatingPublisher
  */
-public class ChecksumValidatingPublisherTest {
+public class S3ChecksumValidatingPublisherTest {
   private static int TEST_DATA_SIZE = 32;  // size of the test data, in bytes
   private static final int CHECKSUM_SIZE = 16;
   private static byte[] testData;
@@ -64,7 +64,7 @@ public class ChecksumValidatingPublisherTest {
   public void testSinglePacket() {
     final TestPublisher driver = new TestPublisher();
     final TestSubscriber s = new TestSubscriber();
-    final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
+    final S3ChecksumValidatingPublisher p = new S3ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
     p.subscribe(s);
 
     driver.doOnNext(ByteBuffer.wrap(testData));
@@ -80,7 +80,7 @@ public class ChecksumValidatingPublisherTest {
     TestPublisher driver = new TestPublisher();
 
     TestSubscriber s = new TestSubscriber();
-    ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
+    S3ChecksumValidatingPublisher p = new S3ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
     p.subscribe(s);
 
     byte[] incorrectChecksumData = Arrays.copyOfRange(testData, 0, TEST_DATA_SIZE);
@@ -97,7 +97,7 @@ public class ChecksumValidatingPublisherTest {
     for (int i = 1; i < TEST_DATA_SIZE + CHECKSUM_SIZE - 1; i++) {
       final TestPublisher driver = new TestPublisher();
       final TestSubscriber s = new TestSubscriber();
-      final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
+      final S3ChecksumValidatingPublisher p = new S3ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
       p.subscribe(s);
 
       driver.doOnNext(ByteBuffer.wrap(testData, 0, i));
@@ -115,7 +115,7 @@ public class ChecksumValidatingPublisherTest {
     for (int packetSize = 1; packetSize < CHECKSUM_SIZE; packetSize++) {
       final TestPublisher driver = new TestPublisher();
       final TestSubscriber s = new TestSubscriber();
-      final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
+      final S3ChecksumValidatingPublisher p = new S3ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
       p.subscribe(s);
       int currOffset = 0;
       while (currOffset < TEST_DATA_SIZE + CHECKSUM_SIZE) {
@@ -136,7 +136,7 @@ public class ChecksumValidatingPublisherTest {
     // When the length is unknown, the last 16 bytes are treated as a checksum, but are later ignored when completing
     final TestPublisher driver = new TestPublisher();
     final TestSubscriber s = new TestSubscriber();
-    final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), 0);
+    final S3ChecksumValidatingPublisher p = new S3ChecksumValidatingPublisher(driver, new Md5Checksum(), 0);
     p.subscribe(s);
 
     byte[] randomChecksumData = new byte[testData.length];
@@ -158,7 +158,7 @@ public class ChecksumValidatingPublisherTest {
     final byte[] incorrectData = new byte[0];
     final TestPublisher driver = new TestPublisher();
     final TestSubscriber s = new TestSubscriber();
-    final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
+    final S3ChecksumValidatingPublisher p = new S3ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
     p.subscribe(s);
 
     driver.doOnNext(ByteBuffer.wrap(incorrectData));

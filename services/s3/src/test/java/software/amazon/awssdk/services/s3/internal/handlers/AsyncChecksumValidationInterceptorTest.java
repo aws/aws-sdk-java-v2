@@ -46,7 +46,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingAsyncRequestBody;
-import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingPublisher;
+import software.amazon.awssdk.services.s3.checksums.S3ChecksumValidatingPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -103,7 +103,7 @@ public class AsyncChecksumValidationInterceptorTest {
             InterceptorTestUtils.modifyHttpResponse(GetObjectRequest.builder().build(), sdkHttpResponse);
         Optional<Publisher<ByteBuffer>> publisher = interceptor.modifyAsyncHttpResponseContent(modifyHttpResponse,
                                                                                                getExecutionAttributes());
-        assertThat(publisher.get()).isExactlyInstanceOf(ChecksumValidatingPublisher.class);
+        assertThat(publisher.get()).isExactlyInstanceOf(S3ChecksumValidatingPublisher.class);
     }
 
     @Test

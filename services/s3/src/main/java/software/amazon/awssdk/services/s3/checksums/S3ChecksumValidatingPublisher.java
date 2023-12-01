@@ -29,15 +29,15 @@ import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 @SdkInternalApi
-public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffer> {
+public final class S3ChecksumValidatingPublisher implements SdkPublisher<ByteBuffer> {
 
     private final Publisher<ByteBuffer> publisher;
     private final SdkChecksum sdkChecksum;
     private final long contentLength;
 
-    public ChecksumValidatingPublisher(Publisher<ByteBuffer> publisher,
-                                       SdkChecksum sdkChecksum,
-                                       long contentLength) {
+    public S3ChecksumValidatingPublisher(Publisher<ByteBuffer> publisher,
+                                         SdkChecksum sdkChecksum,
+                                         long contentLength) {
         this.publisher = publisher;
         this.sdkChecksum = sdkChecksum;
         this.contentLength = contentLength;

@@ -36,7 +36,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingInputStream;
-import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream;
+import software.amazon.awssdk.services.s3.checksums.S3ChecksumValidatingInputStream;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @SdkInternalApi
@@ -79,7 +79,7 @@ public final class SyncChecksumValidationInterceptor implements ExecutionInterce
                                         .orElse(0L);
 
             if (contentLength > 0) {
-                return Optional.of(new ChecksumValidatingInputStream(context.responseBody().get(), checksum, contentLength));
+                return Optional.of(new S3ChecksumValidatingInputStream(context.responseBody().get(), checksum, contentLength));
             }
         }
 

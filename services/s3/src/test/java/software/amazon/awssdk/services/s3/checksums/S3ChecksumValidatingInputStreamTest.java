@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
 
-public class ChecksumValidatingInputStreamTest {
+public class S3ChecksumValidatingInputStreamTest {
     private static final int TEST_DATA_SIZE = 32;
     private static final int CHECKSUM_SIZE = 16;
 
@@ -80,8 +80,8 @@ public class ChecksumValidatingInputStreamTest {
     }
 
     private InputStream newValidatingStream(byte[] dataFromS3) {
-        return new ChecksumValidatingInputStream(new ByteArrayInputStream(dataFromS3),
-                                                 new Md5Checksum(),
+        return new S3ChecksumValidatingInputStream(new ByteArrayInputStream(dataFromS3),
+                                                   new Md5Checksum(),
                                                  TEST_DATA_SIZE + CHECKSUM_SIZE);
     }
 }

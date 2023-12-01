@@ -25,7 +25,7 @@ import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 @SdkInternalApi
-public class ChecksumValidatingInputStream extends InputStream implements Abortable {
+public class S3ChecksumValidatingInputStream extends InputStream implements Abortable {
     private static final int CHECKSUM_SIZE = 16;
 
     private final SdkChecksum checkSum;
@@ -44,10 +44,14 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
      * @param cksum the Checksum implementation
      * @param streamLength the total length of the expected stream (including the extra 4 bytes on the end).
      */
-    public ChecksumValidatingInputStream(InputStream in, SdkChecksum cksum, long streamLength) {
+    public S3ChecksumValidatingInputStream(InputStream in, SdkChecksum cksum, long streamLength) {
         inputStream = in;
         checkSum = cksum;
         this.strippedLength = streamLength - CHECKSUM_SIZE;
+    }
+
+    public InputStream delegate() {
+        return inputStream;
     }
 
     /**

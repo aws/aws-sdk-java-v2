@@ -18,8 +18,8 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerRequest;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumValidationEnabledChecksumModeDisabled;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
@@ -40,14 +40,15 @@ import software.amazon.awssdk.utils.Validate;
 public final class EnableTrailingChecksumInterceptor implements ExecutionInterceptor {
 
     /**
-     * Enable {@link ChecksumMode} for {@link PutObjectRequest} if trailing checksum is enabled from config, and is S3Express.
+     * Enable {@link ChecksumMode} for {@link PutObjectRequest} if trailing checksum is enabled from config,
+     * {@link ChecksumMode} is disabled, and is S3Express.
      * TODO (s3express) - refactor to migrate out s3express specific code
      */
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
 
         SdkRequest request = context.request();
-        if (getObjectChecksumEnabledPerRequest(request, executionAttributes)
+        if (getObjectChecksumValidationEnabledChecksumModeDisabled(request, executionAttributes)
             && S3ExpressUtils.useS3Express(executionAttributes)) {
             return ((GetObjectRequest) request).toBuilder().checksumMode(ChecksumMode.ENABLED).build();
         }
@@ -55,14 +56,14 @@ public final class EnableTrailingChecksumInterceptor implements ExecutionInterce
     }
 
     /**
-     * Append trailing checksum header for {@link GetObjectRequest} if trailing checksum is enabled from config, and is not
-     * S3Express.
+     * Append trailing checksum header for {@link GetObjectRequest} if trailing checksum is enabled from config,
+     * {@link ChecksumMode} is disabled, and is not S3Express.
      */
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
 
-        if (getObjectChecksumEnabledPerRequest(context.request(), executionAttributes)
+        if (getObjectChecksumValidationEnabledChecksumModeDisabled(context.request(), executionAttributes)
             && !S3ExpressUtils.useS3Express(executionAttributes)) {
             return context.httpRequest()
                           .toBuilder()

@@ -40,6 +40,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.handlers.AsyncChecksumValidationInterceptor;
 import software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -61,15 +62,18 @@ public final class ChecksumsEnabledValidator {
     }
 
     /**
-     * Checks if trailing checksum is enabled for {@link S3Client#getObject(GetObjectRequest)} per request.
+     * Checks if trailing checksum is enabled and {@link ChecksumMode} is disabled for
+     * {@link S3Client#getObject(GetObjectRequest)} per request.
      *
      * @param request the request
      * @param executionAttributes the executionAttributes
-     * @return true if trailing checksums is enabled, false otherwise
+     * @return true if trailing checksums is enabled and ChecksumMode is disabled, false otherwise
      */
-    public static boolean getObjectChecksumEnabledPerRequest(SdkRequest request,
-                                                             ExecutionAttributes executionAttributes) {
-        return request instanceof GetObjectRequest && checksumEnabledPerConfig(executionAttributes);
+    public static boolean getObjectChecksumValidationEnabledChecksumModeDisabled(SdkRequest request,
+                                                                                 ExecutionAttributes executionAttributes) {
+        return request instanceof GetObjectRequest
+               && ((GetObjectRequest) request).checksumMode() != ChecksumMode.ENABLED
+               && checksumEnabledPerConfig(executionAttributes);
     }
 
     /**
