@@ -49,7 +49,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
-import software.amazon.awssdk.services.s3.checksums.S3ChecksumValidatingInputStream;
+import software.amazon.awssdk.services.s3.internal.checksums.S3ChecksumValidatingInputStream;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;

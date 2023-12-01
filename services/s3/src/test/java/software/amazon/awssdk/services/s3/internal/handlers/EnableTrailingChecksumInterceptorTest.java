@@ -16,10 +16,10 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyHttpRequestContext;
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyResponseContext;
 

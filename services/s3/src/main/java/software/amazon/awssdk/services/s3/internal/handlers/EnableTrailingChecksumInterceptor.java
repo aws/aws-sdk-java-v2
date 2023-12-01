@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumValidationEnabledChecksumModeDisabled;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.getObjectChecksumValidationEnabledChecksumModeDisabled;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;

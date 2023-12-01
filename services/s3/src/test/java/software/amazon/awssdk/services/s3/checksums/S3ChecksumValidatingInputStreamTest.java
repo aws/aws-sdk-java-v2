@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.internal.checksums.S3ChecksumValidatingInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 
 public class S3ChecksumValidatingInputStreamTest {

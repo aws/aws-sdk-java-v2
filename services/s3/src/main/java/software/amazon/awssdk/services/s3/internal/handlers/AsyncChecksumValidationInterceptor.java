@@ -16,12 +16,12 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static software.amazon.awssdk.core.ClientType.ASYNC;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.CHECKSUM;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.responseChecksumIsValid;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.shouldRecordChecksum;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.validatePutObjectChecksum;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.CHECKSUM;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.responseChecksumIsValid;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.shouldRecordChecksum;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.validatePutObjectChecksum;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
@@ -34,8 +34,8 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingAsyncRequestBody;
-import software.amazon.awssdk.services.s3.checksums.S3ChecksumValidatingPublisher;
+import software.amazon.awssdk.services.s3.internal.checksums.ChecksumCalculatingAsyncRequestBody;
+import software.amazon.awssdk.services.s3.internal.checksums.S3ChecksumValidatingPublisher;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @SdkInternalApi

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksums;
+package software.amazon.awssdk.services.s3.internal.checksums;
 
 import static java.lang.Math.toIntExact;
 

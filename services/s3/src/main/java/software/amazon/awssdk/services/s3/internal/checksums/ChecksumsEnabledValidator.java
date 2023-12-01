@@ -13,12 +13,8 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksums;
+package software.amazon.awssdk.services.s3.internal.checksums;
 
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
 import java.util.Arrays;
@@ -138,12 +134,12 @@ public final class ChecksumsEnabledValidator {
 
     private static boolean hasServerSideEncryptionHeader(SdkHttpHeaders httpRequest) {
         // S3 doesn't support trailing checksums for customer encryption
-        if (httpRequest.firstMatchingHeader(SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER).isPresent()) {
+        if (httpRequest.firstMatchingHeader(ChecksumConstant.SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER).isPresent()) {
             return true;
         }
 
         // S3 doesn't support trailing checksums for KMS encrypted objects
-        if (httpRequest.firstMatchingHeader(SERVER_SIDE_ENCRYPTION_HEADER)
+        if (httpRequest.firstMatchingHeader(ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER)
                        .filter(h -> h.contains(AWS_KMS.toString()))
                        .isPresent()) {
             return true;
@@ -182,8 +178,8 @@ public final class ChecksumsEnabledValidator {
      * @return true if the trailing checksum is present in the header, false otherwise.
      */
     private static boolean checksumEnabledPerResponse(SdkHttpHeaders responseHeaders) {
-        return responseHeaders.firstMatchingHeader(CHECKSUM_ENABLED_RESPONSE_HEADER)
-                              .filter(b -> b.equals(ENABLE_MD5_CHECKSUM_HEADER_VALUE))
+        return responseHeaders.firstMatchingHeader(ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER)
+                              .filter(b -> b.equals(ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE))
                               .isPresent();
     }
 
