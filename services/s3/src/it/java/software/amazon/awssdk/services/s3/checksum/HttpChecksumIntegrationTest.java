@@ -24,7 +24,6 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -43,13 +42,11 @@ import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
-import software.amazon.awssdk.core.internal.io.ChecksumValidatingInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
-import software.amazon.awssdk.services.s3.internal.checksums.S3ChecksumValidatingInputStream;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -428,7 +425,6 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                        .serviceConfiguration(S3Configuration.builder()
                                                                             .checksumValidationEnabled(checksumValidationEnabled)
                                                                             .build())
-                                       .endpointOverride(URI.create("http://s3." + DEFAULT_REGION + ".amazonaws.com"))
                                        .build();
 
         s3.putObject(PutObjectRequest.builder()
@@ -449,50 +445,42 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
     private void validateChecksumValidation(boolean checksumValidationEnabled, ChecksumAlgorithm checksumAlgorithm,
                                                ChecksumMode checksumMode) {
-        assertThat(interceptor.responseBody()).isPresent();
-
         if (checksumValidationEnabled) {
             if (checksumMode == ChecksumMode.ENABLED) {
                 if (checksumAlgorithm == null) {
-                    assertIsNotWrappedWithAnyValidators();
+                    assertRequestAndResponseDoNotContainMd5Header();
+                    assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
                 } else {
-                    assertIsOnlyWrappedWithFlexibleChecksumValidator();
+                    assertRequestAndResponseDoNotContainMd5Header();
+                    assertThat(interceptor.responseFlexibleChecksumHeader()).isNotNull();
                 }
             } else {
-                assertIsOnlyWrappedWithMd5Validator();
+                assertRequestAndResponseContainMd5Header();
+                assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
             }
         } else {
             if (checksumMode == ChecksumMode.ENABLED) {
                 if (checksumAlgorithm == null) {
-                    assertIsNotWrappedWithAnyValidators();
+                    assertRequestAndResponseDoNotContainMd5Header();
+                    assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
                 } else {
-                    assertIsOnlyWrappedWithFlexibleChecksumValidator();
+                    assertRequestAndResponseDoNotContainMd5Header();
+                    assertThat(interceptor.responseFlexibleChecksumHeader()).isNotNull();
                 }
             } else {
-                assertIsNotWrappedWithAnyValidators();
+                assertRequestAndResponseDoNotContainMd5Header();
+                assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
             }
         }
     }
 
-    private void assertIsOnlyWrappedWithMd5Validator() {
-        InputStream inputStream = interceptor.responseBody().get();
-        assertThat(inputStream).isNotInstanceOf(ChecksumValidatingInputStream.class)
-                               .isInstanceOf(S3ChecksumValidatingInputStream.class);
-        S3ChecksumValidatingInputStream md5Validator = (S3ChecksumValidatingInputStream) inputStream;
-        assertThat(md5Validator.delegate()).isNotInstanceOf(ChecksumValidatingInputStream.class);
+    private void assertRequestAndResponseContainMd5Header() {
+        assertThat(interceptor.requestTransferEncodingHeader()).isEqualTo("append-md5");
+        assertThat(interceptor.responseTransferEncodingHeader()).isEqualTo("append-md5");
     }
 
-    private void assertIsOnlyWrappedWithFlexibleChecksumValidator() {
-        InputStream inputStream = interceptor.responseBody().get();
-        assertThat(inputStream).isNotInstanceOf(S3ChecksumValidatingInputStream.class)
-                               .isInstanceOf(ChecksumValidatingInputStream.class);
-        ChecksumValidatingInputStream flexibleChecksumValidator = (ChecksumValidatingInputStream) inputStream;
-        assertThat(flexibleChecksumValidator.delegate()).isNotInstanceOf(S3ChecksumValidatingInputStream.class);
-    }
-
-    private void assertIsNotWrappedWithAnyValidators() {
-        InputStream inputStream = interceptor.responseBody().get();
-        assertThat(inputStream).isNotInstanceOf(S3ChecksumValidatingInputStream.class)
-                               .isNotInstanceOf(ChecksumValidatingInputStream.class);
+    private void assertRequestAndResponseDoNotContainMd5Header() {
+        assertThat(interceptor.requestTransferEncodingHeader()).isNull();
+        assertThat(interceptor.responseTransferEncodingHeader()).isNull();
     }
 }

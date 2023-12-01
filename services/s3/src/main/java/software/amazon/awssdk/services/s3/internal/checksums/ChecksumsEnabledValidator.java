@@ -65,8 +65,8 @@ public final class ChecksumsEnabledValidator {
      * @param executionAttributes the executionAttributes
      * @return true if trailing checksums is enabled and ChecksumMode is disabled, false otherwise
      */
-    public static boolean getObjectChecksumValidationEnabledChecksumModeDisabled(SdkRequest request,
-                                                                                 ExecutionAttributes executionAttributes) {
+    public static boolean getObjectChecksumEnabledPerRequest(SdkRequest request,
+                                                             ExecutionAttributes executionAttributes) {
         return request instanceof GetObjectRequest
                && ((GetObjectRequest) request).checksumMode() != ChecksumMode.ENABLED
                && checksumEnabledPerConfig(executionAttributes);
@@ -84,8 +84,7 @@ public final class ChecksumsEnabledValidator {
     }
 
     /**
-     * Validates that checksums should be enabled based on {@link ClientType} and the presence
-     * or S3 specific headers.
+     * Validates that checksums should be enabled based on {@link ClientType} and the presence of S3 specific headers.
      *
      * @param expectedClientType - The expected client type for enabling checksums
      * @param executionAttributes - {@link ExecutionAttributes} to determine the actual client type

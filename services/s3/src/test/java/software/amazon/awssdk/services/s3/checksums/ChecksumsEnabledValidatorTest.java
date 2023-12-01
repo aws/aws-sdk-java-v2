@@ -23,7 +23,7 @@ import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumCons
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
-import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.getObjectChecksumValidationEnabledChecksumModeDisabled;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerRequest;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.responseChecksumIsValid;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.shouldRecordChecksum;
@@ -47,33 +47,33 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class ChecksumsEnabledValidatorTest {
 
     @Test
-    public void getObjectChecksumValidationEnabledChecksumModeDisabled_nonGetObjectRequest_returnsFalse() {
-        assertThat(getObjectChecksumValidationEnabledChecksumModeDisabled(GetObjectAclRequest.builder().build(),
-                                                                          new ExecutionAttributes())).isFalse();
+    public void getObjectChecksumEnabledPerRequest_nonGetObjectRequest_returnsFalse() {
+        assertThat(getObjectChecksumEnabledPerRequest(GetObjectAclRequest.builder().build(),
+                                                      new ExecutionAttributes())).isFalse();
     }
 
     @Test
-    public void getObjectChecksumValidationEnabledChecksumModeDisabled_default_returnsTrue() {
-        assertThat(getObjectChecksumValidationEnabledChecksumModeDisabled(GetObjectRequest.builder().build(),
-                                                                          new ExecutionAttributes())).isTrue();
+    public void getObjectChecksumEnabledPerRequest_checksumValidationEnabledChecksumModeDisabled_returnsTrue() {
+        assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().build(),
+                                                      new ExecutionAttributes())).isTrue();
     }
 
     @Test
-    public void getObjectChecksumValidationEnabledChecksumModeDisabled_checksumModeEnabled_returnsFalse() {
-        assertThat(getObjectChecksumValidationEnabledChecksumModeDisabled(GetObjectRequest.builder().checksumMode(ChecksumMode.ENABLED).build(),
-                                                                          new ExecutionAttributes())).isFalse();
+    public void getObjectChecksumEnabledPerRequest_checksumValidationEnabledChecksumModeEnabled_returnsFalse() {
+        assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().checksumMode(ChecksumMode.ENABLED).build(),
+                                                      new ExecutionAttributes())).isFalse();
     }
 
     @Test
-    public void getObjectChecksumValidationEnabledChecksumModeDisabled_checksumValidationDisabled_returnsFalse() {
-        assertThat(getObjectChecksumValidationEnabledChecksumModeDisabled(GetObjectRequest.builder().build(),
-                                                                          getExecutionAttributesWithChecksumDisabled())).isFalse();
+    public void getObjectChecksumEnabledPerRequest_checksumValidationDisabledChecksumModeDisabled_returnsFalse() {
+        assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().build(),
+                                                      getExecutionAttributesWithChecksumDisabled())).isFalse();
     }
 
     @Test
-    public void getObjectChecksumValidationEnabledChecksumModeDisabled_checksumValidationDisabledChecksumModeEnabled_returnsFalse() {
-        assertThat(getObjectChecksumValidationEnabledChecksumModeDisabled(GetObjectRequest.builder().checksumMode(ChecksumMode.ENABLED).build(),
-                                                                          getExecutionAttributesWithChecksumDisabled())).isFalse();
+    public void getObjectChecksumEnabledPerRequest_checksumValidationDisabledChecksumModeEnabled_returnsFalse() {
+        assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().checksumMode(ChecksumMode.ENABLED).build(),
+                                                      getExecutionAttributesWithChecksumDisabled())).isFalse();
     }
 
     @Test

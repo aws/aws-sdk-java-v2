@@ -50,10 +50,6 @@ public class S3ChecksumValidatingInputStream extends InputStream implements Abor
         this.strippedLength = streamLength - CHECKSUM_SIZE;
     }
 
-    public InputStream delegate() {
-        return inputStream;
-    }
-
     /**
      * Reads one byte at a time from the input stream, updates the checksum. If the end of the stream has been reached
      * the checksum will be compared to the stream's checksum amd a SdkClientException will be thrown.

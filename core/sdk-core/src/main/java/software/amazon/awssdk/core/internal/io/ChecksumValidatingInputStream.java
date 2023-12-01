@@ -50,10 +50,6 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
         this.expectedChecksum = expectedChecksum;
     }
 
-    public InputStream delegate() {
-        return inputStream;
-    }
-
     /**
      * Reads from the underlying stream. If the end of the stream is reached, the
      * running checksum will be appended a byte at a time (1 per read call).
