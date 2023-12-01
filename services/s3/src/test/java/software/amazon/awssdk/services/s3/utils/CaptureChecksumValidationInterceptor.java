@@ -80,6 +80,7 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
         responseValidation =
             executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION).orElse(null);
         contentEncoding = String.join(",", context.httpRequest().matchingHeaders("content-encoding"));
+        responseBody = context.responseBody();
     }
 
     @Override
