@@ -101,8 +101,8 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
 
     private static boolean validateMessageMD5Enabled(ExecutionAttributes executionAttributes) {
         AttributeMap clientContextParams = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
-        Boolean disableMd5Validation = clientContextParams.get(SqsClientContextParams.DISABLE_DEFAULT_CHECKSUM_VALIDATION);
-        return disableMd5Validation == null || !disableMd5Validation;
+        Boolean enableMd5Validation = clientContextParams.get(SqsClientContextParams.CHECKSUM_VALIDATION_ENABLED);
+        return enableMd5Validation == null || enableMd5Validation;
     }
 
     /**

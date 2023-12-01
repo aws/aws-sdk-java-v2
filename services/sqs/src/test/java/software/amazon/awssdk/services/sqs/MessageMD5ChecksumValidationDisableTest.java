@@ -94,7 +94,7 @@ public class MessageMD5ChecksumValidationDisableTest {
         SqsAsyncClient client = SqsAsyncClient.builder()
                                               .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
                                               .httpClient(asyncHttpClient)
-                                              .disableDefaultChecksumValidation(true)
+                                              .checksumValidationEnabled(false)
                                               .build();
 
         SendMessageResponse sendMessageResponse =
@@ -109,7 +109,7 @@ public class MessageMD5ChecksumValidationDisableTest {
         SqsAsyncClient client = SqsAsyncClient.builder()
                                               .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
                                               .httpClient(asyncHttpClient)
-                                              .disableDefaultChecksumValidation(true)
+                                              .checksumValidationEnabled(false)
                                               .build();
 
         SendMessageResponse sendMessageResponse =
@@ -124,7 +124,7 @@ public class MessageMD5ChecksumValidationDisableTest {
         SqsClient client = SqsClient.builder()
                                     .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
                                     .httpClient(syncHttpClient)
-                                    .disableDefaultChecksumValidation(true)
+                                    .checksumValidationEnabled(false)
                                     .build();
 
         SendMessageResponse sendMessageResponse =
