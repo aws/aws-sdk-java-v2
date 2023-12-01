@@ -61,6 +61,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
@@ -583,6 +584,36 @@ public class UpdateItemOperationTest {
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
         UpdateItemRequest expectedRequest = ddbRequest(ddbKey(item.getId()), b -> b.returnItemCollectionMetrics(returnItemCollectionMetrics));
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnValuesOnConditionCheckFailure_unknownValue_generatesCorrectRequest() {
+        FakeItem item = createUniqueFakeItem();
+        String returnValuesOnConditionCheckFailure = UUID.randomUUID().toString();
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)
+                                                                   .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        UpdateItemRequest expectedRequest = ddbRequest(ddbKey(item.getId()), b -> b.returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure));
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnValuesOnConditionCheckFailure_knownValue_generatesCorrectRequest() {
+        FakeItem item = createUniqueFakeItem();
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)
+                                                                   .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        UpdateItemRequest expectedRequest = ddbRequest(ddbKey(item.getId()), b -> b.returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure));
 
         assertThat(request, is(expectedRequest));
     }
