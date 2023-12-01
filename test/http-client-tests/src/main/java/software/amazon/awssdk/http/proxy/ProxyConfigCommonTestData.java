@@ -90,7 +90,7 @@ public final class ProxyConfigCommonTestData {
                 + "when using the default proxy builder, the proxy configuration is resolved to use environment variables.",
                 Collections.singletonList(Pair.of("", "")),
                 environmentSettings(),
-                new TestProxySetting(), null, null, getEnvironmentVariableProxySettings()),
+                new TestProxySetting(), null, null, new TestProxySetting()),
 
             Arguments.of(
                 "Provided with no system property and valid environment variables, when using the host,"
@@ -119,7 +119,7 @@ public final class ProxyConfigCommonTestData {
                 + "then proxy resolved to environment",
                 Collections.singletonList(Pair.of("", "")),
                 environmentSettings(),
-                null, true, null, getEnvironmentVariableProxySettings()),
+                null, true, null, new TestProxySetting()),
 
             Arguments.of(
                 "Provided only environment variable when useEnvironmentVariable set to false then proxy resolved "

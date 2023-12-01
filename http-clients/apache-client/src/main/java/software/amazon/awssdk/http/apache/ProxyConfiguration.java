@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
+import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -285,13 +286,12 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
         /**
-         * Option whether to use environment variable values for proxy configuration if any of the config options are missing.
-         * <p>
-         * This value is set to "true" by default, which means the SDK will automatically use environment variable values for
-         * proxy configuration options that are not provided during the building of the {@link ProxyConfiguration} object. To
-         * disable this behavior, set this value to "false". It is important to note that when this property is set to "true," all
-         * proxy settings will exclusively originate from environment variableValues, and no partial settings will be obtained
-         * from SystemPropertyValues.
+         * Option whether to use environment variable values from {@link ProxyEnvironmentSetting} if any of the config options are
+         * missing. This value is set to "false" by default, which means SDK will not automatically use environment variable
+         * values for options that are not provided during building of  {@link ProxyConfiguration} object. To enable this
+         * behavior, set this value to "true".It is important to note that when this property is set to "true," all proxy
+         * settings will exclusively originate from environment variableValues, and no partial settings will be obtained from
+         * SystemPropertyValues.
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values.
          * @return This object for method chaining.
@@ -323,7 +323,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private Set<String> nonProxyHosts;
         private Boolean preemptiveBasicAuthenticationEnabled;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
-        private Boolean useEnvironmentVariableValues = Boolean.TRUE;
+        private Boolean useEnvironmentVariableValues = Boolean.FALSE;
         private String scheme = "http";
 
         @Override

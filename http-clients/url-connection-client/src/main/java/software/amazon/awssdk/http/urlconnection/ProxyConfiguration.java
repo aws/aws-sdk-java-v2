@@ -241,10 +241,11 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         /**
          * Option whether to use environment variable values from {@link ProxyEnvironmentSetting} if any of the config options are
-         * missing. This value is set to "true" by default, which means SDK will automatically use environment variable values for
-         * options that are not provided during building the {@link ProxyConfiguration} object. To disable this behavior, set this
-         * value to "false".It is important to note that when this property is set to "true," all proxy settings will exclusively
-         * originate from environment variableValues, and no partial settings will be obtained from SystemPropertyValues.
+         * missing. This value is set to "false" by default, which means SDK will not automatically use environment variable
+         * values for options that are not provided during building of  {@link ProxyConfiguration} object. To enable this
+         * behavior, set this value to "true".It is important to note that when this property is set to "true," all proxy
+         * settings will exclusively originate from environment variableValues, and no partial settings will be obtained from
+         * SystemPropertyValues.
          *
          * @param useEnvironmentVariablesValues The option whether to use environment variable values
          * @return This object for method chaining.
@@ -273,7 +274,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private String password;
         private Set<String> nonProxyHosts;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
-        private Boolean useEnvironmentVariablesValues = Boolean.TRUE;
+        private Boolean useEnvironmentVariablesValues = Boolean.FALSE;
 
         @Override
         public Builder endpoint(URI endpoint) {

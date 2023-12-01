@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.ProxyConfigProvider.fromSystemEnviron
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
+import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -240,10 +241,11 @@ public abstract class CrtProxyConfiguration {
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
         /**
-         * The option whether to use environment variable values from {@link ProxySystemSetting} if any of the config options are
-         * missing. The value is set to "true" by default which means SDK will automatically use environment variable values if
-         * options are not provided during building the {@link CrtProxyConfiguration} object. To disable this behavior, set this
-         * value to false.It is important to note that when this property is set to "true," all proxy settings will exclusively
+         * The option whether to use environment variable values from {@link ProxyEnvironmentSetting} if any of the config options
+         * are missing.
+         * The value is set to "false" by default which means SDK will not automatically use environment variable values if
+         * options are not provided during building the {@link CrtProxyConfiguration} object. To enable this behavior, set this
+         * value to true. It is important to note that when this property is set to "true," all proxy settings will exclusively
          * originate from environment variableValues, and no partial settings will be obtained from SystemPropertyValues.
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values
@@ -263,7 +265,7 @@ public abstract class CrtProxyConfiguration {
         private String username;
         private String password;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
-        private Boolean useEnvironmentVariableValues = Boolean.TRUE;
+        private Boolean useEnvironmentVariableValues = Boolean.FALSE;
 
         protected DefaultBuilder() {
         }

@@ -273,12 +273,12 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
 
         /**
-         * Set the option whether to use environment variable values for {@link ProxyEnvironmentSetting} if any of the config
-         * options are missing. The value is set to "true" by default, enabling the SDK to automatically use environment variable
-         * values for proxy configuration options that are not provided during building the {@link ProxyConfiguration} object. To
-         * disable this behavior, set this value to "false".It is important to note that when this property is set to "true," all
-         * proxy settings will exclusively originate from Environment Variable Values, and no partial settings will be obtained
-         * from System Property Values.
+         * Option whether to use environment variable values from {@link ProxyEnvironmentSetting} if any of the config options are
+         * missing. This value is set to "false" by default, which means SDK will not automatically use environment variable
+         * values for options that are not provided during building of  {@link ProxyConfiguration} object. To enable this
+         * behavior, set this value to "true".It is important to note that when this property is set to "true," all proxy
+         * settings will exclusively originate from environment variableValues, and no partial settings will be obtained from
+         * SystemPropertyValues.
          *
          * @param useEnvironmentVariablesValues The option whether to use environment variable values
          * @return This object for method chaining.
@@ -295,7 +295,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private String password;
         private Set<String> nonProxyHosts;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
-        private Boolean useEnvironmentVariablesValues = Boolean.TRUE;
+        private Boolean useEnvironmentVariablesValues = Boolean.FALSE;
 
         private BuilderImpl() {
         }
