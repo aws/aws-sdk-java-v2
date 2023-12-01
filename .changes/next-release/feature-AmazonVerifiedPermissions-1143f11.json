@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Verified Permissions",
+    "contributor": "",
+    "description": "Adds description field to PolicyStore API's and namespaces field to GetSchema."
+}
