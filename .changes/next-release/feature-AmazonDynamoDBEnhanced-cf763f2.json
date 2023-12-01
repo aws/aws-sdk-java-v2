@@ -1,6 +1,0 @@
-{
-    "category": "Amazon DynamoDB Enhanced", 
-    "contributor": "breader124", 
-    "type": "feature", 
-    "description": "Introduce the possibility to specify returnValuesOnConditionCheckFailure in DynamoDB Enhanced operations"
-}

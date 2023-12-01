@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Recycle Bin",
-    "contributor": "",
-    "description": "Added resource identifier in the output and updated error handling."
-}

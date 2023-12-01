@@ -1,3 +1,25 @@
+# __2.21.37__ __2023-12-01__
+## __Amazon DynamoDB Enhanced__
+  - ### Features
+    - Introduce the possibility to specify returnValuesOnConditionCheckFailure in DynamoDB Enhanced operations
+        - Contributed by: [@breader124](https://github.com/breader124)
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds the PutFeedback API and allows providing feedback against the specified assistant for the specified target.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - Added resource identifier in the output and updated error handling.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds description field to PolicyStore API's and namespaces field to GetSchema.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@breader124](https://github.com/breader124)
 # __2.21.36__ __2023-11-30__
 ## __AWS ARC - Zonal Shift__
   - ### Features
@@ -3817,7 +3839,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
