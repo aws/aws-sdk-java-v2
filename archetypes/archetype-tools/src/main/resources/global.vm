@@ -33,4 +33,8 @@
     #set ($httpClientClassName = 'NettyNioAsyncHttpClient')
     #set ($httpClientPackageName = 'nio.netty.' + $httpClientClassName)
     #set ($serviceClientClassName = $serviceClientPrefix + 'AsyncClient')
+#elseif ( $httpClient == 'aws-crt-client')
+    #set ($httpClientClassName = 'AwsCrtAsyncHttpClient')
+    #set ($httpClientPackageName = 'crt.' + $httpClientClassName)
+    #set ($serviceClientClassName = $serviceClientPrefix + 'AsyncClient')
 #end
