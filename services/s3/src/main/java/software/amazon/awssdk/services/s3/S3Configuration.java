@@ -172,17 +172,22 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     }
 
     /**
-     * Returns whether trailing checksum validation is enabled. This is enabled by default.
+     * Returns whether MD5 trailing checksum validation is enabled. This is enabled by default.
      *
      * <p>
-     * For {@link PutObjectRequest}, trailing checksum validation will be performed if:
+     * The recommended approach is to specify a {@link ChecksumAlgorithm} on the {@link PutObjectRequest} and enable
+     * {@link ChecksumMode} on the {@link GetObjectRequest}. In that case, validation will be performed for the specified
+     * flexible checksum, and validation will not be performed for MD5 checksum.
+     *
+     * <p>
+     * For {@link PutObjectRequest}, MD5 trailing checksum validation will be performed if:
      * <ul>
      *     <li>Checksum validation is not disabled</li>
      *     <li>Server-side encryption is not used</li>
      *     <li>Flexible checksum {@link ChecksumAlgorithm} is not specified</li>
      * </ul>
      *
-     * For {@link GetObjectRequest}, trailing checksum validation will be performed if:
+     * For {@link GetObjectRequest}, MD5 trailing checksum validation will be performed if:
      * <ul>
      *     <li>Checksum validation is not disabled</li>
      *     <li>{@link ChecksumMode} is disabled (default)</li>
@@ -297,17 +302,22 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         Boolean checksumValidationEnabled();
 
         /**
-         * Option to disable trailing checksum validation of an object stored in S3. This is enabled by default.
+         * Option to disable MD5 trailing checksum validation of an object stored in S3. This is enabled by default.
          *
          * <p>
-         * For {@link PutObjectRequest}, trailing checksum validation will be performed if:
+         * The recommended approach is to specify a {@link ChecksumAlgorithm} on the {@link PutObjectRequest} and enable
+         * {@link ChecksumMode} on the {@link GetObjectRequest}. In that case, validation will be performed for the specified
+         * flexible checksum, and validation will not be performed for MD5 checksum.
+         *
+         * <p>
+         * For {@link PutObjectRequest}, MD5 trailing checksum validation will be performed if:
          * <ul>
          *     <li>Checksum validation is not disabled</li>
          *     <li>Server-side encryption is not used</li>
          *     <li>Flexible checksum algorithm is not specified</li>
          * </ul>
          *
-         * For {@link GetObjectRequest}, trailing checksum validation will be performed if:
+         * For {@link GetObjectRequest}, MD5 trailing checksum validation will be performed if:
          * <ul>
          *     <li>Checksum validation is not disabled</li>
          *     <li>{@link ChecksumMode} is disabled (default)</li>

@@ -447,31 +447,47 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                                ChecksumMode checksumMode) {
         if (checksumValidationEnabled) {
             if (checksumMode == ChecksumMode.ENABLED) {
-                if (checksumAlgorithm == null) {
-                    assertRequestAndResponseDoNotContainMd5Header();
-                    assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
-                } else {
-                    assertRequestAndResponseDoNotContainMd5Header();
-                    assertThat(interceptor.responseFlexibleChecksumHeader()).isNotNull();
-                }
+                assertChecksumModeEnabledWithChecksumValidationEnabled(checksumAlgorithm);
             } else {
-                assertRequestAndResponseContainMd5Header();
-                assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+                assertChecksumModeNotEnabledWithChecksumValidationEnabled();
             }
         } else {
             if (checksumMode == ChecksumMode.ENABLED) {
-                if (checksumAlgorithm == null) {
-                    assertRequestAndResponseDoNotContainMd5Header();
-                    assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
-                } else {
-                    assertRequestAndResponseDoNotContainMd5Header();
-                    assertThat(interceptor.responseFlexibleChecksumHeader()).isNotNull();
-                }
+                assertChecksumModeEnabledWithChecksumValidationDisabled(checksumAlgorithm);
             } else {
-                assertRequestAndResponseDoNotContainMd5Header();
-                assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+                assertChecksumModeNotEnabledWithChecksumValidationDisabled();
             }
         }
+    }
+
+    private void assertChecksumModeEnabledWithChecksumValidationEnabled(ChecksumAlgorithm checksumAlgorithm) {
+        if (checksumAlgorithm == null) {
+            assertRequestAndResponseDoNotContainMd5Header();
+            assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+        } else {
+            assertRequestAndResponseDoNotContainMd5Header();
+            assertThat(interceptor.responseFlexibleChecksumHeader()).isNotNull();
+        }
+    }
+
+    private void assertChecksumModeNotEnabledWithChecksumValidationEnabled() {
+        assertRequestAndResponseContainMd5Header();
+        assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+    }
+
+    private void assertChecksumModeEnabledWithChecksumValidationDisabled(ChecksumAlgorithm checksumAlgorithm) {
+        if (checksumAlgorithm == null) {
+            assertRequestAndResponseDoNotContainMd5Header();
+            assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+        } else {
+            assertRequestAndResponseDoNotContainMd5Header();
+            assertThat(interceptor.responseFlexibleChecksumHeader()).isNotNull();
+        }
+    }
+
+    private void assertChecksumModeNotEnabledWithChecksumValidationDisabled() {
+        assertRequestAndResponseDoNotContainMd5Header();
+        assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
     }
 
     private void assertRequestAndResponseContainMd5Header() {
