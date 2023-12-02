@@ -431,10 +431,10 @@ public final class SdkHttpUtils {
      */
     public static Set<String> parseNonProxyHostsProperty() {
         String systemNonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
-        return extractNonProxyHosts(systemNonProxyHosts);
+        return extractNonProxyHostsFromSystemProperty(systemNonProxyHosts);
     }
 
-    private static Set<String> extractNonProxyHosts(String systemNonProxyHosts) {
+    private static Set<String> extractNonProxyHostsFromSystemProperty(String systemNonProxyHosts) {
         if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
             return Arrays.stream(systemNonProxyHosts.split("\\|"))
                          .map(String::toLowerCase)
@@ -444,8 +444,18 @@ public final class SdkHttpUtils {
         return Collections.emptySet();
     }
 
+    private static Set<String> extractNonProxyHostsFromEnvironmentVariable(String systemNonProxyHosts) {
+        if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
+            return Arrays.stream(systemNonProxyHosts.split(","))
+                         .map(String::toLowerCase)
+                         .map(String::trim)
+                         .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
+    }
+
     public static Set<String> parseNonProxyHostsEnvironmentVariable() {
         String systemNonProxyHosts = ProxyEnvironmentSetting.NO_PROXY.getStringValue().orElse(null);
-        return extractNonProxyHosts(systemNonProxyHosts);
+        return extractNonProxyHostsFromEnvironmentVariable(systemNonProxyHosts);
     }
 }
