@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.Constant;
+import software.amazon.awssdk.codegen.model.config.customization.CustomPackageName;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
@@ -45,6 +46,7 @@ final class AddMetadata {
         NamingStrategy namingStrategy = new DefaultNamingStrategy(serviceModel, customizationConfig);
         ServiceMetadata serviceMetadata = serviceModel.getMetadata();
         String serviceName = namingStrategy.getServiceName();
+        CustomPackageName packageName = customizationConfig.getPackageName();
 
         metadata.withApiVersion(serviceMetadata.getApiVersion())
                 .withAsyncClient(String.format(Constant.ASYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
@@ -54,7 +56,9 @@ final class AddMetadata {
                 .withBaseBuilderInterface(String.format(Constant.BASE_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
                 .withBaseBuilder(String.format(Constant.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withDocumentation(serviceModel.getDocumentation())
-                .withRootPackageName(AWS_PACKAGE_PREFIX)
+                .withRootPackageName(Optional.ofNullable(packageName)
+                                             .map(CustomPackageName::getPrefix)
+                                             .orElse(AWS_PACKAGE_PREFIX))
                 .withClientPackageName(namingStrategy.getClientPackageName(serviceName))
                 .withModelPackageName(namingStrategy.getModelPackageName(serviceName))
                 .withTransformPackageName(namingStrategy.getTransformPackageName(serviceName))

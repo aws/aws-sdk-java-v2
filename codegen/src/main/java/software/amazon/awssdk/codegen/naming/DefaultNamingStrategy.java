@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
+import software.amazon.awssdk.codegen.model.config.customization.CustomPackageName;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -209,7 +210,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     private String getCustomizedPackageName(String serviceName, String defaultPattern) {
-        return String.format(defaultPattern, StringUtils.lowerCase(serviceName));
+        String suffix = Optional.ofNullable(customizationConfig.getPackageName())
+                                .map(CustomPackageName::getSuffix)
+                                .orElse(StringUtils.lowerCase(serviceName));
+
+        return String.format(defaultPattern, suffix);
     }
 
     @Override
