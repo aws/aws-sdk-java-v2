@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Braket",
+    "contributor": "",
+    "description": "This release enhances service support to create quantum tasks and hybrid jobs associated with Braket Direct Reservations."
+}
