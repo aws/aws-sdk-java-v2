@@ -21,7 +21,13 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
+@Immutable
+@ThreadSafe
+@SdkPublicApi
 public interface ProgressSnapshot {
     /**
      * The total number of bytes that have been sent or received so far.
@@ -52,6 +58,7 @@ public interface ProgressSnapshot {
      * The total size of the transfer, in bytes, or {@link Optional#empty()} if unknown.
      */
     OptionalLong totalTransferSize();
+
     /**
      * The ratio of the {@link #totalBytes()} that has been transferred so far, or {@link Optional#empty()} if unknown.
      * This method depends on the {@link #totalBytes()} being known in order to return non-empty.

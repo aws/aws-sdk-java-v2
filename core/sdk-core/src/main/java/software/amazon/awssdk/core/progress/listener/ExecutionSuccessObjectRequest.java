@@ -15,11 +15,17 @@
 
 package software.amazon.awssdk.core.progress.listener;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkResponse;
 
+/**
+ * A successfully completed single object request.
+ */
+@SdkPublicApi
 public interface ExecutionSuccessObjectRequest extends ProgressListener.Context.ExecutionSuccess {
+
     /**
-     * Return the {@link SdkResponse} associated with this request
+     * Return the {@link SdkResponse} associated with this response
      */
     default SdkResponse response() {
         throw new UnsupportedOperationException();

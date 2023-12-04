@@ -15,13 +15,19 @@
 
 package software.amazon.awssdk.core.progress.listener.snapshot;
 
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
+
+@Mutable
+@ThreadSafe
+@SdkPublicApi
 public interface ListenerProgress {
 
-     /**
-      * Takes a snapshot of the request execution progress
-      * represented by an immutable {@link ProgressSnapshot}.
-      */
-
-     ProgressSnapshot progressSnapshot();
+    /**
+    * Takes a snapshot of the request execution progress
+    * represented by an immutable {@link ProgressSnapshot}.
+    */
+    ProgressSnapshot progressSnapshot();
 
 }
