@@ -1,3 +1,48 @@
+# __2.21.38__ __2023-12-04__
+## __AWS Archetype Lambda__
+  - ### Features
+    - Update archetype-lambda to use AWS CRT HTTP client as the default HTTP client and bump dependency version.
+
+## __AWS Cloud9__
+  - ### Features
+    - This release adds the requirement to include the imageId parameter in the CreateEnvironmentEC2 API call.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Including UPDATE_* states as a success status for CreateStack waiter.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds support for custom color correction on channels using 3D LUT files.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - Documentation-only updates for Dawn
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds the ability to specify a linked account of the billing group for the custom line item resource.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixes double checksum validation for GetObject. Now when ChecksumMode is enabled, x-amz-te:append-md5 will not be sent, and only the flexible checksum will be validated. If ChecksumMode is enabled and no ChecksumAlgorithm was returned, no validation will be performed.
+
+## __Amazon SQS__
+  - ### Features
+    - Adds a client builder option to disable the default MD5 checksum validation for SendMessage, ReceiveMessage and SendMessageBatch
+
+## __Braket__
+  - ### Features
+    - This release enhances service support to create quantum tasks and hybrid jobs associated with Braket Direct Reservations.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Release General Purpose type clusters
+
 # __2.21.37__ __2023-12-01__
 ## __Amazon DynamoDB Enhanced__
   - ### Features
