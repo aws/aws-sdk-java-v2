@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.auth.credentials.internal;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -27,6 +28,7 @@ public class AwsSessionCredentialsTest {
     private static final String ACCESS_KEY_ID = "accessKeyId";
     private static final String SECRET_ACCESS_KEY = "secretAccessKey";
     private static final String SESSION_TOKEN = "sessionToken";
+    private static final String CREDENTIAL_SCOPE = "credentialScope";
 
     public void equalsHashcode() {
         EqualsVerifier.forClass(AwsSessionCredentials.class)
@@ -70,9 +72,12 @@ public class AwsSessionCredentialsTest {
                                                               .accessKeyId(ACCESS_KEY_ID)
                                                               .secretAccessKey(SECRET_ACCESS_KEY)
                                                               .sessionToken(SESSION_TOKEN)
+                                                              .credentialScope(CREDENTIAL_SCOPE)
                                                               .build();
         assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
         assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
         assertEquals(SESSION_TOKEN, identity.sessionToken());
+        assertThat(identity.credentialScope()).isPresent();
+        assertEquals(CREDENTIAL_SCOPE, identity.credentialScope().get());
     }
 }

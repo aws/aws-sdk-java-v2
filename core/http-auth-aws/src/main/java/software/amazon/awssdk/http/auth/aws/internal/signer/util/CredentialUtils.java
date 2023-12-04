@@ -40,12 +40,16 @@ public final class CredentialUtils {
     public static AwsCredentialsIdentity sanitizeCredentials(AwsCredentialsIdentity credentials) {
         String accessKeyId = StringUtils.trim(credentials.accessKeyId());
         String secretKey = StringUtils.trim(credentials.secretAccessKey());
+        String credentialScope = StringUtils.trim(credentials.credentialScope().orElse(null));
 
         if (credentials instanceof AwsSessionCredentialsIdentity) {
             AwsSessionCredentialsIdentity sessionCredentials = (AwsSessionCredentialsIdentity) credentials;
-            return AwsSessionCredentialsIdentity.create(accessKeyId,
-                                                        secretKey,
-                                                        StringUtils.trim(sessionCredentials.sessionToken()));
+            return AwsSessionCredentialsIdentity.builder()
+                                                .accessKeyId(accessKeyId)
+                                                .secretAccessKey(secretKey)
+                                                .sessionToken(StringUtils.trim(sessionCredentials.sessionToken()))
+                                                .credentialScope(credentialScope)
+                                                .build();
         }
 
         // given credentials are anonymous, so don't create new instance
@@ -53,6 +57,10 @@ public final class CredentialUtils {
             return credentials;
         }
 
-        return AwsCredentialsIdentity.create(accessKeyId, secretKey);
+        return AwsCredentialsIdentity.builder()
+                                     .accessKeyId(accessKeyId)
+                                     .secretAccessKey(secretKey)
+                                     .credentialScope(credentialScope)
+                                     .build();
     }
 }

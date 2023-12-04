@@ -15,17 +15,18 @@
 
 package software.amazon.awssdk.identity.spi;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.internal.DefaultAwsCredentialsIdentity;
 
 public class AwsCredentialsIdentityTest {
     private static final String ACCESS_KEY_ID = "accessKeyId";
     private static final String SECRET_ACCESS_KEY = "secretAccessKey";
+    private static final String CREDENTIAL_SCOPE = "credentialScope";
 
     @Test
     public void equalsHashcode() {
@@ -60,8 +61,11 @@ public class AwsCredentialsIdentityTest {
         AwsCredentialsIdentity identity = AwsCredentialsIdentity.builder()
                                                                 .accessKeyId(ACCESS_KEY_ID)
                                                                 .secretAccessKey(SECRET_ACCESS_KEY)
+                                                                .credentialScope(CREDENTIAL_SCOPE)
                                                                 .build();
         assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
         assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
+        assertThat(identity.credentialScope()).isPresent();
+        assertEquals(CREDENTIAL_SCOPE, identity.credentialScope().get());
     }
 }

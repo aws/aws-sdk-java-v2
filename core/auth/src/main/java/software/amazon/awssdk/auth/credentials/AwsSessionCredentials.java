@@ -36,6 +36,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
+    private final String credentialScope;
 
     private final Instant expirationTime;
 
@@ -44,6 +45,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretKey");
         this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
         this.expirationTime = builder.expirationTime;
+        this.credentialScope = builder.credentialScope;
     }
 
     /**
@@ -82,6 +84,14 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     }
 
     /**
+     * Retrieve the AWS region of the single-region account, if it exists. Otherwise, returns empty {@link Optional}.
+     */
+    @Override
+    public Optional<String> credentialScope() {
+        return Optional.ofNullable(credentialScope);
+    }
+
+    /**
      * Retrieve the expiration time of these credentials, if it exists.
      */
     @Override
@@ -101,6 +111,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     public String toString() {
         return ToString.builder("AwsSessionCredentials")
                        .add("accessKeyId", accessKeyId())
+                       .add("credentialScope", credentialScope)
                        .build();
     }
 
@@ -117,7 +128,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         return Objects.equals(accessKeyId, that.accessKeyId) &&
                Objects.equals(secretAccessKey, that.secretAccessKey) &&
                Objects.equals(sessionToken, that.sessionToken) &&
-               Objects.equals(expirationTime, that.expirationTime().orElse(null));
+               Objects.equals(expirationTime, that.expirationTime().orElse(null)) &&
+               Objects.equals(credentialScope, that.credentialScope().orElse(null));
     }
 
     @Override
@@ -127,6 +139,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey());
         hashCode = 31 * hashCode + Objects.hashCode(sessionToken());
         hashCode = 31 * hashCode + Objects.hashCode(expirationTime);
+        hashCode = 31 * hashCode + Objects.hashCode(credentialScope);
         return hashCode;
     }
 
@@ -139,6 +152,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         private String secretAccessKey;
         private String sessionToken;
         private Instant expirationTime;
+        private String credentialScope;
 
         /**
          * The AWS access key, used to identify the user interacting with services. Required.
@@ -172,6 +186,14 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
          */
         public Builder expirationTime(Instant expirationTime) {
             this.expirationTime = expirationTime;
+            return this;
+        }
+
+        /**
+         * The AWS region of the single-region account. Optional
+         */
+        public Builder credentialScope(String credentialScope) {
+            this.credentialScope = credentialScope;
             return this;
         }
 

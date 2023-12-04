@@ -60,6 +60,9 @@ public interface AwsSessionCredentialsIdentity extends AwsCredentialsIdentity {
         @Override
         Builder secretAccessKey(String secretAccessKey);
 
+        @Override
+        Builder credentialScope(String credentialScope);
+
         /**
          * The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
          * received temporary permission to access some resource.

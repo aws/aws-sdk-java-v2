@@ -116,11 +116,37 @@ public class CredentialUtilsTest {
     }
 
     @Test
+    public void toCredentialsProvider_withCredentialScope_AwsCredentialsProvider_returnsAsIs() {
+        IdentityProvider<AwsCredentialsIdentity> input =
+            StaticCredentialsProvider.create(AwsBasicCredentials.builder()
+                                                                .accessKeyId("akid")
+                                                                .secretAccessKey("skid")
+                                                                .credentialScope("region")
+                                                                .build());
+        AwsCredentialsProvider output = CredentialUtils.toCredentialsProvider(input);
+        assertThat(output).isSameAs(input);
+    }
+
+    @Test
     public void toCredentialsProvider_IdentityProvider_converts() {
         AwsCredentialsProvider credentialsProvider = CredentialUtils.toCredentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")));
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("akid");
         assertThat(credentials.secretAccessKey()).isEqualTo("skid");
+    }
+
+    @Test
+    public void toCredentialsProvider_withCredentialScope_IdentityProvider_converts() {
+        AwsCredentialsProvider credentialsProvider = CredentialUtils.toCredentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.builder()
+                                                                .accessKeyId("akid")
+                                                                .secretAccessKey("skid")
+                                                                .credentialScope("region")
+                                                                .build()));
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        assertThat(credentials.accessKeyId()).isEqualTo("akid");
+        assertThat(credentials.secretAccessKey()).isEqualTo("skid");
+        assertThat(credentials.credentialScope()).contains("region");
     }
 }
