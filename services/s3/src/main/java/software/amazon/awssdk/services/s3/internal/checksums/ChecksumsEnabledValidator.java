@@ -13,12 +13,8 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksums;
+package software.amazon.awssdk.services.s3.internal.checksums;
 
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
 import java.util.Arrays;
@@ -40,6 +36,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.handlers.AsyncChecksumValidationInterceptor;
 import software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -61,15 +58,18 @@ public final class ChecksumsEnabledValidator {
     }
 
     /**
-     * Checks if trailing checksum is enabled for {@link S3Client#getObject(GetObjectRequest)} per request.
+     * Checks if trailing checksum is enabled and {@link ChecksumMode} is disabled for
+     * {@link S3Client#getObject(GetObjectRequest)} per request.
      *
      * @param request the request
      * @param executionAttributes the executionAttributes
-     * @return true if trailing checksums is enabled, false otherwise
+     * @return true if trailing checksums is enabled and ChecksumMode is disabled, false otherwise
      */
     public static boolean getObjectChecksumEnabledPerRequest(SdkRequest request,
                                                              ExecutionAttributes executionAttributes) {
-        return request instanceof GetObjectRequest && checksumEnabledPerConfig(executionAttributes);
+        return request instanceof GetObjectRequest
+               && ((GetObjectRequest) request).checksumMode() != ChecksumMode.ENABLED
+               && checksumEnabledPerConfig(executionAttributes);
     }
 
     /**
@@ -84,8 +84,7 @@ public final class ChecksumsEnabledValidator {
     }
 
     /**
-     * Validates that checksums should be enabled based on {@link ClientType} and the presence
-     * or S3 specific headers.
+     * Validates that checksums should be enabled based on {@link ClientType} and the presence of S3 specific headers.
      *
      * @param expectedClientType - The expected client type for enabling checksums
      * @param executionAttributes - {@link ExecutionAttributes} to determine the actual client type
@@ -134,12 +133,12 @@ public final class ChecksumsEnabledValidator {
 
     private static boolean hasServerSideEncryptionHeader(SdkHttpHeaders httpRequest) {
         // S3 doesn't support trailing checksums for customer encryption
-        if (httpRequest.firstMatchingHeader(SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER).isPresent()) {
+        if (httpRequest.firstMatchingHeader(ChecksumConstant.SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER).isPresent()) {
             return true;
         }
 
         // S3 doesn't support trailing checksums for KMS encrypted objects
-        if (httpRequest.firstMatchingHeader(SERVER_SIDE_ENCRYPTION_HEADER)
+        if (httpRequest.firstMatchingHeader(ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER)
                        .filter(h -> h.contains(AWS_KMS.toString()))
                        .isPresent()) {
             return true;
@@ -178,8 +177,8 @@ public final class ChecksumsEnabledValidator {
      * @return true if the trailing checksum is present in the header, false otherwise.
      */
     private static boolean checksumEnabledPerResponse(SdkHttpHeaders responseHeaders) {
-        return responseHeaders.firstMatchingHeader(CHECKSUM_ENABLED_RESPONSE_HEADER)
-                              .filter(b -> b.equals(ENABLE_MD5_CHECKSUM_HEADER_VALUE))
+        return responseHeaders.firstMatchingHeader(ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER)
+                              .filter(b -> b.equals(ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE))
                               .isPresent();
     }
 

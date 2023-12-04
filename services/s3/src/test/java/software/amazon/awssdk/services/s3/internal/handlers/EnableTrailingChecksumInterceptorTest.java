@@ -16,10 +16,10 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyHttpRequestContext;
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyResponseContext;
 
@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -95,7 +94,7 @@ public class EnableTrailingChecksumInterceptorTest {
                 if (checksumModeEnabled) {
                     assertThat(getObjectRequest.checksumMode()).isNotNull();
                     assertThat(getObjectRequest.checksumMode()).isEqualTo(ChecksumMode.ENABLED);
-                    assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).containsOnly(ENABLE_MD5_CHECKSUM_HEADER_VALUE);
+                    assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).isNull();
                 } else {
                     // Default SDK behavior
                     assertThat(getObjectRequest.checksumMode()).isNull();

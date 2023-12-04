@@ -18,15 +18,15 @@ package software.amazon.awssdk.services.s3.checksums;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.CLIENT_TYPE;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerRequest;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.responseChecksumIsValid;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.shouldRecordChecksum;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerRequest;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.responseChecksumIsValid;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.shouldRecordChecksum;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
 import org.junit.jupiter.api.Test;
@@ -38,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketAclRequest;
@@ -46,19 +47,32 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class ChecksumsEnabledValidatorTest {
 
     @Test
-    public void getObjectChecksumEnabledPerRequest_nonGetObjectRequestFalse() {
+    public void getObjectChecksumEnabledPerRequest_nonGetObjectRequest_returnsFalse() {
         assertThat(getObjectChecksumEnabledPerRequest(GetObjectAclRequest.builder().build(),
                                                       new ExecutionAttributes())).isFalse();
     }
 
     @Test
-    public void getObjectChecksumEnabledPerRequest_defaultReturnTrue() {
-        assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().build(), new ExecutionAttributes())).isTrue();
+    public void getObjectChecksumEnabledPerRequest_checksumValidationEnabledChecksumModeDisabled_returnsTrue() {
+        assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().build(),
+                                                      new ExecutionAttributes())).isTrue();
     }
 
     @Test
-    public void getObjectChecksumEnabledPerRequest_disabledPerConfig() {
+    public void getObjectChecksumEnabledPerRequest_checksumValidationEnabledChecksumModeEnabled_returnsFalse() {
+        assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().checksumMode(ChecksumMode.ENABLED).build(),
+                                                      new ExecutionAttributes())).isFalse();
+    }
+
+    @Test
+    public void getObjectChecksumEnabledPerRequest_checksumValidationDisabledChecksumModeDisabled_returnsFalse() {
         assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().build(),
+                                                      getExecutionAttributesWithChecksumDisabled())).isFalse();
+    }
+
+    @Test
+    public void getObjectChecksumEnabledPerRequest_checksumValidationDisabledChecksumModeEnabled_returnsFalse() {
+        assertThat(getObjectChecksumEnabledPerRequest(GetObjectRequest.builder().checksumMode(ChecksumMode.ENABLED).build(),
                                                       getExecutionAttributesWithChecksumDisabled())).isFalse();
     }
 

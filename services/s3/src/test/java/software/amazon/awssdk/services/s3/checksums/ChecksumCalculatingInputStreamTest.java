@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
+import software.amazon.awssdk.services.s3.internal.checksums.ChecksumCalculatingInputStream;
 
 /**
  * Tests for {@link ChecksumCalculatingInputStream}.
