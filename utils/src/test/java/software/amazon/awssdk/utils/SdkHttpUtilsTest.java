@@ -19,7 +19,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.entry;
 
 import java.net.URI;
@@ -33,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
@@ -40,12 +40,15 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class SdkHttpUtilsTest {
 
-
-
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
     @BeforeEach
     public void setup() {
+        ENVIRONMENT_VARIABLE_HELPER.reset();
+    }
+
+    @AfterEach
+    public void clear() {
         ENVIRONMENT_VARIABLE_HELPER.reset();
     }
 
