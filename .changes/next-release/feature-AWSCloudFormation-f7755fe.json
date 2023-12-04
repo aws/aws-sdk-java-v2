@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudFormation",
-    "contributor": "",
-    "description": "Including UPDATE_* states as a success status for CreateStack waiter."
-}
