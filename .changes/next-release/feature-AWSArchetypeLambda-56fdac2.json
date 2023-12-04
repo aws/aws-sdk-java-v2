@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Archetype Lambda",
-    "contributor": "",
-    "description": "Update archetype-lambda to use AWS CRT HTTP client as the default HTTP client and bump dependency version."
-}
