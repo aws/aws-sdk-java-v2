@@ -300,6 +300,12 @@ public class CustomizationConfig {
      */
     private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
 
+    /**
+     * Customization to change package name.
+     */
+    private CustomPackageName packageName;
+
+
     private CustomizationConfig() {
     }
 
@@ -797,4 +803,12 @@ public class CustomizationConfig {
         this.endpointAuthSchemeConfig = endpointAuthSchemeConfig;
     }
 
+    public CustomPackageName getPackageName() {
+        return packageName;
+    }
+
+    public CustomizationConfig setPackageName(CustomPackageName packageName) {
+        this.packageName = packageName;
+        return this;
+    }
 }
