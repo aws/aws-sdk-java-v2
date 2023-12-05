@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Comma separated multiple hosts specified in no_proxy environment settings were not treated as multiple hosts"
+    "description": "Comma separated multiple hosts specified in `NO_PROXY` environment variable are now treated as multiple hosts."
 }
