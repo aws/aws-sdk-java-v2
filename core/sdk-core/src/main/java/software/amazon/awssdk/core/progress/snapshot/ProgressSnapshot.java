@@ -63,7 +63,7 @@ public interface ProgressSnapshot {
     /**
      * The total size of the transfer, in bytes, or {@link Optional#empty()} if unknown.
      */
-    OptionalLong totalTransferSize();
+    OptionalLong totalBytes();
 
     /**
      * The ratio of the {@link #totalBytes()} that has been transferred so far, or {@link Optional#empty()} if unknown.
