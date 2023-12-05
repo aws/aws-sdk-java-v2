@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.progress.listener.snapshot.ProgressSnapshot;
+import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**

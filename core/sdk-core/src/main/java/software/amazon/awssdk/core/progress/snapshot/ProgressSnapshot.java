@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.progress.listener.snapshot;
+package software.amazon.awssdk.core.progress.snapshot;
 
 import java.time.Duration;
 import java.time.Instant;
