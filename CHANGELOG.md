@@ -1,3 +1,24 @@
+# __2.21.39__ __2023-12-05__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Updated service title from cleanroomsml to CleanRoomsML.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Documentation update, December 2023
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Comma separated multiple hosts specified in `NO_PROXY` environment variable are now treated as multiple hosts.
+
+## __Amazon Athena__
+  - ### Features
+    - Adding IdentityCenter enabled request for interactive query
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds A10G, T4G, and H100 as accelerator name options and Habana as an accelerator manufacturer option for attribute based selection
+
 # __2.21.38__ __2023-12-04__
 ## __AWS Archetype Lambda__
   - ### Features
@@ -3884,7 +3905,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
