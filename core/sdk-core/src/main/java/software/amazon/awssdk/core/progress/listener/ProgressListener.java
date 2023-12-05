@@ -163,15 +163,15 @@ public interface ProgressListener {
     default void responseBytesReceived(Context.ResponseBytesReceived context) {
     }
 
-     /**
-     * Additional bytes received
-     * <p>
-     * Available context attributes:
-     * <ol>
-     *     <li>{@link Context.ResponseBytesReceived#request()}</li>
-     *     <li>{@link Context.ResponseBytesReceived#progressSnapshot()}</li>
-     * </ol>
-     */
+    /**
+    * Additional bytes received
+    * <p>
+    * Available context attributes:
+    * <ol>
+    *     <li>{@link Context.ResponseBytesReceived#request()}</li>
+    *     <li>{@link Context.ResponseBytesReceived#progressSnapshot()}</li>
+    * </ol>
+    */
     default void attemptFailureResponseBytesReceived(Context.AttemptFailureResponseBytesReceived context) {
     }
 
