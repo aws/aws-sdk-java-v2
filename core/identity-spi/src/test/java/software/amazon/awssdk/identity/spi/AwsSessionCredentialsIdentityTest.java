@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.identity.spi;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -72,38 +72,12 @@ public class AwsSessionCredentialsIdentityTest {
                                                                               .accessKeyId(ACCESS_KEY_ID)
                                                                               .secretAccessKey(SECRET_ACCESS_KEY)
                                                                               .sessionToken(SESSION_TOKEN)
-                                                                              .build();
-        assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
-        assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
-        assertEquals(SESSION_TOKEN, identity.sessionToken());
-    }
-
-    @Test
-    public void build_withCredentialScope_isSuccessful() {
-        AwsSessionCredentialsIdentity identity = AwsSessionCredentialsIdentity.builder()
-                                                                              .accessKeyId(ACCESS_KEY_ID)
-                                                                              .secretAccessKey(SECRET_ACCESS_KEY)
-                                                                              .sessionToken(SESSION_TOKEN)
                                                                               .credentialScope(CREDENTIAL_SCOPE)
                                                                               .build();
         assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
         assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
         assertEquals(SESSION_TOKEN, identity.sessionToken());
-        assertEquals(SESSION_TOKEN, identity.sessionToken());
-    }
-
-    @Test
-    public void build_withNullCredentialScope_isSuccessful() {
-        AwsSessionCredentialsIdentity identity = AwsSessionCredentialsIdentity.builder()
-                                                                              .accessKeyId(ACCESS_KEY_ID)
-                                                                              .secretAccessKey(SECRET_ACCESS_KEY)
-                                                                              .sessionToken(SESSION_TOKEN)
-                                                                              .credentialScope(null)
-                                                                              .build();
-        assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
-        assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
-        assertEquals(SESSION_TOKEN, identity.sessionToken());
-        assertEquals(SESSION_TOKEN, identity.sessionToken());
-        assertFalse(identity.credentialScope().isPresent());
+        assertThat(identity.credentialScope()).isPresent();
+        assertEquals(CREDENTIAL_SCOPE, identity.credentialScope().get());
     }
 }
