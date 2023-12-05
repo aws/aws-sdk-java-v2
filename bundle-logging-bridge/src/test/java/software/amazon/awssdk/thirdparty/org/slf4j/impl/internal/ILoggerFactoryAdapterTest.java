@@ -15,23 +15,26 @@
 
 package software.amazon.awssdk.thirdparty.org.slf4j.impl.internal;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.thirdparty.org.slf4j.ILoggerFactory;
-import software.amazon.awssdk.thirdparty.org.slf4j.Logger;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-/**
- * Adapts a normal, unshaded {@link org.slf4j.ILoggerFactory} to the shaded {@link ILoggerFactory}.
- */
-@SdkInternalApi
-public class ILoggerFactoryAdapter implements ILoggerFactory {
-    private final org.slf4j.ILoggerFactory impl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.ILoggerFactory;
 
-    public ILoggerFactoryAdapter(org.slf4j.ILoggerFactory impl) {
-        this.impl = impl;
+public class ILoggerFactoryAdapterTest {
+    private ILoggerFactory mockLoggerFactory;
+    private ILoggerFactoryAdapter factoryAdapter;
+
+    @BeforeEach
+    public void setup() {
+        mockLoggerFactory = mock(ILoggerFactory.class);
+        factoryAdapter = new ILoggerFactoryAdapter(mockLoggerFactory);
     }
 
-    @Override
-    public Logger getLogger(String s) {
-        return new LoggerAdapter(impl.getLogger(s));
+    @Test
+    public void getLogger_delegatesCall() {
+        factoryAdapter.getLogger("MyLogger");
+        verify(mockLoggerFactory).getLogger("MyLogger");
     }
 }

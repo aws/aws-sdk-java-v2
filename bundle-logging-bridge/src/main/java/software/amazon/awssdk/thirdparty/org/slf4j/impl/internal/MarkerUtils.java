@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.thirdparty.org.slf4j.impl.internal;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
 /**
  * Utility for converting {@code Marker}s back and forth between the shaded and unshaded interfaces.
  */
+@SdkInternalApi
 public final class MarkerUtils {
     private MarkerUtils() {
     }

@@ -17,22 +17,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
+        <groupId>software.amazon.awssdk</groupId>
         <version>2.21.32-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>bundle-logging-bridge</artifactId>
-    <packaging>jar</packaging>
+    <modelVersion>4.0.0</modelVersion>
 
-    <name>AWS Java SDK :: Bundle Logging Bridge</name>
+    <artifactId>bundle-logging-bridge-binding-test</artifactId>
+
+    <name>AWS Java SDK :: Test :: Bundle Logging Bridge Binding Tests</name>
+    <description>Tests to ensure bundle-logging-bridge can correctly bind to SLF4J implementations.</description>
     <url>https://aws.amazon.com/sdkforjava</url>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sonar.skip>true</sonar.skip>
-    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -43,34 +40,42 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-bom</artifactId>
+                <version>${log4j.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>annotations</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>provided</scope>
+            <artifactId>bundle</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <!-- Provided scope as the 'thirdparty.org.slf4j' package will be in the shaded bundle -->
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>third-party-slf4j-api</artifactId>
-            <version>${awsjavasdk.version}</version>
-           <scope>provided</scope>
+            <artifactId>test-utils</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <!-- Brought in by bundle user SLF4J impl -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-           <scope>provided</scope>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>test</scope>
         </dependency>
-
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -89,5 +94,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

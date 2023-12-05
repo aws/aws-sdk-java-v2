@@ -16,6 +16,7 @@
 package software.amazon.awssdk.thirdparty.org.slf4j.impl.internal;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 import org.slf4j.Marker;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -24,6 +25,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public class UnshadedMarkerAdapter implements Marker {
+    private static final long serialVersionUID = -2627393415659340178L;
+
     private final software.amazon.awssdk.thirdparty.org.slf4j.Marker shaded;
 
     public UnshadedMarkerAdapter(software.amazon.awssdk.thirdparty.org.slf4j.Marker shaded) {
@@ -41,12 +44,12 @@ public class UnshadedMarkerAdapter implements Marker {
 
     @Override
     public void add(Marker reference) {
-        shaded.add(new ShadedMarkerAdapter(reference));
+        shaded.add(MarkerUtils.asShaded(reference));
     }
 
     @Override
     public boolean remove(Marker reference) {
-        return shaded.remove(new ShadedMarkerAdapter(reference));
+        return shaded.remove(MarkerUtils.asShaded(reference));
     }
 
     @Override
@@ -61,18 +64,7 @@ public class UnshadedMarkerAdapter implements Marker {
 
     @Override
     public Iterator<Marker> iterator() {
-        Iterator<software.amazon.awssdk.thirdparty.org.slf4j.Marker> iterator = shaded.iterator();
-        return new Iterator<Marker>() {
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public Marker next() {
-                return MarkerUtils.asUnshaded(iterator.next());
-            }
-        };
+        return new IteratorAdapter(shaded.iterator());
     }
 
     @Override
@@ -97,5 +89,33 @@ public class UnshadedMarkerAdapter implements Marker {
     @Override
     public int hashCode() {
         return shaded.hashCode();
+    }
+
+    private static class IteratorAdapter implements Iterator<Marker> {
+        private final Iterator<software.amazon.awssdk.thirdparty.org.slf4j.Marker> shaded;
+
+        IteratorAdapter(Iterator<software.amazon.awssdk.thirdparty.org.slf4j.Marker> shaded) {
+            this.shaded = shaded;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return shaded.hasNext();
+        }
+
+        @Override
+        public Marker next() {
+            return MarkerUtils.asUnshaded(shaded.next());
+        }
+
+        @Override
+        public void remove() {
+            shaded.remove();
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super Marker> action) {
+            shaded.forEachRemaining(m -> action.accept(MarkerUtils.asUnshaded(m)));
+        }
     }
 }

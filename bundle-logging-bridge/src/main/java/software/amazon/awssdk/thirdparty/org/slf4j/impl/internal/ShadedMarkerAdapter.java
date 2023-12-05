@@ -16,6 +16,7 @@
 package software.amazon.awssdk.thirdparty.org.slf4j.impl.internal;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.thirdparty.org.slf4j.Marker;
 
@@ -24,6 +25,8 @@ import software.amazon.awssdk.thirdparty.org.slf4j.Marker;
  */
 @SdkInternalApi
 public class ShadedMarkerAdapter implements Marker {
+    private static final long serialVersionUID = -8764719723630669060L;
+
     private final org.slf4j.Marker unshaded;
 
     public ShadedMarkerAdapter(org.slf4j.Marker unshaded) {
@@ -61,18 +64,7 @@ public class ShadedMarkerAdapter implements Marker {
 
     @Override
     public Iterator<Marker> iterator() {
-        Iterator<org.slf4j.Marker> iterator = unshaded.iterator();
-        return new Iterator<Marker>() {
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public Marker next() {
-                return MarkerUtils.asShaded(iterator.next());
-            }
-        };
+        return new IteratorAdapter(unshaded.iterator());
     }
 
     @Override
@@ -97,5 +89,33 @@ public class ShadedMarkerAdapter implements Marker {
     @Override
     public int hashCode() {
         return unshaded.hashCode();
+    }
+
+    private static class IteratorAdapter implements Iterator<Marker> {
+        private final Iterator<org.slf4j.Marker> unshaded;
+
+        IteratorAdapter(Iterator<org.slf4j.Marker> unshaded) {
+            this.unshaded = unshaded;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return unshaded.hasNext();
+        }
+
+        @Override
+        public Marker next() {
+            return MarkerUtils.asShaded(unshaded.next());
+        }
+
+        @Override
+        public void remove() {
+            unshaded.remove();
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super Marker> action) {
+            unshaded.forEachRemaining(m -> action.accept(MarkerUtils.asShaded(m)));
+        }
     }
 }

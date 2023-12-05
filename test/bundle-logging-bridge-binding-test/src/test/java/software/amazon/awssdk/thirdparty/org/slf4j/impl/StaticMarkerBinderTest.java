@@ -13,22 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.thirdparty.org.slf4j.impl.internal;
+package software.amazon.awssdk.thirdparty.org.slf4j.impl;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Utility for reporting errors.
- */
-@SdkInternalApi
-public final class ErrorUtil {
-    private ErrorUtil() {
+import org.junit.jupiter.api.Test;
+
+public class StaticMarkerBinderTest {
+    @Test
+    public void getSingleton_doesNoThrow() {
+        assertThat(StaticMarkerBinder.getSingleton()).isNotNull();
     }
 
-    // CHECKSTYLE:OFF - Disable failure on usage of System.err since there is presumably no logging framework available if we
-    // need to use this.
-    public static void report(String msg) {
-        System.err.println(msg);
+    @Test
+    public void getActualBinder_isCorrectType() {
+        assertThat(StaticMarkerBinder.getSingleton().getActualStaticMarkerBinder())
+            .isInstanceOf(org.slf4j.impl.StaticMarkerBinder.class);
     }
-    // CHECKSTYLE:ON
 }

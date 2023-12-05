@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.thirdparty.org.slf4j.IMarkerFactory;
 import software.amazon.awssdk.thirdparty.org.slf4j.impl.internal.ErrorUtil;
 import software.amazon.awssdk.thirdparty.org.slf4j.impl.internal.IMarkerFactoryAdapter;
@@ -96,5 +97,10 @@ public class StaticMarkerBinder {
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
+    }
+
+    @SdkTestInternalApi
+    Object getActualStaticMarkerBinder() {
+        return IMPL;
     }
 }
