@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.SdkResponse;
 
 @Immutable
 @ThreadSafe
@@ -48,6 +49,11 @@ public interface ProgressSnapshot {
      * If transaction size is known, estimate time remaining for transaction completion
      */
     Optional<Duration> estimatedTimeRemaining();
+
+    /**
+     * The SDK response, or {@link Optional#empty()} if unknown.
+     */
+    Optional<SdkResponse> sdkResponse();
 
     /**
      *  Rate of transfer
