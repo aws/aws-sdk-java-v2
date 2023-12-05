@@ -80,6 +80,14 @@ public class ProxyConfigurationTest {
                          new ExpectedProxySetting().port(0).nonProxyHost("one", "two", "three"),
                          "Only Non Proxy Hosts are set with multiple value"),
 
+            Arguments.of(Collections.singletonList(
+                             Pair.of("http.nonProxyHosts", "one|two|three")),
+                         Collections.singletonList(
+                             Pair.of("no_proxy", "one|two|three")
+                         ),
+                         new ExpectedProxySetting().port(0).nonProxyHost("one", "two", "three"),
+                         "Only Non Proxy Hosts are set with multiple value where environment variables are Pipe separated"),
+
             Arguments.of(Arrays.asList(
                              Pair.of("%s.proxyVaildHost", "foo.com"),
                              Pair.of("%s.proxyPorts", "555")),

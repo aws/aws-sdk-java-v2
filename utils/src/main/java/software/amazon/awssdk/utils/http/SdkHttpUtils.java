@@ -431,12 +431,12 @@ public final class SdkHttpUtils {
      */
     public static Set<String> parseNonProxyHostsProperty() {
         String systemNonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
-        return extractNonProxyHostsFromSystemProperty(systemNonProxyHosts);
+        return extractNonProxyHosts(systemNonProxyHosts);
     }
 
-    private static Set<String> extractNonProxyHostsFromSystemProperty(String systemNonProxyHosts) {
-        if (systemNonProxyHosts != null && !isEmpty(systemNonProxyHosts)) {
-            return Arrays.stream(systemNonProxyHosts.split("\\|"))
+    private static Set<String> extractNonProxyHosts(String nonProxyHosts) {
+        if (nonProxyHosts != null && !isEmpty(nonProxyHosts)) {
+            return Arrays.stream(nonProxyHosts.split("\\|"))
                          .map(String::toLowerCase)
                          .map(s -> StringUtils.replace(s, "*", ".*?"))
                          .collect(Collectors.toSet());
@@ -444,18 +444,10 @@ public final class SdkHttpUtils {
         return Collections.emptySet();
     }
 
-    private static Set<String> extractNonProxyHostsFromEnvironmentVariable(String environmentNonProxyHosts) {
-        if (environmentNonProxyHosts != null && !isEmpty(environmentNonProxyHosts)) {
-            return Arrays.stream(environmentNonProxyHosts.split(","))
-                         .map(String::toLowerCase)
-                         .map(String::trim)
-                         .collect(Collectors.toSet());
-        }
-        return Collections.emptySet();
-    }
-
     public static Set<String> parseNonProxyHostsEnvironmentVariable() {
-        String environmentNonProxyHosts = ProxyEnvironmentSetting.NO_PROXY.getStringValue().orElse(null);
-        return extractNonProxyHostsFromEnvironmentVariable(environmentNonProxyHosts);
+        String hosts = ProxyEnvironmentSetting.NO_PROXY.getStringValue()
+                                                       .map(noProxyHost -> noProxyHost.replace(",", "|"))
+                                                       .orElse(null);
+        return extractNonProxyHosts(hosts);
     }
 }
