@@ -128,7 +128,9 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
 
     private boolean hasClientContextParams() {
         Map<String, ClientContextParam> clientContextParams = model.getClientContextParams();
-        return clientContextParams != null && !clientContextParams.isEmpty();
+        Map<String, ClientContextParam> customClientContextParams = model.getCustomizationConfig().getCustomClientContextParams();
+        return (clientContextParams != null && !clientContextParams.isEmpty()) ||
+               (customClientContextParams != null && !customClientContextParams.isEmpty());
     }
 
 }

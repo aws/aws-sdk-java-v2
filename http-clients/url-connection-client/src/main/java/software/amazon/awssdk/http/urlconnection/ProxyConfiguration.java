@@ -245,6 +245,8 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * options that are not provided during building the {@link ProxyConfiguration} object. To disable this behavior, set this
          * value to "false".It is important to note that when this property is set to "true," all proxy settings will exclusively
          * originate from environment variableValues, and no partial settings will be obtained from SystemPropertyValues.
+         * <p>Comma-separated host names in the NO_PROXY environment variable indicate multiple hosts to exclude from
+         * proxy settings.
          *
          * @param useEnvironmentVariablesValues The option whether to use environment variable values
          * @return This object for method chaining.

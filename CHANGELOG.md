@@ -1,3 +1,249 @@
+# __2.21.40__ __2023-12-06__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup - Features: Add VaultType to the output of DescribeRecoveryPoint, ListRecoveryPointByBackupVault API and add ResourceType to the input of ListRestoreJobs API
+
+## __Amazon Comprehend__
+  - ### Features
+    - Documentation updates for Trust and Safety features.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Releasing Tagging Support for Instance Management APIS
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Releasing the new cpuManufacturer attribute within the DescribeInstanceTypes API response which notifies our customers with information on who the Manufacturer is for the processor attached to the instance, for example: Intel.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - AWS Payment Cryptography IPEK feature release
+
+# __2.21.39__ __2023-12-05__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Updated service title from cleanroomsml to CleanRoomsML.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Documentation update, December 2023
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Comma separated multiple hosts specified in `NO_PROXY` environment variable are now treated as multiple hosts.
+
+## __Amazon Athena__
+  - ### Features
+    - Adding IdentityCenter enabled request for interactive query
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds A10G, T4G, and H100 as accelerator name options and Habana as an accelerator manufacturer option for attribute based selection
+
+# __2.21.38__ __2023-12-04__
+## __AWS Archetype Lambda__
+  - ### Features
+    - Update archetype-lambda to use AWS CRT HTTP client as the default HTTP client and bump dependency version.
+
+## __AWS Cloud9__
+  - ### Features
+    - This release adds the requirement to include the imageId parameter in the CreateEnvironmentEC2 API call.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Including UPDATE_* states as a success status for CreateStack waiter.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds support for custom color correction on channels using 3D LUT files.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - Documentation-only updates for Dawn
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds the ability to specify a linked account of the billing group for the custom line item resource.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixes double checksum validation for GetObject. Now when ChecksumMode is enabled, x-amz-te:append-md5 will not be sent, and only the flexible checksum will be validated. If ChecksumMode is enabled and no ChecksumAlgorithm was returned, no validation will be performed.
+
+## __Amazon SQS__
+  - ### Features
+    - Adds a client builder option to disable the default MD5 checksum validation for SendMessage, ReceiveMessage and SendMessageBatch
+
+## __Braket__
+  - ### Features
+    - This release enhances service support to create quantum tasks and hybrid jobs associated with Braket Direct Reservations.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Release General Purpose type clusters
+
+# __2.21.37__ __2023-12-01__
+## __Amazon DynamoDB Enhanced__
+  - ### Features
+    - Introduce the possibility to specify returnValuesOnConditionCheckFailure in DynamoDB Enhanced operations
+        - Contributed by: [@breader124](https://github.com/breader124)
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds the PutFeedback API and allows providing feedback against the specified assistant for the specified target.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - Added resource identifier in the output and updated error handling.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds description field to PolicyStore API's and namespaces field to GetSchema.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@breader124](https://github.com/breader124)
+# __2.21.36__ __2023-11-30__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - This release adds a new capability, zonal autoshift. You can configure zonal autoshift so that AWS shifts traffic for a resource away from an Availability Zone, on your behalf, when AWS determines that there is an issue that could potentially affect customers in the Availability Zone.
+
+## __AWS Glue__
+  - ### Features
+    - Adds observation and analyzer support to the GetDataQualityResult and BatchGetDataQualityResult APIs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for 1/ Code Editor, based on Code-OSS, Visual Studio Code Open Source, a new fully managed IDE option in SageMaker Studio 2/ JupyterLab, a new fully managed JupyterLab IDE experience in SageMaker Studio
+
+# __2.21.35__ __2023-11-29__
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - The AWS Marketplace Agreement Service provides an API interface that helps AWS Marketplace sellers manage their agreements, including listing, filtering, and viewing details about their agreements.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release enhances the ListEntities API to support new entity type-specific strongly typed filters in the request and entity type-specific strongly typed summaries in the response.
+
+## __AWS Marketplace Deployment Service__
+  - ### Features
+    - AWS Marketplace Deployment is a new service that provides essential features that facilitate the deployment of software, data, and services procured through AWS Marketplace.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Redshift Serverless__
+  - ### Features
+    - This release adds the following support for Amazon Redshift Serverless: 1) cross-account cross-VPCs, 2) copying snapshots across Regions, 3) scheduling snapshot creation, and 4) restoring tables from a recovery point.
+
+# __2.21.34__ __2023-11-29__
+## __AWS CRT-based S3 client__
+  - ### Features
+    - Add S3 express support for the AWS CRT-based S3 client.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - AWS Clean Rooms now provides differential privacy to protect against user-identification attempts and machine learning modeling to allow two parties to identify similar users in their data.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `cloudwatch-metric-publisher` to `aws-sdk-java` module so that it can be included in the bundle JAR.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Launching Amazon OpenSearch Service support for new zero-ETL integration with Amazon S3. Customers can now manage their direct query data sources to Amazon S3 programatically
+
+## __Amazon S3__
+  - ### Features
+    - Adds SDK support for Amazon S3 Express One Zone. For usage, consult Javadocs and the official documentation. Note that users can switch off CreateSession authentication and use the regular credential providers to sign requests by using the `disableS3ExpressSessionAuth` option on the client builder, environment variables, system properties or the config file.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - This release adds InferenceComponentName to InvokeEndpoint and InvokeEndpointWithResponseStream APIs to get inferences from the deployed InferenceComponents.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds following support 1/ Improved SDK tooling for model deployment. 2/ New Inference Component based features to lower inference costs and latency 3/ SageMaker HyperPod management. 4/ Additional parameters for FM Fine Tuning in Autopilot
+
+## __Application Auto Scaling__
+  - ### Features
+    - Amazon SageMaker customers can now use Application Auto Scaling to automatically scale the number of Inference Component copies across an endpoint to meet the varying demand of their workloads.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Amazon OpenSearch Serverless collections support an additional attribute called standby-replicas. This allows to specify whether a collection should have redundancy enabled.
+
+## __cleanrooms-ml__
+  - ### Features
+    - Public Preview SDK release of AWS Clean Rooms ML APIs
+
+# __2.21.33__ __2023-11-28__
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for S3 Express One Zone, and InvocationSchemaVersion 2.0 for S3 Batch Operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for external access findings for S3 directory buckets to help you easily identify cross-account access. Updated service API, documentation, and paginators.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release introduces Agents for Amazon Bedrock
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces Agents for Amazon Bedrock Runtime
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release adds support for customization types, model life cycle status and minor versions/aliases for model identifiers.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support for minor versions/aliases for invoke model identifier.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces DetectProfileObjectType API to auto generate object type mapping.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added support for following capabilities: Amazon Connect's in-app, web, and video calling. Two-way SMS integrations. Contact Lens real-time chat analytics feature. Amazon Connect Analytics Datalake capability. Capability to configure real time chat rules.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Amazon Q in Connect, an LLM-enhanced evolution of Amazon Connect Wisdom. This release adds generative AI support to Amazon Q Connect QueryAssistant and GetRecommendations APIs.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for S3 Express One Zone.
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q - a generative AI powered application that your employees can use to ask questions and get answers from knowledge spread across disparate content repositories, summarize reports, write articles, take actions, and much more - all within their company's connected content repositories.
+
+# __2.21.32__ __2023-11-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Launching Amazon ElastiCache Serverless that enables you to create a cache in under a minute without any capacity management. ElastiCache Serverless monitors the cache's memory, CPU, and network usage and scales both vertically and horizontally to support your application's requirements.
+
 # __2.21.31__ __2023-11-27__
 ## __AWS AppSync__
   - ### Features
@@ -1939,7 +2185,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes

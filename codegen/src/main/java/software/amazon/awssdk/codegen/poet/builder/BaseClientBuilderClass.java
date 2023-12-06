@@ -354,9 +354,22 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         if (model.getCustomizationConfig().useGlobalEndpoint()) {
-            builder.addStatement("$T resolver = new UseGlobalEndpointResolver(config)",
+            builder.addStatement("$1T globalEndpointResolver = new $1T(config)",
                                  ClassName.get("software.amazon.awssdk.services.s3.internal.endpoints",
                                                "UseGlobalEndpointResolver"));
+        }
+
+        if (model.getCustomizationConfig().useS3ExpressSessionAuth()) {
+            builder.addStatement("$1T useS3ExpressAuthResolver = new $1T(config)",
+                                 ClassName.get("software.amazon.awssdk.services.s3.internal.s3express",
+                                               "UseS3ExpressAuthResolver"));
+
+            CodeBlock key = CodeBlock.of("$T.DISABLE_S3_EXPRESS_SESSION_AUTH",
+                                         endpointRulesSpecUtils.clientContextParamsName());
+            builder.beginControlFlow("if (clientContextParams.get($L) == null)",
+                                     key);
+            builder.addStatement("clientContextParams.put($L, !useS3ExpressAuthResolver.resolve())", key);
+            builder.endControlFlow();
         }
 
         // Update configuration
@@ -408,11 +421,11 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         if (model.getCustomizationConfig().useGlobalEndpoint()) {
-            builder.addCode(".option($1T.USE_GLOBAL_ENDPOINT, resolver.resolve(config.option($1T.AWS_REGION)))",
+            builder.addCode(".option($1T.USE_GLOBAL_ENDPOINT, globalEndpointResolver.resolve(config.option($1T.AWS_REGION)))",
                             AwsClientOption.class);
         }
 
-        if (hasClientContextParams()) {
+        if (hasClientContextParams() || endpointRulesSpecUtils.useS3Express()) {
             builder.addCode(".option($T.CLIENT_CONTEXT_PARAMS, clientContextParams.build())", SdkClientOption.class);
         }
 

@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -30,6 +32,7 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
@@ -39,6 +42,13 @@ import software.amazon.awssdk.utils.AttributeMap;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class QueryResolveEndpointInterceptor implements ExecutionInterceptor {
+    private final EndpointAuthSchemeStrategy endpointAuthSchemeStrategy;
+
+    public QueryResolveEndpointInterceptor() {
+        EndpointAuthSchemeStrategyFactory endpointAuthSchemeStrategyFactory = new DefaultEndpointAuthSchemeStrategyFactory();
+        this.endpointAuthSchemeStrategy = endpointAuthSchemeStrategyFactory.endpointAuthSchemeStrategy();
+    }
+
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         SdkRequest result = context.request();
@@ -48,7 +58,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
+            long resolveEndpointStart = System.nanoTime();
             Endpoint endpoint = provider.resolveEndpoint(ruleParams(result, executionAttributes)).join();
+            Duration resolveEndpointDuration = Duration.ofNanos(System.nanoTime() - resolveEndpointStart);
+            Optional<MetricCollector> metricCollector = executionAttributes
+                .getOptionalAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
+            metricCollector.ifPresent(mc -> mc.reportMetric(CoreMetric.ENDPOINT_RESOLVE_DURATION, resolveEndpointDuration));
             if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
                 Optional<String> hostPrefix = hostPrefix(executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME),
                                                          result);
@@ -64,7 +79,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             if (endpointAuthSchemes != null) {
-                EndpointAuthScheme chosenAuthScheme = AuthSchemeUtils.chooseAuthScheme(endpointAuthSchemes);
+                EndpointAuthScheme chosenAuthScheme = endpointAuthSchemeStrategy.chooseAuthScheme(endpointAuthSchemes);
                 Supplier<Signer> signerProvider = signerProvider(chosenAuthScheme);
                 result = SignerOverrideUtils.overrideSignerIfNotOverridden(result, executionAttributes, signerProvider);
             }

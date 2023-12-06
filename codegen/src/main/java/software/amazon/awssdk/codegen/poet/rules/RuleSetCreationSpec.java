@@ -194,7 +194,7 @@ public class RuleSetCreationSpec {
         }
 
         if (model.getProperties() != null) {
-            // Explicitly only support authSchemes property
+            // Explicitly only support known properties
             model.getProperties().forEach((name, property) -> {
                 switch (name) {
                     case "authSchemes":
@@ -252,6 +252,27 @@ public class RuleSetCreationSpec {
                         }
                         b.add(")))");
 
+                        break;
+                    case "bucketType":
+                        b.add(".addProperty($T.of($S), $T.fromStr($S))",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"),
+                              "bucketType",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Literal"),
+                              ((JrsString) property).getValue());
+                        break;
+                    case "useS3ExpressSessionAuth":
+                        b.add(".addProperty($T.of($S), $T.fromBool($L))",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"),
+                              "useS3ExpressSessionAuth",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Literal"),
+                              ((JrsBoolean) property).booleanValue());
+                        break;
+                    case "backend":
+                        b.add(".addProperty($T.of($S), $T.fromStr($S))",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"),
+                              "backend",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Literal"),
+                              ((JrsString) property).getValue());
                         break;
                     default:
                         break;
