@@ -1,3 +1,24 @@
+# __2.21.40__ __2023-12-06__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup - Features: Add VaultType to the output of DescribeRecoveryPoint, ListRecoveryPointByBackupVault API and add ResourceType to the input of ListRestoreJobs API
+
+## __Amazon Comprehend__
+  - ### Features
+    - Documentation updates for Trust and Safety features.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Releasing Tagging Support for Instance Management APIS
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Releasing the new cpuManufacturer attribute within the DescribeInstanceTypes API response which notifies our customers with information on who the Manufacturer is for the processor attached to the instance, for example: Intel.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - AWS Payment Cryptography IPEK feature release
+
 # __2.21.39__ __2023-12-05__
 ## __AWS Clean Rooms ML__
   - ### Features
@@ -2164,7 +2185,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -3905,7 +3926,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
