@@ -38,12 +38,12 @@ public interface ProgressSnapshot {
     /**
      * Time at which transaction started
      */
-    Instant startTime();
+    Optional<Instant> startTime();
 
     /**
      * Elapsed time since the start of the transaction
      */
-    Duration elapsedTime();
+    Optional<Duration> elapsedTime();
 
     /**
      * If transaction size is known, estimate time remaining for transaction completion
