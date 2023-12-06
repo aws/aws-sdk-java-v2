@@ -189,7 +189,11 @@ public abstract class SdkHttpClientTestSuite {
             SdkHttpClient client = createSdkHttpClient(httpClientOptions);
             SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + selfSignedServer.httpsPort(), SdkHttpMethod.POST);
 
-            client.prepareRequest(HttpExecuteRequest.builder().request(request).build()).call();
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                    .request(request)
+                                                    .contentStreamProvider(request.contentStreamProvider().orElse(null))
+                                                    .build())
+                  .call();
         } finally {
             selfSignedServer.stop();
         }
@@ -285,13 +289,32 @@ public abstract class SdkHttpClientTestSuite {
         mockServer.resetMappings();
     }
 
-    protected SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method) {
+    protected SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method, boolean chunkedEncoding) {
+        SdkHttpFullRequest.Builder requestBuilder = mockSdkRequestBuilder(uriString, method);
+        if (method != SdkHttpMethod.HEAD) {
+            byte[] content = "Body".getBytes(StandardCharsets.UTF_8);
+            if (!chunkedEncoding) {
+                requestBuilder.putHeader("Content-Length", Integer.toString(content.length));
+            }
+            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(content));
+        }
+
+        return requestBuilder.build();
+    }
+
+    private static SdkHttpFullRequest.Builder mockSdkRequestBuilder(String uriString, SdkHttpMethod method) {
         URI uri = URI.create(uriString);
         SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder()
-                                                            .uri(uri)
-                                                            .method(method)
-                                                            .putHeader("Host", uri.getHost())
-                                                            .putHeader("User-Agent", "hello-world!");
+                                                                      .uri(uri)
+                                                                      .method(method)
+                                                                      .putHeader("Host", uri.getHost())
+                                                                      .putHeader("User-Agent", "hello-world!");
+        return requestBuilder;
+    }
+
+
+    protected SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method) {
+        SdkHttpFullRequest.Builder requestBuilder = mockSdkRequestBuilder(uriString, method);
         if (method != SdkHttpMethod.HEAD) {
             byte[] content = "Body".getBytes(StandardCharsets.UTF_8);
             requestBuilder.putHeader("Content-Length", Integer.toString(content.length));

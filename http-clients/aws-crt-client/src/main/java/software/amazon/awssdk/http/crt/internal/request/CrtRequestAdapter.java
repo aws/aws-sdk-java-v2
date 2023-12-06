@@ -22,7 +22,6 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -75,19 +74,15 @@ public final class CrtRequestAdapter {
 
         HttpHeader[] crtHeaderArray = asArray(createHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
 
-        ContentStreamProvider provider = sdkExecuteRequest.contentStreamProvider().isPresent() ?
-                                         sdkExecuteRequest.contentStreamProvider().get() : null;
-
-        if (provider != null) {
-            return new HttpRequest(method,
-                                   encodedPath + encodedQueryString,
-                                   crtHeaderArray,
-                                   new CrtRequestInputStreamAdapter(provider));
-        }
-
-        return new HttpRequest(method,
-                        encodedPath + encodedQueryString,
-                            crtHeaderArray, null);
+        String finalEncodedPath = encodedPath + encodedQueryString;
+        return sdkExecuteRequest.contentStreamProvider()
+                                .map(provider -> new HttpRequest(method,
+                                                                 finalEncodedPath,
+                                                                 crtHeaderArray,
+                                                                 new CrtRequestInputStreamAdapter(provider)))
+                                .orElse(new HttpRequest(method,
+                                                        finalEncodedPath,
+                                                        crtHeaderArray, null));
     }
 
     private static HttpHeader[] asArray(List<HttpHeader> crtHeaderList) {
