@@ -26,7 +26,7 @@
     <artifactId>bundle-sdk</artifactId>
     <packaging>jar</packaging>
 
-    <name>AWS Java SDK :: Bundle</name>
+    <name>AWS Java SDK :: SDK Bundle</name>
     <description>A single bundled dependency that includes all service and dependent JARs with third-party libraries
         relocated to different namespaces.
     </description>
@@ -62,37 +62,6 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.6.1</version>
-                    <executions>
-                        <execution>
-                            <id>unpack</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>unpack</goal>
-                            </goals>
-                            <configuration>
-                                <artifactItems>
-                                    <artifactItem>
-                                        <groupId>software.amazon.awssdk</groupId>
-                                        <artifactId>bundle-logging-bridge</artifactId>
-                                        <version>${awsjavasdk.version}</version>
-                                        <type>jar</type>
-                                        <overWrite>true</overWrite>
-                                        <includes>**/*.class</includes>
-                                    </artifactItem>
-                                </artifactItems>
-                                <includes>**/*.java</includes>
-                                <excludes>**/*.properties</excludes>
-                                <outputDirectory>${project.build.directory}</outputDirectory>
-                                <overWriteReleases>false</overWriteReleases>
-                                <overWriteSnapshots>true</overWriteSnapshots>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>3.5.0</version>
                     <configuration>
@@ -108,9 +77,6 @@
                                 <include>software.amazon:*</include>
                                 <include>commons-logging:*</include>
                             </includes>
-                            <excludes>
-                                <exclude>software.amazon.awssdk:bundle-logging-bridge</exclude>
-                            </excludes>
                         </artifactSet>
                         <relocations>
                             <relocation>
