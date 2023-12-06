@@ -18,11 +18,12 @@ package software.amazon.awssdk.auth.credentials;
 import static software.amazon.awssdk.utils.StringUtils.trimToNull;
 
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Provides access to the AWS credentials used for accessing services: AWS access key ID and secret access key. These
@@ -43,39 +44,35 @@ public final class AwsBasicCredentials implements AwsCredentials {
      * This should be accessed via {@link AnonymousCredentialsProvider#resolveCredentials()}.
      */
     @SdkInternalApi
-    static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = new AwsBasicCredentials(null, null, false);
+    static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = builder().build();
 
     private final String accessKeyId;
     private final String secretAccessKey;
+    private final String credentialScope;
+
+    private AwsBasicCredentials(DefaultBuilder builder) {
+        this.accessKeyId = trimToNull(builder.accessKeyId);
+        this.secretAccessKey = trimToNull(builder.secretAccessKey);
+        this.credentialScope = builder.credentialScope;
+    }
+
+    /**
+     * Returns a builder for this object.
+     */
+    public static Builder builder() {
+        return new DefaultBuilder();
+    }
 
     /**
      * Constructs a new credentials object, with the specified AWS access key and AWS secret key.
      *
-     * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
+     * @param accessKeyId     The AWS access key, used to identify the user interacting with AWS.
      * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
      */
-    protected AwsBasicCredentials(String accessKeyId, String secretAccessKey) {
-        this(accessKeyId, secretAccessKey, true);
-    }
-
-    private AwsBasicCredentials(String accessKeyId, String secretAccessKey, boolean validateCredentials) {
-        this.accessKeyId = trimToNull(accessKeyId);
-        this.secretAccessKey = trimToNull(secretAccessKey);
-
-        if (validateCredentials) {
-            Validate.notNull(this.accessKeyId, "Access key ID cannot be blank.");
-            Validate.notNull(this.secretAccessKey, "Secret access key cannot be blank.");
-        }
-    }
-
-    /**
-     * Constructs a new credentials object, with the specified AWS access key and AWS secret key.
-     *
-     * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
-     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
-     * */
     public static AwsBasicCredentials create(String accessKeyId, String secretAccessKey) {
-        return new AwsBasicCredentials(accessKeyId, secretAccessKey);
+        return builder().accessKeyId(accessKeyId)
+                        .secretAccessKey(secretAccessKey)
+                        .build();
     }
 
     /**
@@ -94,10 +91,19 @@ public final class AwsBasicCredentials implements AwsCredentials {
         return secretAccessKey;
     }
 
+    /**
+     * Retrieve the AWS region of the single-region account, if it exists. Otherwise, returns empty {@link Optional}.
+     */
+    @Override
+    public Optional<String> credentialScope() {
+        return Optional.ofNullable(credentialScope);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("AwsCredentials")
                        .add("accessKeyId", accessKeyId)
+                       .add("credentialScope", credentialScope)
                        .build();
     }
 
@@ -111,7 +117,8 @@ public final class AwsBasicCredentials implements AwsCredentials {
         }
         AwsBasicCredentials that = (AwsBasicCredentials) o;
         return Objects.equals(accessKeyId, that.accessKeyId) &&
-               Objects.equals(secretAccessKey, that.secretAccessKey);
+               Objects.equals(secretAccessKey, that.secretAccessKey) &&
+               Objects.equals(credentialScope, that.credentialScope().orElse(null));
     }
 
     @Override
@@ -119,6 +126,58 @@ public final class AwsBasicCredentials implements AwsCredentials {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(accessKeyId());
         hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey());
+        hashCode = 31 * hashCode + Objects.hashCode(credentialScope());
         return hashCode;
+    }
+
+    /**
+     * A builder for creating an instance of {@link AwsBasicCredentials}. This can be created with the static
+     * {@link #builder()} method.
+     */
+    public interface Builder extends SdkBuilder<AwsBasicCredentials.Builder, AwsBasicCredentials> {
+
+        /**
+         * The AWS access key, used to identify the user interacting with services.
+         */
+        Builder accessKeyId(String accessKeyId);
+
+        /**
+         * The AWS secret access key, used to authenticate the user interacting with services.
+         */
+        Builder secretAccessKey(String secretAccessKey);
+
+        /**
+         * The AWS region of the single-region account.
+         */
+        Builder credentialScope(String credentialScope);
+    }
+
+    private static final class DefaultBuilder implements Builder {
+        private String accessKeyId;
+        private String secretAccessKey;
+        private String credentialScope;
+
+        @Override
+        public Builder accessKeyId(String accessKeyId) {
+            this.accessKeyId = accessKeyId;
+            return this;
+        }
+
+        @Override
+        public Builder secretAccessKey(String secretAccessKey) {
+            this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        @Override
+        public Builder credentialScope(String credentialScope) {
+            this.credentialScope = credentialScope;
+            return this;
+        }
+
+        @Override
+        public AwsBasicCredentials build() {
+            return new AwsBasicCredentials(this);
+        }
     }
 }

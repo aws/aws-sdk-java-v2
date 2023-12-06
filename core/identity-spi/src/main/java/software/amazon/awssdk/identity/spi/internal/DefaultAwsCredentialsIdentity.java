@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi.internal;
 
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
@@ -26,10 +27,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
 
     private final String accessKeyId;
     private final String secretAccessKey;
+    private final String credentialScope;
 
     private DefaultAwsCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
+        this.credentialScope = builder.credentialScope;
 
         Validate.paramNotNull(accessKeyId, "accessKeyId");
         Validate.paramNotNull(secretAccessKey, "secretAccessKey");
@@ -50,9 +53,15 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     }
 
     @Override
+    public Optional<String> credentialScope() {
+        return Optional.ofNullable(credentialScope);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("AwsCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
+                       .add("credentialScope", credentialScope)
                        .build();
     }
 
@@ -66,7 +75,8 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         }
         AwsCredentialsIdentity that = (AwsCredentialsIdentity) o;
         return Objects.equals(accessKeyId, that.accessKeyId()) &&
-               Objects.equals(secretAccessKey, that.secretAccessKey());
+               Objects.equals(secretAccessKey, that.secretAccessKey()) &&
+               Objects.equals(credentialScope, that.credentialScope().orElse(null));
     }
 
     @Override
@@ -74,12 +84,14 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(accessKeyId);
         hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey);
+        hashCode = 31 * hashCode + Objects.hashCode(credentialScope);
         return hashCode;
     }
 
     private static final class Builder implements AwsCredentialsIdentity.Builder {
         private String accessKeyId;
         private String secretAccessKey;
+        private String credentialScope;
 
         private Builder() {
         }
@@ -93,6 +105,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         @Override
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        @Override
+        public AwsCredentialsIdentity.Builder credentialScope(String credentialScope) {
+            this.credentialScope = credentialScope;
             return this;
         }
 

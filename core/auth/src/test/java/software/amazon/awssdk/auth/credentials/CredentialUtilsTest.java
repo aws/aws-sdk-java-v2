@@ -110,7 +110,11 @@ public class CredentialUtilsTest {
     @Test
     public void toCredentialsProvider_AwsCredentialsProvider_returnsAsIs() {
         IdentityProvider<AwsCredentialsIdentity> input =
-            StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+            StaticCredentialsProvider.create(AwsBasicCredentials.builder()
+                                                                .accessKeyId("akid")
+                                                                .secretAccessKey("skid")
+                                                                .credentialScope("region")
+                                                                .build());
         AwsCredentialsProvider output = CredentialUtils.toCredentialsProvider(input);
         assertThat(output).isSameAs(input);
     }
@@ -118,9 +122,14 @@ public class CredentialUtilsTest {
     @Test
     public void toCredentialsProvider_IdentityProvider_converts() {
         AwsCredentialsProvider credentialsProvider = CredentialUtils.toCredentialsProvider(
-            StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")));
+            StaticCredentialsProvider.create(AwsBasicCredentials.builder()
+                                                                .accessKeyId("akid")
+                                                                .secretAccessKey("skid")
+                                                                .credentialScope("region")
+                                                                .build()));
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("akid");
         assertThat(credentials.secretAccessKey()).isEqualTo("skid");
+        assertThat(credentials.credentialScope()).contains("region");
     }
 }

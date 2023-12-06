@@ -15,18 +15,19 @@
 
 package software.amazon.awssdk.identity.spi;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.internal.DefaultAwsSessionCredentialsIdentity;
 
 public class AwsSessionCredentialsIdentityTest {
     private static final String ACCESS_KEY_ID = "accessKeyId";
     private static final String SECRET_ACCESS_KEY = "secretAccessKey";
     private static final String SESSION_TOKEN = "sessionToken";
+    private static final String CREDENTIAL_SCOPE = "us-west-2";
 
     @Test
     public void equalsHashcode() {
@@ -71,9 +72,12 @@ public class AwsSessionCredentialsIdentityTest {
                                                                               .accessKeyId(ACCESS_KEY_ID)
                                                                               .secretAccessKey(SECRET_ACCESS_KEY)
                                                                               .sessionToken(SESSION_TOKEN)
+                                                                              .credentialScope(CREDENTIAL_SCOPE)
                                                                               .build();
         assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
         assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
         assertEquals(SESSION_TOKEN, identity.sessionToken());
+        assertThat(identity.credentialScope()).isPresent();
+        assertEquals(CREDENTIAL_SCOPE, identity.credentialScope().get());
     }
 }

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi.internal;
 
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
@@ -27,11 +28,13 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
+    private final String credentialScope;
 
     private DefaultAwsSessionCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
         this.sessionToken = builder.sessionToken;
+        this.credentialScope = builder.credentialScope;
 
         Validate.paramNotNull(accessKeyId, "accessKeyId");
         Validate.paramNotNull(secretAccessKey, "secretAccessKey");
@@ -53,6 +56,11 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     }
 
     @Override
+    public Optional<String> credentialScope() {
+        return Optional.ofNullable(credentialScope);
+    }
+
+    @Override
     public String sessionToken() {
         return sessionToken;
     }
@@ -61,6 +69,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     public String toString() {
         return ToString.builder("AwsSessionCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
+                       .add("credentialScope", credentialScope)
                        .build();
     }
 
@@ -72,10 +81,11 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        AwsSessionCredentialsIdentity that = (AwsSessionCredentialsIdentity) o;
+        DefaultAwsSessionCredentialsIdentity that = (DefaultAwsSessionCredentialsIdentity) o;
         return Objects.equals(accessKeyId, that.accessKeyId()) &&
                Objects.equals(secretAccessKey, that.secretAccessKey()) &&
-               Objects.equals(sessionToken, that.sessionToken());
+               Objects.equals(sessionToken, that.sessionToken()) &&
+               Objects.equals(credentialScope, that.credentialScope().orElse(null));
     }
 
     @Override
@@ -84,6 +94,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         hashCode = 31 * hashCode + Objects.hashCode(accessKeyId);
         hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey);
         hashCode = 31 * hashCode + Objects.hashCode(sessionToken);
+        hashCode = 31 * hashCode + Objects.hashCode(credentialScope);
         return hashCode;
     }
 
@@ -91,6 +102,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         private String accessKeyId;
         private String secretAccessKey;
         private String sessionToken;
+        private String credentialScope;
 
         private Builder() {
         }
@@ -104,6 +116,12 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         @Override
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        @Override
+        public Builder credentialScope(String credentialScope) {
+            this.credentialScope = credentialScope;
             return this;
         }
 
