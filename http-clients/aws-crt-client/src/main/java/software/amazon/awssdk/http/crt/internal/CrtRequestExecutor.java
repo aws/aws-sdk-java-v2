@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATIO
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
+import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapWithIoExceptionIfRetryable;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -187,12 +188,7 @@ public final class CrtRequestExecutor {
         try {
             crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
         } catch (HttpException e) {
-            Throwable toThrow = e;
-            if (HttpClientConnection.isErrorRetryable(e)) {
-                // IOExceptions get retried, and if the CRT says this error is retryable,
-                // it's semantically an IOException anyway.
-                toThrow = new IOException(e);
-            }
+            Throwable toThrow = wrapWithIoExceptionIfRetryable(e);
             reportAsyncFailure(crtConn,
                           toThrow,
                           requestFuture,
@@ -244,9 +240,8 @@ public final class CrtRequestExecutor {
             if (errorCode == 0) {
                 requestCompletionFuture.complete(responseBuilder.build());
             } else {
-                HttpException rootException = new HttpException(errorCode);
-                Throwable toThrow = HttpClientConnection.isErrorRetryable(rootException) ? rootException :
-                                    new IOException(rootException);
+                Throwable toThrow =
+                    wrapWithIoExceptionIfRetryable(new HttpException(errorCode));
                 requestCompletionFuture.completeExceptionally(toThrow);
             }
             stream.close();
@@ -301,13 +296,7 @@ public final class CrtRequestExecutor {
         } catch (HttpException e) {
             crtConn.close();
 
-            Throwable toThrow = e;
-            if (HttpClientConnection.isErrorRetryable(e)) {
-                // IOExceptions get retried, and if the CRT says this error is retryable,
-                // it's semantically an IOException anyway.
-                toThrow = new IOException(e);
-            }
-
+            Throwable toThrow = wrapWithIoExceptionIfRetryable(e);
             requestFuture.completeExceptionally(toThrow);
         } catch (IllegalStateException | CrtRuntimeException e) {
             crtConn.close();

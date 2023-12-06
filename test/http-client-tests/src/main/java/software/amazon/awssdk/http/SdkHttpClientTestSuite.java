@@ -288,6 +288,7 @@ public abstract class SdkHttpClientTestSuite {
         assertThat(response.httpResponse().statusCode()).isEqualTo(returnCode);
         mockServer.resetMappings();
     }
+
     protected SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method, boolean chunkedEncoding) {
         SdkHttpFullRequest.Builder requestBuilder = mockSdkRequestBuilder(uriString, method);
         if (method != SdkHttpMethod.HEAD) {

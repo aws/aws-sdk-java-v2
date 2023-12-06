@@ -73,7 +73,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
 
     @Override
     public String clientName() {
-        return SdkHttpClient.super.clientName();
+        return super.clientName();
     }
 
     @Override
