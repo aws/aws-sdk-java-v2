@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * A special type of {@link AwsCredentials} that provides a session token to be used in service authentication. Session
@@ -40,7 +41,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
 
     private final Instant expirationTime;
 
-    private AwsSessionCredentials(Builder builder) {
+    private AwsSessionCredentials(DefaultBuilder builder) {
         this.accessKeyId = Validate.paramNotNull(builder.accessKeyId, "accessKey");
         this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretKey");
         this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
@@ -52,7 +53,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
      * Returns a builder for this object.
      */
     public static Builder builder() {
-        return new Builder();
+        return new DefaultBuilder();
     }
 
     /**
@@ -103,6 +104,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
      * Retrieve the AWS session token. This token is retrieved from an AWS token service, and is used for authenticating that this
      * user has received temporary permission to access some resource.
      */
+    @Override
     public String sessionToken() {
         return sessionToken;
     }
@@ -147,56 +149,74 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
      * A builder for creating an instance of {@link AwsSessionCredentials}. This can be created with the static
      * {@link #builder()} method.
      */
-    public static final class Builder {
-        private String accessKeyId;
-        private String secretAccessKey;
-        private String sessionToken;
-        private Instant expirationTime;
-        private String credentialScope;
-
+    public interface Builder extends SdkBuilder<AwsSessionCredentials.Builder, AwsSessionCredentials> {
         /**
          * The AWS access key, used to identify the user interacting with services. Required.
          */
-        public Builder accessKeyId(String accessKeyId) {
-            this.accessKeyId = accessKeyId;
-            return this;
-        }
+        Builder accessKeyId(String accessKeyId);
 
         /**
          * The AWS secret access key, used to authenticate the user interacting with services. Required
          */
-        public Builder secretAccessKey(String secretAccessKey) {
-            this.secretAccessKey = secretAccessKey;
-            return this;
-        }
+        Builder secretAccessKey(String secretAccessKey);
 
         /**
          * The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
          * received temporary permission to access some resource. Required
          */
-        public Builder sessionToken(String sessionToken) {
-            this.sessionToken = sessionToken;
-            return this;
-        }
+        Builder sessionToken(String sessionToken);
 
         /**
          * The time after which this identity will no longer be valid. If this is empty,
          * an expiration time is not known (but the identity may still expire at some
          * time in the future).
          */
+        Builder expirationTime(Instant expirationTime);
+
+        /**
+         * The AWS region of the single-region account. Optional
+         */
+        Builder credentialScope(String credentialScope);
+    }
+
+    public static final class DefaultBuilder implements Builder {
+        private String accessKeyId;
+        private String secretAccessKey;
+        private String sessionToken;
+        private Instant expirationTime;
+        private String credentialScope;
+
+        @Override
+        public Builder accessKeyId(String accessKeyId) {
+            this.accessKeyId = accessKeyId;
+            return this;
+        }
+
+        @Override
+        public Builder secretAccessKey(String secretAccessKey) {
+            this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        @Override
+        public Builder sessionToken(String sessionToken) {
+            this.sessionToken = sessionToken;
+            return this;
+        }
+
+        @Override
         public Builder expirationTime(Instant expirationTime) {
             this.expirationTime = expirationTime;
             return this;
         }
 
-        /**
-         * The AWS region of the single-region account. Optional
-         */
+        @Override
         public Builder credentialScope(String credentialScope) {
             this.credentialScope = credentialScope;
             return this;
         }
 
+        @Override
         public AwsSessionCredentials build() {
             return new AwsSessionCredentials(this);
         }

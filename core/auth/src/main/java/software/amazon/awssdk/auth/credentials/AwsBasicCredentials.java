@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Provides access to the AWS credentials used for accessing services: AWS access key ID and secret access key. These
@@ -44,37 +44,23 @@ public final class AwsBasicCredentials implements AwsCredentials {
      * This should be accessed via {@link AnonymousCredentialsProvider#resolveCredentials()}.
      */
     @SdkInternalApi
-    static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = builder().validateCredentials(false).build();
+    static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = builder().build();
 
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String credentialScope;
 
-    private AwsBasicCredentials(Builder builder) {
+    private AwsBasicCredentials(DefaultBuilder builder) {
         this.accessKeyId = trimToNull(builder.accessKeyId);
         this.secretAccessKey = trimToNull(builder.secretAccessKey);
-
-        if (builder.validateCredentials) {
-            Validate.notNull(this.accessKeyId, "Access key ID cannot be blank.");
-            Validate.notNull(this.secretAccessKey, "Secret access key cannot be blank.");
-        }
         this.credentialScope = builder.credentialScope;
     }
 
     /**
-     * Constructs a new credentials object, with the specified AWS access key and AWS secret key.
-     *
-     * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
-     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
+     * Returns a builder for this object.
      */
-    protected AwsBasicCredentials(String accessKeyId, String secretAccessKey) {
-        this(builder().accessKeyId(accessKeyId)
-                      .secretAccessKey(secretAccessKey)
-                      .validateCredentials(true));
-    }
-
     public static Builder builder() {
-        return new Builder();
+        return new DefaultBuilder();
     }
 
     /**
@@ -105,6 +91,9 @@ public final class AwsBasicCredentials implements AwsCredentials {
         return secretAccessKey;
     }
 
+    /**
+     * Retrieve the AWS region of the single-region account, if it exists. Otherwise, returns empty {@link Optional}.
+     */
     @Override
     public Optional<String> credentialScope() {
         return Optional.ofNullable(credentialScope);
@@ -141,44 +130,52 @@ public final class AwsBasicCredentials implements AwsCredentials {
         return hashCode;
     }
 
-    public static final class Builder {
-        private String accessKeyId;
-        private String secretAccessKey;
-        private String credentialScope;
-        private boolean validateCredentials = true;
+    /**
+     * A builder for creating an instance of {@link AwsBasicCredentials}. This can be created with the static
+     * {@link #builder()} method.
+     */
+    public interface Builder extends SdkBuilder<AwsBasicCredentials.Builder, AwsBasicCredentials> {
 
         /**
          * The AWS access key, used to identify the user interacting with services.
          */
+        Builder accessKeyId(String accessKeyId);
+
+        /**
+         * The AWS secret access key, used to authenticate the user interacting with services.
+         */
+        Builder secretAccessKey(String secretAccessKey);
+
+        /**
+         * The AWS region of the single-region account.
+         */
+        Builder credentialScope(String credentialScope);
+    }
+
+    private static final class DefaultBuilder implements Builder {
+        private String accessKeyId;
+        private String secretAccessKey;
+        private String credentialScope;
+
+        @Override
         public Builder accessKeyId(String accessKeyId) {
             this.accessKeyId = accessKeyId;
             return this;
         }
 
-        /**
-         * The AWS secret access key, used to authenticate the user interacting with services.
-         */
+        @Override
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
             return this;
         }
 
-        /**
-         * The AWS region of the single-region account.
-         */
+        @Override
         public Builder credentialScope(String credentialScope) {
             this.credentialScope = credentialScope;
             return this;
         }
 
-        /**
-         * Whether this class should verify that accessKeyId and secretAccessKey are not null.
-         */
-        Builder validateCredentials(Boolean validateCredentials) {
-            this.validateCredentials = validateCredentials;
-            return this;
-        }
-
+        @Override
         public AwsBasicCredentials build() {
             return new AwsBasicCredentials(this);
         }
