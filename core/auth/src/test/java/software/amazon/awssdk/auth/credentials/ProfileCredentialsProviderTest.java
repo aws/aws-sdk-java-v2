@@ -114,6 +114,24 @@ public class ProfileCredentialsProviderTest {
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
             assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
             assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+            assertThat(credentials.credentialScope()).isNotPresent();
+        });
+    }
+
+    @Test
+    void presentProfile_withCredentialScope_returnsCredentialsWithCredentialScope() {
+        ProfileFile file = profileFile("[default]\n"
+                                       + "aws_access_key_id = defaultAccessKey\n"
+                                       + "aws_secret_access_key = defaultSecretAccessKey\n"
+                                       + "aws_credential_scope = defaultCredentialScope");
+
+        ProfileCredentialsProvider provider =
+            ProfileCredentialsProvider.builder().profileFile(file).profileName("default").build();
+
+        assertThat(provider.resolveCredentials()).satisfies(credentials -> {
+            assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+            assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+            assertThat(credentials.credentialScope()).isPresent().hasValue("defaultCredentialScope");
         });
     }
 

@@ -293,6 +293,13 @@ public class ProfileCredentialsUtilsTest {
                   .hasMessageContaining("foobar is not a valid credential_source");
     }
 
+    @Test
+    public void profileFileWithCredentialScopeLoadsCorrectly() {
+        assertThat(allTypesProfile().profile("profile-with-credential-scope")).hasValueSatisfying(profile -> {
+            assertThat(profile.property(ProfileProperty.AWS_CREDENTIAL_SCOPE)).hasValue("us-west-2");
+        });
+    }
+
     private ProfileFile credentialFile(String credentialFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(credentialFile))
@@ -337,7 +344,10 @@ public class ProfileCredentialsUtilsTest {
                           "\n" +
                           "[profile profile-with-environment-credential-source]\n" +
                           "credential_source=environment\n" +
-                          "role_arn=arn:aws:iam::123456789012:role/testRole\n");
+                          "role_arn=arn:aws:iam::123456789012:role/testRole\n" +
+                          "\n" +
+                          "[profile profile-with-credential-scope]\n" +
+                          "aws_credential_scope = us-west-2\n");
     }
 
     private static ProfileFile configFile(String configFile) {

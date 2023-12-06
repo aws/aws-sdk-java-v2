@@ -203,6 +203,11 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES("aws.requestMinCompressionSizeBytes", null),
 
+    /**
+     * Configure the AWS region of a single-region account.
+     */
+    AWS_CREDENTIAL_SCOPE("aws.credentialScope", null)
+
     ;
 
     private final String systemProperty;

@@ -153,6 +153,11 @@ public final class ProfileProperty {
      */
     public static final String REQUEST_MIN_COMPRESSION_SIZE_BYTES = "request_min_compression_size_bytes";
 
+    /**
+     * The AWS region of a single-region account.
+     */
+    public static final String AWS_CREDENTIAL_SCOPE = "aws_credential_scope";
+
     private ProfileProperty() {
     }
 }
