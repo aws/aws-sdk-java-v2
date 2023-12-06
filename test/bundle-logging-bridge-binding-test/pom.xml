@@ -53,7 +53,13 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>bundle</artifactId>
+            <artifactId>third-party-slf4j-api</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bundle-logging-bridge</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
