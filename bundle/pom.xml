@@ -75,18 +75,20 @@
                         </execution>
                     </executions>
                 </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <configuration>
-                        <ignoredUnusedDeclaredDependencies>
-                            <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-sdk</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-logging-bridge</ignoredUnusedDeclaredDependency>
-                        </ignoredUnusedDeclaredDependencies>
-                    </configuration>
-                </plugin>
             </plugins>
         </pluginManagement>
+	<plugins>
+           <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-dependency-plugin</artifactId>
+               <configuration>
+                   <ignoredUnusedDeclaredDependencies>
+                       <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-sdk</ignoredUnusedDeclaredDependency>
+                       <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-logging-bridge</ignoredUnusedDeclaredDependency>
+                   </ignoredUnusedDeclaredDependencies>
+               </configuration>
+           </plugin>
+	</plugins>
     </build>
 
     <profiles>
