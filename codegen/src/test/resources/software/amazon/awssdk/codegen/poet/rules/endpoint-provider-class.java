@@ -40,6 +40,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (params.useFipsEndpoint() != null) {
             paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(params.useFipsEndpoint()));
         }
+        if (params.credentialScope() != null) {
+            paramsMap.put(Identifier.of("credentialScope"), Value.fromStr(params.credentialScope().id()));
+        }
         if (params.endpointId() != null) {
             paramsMap.put(Identifier.of("endpointId"), Value.fromStr(params.endpointId()));
         }
@@ -302,6 +305,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                     .addParameter(
                         Parameter.builder().name("useFIPSEndpoint").type(ParameterType.fromValue("boolean"))
                                  .required(false).builtIn("AWS::UseFIPS").build())
+                    .addParameter(
+                        Parameter.builder().name("credentialScope").type(ParameterType.fromValue("String"))
+                                 .required(false).builtIn("AWS::Auth::CredentialScope").build())
                     .addParameter(
                         Parameter.builder().name("endpointId").type(ParameterType.fromValue("string"))
                                  .required(false).build())

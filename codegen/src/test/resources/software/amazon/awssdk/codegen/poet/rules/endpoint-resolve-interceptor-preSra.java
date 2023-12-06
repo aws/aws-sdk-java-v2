@@ -29,7 +29,9 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
@@ -98,10 +100,25 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
         builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
         builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
+        builder.credentialScope(getCredentialScopeIfPresent(executionAttributes));
         setClientContextParams(builder, executionAttributes);
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
         return builder.build();
+    }
+
+    private static Region getCredentialScopeIfPresent(ExecutionAttributes executionAttributes) {
+        SelectedAuthScheme<?> authScheme = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        try {
+            Identity identity = authScheme.identity().get();
+            if (identity instanceof AwsCredentialsIdentity) {
+                AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
+                return awsCredentialsIdentity.credentialScope().map(Region::of).orElse(null);
+            }
+        } catch (Exception error) {
+            throw SdkClientException.create(error.getMessage());
+        }
+        return null;
     }
 
     private static void setContextParams(QueryEndpointParams.Builder params, String operationName, SdkRequest request) {

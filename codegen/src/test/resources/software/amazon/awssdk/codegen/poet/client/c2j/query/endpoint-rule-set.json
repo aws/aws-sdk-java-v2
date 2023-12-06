@@ -16,6 +16,10 @@
       "type": "boolean",
       "builtIn": "AWS::UseFIPS"
     },
+    "credentialScope": {
+      "type": "String",
+      "builtIn": "AWS::Auth::CredentialScope"
+    },
     "endpointId": {
       "type": "string"
     },

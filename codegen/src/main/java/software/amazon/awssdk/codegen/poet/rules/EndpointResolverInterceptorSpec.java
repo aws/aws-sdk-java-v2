@@ -72,7 +72,9 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
@@ -108,6 +110,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addMethod(modifyRequestMethod());
         b.addMethod(modifyHttpRequestMethod());
         b.addMethod(ruleParams());
+        b.addMethod(getCredentialScopeIfPresent());
 
         b.addMethod(setContextParams());
         addContextParamMethods(b);
@@ -265,6 +268,9 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                 case AWS_S3_USE_GLOBAL_ENDPOINT:
                     builtInFn = "useGlobalEndpointBuiltIn";
                     break;
+                case AWS_AUTH_CREDENTIAL_SCOPE:
+                    builtInFn = "credentialScopeBuiltIn";
+                    break;
                 // The S3 specific built-ins are set through the existing S3Configuration which is handled above
                 case AWS_S3_ACCELERATE:
                 case AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS:
@@ -279,8 +285,12 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                     throw new RuntimeException("Don't know how to set built-in " + m.getBuiltInEnum());
             }
 
-            b.addStatement("builder.$N($T.$N(executionAttributes))", setterName,
-                           endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"), builtInFn);
+            if (builtInFn.equals("credentialScopeBuiltIn")) {
+                b.addStatement("builder.$N(getCredentialScopeIfPresent(executionAttributes))", setterName);
+            } else {
+                b.addStatement("builder.$N($T.$N(executionAttributes))", setterName,
+                               endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"), builtInFn);
+            }
         });
 
         if (hasClientContextParams()) {
@@ -292,6 +302,33 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        AwsExecutionAttribute.class);
 
         b.addStatement("return builder.build()");
+        return b.build();
+    }
+
+    private MethodSpec getCredentialScopeIfPresent() {
+        MethodSpec.Builder b = MethodSpec.methodBuilder("getCredentialScopeIfPresent")
+                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .addParameter(ExecutionAttributes.class, "executionAttributes")
+                                         .returns(Region.class);
+
+        b.addStatement("$T<?> authScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
+                       SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
+        b.beginControlFlow("try");
+
+        b.addStatement("$T identity = authScheme.identity().get()", Identity.class);
+        b.beginControlFlow("if (identity instanceof $T)", AwsCredentialsIdentity.class);
+        b.addStatement("$T awsCredentialsIdentity = ($T) identity", AwsCredentialsIdentity.class, AwsCredentialsIdentity.class);
+        b.addStatement("return awsCredentialsIdentity.credentialScope().map($T::of).orElse(null)", Region.class);
+        b.endControlFlow();
+
+        b.endControlFlow();
+
+        b.beginControlFlow("catch ($T error)", Exception.class);
+        b.addStatement("throw $T.create(error.getMessage())", SdkClientException.class);
+        b.endControlFlow();
+
+        b.addStatement("return null");
+
         return b.build();
     }
 

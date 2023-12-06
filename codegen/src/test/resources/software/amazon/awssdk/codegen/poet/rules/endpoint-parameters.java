@@ -18,6 +18,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     private final Boolean useFIPSEndpoint;
 
+    private final Region credentialScope;
+
     private final String endpointId;
 
     private final Boolean defaultTrueParam;
@@ -36,6 +38,7 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
+        this.credentialScope = builder.credentialScope;
         this.endpointId = builder.endpointId;
         this.defaultTrueParam = builder.defaultTrueParam;
         this.defaultStringParam = builder.defaultStringParam;
@@ -59,6 +62,10 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     public Boolean useFipsEndpoint() {
         return useFIPSEndpoint;
+    }
+
+    public Region credentialScope() {
+        return credentialScope;
     }
 
     public String endpointId() {
@@ -101,6 +108,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         Builder useFipsEndpoint(Boolean useFIPSEndpoint);
 
+        Builder credentialScope(Region credentialScope);
+
         Builder endpointId(String endpointId);
 
         Builder defaultTrueParam(Boolean defaultTrueParam);
@@ -126,6 +135,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         private Boolean useFIPSEndpoint;
 
+        private Region credentialScope;
+
         private String endpointId;
 
         private Boolean defaultTrueParam = true;
@@ -147,6 +158,7 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.region = builder.region;
             this.useDualStackEndpoint = builder.useDualStackEndpoint;
             this.useFIPSEndpoint = builder.useFIPSEndpoint;
+            this.credentialScope = builder.credentialScope;
             this.endpointId = builder.endpointId;
             this.defaultTrueParam = builder.defaultTrueParam;
             this.defaultStringParam = builder.defaultStringParam;
@@ -171,6 +183,12 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         @Override
         public Builder useFipsEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
+            return this;
+        }
+
+        @Override
+        public Builder credentialScope(Region credentialScope) {
+            this.credentialScope = credentialScope;
             return this;
         }
 
