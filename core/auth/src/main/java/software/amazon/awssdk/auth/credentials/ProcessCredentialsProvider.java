@@ -129,11 +129,11 @@ public final class ProcessCredentialsProvider
             JsonNode credentialsJson = parseProcessOutput(processOutput);
 
             AwsCredentials credentials = credentials(credentialsJson);
-            Instant credentialExpirationTime = credentialExpirationTime(credentialsJson);
+            Instant expirationTime = credentials.expirationTime().orElse(Instant.MAX);
 
             return RefreshResult.builder(credentials)
-                                .staleTime(credentialExpirationTime)
-                                .prefetchTime(credentialExpirationTime.minusMillis(credentialRefreshThreshold.toMillis()))
+                                .staleTime(expirationTime)
+                                .prefetchTime(expirationTime.minusMillis(credentialRefreshThreshold.toMillis()))
                                 .build();
         } catch (InterruptedException e) {
             throw new IllegalStateException("Process-based credential refreshing has been interrupted.", e);
@@ -166,14 +166,25 @@ public final class ProcessCredentialsProvider
         String accessKeyId = getText(credentialsJson, "AccessKeyId");
         String secretAccessKey = getText(credentialsJson, "SecretAccessKey");
         String sessionToken = getText(credentialsJson, "SessionToken");
+        String credentialScope = getText(credentialsJson, "CredentialScope");
 
         Validate.notEmpty(accessKeyId, "AccessKeyId cannot be empty.");
         Validate.notEmpty(secretAccessKey, "SecretAccessKey cannot be empty.");
 
         if (sessionToken != null) {
-            return AwsSessionCredentials.create(accessKeyId, secretAccessKey, sessionToken);
+            return AwsSessionCredentials.builder()
+                                        .accessKeyId(accessKeyId)
+                                        .secretAccessKey(secretAccessKey)
+                                        .sessionToken(sessionToken)
+                                        .expirationTime(credentialExpirationTime(credentialsJson))
+                                        .credentialScope(credentialScope)
+                                        .build();
         } else {
-            return AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+            return AwsBasicCredentials.builder()
+                                      .accessKeyId(accessKeyId)
+                                      .secretAccessKey(secretAccessKey)
+                                      .credentialScope(credentialScope)
+                                      .build();
         }
     }
 
@@ -182,12 +193,7 @@ public final class ProcessCredentialsProvider
      */
     private Instant credentialExpirationTime(JsonNode credentialsJson) {
         String expiration = getText(credentialsJson, "Expiration");
-
-        if (expiration != null) {
-            return DateUtils.parseIso8601Date(expiration);
-        } else {
-            return Instant.MAX;
-        }
+        return expiration != null ? DateUtils.parseIso8601Date(expiration) : null;
     }
 
     /**
