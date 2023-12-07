@@ -43,6 +43,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -63,6 +64,8 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
+        System.setProperty("aws.crt.debugnative", "true");
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
         client = AwsCrtHttpClient.builder()
                                  .connectionHealthConfiguration(b -> b.minimumThroughputInBps(4068L)
                                                                            .minimumThroughputTimeout(Duration.ofSeconds(3)))

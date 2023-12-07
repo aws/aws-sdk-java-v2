@@ -109,12 +109,12 @@ public abstract class SdkHttpClientTestSuite {
 
     @Test
     public void validatesHttpsCertificateIssuer() {
-        SdkHttpClient client = createSdkHttpClient();
+        try (SdkHttpClient client = createSdkHttpClient()) {
+            SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort(), SdkHttpMethod.POST);
 
-        SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort(), SdkHttpMethod.POST);
-
-        assertThatThrownBy(client.prepareRequest(HttpExecuteRequest.builder().request(request).build())::call)
+            assertThatThrownBy(client.prepareRequest(HttpExecuteRequest.builder().request(request).build())::call)
                 .isInstanceOf(SSLHandshakeException.class);
+        }
     }
 
     @Test
@@ -123,27 +123,26 @@ public abstract class SdkHttpClientTestSuite {
 
         SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
         httpClientOptions.trustAll(true);
-        SdkHttpClient client = createSdkHttpClient(httpClientOptions);
+        try (SdkHttpClient client = createSdkHttpClient(httpClientOptions)) {
+            stubForMockRequest(200);
 
-        stubForMockRequest(200);
+            for (int i = 0; i < 5; i++) {
+                SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+                HttpExecuteResponse response =
+                    client.prepareRequest(HttpExecuteRequest.builder()
+                                                            .request(req)
+                                                            .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                            .build())
+                          .call();
+                response.responseBody().ifPresent(IoUtils::drainInputStream);
+            }
 
-        for (int i = 0; i < 5; i++) {
-            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
-            HttpExecuteResponse response =
-                client.prepareRequest(HttpExecuteRequest.builder()
-                                                        .request(req)
-                                                        .contentStreamProvider(req.contentStreamProvider().orElse(null))
-                                                        .build())
-                      .call();
-            response.responseBody().ifPresent(IoUtils::drainInputStream);
+            // connection pool growth strategies vary across client implementations. Some, such as the CRT grow connection counts
+            // by a factor of 2, while some grow strictly as requested. Mainly we want to test that it kicks in at some point and
+            // doesn't create a new connection for all 5 requests. This proves that while allowing variance in this behavior.
+            assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections + 1);
+            assertThat(CONNECTION_COUNTER.openedConnections()).isLessThanOrEqualTo(initialOpenedConnections + 2);
         }
-
-        // connection pool growth strategies vary across client implementations. Some, such as the CRT grow connection counts
-        // by a factor of 2, while some grow strictly as requested. Mainly we want to test that it kicks in at some point and
-        // doesn't create a new connection for all 5 requests. This proves that while allowing variance in this behavior.
-        assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections + 1);
-        assertThat(CONNECTION_COUNTER.openedConnections()).isLessThanOrEqualTo(initialOpenedConnections + 2);
-
     }
 
     @Test
@@ -152,25 +151,26 @@ public abstract class SdkHttpClientTestSuite {
 
         SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
         httpClientOptions.trustAll(true);
-        SdkHttpClient client = createSdkHttpClient(httpClientOptions);
+        try (SdkHttpClient client = createSdkHttpClient(httpClientOptions)) {
+            stubForMockRequest(503);
 
-        stubForMockRequest(503);
+            for (int i = 0; i < 5; i++) {
+                SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+                HttpExecuteResponse response =
+                    client.prepareRequest(HttpExecuteRequest.builder()
+                                                            .request(req)
+                                                            .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                            .build())
+                          .call();
+                response.responseBody().ifPresent(IoUtils::drainInputStream);
+            }
 
-        for (int i = 0; i < 5; i++) {
-            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
-            HttpExecuteResponse response =
-                client.prepareRequest(HttpExecuteRequest.builder()
-                                                        .request(req)
-                                                        .contentStreamProvider(req.contentStreamProvider().orElse(null))
-                                                        .build())
-                      .call();
-            response.responseBody().ifPresent(IoUtils::drainInputStream);
+            // don't couple this test to connection manager behaviors we don't have to. We want to make sure that the
+            // connection count increased by at least as many connections as we got 5xx errors back on. But the connection
+            // manager also predictively creates connections and we need to take those into account in a way that lets it
+            // remain a dynamic behavior.
+            assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections + 5);
         }
-
-        // don't couple this test to connection manager behaviors we don't have to. We want to make sure that the connection count
-        // increased by at least as many connections as we got 5xx errors back on. But the connection manager also predictively
-        // creates connections and we need to take those into account in a way that lets it remain a dynamic behavior.
-        assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections + 5);
     }
 
     @Test
@@ -185,8 +185,7 @@ public abstract class SdkHttpClientTestSuite {
 
         selfSignedServer.start();
 
-        try {
-            SdkHttpClient client = createSdkHttpClient(httpClientOptions);
+        try (SdkHttpClient client = createSdkHttpClient(httpClientOptions)) {
             SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + selfSignedServer.httpsPort(), SdkHttpMethod.POST);
 
             client.prepareRequest(HttpExecuteRequest.builder()
@@ -204,7 +203,10 @@ public abstract class SdkHttpClientTestSuite {
         SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
         httpClientOptions.trustAll(true);
 
-        testForResponseCodeUsingHttps(createSdkHttpClient(httpClientOptions), HttpURLConnection.HTTP_OK);
+        try (SdkHttpClient client = createSdkHttpClient(httpClientOptions)) {
+            testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
+        }
+
     }
 
     @Test
@@ -221,19 +223,19 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     private void testForResponseCode(int returnCode, SdkHttpMethod method) throws Exception {
-        SdkHttpClient client = createSdkHttpClient();
+        try (SdkHttpClient client = createSdkHttpClient()) {
+            stubForMockRequest(returnCode);
 
-        stubForMockRequest(returnCode);
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), method);
+            HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                              .request(req)
+                                                                              .contentStreamProvider(req.contentStreamProvider()
+                                                                                                        .orElse(null))
+                                                                              .build())
+                                            .call();
 
-        SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), method);
-        HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                          .request(req)
-                                                                          .contentStreamProvider(req.contentStreamProvider()
-                                                                                                    .orElse(null))
-                                                                          .build())
-                                        .call();
-
-        validateResponse(rsp, returnCode, method);
+            validateResponse(rsp, returnCode, method);
+        }
     }
 
     protected void testForResponseCodeUsingHttps(SdkHttpClient client, int returnCode) throws Exception {
