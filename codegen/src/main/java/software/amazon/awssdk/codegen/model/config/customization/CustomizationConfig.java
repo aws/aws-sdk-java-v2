@@ -300,6 +300,12 @@ public class CustomizationConfig {
      */
     private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
 
+    /**
+     * Customization to change the root package name.
+     * By default, it's "software.amazon.awssdk.services.[serviceId]"
+     */
+    private String rootPackageName;
+
     private CustomizationConfig() {
     }
 
@@ -797,4 +803,16 @@ public class CustomizationConfig {
         this.endpointAuthSchemeConfig = endpointAuthSchemeConfig;
     }
 
+    public String getRootPackageName() {
+        return rootPackageName;
+    }
+
+    public void setRootPackageName(String rootPackageName) {
+        this.rootPackageName = rootPackageName;
+    }
+
+    public CustomizationConfig withRootPackageName(String packageName) {
+        this.rootPackageName = packageName;
+        return this;
+    }
 }
