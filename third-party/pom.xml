@@ -35,6 +35,7 @@
     <modules>
         <module>third-party-jackson-core</module>
         <module>third-party-jackson-dataformat-cbor</module>
+        <module>third-party-slf4j-api</module>
     </modules>
 
     <dependencyManagement>

@@ -61,6 +61,8 @@
         <module>http-clients</module>
         <module>codegen-maven-plugin</module>
         <module>bundle</module>
+        <module>bundle-sdk</module>
+        <module>bundle-logging-bridge</module>
         <module>build-tools</module>
         <module>metric-publishers</module>
         <module>release-scripts</module>
@@ -85,6 +87,7 @@
         <module>test/region-testing</module>
         <module>test/ruleset-testing-core</module>
         <module>test/old-client-version-compatibility-test</module>
+        <module>test/bundle-logging-bridge-binding-test</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
