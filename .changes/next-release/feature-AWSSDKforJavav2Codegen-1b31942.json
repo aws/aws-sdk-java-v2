@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2 - Codegen",
-    "contributor": "",
-    "description": "Allow users to customize package name."
-}

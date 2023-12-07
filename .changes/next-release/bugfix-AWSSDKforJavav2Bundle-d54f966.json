@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2 Bundle",
-    "contributor": "",
-    "description": "Fix failure to bind to SLF4J binding at runtime when using the SDK bundle."
-}
