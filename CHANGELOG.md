@@ -1,3 +1,20 @@
+# __2.21.41__ __2023-12-07__
+## __AWS CodeDeploy__
+  - ### Features
+    - This release adds support for two new CodeDeploy features: 1) zonal deployments for Amazon EC2 in-place deployments, 2) deployments triggered by Auto Scaling group termination lifecycle hook events.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 - Codegen__
+  - ### Features
+    - Allow users to customize package name.
+
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix failure to bind to SLF4J binding at runtime when using the SDK bundle.
+
 # __2.21.40__ __2023-12-06__
 ## __AWS Backup__
   - ### Features
@@ -3926,7 +3943,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
