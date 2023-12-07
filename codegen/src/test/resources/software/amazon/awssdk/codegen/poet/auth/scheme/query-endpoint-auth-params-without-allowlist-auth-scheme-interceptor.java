@@ -102,7 +102,8 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
     }
 
     private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,
-                                                                           IdentityProviders identityProviders, List<Supplier<String>> discardedReasons, MetricCollector metricCollector) {
+                                                                           IdentityProviders identityProviders, List<Supplier<String>> discardedReasons,
+                                                                           MetricCollector metricCollector) {
         if (authScheme == null) {
             discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
             return null;
