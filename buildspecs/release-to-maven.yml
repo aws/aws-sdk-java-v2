@@ -34,7 +34,7 @@ phases:
             awk 'BEGIN { var=ENVIRON["SDK_SIGNING_GPG_KEYNAME"] } { gsub("\\$SDK_SIGNING_GPG_KEYNAME", var, $0); print }' > \
             $SETTINGS_XML
 
-          mvn clean deploy -B -s $SETTINGS_XML -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Djapicmp.skip -Ddoclint=none -pl !:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:tests-coverage-reporting,!:stability-tests,!:sdk-native-image-test,!:auth-tests,!:s3-benchmarks,!:region-testing,!:old-client-version-compatibility-test,!:third-party-slf4j-api,!:bundle-sdk,!:bundle-logging-bridge,!:bundle-logging-bridge-binding-test -DautoReleaseAfterClose=true -DstagingProgressTimeoutMinutes=30 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true
+          mvn clean deploy -B -s $SETTINGS_XML -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Djapicmp.skip -Ddoclint=none -pl !:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:tests-coverage-reporting,!:stability-tests,!:sdk-native-image-test,!:auth-tests,!:s3-benchmarks,!:region-testing,!:old-client-version-compatibility-test -DautoReleaseAfterClose=true -DstagingProgressTimeoutMinutes=30 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true
         else
           echo "This version was already released."
         fi
