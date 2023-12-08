@@ -151,8 +151,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         assertNotNull(assumeRoleResult.assumedRoleUser());
         assertNotNull(assumeRoleResult.assumedRoleUser().arn());
         assertNotNull(assumeRoleResult.assumedRoleUser().assumedRoleId());
-        // TODO - uncomment once STS model is updated
-        //assertNotNull(assumeRoleResult.credentials());
+        assertNotNull(assumeRoleResult.credentials());
     }
 
     @Test
