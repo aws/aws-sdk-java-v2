@@ -110,14 +110,10 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
 
     private static Region getCredentialScopeIfPresent(ExecutionAttributes executionAttributes) {
         SelectedAuthScheme<?> authScheme = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-        try {
-            Identity identity = CompletableFutureUtils.joinLikeSync(authScheme.identity());
-            if (identity instanceof AwsCredentialsIdentity) {
-                AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
-                return awsCredentialsIdentity.credentialScope().map(Region::of).orElse(null);
-            }
-        } catch (Exception error) {
-            throw SdkClientException.create(error.getMessage(), error);
+        Identity identity = CompletableFutureUtils.joinLikeSync(authScheme.identity());
+        if (identity instanceof AwsCredentialsIdentity) {
+            AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
+            return awsCredentialsIdentity.credentialScope().map(Region::of).orElse(null);
         }
         return null;
     }

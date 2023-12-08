@@ -314,18 +314,11 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         b.addStatement("$T<?> authScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
                        SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
-        b.beginControlFlow("try");
 
         b.addStatement("$T identity = $T.joinLikeSync(authScheme.identity())", Identity.class, CompletableFutureUtils.class);
         b.beginControlFlow("if (identity instanceof $T)", AwsCredentialsIdentity.class);
         b.addStatement("$T awsCredentialsIdentity = ($T) identity", AwsCredentialsIdentity.class, AwsCredentialsIdentity.class);
         b.addStatement("return awsCredentialsIdentity.credentialScope().map($T::of).orElse(null)", Region.class);
-        b.endControlFlow();
-
-        b.endControlFlow();
-
-        b.beginControlFlow("catch ($T error)", Exception.class);
-        b.addStatement("throw $T.create(error.getMessage(), error)", SdkClientException.class);
         b.endControlFlow();
 
         b.addStatement("return null");
