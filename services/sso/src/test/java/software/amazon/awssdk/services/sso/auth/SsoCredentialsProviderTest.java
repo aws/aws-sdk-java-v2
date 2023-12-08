@@ -104,8 +104,13 @@ public class SsoCredentialsProviderTest {
     private void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider,
                                                    boolean overrideStaleAndPrefetchTimes) {
         ssoClient = mock(SsoClient.class);
-        RoleCredentials credentials = RoleCredentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c")
-                                                     .expiration(credentialsExpirationDate.toEpochMilli()).build();
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(credentialsExpirationDate.toEpochMilli())
+                                                     .credentialScope("d")
+                                                     .build();
 
         Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
         GetRoleCredentialsResponse response = getResponse(credentials);
@@ -133,6 +138,7 @@ public class SsoCredentialsProviderTest {
                 assertThat(actualCredentials.accessKeyId()).isEqualTo("a");
                 assertThat(actualCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(actualCredentials.sessionToken()).isEqualTo("c");
+                assertThat(actualCredentials.credentialScope()).isPresent().hasValue("d");
             }
         }
 
