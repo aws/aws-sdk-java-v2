@@ -19,8 +19,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
@@ -37,11 +35,6 @@ public abstract class S3MockStabilityTestBase {
     private static final Logger log = Logger.loggerFor(S3MockStabilityTestBase.class);
     MockAsyncHttpClient mockAsyncHttpClient;
     S3AsyncClient testClient;
-
-    protected static StaticCredentialsProvider getDummyCredentials() {
-        return StaticCredentialsProvider.create(AwsBasicCredentials.create("dummy", ":dummy"));
-    }
-
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void putObject_Checksum() {
         putObjectChecksumVariations();

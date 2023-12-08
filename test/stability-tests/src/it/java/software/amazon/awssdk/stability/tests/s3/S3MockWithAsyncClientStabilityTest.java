@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.stability.tests.s3;
 
+import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_PROVIDER_CHAIN;
+
 import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
@@ -27,7 +29,7 @@ public class S3MockWithAsyncClientStabilityTest extends S3MockStabilityTestBase 
     void setup(){
         mockAsyncHttpClient = new MockAsyncHttpClient();
         testClient = S3AsyncClient.builder()
-                                  .credentialsProvider(getDummyCredentials())
+                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                   .httpClient(mockAsyncHttpClient)
                                   .build();
     }
