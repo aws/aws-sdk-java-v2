@@ -86,6 +86,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final PoetExtension poetExtension;
     private final boolean dependsOnHttpAuthAws;
     private final boolean useSraAuth;
+    private boolean useCredentialScope;
 
     public EndpointResolverInterceptorSpec(IntermediateModel model) {
         this.model = model;
@@ -111,7 +112,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addMethod(modifyRequestMethod());
         b.addMethod(modifyHttpRequestMethod());
         b.addMethod(ruleParams());
-        b.addMethod(getCredentialScopeIfPresent());
+
+        if (useCredentialScope) {
+            b.addMethod(getCredentialScopeIfPresent());
+        }
 
         b.addMethod(setContextParams());
         addContextParamMethods(b);
@@ -270,6 +274,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                     builtInFn = "useGlobalEndpointBuiltIn";
                     break;
                 case AWS_AUTH_CREDENTIAL_SCOPE:
+                    useCredentialScope = true;
                     builtInFn = "credentialScopeBuiltIn";
                     break;
                 // The S3 specific built-ins are set through the existing S3Configuration which is handled above
