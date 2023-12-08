@@ -36,32 +36,33 @@ public interface ProgressSnapshot {
     long transferredBytes();
 
     /**
-     * Time at which transaction started
+     * Time at which the HTTP Request header is sent
      */
     Optional<Instant> startTime();
 
     /**
-     * Elapsed time since the start of the transaction
+     * Elapsed time since the HTTP request header was sent to the service
      */
     Optional<Duration> elapsedTime();
 
     /**
      * If transaction size is known, estimate time remaining for transaction completion
+     * This is a predictive calculation based on the rate of transfer
+     * <p>
+     *     Double rateOfTimeUnitsPerByte = elapsedTime() / transferredBytes();
+     *     Double estimatedTimeRemaining = rateOfTimeUnitsPerByte * (totalBytes() - transferredBytes());
+     * </p>
      */
     Optional<Duration> estimatedTimeRemaining();
 
     /**
-     * The SDK response, or {@link Optional#empty()} if unknown.
-     */
-    Optional<SdkResponse> sdkResponse();
-
-    /**
      *  Rate of transfer
      */
-    double averageBytesPer(TimeUnit timeUnit);
+    OptionalDouble averageBytesPer(TimeUnit timeUnit);
 
     /**
-     * The total size of the transfer, in bytes, or {@link Optional#empty()} if unknown.
+     * The total size of the transfer, in bytes, or {@link Optional#empty()} if total payload being transacted is unknown
+     * and not set. This could happen for streaming operations.
      */
     OptionalLong totalBytes();
 

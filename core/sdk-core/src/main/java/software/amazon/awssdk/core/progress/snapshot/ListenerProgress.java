@@ -28,6 +28,5 @@ public interface ListenerProgress {
     * Takes a snapshot of the request execution progress
     * represented by an immutable {@link ProgressSnapshot}.
     */
-
     ProgressSnapshot progressSnapshot();
 }
