@@ -423,6 +423,10 @@
         "Expiration":{
           "shape":"dateType",
           "documentation":"<p>The date on which the current credentials expire.</p>"
+        },
+        "CredentialScope":{
+          "shape":"awsRegion",
+          "documentation":"<p>The AWS region of a single-region account.</p>"
         }
       },
       "documentation":"<p>Amazon Web Services credentials for API authentication.</p>"
@@ -761,6 +765,9 @@
       "max":193,
       "min":2,
       "pattern":"[\\w+=,.@:-]*"
+    },
+    "awsRegion":{
+      "type": "string"
     },
     "clientTokenType":{
       "type":"string",

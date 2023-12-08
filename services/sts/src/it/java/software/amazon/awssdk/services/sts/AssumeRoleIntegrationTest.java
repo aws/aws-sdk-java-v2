@@ -119,8 +119,12 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
         // Create new credentials for the user
         CreateAccessKeyResponse createAccessKeyResult = iam.createAccessKey(r -> r.userName(USER_NAME));
-        userCredentials = AwsBasicCredentials.create(createAccessKeyResult.accessKey().accessKeyId(),
-                                                     createAccessKeyResult.accessKey().secretAccessKey());
+        userCredentials = AwsBasicCredentials.builder()
+                                             .accessKeyId(createAccessKeyResult.accessKey().accessKeyId())
+                                             .secretAccessKey(createAccessKeyResult.accessKey().secretAccessKey())
+                                             // TODO - uncomment once IAM model is updated
+                                             //.credentialScope(createAccessKeyResult.credentialScope())
+                                             .build();
 
         // Try to assume the role to make sure we won't hit issues during testing.
         StsClient userCredentialSts = StsClient.builder()
@@ -135,7 +139,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     /** Tests that we can call assumeRole successfully. */
     @Test
-    public void testAssumeRole() throws InterruptedException {
+    public void testAssumeRole() {
         AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
                                                                .durationSeconds(SESSION_DURATION)
                                                                .roleArn(ROLE_ARN)
@@ -147,11 +151,12 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         assertNotNull(assumeRoleResult.assumedRoleUser());
         assertNotNull(assumeRoleResult.assumedRoleUser().arn());
         assertNotNull(assumeRoleResult.assumedRoleUser().assumedRoleId());
-        assertNotNull(assumeRoleResult.credentials());
+        // TODO - uncomment once STS model is updated
+        //assertNotNull(assumeRoleResult.credentials());
     }
 
     @Test
-    public void profileCredentialsProviderCanAssumeRoles() throws InterruptedException {
+    public void profileCredentialsProviderCanAssumeRoles() {
         String ASSUME_ROLE_PROFILE =
             "[source]\n"
             + "aws_access_key_id = " + userCredentials.accessKeyId() + "\n"
@@ -178,11 +183,13 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
         assertThat(awsCredentials.accessKeyId()).isNotBlank();
         assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+        // TODO - uncomment once STS model is updated
+        //assertThat(awsCredentials.credentialScope()).isPresent();
         ((SdkAutoCloseable) awsCredentialsProvider).close();
     }
 
     @Test
-    public void profileCredentialProviderCanAssumeRolesWithEnvironmentCredentialSource() throws InterruptedException {
+    public void profileCredentialProviderCanAssumeRolesWithEnvironmentCredentialSource() {
         EnvironmentVariableHelper.run(helper -> {
             helper.set("AWS_ACCESS_KEY_ID", userCredentials.accessKeyId());
             helper.set("AWS_SECRET_ACCESS_KEY", userCredentials.secretAccessKey());
@@ -210,12 +217,14 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
             assertThat(awsCredentials.accessKeyId()).isNotBlank();
             assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+            // TODO - uncomment once STS model is updated
+            //assertThat(awsCredentials.credentialScope()).isPresent();
             ((SdkAutoCloseable) awsCredentialsProvider).close();
         });
     }
 
     @Test
-    public void profileCredentialProviderWithEnvironmentCredentialSourceAndSystemProperties() throws InterruptedException {
+    public void profileCredentialProviderWithEnvironmentCredentialSourceAndSystemProperties() {
         System.setProperty("aws.accessKeyId", userCredentials.accessKeyId());
         System.setProperty("aws.secretAccessKey", userCredentials.secretAccessKey());
 
@@ -247,6 +256,8 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
                 assertThat(awsCredentials.accessKeyId()).isNotBlank();
                 assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+                // TODO - uncomment once STS model is updated
+                //assertThat(awsCredentials.credentialScope()).isPresent();
                 ((SdkAutoCloseable) awsCredentialsProvider).close();
             });
         } finally {

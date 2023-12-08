@@ -20,10 +20,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -99,7 +97,13 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
     protected abstract ResponseT callClient(StsClient client, RequestT request);
 
     public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider, boolean overrideStaleAndPrefetchTimes) {
-        Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();
+        Credentials credentials = Credentials.builder()
+                                             .accessKeyId("a")
+                                             .secretAccessKey("b")
+                                             .sessionToken("c")
+                                             .expiration(credentialsExpirationDate)
+                                             .credentialScope("d")
+                                             .build();
         RequestT request = getRequest();
         ResponseT response = getResponse(credentials);
 
@@ -129,6 +133,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
                 assertThat(providedCredentials.accessKeyId()).isEqualTo("a");
                 assertThat(providedCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(providedCredentials.sessionToken()).isEqualTo("c");
+                assertThat(providedCredentials.credentialScope()).isPresent().hasValue("d");
             }
         }
     }
