@@ -117,7 +117,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 return awsCredentialsIdentity.credentialScope().map(Region::of).orElse(null);
             }
         } catch (Exception error) {
-            throw SdkClientException.create(error.getMessage());
+            throw SdkClientException.create(error.getMessage(), error);
         }
         return null;
     }

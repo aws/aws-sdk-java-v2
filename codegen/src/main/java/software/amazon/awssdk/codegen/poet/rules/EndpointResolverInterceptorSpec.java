@@ -325,7 +325,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.endControlFlow();
 
         b.beginControlFlow("catch ($T error)", Exception.class);
-        b.addStatement("throw $T.create(error.getMessage())", SdkClientException.class);
+        b.addStatement("throw $T.create(error.getMessage(), error)", SdkClientException.class);
         b.endControlFlow();
 
         b.addStatement("return null");
