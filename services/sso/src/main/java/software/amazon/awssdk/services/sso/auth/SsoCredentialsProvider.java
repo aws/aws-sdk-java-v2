@@ -106,9 +106,12 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         GetRoleCredentialsRequest request = getRoleCredentialsRequestSupplier.get();
         notNull(request, "GetRoleCredentialsRequest can't be null.");
         RoleCredentials roleCredentials = ssoClient.getRoleCredentials(request).roleCredentials();
-        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(roleCredentials.accessKeyId(),
-                                                                                roleCredentials.secretAccessKey(),
-                                                                                roleCredentials.sessionToken());
+        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
+                                                                        .accessKeyId(roleCredentials.accessKeyId())
+                                                                        .secretAccessKey(roleCredentials.secretAccessKey())
+                                                                        .sessionToken(roleCredentials.sessionToken())
+                                                                        .credentialScope(roleCredentials.credentialScope())
+                                                                        .build();
         return new SessionCredentialsHolder(sessionCredentials, Instant.ofEpochMilli(roleCredentials.expiration()));
     }
 
