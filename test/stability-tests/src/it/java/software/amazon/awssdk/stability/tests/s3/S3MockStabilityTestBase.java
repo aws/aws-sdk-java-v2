@@ -16,6 +16,7 @@
 package software.amazon.awssdk.stability.tests.s3;
 
 import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -32,6 +33,7 @@ public abstract class S3MockStabilityTestBase {
 
     protected static final int CONCURRENCY = 100;
     protected static final int TOTAL_RUNS = 50;
+    private static Set<ChecksumAlgorithm> CHECKSUM_ALGORITHMS = ChecksumAlgorithm.knownValues();
     private static final Logger log = Logger.loggerFor(S3MockStabilityTestBase.class);
     MockAsyncHttpClient mockAsyncHttpClient;
     S3AsyncClient testClient;
@@ -46,13 +48,10 @@ public abstract class S3MockStabilityTestBase {
 
         IntFunction<CompletableFuture<?>> future = i -> {
             String keyName = computeKeyName(i);
-
+            ChecksumAlgorithm checksumAlgorithm = i % 2 == 0 ? randomChecksumAlgorithm() : null;
             return testClient.putObject(b -> b.bucket(getTestBucketName())
                                               .key(keyName)
-                                              .checksumAlgorithm(ChecksumAlgorithm.CRC32_C), AsyncRequestBody.fromBytes(bytes))
-                             .thenRunAsync(
-                                 () -> testClient.putObject(b -> b.bucket(getTestBucketName())
-                                                                  .key(keyName), AsyncRequestBody.fromBytes(bytes)));
+                                              .checksumAlgorithm(checksumAlgorithm), AsyncRequestBody.fromBytes(bytes));
         };
 
         StabilityTestRunner.newRunner()
@@ -69,4 +68,11 @@ public abstract class S3MockStabilityTestBase {
     }
 
     protected abstract String getTestBucketName();
+
+    private static ChecksumAlgorithm randomChecksumAlgorithm() {
+        return CHECKSUM_ALGORITHMS.stream()
+                                  .skip((int) (Math.random() * CHECKSUM_ALGORITHMS.size()))
+                                  .findFirst()
+                                  .orElse(null);
+    }
 }

@@ -38,4 +38,5 @@ public class S3MockWithAsyncClientStabilityTest extends S3MockStabilityTestBase 
     protected String getTestBucketName() {
         return bucketName;
     }
+
 }
