@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -110,7 +111,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private static Region getCredentialScopeIfPresent(ExecutionAttributes executionAttributes) {
         SelectedAuthScheme<?> authScheme = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
         try {
-            Identity identity = authScheme.identity().get();
+            Identity identity = CompletableFutureUtils.joinLikeSync(authScheme.identity());
             if (identity instanceof AwsCredentialsIdentity) {
                 AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
                 return awsCredentialsIdentity.credentialScope().map(Region::of).orElse(null);

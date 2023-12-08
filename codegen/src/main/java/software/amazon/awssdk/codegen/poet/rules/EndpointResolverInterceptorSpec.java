@@ -76,6 +76,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -315,7 +316,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("try");
 
-        b.addStatement("$T identity = authScheme.identity().get()", Identity.class);
+        b.addStatement("$T identity = $T.joinLikeSync(authScheme.identity())", Identity.class, CompletableFutureUtils.class);
         b.beginControlFlow("if (identity instanceof $T)", AwsCredentialsIdentity.class);
         b.addStatement("$T awsCredentialsIdentity = ($T) identity", AwsCredentialsIdentity.class, AwsCredentialsIdentity.class);
         b.addStatement("return awsCredentialsIdentity.credentialScope().map($T::of).orElse(null)", Region.class);
