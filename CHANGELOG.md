@@ -1,3 +1,16 @@
+# __2.21.42__ __2023-12-08__
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds support for the OpenTelemetry 1.0 output format in CloudWatch Metric Streams.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - M2 Mac instances are built on Apple M2 Mac mini computers. I4i instances are powered by 3rd generation Intel Xeon Scalable processors. C7i compute optimized, M7i general purpose and R7i memory optimized instances are powered by custom 4th Generation Intel Xeon Scalable processors.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Releasing Scaling Group, Dataview, and Volume APIs
+
 # __2.21.41__ __2023-12-07__
 ## __AWS CodeDeploy__
   - ### Features
