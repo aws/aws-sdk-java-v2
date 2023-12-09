@@ -13,10 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt;
+package software.amazon.awssdk.http.crtsync;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.async.SdkAsyncHttpService;
+import software.amazon.awssdk.http.SdkHttpService;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 
 /**
  * Service binding for the AWS common runtime HTTP client implementation. Allows SDK to pick this up automatically from the
@@ -24,9 +25,9 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpService;
  *
  */
 @SdkPublicApi
-public class AwsCrtSdkHttpService implements SdkAsyncHttpService {
+public class AwsCrtSdkSyncHttpService implements SdkHttpService {
     @Override
-    public AwsCrtAsyncHttpClient.Builder createAsyncHttpClientFactory() {
-        return AwsCrtAsyncHttpClient.builder();
+    public AwsCrtHttpClient.Builder createHttpClientBuilder() {
+        return AwsCrtHttpClient.builder();
     }
 }

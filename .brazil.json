@@ -10,6 +10,7 @@
         "aws-cbor-protocol": { "packageName": "AwsJavaSdk-Core-AwsCborProtocol" },
         "aws-core": { "packageName": "AwsJavaSdk-Core-AwsCore" },
         "aws-crt-client": { "packageName": "AwsJavaSdk-HttpClient-CrtClient" },
+        "aws-crt-sync-client": { "packageName": "AwsJavaSdk-HttpClient-SyncCrtClient" },
         "aws-ion-protocol": { "packageName": "AwsJavaSdk-Core-AwsIonProtocol" },
         "aws-json-protocol": { "packageName": "AwsJavaSdk-Core-AwsJsonProtocol" },
         "aws-query-protocol": { "packageName": "AwsJavaSdk-Core-AwsQueryProtocol" },

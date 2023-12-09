@@ -209,6 +209,11 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
+                <artifactId>aws-crt-sync-client</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>auth-crt</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
