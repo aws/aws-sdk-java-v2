@@ -34,6 +34,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * This extension implements optimistic locking on record writes by means of a 'record version number' that is used
@@ -101,45 +102,82 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return WriteModification.builder().build();
         }
 
+        Pair<AttributeValue, Expression> updates = getRecordUpdates(versionAttributeKey.get(), context.items());
+
+        // Unpack values from Pair
+        AttributeValue newVersionValue = updates.left();
+        Expression condition = updates.right();
+
         Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
-
-        String attributeKeyRef = keyRef(versionAttributeKey.get());
-        AttributeValue newVersionValue;
-        Expression condition;
-        Optional<AttributeValue> existingVersionValue =
-            Optional.ofNullable(itemToTransform.get(versionAttributeKey.get()));
-
-        if (!existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get())) {
-            // First version of the record
-            newVersionValue = AttributeValue.builder().n("1").build();
-            condition = Expression.builder()
-                                  .expression(String.format("attribute_not_exists(%s)", attributeKeyRef))
-                                  .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
-                                  .build();
-        } else {
-            // Existing record, increment version
-            if (existingVersionValue.get().n() == null) {
-                // In this case a non-null version attribute is present, but it's not an N
-                throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
-            }
-
-            int existingVersion = Integer.parseInt(existingVersionValue.get().n());
-            String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
-            newVersionValue = AttributeValue.builder().n(Integer.toString(existingVersion + 1)).build();
-            condition = Expression.builder()
-                                  .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
-                                  .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
-                                  .expressionValues(Collections.singletonMap(existingVersionValueKey,
-                                                                             existingVersionValue.get()))
-                                  .build();
-        }
-
         itemToTransform.put(versionAttributeKey.get(), newVersionValue);
 
         return WriteModification.builder()
                                 .transformedItem(Collections.unmodifiableMap(itemToTransform))
                                 .additionalConditionalExpression(condition)
                                 .build();
+    }
+
+    private Pair<AttributeValue, Expression> getRecordUpdates(String versionAttributeKey,
+                                                              Map<String, AttributeValue> itemToTransform) {
+        Optional<AttributeValue> existingVersionValue =
+            Optional.ofNullable(itemToTransform.get(versionAttributeKey));
+
+        if (isInitialVersion(existingVersionValue)) {
+            // First version of the record ensure it does not exist
+            return createInitialRecord(versionAttributeKey);
+        }
+        // Existing record, increment version
+        return updateExistingRecord(versionAttributeKey, existingVersionValue.get());
+    }
+
+    private boolean isInitialVersion(Optional<AttributeValue> existingVersionValue) {
+        return !existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get());
+    }
+
+    private Pair<AttributeValue, Expression> createInitialRecord(String versionAttributeKey) {
+        AttributeValue newVersionValue = incrementVersion(0);
+
+        String attributeKeyRef = keyRef(versionAttributeKey);
+
+        Expression condition = Expression.builder()
+                                         // Check that the version does not exist before setting the initial value.
+                                         .expression(String.format("attribute_not_exists(%s)", attributeKeyRef))
+                                         .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey))
+                                         .build();
+
+        return Pair.of(newVersionValue, condition);
+    }
+
+    private Pair<AttributeValue, Expression> updateExistingRecord(String versionAttributeKey,
+                                                                  AttributeValue existingVersionValue) {
+        int existingVersion = getExistingVersion(existingVersionValue);
+        AttributeValue newVersionValue = incrementVersion(existingVersion);
+
+        String attributeKeyRef = keyRef(versionAttributeKey);
+        String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey);
+
+        Expression condition = Expression.builder()
+                                         // Check that the version matches the existing value before setting the updated value.
+                                         .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
+                                         .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey))
+                                         .expressionValues(Collections.singletonMap(existingVersionValueKey,
+                                                                                    existingVersionValue))
+                                         .build();
+
+        return Pair.of(newVersionValue, condition);
+    }
+
+    private int getExistingVersion(AttributeValue existingVersionValue) {
+        if (existingVersionValue.n() == null) {
+            // In this case a non-null version attribute is present, but it's not an N
+            throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
+        }
+
+        return Integer.parseInt(existingVersionValue.n());
+    }
+
+    private AttributeValue incrementVersion(int version) {
+        return AttributeValue.fromN(Integer.toString(version + 1));
     }
 
     @NotThreadSafe
