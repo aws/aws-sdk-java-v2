@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "contributor": "akiesler",
+    "description": "Add additional logical operator ('and' and 'or') methods to DynamoDB Expression"
+}

@@ -15,9 +15,13 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -46,6 +50,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkPublicApi
 @ThreadSafe
 public final class Expression {
+    public static final String AND = "AND";
+    public static final String OR = "OR";
+
     private final String expression;
     private final Map<String, AttributeValue> expressionValues;
     private final Map<String, String> expressionNames;
@@ -67,7 +74,7 @@ public final class Expression {
     }
 
     /**
-     * Coalesces two complete expressions into a single expression. The expression string will be joined using the 
+     * Coalesces two complete expressions into a single expression. The expression string will be joined using the
      * supplied join token, and the ExpressionNames and ExpressionValues maps will be merged.
      * @param expression1 The first expression to coalesce
      * @param expression2 The second expression to coalesce
@@ -91,6 +98,61 @@ public final class Expression {
                          .expressionNames(joinNames(expression1.expressionNames(),
                                                     expression2.expressionNames()))
                          .build();
+    }
+
+    /**
+     * @see #join(String, Collection)
+     */
+    public static Expression and(Collection<Expression> expressions) {
+        return join(AND, expressions);
+    }
+
+    /**
+     * @see #join(String, Collection)
+     */
+    public static Expression or(Collection<Expression> expressions) {
+        return join(OR, expressions);
+    }
+
+    /**
+     * @see #join(String, Collection)
+     */
+    public static Expression join(String joinToken, Expression... expressions) {
+        return join(joinToken, Arrays.asList(expressions));
+    }
+
+    /**
+     * Coalesces multiple complete expressions into a single expression. The expression string will be joined using the
+     * supplied join token, and the ExpressionNames and ExpressionValues maps will be merged.
+     * @param joinToken The join token to be used to join the expression strings (e.g.: 'AND', 'OR')
+     * @param expressions The expressions to coalesce
+     * @return The coalesced expression
+     * @throws IllegalArgumentException if a conflict occurs when merging ExpressionNames or ExpressionValues
+     */
+    public static Expression join(String joinToken, Collection<Expression> expressions) {
+        joinToken = joinToken.trim();
+        if (expressions.isEmpty()) {
+            return null;
+        }
+
+        if (expressions.size() == 1) {
+            return expressions.toArray(new Expression[] {})[0];
+        }
+
+        joinToken = ") " + joinToken + " (";
+        String expression = expressions.stream()
+            .map(Expression::expression)
+            .collect(Collectors.joining(joinToken, "(", ")"));
+
+        Builder builder = Expression.builder()
+            .expression(expression);
+
+        expressions.forEach(expr -> {
+            builder.mergeExpressionValues(expr.expressionValues())
+                .mergeExpressionNames(expr.expressionNames());
+        });
+
+        return builder.build();
     }
 
     /**
@@ -198,6 +260,28 @@ public final class Expression {
         return join(this, expression, " AND ");
     }
 
+    /**
+     * Coalesces multiple complete expressions into a single expression joined by 'AND'.
+     *
+     * @see #join(String, Collection)
+     */
+    public Expression and(Expression... expressions) {
+        LinkedList<Expression> expressionList = new LinkedList<>(Arrays.asList(expressions));
+        expressionList.addFirst(this);
+        return join(AND, expressionList);
+    }
+
+    /**
+     * Coalesces multiple complete expressions into a single expression joined by 'OR'.
+     *
+     * @see #join(String, Collection)
+     */
+    public Expression or(Expression... expressions) {
+        LinkedList<Expression> expressionList = new LinkedList<>(Arrays.asList(expressions));
+        expressionList.addFirst(this);
+        return join(OR, expressionList);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -256,6 +340,33 @@ public final class Expression {
         }
 
         /**
+         * Merge the given ExpressionValues into the builders existing ExpressionValues
+         * @param expressionValues The values to merge into the ExpressionValues map
+         * @throws IllegalArgumentException if a conflict occurs when merging ExpressionValues
+         */
+        public Builder mergeExpressionValues(Map<String, AttributeValue> expressionValues) {
+            if (this.expressionValues == null) {
+                return expressionValues(expressionValues);
+            }
+
+            if (expressionValues == null) {
+                return this;
+            }
+
+            expressionValues.forEach((key, value) -> {
+                AttributeValue oldValue = this.expressionValues.put(key, value);
+
+                if (oldValue != null && !oldValue.equals(value)) {
+                    throw new IllegalArgumentException(
+                        String.format("Attempt to coalesce expressions with conflicting expression values. "
+                                      + "Expression value key = '%s'", key));
+                }
+            });
+
+            return this;
+        }
+
+        /**
          * Adds a single element to the optional 'expression values' token map
          */
         public Builder putExpressionValue(String key, AttributeValue value) {
@@ -272,6 +383,33 @@ public final class Expression {
          */
         public Builder expressionNames(Map<String, String> expressionNames) {
             this.expressionNames = expressionNames == null ? null : new HashMap<>(expressionNames);
+            return this;
+        }
+
+        /**
+         * Merge the given ExpressionNames into the builders existing ExpressionNames
+         * @param expressionNames The values to merge into the ExpressionNames map
+         * @throws IllegalArgumentException if a conflict occurs when merging ExpressionNames
+         */
+        public Builder mergeExpressionNames(Map<String, String> expressionNames) {
+            if (this.expressionNames == null) {
+                return expressionNames(expressionNames);
+            }
+
+            if (expressionNames == null) {
+                return this;
+            }
+
+            expressionNames.forEach((key, value) -> {
+                String oldValue = this.expressionNames.put(key, value);
+
+                if (oldValue != null && !oldValue.equals(value)) {
+                    throw new IllegalArgumentException(
+                        String.format("Attempt to coalesce expressions with conflicting expression names. "
+                                      + "Expression name key = '%s'", key));
+                }
+            });
+
             return this;
         }
 
