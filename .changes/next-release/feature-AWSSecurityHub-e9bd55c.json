@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "contributor": "",
+    "description": "Added new resource detail objects to ASFF, including resources for AwsDynamoDbTable, AwsEc2ClientVpnEndpoint, AwsMskCluster, AwsS3AccessPoint, AwsS3Bucket"
+}
