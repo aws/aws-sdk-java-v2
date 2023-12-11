@@ -71,6 +71,9 @@
         "bom-internal": { "skipImport": true },
         "build-tools": { "skipImport": true },
         "bundle": { "skipImport": true },
+        "bundle-sdk": { "skipImport": true },
+        "bundle-logging-bridge": { "skipImport": true },
+        "bundle-logging-bridge-binding-test": { "skipImport": true },
         "codegen-generated-classes-test": { "skipImport": true },
         "codegen-lite": { "skipImport": true },
         "codegen-lite-maven-plugin": { "skipImport": true },
@@ -97,7 +100,8 @@
         "stability-tests": { "skipImport": true },
         "test-utils": { "skipImport": true },
         "tests-coverage-reporting": { "skipImport": true },
-        "third-party": { "skipImport": true }
+        "third-party": { "skipImport": true },
+        "third-party-slf4j-api": { "skipImport": true }
     },
 
     "dependencies": {
