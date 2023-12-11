@@ -118,8 +118,8 @@ public class DefaultFileUploadWireMockTest {
                                              .withBody("Internal Error")));
 
         UploadFileRequest request = UploadFileRequest.builder()
-                                                     .source(testFile).
-                                                     putObjectRequest(put -> put.bucket("bucket").key("key"))
+                                                     .source(testFile)
+                                                     .putObjectRequest(put -> put.bucket("bucket").key("key"))
                                                      .build();
 
         assertThatThrownBy(() -> tm.uploadFile(request).completionFuture().join())
