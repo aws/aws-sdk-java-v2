@@ -1,3 +1,20 @@
+# __2.21.43__ __2023-12-11__
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail objects to ASFF, including resources for AwsDynamoDbTable, AwsEc2ClientVpnEndpoint, AwsMskCluster, AwsS3AccessPoint, AwsS3Bucket
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds a new parameter configuration setting to the Neptune cluster related APIs that can be leveraged to switch between the underlying supported storage modes.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release includes Amazon Pinpoint API documentation updates pertaining to campaign message sending rate limits.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix an issue where multipart uploads from a file are not retryable when using the default, non CRT S3 client.
+
 # __2.21.42__ __2023-12-08__
 ## __Amazon CloudWatch__
   - ### Features
@@ -3956,7 +3973,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

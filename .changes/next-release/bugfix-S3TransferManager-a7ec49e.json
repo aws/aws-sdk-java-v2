@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fix an issue where multipart uploads from a file are not retryable when using the default, non CRT S3 client."
-}
