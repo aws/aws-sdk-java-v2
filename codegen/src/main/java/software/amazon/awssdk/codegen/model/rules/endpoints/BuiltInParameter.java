@@ -29,7 +29,8 @@ public enum BuiltInParameter {
     AWS_S3_USE_GLOBAL_ENDPOINT,
     AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS,
     AWS_S3_USE_ARN_REGION,
-    AWS_S3_CONTROL_USE_ARN_REGION
+    AWS_S3_CONTROL_USE_ARN_REGION,
+    AWS_AUTH_CREDENTIAL_SCOPE,
     ;
 
     @JsonCreator
@@ -57,6 +58,8 @@ public enum BuiltInParameter {
                 return AWS_S3_USE_ARN_REGION;
             case "aws::s3control::usearnregion":
                 return AWS_S3_CONTROL_USE_ARN_REGION;
+            case "aws::auth::credentialscope":
+                return AWS_AUTH_CREDENTIAL_SCOPE;
             default:
                 throw new RuntimeException("Unrecognized builtin: " + s);
         }

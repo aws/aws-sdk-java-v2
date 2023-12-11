@@ -32,6 +32,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
     private final Boolean useFIPSEndpoint;
 
+    private final Region credentialScope;
+
     private final String endpointId;
 
     private final Boolean defaultTrueParam;
@@ -51,6 +53,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
+        this.credentialScope = builder.credentialScope;
         this.endpointId = builder.endpointId;
         this.defaultTrueParam = Validate.paramNotNull(builder.defaultTrueParam, "defaultTrueParam");
         this.defaultStringParam = Validate.paramNotNull(builder.defaultStringParam, "defaultStringParam");
@@ -82,6 +85,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     @Override
     public Boolean useFipsEndpoint() {
         return useFIPSEndpoint;
+    }
+
+    @Override
+    public Region credentialScope() {
+        return credentialScope;
     }
 
     @Override
@@ -134,6 +142,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
         private Boolean useFIPSEndpoint;
 
+        private Region credentialScope;
+
         private String endpointId;
 
         private Boolean defaultTrueParam = true;
@@ -156,6 +166,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
             this.region = params.region;
             this.useDualStackEndpoint = params.useDualStackEndpoint;
             this.useFIPSEndpoint = params.useFIPSEndpoint;
+            this.credentialScope = params.credentialScope;
             this.endpointId = params.endpointId;
             this.defaultTrueParam = params.defaultTrueParam;
             this.defaultStringParam = params.defaultStringParam;
@@ -186,6 +197,12 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         @Override
         public Builder useFipsEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
+            return this;
+        }
+
+        @Override
+        public Builder credentialScope(Region credentialScope) {
+            this.credentialScope = credentialScope;
             return this;
         }
 

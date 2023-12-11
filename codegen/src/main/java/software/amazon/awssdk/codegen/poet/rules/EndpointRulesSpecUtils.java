@@ -148,11 +148,13 @@ public class EndpointRulesSpecUtils {
     }
 
     public TypeName parameterType(ParameterModel param) {
-        if (param.getBuiltInEnum() == null || param.getBuiltInEnum() != BuiltInParameter.AWS_REGION) {
+        if (param.getBuiltInEnum() == null || (param.getBuiltInEnum() != BuiltInParameter.AWS_REGION
+                                               && param.getBuiltInEnum() != BuiltInParameter.AWS_AUTH_CREDENTIAL_SCOPE)) {
             return toJavaType(param.getType());
         }
 
-        if (param.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
+        if (param.getBuiltInEnum() == BuiltInParameter.AWS_REGION
+            || param.getBuiltInEnum() == BuiltInParameter.AWS_AUTH_CREDENTIAL_SCOPE) {
             return ClassName.get(Region.class);
         }
         return toJavaType(param.getType());

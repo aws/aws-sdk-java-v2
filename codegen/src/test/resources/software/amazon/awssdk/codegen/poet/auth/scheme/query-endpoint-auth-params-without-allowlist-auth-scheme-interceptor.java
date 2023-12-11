@@ -61,8 +61,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                                                                     ExecutionAttributes executionAttributes) {
         MetricCollector metricCollector = executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
-        IdentityProviders identityProviders = executionAttributes
-            .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+        IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
         List<Supplier<String>> discardedReasons = new ArrayList<>();
         for (AuthSchemeOption authOption : authOptions) {
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
@@ -89,6 +88,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         builder.region(endpointParams.region());
         builder.useDualStackEndpoint(endpointParams.useDualStackEndpoint());
         builder.useFipsEndpoint(endpointParams.useFipsEndpoint());
+        builder.credentialScope(endpointParams.credentialScope());
         builder.endpointId(endpointParams.endpointId());
         builder.defaultTrueParam(endpointParams.defaultTrueParam());
         builder.defaultStringParam(endpointParams.defaultStringParam());

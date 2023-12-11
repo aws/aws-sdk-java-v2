@@ -49,6 +49,8 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
 
     Boolean useFipsEndpoint();
 
+    Region credentialScope();
+
     String endpointId();
 
     /**
@@ -89,6 +91,8 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
         Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
 
         Builder useFipsEndpoint(Boolean useFIPSEndpoint);
+
+        Builder credentialScope(Region credentialScope);
 
         Builder endpointId(String endpointId);
 

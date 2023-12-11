@@ -142,6 +142,7 @@ public class EndpointProviderTestSpec implements ClassSpec {
     private boolean isRegionBuiltIn(String paramName) {
         Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
         ParameterModel param = parameters.get(paramName);
-        return param.getBuiltInEnum() == BuiltInParameter.AWS_REGION;
+        return param.getBuiltInEnum() == BuiltInParameter.AWS_REGION
+            || param.getBuiltInEnum() == BuiltInParameter.AWS_AUTH_CREDENTIAL_SCOPE;
     }
 }

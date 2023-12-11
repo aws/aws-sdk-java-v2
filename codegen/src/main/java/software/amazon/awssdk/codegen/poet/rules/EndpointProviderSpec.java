@@ -122,7 +122,8 @@ public class EndpointProviderSpec implements ClassSpec {
             CodeBlock coerce;
             // We treat region specially and generate it as the Region type,
             // so we need to call id() to convert it back to string
-            if (model.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
+            if (model.getBuiltInEnum() == BuiltInParameter.AWS_REGION
+                || model.getBuiltInEnum() == BuiltInParameter.AWS_AUTH_CREDENTIAL_SCOPE) {
                 coerce = CodeBlock.builder().add(".id()").build();
             } else {
                 coerce = CodeBlock.builder().build();
