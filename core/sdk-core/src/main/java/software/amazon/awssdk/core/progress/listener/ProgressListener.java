@@ -108,8 +108,8 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 public interface ProgressListener {
 
     /**
-     * This method is called right after a {@link SdkRequest} is marshalled, signed, transformed into an {@link SdkHttpRequest} and ready to
-     * be sent to the service
+     * This method is called right after a {@link SdkRequest} is marshalled, signed, transformed into an
+     * {@link SdkHttpRequest} and ready to be sent to the service
      * After this method has returned, either requestHeaderSent or executionFailure will always be invoked
      * <p>
      * Available context attributes:
