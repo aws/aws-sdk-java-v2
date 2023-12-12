@@ -74,6 +74,7 @@ import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -317,16 +318,14 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                          .addParameter(ExecutionAttributes.class, "executionAttributes")
                                          .returns(Region.class);
 
-        b.addStatement("$T<?> authScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
-                       SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
+        b.addStatement("$T identityProviders = executionAttributes.getAttribute($T.IDENTITY_PROVIDERS)",
+                       IdentityProviders.class, SdkInternalExecutionAttribute.class);
 
-        b.addStatement("$T identity = $T.joinLikeSync(authScheme.identity())", Identity.class, CompletableFutureUtils.class);
-        b.beginControlFlow("if (identity instanceof $T)", AwsCredentialsIdentity.class);
-        b.addStatement("$T awsCredentialsIdentity = ($T) identity", AwsCredentialsIdentity.class, AwsCredentialsIdentity.class);
-        b.addStatement("return awsCredentialsIdentity.credentialScope().map($T::of).orElse(null)", Region.class);
-        b.endControlFlow();
-
-        b.addStatement("return null");
+        b.addStatement("$T awsCredentialsIdentity = $T.joinLikeSync(identityProviders.identityProvider($T.class)"
+                       + ".resolveIdentity())",
+                       AwsCredentialsIdentity.class, CompletableFutureUtils.class, AwsCredentialsIdentity.class);
+        b.addStatement("return awsCredentialsIdentity != null ? "
+                       + "awsCredentialsIdentity.credentialScope().map($T::of).orElse(null) : null", Region.class);
 
         return b.build();
     }
