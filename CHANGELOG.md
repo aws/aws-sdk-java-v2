@@ -1,3 +1,20 @@
+# __2.21.44__ __2023-12-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release introduces the StartLiveTail API to tail ingested logs in near real time.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release 1) adds sub-municipality field in Places API for searching and getting places information, and 2) allows optimizing route calculation based on expected arrival time.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds the Image Workflows feature to give more flexibility and control over the image building and testing process.
+
 # __2.21.43__ __2023-12-11__
 ## __AWS SecurityHub__
   - ### Features
