@@ -103,6 +103,12 @@ public final class SigV4aAuthScheme implements EndpointAuthScheme {
             return this;
         }
 
+        public Builder signingRegionSet(List<String> signingRegionSet) {
+            this.signingRegionSet.clear();
+            this.signingRegionSet.addAll(signingRegionSet);
+            return this;
+        }
+
         public Builder signingName(String signingName) {
             this.signingName = signingName;
             return this;
