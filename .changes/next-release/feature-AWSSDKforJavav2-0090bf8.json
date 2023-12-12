@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "If an HTTP client or HTTP client builder is not specified explicitly on the SDK client AND there are multiple HTTP client implementations on the classpath, the SDK will choose the one that has the highest priority instead of throwing exception. ApacheHttpClient and NettyNioAsyncHttpClient have the highest priority in sync and async SDK client respectively for now."
+}
