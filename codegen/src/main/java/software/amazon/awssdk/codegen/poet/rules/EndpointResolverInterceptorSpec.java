@@ -74,6 +74,7 @@ import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -320,10 +321,15 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         b.addStatement("$T identityProviders = executionAttributes.getAttribute($T.IDENTITY_PROVIDERS)",
                        IdentityProviders.class, SdkInternalExecutionAttribute.class);
+        b.addStatement("$T<$T> identityProvider = identityProviders.identityProvider($T.class)",
+                       IdentityProvider.class, AwsCredentialsIdentity.class, AwsCredentialsIdentity.class);
 
-        b.addStatement("$T awsCredentialsIdentity = $T.joinLikeSync(identityProviders.identityProvider($T.class)"
-                       + ".resolveIdentity())",
-                       AwsCredentialsIdentity.class, CompletableFutureUtils.class, AwsCredentialsIdentity.class);
+        b.beginControlFlow("if (identityProvider == null)");
+        b.addStatement("return null");
+        b.endControlFlow();
+
+        b.addStatement("$T awsCredentialsIdentity = $T.joinLikeSync(identityProvider.resolveIdentity())",
+                       AwsCredentialsIdentity.class, CompletableFutureUtils.class);
         b.addStatement("return awsCredentialsIdentity != null ? "
                        + "awsCredentialsIdentity.credentialScope().map($T::of).orElse(null) : null", Region.class);
 

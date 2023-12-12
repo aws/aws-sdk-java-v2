@@ -31,6 +31,7 @@ import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
@@ -111,8 +112,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
 
     private static Region getCredentialScopeIfPresent(ExecutionAttributes executionAttributes) {
         IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
-        AwsCredentialsIdentity awsCredentialsIdentity = CompletableFutureUtils.joinLikeSync(identityProviders.identityProvider(
-            AwsCredentialsIdentity.class).resolveIdentity());
+        IdentityProvider<AwsCredentialsIdentity> identityProvider = identityProviders
+            .identityProvider(AwsCredentialsIdentity.class);
+        if (identityProvider == null) {
+            return null;
+        }
+        AwsCredentialsIdentity awsCredentialsIdentity = CompletableFutureUtils.joinLikeSync(identityProvider.resolveIdentity());
         return awsCredentialsIdentity != null ? awsCredentialsIdentity.credentialScope().map(Region::of).orElse(null) : null;
     }
 
