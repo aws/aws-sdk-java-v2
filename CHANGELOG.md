@@ -1,3 +1,67 @@
+# __2.21.44__ __2023-12-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release introduces the StartLiveTail API to tail ingested logs in near real time.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release 1) adds sub-municipality field in Places API for searching and getting places information, and 2) allows optimizing route calculation based on expected arrival time.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds the Image Workflows feature to give more flexibility and control over the image building and testing process.
+
+# __2.21.43__ __2023-12-11__
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail objects to ASFF, including resources for AwsDynamoDbTable, AwsEc2ClientVpnEndpoint, AwsMskCluster, AwsS3AccessPoint, AwsS3Bucket
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds a new parameter configuration setting to the Neptune cluster related APIs that can be leveraged to switch between the underlying supported storage modes.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release includes Amazon Pinpoint API documentation updates pertaining to campaign message sending rate limits.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix an issue where multipart uploads from a file are not retryable when using the default, non CRT S3 client.
+
+# __2.21.42__ __2023-12-08__
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds support for the OpenTelemetry 1.0 output format in CloudWatch Metric Streams.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - M2 Mac instances are built on Apple M2 Mac mini computers. I4i instances are powered by 3rd generation Intel Xeon Scalable processors. C7i compute optimized, M7i general purpose and R7i memory optimized instances are powered by custom 4th Generation Intel Xeon Scalable processors.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Releasing Scaling Group, Dataview, and Volume APIs
+
+# __2.21.41__ __2023-12-07__
+## __AWS CodeDeploy__
+  - ### Features
+    - This release adds support for two new CodeDeploy features: 1) zonal deployments for Amazon EC2 in-place deployments, 2) deployments triggered by Auto Scaling group termination lifecycle hook events.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 - Codegen__
+  - ### Features
+    - Allow users to customize package name.
+
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix failure to bind to SLF4J binding at runtime when using the SDK bundle.
+
 # __2.21.40__ __2023-12-06__
 ## __AWS Backup__
   - ### Features
