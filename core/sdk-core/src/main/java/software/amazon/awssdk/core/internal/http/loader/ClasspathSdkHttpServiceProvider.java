@@ -67,7 +67,7 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
 
     @Override
     public Optional<T> loadService() {
-        Queue<T> impls = new PriorityQueue<>(Comparator.comparingInt(o -> httpServicesPriority.getOrDefault(o.getClass(),
+        Queue<T> impls = new PriorityQueue<>(Comparator.comparingInt(o -> httpServicesPriority.getOrDefault(o.getClass().getName(),
                                                                                                             Integer.MAX_VALUE)));
         Iterable<T> iterable = () -> serviceLoader.loadServices(serviceClass);
         iterable.forEach(impl -> impls.add(impl));

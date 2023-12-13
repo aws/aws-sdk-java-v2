@@ -30,11 +30,14 @@ import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
+ * Response handler adaptor for {@link AwsCrtAsyncHttpClient}.
+ * <p>
  * Implements the CrtHttpStreamHandler API and converts CRT callbacks into calls to SDK AsyncExecuteRequest methods
  */
 @SdkInternalApi
