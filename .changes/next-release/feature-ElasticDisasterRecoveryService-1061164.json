@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Disaster Recovery Service",
+    "contributor": "",
+    "description": "Adding AgentVersion to SourceServer and RecoveryInstance structures"
+}
