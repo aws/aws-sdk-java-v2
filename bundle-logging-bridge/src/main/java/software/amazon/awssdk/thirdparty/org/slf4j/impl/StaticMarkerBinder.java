@@ -99,6 +99,11 @@ public class StaticMarkerBinder {
         }
     }
 
+    // SLF4J API
+    public String getMarkerFactoryClassStr() {
+        return IMarkerFactoryAdapter.class.getCanonicalName();
+    }
+
     @SdkTestInternalApi
     Object getActualStaticMarkerBinder() {
         return IMPL;
