@@ -30,4 +30,10 @@ public class StaticMarkerBinderTest {
         assertThat(StaticMarkerBinder.getSingleton().getActualStaticMarkerBinder())
             .isInstanceOf(org.slf4j.impl.StaticMarkerBinder.class);
     }
+
+    @Test
+    public void getMarkerFactoryClassStr_returnsCorrectValue() {
+        assertThat(StaticMarkerBinder.getSingleton().getMarkerFactoryClassStr())
+            .isEqualTo("software.amazon.awssdk.thirdparty.org.slf4j.impl.internal.IMarkerFactoryAdapter");
+    }
 }
