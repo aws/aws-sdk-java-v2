@@ -69,7 +69,10 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         if (inputStreamSubscriber == null) {
             inputStreamSubscriber = new InputStreamSubscriber();
             simplePublisher.subscribe(inputStreamSubscriber);
+            // For response with a payload, we need to complete the future here to allow downstream to retrieve the data from
+            // the stream directly.
             responseBuilder.content(AbortableInputStream.create(inputStreamSubscriber));
+            requestCompletionFuture.complete(responseBuilder.build());
         }
 
         CompletableFuture<Void> writeFuture = simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
@@ -123,6 +126,8 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
             crtConn.shutdown();
         }
 
+        // For response without a payload, for example, S3 PutObjectResponse, we need to complete the future
+        // in onResponseComplete callback since onResponseBody will never be invoked.
         requestCompletionFuture.complete(responseBuilder.build());
         simplePublisher.complete();
         crtConn.close();
