@@ -29,8 +29,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
@@ -77,7 +75,7 @@ public class ClasspathSdkHttpServiceProviderTest {
         SdkHttpService mock = mock(SdkHttpService.class);
 
         when(serviceLoader.loadServices(SdkHttpService.class))
-                .thenReturn(iteratorOf(apacheSdkHttpService, mock));
+                .thenReturn(iteratorOf(mock, apacheSdkHttpService));
         assertThat(provider.loadService()).contains(apacheSdkHttpService);
 
         SdkHttpService mock1 = mock(SdkHttpService.class);
@@ -93,7 +91,7 @@ public class ClasspathSdkHttpServiceProviderTest {
         SdkAsyncHttpService mock = mock(SdkAsyncHttpService.class);
 
         when(serviceLoader.loadServices(SdkAsyncHttpService.class))
-            .thenReturn(iteratorOf(netty, mock));
+            .thenReturn(iteratorOf(mock, netty));
         assertThat(asyncProvider.loadService()).contains(netty);
 
         SdkAsyncHttpService mock1 = mock(SdkAsyncHttpService.class);

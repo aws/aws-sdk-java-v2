@@ -24,7 +24,6 @@ import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapWithIoExcept
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import javax.net.ssl.SSLHandshakeException;
@@ -33,25 +32,19 @@ import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
-import software.amazon.awssdk.crt.http.HttpHeader;
-import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
-import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
+import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.async.InputStreamSubscriber;
-import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @SdkInternalApi
 public final class CrtRequestExecutor {
@@ -198,87 +191,6 @@ public final class CrtRequestExecutor {
             reportAsyncFailure(crtConn, new IOException("An exception occurred when making the request", e),
                           requestFuture,
                           asyncRequest.responseHandler());
-        }
-    }
-
-    private static final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamResponseHandler {
-        private final SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder();
-        private volatile InputStreamSubscriber inputStreamSubscriber;
-        private volatile SimplePublisher<ByteBuffer> simplePublisher;
-
-        private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
-        private final HttpClientConnection crtConn;
-
-        InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
-                                                     CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
-            this.crtConn = crtConn;
-            this.requestCompletionFuture = requestCompletionFuture;
-        }
-
-        @Override
-        public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType,
-                                      HttpHeader[] nextHeaders) {
-            if (blockType == HttpHeaderBlock.MAIN.getValue()) {
-                for (HttpHeader h : nextHeaders) {
-                    responseBuilder.appendHeader(h.getName(), h.getValue());
-                }
-            }
-
-            if (responseBuilder.statusCode() == 0) {
-                responseBuilder.statusCode(responseStatusCode);
-            }
-
-        }
-
-        @Override
-        public void onResponseComplete(HttpStream stream, int errorCode) {
-            // always close the connection on a 5XX response code.
-            if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-                crtConn.shutdown();
-            }
-
-            if (errorCode == 0) {
-                requestCompletionFuture.complete(responseBuilder.build());
-            } else {
-                Throwable toThrow =
-                    wrapWithIoExceptionIfRetryable(new HttpException(errorCode));
-                requestCompletionFuture.completeExceptionally(toThrow);
-            }
-            stream.close();
-            crtConn.close();
-
-            if (simplePublisher != null) {
-                simplePublisher.complete();
-            }
-        }
-
-        @Override
-        public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
-
-            // Per the client conformance tests, unless there's an actual body the response stream must be null.
-            // This is function is only called in one of the CRT's IO threads, or is otherwise sequentially ordered.
-            // It is volatile in the declaration for thread visibility reasons, NOT concurrency control.
-            if (inputStreamSubscriber == null && simplePublisher == null) {
-                inputStreamSubscriber = new InputStreamSubscriber();
-                simplePublisher = new SimplePublisher<>();
-                simplePublisher.subscribe(inputStreamSubscriber);
-                responseBuilder.content(AbortableInputStream.create(inputStreamSubscriber));
-            }
-
-            CompletableFuture<Void> writeFuture = simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
-
-            writeFuture.whenComplete((result, failure) -> {
-                if (failure != null) {
-                    requestCompletionFuture.completeExceptionally(failure);
-                    return;
-                }
-
-                // increment the window upon buffer consumption.
-                stream.incrementWindow(bodyBytesIn.length);
-            });
-
-            // the bodyBytesIn have not cleared the queues yet, so do let backpressure do its thing.
-            return 0;
         }
     }
 
