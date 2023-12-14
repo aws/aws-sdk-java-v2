@@ -31,4 +31,10 @@ public class StaticLoggerBinderTest {
         assertThat(StaticLoggerBinder.getSingleton().getActualStaticLoggerBinder())
             .isInstanceOf(org.slf4j.impl.StaticLoggerBinder.class);
     }
+
+    @Test
+    public void getLoggerFactoryClassStr_returnsCorrectValue() {
+        assertThat(StaticLoggerBinder.getSingleton().getLoggerFactoryClassStr())
+            .isEqualTo("software.amazon.awssdk.thirdparty.org.slf4j.impl.internal.ILoggerFactoryAdapter");
+    }
 }
