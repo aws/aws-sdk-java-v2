@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2 Bundle",
-    "contributor": "",
-    "description": "Fix an issue where `NoSuchMethodError` can be thrown an runtime if the SLF4J implementation detects multiple bindings when using the SDK bundle."
-}

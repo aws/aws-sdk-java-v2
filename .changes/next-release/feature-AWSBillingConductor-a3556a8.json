@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSBillingConductor",
-    "contributor": "",
-    "description": "Billing Conductor is releasing a new API, GetBillingGroupCostReport, which provides the ability to retrieve/view the Billing Group Cost Report broken down by attributes for a specific billing group."
-}
