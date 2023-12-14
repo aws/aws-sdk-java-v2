@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
@@ -40,6 +41,7 @@ public class S3WithCrtHttpClientsIntegrationTests extends S3IntegrationTestBase 
     private static final String TEST_KEY = "2mib_file.dat";
     private static final int OBJ_SIZE = 2 * 1024 * 1024;
 
+    private static S3Client s3WithCrtHttpClient;
     private static RandomTempFile testFile;
 
     @BeforeAll
@@ -47,6 +49,7 @@ public class S3WithCrtHttpClientsIntegrationTests extends S3IntegrationTestBase 
         S3IntegrationTestBase.setUp();
         S3IntegrationTestBase.createBucket(TEST_BUCKET);
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
+        s3WithCrtHttpClient = s3ClientBuilderWithCrtHttpClient().build();
         s3WithCrtHttpClient.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), RequestBody.fromFile(testFile.toPath()));
     }
 
@@ -55,7 +58,6 @@ public class S3WithCrtHttpClientsIntegrationTests extends S3IntegrationTestBase 
         S3IntegrationTestBase.deleteBucketAndAllContents(TEST_BUCKET);
         Files.delete(testFile.toPath());
         s3WithCrtHttpClient.close();
-        CrtResource.logNativeResources();
         CrtResource.waitForNoResources();
     }
 

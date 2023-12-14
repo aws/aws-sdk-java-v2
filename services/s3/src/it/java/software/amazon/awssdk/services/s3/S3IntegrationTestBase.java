@@ -45,8 +45,6 @@ public class S3IntegrationTestBase extends AwsTestBase {
      */
     protected static S3Client s3;
 
-    protected static S3Client s3WithCrtHttpClient;
-
     protected static S3AsyncClient s3Async;
 
     /**
@@ -59,14 +57,12 @@ public class S3IntegrationTestBase extends AwsTestBase {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
-        s3WithCrtHttpClient = s3ClientBuilderWithCrtHttpClient().build();
     }
 
     @AfterClass
     public static void cleanUpResources() {
         s3.close();
         s3Async.close();
-        s3WithCrtHttpClient.close();
     }
 
     protected static S3ClientBuilder s3ClientBuilder() {
