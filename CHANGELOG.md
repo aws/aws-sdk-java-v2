@@ -1,3 +1,60 @@
+# __2.21.46__ __2023-12-14__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Documentation updates for AWS B2B Data Interchange
+
+## __AWS Control Tower__
+  - ### Features
+    - Documentation updates for AWS Control Tower.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds the ability to self-manage certificate signing in AWS IoT Core fleet provisioning using the new certificate provider resource.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix an issue where `NoSuchMethodError` can be thrown an runtime if the SLF4J implementation detects multiple bindings when using the SDK bundle.
+
+## __AWSBillingConductor__
+  - ### Features
+    - Billing Conductor is releasing a new API, GetBillingGroupCostReport, which provides the ability to retrieve/view the Billing Group Cost Report broken down by attributes for a specific billing group.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release includes support for images of Windows Server 2022 platform.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for more granular billing using tags (key:value pairs)
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift adds the ability to add and update the game properties of active game sessions.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release, 1) adds configurable buffering hints for the Splunk destination, and 2) reduces the minimum configurable buffering interval for supported destinations
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - This is the initial SDK release for Amazon Neptune Analytics
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Updating documentation for Amazon OpenSearch Service support for new zero-ETL integration with Amazon S3.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Update Dashboard Links support; SingleAxisOptions support; Scatterplot Query limit support.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Updated note to ensure customers understand running modes.
+
 # __2.21.45__ __2023-12-13__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -2258,7 +2315,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -3999,7 +4056,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
