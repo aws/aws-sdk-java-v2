@@ -17,25 +17,29 @@ package software.amazon.awssdk.awscore.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -49,6 +53,14 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -61,12 +73,24 @@ public class AwsExecutionContextBuilderTest {
     ExecutionInterceptor interceptor;
 
     @Mock
-    Signer defaultSigner, clientOverrideSigner;
+    IdentityProvider<AwsCredentialsIdentity> defaultCredentialsProvider;
+
+    @Mock
+    Signer defaultSigner;
+
+    @Mock
+    Signer clientOverrideSigner;
+
+    @Mock
+    Map<String, AuthScheme<?>> defaultAuthSchemes;
 
     @Before
     public void setUp() throws Exception {
         when(sdkRequest.overrideConfiguration()).thenReturn(Optional.empty());
         when(interceptor.modifyRequest(any(), any())).thenReturn(sdkRequest);
+        when(defaultCredentialsProvider.resolveIdentity()).thenAnswer(
+            invocationOnMock -> CompletableFuture.completedFuture(AwsCredentialsIdentity.create("ak", "sk")));
+
     }
 
     @Test
@@ -101,17 +125,45 @@ public class AwsExecutionContextBuilderTest {
         assertThat(executionContext.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_NAME)).isEqualTo("DoNotOverrideService");
     }
 
+    // pre SRA, AuthorizationStrategy would setup the signer and resolve identity.
     @Test
-    public void signing_ifNoOverrides_assignDefaultSigner() {
+    public void preSra_signing_ifNoOverrides_assignDefaultSigner_resolveIdentity() {
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   preSraClientConfiguration().build());
+
+        assertThat(executionContext.signer()).isEqualTo(defaultSigner);
+        verify(defaultCredentialsProvider, times(1)).resolveIdentity();
+    }
+
+    // This is post SRA case. This is asserting that AuthorizationStrategy is not used.
+    @Test
+    public void postSra_ifNoOverrides_doesNotResolveIdentity_doesNotAssignSigner() {
         ExecutionContext executionContext =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
                                                                                    testClientConfiguration().build());
 
-        assertThat(executionContext.signer()).isEqualTo(defaultSigner);
+        assertThat(executionContext.signer()).isNull();
+        verify(defaultCredentialsProvider, times(0)).resolveIdentity();
     }
 
     @Test
-    public void signing_ifClientOverride_assignClientOverrideSigner() {
+    public void preSra_signing_ifClientOverride_assignClientOverrideSigner_resolveIdentity() {
+        Optional overrideConfiguration = Optional.of(AwsRequestOverrideConfiguration.builder()
+                                                                                    .signer(clientOverrideSigner)
+                                                                                    .build());
+        when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   preSraClientConfiguration().build());
+
+        assertThat(executionContext.signer()).isEqualTo(clientOverrideSigner);
+        verify(defaultCredentialsProvider, times(1)).resolveIdentity();
+    }
+
+    @Test
+    public void postSra_signing_ifClientOverride_assignClientOverrideSigner_resolveIdentity() {
         Optional overrideConfiguration = Optional.of(AwsRequestOverrideConfiguration.builder()
                                                                                     .signer(clientOverrideSigner)
                                                                                     .build());
@@ -122,6 +174,102 @@ public class AwsExecutionContextBuilderTest {
                                                                                    testClientConfiguration().build());
 
         assertThat(executionContext.signer()).isEqualTo(clientOverrideSigner);
+        verify(defaultCredentialsProvider, times(1)).resolveIdentity();
+    }
+
+    @Test
+    public void preSra_authTypeNone_doesNotAssignSigner_doesNotResolveIdentity() {
+        SdkClientConfiguration.Builder clientConfig = preSraClientConfiguration();
+        clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES)
+                    // yes, our code would put false instead of true
+                    .putAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   clientConfig.build());
+
+        assertThat(executionContext.signer()).isNull();
+        verify(defaultCredentialsProvider, times(0)).resolveIdentity();
+    }
+
+    @Test
+    public void postSra_authTypeNone_doesNotAssignSigner_doesNotResolveIdentity() {
+        SdkClientConfiguration.Builder clientConfig = noAuthAuthSchemeClientConfiguration();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   clientConfig.build());
+
+        assertThat(executionContext.signer()).isNull();
+        verify(defaultCredentialsProvider, times(0)).resolveIdentity();
+    }
+
+    @Test
+    public void preSra_authTypeNone_signerClientOverride_doesNotAssignSigner_doesNotResolveIdentity() {
+        SdkClientConfiguration.Builder clientConfig = preSraClientConfiguration();
+        clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES)
+                    // yes, our code would put false instead of true
+                    .putAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false);
+        clientConfig.option(SdkAdvancedClientOption.SIGNER, this.clientOverrideSigner)
+                    .option(SdkClientOption.SIGNER_OVERRIDDEN, true);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   clientConfig.build());
+
+        assertThat(executionContext.signer()).isNull();
+        verify(defaultCredentialsProvider, times(0)).resolveIdentity();
+    }
+
+    @Test
+    public void postSra_authTypeNone_signerClientOverride_doesNotAssignSigner_doesNotResolveIdentity() {
+        SdkClientConfiguration.Builder clientConfig = noAuthAuthSchemeClientConfiguration();
+        clientConfig.option(SdkAdvancedClientOption.SIGNER, this.clientOverrideSigner)
+                    .option(SdkClientOption.SIGNER_OVERRIDDEN, true);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   clientConfig.build());
+
+        assertThat(executionContext.signer()).isNull();
+        verify(defaultCredentialsProvider, times(0)).resolveIdentity();
+    }
+
+    @Test
+    public void preSra_authTypeNone_signerRequestOverride_doesNotAssignSigner_doesNotResolveIdentity() {
+        SdkClientConfiguration.Builder clientConfig = preSraClientConfiguration();
+        clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES)
+                    // yes, our code would put false instead of true
+                    .putAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false);
+
+        Optional overrideConfiguration = Optional.of(AwsRequestOverrideConfiguration.builder()
+                                                                                    .signer(clientOverrideSigner)
+                                                                                    .build());
+        when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   clientConfig.build());
+
+        assertThat(executionContext.signer()).isNull();
+        verify(defaultCredentialsProvider, times(0)).resolveIdentity();
+    }
+
+    @Test
+    public void postSra_authTypeNone_signerRequestOverride_doesNotAssignSigner_doesNotResolveIdentity() {
+        SdkClientConfiguration.Builder clientConfig = noAuthAuthSchemeClientConfiguration();
+
+        Optional overrideConfiguration = Optional.of(AwsRequestOverrideConfiguration.builder()
+                                                                                    .signer(clientOverrideSigner)
+                                                                                    .build());
+        when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   clientConfig.build());
+
+        assertThat(executionContext.signer()).isNull();
+        verify(defaultCredentialsProvider, times(0)).resolveIdentity();
     }
 
     @Test
@@ -140,7 +288,7 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_singleExecutionContext_resolvesChecksumSpecsOnce() {
+    public void invokeInterceptorsAndCreateExecutionContext_singleExecutionContext_resolvesEqualChecksumSpecs() {
         HttpChecksum httpCrc32Checksum =
             HttpChecksum.builder().requestAlgorithm("crc32").isRequestStreaming(true).build();
         ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams()
@@ -154,11 +302,11 @@ public class AwsExecutionContextBuilderTest {
         ChecksumSpecs checksumSpecs1 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).get();
         ChecksumSpecs checksumSpecs2 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).get();
 
-        assertThat(checksumSpecs1).isSameAs(checksumSpecs2);
+        assertThat(checksumSpecs1).isEqualTo(checksumSpecs2);
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_multipleExecutionContexts_resolvesChecksumSpecsOncePerContext() {
+    public void invokeInterceptorsAndCreateExecutionContext_multipleExecutionContexts_resolvesEqualChecksumSpecs() {
         HttpChecksum httpCrc32Checksum = HttpChecksum.builder().requestAlgorithm("crc32").isRequestStreaming(true).build();
         ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams()
             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, httpCrc32Checksum);
@@ -177,8 +325,8 @@ public class AwsExecutionContextBuilderTest {
         ChecksumSpecs checksumSpecs2 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes2).get();
         ChecksumSpecs checksumSpecs3 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes2).get();
 
-        assertThat(checksumSpecs1).isNotSameAs(checksumSpecs2);
-        assertThat(checksumSpecs2).isSameAs(checksumSpecs3);
+        assertThat(checksumSpecs1).isEqualTo(checksumSpecs2);
+        assertThat(checksumSpecs2).isEqualTo(checksumSpecs3);
     }
 
     @Test
@@ -196,7 +344,49 @@ public class AwsExecutionContextBuilderTest {
 
         assertThat(profileFileSupplier).isSameAs(executionAttributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER));
     }
-    
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withoutIdentityProviders_assignsNull() {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
+                                                                                   testClientConfiguration().build());
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS)).isNull();
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_requestOverrideForIdentityProvider_updatesIdentityProviders() {
+        IdentityProvider<? extends AwsCredentialsIdentity> clientCredentialsProvider =
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("foo", "bar"));
+        IdentityProviders identityProviders =
+            IdentityProviders.builder().putIdentityProvider(clientCredentialsProvider).build();
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders)
+            .build();
+
+        IdentityProvider<? extends AwsCredentialsIdentity> requestCredentialsProvider =
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+        Optional overrideConfiguration =
+            Optional.of(AwsRequestOverrideConfiguration.builder().credentialsProvider(requestCredentialsProvider).build());
+        when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
+
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        IdentityProviders actualIdentityProviders =
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+
+        IdentityProvider<AwsCredentialsIdentity> actualIdentityProvider =
+            actualIdentityProviders.identityProvider(AwsCredentialsIdentity.class);
+
+        assertThat(actualIdentityProvider).isSameAs(requestCredentialsProvider);
+    }
+
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
         return new ClientExecutionParams<SdkRequest, SdkResponse>()
             .withInput(sdkRequest)
@@ -205,11 +395,44 @@ public class AwsExecutionContextBuilderTest {
     }
 
     private SdkClientConfiguration.Builder testClientConfiguration() {
+        // In real SRA case, SelectedAuthScheme is setup as an executionAttribute by {Service}AuthSchemeInterceptor that is setup
+        // in EXECUTION_INTERCEPTORS. But, faking it here for unit test, by already setting SELECTED_AUTH_SCHEME into the
+        // executionAttributes.
+        SelectedAuthScheme<?> selectedAuthScheme = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(AwsCredentialsIdentity.create("ak", "sk")),
+            mock(HttpSigner.class),
+            AuthSchemeOption.builder().schemeId(AwsV4AuthScheme.SCHEME_ID).build()
+        );
+        ExecutionAttributes executionAttributes =
+            ExecutionAttributes.builder()
+                               .put(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme)
+                               .build();
+
         List<ExecutionInterceptor> interceptorList = Collections.singletonList(interceptor);
         return SdkClientConfiguration.builder()
-                                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptorList)
-                                     .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
-                                     .option(SdkAdvancedClientOption.SIGNER, this.defaultSigner);
+                                     .option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, defaultCredentialsProvider)
+                                     .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes)
+                                     .option(SdkClientOption.EXECUTION_ATTRIBUTES, executionAttributes);
+    }
+
+    private SdkClientConfiguration.Builder noAuthAuthSchemeClientConfiguration() {
+        SdkClientConfiguration.Builder clientConfig = testClientConfiguration();
+        SelectedAuthScheme<?> selectedNoAuthScheme = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(AwsCredentialsIdentity.create("ak", "sk")),
+            mock(HttpSigner.class),
+            AuthSchemeOption.builder().schemeId(NoAuthAuthScheme.SCHEME_ID).build()
+        );
+        clientConfig.option(SdkClientOption.EXECUTION_ATTRIBUTES)
+                    .putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedNoAuthScheme);
+        return clientConfig;
+    }
+
+    private SdkClientConfiguration.Builder preSraClientConfiguration() {
+        SdkClientConfiguration.Builder clientConfiguration = testClientConfiguration();
+        clientConfiguration.option(SdkClientOption.EXECUTION_ATTRIBUTES)
+                           .putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, null);
+        return clientConfiguration.option(SdkClientOption.AUTH_SCHEMES, null)
+                                  .option(SdkAdvancedClientOption.SIGNER, this.defaultSigner);
     }
 }

@@ -188,9 +188,6 @@ public final class WriteBatch {
     }
 
     private static final class BuilderImpl<T> implements Builder<T> {
-        private static final String MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE = String.format("A mappedTableResource (table) is "
-                                                                                           + "required when building a %s",
-                                                                                           WriteBatch.class.getSimpleName());
         private Class<? extends T> itemClass;
         private List<Supplier<WriteRequest>> itemSupplierList = new ArrayList<>();
         private MappedTableResource<T> mappedTableResource;
@@ -207,7 +204,6 @@ public final class WriteBatch {
 
         @Override
         public Builder<T> addDeleteItem(DeleteItemEnhancedRequest request) {
-            requireNonNull(mappedTableResource, MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE);
             itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, DeleteItemOperation.create(request)));
             return this;
         }
@@ -226,13 +222,12 @@ public final class WriteBatch {
 
         @Override
         public Builder<T> addDeleteItem(T keyItem) {
-            requireNonNull(mappedTableResource, MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE);
+            requireNonNull(mappedTableResource, "A mappedTableResource is required to derive a key from the given keyItem");
             return addDeleteItem(this.mappedTableResource.keyFrom(keyItem));
         }
 
         @Override
         public Builder<T> addPutItem(PutItemEnhancedRequest<T> request) {
-            requireNonNull(mappedTableResource, MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE);
             itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, PutItemOperation.create(request)));
             return this;
         }
@@ -256,9 +251,12 @@ public final class WriteBatch {
 
         private WriteRequest generateWriteRequest(Supplier<MappedTableResource<T>> mappedTableResourceSupplier,
                                                   BatchableWriteOperation<T> operation) {
-            return operation.generateWriteRequest(mappedTableResourceSupplier.get().tableSchema(),
-                                                  DefaultOperationContext.create(mappedTableResourceSupplier.get().tableName()),
-                                                  mappedTableResourceSupplier.get().mapperExtension());
+            MappedTableResource<T> mappedTableResource = mappedTableResourceSupplier.get();
+            requireNonNull(mappedTableResource,
+                           "A mappedTableResource (table) is required when generating the write requests for WriteBatch");
+            return operation.generateWriteRequest(mappedTableResource.tableSchema(),
+                                                  DefaultOperationContext.create(mappedTableResource.tableName()),
+                                                  mappedTableResource.mapperExtension());
         }
     }
 

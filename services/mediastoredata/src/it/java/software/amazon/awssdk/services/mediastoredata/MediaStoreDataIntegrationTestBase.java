@@ -32,17 +32,21 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.mediastore.MediaStoreClient;
-import software.amazon.awssdk.services.mediastore.model.Container;
+import software.amazon.awssdk.services.mediastore.model.ContainerInUseException;
 import software.amazon.awssdk.services.mediastore.model.ContainerStatus;
 import software.amazon.awssdk.services.mediastore.model.DescribeContainerResponse;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
@@ -50,17 +54,26 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
  * Base class for MediaStoreData integration tests. Used for Transfer-Encoding and Request Compression testing.
  */
 public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
-    protected static AwsCredentialsProvider credentialsProvider;
+    protected static IdentityProvider<AwsCredentialsIdentity> credentialsProvider;
     protected static MediaStoreClient mediaStoreClient;
     protected static URI uri;
 
     @BeforeAll
     public static void init() {
         credentialsProvider = getCredentialsProvider();
+        SdkHttpClient sdkHttpClient = ApacheHttpClient.builder().build();
         mediaStoreClient = MediaStoreClient.builder()
                                            .credentialsProvider(credentialsProvider)
-                                           .httpClient(ApacheHttpClient.builder().build())
+                                           .httpClient(sdkHttpClient)
                                            .build();
+        StsClient stsClient = StsClient.builder()
+                                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                       .region(Region.US_WEST_2)
+                                       .httpClient(sdkHttpClient)
+                                       .build();
+        String accountId = stsClient.getCallerIdentity().account();
+        String containerName = "do-not-delete-mediastoredata-tests-container-" + accountId;
+        uri = URI.create(createContainerIfNotExistAndGetEndpoint(containerName));
     }
 
     @AfterEach
@@ -68,10 +81,14 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
         CaptureTransferEncodingHeaderInterceptor.reset();
     }
 
-    protected static Container createContainer(String containerName) {
-        mediaStoreClient.createContainer(r -> r.containerName(containerName));
-        DescribeContainerResponse response = waitContainerToBeActive(containerName);
-        return response.container();
+    protected static String createContainerIfNotExistAndGetEndpoint(String containerName) {
+        try {
+            mediaStoreClient.createContainer(r -> r.containerName(containerName));
+            DescribeContainerResponse response = waitContainerToBeActive(containerName);
+            return response.container().endpoint();
+        } catch (ContainerInUseException e) {
+            return mediaStoreClient.describeContainer(r -> r.containerName(containerName)).container().endpoint();
+        }
     }
 
     private static DescribeContainerResponse waitContainerToBeActive(String containerName) {

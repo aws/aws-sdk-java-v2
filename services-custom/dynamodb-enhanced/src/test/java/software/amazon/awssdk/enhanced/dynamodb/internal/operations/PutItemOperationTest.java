@@ -56,6 +56,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -346,6 +347,65 @@ public class PutItemOperationTest {
                                                        .tableName(TABLE_NAME)
                                                        .item(expectedItemMap)
                                                        .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                       .build();
+
+        assertThat(request, is(expectedRequest));
+    }
+
+
+    @Test
+    public void generateRequest_withReturnValuesOnConditionCheckFailure_unknownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        String returnValuesOnConditionCheckFailure = UUID.randomUUID().toString();
+
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest = PutItemRequest.builder()
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                                                       .build();
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnValuesOnConditionCheckFailure_knownValue_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
+
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .item(fakeItem)
+                                                          .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                                                          .build());
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest = PutItemRequest.builder()
+                                                       .tableName(TABLE_NAME)
+                                                       .item(expectedItemMap)
+                                                       .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                        .build();
 
         assertThat(request, is(expectedRequest));

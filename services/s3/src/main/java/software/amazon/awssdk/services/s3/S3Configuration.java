@@ -28,7 +28,11 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.services.s3.internal.FieldWithDefault;
 import software.amazon.awssdk.services.s3.internal.settingproviders.DisableMultiRegionProviderChain;
 import software.amazon.awssdk.services.s3.internal.settingproviders.UseArnRegionProviderChain;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -167,6 +171,31 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         return dualstackEnabled.value();
     }
 
+    /**
+     * Returns whether MD5 trailing checksum validation is enabled. This is enabled by default.
+     *
+     * <p>
+     * The recommended approach is to specify a {@link ChecksumAlgorithm} on the {@link PutObjectRequest} and enable
+     * {@link ChecksumMode} on the {@link GetObjectRequest}. In that case, validation will be performed for the specified
+     * flexible checksum, and validation will not be performed for MD5 checksum.
+     *
+     * <p>
+     * For {@link PutObjectRequest}, MD5 trailing checksum validation will be performed if:
+     * <ul>
+     *     <li>Checksum validation is not disabled</li>
+     *     <li>Server-side encryption is not used</li>
+     *     <li>Flexible checksum {@link ChecksumAlgorithm} is not specified</li>
+     * </ul>
+     *
+     * For {@link GetObjectRequest}, MD5 trailing checksum validation will be performed if:
+     * <ul>
+     *     <li>Checksum validation is not disabled</li>
+     *     <li>{@link ChecksumMode} is disabled (default)</li>
+     *     <li>Regular S3 is used (non-S3Express)</li>
+     * </ul>
+     *
+     * @return True if trailing checksum validation is enabled
+     */
     public boolean checksumValidationEnabled() {
         return checksumValidationEnabled.value();
     }
@@ -273,11 +302,27 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         Boolean checksumValidationEnabled();
 
         /**
-         * Option to disable doing a validation of the checksum of an object stored in S3.
+         * Option to disable MD5 trailing checksum validation of an object stored in S3. This is enabled by default.
          *
          * <p>
-         * Checksum validation is enabled by default.
-         * </p>
+         * The recommended approach is to specify a {@link ChecksumAlgorithm} on the {@link PutObjectRequest} and enable
+         * {@link ChecksumMode} on the {@link GetObjectRequest}. In that case, validation will be performed for the specified
+         * flexible checksum, and validation will not be performed for MD5 checksum.
+         *
+         * <p>
+         * For {@link PutObjectRequest}, MD5 trailing checksum validation will be performed if:
+         * <ul>
+         *     <li>Checksum validation is not disabled</li>
+         *     <li>Server-side encryption is not used</li>
+         *     <li>Flexible checksum algorithm is not specified</li>
+         * </ul>
+         *
+         * For {@link GetObjectRequest}, MD5 trailing checksum validation will be performed if:
+         * <ul>
+         *     <li>Checksum validation is not disabled</li>
+         *     <li>{@link ChecksumMode} is disabled (default)</li>
+         *     <li>Regular S3 is used (non-S3Express)</li>
+         * </ul>
          *
          * @see S3Configuration#checksumValidationEnabled().
          */

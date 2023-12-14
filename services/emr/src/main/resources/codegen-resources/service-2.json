@@ -1301,6 +1301,14 @@
         "OSReleaseLabel":{
           "shape":"String",
           "documentation":"<p>The Amazon Linux release specified in a cluster launch RunJobFlow request. If no Amazon Linux release was specified, the default Amazon Linux release is shown in the response.</p>"
+        },
+        "EbsRootVolumeIops":{
+          "shape":"Integer",
+          "documentation":"<p>The IOPS, of the Amazon EBS root device volume of the Linux AMI that is used for each Amazon EC2 instance. Available in Amazon EMR releases 6.15.0 and later.</p>"
+        },
+        "EbsRootVolumeThroughput":{
+          "shape":"Integer",
+          "documentation":"<p>The throughput, in MiB/s, of the Amazon EBS root device volume of the Linux AMI that is used for each Amazon EC2 instance. Available in Amazon EMR releases 6.15.0 and later.</p>"
         }
       },
       "documentation":"<p>The detailed description of the cluster.</p>"
@@ -1613,6 +1621,22 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A list of tags to associate with the Amazon EMR Studio. Tags are user-defined key-value pairs that consist of a required key string with a maximum of 128 characters, and an optional value string with a maximum of 256 characters.</p>"
+        },
+        "TrustedIdentityPropagationEnabled":{
+          "shape":"BooleanObject",
+          "documentation":"<p> A Boolean indicating whether to enable Trusted identity propagation for the Studio. The default value is <code>false</code>. </p>"
+        },
+        "IdcUserAssignment":{
+          "shape":"IdcUserAssignment",
+          "documentation":"<p> Specifies whether IAM Identity Center user assignment is <code>REQUIRED</code> or <code>OPTIONAL</code>. If the value is set to <code>REQUIRED</code>, users must be explicitly assigned to the Studio application to access the Studio. </p>"
+        },
+        "IdcInstanceArn":{
+          "shape":"ArnType",
+          "documentation":"<p> The ARN of the IAM Identity Center instance to create the Studio application. </p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"XmlString",
+          "documentation":"<p>The KMS key identifier (ARN) used to encrypt Amazon EMR Studio workspace and notebook files when backed up to Amazon S3.</p>"
         }
       }
     },
@@ -2158,10 +2182,7 @@
     },
     "GetClusterSessionCredentialsInput":{
       "type":"structure",
-      "required":[
-        "ClusterId",
-        "ExecutionRoleArn"
-      ],
+      "required":["ClusterId"],
       "members":{
         "ClusterId":{
           "shape":"XmlStringMaxLen256",
@@ -2289,6 +2310,13 @@
       "max":2048,
       "min":20,
       "pattern":"^arn:(aws[a-zA-Z0-9-]*):iam::(\\d{12})?:(role((\\u002F)|(\\u002F[\\u0021-\\u007F]+\\u002F))[\\w+=,.@-]+)$"
+    },
+    "IdcUserAssignment":{
+      "type":"string",
+      "enum":[
+        "REQUIRED",
+        "OPTIONAL"
+      ]
     },
     "IdentityType":{
       "type":"string",
@@ -4607,6 +4635,14 @@
         "OSReleaseLabel":{
           "shape":"XmlStringMaxLen256",
           "documentation":"<p>Specifies a particular Amazon Linux release for all nodes in a cluster launch RunJobFlow request. If a release is not specified, Amazon EMR uses the latest validated Amazon Linux release for cluster launch.</p>"
+        },
+        "EbsRootVolumeIops":{
+          "shape":"Integer",
+          "documentation":"<p>The IOPS, of the Amazon EBS root device volume of the Linux AMI that is used for each Amazon EC2 instance. Available in Amazon EMR releases 6.15.0 and later.</p>"
+        },
+        "EbsRootVolumeThroughput":{
+          "shape":"Integer",
+          "documentation":"<p>The throughput, in MiB/s, of the Amazon EBS root device volume of the Linux AMI that is used for each Amazon EC2 instance. Available in Amazon EMR releases 6.15.0 and later.</p>"
         }
       },
       "documentation":"<p> Input to the <a>RunJobFlow</a> operation. </p>"
@@ -4929,7 +4965,7 @@
         },
         "AllocationStrategy":{
           "shape":"SpotProvisioningAllocationStrategy",
-          "documentation":"<p> Specifies the strategy to use in launching Spot Instance fleets. Currently, the only option is capacity-optimized (the default), which launches instances from Spot Instance pools with optimal capacity for the number of instances that are launching. </p>"
+          "documentation":"<p>Specifies one of the following strategies to launch Spot Instance fleets: <code>price-capacity-optimized</code>, <code>capacity-optimized</code>, <code>lowest-price</code>, or <code>diversified</code>. For more information on the provisioning strategies, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-allocation-strategy.html\">Allocation strategies for Spot Instances</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>.</p> <note> <p>When you launch a Spot Instance fleet with the old console, it automatically launches with the <code>capacity-optimized</code> strategy. You can't change the allocation strategy from the old console.</p> </note>"
         }
       },
       "documentation":"<p>The launch specification for Spot Instances in the instance fleet, which determines the defined duration, provisioning timeout behavior, and allocation strategy.</p> <note> <p>The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions. Spot Instance allocation strategy is available in Amazon EMR releases 5.12.1 and later.</p> </note> <note> <p>Spot Instances with a defined duration (also known as Spot blocks) are no longer available to new customers from July 1, 2021. For customers who have previously used the feature, we will continue to support Spot Instances with a defined duration until December 31, 2022. </p> </note>"
@@ -5354,6 +5390,22 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A list of tags associated with the Amazon EMR Studio.</p>"
+        },
+        "IdcInstanceArn":{
+          "shape":"ArnType",
+          "documentation":"<p> The ARN of the IAM Identity Center instance the Studio application belongs to. </p>"
+        },
+        "TrustedIdentityPropagationEnabled":{
+          "shape":"BooleanObject",
+          "documentation":"<p> Indicates whether the Studio has Trusted identity propagation enabled. The default value is <code>false</code>. </p>"
+        },
+        "IdcUserAssignment":{
+          "shape":"IdcUserAssignment",
+          "documentation":"<p> Indicates whether the Studio has <code>REQUIRED</code> or <code>OPTIONAL</code> IAM Identity Center user assignment. If the value is set to <code>REQUIRED</code>, users must be explicitly assigned to the Studio application to access the Studio. </p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"XmlString",
+          "documentation":"<p>The KMS key identifier (ARN) used to encrypt Amazon EMR Studio workspace and notebook files when backed up to Amazon S3.</p>"
         }
       },
       "documentation":"<p>Details for an Amazon EMR Studio including ID, creation time, name, and so on.</p>"
@@ -5390,7 +5442,7 @@
           "documentation":"<p>The time when the Amazon EMR Studio was created.</p>"
         }
       },
-      "documentation":"<p>Details for an Amazon EMR Studio, including ID, Name, VPC, and Description. The details do not include subnets, IAM roles, security groups, or tags associated with the Studio.</p>"
+      "documentation":"<p>Details for an Amazon EMR Studio, including ID, Name, VPC, and Description. To fetch additional details such as subnets, IAM roles, security groups, and tags for the Studio, use the <a>DescribeStudio</a> API.</p>"
     },
     "StudioSummaryList":{
       "type":"list",
@@ -5560,6 +5612,10 @@
         "DefaultS3Location":{
           "shape":"XmlString",
           "documentation":"<p>The Amazon S3 location to back up Workspaces and notebook files for the Amazon EMR Studio.</p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"XmlString",
+          "documentation":"<p>The KMS key identifier (ARN) used to encrypt Amazon EMR Studio workspace and notebook files when backed up to Amazon S3.</p>"
         }
       }
     },

@@ -135,6 +135,22 @@ public class S3CrtResponseHandlerAdapterTest {
         verify(s3MetaRequest).close();
     }
 
+    @Test
+    public void requestFailedWithCause_shouldCompleteFutureExceptionallyWithCause() {
+        RuntimeException cause = new RuntimeException("error");
+        S3FinishedResponseContext s3FinishedResponseContext = stubResponseContext(1, 0, null);
+        when(s3FinishedResponseContext.getCause()).thenReturn(cause);
+
+        responseHandlerAdapter.onFinished(s3FinishedResponseContext);
+        Throwable actualException = sdkResponseHandler.error;
+        String message = "Failed to send the request";
+        assertThat(actualException).isInstanceOf(SdkClientException.class).hasMessageContaining(message);
+        assertThat(future).isCompletedExceptionally();
+
+        assertThatThrownBy(() -> future.join()).hasRootCause(cause).hasMessageContaining(message);
+        verify(s3MetaRequest).close();
+    }
+
     private S3FinishedResponseContext stubResponseContext(int errorCode, int responseStatus, byte[] errorPayload) {
         Mockito.reset(context);
         when(context.getErrorCode()).thenReturn(errorCode);

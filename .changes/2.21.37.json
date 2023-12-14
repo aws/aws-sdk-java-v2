@@ -1,0 +1,30 @@
+{
+    "version": "2.21.37",
+    "date": "2023-12-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced",
+            "contributor": "breader124",
+            "description": "Introduce the possibility to specify returnValuesOnConditionCheckFailure in DynamoDB Enhanced operations"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "This release adds the PutFeedback API and allows providing feedback against the specified assistant for the specified target."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Recycle Bin",
+            "contributor": "",
+            "description": "Added resource identifier in the output and updated error handling."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Adds description field to PolicyStore API's and namespaces field to GetSchema."
+        }
+    ]
+}

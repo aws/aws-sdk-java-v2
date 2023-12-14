@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,8 +29,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -41,15 +40,13 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
+import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SyncClientMetricPublisherResolutionTest {
 
     @Mock
     private SdkHttpClient mockHttpClient;
-
-    @Mock
-    private AwsCredentialsProvider mockCredentialsProvider;
 
     private ProtocolRestJsonClient client;
 
@@ -130,7 +127,7 @@ public class SyncClientMetricPublisherResolutionTest {
         ProtocolRestJsonClientBuilder builder = ProtocolRestJsonClient.builder()
                 .httpClient(mockHttpClient)
                 .region(Region.US_WEST_2)
-                .credentialsProvider(mockCredentialsProvider);
+                .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider());
 
         AbortableInputStream content = AbortableInputStream.create(new ByteArrayInputStream("{}".getBytes()));
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
@@ -152,15 +149,6 @@ public class SyncClientMetricPublisherResolutionTest {
 
         when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
                 .thenReturn(mockExecuteRequest);
-
-        when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
-            return AwsBasicCredentials.create("foo", "bar");
-        });
 
         if (metricPublishers != null) {
             builder.overrideConfiguration(o -> o.metricPublishers(Arrays.asList(metricPublishers)));

@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
@@ -39,7 +40,7 @@ class InputStreamWithExecutorAsyncRequestBodyTest {
             PipedInputStream is = new PipedInputStream(os);
 
             InputStreamWithExecutorAsyncRequestBody asyncRequestBody =
-                new InputStreamWithExecutorAsyncRequestBody(is, 4L, executor);
+                (InputStreamWithExecutorAsyncRequestBody) AsyncRequestBody.fromInputStream(b -> b.inputStream(is).executor(executor).contentLength(4L));
 
             ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(8);
             asyncRequestBody.subscribe(subscriber);
@@ -75,8 +76,10 @@ class InputStreamWithExecutorAsyncRequestBodyTest {
             PipedInputStream is = new PipedInputStream(os);
 
             is.close();
+
             InputStreamWithExecutorAsyncRequestBody asyncRequestBody =
-                new InputStreamWithExecutorAsyncRequestBody(is, 4L, executor);
+                (InputStreamWithExecutorAsyncRequestBody) AsyncRequestBody.fromInputStream(b -> b.inputStream(is).executor(executor).contentLength(4L));
+
 
             ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(8);
             asyncRequestBody.subscribe(subscriber);

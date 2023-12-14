@@ -1,29 +1,43 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class DefaultQueryEndpointProvider implements QueryEndpointProvider {
+    private static final Logger LOG = Logger.loggerFor(DefaultQueryEndpointProvider.class);
+
     private static final EndpointRuleset ENDPOINT_RULE_SET = ruleSet();
+
+    private final EndpointAuthSchemeStrategy endpointAuthSchemeStrategy;
+
+    public DefaultQueryEndpointProvider() {
+        EndpointAuthSchemeStrategyFactory endpointAuthSchemeStrategyFactory = new DefaultEndpointAuthSchemeStrategyFactory();
+        this.endpointAuthSchemeStrategy = endpointAuthSchemeStrategyFactory.endpointAuthSchemeStrategy();
+    }
 
     @Override
     public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams endpointParams) {
         Validate.notNull(endpointParams.region(), "Parameter 'region' must not be null");
         Value res = new DefaultRuleEngine().evaluate(ENDPOINT_RULE_SET, toIdentifierValueMap(endpointParams));
         try {
-            return CompletableFuture.completedFuture(AwsEndpointProviderUtils.valueAsEndpointOrThrow(res));
+            return CompletableFuture.completedFuture(valueAsEndpointOrThrow(res));
         } catch (Exception error) {
             return CompletableFutureUtils.failedFuture(error);
         }
@@ -62,6 +76,29 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             paramsMap.put(Identifier.of("operationContextParam"), Value.fromStr(params.operationContextParam()));
         }
         return paramsMap;
+    }
+
+    Endpoint valueAsEndpointOrThrow(Value value) {
+        if (value instanceof Value.Endpoint) {
+            Value.Endpoint endpoint = value.expectEndpoint();
+            Endpoint.Builder builder = Endpoint.builder();
+            builder.url(URI.create(endpoint.getUrl()));
+            Map<String, List<String>> headers = endpoint.getHeaders();
+            if (headers != null) {
+                headers.forEach((name, values) -> values.forEach(v -> builder.putHeader(name, v)));
+            }
+            addKnownProperties(builder, endpoint.getProperties());
+            return builder.build();
+        } else if (value instanceof Value.Str) {
+            String errorMsg = value.expectString();
+            if (errorMsg.contains("Invalid ARN") && errorMsg.contains(":s3:::")) {
+                errorMsg += ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest.";
+            }
+            throw SdkClientException.create(errorMsg);
+        } else {
+            throw SdkClientException.create("Rule engine return neither an endpoint result or error value. Returned value was: "
+                                            + value);
+        }
     }
 
     private static Rule endpointRule_2() {
@@ -209,7 +246,10 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                         Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
                                                                                        Literal.fromStr("sigv4a"), Identifier.of("signingName"),
                                                                                        Literal.fromStr("query"), Identifier.of("signingRegionSet"),
-                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*")))))))).build());
+                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*"))))), Literal
+                                                            .fromRecord(MapUtils.of(Identifier.of("name"), Literal.fromStr("sigv4"),
+                                                                                    Identifier.of("signingName"), Literal.fromStr("query"),
+                                                                                    Identifier.of("signingRegion"), Literal.fromStr("{region}")))))).build());
     }
 
     private static Rule endpointRule_8() {
@@ -304,7 +344,8 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                  .required(false).build())
                     .addParameter(
                         Parameter.builder().name("defaultTrueParam").type(ParameterType.fromValue("boolean"))
-                                 .required(false).defaultValue(Value.fromBool(true)).build())
+                                 .required(false).documentation("A param that defauls to true")
+                                 .defaultValue(Value.fromBool(true)).build())
                     .addParameter(
                         Parameter.builder().name("defaultStringParam").type(ParameterType.fromValue("string"))
                                  .required(false).defaultValue(Value.fromStr("hello endpoints")).build())
@@ -321,5 +362,28 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                     .addParameter(
                         Parameter.builder().name("operationContextParam").type(ParameterType.fromValue("string"))
                                  .required(false).build()).build()).addRule(endpointRule_0()).build();
+    }
+
+    @Override
+    public boolean equals(Object rhs) {
+        return rhs != null && getClass().equals(rhs.getClass());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    private void addKnownProperties(Endpoint.Builder builder, Map<String, Value> properties) {
+        properties.forEach((n, v) -> {
+            switch (n) {
+                case "authSchemes":
+                    builder.putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, endpointAuthSchemeStrategy.createAuthSchemes(v));
+                    break;
+                default:
+                    LOG.debug(() -> "Ignoring unknown endpoint property: " + n);
+                    break;
+            }
+        });
     }
 }

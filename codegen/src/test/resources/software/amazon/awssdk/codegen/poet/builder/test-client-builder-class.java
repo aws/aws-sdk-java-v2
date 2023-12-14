@@ -7,23 +7,29 @@ import software.amazon.MyServiceRetryPolicy;
 import software.amazon.MyServiceRetryStrategy;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.codegen.poet.plugins.InternalTestPlugin1;
+import software.amazon.awssdk.codegen.poet.plugins.InternalTestPlugin2;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.json.endpoints.JsonClientContextParams;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
-import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -46,19 +52,21 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                  .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
-                                  .option(AwsClientOption.TOKEN_PROVIDER, defaultTokenProvider())
-                                  .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+        return config.merge(c -> c
+            .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+            .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+            .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+            .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
+            .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                        p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+            .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
+            .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
     }
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         endpointInterceptors.add(new JsonResolveEndpointInterceptor());
-        endpointInterceptors.add(new JsonEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
@@ -69,9 +77,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         ServiceConfiguration.Builder serviceConfigBuilder = ((ServiceConfiguration) config
             .option(SdkClientOption.SERVICE_CONFIGURATION)).toBuilder();
-        serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFileSupplier() != null ?
-                                         serviceConfigBuilder.profileFileSupplier() :
-                                         config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
+        serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFileSupplier() != null ? serviceConfigBuilder
+            .profileFileSupplier() : config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
         serviceConfigBuilder.profileName(serviceConfigBuilder.profileName() != null ? serviceConfigBuilder.profileName() : config
             .option(SdkClientOption.PROFILE_NAME));
         if (serviceConfigBuilder.dualstackEnabled() != null) {
@@ -123,12 +130,26 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                                 !finalServiceConfig.multiRegionEnabled());
         clientContextParams.put(JsonClientContextParams.FORCE_PATH_STYLE, finalServiceConfig.pathStyleAccessEnabled());
         clientContextParams.put(JsonClientContextParams.ACCELERATE, finalServiceConfig.accelerateModeEnabled());
-        return config.toBuilder().option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())
-                     .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled())
-                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
-                     .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
-                     .option(SdkClientOption.RETRY_STRATEGY, MyServiceRetryStrategy.resolveRetryStrategy(config))
-                     .option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig).build();
+        SdkClientConfiguration.Builder builder = config.toBuilder();
+        builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, c -> {
+            IdentityProviders.Builder result = IdentityProviders.builder();
+            IdentityProvider<?> tokenIdentityProvider = c.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
+            if (tokenIdentityProvider != null) {
+                result.putIdentityProvider(tokenIdentityProvider);
+            }
+            IdentityProvider<?> credentialsIdentityProvider = c.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
+            if (credentialsIdentityProvider != null) {
+                result.putIdentityProvider(credentialsIdentityProvider);
+            }
+            return result.build();
+        });
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+               .option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())
+               .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled())
+               .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
+               .option(SdkClientOption.RETRY_STRATEGY, MyServiceRetryStrategy.resolveRetryStrategy(config))
+               .option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
+        return builder.build();
     }
 
     private Signer defaultSigner() {
@@ -153,7 +174,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         serviceConfiguration(serviceConfiguration);
     }
 
-    private SdkTokenProvider defaultTokenProvider() {
+    private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
         return DefaultAwsTokenProvider.create();
     }
 
@@ -167,12 +188,35 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return result;
     }
 
+    @Override
+    protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
+        List<SdkPlugin> internalPlugins = internalPlugins();
+        List<SdkPlugin> externalPlugins = plugins();
+        if (internalPlugins.isEmpty() && externalPlugins.isEmpty()) {
+            return config;
+        }
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
+        SdkClientConfiguration.Builder configuration = config.toBuilder();
+        JsonServiceClientConfigurationBuilder serviceConfigBuilder = new JsonServiceClientConfigurationBuilder(configuration);
+        for (SdkPlugin plugin : plugins) {
+            plugin.configureClient(serviceConfigBuilder);
+        }
+        return configuration.build();
+    }
+
+    private List<SdkPlugin> internalPlugins() {
+        List<SdkPlugin> internalPlugins = new ArrayList<>();
+        internalPlugins.add(new InternalTestPlugin1());
+        internalPlugins.add(new InternalTestPlugin2());
+        return internalPlugins;
+    }
+
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
                          "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
                          "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
-        Validate.notNull(c.option(AwsClientOption.TOKEN_PROVIDER),
-                         "The 'overrideConfiguration.advancedOption[TOKEN_PROVIDER]' must be configured in the client builder.");
+        Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
+                         "The 'tokenProvider' must be configured in the client builder.");
     }
 }

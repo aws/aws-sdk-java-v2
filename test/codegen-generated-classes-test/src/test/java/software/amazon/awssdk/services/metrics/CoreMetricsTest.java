@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
@@ -38,11 +39,10 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -60,6 +60,7 @@ import software.amazon.awssdk.services.protocolrestjson.endpoints.ProtocolRestJs
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
 import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyIterable;
+import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CoreMetricsTest {
@@ -79,9 +80,6 @@ public class CoreMetricsTest {
     private SdkHttpClient mockHttpClient;
 
     @Mock
-    private AwsCredentialsProvider mockCredentialsProvider;
-
-    @Mock
     private MetricPublisher mockPublisher;
 
     @Mock
@@ -92,7 +90,7 @@ public class CoreMetricsTest {
         client = ProtocolRestJsonClient.builder()
                 .httpClient(mockHttpClient)
                 .region(Region.US_WEST_2)
-                .credentialsProvider(mockCredentialsProvider)
+                .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                 .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                 .endpointProvider(mockEndpointProvider)
                 .build();
@@ -119,15 +117,6 @@ public class CoreMetricsTest {
         when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
                 .thenReturn(mockExecuteRequest);
 
-        when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
-            return AwsBasicCredentials.create("foo", "bar");
-        });
-
         when(mockEndpointProvider.resolveEndpoint(any(ProtocolRestJsonEndpointParams.class))).thenReturn(
             CompletableFuture.completedFuture(Endpoint.builder()
                                                       .url(URI.create("https://protocolrestjson.amazonaws.com"))
@@ -146,7 +135,7 @@ public class CoreMetricsTest {
     public void testApiCall_noConfiguredPublisher_succeeds() {
         ProtocolRestJsonClient noPublisher = ProtocolRestJsonClient.builder()
                 .region(Region.US_WEST_2)
-                .credentialsProvider(mockCredentialsProvider)
+                .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                 .httpClient(mockHttpClient)
                 .build();
 
@@ -191,6 +180,7 @@ public class CoreMetricsTest {
                 .containsExactly(SERVICE_ID);
         assertThat(capturedCollection.metricValues(CoreMetric.OPERATION_NAME))
                 .containsExactly("AllTypes");
+        assertThat(capturedCollection.metricValues(CoreMetric.ENDPOINT_RESOLVE_DURATION)).isNotEmpty();
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(true);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
             .isGreaterThan(Duration.ZERO);
@@ -304,7 +294,6 @@ public class CoreMetricsTest {
             .thenReturn(CompletableFuture.completedFuture(Endpoint.builder()
                                                                   .url(URI.create("https://protocolrestjson.amazonaws.com:8080/foo?bar#baz"))
                                                                   .build()));
-
         client.allTypes();
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
@@ -316,6 +305,186 @@ public class CoreMetricsTest {
         assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT)).containsExactly(expectedServiceEndpoint);
     }
 
+    public void testApiCall_apiAttempt_ttfbSeparateFromResponseBody() throws IOException {
+        ExecutableHttpRequest mockExecuteRequest = mock(ExecutableHttpRequest.class);
+
+        Duration delayStep = Duration.ofMillis(50);
+        InputStream delayedInputStream = new InputStream() {
+            private InputStream contentStream = SdkBytes.fromUtf8String("{}").asInputStream();
+            @Override
+            public int read() throws IOException {
+                try {
+                    Thread.sleep(delayStep.toMillis());
+                } catch (InterruptedException ignored) {
+                }
+                return contentStream.read();
+            }
+        };
+
+        SdkHttpFullResponse httpFullResponse = SdkHttpFullResponse.builder()
+                                                                  .statusCode(200)
+                                                                  .content(AbortableInputStream.create(delayedInputStream))
+                                                                  .build();
+
+        HttpExecuteResponse executeResponse = mockExecuteResponse(httpFullResponse);
+
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
+            .thenReturn(mockExecuteRequest);
+
+        when(mockExecuteRequest.call()).thenAnswer(invocationOnMock -> {
+            try {
+                Thread.sleep(delayStep.toMillis());
+            } catch (InterruptedException ignored) {
+            }
+            return executeResponse;
+        });
+
+        client.allTypes();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(mockPublisher).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+        List<Duration> ttfbValues =
+            capturedCollection.children().stream()
+                              .flatMap(mc -> mc.metricValues(CoreMetric.TIME_TO_FIRST_BYTE).stream())
+                              .collect(Collectors.toList());
+
+        assertThat(ttfbValues).isNotEmpty();
+        // TTFB should be between [50, 100). Any higher means we included reading at least part of the response body
+        for (Duration ttfb : ttfbValues) {
+            assertThat(ttfb).isBetween(delayStep, delayStep.multipliedBy(2).minusMillis(1));
+        }
+    }
+
+    @Test
+    public void testApiCall_apiAttempt_ttlbIncludesReadingFullResponse() throws IOException {
+        ExecutableHttpRequest mockExecuteRequest = mock(ExecutableHttpRequest.class);
+
+        Duration delayStep = Duration.ofMillis(50);
+        InputStream delayedInputStream = new InputStream() {
+            private InputStream contentStream = SdkBytes.fromUtf8String("{}").asInputStream();
+            @Override
+            public int read() throws IOException {
+                try {
+                    Thread.sleep(delayStep.toMillis());
+                } catch (InterruptedException ignored) {
+                }
+                return contentStream.read();
+            }
+        };
+
+        SdkHttpFullResponse httpFullResponse = SdkHttpFullResponse.builder()
+                                                                  .statusCode(200)
+                                                                  .content(AbortableInputStream.create(delayedInputStream))
+                                                                  .build();
+
+        HttpExecuteResponse executeResponse = mockExecuteResponse(httpFullResponse);
+
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
+            .thenReturn(mockExecuteRequest);
+
+        when(mockExecuteRequest.call()).thenAnswer(invocationOnMock -> {
+            try {
+                Thread.sleep(delayStep.toMillis());
+            } catch (InterruptedException ignored) {
+            }
+            return executeResponse;
+        });
+
+        client.allTypes();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(mockPublisher).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+        List<Duration> ttlbValues =
+            capturedCollection.children().stream()
+                              .flatMap(mc -> mc.metricValues(CoreMetric.TIME_TO_LAST_BYTE).stream())
+                              .collect(Collectors.toList());
+
+        assertThat(ttlbValues).isNotEmpty();
+        // TTFB should be at least 4 * delay step; it should take 3 read() calls to get EOF on the stream, and the mock call()
+        // invocation also includes a delay.
+        for (Duration ttlb : ttlbValues) {
+            assertThat(ttlb).isGreaterThan(delayStep.multipliedBy(4));
+        }
+    }
+
+    @Test
+    public void testApiCall_apiAttempt_throughputCalculatedCorrectly() throws IOException {
+        ExecutableHttpRequest mockExecuteRequest = mock(ExecutableHttpRequest.class);
+
+        Duration delayStep = Duration.ofMillis(5);
+        InputStream delayedInputStream = new InputStream() {
+            private InputStream contentStream = SdkBytes.fromUtf8String("{}").asInputStream();
+            @Override
+            public int read() throws IOException {
+                try {
+                    Thread.sleep(delayStep.toMillis());
+                } catch (InterruptedException ignored) {
+                }
+                return contentStream.read();
+            }
+        };
+
+        SdkHttpFullResponse httpFullResponse = SdkHttpFullResponse.builder()
+                                                                  .statusCode(200)
+                                                                  .content(AbortableInputStream.create(delayedInputStream))
+                                                                  .build();
+
+        HttpExecuteResponse executeResponse = mockExecuteResponse(httpFullResponse);
+
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
+            .thenReturn(mockExecuteRequest);
+
+        when(mockExecuteRequest.call()).thenAnswer(invocationOnMock -> {
+            try {
+                Thread.sleep(delayStep.toMillis());
+            } catch (InterruptedException ignored) {
+            }
+            return executeResponse;
+        });
+
+        client.allTypes();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(mockPublisher).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+
+        List<MetricCollection> perAttemptMetrics = capturedCollection.children();
+        assertThat(perAttemptMetrics).isNotEmpty();
+        for (MetricCollection attemptMetrics : perAttemptMetrics) {
+            Duration ttfb = attemptMetrics.metricValues(CoreMetric.TIME_TO_FIRST_BYTE).get(0);
+            Duration ttlb = attemptMetrics.metricValues(CoreMetric.TIME_TO_LAST_BYTE).get(0);
+
+            double expectedThroughput = (2.0 / ttlb.minus(ttfb).toNanos()) * Duration.ofSeconds(1).toNanos();
+            assertThat(attemptMetrics.metricValues(CoreMetric.READ_THROUGHPUT).get(0)).isEqualTo(expectedThroughput);
+        }
+    }
+
+    @Test
+    public void testApiCall_resolverHasDelay_delayPresentInResolveDuration() {
+        Endpoint endpoint = Endpoint.builder().url(URI.create("https://myservice.aws")).build();
+        when(mockEndpointProvider.resolveEndpoint(any(ProtocolRestJsonEndpointParams.class))).thenAnswer(i -> {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {
+            }
+            return CompletableFuture.completedFuture(endpoint);
+        });
+
+        client.allTypes();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(mockPublisher).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+
+        Duration resolveDuration = capturedCollection.metricValues(CoreMetric.ENDPOINT_RESOLVE_DURATION).get(0);
+        assertThat(resolveDuration).isGreaterThan(Duration.ofMillis(50));
+    }
 
     private static HttpExecuteResponse mockExecuteResponse(SdkHttpFullResponse httpResponse) {
         HttpExecuteResponse mockResponse = mock(HttpExecuteResponse.class);

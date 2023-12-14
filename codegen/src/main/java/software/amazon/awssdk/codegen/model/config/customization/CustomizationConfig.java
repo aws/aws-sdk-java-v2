@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.config.customization;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -212,7 +213,7 @@ public class CustomizationConfig {
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private String userAgent;
-    
+
     private RetryMode defaultRetryMode;
 
     /**
@@ -261,7 +262,11 @@ public class CustomizationConfig {
 
     private boolean useGlobalEndpoint;
 
+    private boolean useS3ExpressSessionAuth;
+
     private List<String> interceptors = new ArrayList<>();
+
+    private List<String> internalPlugins = new ArrayList<>();
 
     /**
      * Whether marshallers perform validations against members marked with RequiredTrait.
@@ -269,9 +274,42 @@ public class CustomizationConfig {
     private boolean requiredTraitValidationEnabled = false;
 
     /**
+     * Whether SRA based auth logic should be used.
+     */
+    private boolean useSraAuth = false;
+
+    /**
+     * Whether to generate auth scheme params based on endpoint params.
+     */
+    private boolean enableEndpointAuthSchemeParams = false;
+
+    /**
+     * List of endpoint params to be used for the auth scheme params
+     */
+    private List<String> allowedEndpointAuthSchemeParams = Collections.emptyList();
+
+    /**
+     * Whether the list of allowed endpoint auth scheme params was explicitly configured.
+     */
+    private boolean allowedEndpointAuthSchemeParamsConfigured = false;
+
+    /**
      * Customization to attach map of Custom client param configs that can be set on a client builder.
      */
     private Map<String, ClientContextParam> customClientContextParams;
+
+    private boolean s3ExpressAuthSupport;
+
+    /**
+     * Customization related to auth scheme derived from endpoints.
+     */
+    private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
+
+    /**
+     * Customization to change the root package name.
+     * By default, it's "software.amazon.awssdk.services.[serviceId]"
+     */
+    private String rootPackageName;
 
     private CustomizationConfig() {
     }
@@ -675,6 +713,14 @@ public class CustomizationConfig {
         this.useGlobalEndpoint = useGlobalEndpoint;
     }
 
+    public boolean useS3ExpressSessionAuth() {
+        return useS3ExpressSessionAuth;
+    }
+
+    public void setUseS3ExpressSessionAuth(boolean useS3ExpressSessionAuth) {
+        this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
+    }
+
     public Map<String, String> getSkipEndpointTests() {
         return skipEndpointTests;
     }
@@ -690,13 +736,52 @@ public class CustomizationConfig {
     public void setInterceptors(List<String> interceptors) {
         this.interceptors = interceptors;
     }
-    
+
+    public List<String> getInternalPlugins() {
+        return internalPlugins;
+    }
+
+    public void setInternalPlugins(List<String> internalPlugins) {
+        this.internalPlugins = internalPlugins;
+    }
+
     public boolean isRequiredTraitValidationEnabled() {
         return requiredTraitValidationEnabled;
     }
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public void setUseSraAuth(boolean useSraAuth) {
+        this.useSraAuth = useSraAuth;
+    }
+
+    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
+    //  useSraAuth==true branch going forward.
+    public boolean useSraAuth() {
+        return useSraAuth;
+    }
+
+    public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
+        this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
+    }
+
+    public boolean isEnableEndpointAuthSchemeParams() {
+        return enableEndpointAuthSchemeParams;
+    }
+
+    public void setAllowedEndpointAuthSchemeParams(List<String> allowedEndpointAuthSchemeParams) {
+        this.allowedEndpointAuthSchemeParamsConfigured = true;
+        this.allowedEndpointAuthSchemeParams = allowedEndpointAuthSchemeParams;
+    }
+
+    public List<String> getAllowedEndpointAuthSchemeParams() {
+        return this.allowedEndpointAuthSchemeParams;
+    }
+
+    public boolean getAllowedEndpointAuthSchemeParamsConfigured() {
+        return allowedEndpointAuthSchemeParamsConfigured;
     }
 
     public Map<String, ClientContextParam> getCustomClientContextParams() {
@@ -707,11 +792,40 @@ public class CustomizationConfig {
         this.customClientContextParams = customClientContextParams;
     }
 
+    public boolean getS3ExpressAuthSupport() {
+        return s3ExpressAuthSupport;
+    }
+
+    public void setS3ExpressAuthSupport(boolean s3ExpressAuthSupport) {
+        this.s3ExpressAuthSupport = s3ExpressAuthSupport;
+    }
+
     public MultipartCustomization getMultipartCustomization() {
         return this.multipartCustomization;
     }
 
     public void setMultipartCustomization(MultipartCustomization multipartCustomization) {
         this.multipartCustomization = multipartCustomization;
+    }
+
+    public EndpointAuthSchemeConfig getEndpointAuthSchemeConfig() {
+        return endpointAuthSchemeConfig;
+    }
+
+    public void setEndpointAuthSchemeConfig(EndpointAuthSchemeConfig endpointAuthSchemeConfig) {
+        this.endpointAuthSchemeConfig = endpointAuthSchemeConfig;
+    }
+
+    public String getRootPackageName() {
+        return rootPackageName;
+    }
+
+    public void setRootPackageName(String rootPackageName) {
+        this.rootPackageName = rootPackageName;
+    }
+
+    public CustomizationConfig withRootPackageName(String packageName) {
+        this.rootPackageName = packageName;
+        return this;
     }
 }

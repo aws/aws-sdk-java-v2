@@ -32,6 +32,14 @@
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
         "imds": { "packageName": "AwsJavaSdk-Imds" },
         "crt-core": { "packageName": "AwsJavaSdk-Core-CrtCore" },
+        "checksums-spi": { "packageName": "AwsJavaSdk-Core-ChecksumsSpi" },
+        "checksums": { "packageName": "AwsJavaSdk-Core-Checksums" },
+        "identity-spi": { "packageName": "AwsJavaSdk-Core-IdentitySpi" },
+        "http-auth-spi": { "packageName": "AwsJavaSdk-Core-HttpAuthSpi" },
+        "http-auth": { "packageName": "AwsJavaSdk-Core-HttpAuth" },
+        "http-auth-aws": { "packageName": "AwsJavaSdk-Core-HttpAuthAws" },
+        "http-auth-aws-crt": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsCrt" },
+        "http-auth-aws-eventstream": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsEventStream" },
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },
@@ -63,6 +71,9 @@
         "bom-internal": { "skipImport": true },
         "build-tools": { "skipImport": true },
         "bundle": { "skipImport": true },
+        "bundle-sdk": { "skipImport": true },
+        "bundle-logging-bridge": { "skipImport": true },
+        "bundle-logging-bridge-binding-test": { "skipImport": true },
         "codegen-generated-classes-test": { "skipImport": true },
         "codegen-lite": { "skipImport": true },
         "codegen-lite-maven-plugin": { "skipImport": true },
@@ -74,6 +85,7 @@
         "http-clients": { "skipImport": true },
         "metric-publishers": { "skipImport": true },
         "module-path-tests": { "skipImport": true },
+        "old-client-version-compatibility-test": { "skipImport": true },
         "protocol-tests": { "skipImport": true },
         "protocol-tests-core": { "skipImport": true },
         "protocols": { "skipImport": true },
@@ -88,7 +100,8 @@
         "stability-tests": { "skipImport": true },
         "test-utils": { "skipImport": true },
         "tests-coverage-reporting": { "skipImport": true },
-        "third-party": { "skipImport": true }
+        "third-party": { "skipImport": true },
+        "third-party-slf4j-api": { "skipImport": true }
     },
 
     "dependencies": {

@@ -22,6 +22,9 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
 
 import java.net.URI;
 import java.time.Duration;
@@ -32,10 +35,15 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
 import software.amazon.awssdk.crt.io.StandardRetryOptions;
@@ -49,6 +57,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 
 public class S3CrtAsyncHttpClientTest {
@@ -70,11 +79,15 @@ public class S3CrtAsyncHttpClientTest {
         contentPublisher = Mockito.mock(SdkHttpContentPublisher.class);
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
-                                                                 .credentialsProvider(null)
+                                                                 .credentialsProvider(
+                                                                     StaticCredentialsProvider.create(AwsBasicCredentials.create("FOO", "BARR")))
                                                                  .checksumValidationEnabled(true)
+                                                                 .signingRegion("us-west-2")
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client,
+                                                   S3CrtAsyncHttpClient.builder()
+                                                                       .s3ClientConfiguration(s3NativeClientConfiguration));
     }
 
     private static Stream<Integer> ports() {
@@ -236,7 +249,8 @@ public class S3CrtAsyncHttpClientTest {
                                                                  .checksumValidationEnabled(false)
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
+                                                                                 .s3ClientConfiguration(s3NativeClientConfiguration));
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")
@@ -262,7 +276,8 @@ public class S3CrtAsyncHttpClientTest {
                                                                  .checksumValidationEnabled(false)
                                                                  .build();
 
-        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
+        asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
+                                                                                 .s3ClientConfiguration(s3NativeClientConfiguration));
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")
@@ -304,6 +319,52 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
+    public void s3Express_shouldUseS3ExpressSigner() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(true)
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "PutObject")
+                                                                            .putHttpExecutionAttribute(SIGNING_REGION,
+                                                                                                       Region.AP_SOUTH_1)
+                                                                            .putHttpExecutionAttribute(SIGNING_NAME, "s3express")
+                                                                            .putHttpExecutionAttribute(USE_S3_EXPRESS_AUTH, true)
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
+        AwsSigningConfig signingConfig = actual.getSigningConfig();
+        assertThat(signingConfig.getRegion()).isEqualTo("ap-south-1");
+        assertThat(signingConfig.getAlgorithm()).isEqualTo(AwsSigningConfig.AwsSigningAlgorithm.SIGV4_S3EXPRESS);
+        assertThat(signingConfig.getService()).isEqualTo("s3express");
+    }
+
+    @Test
+    public void nonS3Express_shouldUseDefaultSigner() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(true)
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "PutObject")
+                                                                            .putHttpExecutionAttribute(SIGNING_REGION,
+                                                                                                       Region.AP_SOUTH_1)
+                                                                            .putHttpExecutionAttribute(USE_S3_EXPRESS_AUTH, false)
+                                                                            .putHttpExecutionAttribute(SIGNING_NAME, "s3")
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
+        AwsSigningConfig signingConfig = actual.getSigningConfig();
+        assertThat(signingConfig.getRegion()).isEqualTo("ap-south-1");
+        assertThat(signingConfig.getAlgorithm()).isEqualTo(AwsSigningConfig.AwsSigningAlgorithm.SIGV4);
+        assertThat(signingConfig.getService()).isEqualTo("s3");
+    }
+
+    @Test
     public void closeHttpClient_shouldCloseUnderlyingResources() {
         asyncHttpClient.close();
         verify(s3Client).close();
@@ -312,10 +373,11 @@ public class S3CrtAsyncHttpClientTest {
 
     @Test
     void build_shouldPassThroughParameters() {
+        String signingRegion = "us-west-2";
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
                                        .maxConcurrency(100)
-                                       .signingRegion("us-west-2")
+                                       .signingRegion(signingRegion)
                                        .thresholdInBytes(1024L)
                                        .standardRetryOptions(
                                            new StandardRetryOptions()
@@ -327,40 +389,42 @@ public class S3CrtAsyncHttpClientTest {
                                                                                 .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
                                                                                 .build())
                                        .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        assertThat(clientOptions.getConnectTimeoutMs()).isEqualTo(1000);
-        assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(1024);
-        assertThat(clientOptions.getStandardRetryOptions().getBackoffRetryOptions().getMaxRetries()).isEqualTo(7);
-        assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
-        assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
-            assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
-            assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
-        });
-        assertThat(clientOptions.getProxyOptions()).satisfies(options -> {
-            assertThat(options.getHost()).isEqualTo("127.0.0.1");
-            assertThat(options.getPort()).isEqualTo(8080);
-        });
-        assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
-            assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
-            assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
-        });
-        assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getConnectTimeoutMs()).isEqualTo(1000);
+            assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(1024);
+            assertThat(clientOptions.getStandardRetryOptions().getBackoffRetryOptions().getMaxRetries()).isEqualTo(7);
+            assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
+            assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
+                assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
+                assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
+            });
+            assertThat(clientOptions.getProxyOptions()).satisfies(options -> {
+                assertThat(options.getHost()).isEqualTo("127.0.0.1");
+                assertThat(options.getPort()).isEqualTo(8080);
+            });
+            assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
+                assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
+                assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
+            });
+            assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
+        }
     }
 
     @Test
     void build_partSizeConfigured_shouldApplyToThreshold() {
-        long partSizeInBytes = 10L;
+        long partSizeInBytes = 1024 * 8L;
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
                                        .partSizeInBytes(partSizeInBytes)
                                        .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        assertThat(clientOptions.getPartSize()).isEqualTo(partSizeInBytes);
-        assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(clientOptions.getPartSize());
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getPartSize()).isEqualTo(partSizeInBytes);
+            assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(clientOptions.getPartSize());
+        }
     }
 
     @Test
@@ -368,14 +432,75 @@ public class S3CrtAsyncHttpClientTest {
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
                                        .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        assertThat(clientOptions.getConnectTimeoutMs()).isZero();
-        assertThat(clientOptions.getMaxConnections()).isZero();
-        assertThat(clientOptions.getMonitoringOptions()).isNull();
-        assertThat(clientOptions.getProxyOptions()).isNull();
-        assertThat(clientOptions.getMonitoringOptions()).isNull();
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getConnectTimeoutMs()).isZero();
+            assertThat(clientOptions.getMaxConnections()).isZero();
+            assertThat(clientOptions.getMonitoringOptions()).isNull();
+            assertThat(clientOptions.getProxyOptions()).isNull();
+            assertThat(clientOptions.getMonitoringOptions()).isNull();
+        }
+    }
+
+    private static Stream<Arguments> s3CrtHttpConfigurations() {
+        return Stream.of(
+            Arguments.of(S3CrtHttpConfiguration.builder()
+                                               .connectionTimeout(Duration.ofSeconds(1))
+                                               .connectionHealthConfiguration(c -> c.minimumThroughputInBps(1024L)
+                                                                                    .minimumThroughputTimeout(Duration.ofSeconds(2)))
+                                               .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
+                                               .build(),
+                         null,
+                         "S3CrtHttpConfiguration with default useEnvironmentVariableFlag does not set "
+                         + "HttpProxyEnvironmentVariableSetting"),
+
+            Arguments.of(S3CrtHttpConfiguration.builder()
+                                               .proxyConfiguration(p -> p.host("127.0.0.1").port(8080).useEnvironmentVariableValues(false))
+                                               .build(),
+                         HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType.DISABLED,
+                         "S3CrtHttpConfiguration with other settings and useEnvironmentVariableFlag as false sets "
+                         + "HttpProxyEnvironmentVariableSetting as DISABLED"),
+
+            Arguments.of(S3CrtHttpConfiguration.builder().build(),
+                         null, "S3CrtHttpConfiguration as null does not set HttpProxyEnvironmentVariableSetting"),
+
+            Arguments.of(S3CrtHttpConfiguration.builder()
+                                               .proxyConfiguration(p -> p.useEnvironmentVariableValues(false))
+                                               .build(),
+                         HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType.DISABLED,
+                         "S3CrtHttpConfiguration with only useEnvironmentVariableFlag as false sets "
+                         + "HttpProxyEnvironmentVariableSetting as DISABLED"
+            ),
+
+            Arguments.of(S3CrtHttpConfiguration.builder()
+                                               .proxyConfiguration(p -> p.useEnvironmentVariableValues(true))
+                                               .build(),
+                         null,
+                         "S3CrtHttpConfiguration with only useEnvironmentVariableFlag as true sets "
+                         + "does not set HttpProxyEnvironmentVariableSetting")
+        );
+    }
+
+    @ParameterizedTest(name = "{index} - {2}.")
+    @MethodSource("s3CrtHttpConfigurations")
+    void build_ProxyConfigurationWithEnvironmentVariables(S3CrtHttpConfiguration s3CrtHttpConfiguration,
+                                                          HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType environmentVariableType,
+                                                          String testCase) {
+        S3NativeClientConfiguration configuration =
+            S3NativeClientConfiguration.builder()
+                                       .httpConfiguration(s3CrtHttpConfiguration)
+                                       .build();
+        try(S3CrtAsyncHttpClient client =
+            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            if (environmentVariableType == null) {
+                assertThat(clientOptions.getHttpProxyEnvironmentVariableSetting()).isNull();
+            } else {
+                assertThat(clientOptions.getHttpProxyEnvironmentVariableSetting().getEnvironmentVariableType())
+                    .isEqualTo(environmentVariableType);
+            }
+        }
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {

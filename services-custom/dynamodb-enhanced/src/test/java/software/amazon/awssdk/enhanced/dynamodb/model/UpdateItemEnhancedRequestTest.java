@@ -30,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UpdateItemEnhancedRequestTest {
@@ -45,6 +46,7 @@ public class UpdateItemEnhancedRequestTest {
         assertThat(builtObject.returnConsumedCapacityAsString(), is(nullValue()));
         assertThat(builtObject.returnItemCollectionMetrics(), is(nullValue()));
         assertThat(builtObject.returnItemCollectionMetricsAsString(), is(nullValue()));
+        assertThat(builtObject.returnValuesOnConditionCheckFailure(), is(nullValue()));
     }
 
     @Test
@@ -61,6 +63,7 @@ public class UpdateItemEnhancedRequestTest {
 
         ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
         ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
 
         UpdateItemEnhancedRequest<FakeItem> builtObject = UpdateItemEnhancedRequest.builder(FakeItem.class)
                                                                                    .item(fakeItem)
@@ -68,6 +71,7 @@ public class UpdateItemEnhancedRequestTest {
                                                                                    .conditionExpression(conditionExpression)
                                                                                    .returnConsumedCapacity(returnConsumedCapacity)
                                                                                    .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                                   .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                                                    .build();
 
         assertThat(builtObject.item(), is(fakeItem));
@@ -77,6 +81,7 @@ public class UpdateItemEnhancedRequestTest {
         assertThat(builtObject.returnConsumedCapacityAsString(), is(returnConsumedCapacity.toString()));
         assertThat(builtObject.returnItemCollectionMetrics(), is(returnItemCollectionMetrics));
         assertThat(builtObject.returnItemCollectionMetricsAsString(), is(returnItemCollectionMetrics.toString()));
+        assertThat(builtObject.returnValuesOnConditionCheckFailureAsString(), is(returnValuesOnConditionCheckFailure.toString()));
     }
 
     @Test
@@ -93,6 +98,7 @@ public class UpdateItemEnhancedRequestTest {
 
         ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
         ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
 
         UpdateItemEnhancedRequest<FakeItem> builtObject = UpdateItemEnhancedRequest.builder(FakeItem.class)
                                                                                    .item(fakeItem)
@@ -100,6 +106,7 @@ public class UpdateItemEnhancedRequestTest {
                                                                                    .conditionExpression(conditionExpression)
                                                                                    .returnConsumedCapacity(returnConsumedCapacity)
                                                                                    .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                                   .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                                                    .build();
 
         UpdateItemEnhancedRequest<FakeItem> copiedObject = builtObject.toBuilder().build();
@@ -205,6 +212,19 @@ public class UpdateItemEnhancedRequestTest {
     }
 
     @Test
+    public void equals_returnValuesOnConditionCheckFailureNotEqual() {
+        UpdateItemEnhancedRequest<FakeItem> builtObject1 = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .returnValuesOnConditionCheckFailure("return1")
+                                                                                    .build();
+
+        UpdateItemEnhancedRequest<FakeItem> builtObject2 = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .returnValuesOnConditionCheckFailure("return2")
+                                                                                    .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
     public void hashCode_minimal() {
         UpdateItemEnhancedRequest<FakeItem> emptyRequest = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
 
@@ -269,6 +289,17 @@ public class UpdateItemEnhancedRequestTest {
 
         UpdateItemEnhancedRequest<FakeItem> containsItem = UpdateItemEnhancedRequest.builder(FakeItem.class)
                                                                                     .returnItemCollectionMetrics("return1")
+                                                                                    .build();
+
+        assertThat(containsItem.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void hashCode_returnValuesOnConditionCheckFailure() {
+        UpdateItemEnhancedRequest<FakeItem> emptyRequest = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
+
+        UpdateItemEnhancedRequest<FakeItem> containsItem = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                    .returnValuesOnConditionCheckFailure("return1")
                                                                                     .build();
 
         assertThat(containsItem.hashCode(), not(equalTo(emptyRequest.hashCode())));

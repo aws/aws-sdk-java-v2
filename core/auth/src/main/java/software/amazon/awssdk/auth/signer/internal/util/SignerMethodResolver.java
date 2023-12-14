@@ -85,8 +85,8 @@ public final class SignerMethodResolver {
 
     private static boolean isProtocolBasedUnsigned(Signer signer, ExecutionAttributes executionAttributes) {
 
-        return signer instanceof Aws4UnsignedPayloadSigner || signer instanceof AwsS3V4Signer
-               || executionAttributes.getOptionalAttribute(ENABLE_PAYLOAD_SIGNING).orElse(false);
+        return signer instanceof Aws4UnsignedPayloadSigner || signer instanceof AwsS3V4Signer ||
+               executionAttributes.getOptionalAttribute(ENABLE_PAYLOAD_SIGNING).orElse(false);
     }
 
     public static boolean isAnonymous(AwsCredentials credentials) {

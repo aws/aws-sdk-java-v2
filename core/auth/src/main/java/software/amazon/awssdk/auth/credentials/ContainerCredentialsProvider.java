@@ -15,16 +15,23 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
@@ -68,6 +75,12 @@ public final class ContainerCredentialsProvider
     private static final Predicate<InetAddress> IS_LOOPBACK_ADDRESS = InetAddress::isLoopbackAddress;
     private static final Predicate<InetAddress> ALLOWED_HOSTS_RULES = IS_LOOPBACK_ADDRESS;
     private static final String HTTPS = "https";
+
+    private static final String ECS_CONTAINER_HOST = "169.254.170.2";
+    private static final String EKS_CONTAINER_HOST_IPV6 = "[fd00:ec2::23]";
+    private static final String EKS_CONTAINER_HOST_IPV4 = "169.254.170.23";
+    private static final List<String> VALID_LOOP_BACK_IPV4 = Arrays.asList(ECS_CONTAINER_HOST, EKS_CONTAINER_HOST_IPV4);
+    private static final List<String> VALID_LOOP_BACK_IPV6 = Arrays.asList(EKS_CONTAINER_HOST_IPV6);
 
     private final String endpoint;
     private final HttpCredentialsLoader httpCredentialsLoader;
@@ -177,9 +190,12 @@ public final class ContainerCredentialsProvider
             }
 
             try {
-                return SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.getStringValue()
-                                                                              .map(this::createUri)
-                                                                              .orElseGet(this::createGenericContainerUrl);
+                URI resolvedURI = SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+                    .getStringValue()
+                    .map(this::createUri)
+                    .orElseGet(() -> URI.create(SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.getStringValueOrThrow()));
+                validateURI(resolvedURI);
+                return resolvedURI;
             } catch (SdkClientException e) {
                 throw e;
             } catch (Exception e) {
@@ -199,10 +215,33 @@ public final class ContainerCredentialsProvider
         public Map<String, String> headers() {
             Map<String, String> requestHeaders = new HashMap<>();
             requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
-            SdkSystemSetting.AWS_CONTAINER_AUTHORIZATION_TOKEN.getStringValue()
+            getTokenValue()
                                                               .filter(StringUtils::isNotBlank)
                                                               .ifPresent(t -> requestHeaders.put("Authorization", t));
             return requestHeaders;
+        }
+
+        private Optional<String> getTokenValue() {
+            if (SdkSystemSetting
+                .AWS_CONTAINER_AUTHORIZATION_TOKEN.getStringValue().isPresent()) {
+                return SdkSystemSetting
+                    .AWS_CONTAINER_AUTHORIZATION_TOKEN
+                    .getStringValue();
+            }
+
+
+            return SdkSystemSetting.AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE.getStringValue()
+                                                                          .map(this::readToken);
+
+        }
+
+        private String readToken(String filePath) {
+            Path path = Paths.get(filePath);
+            try {
+                return new String(Files.readAllBytes(path), UTF_8);
+            } catch (IOException e) {
+                throw SdkClientException.create(String.format("Failed to read %s.", path.toAbsolutePath()), e);
+            }
         }
 
         private URI createUri(String relativeUri) {
@@ -210,8 +249,7 @@ public final class ContainerCredentialsProvider
             return URI.create(host + relativeUri);
         }
 
-        private URI createGenericContainerUrl() {
-            URI uri = URI.create(SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.getStringValueOrThrow());
+        private URI validateURI(URI uri) {
             if (!isHttps(uri) && !isAllowedHost(uri.getHost())) {
                 String envVarName = SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable();
                 throw SdkClientException.builder()
@@ -240,10 +278,9 @@ public final class ContainerCredentialsProvider
         private boolean isAllowedHost(String host) {
             try {
                 InetAddress[] addresses = InetAddress.getAllByName(host);
-
-                return addresses.length > 0 && Arrays.stream(addresses)
-                                                     .allMatch(this::matchesAllowedHostRules);
-
+                return addresses.length > 0 && (
+                    Arrays.stream(addresses).allMatch(this::matchesAllowedHostRules)
+                       || isMetadataServiceEndpoint(host));
             } catch (UnknownHostException e) {
                 throw SdkClientException.builder()
                                         .cause(e)
@@ -253,7 +290,15 @@ public final class ContainerCredentialsProvider
         }
 
         private boolean matchesAllowedHostRules(InetAddress inetAddress) {
-            return ALLOWED_HOSTS_RULES.test(inetAddress);
+            return ALLOWED_HOSTS_RULES.test(inetAddress) ;
+        }
+
+        public boolean isMetadataServiceEndpoint(String host) {
+            String mode = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.getStringValueOrThrow();
+            if ("IPV6".equalsIgnoreCase(mode)) {
+                return VALID_LOOP_BACK_IPV6.contains(host);
+            }
+            return VALID_LOOP_BACK_IPV4.contains(host);
         }
     }
 
