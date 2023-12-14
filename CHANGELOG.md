@@ -1,3 +1,154 @@
+# __2.21.46__ __2023-12-14__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Documentation updates for AWS B2B Data Interchange
+
+## __AWS Control Tower__
+  - ### Features
+    - Documentation updates for AWS Control Tower.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds the ability to self-manage certificate signing in AWS IoT Core fleet provisioning using the new certificate provider resource.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix an issue where `NoSuchMethodError` can be thrown an runtime if the SLF4J implementation detects multiple bindings when using the SDK bundle.
+
+## __AWSBillingConductor__
+  - ### Features
+    - Billing Conductor is releasing a new API, GetBillingGroupCostReport, which provides the ability to retrieve/view the Billing Group Cost Report broken down by attributes for a specific billing group.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release includes support for images of Windows Server 2022 platform.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for more granular billing using tags (key:value pairs)
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift adds the ability to add and update the game properties of active game sessions.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release, 1) adds configurable buffering hints for the Splunk destination, and 2) reduces the minimum configurable buffering interval for supported destinations
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - This is the initial SDK release for Amazon Neptune Analytics
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Updating documentation for Amazon OpenSearch Service support for new zero-ETL integration with Amazon S3.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Update Dashboard Links support; SingleAxisOptions support; Scatterplot Query limit support.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Updated note to ensure customers understand running modes.
+
+# __2.21.45__ __2023-12-13__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Adding AgentVersion to SourceServer and RecoveryInstance structures
+
+# __2.21.44__ __2023-12-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release introduces the StartLiveTail API to tail ingested logs in near real time.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release 1) adds sub-municipality field in Places API for searching and getting places information, and 2) allows optimizing route calculation based on expected arrival time.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds the Image Workflows feature to give more flexibility and control over the image building and testing process.
+
+# __2.21.43__ __2023-12-11__
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail objects to ASFF, including resources for AwsDynamoDbTable, AwsEc2ClientVpnEndpoint, AwsMskCluster, AwsS3AccessPoint, AwsS3Bucket
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds a new parameter configuration setting to the Neptune cluster related APIs that can be leveraged to switch between the underlying supported storage modes.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release includes Amazon Pinpoint API documentation updates pertaining to campaign message sending rate limits.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix an issue where multipart uploads from a file are not retryable when using the default, non CRT S3 client.
+
+# __2.21.42__ __2023-12-08__
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds support for the OpenTelemetry 1.0 output format in CloudWatch Metric Streams.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - M2 Mac instances are built on Apple M2 Mac mini computers. I4i instances are powered by 3rd generation Intel Xeon Scalable processors. C7i compute optimized, M7i general purpose and R7i memory optimized instances are powered by custom 4th Generation Intel Xeon Scalable processors.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Releasing Scaling Group, Dataview, and Volume APIs
+
+# __2.21.41__ __2023-12-07__
+## __AWS CodeDeploy__
+  - ### Features
+    - This release adds support for two new CodeDeploy features: 1) zonal deployments for Amazon EC2 in-place deployments, 2) deployments triggered by Auto Scaling group termination lifecycle hook events.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 - Codegen__
+  - ### Features
+    - Allow users to customize package name.
+
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix failure to bind to SLF4J binding at runtime when using the SDK bundle.
+
+# __2.21.40__ __2023-12-06__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup - Features: Add VaultType to the output of DescribeRecoveryPoint, ListRecoveryPointByBackupVault API and add ResourceType to the input of ListRestoreJobs API
+
+## __Amazon Comprehend__
+  - ### Features
+    - Documentation updates for Trust and Safety features.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Releasing Tagging Support for Instance Management APIS
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Releasing the new cpuManufacturer attribute within the DescribeInstanceTypes API response which notifies our customers with information on who the Manufacturer is for the processor attached to the instance, for example: Intel.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - AWS Payment Cryptography IPEK feature release
+
 # __2.21.39__ __2023-12-05__
 ## __AWS Clean Rooms ML__
   - ### Features
@@ -2164,7 +2315,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -3905,7 +4056,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

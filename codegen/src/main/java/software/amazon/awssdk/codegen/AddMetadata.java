@@ -27,6 +27,8 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Constructs the metadata that is required for generating the java client from the service meta data.
@@ -46,6 +48,8 @@ final class AddMetadata {
         ServiceMetadata serviceMetadata = serviceModel.getMetadata();
         String serviceName = namingStrategy.getServiceName();
 
+        configurePackageName(metadata, namingStrategy, customizationConfig);
+
         metadata.withApiVersion(serviceMetadata.getApiVersion())
                 .withAsyncClient(String.format(Constant.ASYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
                 .withAsyncInterface(String.format(Constant.ASYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
@@ -54,15 +58,6 @@ final class AddMetadata {
                 .withBaseBuilderInterface(String.format(Constant.BASE_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
                 .withBaseBuilder(String.format(Constant.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withDocumentation(serviceModel.getDocumentation())
-                .withRootPackageName(AWS_PACKAGE_PREFIX)
-                .withClientPackageName(namingStrategy.getClientPackageName(serviceName))
-                .withModelPackageName(namingStrategy.getModelPackageName(serviceName))
-                .withTransformPackageName(namingStrategy.getTransformPackageName(serviceName))
-                .withRequestTransformPackageName(namingStrategy.getRequestTransformPackageName(serviceName))
-                .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
-                .withWaitersPackageName(namingStrategy.getWaitersPackageName(serviceName))
-                .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(serviceName))
-                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(serviceName))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withServiceName(serviceName)
@@ -90,6 +85,42 @@ final class AddMetadata {
                                   .collect(Collectors.toList()));
 
         return metadata;
+    }
+
+    private static void configurePackageName(Metadata metadata,
+                                             NamingStrategy namingStrategy,
+                                             CustomizationConfig customizationConfig) {
+        String packageName = customizationConfig.getRootPackageName();
+
+        Optional<Pair<String, String>> packageNamePair = splitCustomRootPackageName(packageName);
+        String rootPackageWithoutServiceId = packageNamePair.map(pkg -> StringUtils.lowerCase(pkg.left()))
+                                                            .orElse(AWS_PACKAGE_PREFIX);
+
+        String service = packageNamePair.map(pkg -> StringUtils.lowerCase(pkg.right()))
+                                        .orElse(namingStrategy.getServiceName());
+
+        metadata.withRootPackageName(rootPackageWithoutServiceId)
+                .withClientPackageName(namingStrategy.getClientPackageName(service))
+                .withModelPackageName(namingStrategy.getModelPackageName(service))
+                .withTransformPackageName(namingStrategy.getTransformPackageName(service))
+                .withRequestTransformPackageName(namingStrategy.getRequestTransformPackageName(service))
+                .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(service))
+                .withWaitersPackageName(namingStrategy.getWaitersPackageName(service))
+                .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(service))
+                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(service));
+    }
+
+    /**
+     * Split the root package to [prefix].[suffix] pair. For example: "software.amazon.awssdk.services.s3" will be split into
+     * "software.amazon.awssdk.services" and "s3".
+     */
+    public static Optional<Pair<String, String>> splitCustomRootPackageName(String rootPackageName) {
+        if (rootPackageName == null) {
+            return Optional.empty();
+        }
+
+        int i = rootPackageName.lastIndexOf('.');
+        return Optional.of(Pair.of(rootPackageName.substring(0, i), rootPackageName.substring(i + 1, rootPackageName.length())));
     }
 
     private static boolean supportsH2(ServiceMetadata serviceMetadata) {
