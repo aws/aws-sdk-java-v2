@@ -60,7 +60,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         long apiCallBufferSize = resolver.apiCallBufferSize();
         mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
-        downloadObjectHelper = new DownloadObjectHelper(delegate, apiCallBufferSize);
+        downloadObjectHelper = new DownloadObjectHelper(delegate, apiCallBufferSize); // todo use another config for multipart get
     }
 
     @Override

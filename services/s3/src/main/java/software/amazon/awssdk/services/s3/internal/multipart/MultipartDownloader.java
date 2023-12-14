@@ -37,14 +37,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
  * Helper class to handle multipart get requests to S3 using part number. Will buffer the response body Single-use helper class
- * for a multipart get response.
- * <p>DO NOT REUSE THAT CLASS FOR MULTIPLE REQUESTS!
- * <p>
- * todo(future)
- *  Future cancellation and error handling needs to be done correctly
- * <p>
- * todo(error)
- *  When an error is encountered, stop the process and cancel in-flight requests
+ * for a multipart get response. Do not reuse this class for multiple requests
  *
  * @param <T> Type that the response handler produces. I.E. the type you are transforming the response into.
  */
@@ -110,6 +103,11 @@ public class MultipartDownloader<T> {
     private final AtomicLong totalMemBufferedInBytes = new AtomicLong(0);
 
     /**
+     *
+     */
+    private final AtomicLong totalMemBufferedRequestedInBytes = new AtomicLong(0);
+
+    /**
      * Publisher that send buffered parts that are ready to be consumed by to the downstream {@link AsyncResponseTransformer}
      */
     private final SimplePublisher<ByteBuffer> bodyPartsPublisher = new SimplePublisher<>();
@@ -118,7 +116,8 @@ public class MultipartDownloader<T> {
      * Ordered collection of individual buffered body parts. Filled within {@link IndividualBodyPartSubscriber#onNext(ByteBuffer)}
      * when body ByteBuffer is received and emptied in {@link IndividualBodyPartSubscriber#onComplete()}.
      */
-    private final PriorityQueue<PartBuffer> bufferedParts = new PriorityQueue<>(Comparator.comparingInt(p -> p.partNumber));
+    private final PriorityQueue<OrderedByteBuffer> bufferedParts =
+        new PriorityQueue<>(Comparator.comparingInt(OrderedByteBuffer::position));
 
     MultipartDownloader(S3AsyncClient s3AsyncClient, long maxMemBufferSizeInBytes) {
         this.s3AsyncClient = s3AsyncClient;
@@ -142,13 +141,17 @@ public class MultipartDownloader<T> {
         return returnFuture;
     }
 
+    private boolean hasCapacity() {
+        return totalMemBufferedRequestedInBytes.get() < maxMemBufferSizeInBytes;
+    }
+
     private void sendGetRequestIfBufferIsAvailable() {
         // do not send more request if multipart encountered an error
         if (isCancelled.get()) {
             return;
         }
 
-        if (!bufferIsFull() && !completedLastPart() && highestDownloadingPart.get() < totalParts) {
+        if (hasCapacity() && !completedLastPart() && highestDownloadingPart.get() < totalParts) {
             highestDownloadingPart.incrementAndGet();
             log.info(() -> String.format("sending GetObject request for part %d", highestDownloadingPart.get()));
             GetObjectRequest partRequest = getObjectRequest.copy(b -> b.partNumber(highestDownloadingPart.get()));
@@ -163,7 +166,7 @@ public class MultipartDownloader<T> {
                 // body starts streaming
                 GetObjectResponse response = responsePublisher.response();
                 responsePublisher.subscribe(new IndividualBodyPartSubscriber(highestDownloadingPart.get(), response));
-                totalMemBufferedInBytes.addAndGet(response.contentLength());
+                totalMemBufferedRequestedInBytes.addAndGet(response.contentLength());
                 sendGetRequestIfBufferIsAvailable();
             });
         }
@@ -222,20 +225,22 @@ public class MultipartDownloader<T> {
         }
     }
 
+    private final Object lock = new Object();
+
     /**
      * Subscriber to each of the individual body parts being received. Manages the buffering of each individual part body into
      * memory, and flushing of the buffer once it is full.
      */
     private final class IndividualBodyPartSubscriber implements Subscriber<ByteBuffer> {
         private final int partNumber;
-        private final PartBuffer partsToRequest;
+        private final OrderedByteBuffer partsToRequest;
         private final GetObjectResponse response;
         private Subscription subscription;
 
         private IndividualBodyPartSubscriber(int partNumber, GetObjectResponse response) {
             this.partNumber = partNumber;
             this.response = response;
-            this.partsToRequest = new PartBuffer(partNumber, response.contentLength());
+            this.partsToRequest = new OrderedByteBuffer(partNumber, response.contentLength());
             bufferedParts.offer(partsToRequest);
         }
 
@@ -262,31 +267,22 @@ public class MultipartDownloader<T> {
         @Override
         public void onComplete() {
             completedParts.incrementAndGet();
+            log.info(() -> String.format("Part %d - is buffer full? buffered: %d > max: %d",
+                                         partNumber,
+                                         totalMemBufferedInBytes.get(),
+                                         maxMemBufferSizeInBytes));
             if (bufferIsFull() || completedLastPart()) {
                 // send full buffer to provided AsyncResponseTransformer
                 log.info(() -> String.format(
                     "IndividualBodyPartSubscriber[%d] sending full buffer to downstream publisher", partNumber));
-                // int total = bufferedParts
-                //     .stream()
-                //     .map(p -> {
-                //         p.buffer.position(0);
-                //         return p.buffer.capacity();
-                //     }).mapToInt(i -> i)
-                //     .sum();
-                // ByteBuffer bb = ByteBuffer.allocate(total);
                 while (!bufferedParts.isEmpty()) {
-                    // ByteBuffer buffered = bufferedParts.poll().buffer;
-                    // bb.put(buffered);
-                    // PartBuffer part = bufferedParts.poll();
-                    // part.sendToPublisher();
-                    // bb.position(0);
-                    SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
-                    responseTransformer.onStream(SdkPublisher.adapt(publisher));
-                    bufferedParts.poll().buffer.position(0);
-                    publisher.send(bufferedParts.poll().buffer);
-                    // bodyPartsPublisher.send(bb);
+                    OrderedByteBuffer bb = bufferedParts.poll();
+                    bb.buffer().position(0);
+                    log.info(() -> "sending buffer for part " + bb.position());
+                    bodyPartsPublisher.send(bb.buffer());
                 }
                 totalMemBufferedInBytes.set(0);
+                totalMemBufferedRequestedInBytes.set(0);
 
                 if (!completedLastPart()) {
                     sendGetRequestIfBufferIsAvailable();
@@ -307,7 +303,11 @@ public class MultipartDownloader<T> {
             if (completedLastPart()) {
                 // We are done with all the parts, complete the whole request
                 log.info(() -> "All parts completed");
-                bodyPartsPublisher.complete();
+                try {
+                    CompletableFutureUtils.joinInterruptibly(bodyPartsPublisher.complete());
+                } catch (Exception e) {
+                    returnFuture.completeExceptionally(e);
+                }
             } else {
                 sendGetRequestIfBufferIsAvailable();
             }
@@ -325,24 +325,4 @@ public class MultipartDownloader<T> {
     private boolean completedLastPart() {
         return completedParts.get() >= totalParts;
     }
-
-    private class PartBuffer {
-        private final int partNumber;
-        private final ByteBuffer buffer;
-
-        PartBuffer(int partNumber, Long contentLength) {
-            this.partNumber = partNumber;
-            this.buffer = ByteBuffer.allocate(contentLength.intValue());
-        }
-
-        void sendToPublisher() {
-            this.buffer.position(0);
-            bodyPartsPublisher.send(this.buffer);
-        }
-
-        void put(ByteBuffer body) {
-            this.buffer.put(body);
-        }
-    }
-
 }

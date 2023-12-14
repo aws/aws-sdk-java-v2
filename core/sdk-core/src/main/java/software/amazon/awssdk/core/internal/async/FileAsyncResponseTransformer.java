@@ -180,6 +180,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
+            log.info(() -> "!!! FILE !!! onNext called");
             if (byteBuffer == null) {
                 throw new NullPointerException("Element must not be null");
             }

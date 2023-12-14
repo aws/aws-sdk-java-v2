@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -36,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.InputStreamUtils;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 
+// for manual testing
 class MultipartDownloaderIntegTest {
 
     private static final String FILE_PATH = "/Users/olapplin/Develop/tmp";
@@ -46,28 +46,28 @@ class MultipartDownloaderIntegTest {
     static int MB_LEN_32 = 33554432;
     static String KEY_32 = "mpu-get-32mb";
 
-    static int LEN = MB_LEN_32;
-    static String KEY = KEY_32;
+    static int LEN = MB_LEN_512;
+    static String KEY = KEY_512;
 
     int maxMemBufferSize = 64 * 1024 * 1024;
     S3AsyncClient s3AsyncClient;
 
-    @Test
+    // @Test
     void testMultipartGetBlockingInputStream() {
         testMultipartGetBlockingInputStream(LEN, KEY);
     }
 
-    @Test
+    // @Test
     void testMultipartGetPublisher() {
         testMultipartGetPublisher(LEN, KEY);
     }
 
-    @Test
+    // @Test
     void testMultipartGetByte() {
         testMultipartGetByte(LEN, KEY);
     }
 
-    @Test
+    // @Test
     void testMultipartGetFile() {
         testMultipartGetFile(KEY);
     }
@@ -85,7 +85,7 @@ class MultipartDownloaderIntegTest {
     }
 
     void testMultipartGetByte(int len, String key) {
-        MultipartDownloader<ResponseBytes<GetObjectResponse>> helper = new MultipartDownloader<>(s3AsyncClient, maxMemBufferSize);
+        MultipartDownloader helper = new MultipartDownloader(s3AsyncClient, maxMemBufferSize);
         GetObjectRequest req = GetObjectRequest.builder()
                                                .bucket("do-not-delete-crt-s3-eu-west-1")
                                                .key("512MB")
@@ -103,11 +103,7 @@ class MultipartDownloaderIntegTest {
 
     void testMultipartGetFile(String key) {
         Path path = Paths.get(FILE_PATH, key);
-        // if (Files.exists(path)) {
-        //     path.toFile().delete();
-        // }
-        MultipartDownloader<GetObjectResponse> helper =
-            new MultipartDownloader<>(s3AsyncClient, maxMemBufferSize);
+        MultipartDownloader helper = new MultipartDownloader(s3AsyncClient, maxMemBufferSize);
         GetObjectRequest req = GetObjectRequest.builder()
                                                .bucket("do-not-delete-crt-s3-eu-west-1")
                                                .key("512MB")
@@ -120,7 +116,7 @@ class MultipartDownloaderIntegTest {
     }
 
     void testMultipartGetBlockingInputStream(int len, String key) {
-        MultipartDownloader<ResponseInputStream<GetObjectResponse>> helper = new MultipartDownloader<>(s3AsyncClient, maxMemBufferSize);
+        MultipartDownloader helper = new MultipartDownloader(s3AsyncClient, maxMemBufferSize);
         GetObjectRequest req = GetObjectRequest.builder()
                                                .bucket("do-not-delete-crt-s3-eu-west-1")
                                                .key(key)
@@ -137,7 +133,7 @@ class MultipartDownloaderIntegTest {
     }
 
     void testMultipartGetPublisher(int len, String key) {
-        MultipartDownloader<ResponsePublisher<GetObjectResponse>> helper = new MultipartDownloader<>(s3AsyncClient, maxMemBufferSize);
+        MultipartDownloader helper = new MultipartDownloader(s3AsyncClient, maxMemBufferSize);
         GetObjectRequest req = GetObjectRequest.builder()
                                                .bucket("do-not-delete-crt-s3-eu-west-1")
                                                .key(key)

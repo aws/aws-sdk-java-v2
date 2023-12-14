@@ -263,4 +263,12 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
             AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
         return new InputStreamResponseTransformer<>();
     }
+
+    /**
+     *
+     * @return
+     */
+    default AsyncResponseTransformer<ResponseT, ResultT> delegate() {
+        return new DelegatingResponseTransformer<>(this);
+    }
 }
