@@ -13,16 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.progress.snapshot;
+package software.amazon.awssdk.core.progress.listener;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 
 @Immutable
 @ThreadSafe
 @SdkPublicApi
-public interface ListenerProgress {
+public interface SdkRequestProgress {
 
     /**
     * Takes a snapshot of the request execution progress
