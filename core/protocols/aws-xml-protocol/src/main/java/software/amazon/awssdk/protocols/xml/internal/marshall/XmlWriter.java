@@ -36,15 +36,6 @@ final class XmlWriter {
     /** Standard XML prolog to add to the beginning of each XML document. */
     private static final String PROLOG = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
-    private static final String[] UNESCAPE_SEARCHES = {
-        // Ampersands should always be the last to unescape
-        "&quot;", "&apos;", "&lt;", "&gt;", "&#x0D;", "&#x0A;", "&amp;"
-    };
-
-    private static final String[] UNESCAPE_REPLACEMENTS = {
-        "\"", "'", "<", ">", "\r", "\n", "&"
-    };
-
     private static final String[] ESCAPE_SEARCHES = {
         // Ampersands should always be the first to escape
         "&", "\"", "'", "<", ">", "\r", "\n"
@@ -206,10 +197,6 @@ final class XmlWriter {
     }
 
     private String escapeXmlEntities(String s) {
-        // Unescape any escaped characters.
-        if (s.contains("&")) {
-            s = StringUtils.replaceEach(s, UNESCAPE_SEARCHES, UNESCAPE_REPLACEMENTS);
-        }
         return StringUtils.replaceEach(s, ESCAPE_SEARCHES, ESCAPE_REPLACEMENTS);
     }
 }
