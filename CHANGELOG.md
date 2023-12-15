@@ -1,3 +1,42 @@
+# __2.22.0__ __2023-12-15__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Release AWS CRT synchrounouse HTTP client. See [#3343](https://github.com/aws/aws-sdk-java-v2/issues/3343)
+
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Make sure all CRT resources are closed when the AWS CRT-based S3 client is closed.
+
+## __AWS Cloud9__
+  - ### Features
+    - Updated Cloud9 API documentation for AL2023 release
+
+## __AWS Key Management Service__
+  - ### Features
+    - Documentation updates for AWS Key Management Service
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump `aws-crt` version to `0.29.1`.
+    - If an HTTP client or HTTP client builder is not specified explicitly on the SDK client AND there are multiple HTTP client implementations on the classpath, the SDK will choose the one that has the highest priority instead of throwing exception. ApacheHttpClient and NettyNioAsyncHttpClient have the highest priority in sync and async SDK client respectively for now.
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Increase number of fields that can be included in CaseEventIncludedData from 50 to 200
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds relatedContactId field to StartOutboundVoiceContact API input. Introduces PauseContact API and ResumeContact API for Task contacts. Adds pause duration, number of pauses, timestamps for last paused and resumed events to DescribeContact API response. Adds new Rule type and new Rule action.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation by adding code examples
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release 1) introduces a new API: DeleteCompilationJob , and 2) adds InfraCheckConfig for Create/Describe training job API
+
 # __2.21.46__ __2023-12-14__
 ## __AWS B2B Data Interchange__
   - ### Features
@@ -2315,7 +2354,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
