@@ -48,6 +48,7 @@ import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmar
 import software.amazon.awssdk.benchmark.utils.MockServer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 
 /**
@@ -74,6 +75,7 @@ public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
         client = ProtocolRestJsonClient.builder()
                                        .endpointOverride(mockServer.getHttpsUri())
                                        .httpClient(sdkHttpClient)
+                                       .region(Region.US_EAST_1)
                                        .build();
         executorService = Executors.newFixedThreadPool(CONCURRENT_CALLS);
 

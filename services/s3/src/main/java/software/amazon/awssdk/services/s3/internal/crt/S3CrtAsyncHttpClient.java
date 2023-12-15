@@ -147,7 +147,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             checksumConfig(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
         URI endpoint = getEndpoint(uri);
 
-        AwsSigningConfig defaultS3SigningConfig = awsSigningConfig(signingRegion, httpExecutionAttributes);
+        AwsSigningConfig signingConfig = awsSigningConfig(signingRegion, httpExecutionAttributes);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
@@ -157,7 +157,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken)
             .withRequestFilePath(requestFilePath)
-            .withSigningConfig(defaultS3SigningConfig);
+            .withSigningConfig(signingConfig);
 
         S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
         S3MetaRequestPauseObservable observable =
@@ -168,7 +168,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         if (observable != null) {
             observable.subscribe(s3MetaRequest);
         }
-        addCancelCallback(executeFuture, s3MetaRequest, responseHandler);
+        closeResourceCallback(executeFuture, s3MetaRequest, responseHandler, signingConfig);
 
         return executeFuture;
     }
@@ -214,14 +214,19 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return S3MetaRequestOptions.MetaRequestType.DEFAULT;
     }
 
-    private static void addCancelCallback(CompletableFuture<Void> executeFuture,
-                                          S3MetaRequest s3MetaRequest,
-                                          S3CrtResponseHandlerAdapter responseHandler) {
+    private static void closeResourceCallback(CompletableFuture<Void> executeFuture,
+                                              S3MetaRequest s3MetaRequest,
+                                              S3CrtResponseHandlerAdapter responseHandler,
+                                              AwsSigningConfig signingConfig) {
         executeFuture.whenComplete((r, t) -> {
             if (executeFuture.isCancelled()) {
                 log.debug(() -> "The request is cancelled, cancelling meta request");
                 responseHandler.cancelRequest();
                 s3MetaRequest.cancel();
+                signingConfig.close();
+            } else {
+                s3MetaRequest.close();
+                signingConfig.close();
             }
         });
     }
