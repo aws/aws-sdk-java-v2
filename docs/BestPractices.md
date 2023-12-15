@@ -21,6 +21,13 @@ This is because the input stream is a direct stream of data from the HTTP connec
 reused until all data from the stream has been read and the stream is closed. If these rules are not followed, the client can 
 run out of resources by allocating too many open, but unused, HTTP connections.
 
+### Close input streams of responseBody() from Custom Client based on SdkHttpClient
+While implementing custom clients from  `SdkHttpClient` interface
+- Close the [responseBody](https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/http/HttpExecuteResponse.html#responseBody()) Input Stream: Always close the "responseBody" input stream to release the HTTP Connection, even when handling error responses.
+- SDK Requirement: The SDK requires the closing of the input stream to manage HTTP connections effectively.
+- Handling Error Responses: Even in the case of error responses, the SDK client creates an input stream for reading error data.
+- Consistent Practice: Ensure that consumers close the input stream in the "responseBody" attribute for both success and error cases.
+
 ### Tune HTTP configurations based on performance tests
 
 The SDK provides a set of [default http configurations] that apply to general use cases. Customers are recommended to tune the configurations for their applications based on their use cases.

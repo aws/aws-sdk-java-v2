@@ -17,10 +17,13 @@ package software.amazon.awssdk.core.async.listener;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -61,6 +64,16 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
         @Override
         public String contentType() {
             return delegate.contentType();
+        }
+
+        @Override
+        public SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
+            return delegate.split(splitConfiguration);
+        }
+
+        @Override
+        public SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
+            return delegate.split(splitConfiguration);
         }
 
         @Override

@@ -118,4 +118,3 @@ public final class StreamBirthsRequest extends SharedEventStreamRequest implemen
         }
     }
 }
-

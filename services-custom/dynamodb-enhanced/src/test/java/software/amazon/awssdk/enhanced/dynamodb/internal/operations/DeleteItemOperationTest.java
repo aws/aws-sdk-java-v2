@@ -60,6 +60,7 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -211,6 +212,60 @@ public class DeleteItemOperationTest {
                                                              .key(expectedKeyMap)
                                                              .returnValues(ReturnValue.ALL_OLD)
                                                              .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                             .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnValuesOnConditionCheckFailure_unknownValue_generatesCorrectRequest() {
+        FakeItem keyItem = createUniqueFakeItem();
+
+        String returnValuesOnConditionCheckFailure = UUID.randomUUID().toString();
+
+        DeleteItemOperation<FakeItem> deleteItemOperation =
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                .key(k -> k.partitionValue(keyItem.getId()))
+                                                                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                                                                .build());
+
+        DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        Map<String, AttributeValue> expectedKeyMap = new HashMap<>();
+        expectedKeyMap.put("id", AttributeValue.builder().s(keyItem.getId()).build());
+        DeleteItemRequest expectedRequest = DeleteItemRequest.builder()
+                                                             .tableName(TABLE_NAME)
+                                                             .key(expectedKeyMap)
+                                                             .returnValues(ReturnValue.ALL_OLD)
+                                                             .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                                                             .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withReturnValuesOnConditionCheckFailure_knownValue_generatesCorrectRequest() {
+        FakeItem keyItem = createUniqueFakeItem();
+
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
+
+        DeleteItemOperation<FakeItem> deleteItemOperation =
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                .key(k -> k.partitionValue(keyItem.getId()))
+                                                                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                                                                .build());
+
+        DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        Map<String, AttributeValue> expectedKeyMap = new HashMap<>();
+        expectedKeyMap.put("id", AttributeValue.builder().s(keyItem.getId()).build());
+        DeleteItemRequest expectedRequest = DeleteItemRequest.builder()
+                                                             .tableName(TABLE_NAME)
+                                                             .key(expectedKeyMap)
+                                                             .returnValues(ReturnValue.ALL_OLD)
+                                                             .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                              .build();
         assertThat(request, is(expectedRequest));
     }

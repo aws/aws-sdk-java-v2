@@ -1,0 +1,72 @@
+{
+    "version": "2.21.34",
+    "date": "2023-11-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CRT-based S3 client",
+            "contributor": "",
+            "description": "Add S3 express support for the AWS CRT-based S3 client."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "AWS Clean Rooms now provides differential privacy to protect against user-identification attempts and machine learning modeling to allow two parties to identify similar users in their data."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add `cloudwatch-metric-publisher` to `aws-sdk-java` module so that it can be included in the bundle JAR."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "Documentation updates for AWS Security Token Service."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "Launching Amazon OpenSearch Service support for new zero-ETL integration with Amazon S3. Customers can now manage their direct query data sources to Amazon S3 programatically"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Adds SDK support for Amazon S3 Express One Zone. For usage, consult Javadocs and the official documentation. Note that users can switch off CreateSession authentication and use the regular credential providers to sign requests by using the `disableS3ExpressSessionAuth` option on the client builder, environment variables, system properties or the config file."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Runtime",
+            "contributor": "",
+            "description": "This release adds InferenceComponentName to InvokeEndpoint and InvokeEndpointWithResponseStream APIs to get inferences from the deployed InferenceComponents."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds following support 1/ Improved SDK tooling for model deployment. 2/ New Inference Component based features to lower inference costs and latency 3/ SageMaker HyperPod management. 4/ Additional parameters for FM Fine Tuning in Autopilot"
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "contributor": "",
+            "description": "Amazon SageMaker customers can now use Application Auto Scaling to automatically scale the number of Inference Component copies across an endpoint to meet the varying demand of their workloads."
+        },
+        {
+            "type": "feature",
+            "category": "OpenSearch Service Serverless",
+            "contributor": "",
+            "description": "Amazon OpenSearch Serverless collections support an additional attribute called standby-replicas. This allows to specify whether a collection should have redundancy enabled."
+        },
+        {
+            "type": "feature",
+            "category": "cleanrooms-ml",
+            "contributor": "",
+            "description": "Public Preview SDK release of AWS Clean Rooms ML APIs"
+        }
+    ]
+}

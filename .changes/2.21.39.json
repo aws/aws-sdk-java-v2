@@ -1,0 +1,36 @@
+{
+    "version": "2.21.39",
+    "date": "2023-12-05",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Comma separated multiple hosts specified in `NO_PROXY` environment variable are now treated as multiple hosts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms ML",
+            "contributor": "",
+            "description": "Updated service title from cleanroomsml to CleanRoomsML."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Documentation update, December 2023"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "Adding IdentityCenter enabled request for interactive query"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds A10G, T4G, and H100 as accelerator name options and Habana as an accelerator manufacturer option for attribute based selection"
+        }
+    ]
+}

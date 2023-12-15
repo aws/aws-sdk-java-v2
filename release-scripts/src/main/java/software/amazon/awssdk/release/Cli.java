@@ -63,5 +63,13 @@ public abstract class Cli {
         return new Option(null, longCommand, true, description);
     }
 
+    protected static Option optionalMultiValueOption(String longCommand, String description) {
+        return Option.builder()
+            .longOpt(longCommand)
+            .desc(description)
+            .hasArgs()
+            .build();
+    }
+
     protected abstract void run(CommandLine commandLine) throws Exception;
 }

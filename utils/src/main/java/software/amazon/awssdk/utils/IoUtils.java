@@ -145,4 +145,19 @@ public final class IoUtils {
             s.mark(1 << 17);
         }
     }
+
+    /**
+     * If the stream supports marking, marks the stream at the current position with a read limit specified in {@code
+     * maxReadLimit}.
+     *
+     * @param maxReadLimit the maxReadLimit, if it's null, 128 KiB will be used.
+     * @param s The stream.
+     */
+    public static void markStreamWithMaxReadLimit(InputStream s, Integer maxReadLimit) {
+        Validate.isPositiveOrNull(maxReadLimit, "maxReadLimit");
+        if (s.markSupported()) {
+            int maxLimit = maxReadLimit == null ? 1 << 17 : maxReadLimit;
+            s.mark(maxLimit);
+        }
+    }
 }

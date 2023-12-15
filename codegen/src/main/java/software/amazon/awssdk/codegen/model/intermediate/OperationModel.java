@@ -34,6 +34,8 @@ public class OperationModel extends DocumentationModel {
 
     private String operationName;
 
+    private String serviceProtocol;
+
     private boolean deprecated;
 
     private String deprecatedMessage;
@@ -53,6 +55,8 @@ public class OperationModel extends DocumentationModel {
     private boolean isAuthenticated = true;
 
     private AuthType authType;
+
+    private List<AuthType> auth;
 
     private boolean isPaginated;
 
@@ -89,6 +93,14 @@ public class OperationModel extends DocumentationModel {
 
     public String getMethodName() {
         return Utils.unCapitalize(operationName);
+    }
+
+    public String getServiceProtocol() {
+        return serviceProtocol;
+    }
+
+    public void setServiceProtocol(String serviceProtocol) {
+        this.serviceProtocol = serviceProtocol;
     }
 
     public boolean isDeprecated() {
@@ -139,6 +151,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setAuthType(AuthType authType) {
         this.authType = authType;
+    }
+
+    public List<AuthType> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<AuthType> auth) {
+        this.auth = auth;
     }
 
     public ShapeModel getInputShape() {

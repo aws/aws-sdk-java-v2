@@ -167,6 +167,9 @@ public final class ReadBatch {
 
         Boolean firstRecordConsistentRead = validateAndGetConsistentRead(readRequests);
 
+        requireNonNull(mappedTableResource, "A mappedTableResource (table) is required when generating the read requests for "
+                                            + "ReadBatch");
+
         List<Map<String, AttributeValue>> keys =
             readRequests.stream()
                         .map(GetItemEnhancedRequest::key)
@@ -213,9 +216,6 @@ public final class ReadBatch {
 
     @NotThreadSafe
     private static final class BuilderImpl<T> implements Builder<T> {
-        private static final String MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE = String.format("A mappedTableResource (table) is "
-                                                                                           + "required when building a %s",
-                                                                                           ReadBatch.class.getSimpleName());
         private MappedTableResource<T> mappedTableResource;
         private List<GetItemEnhancedRequest> requests = new ArrayList<>();
 
@@ -248,7 +248,7 @@ public final class ReadBatch {
 
         @Override
         public Builder<T> addGetItem(T keyItem) {
-            requireNonNull(mappedTableResource, MAPPED_TABLE_RESOURCE_NOT_NULL_MESSAGE);
+            requireNonNull(mappedTableResource, "A mappedTableResource is required to derive a key from the given keyItem");
             return addGetItem(this.mappedTableResource.keyFrom(keyItem));
         }
 

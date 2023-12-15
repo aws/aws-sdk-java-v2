@@ -17,6 +17,7 @@ package software.amazon.awssdk.core;
 
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -63,6 +64,14 @@ public final class CompressionConfiguration implements ToCopyableBuilder<Compres
     }
 
     @Override
+    public String toString() {
+        return ToString.builder("CompressionConfiguration")
+                       .add("requestCompressionEnabled", requestCompressionEnabled)
+                       .add("minimumCompressionThresholdInBytes", minimumCompressionThresholdInBytes)
+                       .build();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -73,7 +82,7 @@ public final class CompressionConfiguration implements ToCopyableBuilder<Compres
 
         CompressionConfiguration that = (CompressionConfiguration) o;
 
-        if (!requestCompressionEnabled.equals(that.requestCompressionEnabled)) {
+        if (!Objects.equals(requestCompressionEnabled, that.requestCompressionEnabled)) {
             return false;
         }
         return Objects.equals(minimumCompressionThresholdInBytes, that.minimumCompressionThresholdInBytes);

@@ -32,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PutItemEnhancedRequestTest {
@@ -48,6 +49,7 @@ public class PutItemEnhancedRequestTest {
         assertThat(builtObject.returnConsumedCapacityAsString(), is(nullValue()));
         assertThat(builtObject.returnItemCollectionMetrics(), is(nullValue()));
         assertThat(builtObject.returnItemCollectionMetricsAsString(), is(nullValue()));
+        assertThat(builtObject.returnValuesOnConditionCheckFailureAsString(), is(nullValue()));
     }
 
     @Test
@@ -65,6 +67,7 @@ public class PutItemEnhancedRequestTest {
         ReturnValue returnValues = ReturnValue.ALL_OLD;
         ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.INDEXES;
         ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
 
         PutItemEnhancedRequest<FakeItem> builtObject = PutItemEnhancedRequest.builder(FakeItem.class)
                                                                              .item(fakeItem)
@@ -72,6 +75,7 @@ public class PutItemEnhancedRequestTest {
                                                                              .returnValues(returnValues)
                                                                              .returnConsumedCapacity(returnConsumedCapacity)
                                                                              .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                             .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                                              .build();
 
         assertThat(builtObject.item(), is(fakeItem));
@@ -82,6 +86,7 @@ public class PutItemEnhancedRequestTest {
         assertThat(builtObject.returnConsumedCapacityAsString(), is(returnConsumedCapacity.toString()));
         assertThat(builtObject.returnItemCollectionMetrics(), is(returnItemCollectionMetrics));
         assertThat(builtObject.returnItemCollectionMetricsAsString(), is(returnItemCollectionMetrics.toString()));
+        assertThat(builtObject.returnValuesOnConditionCheckFailureAsString(), is(returnValuesOnConditionCheckFailure.toString()));
     }
 
     @Test
@@ -99,6 +104,7 @@ public class PutItemEnhancedRequestTest {
         ReturnValue returnValues = ReturnValue.ALL_OLD;
         ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.INDEXES;
         ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
 
         PutItemEnhancedRequest<FakeItem> builtObject = PutItemEnhancedRequest.builder(FakeItem.class)
                                                                              .item(fakeItem)
@@ -106,6 +112,7 @@ public class PutItemEnhancedRequestTest {
                                                                              .returnValues(returnValues)
                                                                              .returnConsumedCapacity(returnConsumedCapacity)
                                                                              .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                             .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                                              .build();
 
         PutItemEnhancedRequest<FakeItem> copiedObject = builtObject.toBuilder().build();
@@ -196,6 +203,19 @@ public class PutItemEnhancedRequestTest {
     }
 
     @Test
+    public void equals_returnValuesOnConditionCheckFailureNotEqual() {
+        PutItemEnhancedRequest<FakeItem> builtObject1 = PutItemEnhancedRequest.builder(FakeItem.class)
+                                                                              .returnValuesOnConditionCheckFailure("return1")
+                                                                              .build();
+
+        PutItemEnhancedRequest<FakeItem> builtObject2 = PutItemEnhancedRequest.builder(FakeItem.class)
+                                                                              .returnValuesOnConditionCheckFailure("return2")
+                                                                              .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
     public void hashCode_minimal() {
         PutItemEnhancedRequest<FakeItem> emptyRequest = PutItemEnhancedRequest.builder(FakeItem.class).build();
 
@@ -262,6 +282,17 @@ public class PutItemEnhancedRequestTest {
                                                                                                      .build();
 
         assertThat(cotnainsReturnItemCollectionMetrics.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void hashCode_returnValuesOnConditionCheckFailure() {
+        PutItemEnhancedRequest<FakeItem> emptyRequest = PutItemEnhancedRequest.builder(FakeItem.class).build();
+
+        PutItemEnhancedRequest<FakeItem> containsItem = PutItemEnhancedRequest.builder(FakeItem.class)
+                                                                              .returnValuesOnConditionCheckFailure("return1")
+                                                                              .build();
+
+        assertThat(containsItem.hashCode(), not(equalTo(emptyRequest.hashCode())));
     }
 
     @Test
@@ -343,5 +374,28 @@ public class PutItemEnhancedRequestTest {
                                                                              .build();
 
         assertThat(builtObject.returnItemCollectionMetricsAsString(), equalTo(newReturnItemCollectionMetrics));
+    }
+
+
+    @Test
+    public void returnValuesOnConditionCheckFailure_newValue_returnsUnknownToSdkVersion() {
+        String returnValuesOnConditionCheckFailure = UUID.randomUUID().toString();
+
+        PutItemEnhancedRequest<FakeItem> builtObject = PutItemEnhancedRequest.builder(FakeItem.class)
+                                                                             .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                                                                             .build();
+
+        assertThat(builtObject.returnValuesOnConditionCheckFailure(), equalTo(ReturnValuesOnConditionCheckFailure.UNKNOWN_TO_SDK_VERSION));
+    }
+
+    @Test
+    public void returnValuesOnConditionCheckFailure_newValue_stringGetter_returnsValue() {
+        String returnValuesOnConditionCheckFailure = UUID.randomUUID().toString();
+
+        PutItemEnhancedRequest<FakeItem> builtObject = PutItemEnhancedRequest.builder(FakeItem.class)
+                                                                             .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                                                                             .build();
+
+        assertThat(builtObject.returnValuesOnConditionCheckFailureAsString(), equalTo(returnValuesOnConditionCheckFailure));
     }
 }

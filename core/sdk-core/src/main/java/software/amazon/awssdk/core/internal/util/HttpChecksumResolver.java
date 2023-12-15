@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.core.internal.util;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
@@ -25,7 +24,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Class to resolve the different Checksums specs from ExecutionAttributes.
@@ -37,8 +35,11 @@ public final class HttpChecksumResolver {
     }
 
     public static ChecksumSpecs getResolvedChecksumSpecs(ExecutionAttributes executionAttributes) {
-        return Optional.ofNullable(executionAttributes.getAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS))
-                       .orElseGet(() -> resolveChecksumSpecs(executionAttributes));
+        ChecksumSpecs checksumSpecs = executionAttributes.getAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS);
+        if (checksumSpecs != null) {
+            return checksumSpecs;
+        }
+        return resolveChecksumSpecs(executionAttributes);
     }
 
     public static ChecksumSpecs resolveChecksumSpecs(ExecutionAttributes executionAttributes) {
@@ -47,9 +48,8 @@ public final class HttpChecksumResolver {
             return null;
         }
         boolean hasRequestValidation = hasRequestValidationMode(httpChecksumTraitInOperation);
-        String checksumHeaderName = httpChecksumTraitInOperation.requestAlgorithm() != null ?
-            HttpChecksumUtils.httpChecksumHeader(httpChecksumTraitInOperation.requestAlgorithm())
-                                    : null;
+        String requestAlgorithm = httpChecksumTraitInOperation.requestAlgorithm();
+        String checksumHeaderName = requestAlgorithm != null ? HttpChecksumUtils.httpChecksumHeader(requestAlgorithm) : null;
         List<Algorithm> responseValidationAlgorithms = getResponseValidationAlgorithms(httpChecksumTraitInOperation);
 
         return ChecksumSpecs.builder()
@@ -67,16 +67,14 @@ public final class HttpChecksumResolver {
     }
 
     private static List<Algorithm> getResponseValidationAlgorithms(HttpChecksum httpChecksumTraitInOperation) {
-        List<Algorithm> responseValidationAlgorithms = null;
-
-        if (httpChecksumTraitInOperation.responseAlgorithms() != null &&
-            !httpChecksumTraitInOperation.responseAlgorithms().isEmpty()) {
-            responseValidationAlgorithms =
-                httpChecksumTraitInOperation.responseAlgorithms().stream().filter(StringUtils::isNotBlank)
-                                            .map(StringUtils::trim)
-                                            .map(Algorithm::fromValue)
-                                            .collect(Collectors.toList());
+        List<String> responseAlgorithms = httpChecksumTraitInOperation.responseAlgorithms();
+        if (responseAlgorithms != null && !responseAlgorithms.isEmpty()) {
+            List<Algorithm> responseValidationAlgorithms = new ArrayList<>(responseAlgorithms.size());
+            for (String algorithmName : responseAlgorithms) {
+                responseValidationAlgorithms.add(Algorithm.fromValue(algorithmName));
+            }
+            return responseValidationAlgorithms;
         }
-        return responseValidationAlgorithms;
+        return null;
     }
 }

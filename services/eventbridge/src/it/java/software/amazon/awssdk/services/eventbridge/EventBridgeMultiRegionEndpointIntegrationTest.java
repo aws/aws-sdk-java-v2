@@ -16,7 +16,10 @@
 package software.amazon.awssdk.services.eventbridge;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.io.UncheckedIOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
@@ -176,6 +179,14 @@ class EventBridgeMultiRegionEndpointIntegrationTest extends AwsIntegrationTestBa
                   .until(ep -> ep.state() != EndpointState.CREATING)
                   .orFailAfter(Duration.ofMinutes(2));
         assertThat(response.state()).isEqualTo(EndpointState.ACTIVE);
+
+        log.info(() -> "Endpoint ID is active. Waiting until we can resolve the endpoint. This will take a some time if the "
+                       + "endpoint was just created.");
+        URI endpointUri = URI.create(response.endpointUrl());
+        Waiter.run(() -> invokeSafely(() -> InetAddress.getByName(endpointUri.getHost())))
+              .ignoringException(UncheckedIOException.class)
+              .orFailAfter(Duration.ofMinutes(10));
+
         return response.endpointId();
     }
 

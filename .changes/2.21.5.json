@@ -1,0 +1,54 @@
+{
+    "version": "2.21.5",
+    "date": "2023-10-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "This release introduces three new APIs: StartBatchDeleteConfigurationTask, DescribeBatchDeleteConfigurationTask, and BatchDeleteAgents."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health Imaging",
+            "contributor": "",
+            "description": "Updates on documentation links"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "contributor": "",
+            "description": "Update KmsKeyIdentifier constraints to support AWS KMS multi-Region keys."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppIntegrations Service",
+            "contributor": "",
+            "description": "Updated ScheduleConfig to be an optional input to CreateDataIntegration to support event driven downloading of files from sources such as Amazon s3 using Amazon Connect AppIntegrations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds support for updating phone number metadata, such as phone number description."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "This release introduces a new API: DeleteOpsItem. This allows deletion of an OpsItem."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Removed mapping for RESOLVED_CHECKSUM_SPECS execution attribute that was causing intermittent failures for S3 operations with checksums since 2.21.0 release. The bug can cause `java.lang.NullPointerException: Cannot read field \"value\" because \"s1\" is null` exceptions, as reported in https://github.com/aws/aws-sdk-java-v2/issues/4608."
+        }
+    ]
+}

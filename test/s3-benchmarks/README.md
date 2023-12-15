@@ -16,6 +16,12 @@ java -jar s3-benchmarks.jar --bucket=bucket --key=key -file=/path/to/destionfile
 java -jar s3-benchmarks.jar --bucket=bucket --key=key -file=/path/to/sourcefile/ --operation=upload --partSizeInMB=20 --maxThroughput=100.0
 ```
 
+## How to run S3Express (temporary)
+This benchmark is currently separate. Until it's integrated with the other benchmark runner, the usage is as follows:
+```
+mvn exec:exec -Dexec.executable="java" -Dexec.args="-cp %classpath software.amazon.awssdk.s3benchmarks.s3express.S3BenchmarkRunner"
+```
+
 ## Command line arguments
 
 ### Benchmark version

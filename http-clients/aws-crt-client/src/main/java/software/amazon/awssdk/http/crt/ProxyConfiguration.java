@@ -117,6 +117,9 @@ public final class ProxyConfiguration extends CrtProxyConfiguration
 
 
         @Override
+        Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues);
+
+        @Override
         ProxyConfiguration build();
     }
 

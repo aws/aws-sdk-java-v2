@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 /**
@@ -46,6 +47,7 @@ public final class UpdateItemEnhancedRequest<T> {
     private final Expression conditionExpression;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
+    private final String returnValuesOnConditionCheckFailure;
 
 
     private UpdateItemEnhancedRequest(Builder<T> builder) {
@@ -54,6 +56,7 @@ public final class UpdateItemEnhancedRequest<T> {
         this.conditionExpression = builder.conditionExpression;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
+        this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
     /**
@@ -75,7 +78,8 @@ public final class UpdateItemEnhancedRequest<T> {
                                .ignoreNulls(ignoreNulls)
                                .conditionExpression(conditionExpression)
                                .returnConsumedCapacity(returnConsumedCapacity)
-                               .returnItemCollectionMetrics(returnItemCollectionMetrics);
+                               .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                               .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
     /**
@@ -138,6 +142,25 @@ public final class UpdateItemEnhancedRequest<T> {
         return returnItemCollectionMetrics;
     }
 
+    /**
+     * Whether to return the item on condition check failure.
+     *
+     * @see UpdateItemRequest#returnValuesOnConditionCheckFailure()
+     */
+    public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
+        return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
+    }
+
+    /**
+     * Whether to return the item on condition check failure.
+     * <p>
+     * Similar to {@link #returnValuesOnConditionCheckFailure()} but return the value as a string. This is useful in situations
+     * where the value is not defined in {@link ReturnValuesOnConditionCheckFailure}.
+     */
+    public String returnValuesOnConditionCheckFailureAsString() {
+        return returnValuesOnConditionCheckFailure;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -151,7 +174,8 @@ public final class UpdateItemEnhancedRequest<T> {
                && Objects.equals(ignoreNulls, that.ignoreNulls)
                && Objects.equals(conditionExpression, that.conditionExpression)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
-               && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
+               && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
+               && Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
     }
 
     @Override
@@ -161,6 +185,7 @@ public final class UpdateItemEnhancedRequest<T> {
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
+        result = 31 * result + (returnValuesOnConditionCheckFailure != null ? returnValuesOnConditionCheckFailure.hashCode() : 0);
         return result;
     }
 
@@ -176,6 +201,7 @@ public final class UpdateItemEnhancedRequest<T> {
         private Expression conditionExpression;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
+        private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
         }
@@ -258,6 +284,29 @@ public final class UpdateItemEnhancedRequest<T> {
          */
         public Builder<T> returnItemCollectionMetrics(String returnItemCollectionMetrics) {
             this.returnItemCollectionMetrics = returnItemCollectionMetrics;
+            return this;
+        }
+
+        /**
+         * Whether to return the item on condition check failure.
+         *
+         * @see UpdateItemRequest.Builder#returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure)
+         */
+        public Builder<T> returnValuesOnConditionCheckFailure(
+            ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
+                                                       returnValuesOnConditionCheckFailure.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the item on condition check failure.
+         *
+         * @see UpdateItemRequest.Builder#returnValuesOnConditionCheckFailure(String)
+         */
+        public Builder<T> returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
             return this;
         }
 

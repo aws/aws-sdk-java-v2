@@ -26,7 +26,7 @@ public final class MarshallerUtil {
     /**
      * @return true if the location is in the URI, false otherwise.
      */
-    public static boolean locationInUri(MarshallLocation location) {
+    public static boolean isInUri(MarshallLocation location) {
         switch (location) {
             case PATH:
             case QUERY_PARAM:

@@ -28,8 +28,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -48,15 +48,22 @@ import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.polly.auth.scheme.PollyAuthSchemeProvider;
 import software.amazon.awssdk.services.polly.internal.presigner.model.transform.SynthesizeSpeechRequestMarshaller;
 import software.amazon.awssdk.services.polly.model.PollyRequest;
 import software.amazon.awssdk.services.polly.presigner.PollyPresigner;
 import software.amazon.awssdk.services.polly.presigner.model.PresignedSynthesizeSpeechRequest;
 import software.amazon.awssdk.services.polly.presigner.model.SynthesizeSpeechPresignRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -72,7 +79,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
     private final Region region;
-    private final AwsCredentialsProvider credentialsProvider;
+    private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
     private final URI endpointOverride;
     private final Boolean dualstackEnabled;
     private final Boolean fipsEnabled;
@@ -108,16 +115,8 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                                                             .orElse(false);
     }
 
-    public Region region() {
-        return region;
-    }
-
-    public AwsCredentialsProvider credentialsProvider() {
+    IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
         return credentialsProvider;
-    }
-
-    public URI endpointOverride() {
-        return endpointOverride;
     }
 
     @Override
@@ -198,23 +197,38 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     private ExecutionAttributes createExecutionAttributes(PresignRequest presignRequest, PollyRequest requestToPresign) {
         Instant signatureExpiration = Instant.now().plus(presignRequest.signatureDuration());
-        AwsCredentials credentials = resolveCredentialsProvider(requestToPresign).resolveCredentials();
+        AwsCredentialsIdentity credentials = resolveCredentials(resolveCredentialsProvider(requestToPresign));
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
         return new ExecutionAttributes()
-                .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials)
+                .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CredentialUtils.toCredentials(credentials))
                 .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
-                .putAttribute(AwsExecutionAttribute.AWS_REGION, region())
-                .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region())
+                .putAttribute(AwsExecutionAttribute.AWS_REGION, region)
+                .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region)
                 .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, false)
                 .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, ClientType.SYNC)
                 .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
-                .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration);
+                .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration)
+                .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, PollyAuthSchemeProvider.defaultProvider())
+                .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
+                .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS,
+                              IdentityProviders.builder()
+                                               .putIdentityProvider(credentialsProvider())
+                                               .build());
     }
 
-    private AwsCredentialsProvider resolveCredentialsProvider(PollyRequest request) {
-        return request.overrideConfiguration().flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
-                .orElse(credentialsProvider());
+    private Map<String, AuthScheme<?>> authSchemes() {
+        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
+        return Collections.singletonMap(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
+    }
+
+    private IdentityProvider<? extends AwsCredentialsIdentity> resolveCredentialsProvider(PollyRequest request) {
+        return request.overrideConfiguration().flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                .orElse(credentialsProvider);
+    }
+
+    private AwsCredentialsIdentity resolveCredentials(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+        return CompletableFutureUtils.joinLikeSync(credentialsProvider.resolveIdentity());
     }
 
     private Presigner resolvePresigner(PollyRequest request) {
@@ -240,12 +254,12 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private URI resolveEndpoint() {
-        if (endpointOverride() != null) {
-            return endpointOverride();
+        if (endpointOverride != null) {
+            return endpointOverride;
         }
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
-                .withRegion(region())
+                .withRegion(region)
                 .withProfileFile(profileFile)
                 .withProfileName(profileName)
                 .withDualstackEnabled(dualstackEnabled)
@@ -255,7 +269,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     public static class BuilderImpl implements PollyPresigner.Builder {
         private Region region;
-        private AwsCredentialsProvider credentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
         private URI endpointOverride;
         private Boolean dualstackEnabled;
         private Boolean fipsEnabled;
@@ -268,6 +282,11 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
         @Override
         public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        }
+
+        @Override
+        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }

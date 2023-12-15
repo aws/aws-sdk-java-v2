@@ -26,6 +26,8 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.services.sqs.endpoints.SqsClientContextParams;
 import software.amazon.awssdk.services.sqs.internal.MessageMD5ChecksumInterceptor;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Verifies the functionality of {@link MessageMD5ChecksumInterceptor}.
@@ -236,11 +239,13 @@ public class MessageMD5ChecksumInterceptorTest {
     }
 
     private void callInterceptor(SdkRequest request, SdkResponse response) {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, AttributeMap.builder().build());
         new MessageMD5ChecksumInterceptor().afterExecution(InterceptorContext.builder()
                                                                              .request(request)
                                                                              .response(response)
                                                                              .build(),
-                                                           new ExecutionAttributes());
+                                                           executionAttributes);
     }
 
     private String messageBody() {

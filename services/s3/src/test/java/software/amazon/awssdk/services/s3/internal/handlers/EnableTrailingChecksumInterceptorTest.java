@@ -16,20 +16,30 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyHttpRequestContext;
 import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyResponseContext;
 
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.endpoints.internal.KnownS3ExpressEndpointProperty;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAclResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -40,35 +50,95 @@ public class EnableTrailingChecksumInterceptorTest {
 
     private EnableTrailingChecksumInterceptor interceptor = new EnableTrailingChecksumInterceptor();
 
-    @Test
-    public void modifyHttpRequest_getObjectTrailingChecksumEnabled_shouldAddTrailingChecksumHeader() {
-        Context.ModifyHttpRequest modifyHttpRequestContext =
-            modifyHttpRequestContext(GetObjectRequest.builder().build());
+    /**
+     * Returns all possible Boolean combinations
+     */
+    private static Stream<Arguments> getObjectRequestParams() {
+        return IntStream.range(0, 1 << 3).mapToObj(i -> Arguments.of((i & 1) == 1, (i & 2) == 2, (i & 4) == 4));
+    }
 
-        SdkHttpRequest sdkHttpRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext, new ExecutionAttributes());
+    @ParameterizedTest
+    @MethodSource("getObjectRequestParams")
+    public void testGetObjectModifyRequest(boolean useS3Express, boolean disableChecksumValidation, boolean checksumModeEnabled) {
+        GetObjectRequest request = createGetObjectRequest(checksumModeEnabled);
+        ExecutionAttributes executionAttributes = createExecutionAttributes(disableChecksumValidation, useS3Express);
+        Context.ModifyRequest modifyRequestContext = () -> request;
+        SdkRequest modifiedRequest = interceptor.modifyRequest(modifyRequestContext, executionAttributes);
 
-        assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).containsOnly(ENABLE_MD5_CHECKSUM_HEADER_VALUE);
+        Context.ModifyHttpRequest modifyHttpRequestContext = modifyHttpRequestContext(modifiedRequest);
+        SdkHttpRequest sdkHttpRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext, executionAttributes);
+        GetObjectRequest getObjectRequest = (GetObjectRequest) modifiedRequest;
+
+        validateGetObjectValues(sdkHttpRequest, getObjectRequest, useS3Express, disableChecksumValidation, checksumModeEnabled);
+    }
+
+    private void validateGetObjectValues(SdkHttpRequest sdkHttpRequest, GetObjectRequest getObjectRequest,
+                                         boolean useS3Express, boolean disableChecksumValidation, boolean checksumModeEnabled) {
+        if (disableChecksumValidation) {
+            // S3Express requests should follow general flow and respect checksum validation disabled flag
+            if (checksumModeEnabled) {
+                assertThat(getObjectRequest.checksumMode()).isNotNull();
+                assertThat(getObjectRequest.checksumMode()).isEqualTo(ChecksumMode.ENABLED);
+                assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).isNull();
+            } else {
+                assertThat(getObjectRequest.checksumMode()).isNull();
+                assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).isNull();
+            }
+        } else {
+            if (useS3Express) {
+                // Interceptor modifyRequest() enables ChecksumMode
+                assertThat(getObjectRequest.checksumMode()).isNotNull();
+                assertThat(getObjectRequest.checksumMode()).isEqualTo(ChecksumMode.ENABLED);
+                assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).isNull();
+            } else {
+                if (checksumModeEnabled) {
+                    assertThat(getObjectRequest.checksumMode()).isNotNull();
+                    assertThat(getObjectRequest.checksumMode()).isEqualTo(ChecksumMode.ENABLED);
+                    assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).isNull();
+                } else {
+                    // Default SDK behavior
+                    assertThat(getObjectRequest.checksumMode()).isNull();
+                    assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).containsOnly(ENABLE_MD5_CHECKSUM_HEADER_VALUE);
+                }
+            }
+        }
+    }
+
+    private GetObjectRequest createGetObjectRequest(boolean checksumModeEnabled) {
+        GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder();
+        if (checksumModeEnabled) {
+            requestBuilder.checksumMode(ChecksumMode.ENABLED);
+        }
+        return requestBuilder.build();
     }
 
     @Test
-    public void modifyHttpRequest_getObjectTrailingChecksumDisabled_shouldNotModifyHttpRequest() {
-        Context.ModifyHttpRequest modifyHttpRequestContext =
-            modifyHttpRequestContext(GetObjectRequest.builder().build());
+    public void modifyRequest_nonGetObjectRequest_shouldNotModify() {
+        PutObjectRequest request = PutObjectRequest.builder().build();
+        boolean useS3Express = false;
+        boolean disableChecksumValidation = false;
 
-        SdkHttpRequest sdkHttpRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext,
-                                                                      new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG,
-                                                                                                             S3Configuration.builder().checksumValidationEnabled(false).build()));
+        ExecutionAttributes executionAttributes = createExecutionAttributes(disableChecksumValidation, useS3Express);
+        Context.ModifyRequest modifyRequestContext = () -> request;
+        SdkRequest modifiedRequest = interceptor.modifyRequest(modifyRequestContext, executionAttributes);
 
-        assertThat(sdkHttpRequest).isEqualToComparingFieldByField(modifyHttpRequestContext.httpRequest());
+        Context.ModifyHttpRequest modifyHttpRequestContext = modifyHttpRequestContext(modifiedRequest);
+        SdkHttpRequest sdkHttpRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext, executionAttributes);
+
+        assertThat(sdkHttpRequest.headers().get(ENABLE_CHECKSUM_REQUEST_HEADER)).isNull();
     }
 
-    @Test
-    public void modifyHttpRequest_nonGetObjectRequest_shouldNotModifyHttpRequest() {
-        Context.ModifyHttpRequest modifyHttpRequestContext =
-            modifyHttpRequestContext(PutObjectRequest.builder().build());
-
-        SdkHttpRequest sdkHttpRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext, new ExecutionAttributes());
-        assertThat(sdkHttpRequest).isEqualToComparingFieldByField(modifyHttpRequestContext.httpRequest());
+    private ExecutionAttributes createExecutionAttributes(boolean disableChecksumValidation, boolean useS3Express) {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        if (disableChecksumValidation) {
+            executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
+                                             S3Configuration.builder().checksumValidationEnabled(false).build());
+        }
+        if (useS3Express) {
+            Endpoint s3ExpressEndpoint = Endpoint.builder().putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express").build();
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, s3ExpressEndpoint);
+        }
+        return executionAttributes;
     }
 
     @Test

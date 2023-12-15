@@ -37,25 +37,35 @@ public final class CreateBucketInterceptor implements ExecutionInterceptor {
             CreateBucketRequest request = (CreateBucketRequest) sdkRequest;
             validateBucketNameIsS3Compatible(request.bucket());
 
-            if (request.createBucketConfiguration() == null || request.createBucketConfiguration().locationConstraint() == null) {
-                Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
-                sdkRequest = request.toBuilder()
-                                    .createBucketConfiguration(toLocationConstraint(region))
-                                    .build();
+            if (request.createBucketConfiguration() == null) {
+                return addLocationConstraintToRequest(request,
+                                                      executionAttributes,
+                                                      CreateBucketConfiguration.builder().build());
+            }
+
+            CreateBucketConfiguration bucketConfiguration = request.createBucketConfiguration();
+            
+            if (bucketConfiguration.locationConstraint() == null && bucketConfiguration.location() == null) {
+                return addLocationConstraintToRequest(request, executionAttributes, bucketConfiguration);
             }
         }
 
         return sdkRequest;
     }
 
-    private CreateBucketConfiguration toLocationConstraint(Region region) {
+    private SdkRequest addLocationConstraintToRequest(CreateBucketRequest request,
+                                                      ExecutionAttributes executionAttributes,
+                                                      CreateBucketConfiguration configuration) {
+        Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
+        return request.copy(r -> r.createBucketConfiguration(setLocationConstraint(region, configuration)));
+    }
+
+    private CreateBucketConfiguration setLocationConstraint(Region region, CreateBucketConfiguration configuration) {
         if (region.equals(Region.US_EAST_1)) {
             // us-east-1 requires no location restraint. See http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketPUT.html
             return null;
         }
-        return CreateBucketConfiguration.builder()
-                                        .locationConstraint(region.id())
-                                        .build();
+        return configuration.copy(c -> c.locationConstraint(region.id()).build());
     }
 
     /**

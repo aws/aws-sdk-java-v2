@@ -28,4 +28,10 @@ public class EndpointProviderClassSpecTest {
         ClassSpec endpointProviderSpec = new EndpointProviderSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-class.java"));
     }
+
+    @Test
+    void knowPropertiesOverride() {
+        ClassSpec endpointProviderSpec = new EndpointProviderSpec(ClientTestModels.queryServiceModelsWithOverrideKnowProperties());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-provider-know-prop-override-class.java"));
+    }
 }

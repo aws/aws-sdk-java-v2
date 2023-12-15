@@ -1,0 +1,72 @@
+{
+    "version": "2.21.38",
+    "date": "2023-12-04",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixes double checksum validation for GetObject. Now when ChecksumMode is enabled, x-amz-te:append-md5 will not be sent, and only the flexible checksum will be validated. If ChecksumMode is enabled and no ChecksumAlgorithm was returned, no validation will be performed."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Archetype Lambda",
+            "contributor": "",
+            "description": "Update archetype-lambda to use AWS CRT HTTP client as the default HTTP client and bump dependency version."
+        },
+        {
+            "type": "feature",
+            "category": "AWSBillingConductor",
+            "contributor": "",
+            "description": "This release adds the ability to specify a linked account of the billing group for the custom line item resource."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud9",
+            "contributor": "",
+            "description": "This release adds the requirement to include the imageId parameter in the CreateEnvironmentEC2 API call."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Including UPDATE_* states as a success status for CreateStack waiter."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Adds support for custom color correction on channels using 3D LUT files."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog App Registry",
+            "contributor": "",
+            "description": "Documentation-only updates for Dawn"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SQS",
+            "contributor": "",
+            "description": "Adds a client builder option to disable the default MD5 checksum validation for SendMessage, ReceiveMessage and SendMessageBatch"
+        },
+        {
+            "type": "feature",
+            "category": "Braket",
+            "contributor": "",
+            "description": "This release enhances service support to create quantum tasks and hybrid jobs associated with Braket Direct Reservations."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Release General Purpose type clusters"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

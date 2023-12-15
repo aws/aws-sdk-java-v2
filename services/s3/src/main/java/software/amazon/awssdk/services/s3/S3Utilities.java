@@ -118,7 +118,7 @@ public final class S3Utilities {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
         this.profileFile = Optional.ofNullable(builder.profileFile)
-                                   .orElse(ProfileFile::defaultProfileFile);
+                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = builder.profileName;
 
         if (builder.s3Configuration == null) {
@@ -627,12 +627,6 @@ public final class S3Utilities {
          * when the utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less
          * confusing to support the full {@link ClientOverrideConfiguration} object in the future.
          */
-        private Builder profileFile(ProfileFile profileFile) {
-            return profileFile(Optional.ofNullable(profileFile)
-                                       .map(ProfileFileSupplier::fixedProfileFile)
-                                       .orElse(null));
-        }
-
         private Builder profileFile(Supplier<ProfileFile> profileFileSupplier) {
             this.profileFile = profileFileSupplier;
             return this;

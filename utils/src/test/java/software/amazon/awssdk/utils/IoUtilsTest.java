@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.utils;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,8 +69,28 @@ public class IoUtilsTest {
         assertEquals(-1, inputStream.read());
     }
 
+    @Test
+    public void applyMaxReadLimit_shouldHonor() throws IOException {
+        int length = 1 << 18;
+        InputStream inputStream = randomInputStream(length);
+        InputStream bufferedInputStream = new BufferedInputStream(inputStream);
+
+        IoUtils.markStreamWithMaxReadLimit(bufferedInputStream, length + 1);
+        IoUtils.drainInputStream(bufferedInputStream);
+        assertThat(bufferedInputStream.available()).isEqualTo(0);
+        bufferedInputStream.reset();
+
+        assertThat(bufferedInputStream.available()).isEqualTo(length);
+    }
+
     private InputStream randomInputStream() {
         byte[] data = new byte[100];
+        random.nextBytes(data);
+        return new ByteArrayInputStream(data);
+    }
+
+    private InputStream randomInputStream(int length) {
+        byte[] data = new byte[length];
         random.nextBytes(data);
         return new ByteArrayInputStream(data);
     }

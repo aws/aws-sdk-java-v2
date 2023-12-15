@@ -1,0 +1,54 @@
+{
+    "version": "2.21.3",
+    "date": "2023-10-18",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "sugmanue",
+            "description": "The Scala compiler gets confused when overriding a method with a more specific return type in the interface. To work around this we added a default implementation that fixes this issue with local testing."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon Polly",
+            "contributor": "sugmanue",
+            "description": "The Scala compiler gets confused when overriding a method with a more specific return type in the interface. To work around this we added a default implementation that fixes this issue with local testing."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud9",
+            "contributor": "",
+            "description": "Update to imageId parameter behavior and dates updated."
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Changes for a new feature in Amazon Kendra's Query API to Collapse/Expand query results"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Wisdom Service",
+            "contributor": "",
+            "description": "This release adds an max limit of 25 recommendation ids for NotifyRecommendationsReceived API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Updating descriptions for several APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for upgrading the storage file system configuration on the DB instance using a blue/green deployment or a read replica."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

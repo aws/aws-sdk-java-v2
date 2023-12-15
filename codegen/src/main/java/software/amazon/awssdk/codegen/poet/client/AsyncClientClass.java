@@ -34,6 +34,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -55,6 +56,8 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -65,10 +68,14 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -79,6 +86,7 @@ import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -93,6 +101,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
+    private final ServiceClientConfigurationUtils configurationUtils;
+    private final boolean useSraAuth;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
         super(dependencies.getModel());
@@ -101,6 +111,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
+        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
+        this.configurationUtils = new ServiceClientConfigurationUtils(model);
     }
 
     @Override
@@ -132,10 +144,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                .initializer("$T.getLogger($T.class)", LoggerFactory.class,
                                             className)
                                .build())
+            .addField(protocolMetadata())
             .addField(AsyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
@@ -154,11 +166,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod());
 
-        if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
-            type.addMethod(applySignerOverrideMethod(poetExtensions, model));
-            type.addMethod(isSignerOverriddenOnClientMethod());
+        if (!useSraAuth) {
+            if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
+                type.addMethod(applySignerOverrideMethod(poetExtensions, model));
+                type.addMethod(isSignerOverriddenOnClientMethod());
+            }
         }
-
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
+                                                          "S3".equals(model.getMetadata().getServiceName())));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
     }
 
@@ -194,15 +209,20 @@ public final class AsyncClientClass extends AsyncClientInterface {
         return methods.stream();
     }
 
+    private FieldSpec protocolMetadata() {
+        return FieldSpec.builder(AwsProtocolMetadata.class, "protocolMetadata", PRIVATE, STATIC, FINAL)
+                        .initializer("$T.builder().serviceProtocol($T.$L).build()",
+                                     AwsProtocolMetadata.class, AwsServiceProtocol.class, model.getMetadata().getProtocol())
+                        .build();
+    }
+
     private MethodSpec constructor(TypeSpec.Builder classBuilder) {
         MethodSpec.Builder builder
             = MethodSpec.constructorBuilder()
                         .addModifiers(PROTECTED)
-                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
-                        .addStatement("this.clientConfiguration = clientConfiguration")
-                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
+                        .addStatement("this.clientConfiguration = clientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -267,8 +287,39 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
                          .returns(serviceClientConfigurationClassName)
-                         .addStatement("return this.serviceClientConfiguration")
+                         .addStatement("return new $T(this.clientConfiguration.toBuilder()).build()",
+                                       this.configurationUtils.serviceClientConfigurationBuilderClassName())
                          .build();
+    }
+
+    protected static MethodSpec updateSdkClientConfigurationMethod(
+        TypeName serviceClientConfigurationBuilderClassName,
+        boolean shouldAddClientReference) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(SdkRequest.class, "request")
+                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .returns(SdkClientConfiguration.class);
+
+        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
+                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
+               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
+
+        if (shouldAddClientReference) {
+            builder.addStatement("configuration.option($T.SDK_CLIENT, this)", SdkClientOption.class);
+        }
+
+        builder.beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return configuration.build()")
+               .endControlFlow()
+               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
+               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("plugin.configureClient(serviceConfigBuilder)")
+               .endControlFlow()
+               .addStatement("return configuration.build()");
+
+        return builder.build();
     }
 
     @Override
@@ -287,7 +338,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         builder.addModifiers(PUBLIC)
                .addAnnotation(Override.class);
-
+        builder.addStatement("$T clientConfiguration = updateSdkClientConfiguration($L, this.clientConfiguration)",
+                            SdkClientConfiguration.class, opModel.getInput().getVariableName());
         builder.addStatement("$T<$T> metricPublishers = "
                              + "resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
                              List.class,
@@ -325,11 +377,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "endOfStreamFuture",
                                  "pair");
         }
-        
-        if (shouldUseAsyncWithBodySigner(opModel)) {
-            builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
-        } else {
-            builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
+
+        if (!useSraAuth) {
+            if (shouldUseAsyncWithBodySigner(opModel)) {
+                builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
+            } else {
+                builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
+            }
         }
 
         builder.addCode(protocolSpec.responseHandler(model, opModel));
@@ -366,22 +420,29 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 }
             }
 
-            builder.addStatement("$T cachedEndpoint = null", URI.class);
+            builder.addStatement("$T<$T> endpointFuture = $T.completedFuture(null)",
+                                 CompletableFuture.class, URI.class, CompletableFuture.class);
             builder.beginControlFlow("if (endpointDiscoveryEnabled)");
 
-            builder.addCode("$T key = $N.overrideConfiguration()", String.class, opModel.getInput().getVariableName())
-                   .addCode("    .flatMap($T::credentialsProvider)", AwsRequestOverrideConfiguration.class)
-                   .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_PROVIDER))", AwsClientOption.class)
-                   .addCode("    .resolveCredentials().accessKeyId();");
-
-            builder.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
-                   .addCode("    .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
-                   .addCode("    .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
-                   .addCode("    .overrideConfiguration($N.overrideConfiguration().orElse(null))",
+            ParameterizedTypeName identityFutureTypeName = ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                                                             WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class));
+            builder.addCode("$T identityFuture = $N.overrideConfiguration()", identityFutureTypeName,
                             opModel.getInput().getVariableName())
-                   .addCode("    .build();");
+                   .addCode("    .flatMap($T::credentialsIdentityProvider)", AwsRequestOverrideConfiguration.class)
+                   .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_IDENTITY_PROVIDER))",
+                            AwsClientOption.class)
+                   .addCode("    .resolveIdentity();");
 
-            builder.addStatement("cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest)");
+            builder.addCode("endpointFuture = identityFuture.thenApply(credentials -> {")
+                   .addCode("    $1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
+                   .addCode("        .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
+                   .addCode("        .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
+                   .addCode("        .overrideConfiguration($N.overrideConfiguration().orElse(null))",
+                            opModel.getInput().getVariableName())
+                   .addCode("        .build();")
+                   .addCode("    return endpointDiscoveryCache.get(credentials.accessKeyId(), endpointDiscoveryRequest);")
+                   .addCode("});");
+
             builder.endControlFlow();
         }
 

@@ -50,9 +50,11 @@ public class ClientContextParamsClassSpec implements ClassSpec {
 
         b.addMethod(ctor());
 
-        model.getClientContextParams().forEach((n, m) -> {
-            b.addField(paramDeclaration(n, m));
-        });
+        if (model.getClientContextParams() != null) {
+            model.getClientContextParams().forEach((n, m) -> {
+                b.addField(paramDeclaration(n, m));
+            });
+        }
 
         if (model.getCustomizationConfig() != null && model.getCustomizationConfig().getCustomClientContextParams() != null) {
             model.getCustomizationConfig().getCustomClientContextParams().forEach((n, m) -> {

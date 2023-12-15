@@ -15,12 +15,20 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingInputStream;
+import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Pipeline stage that executes an {@link HttpResponseHandler} to transform the response into a {@link Response}
@@ -37,6 +45,47 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
 
     @Override
     public Response<OutputT> execute(SdkHttpFullResponse httpResponse, RequestExecutionContext context) throws Exception {
-        return responseHandler.handle(httpResponse, context.executionAttributes());
+        SdkHttpFullResponse bytesReadTracking = trackBytesRead(httpResponse, context);
+
+        Response<OutputT> response = responseHandler.handle(bytesReadTracking, context.executionAttributes());
+
+        collectMetrics(context);
+
+        return response;
+    }
+
+    private void collectMetrics(RequestExecutionContext context) {
+        MetricCollector attemptMetricCollector = context.attemptMetricCollector();
+
+        long attemptStartTime = context.executionAttributes()
+                                       .getAttribute(SdkInternalExecutionAttribute.API_CALL_ATTEMPT_START_NANO_TIME);
+
+        long now = System.nanoTime();
+        long ttlb = now - attemptStartTime;
+        attemptMetricCollector.reportMetric(CoreMetric.TIME_TO_LAST_BYTE, Duration.ofNanos(ttlb));
+
+        long responseBytesRead = MetricUtils.apiCallAttemptResponseBytesRead(context).getAsLong();
+        long responseReadStart = MetricUtils.responseHeadersReadEndNanoTime(context).getAsLong();
+        double throughput = MetricUtils.bytesPerSec(responseBytesRead, responseReadStart, now);
+
+        attemptMetricCollector.reportMetric(CoreMetric.READ_THROUGHPUT, throughput);
+    }
+
+    private SdkHttpFullResponse trackBytesRead(SdkHttpFullResponse httpFullResponse, RequestExecutionContext context) {
+        if (!httpFullResponse.content().isPresent()) {
+            return httpFullResponse;
+        }
+
+        AbortableInputStream content = httpFullResponse.content().get();
+
+        return httpFullResponse.toBuilder()
+                               .content(trackBytesRead(content, context))
+                               .build();
+    }
+
+    private AbortableInputStream trackBytesRead(AbortableInputStream content, RequestExecutionContext context) {
+        AtomicLong bytesRead = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
+        BytesReadTrackingInputStream bytesReadTrackedStream = new BytesReadTrackingInputStream(content, bytesRead);
+        return AbortableInputStream.create(bytesReadTrackedStream);
     }
 }

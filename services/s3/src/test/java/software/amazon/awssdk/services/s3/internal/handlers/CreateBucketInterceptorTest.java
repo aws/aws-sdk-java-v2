@@ -22,8 +22,10 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.LocationInfo;
 
 public class CreateBucketInterceptorTest {
 
@@ -84,6 +86,28 @@ public class CreateBucketInterceptorTest {
         assertThat(locationConstraint).isEqualToIgnoringCase("us-west-2");
     }
 
+    @Test
+    public void modifyRequest_DoesNotSetLocationConstraint_When_LocationPresent() {
+        LocationInfo location = LocationInfo.builder().name("name").type("type").build();
+        CreateBucketConfiguration configuration = CreateBucketConfiguration.builder().location(location).build();
+
+        CreateBucketRequest request = CreateBucketRequest.builder()
+                                                         .bucket("test-bucket")
+                                                         .createBucketConfiguration(configuration)
+                                                         .build();
+
+        Context.ModifyRequest context = () -> request;
+
+        ExecutionAttributes attributes = new ExecutionAttributes().putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_WEST_2);
+
+        SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
+
+        CreateBucketConfiguration bucketConfiguration = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration();
+        BucketLocationConstraint locationConstraint = bucketConfiguration.locationConstraint();
+
+        assertThat(locationConstraint).isNull();
+    }
+
     /**
      * For us-east-1 there must not be a location constraint (or containing CreateBucketConfiguration) sent.
      */
@@ -102,5 +126,24 @@ public class CreateBucketInterceptorTest {
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
         assertThat(((CreateBucketRequest) modifiedRequest).createBucketConfiguration()).isNull();
+    }
+
+    @Test
+    public void modifyRequest__When_NullLocationConstraint() {
+        CreateBucketRequest request = CreateBucketRequest.builder()
+                                                         .bucket("test-bucket")
+                                                         .createBucketConfiguration(CreateBucketConfiguration.builder()
+                                                                                                             .build())
+                                                         .build();
+
+        Context.ModifyRequest context = () -> request;
+
+        ExecutionAttributes attributes = new ExecutionAttributes()
+            .putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_WEST_2);
+
+        SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
+        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
+
+        assertThat(locationConstraint).isEqualToIgnoringCase("us-west-2");
     }
 }

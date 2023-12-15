@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.awscore.endpoints;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
@@ -37,6 +37,7 @@ public final class AwsEndpointAttribute {
     }
 
     public static List<EndpointAttributeKey<?>> values() {
-        return Collections.singletonList(AUTH_SCHEMES);
+        return Arrays.asList(AUTH_SCHEMES);
     }
+
 }

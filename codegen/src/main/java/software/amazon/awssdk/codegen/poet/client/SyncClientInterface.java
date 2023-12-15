@@ -142,6 +142,7 @@ public class SyncClientInterface implements ClassSpec {
             .addMethod(serviceMetadata());
 
         PoetUtils.addJavadoc(type::addJavadoc, getJavadoc());
+
     }
 
     @Override

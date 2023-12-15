@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.metrics.async;
 
-import static org.mockito.Mockito.when;
-
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
@@ -28,22 +26,18 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationRequest;
+import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 /**
  * Core metrics test for async streaming API
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest {
-
-    @Mock
-    private AwsCredentialsProvider mockCredentialsProvider;
 
     @Mock
     private MetricPublisher mockPublisher;
@@ -57,20 +51,11 @@ public class AsyncStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest {
     public void setup() throws IOException {
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_2)
-                                            .credentialsProvider(mockCredentialsProvider)
+                                            .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher)
                                                                          .retryStrategy(b -> b.maxAttempts(MAX_ATTEMPTS)))
                                             .build();
-
-        when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
-            return AwsBasicCredentials.create("foo", "bar");
-        });
     }
 
     @After

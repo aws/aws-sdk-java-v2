@@ -1,0 +1,54 @@
+{
+    "version": "2.21.7",
+    "date": "2023-10-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodePipeline",
+            "contributor": "",
+            "description": "Add ability to trigger pipelines from git tags, define variables at pipeline level and new pipeline type V2."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Add the partitional endpoint for IAM in iso-f."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Config",
+            "contributor": "",
+            "description": "This release introduces DeleteHomeRegionControl API that customers can use to delete the Migration Hub Home Region configuration"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release updates the documentation for InstanceInterruptionBehavior and HibernationOptionsRequest to more accurately describe the behavior of these two parameters when using Spot hibernation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Added support for Cluster Subnet and Security Group mutability."
+        },
+        {
+            "type": "feature",
+            "category": "Migration Hub Strategy Recommendations",
+            "contributor": "",
+            "description": "This release introduces multi-data-source feature in Migration Hub Strategy Recommendations. This feature now supports vCenter as a data source to fetch inventory in addition to ADS and Import from file workflow that is currently supported with MHSR collector."
+        },
+        {
+            "type": "feature",
+            "category": "OpenSearch Service Serverless",
+            "contributor": "",
+            "description": "This release includes the following new APIs: CreateLifecyclePolicy, UpdateLifecyclePolicy, BatchGetLifecyclePolicy, DeleteLifecyclePolicy, ListLifecyclePolicies and BatchGetEffectiveLifecyclePolicy to support the data lifecycle management feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -1,12 +1,18 @@
 package software.amazon.awssdk.services.jsonprotocoltests;
 
 import java.net.URI;
+import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.jsonprotocoltests.auth.scheme.JsonProtocolTestsAuthSchemeProvider;
+import software.amazon.awssdk.services.jsonprotocoltests.internal.JsonProtocolTestsServiceClientConfigurationBuilder;
 
 /**
  * Class to expose the service client settings to the user. Implementation of {@link AwsServiceClientConfiguration}
@@ -14,82 +20,108 @@ import software.amazon.awssdk.regions.Region;
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 public final class JsonProtocolTestsServiceClientConfiguration extends AwsServiceClientConfiguration {
-    private JsonProtocolTestsServiceClientConfiguration(Builder builder) {
+    private final JsonProtocolTestsAuthSchemeProvider authSchemeProvider;
+
+    public JsonProtocolTestsServiceClientConfiguration(Builder builder) {
         super(builder);
+        this.authSchemeProvider = builder.authSchemeProvider();
     }
 
     public static Builder builder() {
-        return new BuilderImpl();
+        return new JsonProtocolTestsServiceClientConfigurationBuilder();
+    }
+
+    /**
+     * Gets the value for auth scheme provider
+     */
+    public JsonProtocolTestsAuthSchemeProvider authSchemeProvider() {
+        return authSchemeProvider;
     }
 
     /**
      * A builder for creating a {@link JsonProtocolTestsServiceClientConfiguration}
      */
     public interface Builder extends AwsServiceClientConfiguration.Builder {
-        @Override
-        JsonProtocolTestsServiceClientConfiguration build();
-
         /**
-         * Configure the region
+         * Sets the value for client override configuration
          */
         @Override
-        Builder region(Region region);
+        Builder overrideConfiguration(ClientOverrideConfiguration overrideConfiguration);
 
         /**
-         * Configure the endpointOverride
+         * Gets the value for client override configuration
+         */
+        @Override
+        ClientOverrideConfiguration overrideConfiguration();
+
+        /**
+         * Sets the value for endpoint override
          */
         @Override
         Builder endpointOverride(URI endpointOverride);
 
         /**
-         * Configure the client override configuration
+         * Gets the value for endpoint override
          */
         @Override
-        Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
+        URI endpointOverride();
 
         /**
-         * Configure the endpointProvider
+         * Sets the value for endpoint provider
          */
         @Override
         Builder endpointProvider(EndpointProvider endpointProvider);
 
-    }
+        /**
+         * Gets the value for endpoint provider
+         */
+        @Override
+        EndpointProvider endpointProvider();
 
-    private static final class BuilderImpl extends AwsServiceClientConfiguration.BuilderImpl implements Builder {
-        private BuilderImpl() {
-        }
+        /**
+         * Sets the value for AWS region
+         */
+        @Override
+        Builder region(Region region);
 
-        private BuilderImpl(JsonProtocolTestsServiceClientConfiguration serviceClientConfiguration) {
-            super(serviceClientConfiguration);
-        }
+        /**
+         * Gets the value for AWS region
+         */
+        @Override
+        Region region();
+
+        /**
+         * Sets the value for credentials provider
+         */
+        @Override
+        Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider);
+
+        /**
+         * Gets the value for credentials provider
+         */
+        @Override
+        IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider();
 
         @Override
-        public Builder region(Region region) {
-            this.region = region;
-            return this;
-        }
+        Builder putAuthScheme(AuthScheme<?> authScheme);
+
+        /**
+         * Gets the value for auth schemes
+         */
+        @Override
+        Map<String, AuthScheme<?>> authSchemes();
+
+        /**
+         * Sets the value for auth scheme provider
+         */
+        Builder authSchemeProvider(JsonProtocolTestsAuthSchemeProvider authSchemeProvider);
+
+        /**
+         * Gets the value for auth scheme provider
+         */
+        JsonProtocolTestsAuthSchemeProvider authSchemeProvider();
 
         @Override
-        public Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
-            this.overrideConfiguration = clientOverrideConfiguration;
-            return this;
-        }
-
-        @Override
-        public Builder endpointOverride(URI endpointOverride) {
-            this.endpointOverride = endpointOverride;
-            return this;
-        }
-
-        @Override
-        public Builder endpointProvider(EndpointProvider endpointProvider) {
-            this.endpointProvider = endpointProvider;
-            return this;
-        }
-
-        @Override
-        public JsonProtocolTestsServiceClientConfiguration build() {
-            return new JsonProtocolTestsServiceClientConfiguration(this);
-        }
+        JsonProtocolTestsServiceClientConfiguration build();
     }
 }

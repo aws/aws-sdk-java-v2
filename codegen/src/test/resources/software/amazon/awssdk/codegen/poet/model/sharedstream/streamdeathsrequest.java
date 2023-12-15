@@ -118,4 +118,3 @@ public final class StreamDeathsRequest extends SharedEventStreamRequest implemen
         }
     }
 }
-

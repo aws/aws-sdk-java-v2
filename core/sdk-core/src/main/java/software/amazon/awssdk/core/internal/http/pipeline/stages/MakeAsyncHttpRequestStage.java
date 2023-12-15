@@ -25,7 +25,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
@@ -39,14 +41,17 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
+import software.amazon.awssdk.core.internal.http.async.FilterTransformingAsyncHttpResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
+import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
@@ -135,7 +140,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         AsyncExecuteRequest.Builder executeRequestBuilder = AsyncExecuteRequest.builder()
                                                                 .request(requestWithContentLength)
                                                                 .requestContentPublisher(requestProvider)
-                                                                .responseHandler(responseHandler)
                                                                 .fullDuplex(isFullDuplex(context.executionAttributes()))
                                                                 .metricCollector(httpMetricCollector);
         if (context.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES) != null) {
@@ -144,7 +148,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                        .getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES));
         }
 
-        CompletableFuture<Void> httpClientFuture = doExecuteHttpRequest(context, executeRequestBuilder.build());
+        CompletableFuture<Void> httpClientFuture = doExecuteHttpRequest(context, executeRequestBuilder, responseHandler);
 
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);
@@ -163,7 +167,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                 completeResponseFuture(responseFuture, r, t);
                 return null;
             },
-            futureCompletionExecutor);
+                                              futureCompletionExecutor);
 
         // It's possible the async execution above fails. If so, log a warning,
         // and just complete it synchronously.
@@ -174,23 +178,34 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                               + " %s. This may be an indication that the executor is being overwhelmed by too"
                                               + " many requests, and it may negatively affect performance. Consider changing "
                                               + "the configuration of the executor to accommodate the load through the client.",
-                                  Thread.currentThread().getName()),
+                                              Thread.currentThread().getName()),
                           asyncCompleteError);
-                responseHandlerFuture.whenComplete((r, t) -> completeResponseFuture(responseFuture, r, t));
+                responseHandlerFuture.whenComplete((r, t) -> {
+                    completeResponseFuture(responseFuture, r, t);
+
+                });
             }
         });
 
         return responseFuture;
     }
 
-    private CompletableFuture<Void> doExecuteHttpRequest(RequestExecutionContext context, AsyncExecuteRequest executeRequest) {
+    private CompletableFuture<Void> doExecuteHttpRequest(RequestExecutionContext context,
+                                                         AsyncExecuteRequest.Builder executeRequestBuilder,
+                                                         TransformingAsyncResponseHandler<Response<OutputT>> responseHandler) {
         MetricCollector metricCollector = context.attemptMetricCollector();
-        long callStart = System.nanoTime();
+        ReadMetricsTrackingResponseHandler<Response<OutputT>> wrappedResponseHandler =
+            new ReadMetricsTrackingResponseHandler<>(responseHandler, context);
+
+        AsyncExecuteRequest executeRequest = executeRequestBuilder.responseHandler(wrappedResponseHandler)
+                                                                  .build();
+
+        long startTime = MetricUtils.resetApiCallAttemptStartNanoTime(context);
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
 
         CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
-            long duration = System.nanoTime() - callStart;
-            metricCollector.reportMetric(CoreMetric.SERVICE_CALL_DURATION, Duration.ofNanos(duration));
+            long d = System.nanoTime() - startTime;
+            metricCollector.reportMetric(CoreMetric.SERVICE_CALL_DURATION, Duration.ofNanos(d));
         });
 
         // Make sure failures on the result future are forwarded to the http client future.
@@ -262,6 +277,40 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
             asyncRequestBody.subscribe(s);
+        }
+    }
+
+    /**
+     * Decorator response handler that records response read metrics as well as records other data for computing other read
+     * metrics at later points.
+     */
+    private static final class ReadMetricsTrackingResponseHandler<ResultT>
+        extends FilterTransformingAsyncHttpResponseHandler<ResultT> {
+        private final RequestExecutionContext context;
+
+        private ReadMetricsTrackingResponseHandler(TransformingAsyncResponseHandler<ResultT> delegate,
+                                                   RequestExecutionContext context) {
+            super(delegate);
+            this.context = context;
+        }
+
+        @Override
+        public void onHeaders(SdkHttpResponse headers) {
+            long startTime = MetricUtils.apiCallAttemptStartNanoTime(context).getAsLong();
+            long now = System.nanoTime();
+            context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.HEADERS_READ_END_NANO_TIME, now);
+
+            long d = now - startTime;
+            context.attemptMetricCollector().reportMetric(CoreMetric.TIME_TO_FIRST_BYTE, Duration.ofNanos(d));
+            super.onHeaders(headers);
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> stream) {
+            AtomicLong bytesReadCounter = context.executionAttributes()
+                                                 .getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
+            BytesReadTrackingPublisher bytesReadTrackingPublisher = new BytesReadTrackingPublisher(stream, bytesReadCounter);
+            super.onStream(bytesReadTrackingPublisher);
         }
     }
 }

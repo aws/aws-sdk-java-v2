@@ -111,6 +111,15 @@
       "input":{"shape":"OperationWithExplicitPayloadBlobInput"},
       "output":{"shape":"OperationWithExplicitPayloadBlobInput"}
     },
+    "OperationWithExplicitPayloadString":{
+      "name":"OperationWithExplicitPayloadString",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/operationWithExplicitPayloadString"
+      },
+      "input":{"shape":"OperationWithExplicitPayloadStringInput"},
+      "output":{"shape":"OperationWithExplicitPayloadStringInput"}
+    },
     "OperationWithExplicitPayloadStructure":{
       "name":"OperationWithExplicitPayloadStructure",
       "http":{
@@ -566,6 +575,13 @@
       "type":"structure",
       "members":{
         "PayloadMember":{"shape":"BlobType"}
+      },
+      "payload":"PayloadMember"
+    },
+    "OperationWithExplicitPayloadStringInput":{
+      "type":"structure",
+      "members":{
+        "PayloadMember":{"shape":"String"}
       },
       "payload":"PayloadMember"
     },

@@ -73,6 +73,9 @@ public final class AsyncResponseHandler<T> implements TransformingAsyncResponseH
 
     @Override
     public void onError(Throwable err) {
+        if (streamFuture == null) {
+            prepare();
+        }
         streamFuture.completeExceptionally(err);
     }
 

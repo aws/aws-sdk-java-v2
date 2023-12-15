@@ -77,10 +77,8 @@ public class BuilderClientContextParamsTest {
                 .isInstanceOf(tc.exception)
                 .hasMessageContaining(tc.exceptionMessage);
         } else {
-            assertThatThrownBy(() -> {
-                S3Client s3 = builder.build();
-                s3.listBuckets();
-            }).hasMessageContaining("Oops");
+            S3Client s3 = builder.build();
+            assertThatThrownBy(s3::listBuckets).hasMessageContaining("Oops");
 
             ArgumentCaptor<ExecutionAttributes> executionAttrsCaptor = ArgumentCaptor.forClass(ExecutionAttributes.class);
             verify(mockInterceptor).modifyRequest(any(), executionAttrsCaptor.capture());
@@ -88,8 +86,18 @@ public class BuilderClientContextParamsTest {
             AttributeMap clientContextParams =
                 executionAttrsCaptor.getValue().getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
 
-            assertThat(clientContextParams).isEqualTo(tc.expectedParams().merge(baseExpectedParams));
+            AttributeMap expected = mergeExpectedParamsAndHandleS3Express(tc.expectedParams(), clientContextParams);
+            assertThat(clientContextParams).isEqualTo(expected);
         }
+    }
+
+    private AttributeMap mergeExpectedParamsAndHandleS3Express(AttributeMap testCaseExpectedParams,
+                                                               AttributeMap actualParams) {
+        AttributeMap s3ExpressAttributes = AttributeMap.builder()
+                                                         .put(S3ClientContextParams.DISABLE_S3_EXPRESS_SESSION_AUTH, false)
+                                                         .build();
+        AttributeMap requestSpecificParams = baseExpectedParams.merge(s3ExpressAttributes);
+        return testCaseExpectedParams.merge(requestSpecificParams);
     }
 
     public static List<TestCase> testCases() {

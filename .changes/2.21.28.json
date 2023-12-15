@@ -1,0 +1,54 @@
+{
+    "version": "2.21.28",
+    "date": "2023-11-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Adds 1/ user-defined unique identifier for asset and model metadata, 2/ asset model components, and 3/ query API for asset metadata and telemetry data. Supports 4/ multi variate anomaly detection using Amazon Lookout for Equipment, 5/ warm storage tier, and 6/ buffered ingestion of time series data."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT TwinMaker",
+            "contributor": "",
+            "description": "This release adds following support. 1. New APIs for metadata bulk operations. 2. Modify the component type API to support composite component types - nesting component types within one another. 3. New list APIs for components and properties. 4. Support the larger scope digital twin modeling."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "This release adds support for CloudFront KeyValueStore, a globally managed key value datastore associated with CloudFront Functions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront KeyValueStore",
+            "contributor": "",
+            "description": "This release adds support for CloudFront KeyValueStore, a globally managed key value datastore associated with CloudFront Functions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for Amazon EC2."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Add support for automatic date based partitioning in S3 Server Access Logs."
+        },
+        {
+            "type": "feature",
+            "category": "Inspector Scan",
+            "contributor": "",
+            "description": "This release adds support for the new Amazon Inspector Scan API. The new Inspector Scan API can synchronously scan SBOMs adhering to the CycloneDX v1.5 format."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

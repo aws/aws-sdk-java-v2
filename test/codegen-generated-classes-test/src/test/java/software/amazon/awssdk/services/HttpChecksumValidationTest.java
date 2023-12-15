@@ -29,6 +29,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -73,7 +74,14 @@ public class HttpChecksumValidationTest {
                                        .credentialsProvider(AnonymousCredentialsProvider.create())
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                       .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureChecksumValidationInterceptor()))
+                                       .overrideConfiguration(
+                                           // TODO(sra-identity-and-auth): we should remove these
+                                           //  overrides once we set up codegen to set chunk-encoding to true
+                                           //  for requests that are streaming and checksum-enabled
+                                           o -> o.addExecutionInterceptor(new CaptureChecksumValidationInterceptor())
+                                                 .putExecutionAttribute(
+                                                     ENABLE_CHUNKED_ENCODING, true
+                                                 ))
                                        .build();
 
         asyncClient = ProtocolRestJsonAsyncClient.builder()
@@ -125,7 +133,13 @@ public class HttpChecksumValidationTest {
     public void syncClientValidateNonStreamingResponse() {
         String expectedChecksum = "lzlLIA==";
         stubWithCRC32AndSha256Checksum("{\"stringMember\":\"Hello world\"}", expectedChecksum, "crc32");
-        client.operationWithChecksumNonStreaming(r -> r.stringMember("Hello world").checksumAlgorithm(ChecksumAlgorithm.CRC32));
+        client.operationWithChecksumNonStreaming(
+            r -> r.stringMember("Hello world").checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                  // TODO(sra-identity-and-auth): we should remove these
+                  //  overrides once we set up codegen to set chunk-encoding to true
+                  //  for requests that are streaming and checksum-enabled
+                  .overrideConfiguration(c -> c.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, false))
+        );
         verify(postRequestedFor(urlEqualTo("/")).withHeader("x-amz-checksum-crc32", equalTo(expectedChecksum)));
         OperationWithChecksumNonStreamingResponse operationWithChecksumNonStreamingResponse =
             client.operationWithChecksumNonStreaming(o -> o.checksumMode(ChecksumMode.ENABLED));
@@ -138,7 +152,13 @@ public class HttpChecksumValidationTest {
     public void syncClientValidateNonStreamingResponseZeroByte() {
         String expectedChecksum = "o6a/Qw==";
         stubWithCRC32AndSha256Checksum("{}", expectedChecksum, "crc32");
-        client.operationWithChecksumNonStreaming(r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32));
+        client.operationWithChecksumNonStreaming(
+            r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                  // TODO(sra-identity-and-auth): we should remove these
+                  //  overrides once we set up codegen to set chunk-encoding to true
+                  //  for requests that are streaming and checksum-enabled
+                  .overrideConfiguration(c -> c.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, false))
+        );
         verify(postRequestedFor(urlEqualTo("/")).withHeader("x-amz-checksum-crc32", equalTo(expectedChecksum)));
         OperationWithChecksumNonStreamingResponse operationWithChecksumNonStreamingResponse =
             client.operationWithChecksumNonStreaming(o -> o.checksumMode(ChecksumMode.ENABLED));
@@ -240,7 +260,12 @@ public class HttpChecksumValidationTest {
         String expectedChecksum = "lzlLIA==";
         stubWithCRC32AndSha256Checksum("{\"stringMember\":\"Hello world\"}", expectedChecksum, "crc32");
         OperationWithChecksumNonStreamingResponse response =
-            asyncClient.operationWithChecksumNonStreaming(o -> o.checksumMode(ChecksumMode.ENABLED)).join();
+            asyncClient.operationWithChecksumNonStreaming(
+                o -> o.checksumMode(ChecksumMode.ENABLED)
+                      // TODO(sra-identity-and-auth): we should remove these
+                      //  overrides once we set up codegen to set chunk-encoding to true
+                      //  for requests that are streaming and checksum-enabled
+                      .overrideConfiguration(c -> c.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, false))).join();
         assertThat(response.stringMember()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
@@ -251,7 +276,12 @@ public class HttpChecksumValidationTest {
         String expectedChecksum = "o6a/Qw==";
         stubWithCRC32AndSha256Checksum("{}", expectedChecksum, "crc32");
         OperationWithChecksumNonStreamingResponse operationWithChecksumNonStreamingResponse =
-            asyncClient.operationWithChecksumNonStreaming(o -> o.checksumMode(ChecksumMode.ENABLED)).join();
+            asyncClient.operationWithChecksumNonStreaming(
+                o -> o.checksumMode(ChecksumMode.ENABLED)
+                      // TODO(sra-identity-and-auth): we should remove these
+                      //  overrides once we set up codegen to set chunk-encoding to true
+                      //  for requests that are streaming and checksum-enabled
+                      .overrideConfiguration(c -> c.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, false))).join();
         assertThat(operationWithChecksumNonStreamingResponse.stringMember()).isNull();
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);

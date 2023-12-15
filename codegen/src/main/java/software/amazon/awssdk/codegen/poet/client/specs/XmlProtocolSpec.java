@@ -128,17 +128,22 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n",
                                                     ClientExecutionParams.class, requestType, responseType)
                                                .add(".withOperationName($S)\n", opModel.getOperationName())
+                                               .add(".withProtocolMetadata(protocolMetadata)\n")
                                                .add(".withCombinedResponseHandler(responseHandler)\n")
                                                .add(".withMetricCollector(apiCallMetricCollector)\n" +
                                                     hostPrefixExpression(opModel) +
                                                     discoveredEndpoint(opModel))
                                                .add(credentialType(opModel, model))
+                                               .add(".withRequestConfiguration(clientConfiguration)")
                                                .add(".withInput($L)", opModel.getInput().getVariableName())
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-                                               .add(HttpChecksumTrait.create(opModel))
-                                               .add(NoneAuthTypeRequestTrait.create(opModel))
-                                               .add(RequestCompressionTrait.create(opModel, model));
+                                               .add(HttpChecksumTrait.create(opModel));
 
+        if (!useSraAuth) {
+            codeBlock.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
+
+        codeBlock.add(RequestCompressionTrait.create(opModel, model));
 
         s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
 
@@ -195,11 +200,12 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         if (opModel.hasEventStreamOutput()) {
             executionResponseTransformerName = "restAsyncResponseTransformer";
         }
-
         builder.add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n",
                     CompletableFuture.class, executeFutureValueType,
                     ClientExecutionParams.class, requestType, pojoResponseType)
                .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
+               .add(".withRequestConfiguration(clientConfiguration)")
+               .add(".withProtocolMetadata(protocolMetadata)\n")
                .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"));
 
         if (opModel.hasEventStreamOutput()) {
@@ -214,9 +220,13 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(asyncRequestBody(opModel))
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-               .add(HttpChecksumTrait.create(opModel))
-               .add(NoneAuthTypeRequestTrait.create(opModel))
-               .add(RequestCompressionTrait.create(opModel, model));
+               .add(HttpChecksumTrait.create(opModel));
+
+        if (!useSraAuth) {
+            builder.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
+
+        builder.add(RequestCompressionTrait.create(opModel, model));
 
         s3ArnableFields(opModel, model).ifPresent(builder::add);
 

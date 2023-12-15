@@ -33,6 +33,7 @@ public class AsyncBeforeTransmissionExecutionInterceptorsStage implements
 
         input.whenComplete((r, t) -> {
             if (t != null) {
+                future.completeExceptionally(t);
                 return;
             }
 

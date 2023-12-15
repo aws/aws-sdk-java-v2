@@ -182,6 +182,8 @@ public class DeleteItemOperation<T>
                                                              DeleteItemEnhancedRequest enhancedRequest) {
         requestBuilder = requestBuilder.returnConsumedCapacity(enhancedRequest.returnConsumedCapacityAsString());
         requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
+        requestBuilder =
+            requestBuilder.returnValuesOnConditionCheckFailure(enhancedRequest.returnValuesOnConditionCheckFailureAsString());
         return requestBuilder;
     }
 }

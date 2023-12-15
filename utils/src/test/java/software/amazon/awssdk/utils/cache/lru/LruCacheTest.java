@@ -251,7 +251,7 @@ public class LruCacheTest {
         return Stream.of(Arguments.of(1000, 5000, false, 5),
                          Arguments.of(1000, 5000, false, 50),
                          Arguments.of(100, 1000, true, 5)
-                         );
+        );
     }
 
     private void assertCacheState(LruCache<Integer, String> cache, String result, int size, int index) {

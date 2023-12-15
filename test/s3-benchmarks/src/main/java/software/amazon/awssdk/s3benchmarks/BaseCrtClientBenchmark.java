@@ -23,7 +23,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.crt.s3.CrtS3RuntimeException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
@@ -143,9 +144,10 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         @Override
         public void onFinished(S3FinishedResponseContext context) {
             if (context.getErrorCode() != 0) {
+                String errorMessage = String.format("Request failed. %s Response status: %s ",
+                                                    CRT.awsErrorString(context.getErrorCode()), context.getResponseStatus());
                 resultFuture.completeExceptionally(
-                    new CrtS3RuntimeException(context.getErrorCode(), context.getResponseStatus(),
-                                              context.getErrorPayload()));
+                    SdkClientException.create(errorMessage));
                 return;
             }
             resultFuture.complete(null);

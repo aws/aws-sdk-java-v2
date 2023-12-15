@@ -34,8 +34,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AwsSignerWithChecksumTest {
 
-    final ChecksumSpecs SHA_256_HEADER = getCheckSum(Algorithm.SHA256, false, "header-sha256");
-    final ChecksumSpecs SHA_256_TRAILER = getCheckSum(Algorithm.SHA256, true, "trailer-sha256");
+    final String headerName = "x-amz-checksum-sha256";
+    final ChecksumSpecs SHA_256_HEADER = getCheckSum(Algorithm.SHA256, false, headerName);
     private final Aws4Signer signer = Aws4Signer.create();
     private final AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
 
@@ -44,7 +44,7 @@ public class AwsSignerWithChecksumTest {
         SdkHttpFullRequest.Builder request = generateBasicRequest("abc");
         ExecutionAttributes executionAttributes = getExecutionAttributes(SHA_256_HEADER);
         SdkHttpFullRequest signed = signer.sign(request.build(), executionAttributes);
-        final Optional<String> checksumHeader = signed.firstMatchingHeader("header-sha256");
+        final Optional<String> checksumHeader = signed.firstMatchingHeader(headerName);
         assertThat(checksumHeader).hasValue("ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=");
     }
 
@@ -53,8 +53,7 @@ public class AwsSignerWithChecksumTest {
         SdkHttpFullRequest.Builder request = generateBasicRequest("abc");
         ExecutionAttributes executionAttributes = getExecutionAttributes(null);
         SdkHttpFullRequest signed = signer.sign(request.build(), executionAttributes);
-        assertThat(signed.firstMatchingHeader("header-sha256")).isNotPresent();
-        assertThat(signed.firstMatchingHeader("trailer-sha256")).isNotPresent();
+        assertThat(signed.firstMatchingHeader(headerName)).isNotPresent();
     }
 
     @Test
@@ -62,8 +61,7 @@ public class AwsSignerWithChecksumTest {
         SdkHttpFullRequest.Builder request = generateBasicRequest("abc");
         ExecutionAttributes executionAttributes = getExecutionAttributes(null);
         SdkHttpFullRequest signed = signer.sign(request.build(), executionAttributes);
-        assertThat(signed.firstMatchingHeader("header-sha256")).isNotPresent();
-        assertThat(signed.firstMatchingHeader("trailer-sha25")).isNotPresent();
+        assertThat(signed.firstMatchingHeader(headerName)).isNotPresent();
     }
 
     private ExecutionAttributes getExecutionAttributes(ChecksumSpecs checksumSpecs) {

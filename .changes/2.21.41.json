@@ -1,0 +1,30 @@
+{
+    "version": "2.21.41",
+    "date": "2023-12-07",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Bundle",
+            "contributor": "",
+            "description": "Fix failure to bind to SLF4J binding at runtime when using the SDK bundle."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeDeploy",
+            "contributor": "",
+            "description": "This release adds support for two new CodeDeploy features: 1) zonal deployments for Amazon EC2 in-place deployments, 2) deployments triggered by Auto Scaling group termination lifecycle hook events."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2 - Codegen",
+            "contributor": "",
+            "description": "Allow users to customize package name."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

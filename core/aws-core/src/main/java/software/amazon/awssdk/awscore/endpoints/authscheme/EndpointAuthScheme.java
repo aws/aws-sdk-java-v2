@@ -24,4 +24,8 @@ import software.amazon.awssdk.endpoints.Endpoint;
 @SdkProtectedApi
 public interface EndpointAuthScheme {
     String name();
+
+    default String schemeId() {
+        throw new UnsupportedOperationException();
+    }
 }

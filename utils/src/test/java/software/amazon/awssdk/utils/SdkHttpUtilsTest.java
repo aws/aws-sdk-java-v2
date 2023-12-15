@@ -29,10 +29,29 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class SdkHttpUtilsTest {
+
+    private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
+
+    @BeforeEach
+    public void setup() {
+        ENVIRONMENT_VARIABLE_HELPER.reset();
+    }
+
+    @AfterEach
+    public void clear() {
+        ENVIRONMENT_VARIABLE_HELPER.reset();
+    }
+
     @Test
     public void urlValuesEncodeCorrectly() {
         String nonEncodedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~";
@@ -218,5 +237,56 @@ public class SdkHttpUtilsTest {
                                        entry("noval", Arrays.asList((String)null)),
                                        entry("decoded&Part", Arrays.asList("equals=val")));
     }
+
+    @Test
+    void parseSingleNonProxyHost(){
+        String singleHostName = "singleHost" ;
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", singleHostName);
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).isEqualTo(Stream.of(singleHostName.toLowerCase()).collect(Collectors.toSet()));
+    }
+    
+    @Test
+    void parseNullNonProxyHost(){
+        ENVIRONMENT_VARIABLE_HELPER.remove("no_proxy");
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).isEmpty();
+    }
+
+    @Test
+    void parseEmptyStringNonProxyHost(){
+        String emptyHostname = "" ;
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", emptyHostname);
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).isEmpty();
+    }
+
+    @Test
+    void parseListOfNonProxyHostWithCommas(){
+        String multipleHostNames =  "test1.com,test2.com,test3.com" ;
+
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", multipleHostNames);
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).isEqualTo(Stream.of("test1.com","test2.com","test3.com").collect(Collectors.toSet()));
+    }
+
+    @Test
+    void parseListOfNonProxyHostWithCommasAndWildCard(){
+        String multipleHostNames = "example.com,*greedy.org,192.168.1.1";
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", multipleHostNames);
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).isEqualTo(Stream.of("example.com", ".*?greedy.org", "192.168.1.1")
+                                                       .collect(Collectors.toSet()));
+    }
+
+    @Test
+    void parseListOfNonProxyHostWithPipesAndWildCard(){
+        String multipleHostNames = "example.com|*greedy.org|192.168.1.1";
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", multipleHostNames);
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).isEqualTo(Stream.of("example.com", ".*?greedy.org", "192.168.1.1")
+                                            .collect(Collectors.toSet()));
+    }
+
 
 }

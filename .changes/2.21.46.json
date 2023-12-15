@@ -1,0 +1,90 @@
+{
+    "version": "2.21.46",
+    "date": "2023-12-14",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Bundle",
+            "contributor": "",
+            "description": "Fix an issue where `NoSuchMethodError` can be thrown an runtime if the SLF4J implementation detects multiple bindings when using the SDK bundle."
+        },
+        {
+            "type": "feature",
+            "category": "AWS B2B Data Interchange",
+            "contributor": "",
+            "description": "Documentation updates for AWS B2B Data Interchange"
+        },
+        {
+            "type": "feature",
+            "category": "AWSBillingConductor",
+            "contributor": "",
+            "description": "Billing Conductor is releasing a new API, GetBillingGroupCostReport, which provides the ability to retrieve/view the Billing Group Cost Report broken down by attributes for a specific billing group."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Tower",
+            "contributor": "",
+            "description": "Documentation updates for AWS Control Tower."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release adds the ability to self-manage certificate signing in AWS IoT Core fleet provisioning using the new certificate provider resource."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "This release includes support for images of Windows Server 2022 platform."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds support for more granular billing using tags (key:value pairs)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "Amazon GameLift adds the ability to add and update the game properties of active game sessions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Firehose",
+            "contributor": "",
+            "description": "This release, 1) adds configurable buffering hints for the Splunk destination, and 2) reduces the minimum configurable buffering interval for supported destinations"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune Graph",
+            "contributor": "",
+            "description": "This is the initial SDK release for Amazon Neptune Analytics"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "Updating documentation for Amazon OpenSearch Service support for new zero-ETL integration with Amazon S3."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Update Dashboard Links support; SingleAxisOptions support; Scatterplot Query limit support."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Updated note to ensure customers understand running modes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

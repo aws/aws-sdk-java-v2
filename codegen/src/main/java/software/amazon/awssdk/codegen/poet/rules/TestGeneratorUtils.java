@@ -20,10 +20,12 @@ import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.fasterxml.jackson.jr.stree.JrsValue;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,9 @@ import java.util.Optional;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.config.customization.EndpointAuthSchemeConfig;
+import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ExpectModel;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
@@ -43,7 +48,17 @@ public final class TestGeneratorUtils {
     private TestGeneratorUtils() {
     }
 
-    public static CodeBlock createExpect(ExpectModel expect, OperationModel opModel, Map<String, TreeNode> opParams) {
+    public static CodeBlock createExpect(CustomizationConfig config, ExpectModel expect, OperationModel opModel,
+                                         Map<String, TreeNode> opParams) {
+        EndpointAuthSchemeConfig endpointAuthSchemeConfig = config.getEndpointAuthSchemeConfig();
+        if (endpointAuthSchemeConfig == null) {
+            return createExpect(expect, opModel, opParams, new HashMap<>());
+        }
+        return createExpect(expect, opModel, opParams, endpointAuthSchemeConfig.getEndpointProviderTestKeys());
+    }
+
+    public static CodeBlock createExpect(ExpectModel expect, OperationModel opModel, Map<String, TreeNode> opParams,
+                                         Map<String, KeyTypePair> knownEndpointAttributes) {
         CodeBlock.Builder b = CodeBlock.builder();
 
         b.add("$T.builder()", Expect.class);
@@ -59,7 +74,6 @@ public final class TestGeneratorUtils {
             endpointBuilder.add("$T.builder()", Endpoint.class);
             endpointBuilder.add(".url($T.create($S))", URI.class, expectedUrl);
 
-
             if (endpoint.getHeaders() != null) {
                 Map<String, List<String>> expectHeaders = endpoint.getHeaders();
                 expectHeaders.forEach((name, values) -> {
@@ -69,7 +83,7 @@ public final class TestGeneratorUtils {
 
             if (endpoint.getProperties() != null) {
                 endpoint.getProperties().forEach((name, value) -> {
-                    addEndpointAttributeBlock(endpointBuilder, name, value);
+                    addEndpointAttributeBlock(endpointBuilder, name, value, knownEndpointAttributes);
                 });
             }
 
@@ -93,13 +107,37 @@ public final class TestGeneratorUtils {
         return Optional.ofNullable(endpointTrait.getHostPrefix());
     }
 
-    private static void addEndpointAttributeBlock(CodeBlock.Builder builder, String attrName, TreeNode attrValue) {
-        switch (attrName) {
-            case "authSchemes":
-                addAuthSchemesBlock(builder, attrValue);
+    private static void addEndpointAttributeBlock(CodeBlock.Builder builder, String attrName, TreeNode attrValue,
+                                                  Map<String, KeyTypePair> knownEndpointAttributes) {
+        if ("authSchemes".equals(attrName)) {
+            addAuthSchemesBlock(builder, attrValue);
+        } else if (knownEndpointAttributes.containsKey(attrName)) {
+            addAttributeBlock(builder, attrValue, knownEndpointAttributes.get(attrName));
+        } else {
+            throw new RuntimeException(
+                String.format("Encountered unknown expected endpoint attribute: %s. Known attributes: %s.",
+                              attrName,
+                              knownEndpointAttributes));
+        }
+    }
+
+    private static void addAttributeBlock(CodeBlock.Builder builder, TreeNode attrValue, KeyTypePair keyType) {
+        CodeBlock keyExpr = CodeBlock.builder()
+                                     .add("$L", keyType.getKey())
+                                     .build();
+        switch (keyType.getType()) {
+            case "string": {
+                JrsString val = (JrsString) attrValue;
+                builder.add(".putAttribute($L, $S)", keyExpr, val.getValue());
                 break;
+            }
+            case "boolean": {
+                JrsBoolean val = (JrsBoolean) attrValue;
+                builder.add(".putAttribute($L, $L)", keyExpr, val.booleanValue());
+                break;
+            }
             default:
-                throw new RuntimeException("Encountered unknown expected endpoint attribute: " + attrName);
+                throw new RuntimeException("Unknown endpointProviderTestKeys type: " + keyType);
         }
     }
 
@@ -109,7 +147,7 @@ public final class TestGeneratorUtils {
                                      .build();
 
         CodeBlock.Builder schemesListExpr = CodeBlock.builder()
-            .add("$T.asList(", Arrays.class);
+                                                     .add("$T.asList(", Arrays.class);
 
         JrsArray schemesArray = (JrsArray) attrValue;
 
@@ -126,7 +164,6 @@ public final class TestGeneratorUtils {
         builder.add(".putAttribute($L, $L)", keyExpr, schemesListExpr.build());
     }
 
-
     private static CodeBlock authSchemeCreationExpr(TreeNode attrValue) {
         CodeBlock.Builder schemeExpr = CodeBlock.builder();
         String name = ((JrsString) attrValue.get("name")).getValue();
@@ -137,6 +174,13 @@ public final class TestGeneratorUtils {
             case "sigv4a":
                 schemeExpr.add("$T.builder()", SigV4aAuthScheme.class);
                 break;
+            case "sigv4-s3express": {
+                ClassName s3ExpressEndpointAuthScheme =
+                    ClassName.get("software.amazon.awssdk.services.s3.endpoints.authscheme",
+                                  "S3ExpressEndpointAuthScheme");
+                schemeExpr.add("$T.builder()", s3ExpressEndpointAuthScheme);
+                break;
+            }
             default:
                 throw new RuntimeException("Unknown expected auth scheme: " + name);
         }

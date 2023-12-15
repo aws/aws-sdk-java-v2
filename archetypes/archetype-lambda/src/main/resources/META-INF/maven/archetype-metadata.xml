@@ -35,8 +35,8 @@
     <requiredProperty key="service">
     </requiredProperty>
     <requiredProperty key="httpClient">
-      <defaultValue>url-connection-client</defaultValue>
-      <validationRegex>(url-connection-client|apache-client|netty-nio-client)</validationRegex>
+      <defaultValue>aws-crt-client</defaultValue>
+      <validationRegex>(url-connection-client|apache-client|netty-nio-client|aws-crt-client)</validationRegex>
     </requiredProperty>
     <requiredProperty key="region">
      <defaultValue>null</defaultValue>

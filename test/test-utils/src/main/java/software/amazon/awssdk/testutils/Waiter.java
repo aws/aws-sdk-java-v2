@@ -134,7 +134,7 @@ public final class Waiter<T> {
 
                 T result = thingToTry.get();
                 if (whenToStop.test(result)) {
-                    log.info(() -> "Got expected response: " + result);
+                    log.debug(() -> "Got expected response: " + result);
                     return result;
                 } else if (whenToFail.test(result)) {
                     throw new AssertionError("Received a response that matched the failOn predicate: " + result);

@@ -29,6 +29,7 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBodyFromInputStreamConfiguration;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
@@ -52,13 +53,11 @@ public class InputStreamWithExecutorAsyncRequestBody implements AsyncRequestBody
 
     private Future<?> writeFuture;
 
-    public InputStreamWithExecutorAsyncRequestBody(InputStream inputStream,
-                                                   Long contentLength,
-                                                   ExecutorService executor) {
-        this.inputStream = inputStream;
-        this.contentLength = contentLength;
-        this.executor = executor;
-        IoUtils.markStreamWithMaxReadLimit(inputStream);
+    public InputStreamWithExecutorAsyncRequestBody(AsyncRequestBodyFromInputStreamConfiguration configuration) {
+        this.inputStream = configuration.inputStream();
+        this.contentLength = configuration.contentLength();
+        this.executor = configuration.executor();
+        IoUtils.markStreamWithMaxReadLimit(inputStream, configuration.maxReadLimit());
     }
 
     @Override

@@ -88,6 +88,9 @@ public final class S3CrtProxyConfiguration extends CrtProxyConfiguration
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
         @Override
+        Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues);
+
+        @Override
         S3CrtProxyConfiguration build();
     }
 

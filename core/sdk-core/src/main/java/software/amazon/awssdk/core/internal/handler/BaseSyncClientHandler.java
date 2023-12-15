@@ -44,13 +44,11 @@ import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
 public abstract class BaseSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
-    private final SdkClientConfiguration clientConfiguration;
     private final AmazonSyncHttpClient client;
 
     protected BaseSyncClientHandler(SdkClientConfiguration clientConfiguration,
                                     AmazonSyncHttpClient client) {
         super(clientConfiguration);
-        this.clientConfiguration = clientConfiguration;
         this.client = client;
     }
 
@@ -92,14 +90,16 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
      * Invoke the request using the http client. Assumes credentials (or lack thereof) have been
      * configured in the OldExecutionContext beforehand.
      **/
-    private <OutputT> OutputT invoke(SdkHttpFullRequest request,
-                                       SdkRequest originalRequest,
-                                       ExecutionContext executionContext,
-                                       HttpResponseHandler<Response<OutputT>> responseHandler) {
+    private <OutputT> OutputT invoke(SdkClientConfiguration clientConfiguration,
+                                     SdkHttpFullRequest request,
+                                     SdkRequest originalRequest,
+                                     ExecutionContext executionContext,
+                                     HttpResponseHandler<Response<OutputT>> responseHandler) {
         return client.requestExecutionBuilder()
                      .request(request)
                      .originalRequest(originalRequest)
                      .executionContext(executionContext)
+                     .httpClientDependencies(c -> c.clientConfiguration(clientConfiguration))
                      .execute(responseHandler);
     }
 
@@ -151,7 +151,8 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         InterceptorContext sdkHttpFullRequestContext = finalizeSdkHttpFullRequest(executionParams,
                                                                                   executionContext,
                                                                                   inputT,
-                                                                                  clientConfiguration);
+                                                                                  resolveRequestConfiguration(
+                                                                                      executionParams));
 
         SdkHttpFullRequest marshalled = (SdkHttpFullRequest) sdkHttpFullRequestContext.httpRequest();
 
@@ -168,7 +169,9 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
                                    .build();
         }
 
-        return invoke(marshalled,
+        SdkClientConfiguration clientConfiguration = resolveRequestConfiguration(executionParams);
+        return invoke(clientConfiguration,
+                      marshalled,
                       inputT,
                       executionContext,
                       responseHandler);

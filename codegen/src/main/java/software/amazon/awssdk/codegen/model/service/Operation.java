@@ -49,6 +49,8 @@ public class Operation {
 
     private AuthType authtype;
 
+    private List<String> auth;
+
     private boolean httpChecksumRequired;
 
     private HttpChecksum httpChecksum;
@@ -142,6 +144,14 @@ public class Operation {
 
     public void setAuthtype(String authtype) {
         this.authtype = AuthType.fromValue(authtype);
+    }
+
+    public List<String> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<String> auth) {
+        this.auth = auth;
     }
 
     public String getAuthorizer() {

@@ -20,13 +20,18 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.AttributeMap;
 
 class SdkHttpExecutionAttributesTest {
 
     @Test
     void equalsAndHashcode() {
+        AttributeMap one = AttributeMap.empty();
+        AttributeMap two = AttributeMap.builder().put(TestExecutionAttribute.TEST_KEY_FOO, "test").build();
+
         EqualsVerifier.forClass(SdkHttpExecutionAttributes.class)
                       .withNonnullFields("attributes")
+                      .withPrefabValues(AttributeMap.class, one, two)
                       .verify();
     }
 

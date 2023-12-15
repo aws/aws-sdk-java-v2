@@ -1,0 +1,36 @@
+{
+    "version": "2.21.15",
+    "date": "2023-11-03",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "michaeldimchuk",
+            "description": "Fixed the AttributeMap#close method trying to close an ExecutorService instance instead of shutting it down, resulting in a deadlock starting with Java 21"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Updated ResourceType enum with new resource types onboarded by AWS Config in October 2023."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Added LoRaWAN version 1.0.4 support"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Launch Wizard",
+            "contributor": "",
+            "description": "AWS Launch Wizard is a service that helps reduce the time it takes to deploy applications to the cloud while providing a guided deployment experience."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Chat introduces Create Persistent Contact Association API, allowing customers to choose when to resume previous conversations from previous chats, eliminating the need to repeat themselves and allowing agents to provide personalized service with access to entire conversation history."
+        }
+    ]
+}

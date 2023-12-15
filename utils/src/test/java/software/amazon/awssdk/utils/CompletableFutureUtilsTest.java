@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.AfterClass;
@@ -159,4 +161,49 @@ public class CompletableFutureUtilsTest {
         assertThat(resultFuture.isDone()).isTrue();
         assertThat(resultFuture.isCompletedExceptionally()).isFalse();
     }
-}
+
+    @Test(timeout = 1000)
+    public void joinLikeSync_completesExceptionally_throwsUnderlyingException() {
+        Exception e = new RuntimeException("BOOM");
+        CompletableFuture future = new CompletableFuture();
+        future.completeExceptionally(e);
+
+        assertThatThrownBy(() -> CompletableFutureUtils.joinLikeSync(future))
+            .hasSuppressedException(new RuntimeException("Task failed."))
+            .isEqualTo(e);
+    }
+
+    @Test(timeout = 1000)
+    public void joinLikeSync_completesExceptionallyChecked_throwsCompletionException() {
+        Exception e = new Exception("BOOM");
+        CompletableFuture future = new CompletableFuture();
+        future.completeExceptionally(e);
+
+        assertThatThrownBy(() -> CompletableFutureUtils.joinLikeSync(future))
+            .hasNoSuppressedExceptions()
+            .hasCause(e)
+            .isInstanceOf(CompletionException.class);
+    }
+
+    @Test(timeout = 1000)
+    public void joinLikeSync_completesExceptionallyWithError_throwsError() {
+        Error e = new Error("BOOM");
+        CompletableFuture future = new CompletableFuture();
+        future.completeExceptionally(e);
+
+        assertThatThrownBy(() -> CompletableFutureUtils.joinLikeSync(future))
+            .hasNoSuppressedExceptions()
+            .isEqualTo(e);
+    }
+
+    @Test(timeout = 1000)
+    public void joinLikeSync_canceled_throwsCancellationException() {
+        Exception e = new Exception("BOOM");
+        CompletableFuture future = new CompletableFuture();
+        future.cancel(false);
+
+        assertThatThrownBy(() -> CompletableFutureUtils.joinLikeSync(future))
+            .hasNoSuppressedExceptions()
+            .hasNoCause()
+            .isInstanceOf(CancellationException.class);
+    }}

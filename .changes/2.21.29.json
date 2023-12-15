@@ -1,0 +1,24 @@
+{
+    "version": "2.21.29",
+    "date": "2023-11-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Amazon S3 Batch Operations now manages buckets or prefixes in a single step."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis",
+            "contributor": "",
+            "description": "This release adds support for resource based policies on streams and consumers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This feature adds the end user license agreement status as a model access configuration parameter."
+        }
+    ]
+}

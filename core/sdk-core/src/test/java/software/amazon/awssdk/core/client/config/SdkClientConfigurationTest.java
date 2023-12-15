@@ -17,13 +17,19 @@ package software.amazon.awssdk.core.client.config;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public class SdkClientConfigurationTest {
 
     @Test
     public void equalsHashcode() {
+        AttributeMap one = AttributeMap.empty();
+        AttributeMap two = AttributeMap.builder().put(SdkClientOption.CLIENT_TYPE, ClientType.SYNC).build();
+
         EqualsVerifier.forClass(SdkClientConfiguration.class)
                       .withNonnullFields("attributes")
+                      .withPrefabValues(AttributeMap.class, one, two)
                       .verify();
     }
 }

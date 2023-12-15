@@ -22,6 +22,7 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlAsyncClient;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
@@ -72,10 +73,32 @@ public class ServiceClientConfigurationTest {
                                                             .build();
 
 
+        ClientOverrideConfiguration overrideConfig = client.serviceClientConfiguration().overrideConfiguration();
+        assertThat(overrideConfig.apiCallAttemptTimeout().get()).isEqualTo(Duration.ofSeconds(30));
+        assertThat(overrideConfig.apiCallTimeout().get()).isEqualTo(Duration.ofSeconds(90));
+        assertThat(overrideConfig.retryPolicy().get().numRetries()).isEqualTo(4);
+        assertThat(overrideConfig.defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
+        assertThat(overrideConfig.metricPublishers()).isEmpty();
+    }
+
+    @Test
+    public void syncClient_serviceClientConfiguration_includesAllSettingsInToString() {
+        ClientOverrideConfiguration overrideConfiguration = ClientOverrideConfiguration.builder()
+                                                                                       .apiCallAttemptTimeout(Duration.ofSeconds(30))
+                                                                                       .apiCallTimeout(Duration.ofSeconds(90))
+                                                                                       .retryPolicy(c -> c.numRetries(4))
+                                                                                       .build();
+
+        ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
+                                                            .overrideConfiguration(overrideConfiguration)
+                                                            .region(Region.US_WEST_2)
+                                                            .build();
+
+
         assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout().get()).isEqualTo(Duration.ofSeconds(30));
         assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallTimeout().get()).isEqualTo(Duration.ofSeconds(90));
         assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy().get().numRetries()).isEqualTo(4);
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
         assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
     }
 
@@ -84,13 +107,12 @@ public class ServiceClientConfigurationTest {
         ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
                                                             .build();
 
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().toString()).isEqualTo(
-            "ClientOverrideConfiguration(headers={}, executionInterceptors=[], advancedOptions={})");
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallTimeout()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+        ClientOverrideConfiguration overrideConfig = client.serviceClientConfiguration().overrideConfiguration();
+        assertThat(overrideConfig.apiCallAttemptTimeout()).isNotPresent();
+        assertThat(overrideConfig.apiCallTimeout()).isNotPresent();
+        assertThat(overrideConfig.retryPolicy().get().numRetries()).isEqualTo(3);
+        assertThat(overrideConfig.defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
+        assertThat(overrideConfig.metricPublishers()).isEmpty();
     }
 
     @Test
@@ -156,11 +178,12 @@ public class ServiceClientConfigurationTest {
                                                                       .build();
 
 
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout().get()).isEqualTo(Duration.ofSeconds(30));
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallTimeout().get()).isEqualTo(Duration.ofSeconds(90));
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy().get().numRetries()).isEqualTo(4);
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+        ClientOverrideConfiguration overrideConfig = client.serviceClientConfiguration().overrideConfiguration();
+        assertThat(overrideConfig.apiCallAttemptTimeout().get()).isEqualTo(Duration.ofSeconds(30));
+        assertThat(overrideConfig.apiCallTimeout().get()).isEqualTo(Duration.ofSeconds(90));
+        assertThat(overrideConfig.retryPolicy().get().numRetries()).isEqualTo(4);
+        assertThat(overrideConfig.defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
+        assertThat(overrideConfig.metricPublishers()).isEmpty();
     }
 
     @Test
@@ -168,13 +191,12 @@ public class ServiceClientConfigurationTest {
         ProtocolRestXmlAsyncClient client = ProtocolRestXmlAsyncClient.builder()
                                                                       .build();
 
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().toString()).isEqualTo(
-            "ClientOverrideConfiguration(headers={}, executionInterceptors=[], advancedOptions={})");
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallTimeout()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
-        assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+        ClientOverrideConfiguration overrideConfig = client.serviceClientConfiguration().overrideConfiguration();
+        assertThat(overrideConfig.apiCallAttemptTimeout()).isNotPresent();
+        assertThat(overrideConfig.apiCallTimeout()).isNotPresent();
+        assertThat(overrideConfig.retryPolicy().get().numRetries()).isEqualTo(3);
+        assertThat(overrideConfig.defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
+        assertThat(overrideConfig.metricPublishers()).isEmpty();
     }
 
 

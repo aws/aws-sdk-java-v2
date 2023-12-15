@@ -36,12 +36,20 @@ public final class SignerOverrideUtils {
     private SignerOverrideUtils() {
     }
 
+    /**
+     * @deprecated No longer used by modern clients after migration to reference architecture
+     */
+    @Deprecated
     public static SdkRequest overrideSignerIfNotOverridden(SdkRequest request,
                                                            ExecutionAttributes executionAttributes,
                                                            Signer signer) {
         return overrideSignerIfNotOverridden(request, executionAttributes, () -> signer);
     }
-    
+
+    /**
+     * @deprecated No longer used by modern clients after migration to reference architecture
+     */
+    @Deprecated
     public static SdkRequest overrideSignerIfNotOverridden(SdkRequest request,
                                                            ExecutionAttributes executionAttributes,
                                                            Supplier<Signer> signer) {
@@ -52,13 +60,17 @@ public final class SignerOverrideUtils {
     }
 
     public static boolean isSignerOverridden(SdkRequest request, ExecutionAttributes executionAttributes) {
-        Optional<Boolean> isClientSignerOverridden = Optional.ofNullable(
-            executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
+        boolean isClientSignerOverridden =
+            Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
         Optional<Signer> requestSigner = request.overrideConfiguration()
                                                 .flatMap(RequestOverrideConfiguration::signer);
-        return isClientSignerOverridden.isPresent() || requestSigner.isPresent();
+        return isClientSignerOverridden || requestSigner.isPresent();
     }
 
+    /**
+     * @deprecated No longer used by modern clients after migration to reference architecture
+     */
+    @Deprecated
     private static SdkRequest overrideSigner(SdkRequest request, Signer signer) {
         return request.overrideConfiguration()
                       .flatMap(config -> config.signer()
@@ -66,6 +78,10 @@ public final class SignerOverrideUtils {
                       .orElseGet(() -> createNewRequest(request, signer));
     }
 
+    /**
+     * @deprecated No longer used by modern clients after migration to reference architecture
+     */
+    @Deprecated
     private static SdkRequest createNewRequest(SdkRequest request, Signer signer) {
         AwsRequest awsRequest = (AwsRequest) request;
 

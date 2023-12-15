@@ -114,7 +114,7 @@ public class RestXmlEventStreamProtocolTest {
         TestHandler testHandler = new TestHandler();
         client.eventStreamOperation(r -> {}, testHandler).join();
 
-        assertThat(testHandler.receivedEvents).containsExactly(EventStream.eventPayloadEventBuilder().foo("bar").build());
+        assertThat(testHandler.receivedEvents).containsExactly(EventStream.eventPayloadEventBuilder().foo("<Foo>bar</Foo>").build());
         assertThat(testHandler.receivedEvents.get(0).sdkEventType()).isEqualTo(EventStream.EventType.EVENT_PAYLOAD_EVENT);
     }
 
@@ -130,7 +130,7 @@ public class RestXmlEventStreamProtocolTest {
         TestHandler testHandler = new TestHandler();
         client.eventStreamOperation(r -> {}, testHandler).join();
 
-        assertThat(testHandler.receivedEvents).containsExactly(EventStream.secondEventPayloadEventBuilder().foo("bar").build());
+        assertThat(testHandler.receivedEvents).containsExactly(EventStream.secondEventPayloadEventBuilder().foo("<Foo>bar</Foo>").build());
         assertThat(testHandler.receivedEvents.get(0).sdkEventType()).isEqualTo(EventStream.EventType.SECOND_EVENT_PAYLOAD_EVENT);
     }
 
