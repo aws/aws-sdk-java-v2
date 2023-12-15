@@ -45,10 +45,12 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     private final SimplePublisher<ByteBuffer> responsePublisher = new SimplePublisher<>();
 
-    private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
+    private volatile SdkHttpResponse.Builder initialHeadersResponse;
     private volatile S3MetaRequest metaRequest;
 
     private final PublisherListener<S3MetaRequestProgress> progressListener;
+
+    private volatile boolean responseHandlingInitiated;
 
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
                                        SdkAsyncHttpResponseHandler responseHandler,
@@ -60,17 +62,13 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     @Override
     public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
-        for (HttpHeader h : headers) {
-            respBuilder.appendHeader(h.getName(), h.getValue());
-        }
-
-        respBuilder.statusCode(statusCode);
-        responseHandler.onHeaders(respBuilder.build());
-        responseHandler.onStream(responsePublisher);
+        initialHeadersResponse = toSdkHttpResponse(statusCode, headers);
     }
 
     @Override
     public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
+        initiateResponseHandling(initialHeadersResponse.build());
+
         if (bodyBytesIn == null) {
             failResponseHandlerAndFuture(new IllegalStateException("ByteBuffer delivered is null"));
             return 0;
@@ -98,6 +96,10 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         if (crtCode != CRT.AWS_CRT_SUCCESS) {
             handleError(context);
         } else {
+            // onResponseBody() is not invoked for responses with no content,
+            // so we may not have invoked
+            // SdkAsyncHttpResponseHandler#onHeaders yet
+            initiateResponseHandling(initialHeadersResponse.build());
             onSuccessfulResponseComplete();
         }
     }
@@ -127,10 +129,13 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     private void handleError(S3FinishedResponseContext context) {
         int crtCode = context.getErrorCode();
+        HttpHeader[] headers = context.getErrorHeaders();
         int responseStatus = context.getResponseStatus();
         byte[] errorPayload = context.getErrorPayload();
 
         if (isErrorResponse(responseStatus) && errorPayload != null) {
+            SdkHttpResponse errorResponse = toSdkHttpResponse(responseStatus, headers).build();
+            initiateResponseHandling(errorResponse);
             onErrorResponseComplete(errorPayload);
         } else {
             Throwable cause = context.getCause();
@@ -139,6 +144,14 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                 SdkClientException.create("Failed to send the request: " +
                                           CRT.awsErrorString(crtCode), cause);
             failResponseHandlerAndFuture(sdkClientException);
+        }
+    }
+
+    private void initiateResponseHandling(SdkHttpResponse response) {
+        if (!responseHandlingInitiated) {
+            responseHandlingInitiated = true;
+            responseHandler.onHeaders(response);
+            responseHandler.onStream(responsePublisher);
         }
     }
 
@@ -174,6 +187,15 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     @Override
     public void onProgress(S3MetaRequestProgress progress) {
         this.progressListener.subscriberOnNext(progress);
+    }
+
+    private static SdkHttpResponse.Builder toSdkHttpResponse(int statusCode, HttpHeader[] headers) {
+        SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
+        for (HttpHeader h : headers) {
+            respBuilder.appendHeader(h.getName(), h.getValue());
+        }
+        respBuilder.statusCode(statusCode);
+        return respBuilder;
     }
 
     private static class NoOpPublisherListener implements PublisherListener<S3MetaRequestProgress> {
