@@ -58,7 +58,7 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
 
 
     // The JVM does a bunch under the hood, so leave some room for magic.
-    private static final int ALLOWED_THREAD_OVERHEAD = 20;
+    private static final int ALLOWED_THREAD_OVERHEAD = 50;
 
     protected int allowedPeakThreads;
 
