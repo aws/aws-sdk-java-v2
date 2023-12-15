@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransfor
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
 import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.SplittingTransformer;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -262,5 +263,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     static <ResponseT extends SdkResponse>
             AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
         return new InputStreamResponseTransformer<>();
+    }
+
+    default SdkPublisher<AsyncResponseTransformer<ResponseT, ResultT>> split() {
+        return new SplittingTransformer<>(this);
     }
 }

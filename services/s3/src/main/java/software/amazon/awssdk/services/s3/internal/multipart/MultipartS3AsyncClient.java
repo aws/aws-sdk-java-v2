@@ -18,10 +18,13 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
@@ -73,8 +76,34 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        throw new UnsupportedOperationException(
-            "Multipart download is not yet supported. Instead use the CRT based S3 client for multipart download.");
+
+
+        asyncResponseTransformer.split().subscribe(new Subscriber<AsyncResponseTransformer<GetObjectResponse, ReturnT>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<GetObjectResponse, ReturnT> responseTransformer) {
+                GetObjectRequest getObjectRequestPerPart = null;
+                getObject(getObjectRequestPerPart, responseTransformer);
+
+            }
+
+            @Override
+            public void onError(Throwable t) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+
+        return null;
     }
 
     @Override

@@ -71,7 +71,12 @@ public interface SdkPublisher<T> extends Publisher<T> {
      * @return New publisher, filtered to just the events that match the predicate.
      */
     default SdkPublisher<T> filter(Predicate<T> predicate) {
-        return subscriber -> subscribe(new FilteringSubscriber<>(subscriber, predicate));
+        return new SdkPublisher<T>() {
+            @Override
+            public void subscribe(Subscriber<? super T> subscriber) {
+                SdkPublisher.this.subscribe(new FilteringSubscriber<>(subscriber, predicate));
+            }
+        };
     }
 
     /**
