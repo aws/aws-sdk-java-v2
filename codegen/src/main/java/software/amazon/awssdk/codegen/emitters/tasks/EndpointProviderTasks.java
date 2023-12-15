@@ -27,6 +27,7 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.DefaultPartitionDataProviderSpec;
+import software.amazon.awssdk.codegen.poet.rules.DefaultPartitionDataProviderSpec2;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParametersClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderInterfaceSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderSpec;
@@ -53,9 +54,11 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
             tasks.add(generateDefaultProvider2());
             tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
             tasks.add(new RulesEngineRuntimeGeneratorTask2(generatorTaskParams));
+            tasks.add(generateDefaultPartitionsProvider2());
         } else {
             tasks.add(generateDefaultProvider());
             tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
+            tasks.add(generateDefaultPartitionsProvider());
         }
         tasks.addAll(generateInterceptors());
         if (shouldGenerateEndpointTests()) {
@@ -67,7 +70,6 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         if (hasClientContextParams()) {
             tasks.add(generateClientContextParams());
         }
-        tasks.add(generateDefaultPartitionsProvider());
         return tasks;
     }
 
@@ -90,6 +92,11 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private GeneratorTask generateDefaultPartitionsProvider() {
         return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(),
                                      new DefaultPartitionDataProviderSpec(model));
+    }
+
+    private GeneratorTask generateDefaultPartitionsProvider2() {
+        return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(),
+                                     new DefaultPartitionDataProviderSpec2(model));
     }
 
     private boolean shouldGenerateCompiledEndpointRules() {
