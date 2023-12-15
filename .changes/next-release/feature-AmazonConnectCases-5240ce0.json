@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Cases",
+    "contributor": "",
+    "description": "Increase number of fields that can be included in CaseEventIncludedData from 50 to 200"
+}
