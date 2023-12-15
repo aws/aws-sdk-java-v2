@@ -30,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.CSVInput;
@@ -54,16 +55,19 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
                                                + "C,D";
     private static final String QUERY = "select s._1 from S3Object s";
 
+    private static S3AsyncClient s3CrtClient;
+
     @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
         s3.createBucket(r -> r.bucket(BUCKET_NAME));
         s3.waiter().waitUntilBucketExists(r -> r.bucket(BUCKET_NAME));
         s3.putObject(r -> r.bucket(BUCKET_NAME).key(KEY), RequestBody.fromString(CSV_CONTENTS));
+        s3CrtClient = crtClientBuilder().build();
     }
 
     private static Stream<S3AsyncClient> s3AsyncClients() {
-        return Stream.of(crtClientBuilder().build(), s3AsyncClientBuilder().build());
+        return Stream.of(s3CrtClient, s3Async);
     }
 
     @AfterAll
@@ -73,10 +77,11 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         } finally {
             s3AsyncClients().forEach(SdkAutoCloseable::close);
             s3.close();
+            CrtResource.waitForNoResources();
         }
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
     public void selectObjectContent_onResponseInvokedWithResponse(S3AsyncClient client) {
         TestHandler handler = new TestHandler();
@@ -85,7 +90,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(handler.response).isNotNull();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
     public void selectObjectContent_recordsEventUnmarshalledCorrectly(S3AsyncClient client) {
         TestHandler handler = new TestHandler();
@@ -99,7 +104,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(recordsEvent.payload().asUtf8String()).contains("A\nC");
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
     public void selectObjectContent_invalidQuery_unmarshallsErrorResponse(S3AsyncClient client) {
         TestHandler handler = new TestHandler();
