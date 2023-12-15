@@ -82,7 +82,10 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
 
     @Override
     public void onComplete() {
-        callQueue.add(new QueueEntry(true, delegate::onComplete));
+        callQueue.add(new QueueEntry(true, () -> {
+            delegate.onComplete();
+            inputStreamState.set(State.STREAMING_DONE);
+        }));
         drainQueue();
     }
 
@@ -125,6 +128,11 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
     @Override
     public void close() {
         synchronized (subscribeLock) {
+            // If it is done, no-op
+            if (inputStreamState.get().equals(State.STREAMING_DONE)) {
+                return;
+            }
+
             if (inputStreamState.compareAndSet(State.UNINITIALIZED, State.CLOSED)) {
                 delegate.onSubscribe(new NoOpSubscription());
                 delegate.onError(new CancellationException());
@@ -153,6 +161,9 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
         while (true) {
             QueueEntry entry = callQueue.poll();
             if (done || entry == null) {
+                if  (done) {
+                    inputStreamState.set(State.STREAMING_DONE);
+                }
                 return;
             }
             done = entry.terminal;
@@ -173,7 +184,8 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
     private enum State {
         UNINITIALIZED,
         READABLE,
-        CLOSED
+        CLOSED,
+        STREAMING_DONE
     }
 
     private final class CancelWatcher implements Subscription {

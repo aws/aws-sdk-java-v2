@@ -38,7 +38,7 @@ public class HttpExecuteResponse {
     }
 
     /**
-     * /** Get the {@link AbortableInputStream} associated with this response.
+     * Get the {@link AbortableInputStream} associated with this response.
      *
      * <p>Always close the "responseBody" input stream to release the underlying HTTP connection.
      * Even for error responses, the SDK creates an input stream for reading error data. It is essential to close the input stream
