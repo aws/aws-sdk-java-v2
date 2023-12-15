@@ -24,9 +24,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
+import java.util.Properties;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -54,6 +56,18 @@ import software.amazon.awssdk.utils.StringInputStream;
 public class CredentialScopeTest {
     private ProtocolQueryClientBuilder clientBuilder;
     private CapturingInterceptor capturingInterceptor;
+    private static Properties originalProperties;
+
+    @BeforeAll
+    public static void saveSystemProperties() {
+        originalProperties = new Properties();
+        originalProperties.putAll(System.getProperties());
+    }
+
+    @AfterAll
+    public static void restoreSystemProperties() {
+        System.setProperties(originalProperties);
+    }
 
     @BeforeEach
     public void setUp(WireMockRuntimeInfo wiremock) {
@@ -61,11 +75,6 @@ public class CredentialScopeTest {
         clientBuilder = ProtocolQueryClient.builder()
                                     .overrideConfiguration(o -> o.addExecutionInterceptor(capturingInterceptor))
                                     .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()));
-    }
-
-    @AfterEach
-    public void reset() {
-        clearSystemProperties();
     }
 
     /**
@@ -87,11 +96,17 @@ public class CredentialScopeTest {
                                                                                                   .credentialScope("us-east-2")
                                                                                                   .build()));
         }
+
         if (envVarLevel) {
             System.setProperty("aws.accessKeyId", "akid");
             System.setProperty("aws.secretAccessKey", "skid");
             System.setProperty("aws.credentialScope", "us-west-1");
+        } else {
+            System.clearProperty(SdkSystemSetting.AWS_ACCESS_KEY_ID.property());
+            System.clearProperty(SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property());
+            System.clearProperty(SdkSystemSetting.AWS_CREDENTIAL_SCOPE.property());
         }
+
         if (!clientLevel && profileLevel) {
             clientBuilder.credentialsProvider(DefaultCredentialsProvider
                                                   .builder()
@@ -126,12 +141,6 @@ public class CredentialScopeTest {
         } else {
             assertThat(credentialScope).isNull();
         }
-    }
-
-    private void clearSystemProperties() {
-        System.clearProperty(SdkSystemSetting.AWS_ACCESS_KEY_ID.property());
-        System.clearProperty(SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property());
-        System.clearProperty(SdkSystemSetting.AWS_CREDENTIAL_SCOPE.property());
     }
 
     private ProfileFile credentialFile(String name, String accessKeyId, String secretAccessKey, String credentialScope) {
