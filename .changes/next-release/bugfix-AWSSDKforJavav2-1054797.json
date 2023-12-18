@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "When parsing proxy port from system properties, exceptions will be ignored and logged as warning."
+}
