@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Route 53 Resolver",
-    "contributor": "",
-    "description": "Add DOH protocols in resolver endpoints."
-}
