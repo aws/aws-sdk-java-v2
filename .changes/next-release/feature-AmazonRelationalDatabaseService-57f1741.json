@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "RDS - The release adds two new APIs: DescribeDBRecommendations and ModifyDBRecommendation"
-}
