@@ -1,3 +1,32 @@
+# __2.22.2__ __2023-12-19__
+## __AWS AppSync__
+  - ### Features
+    - This release adds additional configurations on GraphQL APIs for limits on query depth, resolver count, and introspection
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - AWS Marketplace now supports a new API, BatchDescribeEntities, which returns metadata and content for multiple entities.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Add meeting features to specify a maximum camera resolution, a maximum content sharing resolution, and a maximum number of attendees for a given meeting.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Provision BYOIPv4 address ranges and advertise them by specifying the network border groups option in Los Angeles, Phoenix and Dallas AWS Local Zones.
+
+## __Amazon FSx__
+  - ### Features
+    - Added support for FSx for OpenZFS on-demand data replication across AWS accounts and/or regions.Added the IncludeShared attribute for DescribeSnapshots.Added the CopyStrategy attribute for OpenZFSVolumeConfiguration.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - RDS - The release adds two new APIs: DescribeDBRecommendations and ModifyDBRecommendation
+
 # __2.22.1__ __2023-12-18__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -4116,7 +4145,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
