@@ -46,7 +46,7 @@ public class ProxySystemPropertyConfigProvider implements ProxyConfigProvider {
         try {
             return Integer.parseInt(string);
         } catch (Exception e) {
-            log.warn(() -> "Failed to parse string. The failure will be ignored." + string, e);
+            log.warn(() -> "Failed to parse string.", e);
         }
         return null;
     }
