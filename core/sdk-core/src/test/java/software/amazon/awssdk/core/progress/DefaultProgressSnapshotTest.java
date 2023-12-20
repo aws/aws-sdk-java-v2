@@ -22,7 +22,6 @@ import static org.junit.Assert.assertFalse;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
@@ -30,8 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import software.amazon.awssdk.core.internal.snapshot.DefaultProgressSnapshot;
+import software.amazon.awssdk.core.internal.progress.snapshot.DefaultProgressSnapshot;
 
 public class DefaultProgressSnapshotTest {
 

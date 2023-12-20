@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.snapshot;
+package software.amazon.awssdk.core.internal.progress.snapshot;
 
 import java.time.Duration;
 import java.time.Instant;
