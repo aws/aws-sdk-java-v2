@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "contributor": "",
+    "description": "Adds the ability to configure time shifting on MediaTailor channels using the TimeShiftConfiguration field"
+}
