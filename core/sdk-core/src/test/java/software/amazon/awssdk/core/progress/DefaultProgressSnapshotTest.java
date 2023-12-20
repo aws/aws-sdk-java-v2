@@ -18,93 +18,117 @@ package software.amazon.awssdk.core.progress;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.progress.snapshot.DefaultProgressSnapshot;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.core.internal.snapshot.DefaultProgressSnapshot;
 
 public class DefaultProgressSnapshotTest {
-    @Test
-    public void bytesTransferred_greaterThan_totalBytes_shouldThrow() {
-        DefaultProgressSnapshot.Builder builder = DefaultProgressSnapshot.builder()
-                                                                         .transferredBytes(2L)
-                                                                         .totalBytes(1L);
+
+    private static Stream<Arguments> getArgumentsForInvalidParameterValidationTests() {
+        return Stream.of(Arguments.of("transferredBytes (2) must not be greater than totalBytes (1)",
+                                      DefaultProgressSnapshot.builder()
+                                                             .transferredBytes(2L)
+                                                             .totalBytes(1L),
+                                      new IllegalArgumentException()),
+                         Arguments.of("startTime must not be null.",
+                                      DefaultProgressSnapshot.builder()
+                                                             .transferredBytes(2L),
+                                      new NullPointerException()),
+                         Arguments.of("transferredBytes must not be negative",
+                                      DefaultProgressSnapshot.builder()
+                                                             .transferredBytes(-2L),
+                                      new IllegalArgumentException()),
+                         Arguments.of("totalBytes must not be negative",
+                                      DefaultProgressSnapshot.builder()
+                                                             .transferredBytes(2L)
+                                                             .totalBytes(-2L),
+                                      new IllegalArgumentException()));
+    }
+
+    private static Stream<Arguments> getArgumentsForMissingParameterValidationTests() {
+
+        DefaultProgressSnapshot snapshotNoTotalBytes = DefaultProgressSnapshot.builder()
+                                                                              .transferredBytes(2L)
+                                                                              .startTime(Instant.now())
+                                                                              .build();
+
+        DefaultProgressSnapshot snapshotRatioTransferredWithoutTotalBytesIsEmpty = DefaultProgressSnapshot.builder()
+                                                                                                          .transferredBytes(1L)
+                                                                                                          .startTime(Instant.now())
+                                                                                                          .build();
+
+        DefaultProgressSnapshot snapshotRemainingBytesWithoutTotalBytesIsEmpty = DefaultProgressSnapshot.builder()
+                                                                                                        .transferredBytes(1L)
+                                                                                                        .startTime(Instant.now())
+                                                                                                        .build();
+
+        DefaultProgressSnapshot snapshotEstimatedTimeRemainingWithoutTotalBytesIsEmpty = DefaultProgressSnapshot.builder()
+                                                                                                                .transferredBytes(1L)
+                                                                                                                .startTime(Instant.now())
+                                                                                                                .build();
+
+        return Stream.of(Arguments.of(snapshotNoTotalBytes.totalBytes().isPresent()),
+                         Arguments.of(snapshotRatioTransferredWithoutTotalBytesIsEmpty.ratioTransferred().isPresent()),
+                         Arguments.of(snapshotRemainingBytesWithoutTotalBytesIsEmpty.remainingBytes().isPresent()),
+                         Arguments.of(snapshotEstimatedTimeRemainingWithoutTotalBytesIsEmpty.estimatedTimeRemaining().isPresent()));
+    }
+
+    private static Stream<Arguments> getArgumentsForTimeTest() {
+
+        DefaultProgressSnapshot snapshotEstimatedTimeReamining = DefaultProgressSnapshot.builder()
+                                                                                        .transferredBytes(100L)
+                                                                                        .startTime(Instant.now().minusSeconds(1))
+                                                                                        .totalBytes(500L)
+                                                                                        .build();
+
+        Instant startTime = Instant.now().minusMillis(100);
+        DefaultProgressSnapshot snapshotTimeElapsed = DefaultProgressSnapshot.builder()
+                                                                             .transferredBytes(1L)
+                                                                             .startTime(startTime)
+                                                                             .build();
+        Duration expectedDuration = Duration.between(startTime, Instant.now());
+
+        return Stream.of(Arguments.of(4000L, snapshotEstimatedTimeReamining.estimatedTimeRemaining().get().toMillis()
+                             , 10L),
+                         Arguments.of(snapshotTimeElapsed.elapsedTime().toMillis(), expectedDuration.toMillis(), 1L));
+    }
+
+    private static Stream<Arguments> getArgumentsForBytesTest() {
+
+        DefaultProgressSnapshot snapshotBytes = DefaultProgressSnapshot.builder()
+                                                                            .transferredBytes(2L)
+                                                                            .totalBytes(5L)
+                                                                            .startTime(Instant.now())
+                                                                            .build();
+
+        return Stream.of(Arguments.of(5L, snapshotBytes.totalBytes().getAsLong()),
+                         Arguments.of(3L, snapshotBytes.remainingBytes().getAsLong(), 3L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForInvalidParameterValidationTests")
+    public void test_invalid_arguments_shouldThrow(String expectedErrorMsg, DefaultProgressSnapshot.Builder builder,
+                                                   Exception e) {
         assertThatThrownBy(builder::build)
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("transferredBytes (2) must not be greater than totalBytes (1)");
+            .isInstanceOf(e.getClass())
+            .hasMessage(expectedErrorMsg);
     }
 
-    @Test
-    public void transferredBytes_negative_shouldThrow() {
-        DefaultProgressSnapshot.Builder builder = DefaultProgressSnapshot.builder()
-                                                                         .transferredBytes(-2L);
-
-        assertThatThrownBy(builder::build)
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("transferredBytes must not be negative");
-    }
-
-    @Test
-    public void transferredBytes_null_isZero() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .build();
-
-        Assertions.assertEquals(0, snapshot.transferredBytes());
-    }
-
-    @Test
-    public void totalBytes_negative_shouldThrow() {
-        DefaultProgressSnapshot.Builder builder = DefaultProgressSnapshot.builder()
-                                                                         .transferredBytes(2L)
-                                                                         .totalBytes(-2L);
-
-        assertThatThrownBy(builder::build)
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("totalBytes must not be negative");
-    }
-
-    @Test
-    public void totalBytes_empty() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(2L)
-                                                                  .build();
-
-        assertThat(snapshot.totalBytes()).isNotPresent();
-    }
-
-    @Test
-    public void totalBytes() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(2L)
-                                                                  .totalBytes(5L)
-                                                                  .build();
-
-        Assertions.assertEquals(5, snapshot.totalBytes().getAsLong());
-    }
-
-    @Test
-    public void startTime_after_currentTime_shouldThrow() {
-        Instant timeAfterFiveSeconds = Instant.now().plus(5, ChronoUnit.SECONDS);
-        DefaultProgressSnapshot.Builder builder = DefaultProgressSnapshot.builder()
-                                                                         .transferredBytes(0L)
-                                                                         .startTime(timeAfterFiveSeconds);
-
-        assertThatThrownBy(builder::build)
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageStartingWith("currentTime")
-            .hasMessageEndingWith(" must not be before startTime (" + timeAfterFiveSeconds + ")");
-    }
-
-    @Test
-    public void ratioTransferred_withoutTotalBytes_isEmpty() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(1L)
-                                                                  .build();
-        assertThat(snapshot.ratioTransferred()).isNotPresent();
+    @ParameterizedTest
+    @MethodSource("getArgumentsForMissingParameterValidationTests")
+    public void test_missing_params_shouldReturnEmpty(boolean condition) {
+        Assertions.assertFalse(condition);
     }
 
     @Test
@@ -112,55 +136,21 @@ public class DefaultProgressSnapshotTest {
         DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
                                                                   .transferredBytes(1L)
                                                                   .totalBytes(5L)
+                                                                  .startTime(Instant.now())
                                                                   .build();
         assertEquals(0.2, snapshot.ratioTransferred().getAsDouble(), 0.0);
     }
 
-    @Test
-    public void remainingBytes_withoutTotalBytes_isEmpty() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(1L)
-                                                                  .build();
-        assertThat(snapshot.remainingBytes()).isNotPresent();
+    @ParameterizedTest
+    @MethodSource("getArgumentsForBytesTest")
+    public void test_estimatedBytesRemaining_and_totalBytes(long expectedBytes, long actualBytes) {
+        Assertions.assertEquals(expectedBytes, actualBytes);
     }
 
-    @Test
-    public void remainingBytes() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(1L)
-                                                                  .totalBytes(5L)
-                                                                  .build();
-        Assertions.assertEquals(4.0, snapshot.remainingBytes().getAsLong(), 0.0);
-    }
-
-    @Test
-    public void elapsedTime_withoutStartTime_isEmpty() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(1L)
-                                                                  .build();
-        assertThat(snapshot.elapsedTime()).isNotPresent();
-    }
-
-    @Test
-    public void elapsedTime() {
-
-        Instant startTime = Instant.now().minusMillis(100);
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(1L)
-                                                                  .startTime(startTime)
-                                                                  .build();
-        Duration expectedDuration = Duration.between(startTime, Instant.now());
-
-        Assertions.assertEquals(snapshot.elapsedTime().get().toMillis(), expectedDuration.toMillis(), 0.1);
-    }
-
-    @Test
-    public void averageBytesPer_withoutStartTime_isEmpty() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(1L)
-                                                                  .totalBytes(5L)
-                                                                  .build();
-        assertThat(snapshot.averageBytesPer(TimeUnit.MILLISECONDS)).isNotPresent();
+    @ParameterizedTest
+    @MethodSource("getArgumentsForTimeTest")
+    public void test_elapsedTime_and_estimatedTimeRemaining(long expected, long timeInMillis, long delta) {
+        Assertions.assertEquals(expected, timeInMillis, delta);
     }
 
     @Test
@@ -169,34 +159,6 @@ public class DefaultProgressSnapshotTest {
                                                                   .transferredBytes(100L)
                                                                   .startTime(Instant.now().minusMillis(100))
                                                                   .build();
-        Assertions.assertEquals(1.0, snapshot.averageBytesPer(TimeUnit.MILLISECONDS).getAsDouble(), 0.2);
-    }
-
-    @Test
-    public void estimatedTimeRemaining_withoutStartTime_isEmpty() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(1L)
-                                                                  .totalBytes(5L)
-                                                                  .build();
-        assertThat(snapshot.estimatedTimeRemaining()).isNotPresent();
-    }
-
-    @Test
-    public void estimatedTimeRemaining_withoutTotalBytes_isEmpty() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(1L)
-                                                                  .startTime(Instant.now().minusMillis(5))
-                                                                  .build();
-        assertThat(snapshot.estimatedTimeRemaining()).isNotPresent();
-    }
-
-    @Test
-    public void estimatedTimeRemaining() {
-        DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
-                                                                  .transferredBytes(100L)
-                                                                  .startTime(Instant.now().minusSeconds(1))
-                                                                  .totalBytes(500L)
-                                                                  .build();
-        Assertions.assertEquals(4000.0, snapshot.estimatedTimeRemaining().get().toMillis(), 10.0);
+        Assertions.assertEquals(1.0, snapshot.averageBytesPer(TimeUnit.MILLISECONDS), 0.2);
     }
 }

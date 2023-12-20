@@ -37,12 +37,12 @@ public interface ProgressSnapshot {
     /**
      * Time at which the HTTP Request header is sent
      */
-    Optional<Instant> startTime();
+    Instant startTime();
 
     /**
      * Elapsed time since the HTTP request header was sent to the service
      */
-    Optional<Duration> elapsedTime();
+    Duration elapsedTime();
 
     /**
      * If transaction size is known, estimate time remaining for transaction completion
@@ -57,7 +57,7 @@ public interface ProgressSnapshot {
     /**
      *  Rate of transfer
      */
-    OptionalDouble averageBytesPer(TimeUnit timeUnit);
+    double averageBytesPer(TimeUnit timeUnit);
 
     /**
      * The total size of the transfer, in bytes, or {@link Optional#empty()} if total payload being transacted is unknown

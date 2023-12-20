@@ -13,14 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.progress.listener;
+package software.amazon.awssdk.core.internal.listener;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Mutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.progress.snapshot.DefaultProgressSnapshot;
+import software.amazon.awssdk.core.internal.snapshot.DefaultProgressSnapshot;
+import software.amazon.awssdk.core.progress.listener.SdkRequestProgress;
 import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 
 /**

@@ -13,15 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.progress.snapshot;
+package software.amazon.awssdk.core.internal.snapshot;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -36,7 +39,7 @@ public class DefaultProgressSnapshot
 
     private final long transferredBytes;
     private final Long totalBytes;
-    private final Optional<Instant> startTime;
+    private final Instant startTime;
 
     public DefaultProgressSnapshot(Builder builder) {
         if (builder.totalBytes != null) {
@@ -45,17 +48,11 @@ public class DefaultProgressSnapshot
                             "transferredBytes (%s) must not be greater than totalBytes (%s)",
                             builder.transferredBytes, builder.totalBytes);
         }
-        Validate.paramNotNull(builder.transferredBytes, "byteTransferred");
+        Validate.paramNotNull(builder.transferredBytes, "transferredBytes");
         this.transferredBytes = Validate.isNotNegative(builder.transferredBytes, "transferredBytes");
         this.totalBytes = builder.totalBytes;
 
-        if (builder.startTime.isPresent()) {
-            Instant currentTime = Instant.now();
-            Validate.isTrue(currentTime.isAfter(builder.startTime.get()),
-                            "currentTime (%s) must not be before startTime (%s)",
-                            currentTime, builder.startTime.get());
-        }
-
+        Validate.paramNotNull(builder.startTime, "startTime");
         this.startTime = builder.startTime;
     }
 
@@ -65,34 +62,30 @@ public class DefaultProgressSnapshot
     }
 
     @Override
-    public Optional<Instant> startTime() {
+    public Instant startTime() {
         return this.startTime;
     }
 
     @Override
-    public Optional<Duration> elapsedTime() {
-        return this.startTime.isPresent() ? Optional.of(Duration.between(startTime.get(), Instant.now())) : Optional.empty();
+    public Duration elapsedTime() {
+        return Duration.between(this.startTime, Instant.now());
     }
 
     @Override
     public Optional<Duration> estimatedTimeRemaining() {
-        if (!elapsedTime().isPresent() || !remainingBytes().isPresent()) {
+        if (!remainingBytes().isPresent()) {
             return Optional.empty();
         }
 
-        long remainingTime = remainingBytes().getAsLong() * elapsedTime().get().toMillis() / transferredBytes;
+        long remainingTime = remainingBytes().getAsLong() * elapsedTime().toMillis() / transferredBytes;
         return Optional.of(Duration.ofMillis(remainingTime));
 
     }
 
     @Override
-    public OptionalDouble averageBytesPer(TimeUnit timeUnit) {
-        if (!this.elapsedTime().isPresent()) {
-            return OptionalDouble.empty();
-        }
-
-        return this.elapsedTime().get().equals(Duration.ZERO) ? OptionalDouble.of(1.0) :
-               OptionalDouble.of((double) this.transferredBytes / timeUnit.convert(elapsedTime().get().toMillis(), timeUnit));
+    public double averageBytesPer(TimeUnit timeUnit) {
+        return this.elapsedTime().equals(Duration.ZERO) ? 1.0 :
+               (double) this.transferredBytes / timeUnit.convert(elapsedTime().toMillis(), timeUnit);
     }
 
     @Override
@@ -117,6 +110,42 @@ public class DefaultProgressSnapshot
     }
 
     @Override
+    public String toString() {
+        return ToString.builder("ProgressSnapshot")
+                       .add("transferredBytes", transferredBytes)
+                       .add("totalBytes", totalBytes)
+                       .add("elapsedTime", this.elapsedTime())
+                       .build();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (transferredBytes ^ (transferredBytes >>> 32));
+        result = 31 * result + (totalBytes != null ? totalBytes.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultProgressSnapshot that = (DefaultProgressSnapshot) o;
+
+        if (this.transferredBytes != that.transferredBytes) {
+            return false;
+        }
+        if (!Objects.equals(this.totalBytes, that.totalBytes)) {
+            return false;
+        }
+        return Objects.equals(this.startTime, that.startTime);
+    }
+
+    @Override
     public DefaultProgressSnapshot.Builder toBuilder() {
         return new Builder(this);
     }
@@ -128,7 +157,7 @@ public class DefaultProgressSnapshot
     public static final class Builder implements CopyableBuilder<Builder, DefaultProgressSnapshot> {
         private long transferredBytes;
         private Long totalBytes;
-        private Optional<Instant> startTime = Optional.empty();
+        private Instant startTime;
 
         private Builder() {
         }
@@ -144,26 +173,14 @@ public class DefaultProgressSnapshot
             return this;
         }
 
-        public Long getTransferredBytes() {
-            return this.transferredBytes;
-        }
-
         public Builder totalBytes(Long totalBytes) {
             this.totalBytes = totalBytes;
             return this;
         }
 
-        public Long getTotalBytes() {
-            return this.totalBytes;
-        }
-
         public Builder startTime(Instant startTime) {
-            this.startTime = Optional.of(startTime);
+            this.startTime = startTime;
             return this;
-        }
-
-        public Optional<Instant> startTime() {
-            return this.startTime;
         }
 
         @Override

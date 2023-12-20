@@ -150,17 +150,9 @@ public final class DefaultTransferProgressSnapshot
             return this;
         }
 
-        public long getTransferredBytes() {
-            return transferredBytes;
-        }
-
         public Builder totalBytes(Long totalBytes) {
             this.totalBytes = totalBytes;
             return this;
-        }
-
-        public Long getTotalBytes() {
-            return totalBytes;
         }
 
         public Builder sdkResponse(SdkResponse sdkResponse) {
