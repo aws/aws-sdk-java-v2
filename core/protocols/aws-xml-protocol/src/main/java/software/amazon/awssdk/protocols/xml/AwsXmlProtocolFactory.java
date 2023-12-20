@@ -163,8 +163,13 @@ public class AwsXmlProtocolFactory {
 
     private XmlGenerator createGenerator(OperationInfo operationInfo) {
         return operationInfo.hasPayloadMembers() ?
-               XmlGenerator.create(operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE)) :
+               XmlGenerator.create(operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE), isS3(operationInfo)) :
                null;
+    }
+
+    private boolean isS3(OperationInfo operationInfo) {
+        return "http://s3.amazonaws.com/doc/2006-03-01/"
+            .equals(operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE));
     }
 
     public static Builder builder() {
