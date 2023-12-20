@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Add support for cluster insights, new EKS capability that surfaces potentially upgrade impacting issues."
-}

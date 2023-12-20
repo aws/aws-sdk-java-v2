@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Managed Blockchain Query",
-    "contributor": "",
-    "description": "Adding Confirmation Status and Execution Status to GetTransaction Response."
-}
