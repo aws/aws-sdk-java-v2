@@ -57,7 +57,7 @@ public class ProxyEnvironmentVariableConfigProvider implements ProxyConfigProvid
             try {
                 return Optional.of(new URL(stringUrl));
             } catch (MalformedURLException e) {
-                log.error(() -> "Malformed proxy config environment variable " + stringUrl, e);
+                log.warn(() -> "Malformed proxy config environment variable.", e);
             }
         }
         return Optional.empty();
