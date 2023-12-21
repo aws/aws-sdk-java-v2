@@ -1,3 +1,32 @@
+# __2.22.3__ __2023-12-20__
+## __AWS MediaTailor__
+  - ### Features
+    - Adds the ability to configure time shifting on MediaTailor channels using the TimeShiftConfiguration field
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release introduces configurable clipboard, allowing admins to specify the maximum length of text that can be copied by the users from their device to the remote session and vice-versa.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add support for cluster insights, new EKS capability that surfaces potentially upgrade impacting issues.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - This release 1) introduces a new API: GetOrganizationStatistics , and 2) adds a new UsageStatisticType TOP_ACCOUNTS_BY_FEATURE for GetUsageStatistics API
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - Adding Confirmation Status and Execution Status to GetTransaction Response.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Canada West (Calgary) Region (ca-west-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
 # __2.22.2__ __2023-12-19__
 ## __AWS AppSync__
   - ### Features
@@ -4145,7 +4174,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
