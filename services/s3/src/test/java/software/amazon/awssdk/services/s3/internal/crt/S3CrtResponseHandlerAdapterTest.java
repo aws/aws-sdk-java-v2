@@ -19,7 +19,6 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -59,7 +59,7 @@ public class S3CrtResponseHandlerAdapterTest {
     @Before
     public void setup() {
         future = new CompletableFuture<>();
-        sdkResponseHandler = spy(new TestResponseHandler());
+        sdkResponseHandler = new TestResponseHandler();
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
                                                                  sdkResponseHandler,
                                                                  null);
@@ -75,20 +75,17 @@ public class S3CrtResponseHandlerAdapterTest {
         int statusCode = 200;
         responseHandlerAdapter.onResponseHeaders(statusCode, httpHeaders);
 
-        stubOnResponseBody();
-
-        responseHandlerAdapter.onFinished(stubResponseContext(0, 0, null));
-        future.get(5, TimeUnit.SECONDS);
-
         SdkHttpResponse actualSdkHttpResponse = sdkResponseHandler.sdkHttpResponse;
         assertThat(actualSdkHttpResponse.statusCode()).isEqualTo(statusCode);
         assertThat(actualSdkHttpResponse.firstMatchingHeader("foo")).contains("1");
         assertThat(actualSdkHttpResponse.firstMatchingHeader("bar")).contains("2");
+        stubOnResponseBody();
 
+        responseHandlerAdapter.onFinished(stubResponseContext(0, 0, null));
+        future.get(5, TimeUnit.SECONDS);
         assertThat(future).isCompleted();
         verify(s3MetaRequest, times(2)).incrementReadWindow(11L);
         verify(s3MetaRequest).close();
-        verify(sdkResponseHandler).onHeaders(any(SdkHttpResponse.class));
     }
 
     @Test
@@ -106,7 +103,6 @@ public class S3CrtResponseHandlerAdapterTest {
                                                                                                    + "null");
         assertThat(future).isCompletedExceptionally();
         verify(s3MetaRequest).close();
-        verify(sdkResponseHandler).onHeaders(any(SdkHttpResponse.class));
     }
 
     @Test
@@ -114,17 +110,17 @@ public class S3CrtResponseHandlerAdapterTest {
         int statusCode = 400;
         responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
 
-        byte[] errorPayload = "errorResponse".getBytes(StandardCharsets.UTF_8);
-        stubOnResponseBody();
-        responseHandlerAdapter.onFinished(stubResponseContext(1, statusCode, errorPayload));
-
         SdkHttpResponse actualSdkHttpResponse = sdkResponseHandler.sdkHttpResponse;
         assertThat(actualSdkHttpResponse.statusCode()).isEqualTo(400);
         assertThat(actualSdkHttpResponse.headers()).isEmpty();
 
+        byte[] errorPayload = "errorResponse".getBytes(StandardCharsets.UTF_8);
+        stubOnResponseBody();
+
+        responseHandlerAdapter.onFinished(stubResponseContext(1, statusCode, errorPayload));
+
         assertThat(future).isCompleted();
         verify(s3MetaRequest).close();
-        verify(sdkResponseHandler).onHeaders(any(SdkHttpResponse.class));
     }
 
     @Test
@@ -168,7 +164,7 @@ public class S3CrtResponseHandlerAdapterTest {
         responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld2".getBytes()), 1, 2);
     }
 
-    private static class TestResponseHandler implements SdkAsyncHttpResponseHandler {
+    private static final class TestResponseHandler implements SdkAsyncHttpResponseHandler {
         private SdkHttpResponse sdkHttpResponse;
         private Throwable error;
         @Override
