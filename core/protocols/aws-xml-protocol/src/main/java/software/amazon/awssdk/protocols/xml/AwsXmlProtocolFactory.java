@@ -74,6 +74,8 @@ public class AwsXmlProtocolFactory {
 
     private static final XmlProtocolUnmarshaller XML_PROTOCOL_UNMARSHALLER = XmlProtocolUnmarshaller.create();
 
+    private static final String S3_NAMESPACE_PREFIX = "http://s3.amazonaws.com";
+
     private final List<ExceptionMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final HttpResponseHandler<AwsServiceException> errorUnmarshaller;
@@ -168,8 +170,7 @@ public class AwsXmlProtocolFactory {
     }
 
     private boolean isS3(OperationInfo operationInfo) {
-        return "http://s3.amazonaws.com/doc/2006-03-01/"
-            .equals(operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE));
+        return operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE).startsWith(S3_NAMESPACE_PREFIX);
     }
 
     public static Builder builder() {
