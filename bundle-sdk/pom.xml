@@ -54,6 +54,7 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-sdk-java</artifactId>
             <version>${awsjavasdk.version}</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
