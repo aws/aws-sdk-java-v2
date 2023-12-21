@@ -170,7 +170,8 @@ public class AwsXmlProtocolFactory {
     }
 
     private boolean isS3(OperationInfo operationInfo) {
-        return operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE).startsWith(S3_NAMESPACE_PREFIX);
+        String namespace = operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE);
+        return namespace != null && namespace.startsWith(S3_NAMESPACE_PREFIX);
     }
 
     public static Builder builder() {
