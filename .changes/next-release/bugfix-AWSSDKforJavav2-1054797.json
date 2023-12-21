@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Changed the log level from error to warning when exceptions are found in parsing proxy configuration from system properties/environment variables, as we ignore those exceptions and proceed."
-}

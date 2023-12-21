@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fix an issue where the S3 CRT client can incorrectly treat the body of an error response for `GetObject` as the object's content. For example, if a role has permissions for `HeadObject` but not a `GetObject`, the S3 CRT client would download the `403` response as the object's contents."
-}

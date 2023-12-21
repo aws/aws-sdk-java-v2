@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2 Bundle",
-    "contributor": "",
-    "description": "Fix an issue where external dependencies are also included unshaded in in the `bundle` JAR."
-}

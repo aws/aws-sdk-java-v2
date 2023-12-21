@@ -1,3 +1,56 @@
+# __2.22.4__ __2023-12-21__
+## __AWS CodeCommit__
+  - ### Features
+    - AWS CodeCommit now supports customer managed keys from AWS Key Management Service. UpdateRepositoryEncryptionKey is added for updating the key configuration. CreateRepository, GetRepository, BatchGetRepositories are updated with new input or output parameters.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports the ability to configure the audio that an AWS Elemental Link UHD device produces, when the device is configured as the source for a flow in AWS Elemental MediaConnect.
+
+## __AWS RDS DataService__
+  - ### Features
+    - This release adds support for using RDS Data API with Aurora PostgreSQL Serverless v2 and provisioned DB clusters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Changed the log level from error to warning when exceptions are found in parsing proxy configuration from system properties/environment variables, as we ignore those exceptions and proceed.
+    - Fix an issue where the S3 CRT client can incorrectly treat the body of an error response for `GetObject` as the object's content. For example, if a role has permissions for `HeadObject` but not a `GetObject`, the S3 CRT client would download the `403` response as the object's contents.
+
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix an issue where external dependencies are also included unshaded in in the `bundle` JAR.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release introduces Amazon Aurora as a vector store on Knowledge Bases for Amazon Bedrock
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - The Amazon AppIntegrations service adds DeleteApplication API for deleting applications, and updates APIs to support third party applications reacting to workspace events and make data requests to Amazon Connect for agent and contact events.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds APIs to manage User Proficiencies and Predefined Attributes. Enhances StartOutboundVoiceContact API input. Introduces SearchContacts API. Enhances DescribeContact API. Adds an API to update Routing Attributes in QueuePriority and QueueTimeAdjustmentSeconds.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Adds Waiters for successful creation and deletion of Graph, Graph Snapshot, Import Task and Private Endpoints for Neptune Analytics
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - This release updates Amazon Managed Service for Prometheus APIs to support customer managed KMS keys.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for using RDS Data API with Aurora PostgreSQL Serverless v2 and provisioned DB clusters.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Training now provides model training container access for debugging purposes. Amazon SageMaker Search now provides the ability to use visibility conditions to limit resource access to a single domain or multiple domains.
+
 # __2.22.3__ __2023-12-20__
 ## __AWS MediaTailor__
   - ### Features
@@ -2433,7 +2486,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -4174,7 +4227,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
