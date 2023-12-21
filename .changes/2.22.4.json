@@ -1,0 +1,90 @@
+{
+    "version": "2.22.4",
+    "date": "2023-12-21",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Changed the log level from error to warning when exceptions are found in parsing proxy configuration from system properties/environment variables, as we ignore those exceptions and proceed."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix an issue where the S3 CRT client can incorrectly treat the body of an error response for `GetObject` as the object's content. For example, if a role has permissions for `HeadObject` but not a `GetObject`, the S3 CRT client would download the `403` response as the object's contents."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Bundle",
+            "contributor": "",
+            "description": "Fix an issue where external dependencies are also included unshaded in in the `bundle` JAR."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeCommit",
+            "contributor": "",
+            "description": "AWS CodeCommit now supports customer managed keys from AWS Key Management Service. UpdateRepositoryEncryptionKey is added for updating the key configuration. CreateRepository, GetRepository, BatchGetRepositories are updated with new input or output parameters."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "MediaLive now supports the ability to configure the audio that an AWS Elemental Link UHD device produces, when the device is configured as the source for a flow in AWS Elemental MediaConnect."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "contributor": "",
+            "description": "This release adds support for using RDS Data API with Aurora PostgreSQL Serverless v2 and provisioned DB clusters."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "This release introduces Amazon Aurora as a vector store on Knowledge Bases for Amazon Bedrock"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppIntegrations Service",
+            "contributor": "",
+            "description": "The Amazon AppIntegrations service adds DeleteApplication API for deleting applications, and updates APIs to support third party applications reacting to workspace events and make data requests to Amazon Connect for agent and contact events."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adds APIs to manage User Proficiencies and Predefined Attributes. Enhances StartOutboundVoiceContact API input. Introduces SearchContacts API. Enhances DescribeContact API. Adds an API to update Routing Attributes in QueuePriority and QueueTimeAdjustmentSeconds."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune Graph",
+            "contributor": "",
+            "description": "Adds Waiters for successful creation and deletion of Graph, Graph Snapshot, Import Task and Private Endpoints for Neptune Analytics"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "This release updates Amazon Managed Service for Prometheus APIs to support customer managed KMS keys."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for using RDS Data API with Aurora PostgreSQL Serverless v2 and provisioned DB clusters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker Training now provides model training container access for debugging purposes. Amazon SageMaker Search now provides the ability to use visibility conditions to limit resource access to a single domain or multiple domains."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
