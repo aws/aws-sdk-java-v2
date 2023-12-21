@@ -31,9 +31,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
-import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectTaggingResponse;
 import software.amazon.awssdk.services.s3.model.Tag;
@@ -99,8 +97,6 @@ public class CrtChecksumIntegrationTest extends S3IntegrationTestBase {
         ResponseBytes<GetObjectResponse> getObjectResponseResponseBytes =
             s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), AsyncResponseTransformer.toBytes()).join();
         String getObjectChecksum = getObjectResponseResponseBytes.response().checksumSHA1();
-        // TODO: We compare against the precomputed SHA-1, but this shouldn't be necessary since the PutObjectResponse should
-        //  have this info. This looks like an issue with CRT.
         assertThat(getObjectChecksum).isEqualTo(testFileSha1);
     }
 
