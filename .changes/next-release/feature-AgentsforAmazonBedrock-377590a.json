@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agents for Amazon Bedrock",
+    "contributor": "",
+    "description": "Adding Claude 2.1 support to Bedrock Agents"
+}
