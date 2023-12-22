@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lake Formation",
+    "contributor": "",
+    "description": "This release adds additional configurations on GetTemporaryGlueTableCredentials for Query Session Context."
+}
