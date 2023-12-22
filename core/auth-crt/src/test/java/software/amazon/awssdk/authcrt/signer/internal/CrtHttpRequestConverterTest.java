@@ -87,6 +87,55 @@ public class CrtHttpRequestConverterTest {
         assertHttpRequestSame(request, crtHttpRequest);
     }
 
+
+    @Test
+    public void request_withQueryParams_WithAmpersandAndEqualsInKeyAndValue_isConvertedToCrtFormat() {
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .method(SdkHttpMethod.GET)
+                                                       .putRawQueryParameter("ampersand&", "one & two")
+                                                       .putRawQueryParameter("equals=", "three = three")
+                                                       .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                       .encodedPath("/path")
+                                                       .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
+                                                       .build();
+        HttpRequest crtHttpRequest = converter.requestToCrt(request);
+        assertThat(crtHttpRequest.getMethod()).isEqualTo("GET");
+        assertThat(crtHttpRequest.getEncodedPath()).isEqualTo("/path?ampersand%26=one%20%26%20two&equals%3D=three%20%3D%20three");
+        assertHttpRequestSame(request, crtHttpRequest);
+    }
+
+    @Test
+    public void request_withQueryParams_ApersandAndEqualsInValue_isConvertedToCrtFormat() {
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .method(SdkHttpMethod.GET)
+                                                       .putRawQueryParameter("ampersand", "one & two")
+                                                       .putRawQueryParameter("equals", "three = three")
+                                                       .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                       .encodedPath("/path")
+                                                       .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
+                                                       .build();
+        HttpRequest crtHttpRequest = converter.requestToCrt(request);
+        assertThat(crtHttpRequest.getMethod()).isEqualTo("GET");
+        assertThat(crtHttpRequest.getEncodedPath()).isEqualTo("/path?ampersand=one%20%26%20two&equals=three%20%3D%20three");
+        assertHttpRequestSame(request, crtHttpRequest);
+    }
+
+    @Test
+    public void request_withQueryParams_EmptyApersandAndEqualsInValue_isConvertedToCrtFormat() {
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .method(SdkHttpMethod.GET)
+                                                       .putRawQueryParameter("&ampersand&", "")
+                                                       .putRawQueryParameter("=equals=", "")
+                                                       .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                       .encodedPath("/path")
+                                                       .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
+                                                       .build();
+        HttpRequest crtHttpRequest = converter.requestToCrt(request);
+        assertThat(crtHttpRequest.getMethod()).isEqualTo("GET");
+        assertThat(crtHttpRequest.getEncodedPath()).isEqualTo("/path?%26ampersand%26=&%3Dequals%3D=");
+        assertHttpRequestSame(request, crtHttpRequest);
+    }
+
     @Test
     public void request_withEmptyPath_isConvertedToCrtFormat() {
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
