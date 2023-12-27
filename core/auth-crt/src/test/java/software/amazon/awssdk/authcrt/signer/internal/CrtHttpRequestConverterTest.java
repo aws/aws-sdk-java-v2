@@ -25,6 +25,9 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
@@ -71,6 +74,49 @@ public class CrtHttpRequestConverterTest {
         assertHttpRequestSame(request, crtHttpRequest);
     }
 
+    public static List<Arguments> specialCharactersEncoding() {
+        return Arrays.asList(
+            Arguments.of("hello world", "hello%20world"),
+            Arguments.of("apple & orange", "apple%20%26%20orange"),
+            Arguments.of("/path/to/resource", "%2Fpath%2Fto%2Fresource"),
+            Arguments.of("search?q=term", "search%3Fq%3Dterm"),
+            Arguments.of("key=value", "key%3Dvalue"),
+            Arguments.of("section#1", "section%231"),
+            Arguments.of("one+two", "one%2Btwo"),
+            Arguments.of("user@domain.com", "user%40domain.com"),
+            Arguments.of("protocol:8080", "protocol%3A8080"),
+            Arguments.of("item1;item2", "item1%3Bitem2"),
+            Arguments.of("apple,orange", "apple%2Corange"),
+            Arguments.of("quoted text", "quoted%20text"),
+            Arguments.of("don't", "don%27t"),
+            Arguments.of("20% discount", "20%25%20discount"),
+            Arguments.of("important!", "important%21"),
+            Arguments.of("(example)", "%28example%29"),
+            Arguments.of("items[1]", "items%5B1%5D"),
+            Arguments.of("{key: 'value'}", "%7Bkey%3A%20%27value%27%7D"),
+            Arguments.of("first line\nsecond line", "first%20line%0Asecond%20line"),
+            Arguments.of("before\rafter", "before%0Dafter"),
+            Arguments.of("left\tcenter\tright", "left%09center%09right")
+        );
+    }
+
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("specialCharactersEncoding")
+    public void request_withSpecialCharactersQueryParams_isConvertedToCrtFormat(String rawParameters, String encodedParameters) {
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .method(SdkHttpMethod.GET)
+                                                       .putRawQueryParameter("headerOne", rawParameters)
+                                                       .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                       .encodedPath("/path")
+                                                       .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
+                                                       .build();
+        HttpRequest crtHttpRequest = converter.requestToCrt(request);
+        assertThat(crtHttpRequest.getMethod()).isEqualTo("GET");
+        assertThat(crtHttpRequest.getEncodedPath()).isEqualTo(String.format("/path?headerOne=%s", encodedParameters));
+        assertHttpRequestSame(request, crtHttpRequest);
+    }
+
+
     @Test
     public void request_withQueryParams_isConvertedToCrtFormat() {
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
@@ -105,7 +151,7 @@ public class CrtHttpRequestConverterTest {
     }
 
     @Test
-    public void request_withQueryParams_ApersandAndEqualsInValue_isConvertedToCrtFormat() {
+    public void request_withQueryParams_AmpersandAndEqualsInValue_isConvertedToCrtFormat() {
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
                                                        .method(SdkHttpMethod.GET)
                                                        .putRawQueryParameter("ampersand", "one & two")
