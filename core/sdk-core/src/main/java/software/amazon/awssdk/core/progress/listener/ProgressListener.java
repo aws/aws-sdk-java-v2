@@ -293,7 +293,7 @@ public interface ProgressListener {
          * Available context attributes:
          * <ol>
          *     <li>{@link RequestPrepared#request()}</li>
-         *     <li>{@link RequestPrepared#progressSnapshot()}</li>
+         *     <li>{@link RequestPrepared#uploadProgressSnapshot()} </li>
          * </ol>
          */
         @Immutable

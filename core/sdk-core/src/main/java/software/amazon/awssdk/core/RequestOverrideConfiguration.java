@@ -31,6 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -55,6 +56,7 @@ public abstract class RequestOverrideConfiguration {
     private final EndpointProvider endpointProvider;
     private final CompressionConfiguration compressionConfiguration;
     private final List<SdkPlugin> plugins;
+    private final List<ProgressListener> progressListeners;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -68,6 +70,7 @@ public abstract class RequestOverrideConfiguration {
         this.endpointProvider = builder.endpointProvider();
         this.compressionConfiguration = builder.compressionConfiguration();
         this.plugins = Collections.unmodifiableList(new ArrayList<>(builder.plugins()));
+        this.progressListeners = Collections.unmodifiableList(new ArrayList<>());
     }
 
     /**
@@ -103,9 +106,9 @@ public abstract class RequestOverrideConfiguration {
      * unmarshalling, etc. This value should always be positive, if present.
      *
      * <p>The api call timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
-     * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be
-     * requests that don't get aborted until several seconds after the timer has been breached. Because of this, the client
-     * execution timeout feature should not be used when absolute precision is needed.
+     * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests
+     * that don't get aborted until several seconds after the timer has been breached. Because of this, the client execution
+     * timeout feature should not be used when absolute precision is needed.
      *
      * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
      * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
@@ -121,13 +124,12 @@ public abstract class RequestOverrideConfiguration {
      * positive, if present.
      *
      * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
-     * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
-     * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout
-     * feature should not be used when absolute precision is needed.
+     * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that don't
+     * get aborted until several seconds after the timer has been breached. Because of this, the request timeout feature should
+     * not be used when absolute precision is needed.
      *
      * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
-     * request
-     * (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+     * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
      *
      * @see Builder#apiCallAttemptTimeout(Duration)
      */
@@ -136,16 +138,16 @@ public abstract class RequestOverrideConfiguration {
     }
 
     /**
-     * @return the signer for signing the request. This signer get priority over the signer set on the client while
-     * signing the requests. If this value is not set, then the client level signer is used for signing the request.
+     * @return the signer for signing the request. This signer get priority over the signer set on the client while signing the
+     * requests. If this value is not set, then the client level signer is used for signing the request.
      */
     public Optional<Signer> signer() {
         return Optional.ofNullable(signer);
     }
 
     /**
-     * Return the metric publishers for publishing the metrics collected for this request. This list supersedes the
-     * metric publishers set on the client.
+     * Return the metric publishers for publishing the metrics collected for this request. This list supersedes the metric
+     * publishers set on the client.
      */
     public List<MetricPublisher> metricPublishers() {
         return metricPublishers;
@@ -160,27 +162,32 @@ public abstract class RequestOverrideConfiguration {
     }
 
     /**
-     * Returns the additional execution attributes to be added to this request.
-     * This collection of attributes is added in addition to the attributes set on the client.
-     * An attribute value added on the client within the collection of attributes is superseded by an
-     * attribute value added on the request.
+     * Return the progress listeners that will be used to listen in and track request progress
+     */
+    public List<ProgressListener> progressListeners() {
+        return progressListeners;
+    }
+
+    /**
+     * Returns the additional execution attributes to be added to this request. This collection of attributes is added in addition
+     * to the attributes set on the client. An attribute value added on the client within the collection of attributes is
+     * superseded by an attribute value added on the request.
      */
     public ExecutionAttributes executionAttributes() {
         return executionAttributes;
     }
 
     /**
-     * Returns the endpoint provider for resolving the endpoint for this request. This supersedes the
-     * endpoint provider set on the client.
+     * Returns the endpoint provider for resolving the endpoint for this request. This supersedes the endpoint provider set on the
+     * client.
      */
     public Optional<EndpointProvider> endpointProvider() {
         return Optional.ofNullable(endpointProvider);
     }
 
     /**
-     * Returns the compression configuration object, if present, which includes options to enable/disable compression and set
-     * the minimum compression threshold. This compression config object supersedes the compression config object set on the
-     * client.
+     * Returns the compression configuration object, if present, which includes options to enable/disable compression and set the
+     * minimum compression threshold. This compression config object supersedes the compression config object set on the client.
      */
     public Optional<CompressionConfiguration> compressionConfiguration() {
         return Optional.ofNullable(compressionConfiguration);
@@ -205,7 +212,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(executionAttributes, that.executionAttributes) &&
                Objects.equals(endpointProvider, that.endpointProvider) &&
                Objects.equals(compressionConfiguration, that.compressionConfiguration) &&
-               Objects.equals(plugins, that.plugins);
+               Objects.equals(plugins, that.plugins) &&
+               Objects.equals(progressListeners, that.progressListeners);
     }
 
     @Override
@@ -222,6 +230,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(endpointProvider);
         hashCode = 31 * hashCode + Objects.hashCode(compressionConfiguration);
         hashCode = 31 * hashCode + Objects.hashCode(plugins);
+        hashCode = 31 * hashCode + Objects.hashCode(progressListeners);
         return hashCode;
     }
 
@@ -243,14 +252,13 @@ public abstract class RequestOverrideConfiguration {
         /**
          * Add a single header to be set on the HTTP request.
          * <p>
-         * This overrides any values for the given header set on the request by default by the SDK, as well as header
-         * overrides set at the client level using
-         * {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
+         * This overrides any values for the given header set on the request by default by the SDK, as well as header overrides
+         * set at the client level using {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
          *
-         * @param name The name of the header.
+         * @param name  The name of the header.
          * @param value The value of the header.
          * @return This object for method chaining.
          */
@@ -262,14 +270,13 @@ public abstract class RequestOverrideConfiguration {
         /**
          * Add a single header with multiple values to be set on the HTTP request.
          * <p>
-         * This overrides any values for the given header set on the request by default by the SDK, as well as header
-         * overrides set at the client level using
-         * {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
+         * This overrides any values for the given header set on the request by default by the SDK, as well as header overrides
+         * set at the client level using {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
          *
          * <p>
          * This overrides any values already configured with this header name in the builder.
          *
-         * @param name The name of the header.
+         * @param name   The name of the header.
          * @param values The values of the header.
          * @return This object for method chaining.
          */
@@ -278,9 +285,8 @@ public abstract class RequestOverrideConfiguration {
         /**
          * Add additional headers to be set on the HTTP request.
          * <p>
-         * This overrides any values for the given headers set on the request by default by the SDK, as well as header
-         * overrides set at the client level using
-         * {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
+         * This overrides any values for the given headers set on the request by default by the SDK, as well as header overrides
+         * set at the client level using {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration}.
          *
          * <p>
          * This completely overrides any values currently configured in the builder.
@@ -303,7 +309,7 @@ public abstract class RequestOverrideConfiguration {
          * <p>
          * This overrides any values already configured with this query name in the builder.
          *
-         * @param name The query parameter name.
+         * @param name  The query parameter name.
          * @param value The query parameter value.
          * @return This object for method chaining.
          */
@@ -318,7 +324,7 @@ public abstract class RequestOverrideConfiguration {
          * <p>
          * This overrides any values already configured with this query name in the builder.
          *
-         * @param name The query parameter name.
+         * @param name   The query parameter name.
          * @param values The query parameter values.
          * @return This object for method chaining.
          */
@@ -346,7 +352,6 @@ public abstract class RequestOverrideConfiguration {
          * Set the optional name of the higher level library that constructed the request.
          *
          * @param apiName The name of the library.
-         *
          * @return This object for method chaining.
          */
         B addApiName(ApiName apiName);
@@ -355,7 +360,6 @@ public abstract class RequestOverrideConfiguration {
          * Set the optional name of the higher level library that constructed the request.
          *
          * @param apiNameConsumer A {@link Consumer} that accepts a {@link ApiName.Builder}.
-         *
          * @return This object for method chaining.
          */
         B addApiName(Consumer<ApiName.Builder> apiNameConsumer);
@@ -389,8 +393,8 @@ public abstract class RequestOverrideConfiguration {
          *
          * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
          * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
-         * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout
-         * feature should not be used when absolute precision is needed.
+         * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout feature
+         * should not be used when absolute precision is needed.
          *
          * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
@@ -417,8 +421,8 @@ public abstract class RequestOverrideConfiguration {
         Signer signer();
 
         /**
-         * Sets the metric publishers for publishing the metrics collected for this request. This list supersedes
-         * the metric publisher set on the client.
+         * Sets the metric publishers for publishing the metrics collected for this request. This list supersedes the metric
+         * publisher set on the client.
          *
          * @param metricPublisher The list metric publisher for this request.
          * @return This object for method chaining.
@@ -426,8 +430,8 @@ public abstract class RequestOverrideConfiguration {
         B metricPublishers(List<MetricPublisher> metricPublisher);
 
         /**
-         * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics
-         * for this request.
+         * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics for this
+         * request.
          *
          * @param metricPublisher The metric publisher to add.
          */
@@ -437,6 +441,7 @@ public abstract class RequestOverrideConfiguration {
 
         /**
          * Sets the additional execution attributes collection for this request.
+         *
          * @param executionAttributes Execution attributes for this request
          * @return This object for method chaining.
          */
@@ -444,17 +449,18 @@ public abstract class RequestOverrideConfiguration {
 
         /**
          * Add an execution attribute to the existing collection of execution attributes.
+         *
          * @param attribute The execution attribute object
-         * @param value The value of the execution attribute.
+         * @param value     The value of the execution attribute.
          */
         <T> B putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
         ExecutionAttributes executionAttributes();
 
         /**
-         * Sets the endpointProvider to use for resolving the endpoint of the request. This endpointProvider gets priority
-         * over the endpointProvider set on the client while resolving the endpoint for  the requests.
-         * If this value is null, then the client level endpointProvider is used for resolving the endpoint.
+         * Sets the endpointProvider to use for resolving the endpoint of the request. This endpointProvider gets priority over
+         * the endpointProvider set on the client while resolving the endpoint for  the requests. If this value is null, then the
+         * client level endpointProvider is used for resolving the endpoint.
          *
          * @param endpointProvider Endpoint Provider that will override the resolving the endpoint for the request.
          * @return This object for method chaining
@@ -464,19 +470,18 @@ public abstract class RequestOverrideConfiguration {
         EndpointProvider endpointProvider();
 
         /**
-         * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest,
-         * for this setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
+         * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest, for this
+         * setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
          *
          * @param compressionConfiguration Request compression configuration object for this request.
          */
         B compressionConfiguration(CompressionConfiguration compressionConfiguration);
 
         /**
-         * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest,
-         * for this setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
+         * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest, for this
+         * setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
          *
          * @param compressionConfigurationConsumer A {@link Consumer} that accepts a {@link CompressionConfiguration.Builder}
-         *
          * @return This object for method chaining
          */
         B compressionConfiguration(Consumer<CompressionConfiguration.Builder> compressionConfigurationConsumer);
@@ -507,6 +512,26 @@ public abstract class RequestOverrideConfiguration {
         List<SdkPlugin> plugins();
 
         /**
+         * Sets the progress listeners used to perform request prorgess tracking
+         *
+         * @param progressListeners The list of plugins for this request.
+         * @return This object for method chaining.
+         */
+        B progressListeners(List<ProgressListener> progressListeners);
+
+        /**
+         * Add a progress listener used to track request progress
+         *
+         * @param progressListener The listener to add.
+         */
+        B addProgressListener(ProgressListener progressListener);
+
+        /**
+         * Returns the list of progress listeners attached to the request
+         */
+        List<ProgressListener> progressListeners();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -526,7 +551,7 @@ public abstract class RequestOverrideConfiguration {
         private EndpointProvider endpointProvider;
         private CompressionConfiguration compressionConfiguration;
         private List<SdkPlugin> plugins = new ArrayList<>();
-
+        private List<ProgressListener> progressListeners = new ArrayList<>();
 
         protected BuilderImpl() {
         }
@@ -543,6 +568,7 @@ public abstract class RequestOverrideConfiguration {
             endpointProvider(sdkRequestOverrideConfig.endpointProvider);
             compressionConfiguration(sdkRequestOverrideConfig.compressionConfiguration);
             plugins(sdkRequestOverrideConfig.plugins);
+            progressListeners(sdkRequestOverrideConfig.progressListeners);
         }
 
         @Override
@@ -746,6 +772,23 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public List<SdkPlugin> plugins() {
             return Collections.unmodifiableList(plugins);
+        }
+
+        @Override
+        public B progressListeners(List<ProgressListener> progressListeners) {
+            this.progressListeners = new ArrayList<>(progressListeners);
+            return (B) this;
+        }
+
+        @Override
+        public B addProgressListener(ProgressListener progressListener) {
+            this.progressListeners.add(progressListener);
+            return (B) this;
+        }
+
+        @Override
+        public List<ProgressListener> progressListeners() {
+            return Collections.unmodifiableList(progressListeners);
         }
     }
 }
