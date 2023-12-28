@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeStar connections",
+    "contributor": "",
+    "description": "New integration with the GitLab self-managed provider type."
+}
