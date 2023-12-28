@@ -1,3 +1,23 @@
+# __2.22.8__ __2023-12-28__
+## __AWS CodeStar connections__
+  - ### Features
+    - New integration with the GitLab self-managed provider type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix for Signing Error when ampersand character included in HttpQuery when using DefaultAwsCrtV4aSigner.
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - NoDataRetentionException thrown when GetImages requested for a Stream that does not retain data (that is, has a DataRetentionInHours of 0).
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Studio now supports Docker access from within app container
+
 # __2.22.7__ __2023-12-27__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -4282,7 +4302,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
