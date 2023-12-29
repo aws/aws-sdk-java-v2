@@ -1,3 +1,16 @@
+# __2.22.9__ __2023-12-29__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner adds Python 3.11 and Node.js 18 runtimes.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release introduces a new parameter to bypasses an API key's expiry conditions and delete the key.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add LinkEntityArn support for different partitions; Add UnsupportedUserEditionException in UpdateDashboardLinks API; Add support for New Reader Experience Topics
+
 # __2.22.8__ __2023-12-28__
 ## __AWS CodeStar connections__
   - ### Features
@@ -2561,7 +2574,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -4302,7 +4315,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
