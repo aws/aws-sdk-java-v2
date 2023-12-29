@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service",
+    "contributor": "",
+    "description": "This release introduces a new parameter to bypasses an API key's expiry conditions and delete the key."
+}
