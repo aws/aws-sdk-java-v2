@@ -17,6 +17,9 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -24,7 +27,13 @@ import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
+import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
@@ -83,6 +92,26 @@ public class PayloadSigningDisabledTest {
                                    .region(Region.US_WEST_2)
                                    .credentialsProvider(CREDENTIALS)
                                    .httpClient(httpClient)
+                                   .authSchemeProvider(new PayloadSigningEnabledS3AuthSchemeProvider())
+                                   .build()) {
+            httpClient.stubNextResponse(HttpExecuteResponse.builder()
+                                                           .response(SdkHttpResponse.builder().statusCode(200).build())
+                                                           .build());
+
+            s3.createBucket(r -> r.bucket("foo"));
+
+            assertThat(httpClient.getLastRequest().firstMatchingHeader("x-amz-content-sha256"))
+                .hasValue("a40ef303139635de59992f34c1c7da763f89200f2d55b71016f7c156527d63a0");
+        }
+    }
+
+    @Test
+    public void syncPayloadSigningCanBeEnabledUsingExecutionAttribute() {
+        try (MockSyncHttpClient httpClient = new MockSyncHttpClient();
+             S3Client s3 = S3Client.builder()
+                                   .region(Region.US_WEST_2)
+                                   .credentialsProvider(CREDENTIALS)
+                                   .httpClient(httpClient)
                                    .overrideConfiguration(ENABLE_PAYLOAD_SIGNING_CONFIG)
                                    .build()) {
             httpClient.stubNextResponse(HttpExecuteResponse.builder()
@@ -103,7 +132,7 @@ public class PayloadSigningDisabledTest {
                                              .region(Region.US_WEST_2)
                                              .credentialsProvider(CREDENTIALS)
                                              .httpClient(httpClient)
-                                             .overrideConfiguration(ENABLE_PAYLOAD_SIGNING_CONFIG)
+                                             .authSchemeProvider(new PayloadSigningEnabledS3AuthSchemeProvider())
                                              .build()) {
             httpClient.stubNextResponse(HttpExecuteResponse.builder()
                                                            .response(SdkHttpResponse.builder().statusCode(200).build())
@@ -113,6 +142,48 @@ public class PayloadSigningDisabledTest {
 
             assertThat(httpClient.getLastRequest().firstMatchingHeader("x-amz-content-sha256"))
                 .hasValue("a40ef303139635de59992f34c1c7da763f89200f2d55b71016f7c156527d63a0");
+        }
+    }
+
+    @Test
+    public void asyncPayloadSigningCanBeEnabledUsingExecutionAttribute() {
+        try (MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
+             S3AsyncClient s3 = S3AsyncClient.builder()
+                                             .region(Region.US_WEST_2)
+                                             .credentialsProvider(CREDENTIALS)
+                                             .httpClient(httpClient)
+                                             .overrideConfiguration(ENABLE_PAYLOAD_SIGNING_CONFIG)
+                                             .build()) {
+            httpClient.stubNextResponse(HttpExecuteResponse.builder()
+                                                           .response(SdkHttpResponse.builder().statusCode(200).build())
+                                                           .build());
+
+            s3.createBucket(r -> r.bucket("foo")).join();
+
+            assertThat(httpClient.getLastRequest().firstMatchingHeader("x-amz-content-sha256"))
+                    .hasValue("a40ef303139635de59992f34c1c7da763f89200f2d55b71016f7c156527d63a0");
+        }
+    }
+
+    private static class PayloadSigningEnabledS3AuthSchemeProvider implements S3AuthSchemeProvider {
+        private static final List<String> SIGV4_SCHEMES = Arrays.asList(
+                AwsV4AuthScheme.SCHEME_ID, AwsV4aAuthScheme.SCHEME_ID);
+        private S3AuthSchemeProvider defaultS3AuthSchemeProvider = S3AuthSchemeProvider.defaultProvider();
+
+        @Override
+        public List<AuthSchemeOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams) {
+            return defaultS3AuthSchemeProvider
+                .resolveAuthScheme(authSchemeParams)
+                .stream()
+                .map(authSchemeOption -> {
+                    if (SIGV4_SCHEMES.contains(authSchemeOption.schemeId())) {
+                        return authSchemeOption.toBuilder()
+                                               .putSignerProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED, true)
+                                               .build();
+                    }
+                    return authSchemeOption;
+                })
+                .collect(Collectors.toList());
         }
     }
 }
