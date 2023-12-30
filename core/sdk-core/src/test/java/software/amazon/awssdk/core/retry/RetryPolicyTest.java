@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.retry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
@@ -184,5 +185,17 @@ public class RetryPolicyTest {
     @Test
     public void hashCodeDoesNotThrow() {
         RetryPolicy.defaultRetryPolicy().hashCode();
+    }
+
+    @Test
+    public void fullJitter_zeroBackoffTimeZeroDelayZeroRetries_shouldNotThrowIllegalArgumentException() {
+        RetryPolicyContext context = RetryPolicyContext.builder()
+                                                       .retriesAttempted(0)
+                                                       .build();
+        FullJitterBackoffStrategy strategy = FullJitterBackoffStrategy.builder()
+                                                            .baseDelay(Duration.ZERO)
+                                                            .maxBackoffTime(Duration.ZERO)
+                                                            .build();
+        assertDoesNotThrow(() -> strategy.computeDelayBeforeNextRetry(context));
     }
 }
