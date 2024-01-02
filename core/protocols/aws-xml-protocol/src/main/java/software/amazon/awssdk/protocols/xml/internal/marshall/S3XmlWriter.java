@@ -20,10 +20,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
- * Utility for creating easily creating XML documents, one element at a time, for S3 operations.
+ * Utility for creating easily creating XML documents, one element at a time, for S3 operations. Compared to
+ * {@link XmlWriter}, {@link S3XmlWriter} does not unescape escaped characters. This is because S3 expects payloads to
+ * be encoded and will decode the received payload.
  */
 @SdkInternalApi
-public final class S3XmlWriter extends XmlWriter {
+final class S3XmlWriter extends XmlWriter {
 
     /**
      * Creates a new S3XmlWriter, ready to write an XML document to the specified writer. The root element in the XML

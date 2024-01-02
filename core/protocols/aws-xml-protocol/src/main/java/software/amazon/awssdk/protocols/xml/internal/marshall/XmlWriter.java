@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.StringUtils;
  * Utility for creating easily creating XML documents, one element at a time.
  */
 @SdkInternalApi
-public class XmlWriter {
+class XmlWriter {
 
     static final String[] ESCAPE_SEARCHES = {
         // Ampersands should always be the first to escape

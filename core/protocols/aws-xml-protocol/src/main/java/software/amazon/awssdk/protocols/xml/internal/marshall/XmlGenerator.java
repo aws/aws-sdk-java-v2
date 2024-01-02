@@ -33,6 +33,10 @@ public final class XmlGenerator {
         this.xmlWriter = xmlWriter;
     }
 
+    public static XmlGenerator create(String xmlnx) {
+        return create(xmlnx, false);
+    }
+
     public static XmlGenerator create(String xmlns, boolean isS3) {
         StringWriter stringWriter = new StringWriter();
         XmlWriter xmlWriter = isS3 ? new S3XmlWriter(stringWriter, xmlns) : new XmlWriter(stringWriter, xmlns);
