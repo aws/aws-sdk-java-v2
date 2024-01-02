@@ -192,16 +192,16 @@ public final class Context {
         SdkRequest request();
 
         /**
-         * The latest version of the {@link SdkHttpFullRequest} available when the execution failed. To access the
-         * {@link SdkHttpFullRequest}, cast the returned {@link SdkHttpRequest}. If the execution failed before or
-         * during request marshalling, this will return {@link Optional#empty()}.
+         * The latest version of the {@link SdkHttpRequest} available when the execution failed. This may be a
+         * {@link SdkHttpFullRequest}; if so, it can be accessed by casting the returned {@link SdkHttpRequest}.
+         * If the execution failed before or during request marshalling, this will return {@link Optional#empty()}.
          */
         Optional<SdkHttpRequest> httpRequest();
 
         /**
-         * The latest version of the {@link SdkHttpFullResponse} available when the execution failed. To access the
-         * {@link SdkHttpFullResponse}, cast the returned {@link SdkHttpResponse}. If the execution failed before or
-         * during transmission, this will return {@link Optional#empty()}.
+         * The latest version of the {@link SdkHttpResponse} available when the execution failed. This may be a
+         * {@link SdkHttpFullResponse}; if so, it can be accessed by casting the returned {@link SdkHttpResponse}.
+         * If the execution failed before or during transmission, this will return {@link Optional#empty()}.
          */
         Optional<SdkHttpResponse> httpResponse();
 
