@@ -1,3 +1,16 @@
+# __2.22.10__ __2024-01-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes video engine updates including HEVC improvements, support for ingesting VP9 encoded video in MP4 containers, and support for user-specified 3D LUTs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect, Contact Lens Evaluation API increase evaluation notes max length to 3072.
+
 # __2.22.9__ __2023-12-29__
 ## __AWS App Runner__
   - ### Features
