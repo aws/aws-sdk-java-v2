@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.progress;
 
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
@@ -29,29 +29,29 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An SDK-internal implementation of {@link ProgressListener.Context.ExecutionSuccess} and its parent interfaces.
- *
- * @see ProgressListenerFailedContext
+ * An instance of this class can be used by ProgressListener methods to capture and store request progress
+ * @see ProgressListenerFailedContext for failed transaction context definitions
  */
-@SdkProtectedApi
+@SdkInternalApi
 @Immutable
 public final class ProgressListenerContext
     implements ProgressListener.Context.ExecutionSuccess,
                ToCopyableBuilder<ProgressListenerContext.Builder, ProgressListenerContext> {
 
-    private final SdkRequest sdkRequest;
-    private final SdkHttpRequest sdkHttpRequest;
+    private final SdkRequest request;
+    private final SdkHttpRequest httpRequest;
     private final ProgressSnapshot uploadProgressSnapshot;
     private final ProgressSnapshot downloadProgressSnapshot;
-    private final SdkHttpResponse sdkHttpResponse;
-    private final SdkResponse executionSuccessfulSdkResponse;
+    private final SdkHttpResponse httpResponse;
+    private final SdkResponse response;
 
     private ProgressListenerContext(Builder builder) {
-        this.sdkRequest = builder.sdkRequest;
-        this.sdkHttpRequest = builder.sdkHttpRequest;
+        this.request = builder.request;
+        this.httpRequest = builder.httpRequest;
         this.uploadProgressSnapshot = builder.uploadProgressSnapshot;
         this.downloadProgressSnapshot = builder.downloadProgressSnapshot;
-        this.sdkHttpResponse = builder.sdkHttpResponse;
-        this.executionSuccessfulSdkResponse = builder.executionSuccessfulSdkResponse;
+        this.httpResponse = builder.httpResponse;
+        this.response = builder.response;
     }
 
     public static Builder builder() {
@@ -65,12 +65,12 @@ public final class ProgressListenerContext
 
     @Override
     public SdkRequest request() {
-        return sdkRequest;
+        return request;
     }
 
     @Override
     public SdkHttpRequest httpRequest() {
-        return sdkHttpRequest;
+        return httpRequest;
     }
 
     @Override
@@ -85,51 +85,51 @@ public final class ProgressListenerContext
 
     @Override
     public SdkHttpResponse httpResponse() {
-        return sdkHttpResponse;
+        return httpResponse;
     }
 
     @Override
     public SdkResponse response() {
-        return executionSuccessfulSdkResponse;
+        return response;
     }
 
     @Override
     public String toString() {
         return ToString.builder("ProgressListenerContext")
-                       .add("sdkRequest", sdkRequest)
+                       .add("request", request)
                        .add("uploadProgressSnapshot", uploadProgressSnapshot)
                        .add("downloadProgressSnapshot", downloadProgressSnapshot)
-                       .add("executionSuccessfulSdkResponse", executionSuccessfulSdkResponse)
+                       .add("response", response)
                        .build();
     }
 
     public static final class Builder implements CopyableBuilder<Builder, ProgressListenerContext> {
-        private SdkRequest sdkRequest;
-        private SdkHttpRequest sdkHttpRequest;
+        private SdkRequest request;
+        private SdkHttpRequest httpRequest;
         private ProgressSnapshot uploadProgressSnapshot;
         private ProgressSnapshot downloadProgressSnapshot;
-        private SdkHttpResponse sdkHttpResponse;
-        private SdkResponse executionSuccessfulSdkResponse;
+        private SdkHttpResponse httpResponse;
+        private SdkResponse response;
 
         private Builder() {
         }
 
         private Builder(ProgressListenerContext context) {
-            this.sdkRequest = context.sdkRequest;
-            this.sdkHttpRequest = context.sdkHttpRequest;
+            this.request = context.request;
+            this.httpRequest = context.httpRequest;
             this.uploadProgressSnapshot = context.uploadProgressSnapshot;
             this.downloadProgressSnapshot = context.downloadProgressSnapshot;
-            this.sdkHttpResponse = context.sdkHttpResponse;
-            this.executionSuccessfulSdkResponse = context.executionSuccessfulSdkResponse;
+            this.httpResponse = context.httpResponse;
+            this.response = context.response;
         }
 
-        public Builder request(SdkRequest sdkRequest) {
-            this.sdkRequest = sdkRequest;
+        public Builder request(SdkRequest request) {
+            this.request = request;
             return this;
         }
 
-        public Builder httpRequest(SdkHttpRequest sdkHttpRequest) {
-            this.sdkHttpRequest = sdkHttpRequest;
+        public Builder httpRequest(SdkHttpRequest httpRequest) {
+            this.httpRequest = httpRequest;
             return this;
         }
 
@@ -143,13 +143,13 @@ public final class ProgressListenerContext
             return this;
         }
 
-        public Builder httpResponse(SdkHttpResponse sdkHttpResponse) {
-            this.sdkHttpResponse = sdkHttpResponse;
+        public Builder httpResponse(SdkHttpResponse httpResponse) {
+            this.httpResponse = httpResponse;
             return this;
         }
 
-        public Builder response(SdkResponse executionSuccessfulSdkResponse) {
-            this.executionSuccessfulSdkResponse = executionSuccessfulSdkResponse;
+        public Builder response(SdkResponse response) {
+            this.response = response;
             return this;
         }
 

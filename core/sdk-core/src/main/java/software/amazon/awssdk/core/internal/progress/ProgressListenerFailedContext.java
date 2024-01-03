@@ -29,8 +29,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An SDK-internal implementation of {@link ProgressListener.Context.ExecutionFailure}.
+ * An instance of this class can be used by ProgressListener methods to capture and store failed request
  *
- * @see ProgressListenerContext
+ * @see ProgressListenerContext for a successful request progress state capturing
  */
 @SdkInternalApi
 @Immutable

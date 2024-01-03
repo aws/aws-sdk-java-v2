@@ -21,19 +21,25 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * ProgressListenerInvoker class exposes thread safe methods that facilitate invocation of all ProgressListener methods
+ * corresponding to different stages of the request lifecycle
+ */
 @SdkInternalApi
+@ThreadSafe
 public class ProgressListenerInvoker implements ProgressListener {
 
-    private static final Logger log = Logger.loggerFor(ProgressListener.class);
+    private static final Logger log = Logger.loggerFor(ProgressListenerInvoker.class);
 
     private final List<ProgressListener> listeners;
     private final AtomicBoolean prepared = new AtomicBoolean();
     private final AtomicBoolean headerSent = new AtomicBoolean();
-    private final AtomicBoolean headerRecieved = new AtomicBoolean();
+    private final AtomicBoolean headerReceived = new AtomicBoolean();
     private final AtomicBoolean complete = new AtomicBoolean();
 
     public ProgressListenerInvoker(List<ProgressListener> listeners) {
@@ -61,7 +67,7 @@ public class ProgressListenerInvoker implements ProgressListener {
 
     @Override
     public void responseHeaderReceived(Context.ResponseHeaderReceived context) {
-        if (!headerRecieved.getAndSet(true)) {
+        if (!headerReceived.getAndSet(true)) {
             forEach(listener -> listener.responseHeaderReceived(context));
         }
     }

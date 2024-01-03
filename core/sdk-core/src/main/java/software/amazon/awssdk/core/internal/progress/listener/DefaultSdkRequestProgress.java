@@ -27,7 +27,7 @@ import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 /**
  * An SDK-internal implementation of {@link SdkRequestProgress}. This implementation acts as a thin wrapper around {@link
  * AtomicReference}, where calls to get the latest {@link #progressSnapshot()} simply return the latest reference, while {@link
- * SdkRequestProgressUpdater} is responsible for continuously updating the latest reference.
+ * ProgressUpdater} is responsible for continuously updating the latest reference.
  *
  * @see SdkRequestProgress
  */
