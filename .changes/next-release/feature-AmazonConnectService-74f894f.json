@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Amazon Connect, Contact Lens Evaluation API increase evaluation notes max length to 3072."
-}
