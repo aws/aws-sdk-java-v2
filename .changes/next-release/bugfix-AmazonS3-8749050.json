@@ -2,5 +2,5 @@
     "category": "Amazon S3", 
     "contributor": "", 
     "type": "bugfix", 
-    "description": "Fixes a bug in DeleteObjects where specifying a key that contains characters that need to be escaped in XML and that is encoded, would delete the object with the decoded key instead."
+    "description": "Fixes a bug in DeleteObjects to properly encode the key in the request."
 }
