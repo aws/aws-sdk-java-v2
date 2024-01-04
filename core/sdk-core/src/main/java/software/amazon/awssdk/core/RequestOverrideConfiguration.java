@@ -56,7 +56,6 @@ public abstract class RequestOverrideConfiguration {
     private final EndpointProvider endpointProvider;
     private final CompressionConfiguration compressionConfiguration;
     private final List<SdkPlugin> plugins;
-    // TODO : need to discuss this in SurfaceAPI review : defining List<ProgressListener> vs ListenerChain
     private final List<ProgressListener> progressListeners;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
@@ -166,7 +165,6 @@ public abstract class RequestOverrideConfiguration {
     /**
      * Return a list of progress listeners that will be used to track request progress.
      */
-    @SdkPreviewApi
     public List<ProgressListener> progressListeners() {
         return progressListeners;
     }
@@ -524,10 +522,8 @@ public abstract class RequestOverrideConfiguration {
          * Assigns a list of progress listeners used to perform request progress tracking
          * Refer to {@link ProgressListener}
          *
-         * @param progressListeners The list of plugins for this request.
-         * @return This object for method chaining.
+         * @param progressListeners a list of Progress Listeners to be associated with the request.
          */
-        @SdkPreviewApi
         B progressListeners(List<ProgressListener> progressListeners);
 
         /**
@@ -535,13 +531,11 @@ public abstract class RequestOverrideConfiguration {
          *
          * @param progressListener The listener to add.
          */
-        @SdkPreviewApi
         B addProgressListener(ProgressListener progressListener);
 
         /**
          * Returns the list of progress listeners attached to the request
          */
-        @SdkPreviewApi
         List<ProgressListener> progressListeners();
 
         /**
