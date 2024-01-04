@@ -163,7 +163,7 @@ public class AwsXmlProtocolFactory {
 
     protected XmlGenerator createGenerator(OperationInfo operationInfo) {
         return operationInfo.hasPayloadMembers() ?
-               XmlGenerator.create(operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE)) :
+               XmlGenerator.create(operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE), false) :
                null;
     }
 
