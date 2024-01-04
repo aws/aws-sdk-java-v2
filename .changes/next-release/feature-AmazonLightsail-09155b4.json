@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "contributor": "",
-    "description": "This release adds support to set up an HTTPS endpoint on an instance."
-}
