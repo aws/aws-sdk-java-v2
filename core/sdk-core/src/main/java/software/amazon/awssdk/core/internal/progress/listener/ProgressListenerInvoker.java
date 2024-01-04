@@ -103,7 +103,7 @@ public class ProgressListenerInvoker implements ProgressListener {
 
     private void forEach(Consumer<ProgressListener> action) {
         for (ProgressListener listener : listeners) {
-            runAndLogError(log.logger(), "Exception thrown in TransferListener, ignoring",
+            runAndLogError(log.logger(), "Exception thrown in ProgressListener, ignoring",
                            () -> action.accept(listener));
         }
     }
