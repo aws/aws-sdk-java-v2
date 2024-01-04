@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Adding support for provisioned throughput mode for SageMaker Feature Groups"
+}
