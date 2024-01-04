@@ -274,8 +274,13 @@ public final class SignerUtils {
     }
 
     public static String getContentHash(SdkHttpRequest.Builder requestBuilder) {
-        return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
+        // TODO - possibly get from Checksummer instead of header?? ...
+
+        // TODO -> throws error
+        /*return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
             () -> new IllegalArgumentException("Content hash must be present in the '" + X_AMZ_CONTENT_SHA256 + "' header!")
-        );
+        );*/
+
+        return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElse(null);
     }
 }

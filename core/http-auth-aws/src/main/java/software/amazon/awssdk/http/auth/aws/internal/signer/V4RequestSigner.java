@@ -45,10 +45,23 @@ public interface V4RequestSigner {
         return new DefaultV4RequestSigner(properties, contentHash);
     }
 
+    static V4RequestSigningResult requestSigningResult(V4Properties properties, Checksummer checksummer,
+                                                       SdkHttpRequest.Builder requestBuilder) {
+        // PrecomputedChecksummer never uses contentHash, has constant String
+        if (checksummer instanceof PrecomputedSha256Checksummer) {
+            return create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
+        } else {
+            FlexibleChecksummer flexibleChecksummer = (FlexibleChecksummer) checksummer;
+            V4RequestSigningResult result = create(properties, flexibleChecksummer.getHash()).sign(requestBuilder);
+            requestBuilder.removeHeader(X_AMZ_CONTENT_SHA256);
+            return result;
+        }
+    }
+
     /**
      * Retrieve an implementation of a V4RequestSigner, which signs the request and adds authentication through headers.
      */
-    static V4RequestSigner header(V4Properties properties) {
+    static V4RequestSigner header(V4Properties properties, Checksummer checksummer) {
         return requestBuilder -> {
             // Add pre-requisites
             if (properties.getCredentials() instanceof AwsSessionCredentialsIdentity) {
@@ -58,7 +71,9 @@ public interface V4RequestSigner {
             addHostHeader(requestBuilder);
             addDateHeader(requestBuilder, formatDateTime(properties.getCredentialScope().getInstant()));
 
-            V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
+            // TODO - find a better way
+            //V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
+            V4RequestSigningResult result = requestSigningResult(properties, checksummer, requestBuilder);
 
             // Add the signature within an authorization header
             String authHeader = AWS4_SIGNING_ALGORITHM
@@ -74,7 +89,7 @@ public interface V4RequestSigner {
     /**
      * Retrieve an implementation of a V4RequestSigner, which signs the request and adds authentication through query parameters.
      */
-    static V4RequestSigner query(V4Properties properties) {
+    static V4RequestSigner query(V4Properties properties, Checksummer checksummer) {
         return requestBuilder -> {
             // Add pre-requisites
             if (properties.getCredentials() instanceof AwsSessionCredentialsIdentity) {
@@ -91,7 +106,9 @@ public interface V4RequestSigner {
             requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL,
                                                 properties.getCredentialScope().scope(properties.getCredentials()));
 
-            V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
+            // TODO - find a better way
+            //V4RequestSigningResult result = create(properties, getContentHash(requestBuilder)).sign(requestBuilder);
+            V4RequestSigningResult result = requestSigningResult(properties, checksummer, requestBuilder);
 
             // Add the signature
             requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, result.getSignature());
@@ -115,6 +132,7 @@ public interface V4RequestSigner {
             addHostHeader(requestBuilder);
 
             // Pre-signed requests shouldn't have the content-hash header
+            // TODO - getContentHash throws error when header not present
             String contentHash = getContentHash(requestBuilder);
             requestBuilder.removeHeader(X_AMZ_CONTENT_SHA256);
 

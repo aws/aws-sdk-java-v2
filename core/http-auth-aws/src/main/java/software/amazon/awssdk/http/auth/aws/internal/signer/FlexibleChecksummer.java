@@ -46,6 +46,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class FlexibleChecksummer implements Checksummer {
     private final Collection<Option> options;
     private final Map<Option, SdkChecksum> optionToSdkChecksum;
+    private String hash;
 
     public FlexibleChecksummer(Option... options) {
         this.options = Arrays.asList(options);
@@ -68,6 +69,36 @@ public final class FlexibleChecksummer implements Checksummer {
         addChecksums(request);
     }
 
+    private void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public String getHash() {
+        return this.hash;
+    }
+
+    private void addChecksums(SdkHttpRequest.Builder request) {
+        optionToSdkChecksum.forEach(
+            (option, sdkChecksum) -> {
+                String hash = option.formatter.apply(sdkChecksum.getChecksumBytes());
+                setHash(hash);
+                if (shouldAddChecksumHeader()) {
+                    request.putHeader(
+                        option.headerName,
+                        hash);
+                }
+            }
+        );
+    }
+
+    private boolean shouldAddChecksumHeader() {
+        // conditions for true
+        // S3 requests (that are NOT unsignedStreamingTrailer)
+        // operations with signer overrides - BaseEventStreamAsyncAws4Signer && Aws4UnsignedPayloadSigner
+
+        return false;
+    }
+
     @Override
     public CompletableFuture<Publisher<ByteBuffer>> checksum(Publisher<ByteBuffer> payload, SdkHttpRequest.Builder request) {
         ChecksumSubscriber checksumSubscriber = new ChecksumSubscriber(optionToSdkChecksum.values());
@@ -81,14 +112,6 @@ public final class FlexibleChecksummer implements Checksummer {
         CompletableFuture<Publisher<ByteBuffer>> result = checksumSubscriber.completeFuture();
         result.thenRun(() -> addChecksums(request));
         return result;
-    }
-
-    private void addChecksums(SdkHttpRequest.Builder request) {
-        optionToSdkChecksum.forEach(
-            (option, sdkChecksum) -> request.putHeader(
-                option.headerName,
-                option.formatter.apply(sdkChecksum.getChecksumBytes()))
-        );
     }
 
     public static Option.Builder option() {

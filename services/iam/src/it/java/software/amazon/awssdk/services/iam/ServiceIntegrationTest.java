@@ -37,6 +37,7 @@ public class ServiceIntegrationTest extends AwsTestBase {
 
     @Test
     public void smokeTest() {
+        // TODO - validate call is successful, check presence of header,
         assertThat(iam.listUsers().users()).isNotNull();
     }
 }

@@ -44,12 +44,14 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
 
     public DefaultV4RequestSigner(V4Properties properties, String contentHash) {
         this.properties = properties;
+        // TODO - refactor?
         this.contentHash = contentHash;
     }
 
     @Override
     public V4RequestSigningResult sign(SdkHttpRequest.Builder requestBuilder) {
         // Step 1: Create a canonical request
+        // TODO - verify passing in null should be fine
         V4CanonicalRequest canonicalRequest = createCanonicalRequest(requestBuilder.build(), contentHash);
 
         // Step 2: Create a hash of the canonical request

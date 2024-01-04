@@ -30,6 +30,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
@@ -60,7 +61,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
         Checksummer checksummer = checksummer(request, null);
         V4Properties v4Properties = v4Properties(request);
-        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
+        // TODO - added checksummer param
+        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties, checksummer);
         V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
 
         return doSign(request, checksummer, v4RequestSigner, payloadSigner);
@@ -70,7 +72,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
         Checksummer checksummer = asyncChecksummer(request);
         V4Properties v4Properties = v4Properties(request);
-        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
+        V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties, checksummer);
         V4PayloadSigner payloadSigner = v4PayloadAsyncSigner(request, v4Properties);
 
         return doSign(request, checksummer, v4RequestSigner, payloadSigner);
@@ -97,7 +99,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static V4RequestSigner v4RequestSigner(
         BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
-        V4Properties v4Properties) {
+        V4Properties v4Properties,
+        Checksummer checksummer) {
 
         AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
         Duration expirationDuration = request.property(EXPIRATION_DURATION);
@@ -107,7 +110,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             return V4RequestSigner.anonymous(v4Properties);
         }
 
-        Function<V4Properties, V4RequestSigner> requestSigner;
+        //Function<V4Properties, V4RequestSigner> requestSigner;
+        BiFunction<V4Properties, Checksummer, V4RequestSigner> requestSigner;
         switch (authLocation) {
             case HEADER:
                 if (expirationDuration != null) {
@@ -118,18 +122,27 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                 break;
             case QUERY_STRING:
                 requestSigner = expirationDuration == null ? V4RequestSigner::query :
-                                properties -> V4RequestSigner.presigned(properties,
+                                // checksummer won't be used here, but query() requires Checksummer param
+                                (properties, checksummer1) -> V4RequestSigner.presigned(properties,
                                                                         validateExpirationDuration(expirationDuration));
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported authLocation " + authLocation);
         }
 
-        return requestSigner.apply(v4Properties);
+        return requestSigner.apply(v4Properties, checksummer);
     }
 
     private static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
                                            Boolean isPayloadSigningOverride) {
+
+        // TODO - test for non-S3 services that use BaseEventStreamAsyncAws4Signer or Aws4UnsignedPayloadSigner
+
+        /*boolean isS3 = "s3".equals(request.property(SERVICE_SIGNING_NAME));
+        if (!isS3) {
+            return Checksummer.forNoOp();
+        }*/
+
         boolean isPayloadSigning = isPayloadSigningOverride != null ? isPayloadSigningOverride : isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean hasChecksumHeader = hasChecksumHeader(request);
@@ -153,8 +166,11 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             if (isFlexible) {
                 return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM));
             }
+            // TODO - change this
             return Checksummer.create();
         }
+
+        // move isS3 check here??
 
         if (isFlexible || isTrailing) {
             if (isChunkEncoding) {
@@ -262,8 +278,13 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
         ContentStreamProvider requestPayload = request.payload().orElse(null);
 
+        // only add header for S3 requests && instanceOf PrecomputedChecksummer
+        // TODO - don't add to requestBuilder, instead store contentHash elsewhere - Checksummer?
         checksummer.checksum(requestPayload, requestBuilder);
+        FlexibleChecksummer flexibleChecksummer = (FlexibleChecksummer) checksummer;
+        String hash = flexibleChecksummer.getHash();
 
+        // TODO - validation done for AwsChunkedV4PayloadSigner
         payloadSigner.beforeSigning(requestBuilder, requestPayload);
 
         V4RequestSigningResult requestSigningResult = requestSigner.sign(requestBuilder);

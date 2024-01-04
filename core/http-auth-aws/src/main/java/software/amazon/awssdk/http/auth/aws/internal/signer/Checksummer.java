@@ -38,6 +38,11 @@ import software.amazon.awssdk.utils.BinaryUtils;
  */
 @SdkInternalApi
 public interface Checksummer {
+
+    // TODO - V4RequestSigner can ask the Checksummer to give it the checksum value, instead of from header, and
+    //  Checksummer can figure out the minimum conditions under which it should write the header instead of always
+    // --> only applicable for FlexibleChecksummer, PrecomputedChecksummer will always have Constant header
+
     /**
      * Get a default implementation of a checksummer, which calculates the SHA-256 checksum and places it in the
      * x-amz-content-sha256 header.

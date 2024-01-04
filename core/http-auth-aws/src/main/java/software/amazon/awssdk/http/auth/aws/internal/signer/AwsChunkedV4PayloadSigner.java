@@ -76,6 +76,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     public ContentStreamProvider sign(ContentStreamProvider payload, V4RequestSigningResult requestSigningResult) {
         SdkHttpRequest.Builder request = requestSigningResult.getSignedRequest();
 
+        // TODO - remove validation for non-S3, non-eventStreaming, non-payloadSigning
         String checksum = request.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
             () -> new IllegalArgumentException(X_AMZ_CONTENT_SHA256 + " must be set!")
         );
@@ -129,6 +130,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         // pre-existing trailers
         encodedContentLength += calculateExistingTrailersLength();
 
+        // TODO - remove validation for non-S3, non-eventStreaming, non-payloadSigning
         String checksum = request.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
             () -> new IllegalArgumentException(X_AMZ_CONTENT_SHA256 + " must be set!")
         );
