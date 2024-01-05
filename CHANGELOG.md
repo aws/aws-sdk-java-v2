@@ -1,3 +1,20 @@
+# __2.22.12__ __2024-01-05__
+## __AWS Key Management Service__
+  - ### Features
+    - Documentation updates for AWS Key Management Service (KMS).
+
+## __Amazon Connect Service__
+  - ### Features
+    - Minor trait updates for User APIs
+
+## __Amazon Q Connect__
+  - ### Features
+    - Marked SearchQuickResponses API as readonly.
+
+## __Redshift Serverless__
+  - ### Features
+    - use_fips_ssl and require_ssl parameter support for Workgroup, UpdateWorkgroup, and CreateWorkgroup
+
 # __2.22.11__ __2024-01-04__
 ## __AWS Config__
   - ### Features
