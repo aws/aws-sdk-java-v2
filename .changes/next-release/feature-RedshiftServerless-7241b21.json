@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Serverless",
+    "contributor": "",
+    "description": "use_fips_ssl and require_ssl parameter support for Workgroup, UpdateWorkgroup, and CreateWorkgroup"
+}
