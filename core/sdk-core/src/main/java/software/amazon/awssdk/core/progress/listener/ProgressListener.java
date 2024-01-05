@@ -154,6 +154,7 @@ public interface ProgressListener {
 
     /**
      * The service returns the response headers
+     * SdkHttpResponse httpResponse() denotes the unmarshalled response sent back by the service
      * After this, one among  responseBytesReceived, attemptFailureResponseBytesReceived and attemptFailure will always be invoked
      * <p>
      * Available context attributes:
@@ -195,7 +196,7 @@ public interface ProgressListener {
     *     <li>{@link Context.AttemptFailureResponseBytesReceived#request()}</li>
     *     <li>{@link Context.AttemptFailureResponseBytesReceived#httpRequest()}</li>
     *     <li>{@link Context.AttemptFailureResponseBytesReceived#uploadProgressSnapshot()}</li>
-    *     <li>{@link Context.AttemptFailureResponseBytesReceived#httpResponse()} ()}</li>
+    *     <li>{@link Context.AttemptFailureResponseBytesReceived#httpResponse()}</li>
     *     <li>{@link Context.AttemptFailureResponseBytesReceived#downloadProgressSnapshot()}</li>
     *     <li>{@link Context.AttemptFailureResponseBytesReceived#exception()}</li>
     * </ol>
@@ -205,6 +206,7 @@ public interface ProgressListener {
 
     /**
      * Successful request execution
+     * SdkResponse response() denotes the marshalled response
      * This marks the end of the request path.
      * <p>
      * Available context attributes:
@@ -293,7 +295,7 @@ public interface ProgressListener {
          * Available context attributes:
          * <ol>
          *     <li>{@link RequestPrepared#request()}</li>
-         *     <li>{@link RequestPrepared#progressSnapshot()}</li>
+         *     <li>{@link RequestPrepared#uploadProgressSnapshot()} </li>
          * </ol>
          */
         @Immutable

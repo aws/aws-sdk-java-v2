@@ -31,6 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -55,6 +56,7 @@ public abstract class RequestOverrideConfiguration {
     private final EndpointProvider endpointProvider;
     private final CompressionConfiguration compressionConfiguration;
     private final List<SdkPlugin> plugins;
+    private final List<ProgressListener> progressListeners;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -68,6 +70,7 @@ public abstract class RequestOverrideConfiguration {
         this.endpointProvider = builder.endpointProvider();
         this.compressionConfiguration = builder.compressionConfiguration();
         this.plugins = Collections.unmodifiableList(new ArrayList<>(builder.plugins()));
+        this.progressListeners = Collections.unmodifiableList(new ArrayList<>());
     }
 
     /**
@@ -160,6 +163,13 @@ public abstract class RequestOverrideConfiguration {
     }
 
     /**
+     * Return a list of progress listeners that will be used to track request progress.
+     */
+    public List<ProgressListener> progressListeners() {
+        return progressListeners;
+    }
+
+    /**
      * Returns the additional execution attributes to be added to this request.
      * This collection of attributes is added in addition to the attributes set on the client.
      * An attribute value added on the client within the collection of attributes is superseded by an
@@ -205,7 +215,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(executionAttributes, that.executionAttributes) &&
                Objects.equals(endpointProvider, that.endpointProvider) &&
                Objects.equals(compressionConfiguration, that.compressionConfiguration) &&
-               Objects.equals(plugins, that.plugins);
+               Objects.equals(plugins, that.plugins) &&
+               Objects.equals(progressListeners, that.progressListeners);
     }
 
     @Override
@@ -222,6 +233,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(endpointProvider);
         hashCode = 31 * hashCode + Objects.hashCode(compressionConfiguration);
         hashCode = 31 * hashCode + Objects.hashCode(plugins);
+        hashCode = 31 * hashCode + Objects.hashCode(progressListeners);
         return hashCode;
     }
 
@@ -507,6 +519,26 @@ public abstract class RequestOverrideConfiguration {
         List<SdkPlugin> plugins();
 
         /**
+         * Assigns a list of progress listeners used to perform request progress tracking
+         * Refer to {@link ProgressListener}
+         *
+         * @param progressListeners a list of Progress Listeners to be associated with the request.
+         */
+        B progressListeners(List<ProgressListener> progressListeners);
+
+        /**
+         * Add a progress listener used to track request progress
+         *
+         * @param progressListener The listener to add.
+         */
+        B addProgressListener(ProgressListener progressListener);
+
+        /**
+         * Returns the list of progress listeners attached to the request
+         */
+        List<ProgressListener> progressListeners();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -526,7 +558,7 @@ public abstract class RequestOverrideConfiguration {
         private EndpointProvider endpointProvider;
         private CompressionConfiguration compressionConfiguration;
         private List<SdkPlugin> plugins = new ArrayList<>();
-
+        private List<ProgressListener> progressListeners = new ArrayList<>();
 
         protected BuilderImpl() {
         }
@@ -543,6 +575,7 @@ public abstract class RequestOverrideConfiguration {
             endpointProvider(sdkRequestOverrideConfig.endpointProvider);
             compressionConfiguration(sdkRequestOverrideConfig.compressionConfiguration);
             plugins(sdkRequestOverrideConfig.plugins);
+            progressListeners(sdkRequestOverrideConfig.progressListeners);
         }
 
         @Override
@@ -746,6 +779,23 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public List<SdkPlugin> plugins() {
             return Collections.unmodifiableList(plugins);
+        }
+
+        @Override
+        public B progressListeners(List<ProgressListener> progressListeners) {
+            this.progressListeners = new ArrayList<>(progressListeners);
+            return (B) this;
+        }
+
+        @Override
+        public B addProgressListener(ProgressListener progressListener) {
+            this.progressListeners.add(progressListener);
+            return (B) this;
+        }
+
+        @Override
+        public List<ProgressListener> progressListeners() {
+            return Collections.unmodifiableList(progressListeners);
         }
     }
 }
