@@ -17,33 +17,34 @@ package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.http.HttpTestUtils.createProvider;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.http.SdkCancellationException;
+import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CrtRequestExecutorTest {
 
     private CrtRequestExecutor requestExecutor;
@@ -51,193 +52,90 @@ public class CrtRequestExecutorTest {
     private HttpClientConnectionManager connectionManager;
 
     @Mock
-    private SdkAsyncHttpResponseHandler responseHandler;
-
-    @Mock
     private HttpClientConnection httpClientConnection;
 
-    @Before
+    public static Stream<Throwable> retryableExceptions() {
+        return Stream.of(new CrtRuntimeException(""), new HttpException(0x080a), new IllegalStateException(
+            "connection closed"));
+    }
+
+    @BeforeEach
     public void setup() {
         requestExecutor = new CrtRequestExecutor();
     }
 
-    @After
+    @AfterEach
     public void teardown() {
-        Mockito.reset(connectionManager, responseHandler, httpClientConnection);
+        Mockito.reset(connectionManager, httpClientConnection);
     }
 
     @Test
     public void acquireConnectionThrowException_shouldInvokeOnError() {
         RuntimeException exception = new RuntimeException("error");
-        CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
-                                                               .crtConnPool(connectionManager)
-                                                               .request(AsyncExecuteRequest.builder()
-                                                                                 .responseHandler(responseHandler)
-                                                                                 .build())
-                                                               .build();
+        CrtRequestContext context = crtRequestContext();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
         completableFuture.completeExceptionally(exception);
 
-        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
 
-        ArgumentCaptor<Exception> argumentCaptor = ArgumentCaptor.forClass(Exception.class);
-        Mockito.verify(responseHandler).onError(argumentCaptor.capture());
-
-        Exception actualException = argumentCaptor.getValue();
-        assertThat(actualException).hasMessageContaining("An exception occurred when acquiring a connection");
-        assertThat(actualException).hasCause(exception);
         assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
     }
 
-    @Test
-    public void makeRequestThrowException_shouldInvokeOnError() {
-        CrtRuntimeException exception = new CrtRuntimeException("");
-        CrtAsyncRequestContext context = crtRequestContext();
+    @ParameterizedTest
+    @MethodSource("retryableExceptions")
+    public void makeRequestFailed_retryableException_shouldWrapWithIOException(Throwable throwable) {
+        CrtRequestContext context = crtRequestContext();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
         completableFuture.complete(httpClientConnection);
 
-        Mockito.when(httpClientConnection.makeRequest(Mockito.any(HttpRequest.class), Mockito.any(CrtResponseAdapter.class)))
-               .thenThrow(exception);
+        Mockito.when(httpClientConnection.makeRequest(Mockito.any(HttpRequest.class), Mockito.any(HttpStreamResponseHandler.class)))
+               .thenThrow(throwable);
 
-        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
-
-        ArgumentCaptor<Exception> argumentCaptor = ArgumentCaptor.forClass(Exception.class);
-        Mockito.verify(responseHandler).onError(argumentCaptor.capture());
-
-        Exception actualException = argumentCaptor.getValue();
-        assertThat(actualException).hasMessageContaining("An exception occurred when making the request");
-        assertThat(actualException).hasCause(exception);
-        assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
-    }
-
-    @Test
-    public void makeRequest_success() {
-        CrtAsyncRequestContext context = crtRequestContext();
-        CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
-        Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
-        completableFuture.complete(httpClientConnection);
-
-        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
-        Mockito.verifyNoMoreInteractions(responseHandler);
-    }
-
-    @Test
-    public void cancelRequest_shouldInvokeOnError() {
-        CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
-                                                               .crtConnPool(connectionManager)
-                                                               .request(AsyncExecuteRequest.builder()
-                                                                                 .responseHandler(responseHandler)
-                                                                                 .build())
-                                                               .build();
-        CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
-
-        Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
-
-        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
-        executeFuture.cancel(true);
-
-        ArgumentCaptor<Exception> argumentCaptor = ArgumentCaptor.forClass(Exception.class);
-        Mockito.verify(responseHandler).onError(argumentCaptor.capture());
-
-        Exception actualException = argumentCaptor.getValue();
-        assertThat(actualException).hasMessageContaining("The request was cancelled");
-        assertThat(actualException).isInstanceOf(SdkCancellationException.class);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
+        assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(throwable).isInstanceOf(IOException.class);
     }
 
     @Test
     public void execute_AcquireConnectionFailure_shouldAlwaysWrapIOException() {
-        CrtAsyncRequestContext context = crtRequestContext();
+        CrtRequestContext context = crtRequestContext();
         RuntimeException exception = new RuntimeException("some failure");
         CompletableFuture<HttpClientConnection> completableFuture = CompletableFutureUtils.failedFuture(exception);
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
 
-        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
         assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(IOException.class).hasRootCause(exception);
     }
-
-    @Test
-    public void executeRequest_failedOfIllegalStateException_shouldWrapIOException() {
-        IllegalStateException exception = new IllegalStateException("connection closed");
-        CrtAsyncRequestContext context = crtRequestContext();
-        CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
-
-        Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
-        completableFuture.complete(httpClientConnection);
-
-        Mockito.when(httpClientConnection.makeRequest(Mockito.any(HttpRequest.class), Mockito.any(CrtResponseAdapter.class)))
-               .thenThrow(exception);
-
-        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
-
-        ArgumentCaptor<Exception> argumentCaptor = ArgumentCaptor.forClass(Exception.class);
-        Mockito.verify(responseHandler).onError(argumentCaptor.capture());
-
-        Exception actualException = argumentCaptor.getValue();
-        assertThat(actualException).hasMessageContaining("An exception occurred when making the request").hasCause(exception);
-        assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(IOException.class).hasRootCause(exception);
-    }
-
-    @Test
-    public void executeRequest_failedOfRetryableHttpException_shouldWrapIOException() {
-        HttpException exception = new HttpException(0x080a); // AWS_ERROR_HTTP_CONNECTION_CLOSED
-        CrtAsyncRequestContext context = crtRequestContext();
-        CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
-
-        Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
-        completableFuture.complete(httpClientConnection);
-
-        Mockito.when(httpClientConnection.makeRequest(Mockito.any(HttpRequest.class), Mockito.any(CrtResponseAdapter.class)))
-               .thenThrow(exception);
-
-        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
-
-        ArgumentCaptor<Exception> argumentCaptor = ArgumentCaptor.forClass(Exception.class);
-        Mockito.verify(responseHandler).onError(argumentCaptor.capture());
-
-        Exception actualException = argumentCaptor.getValue();
-        assertThat(actualException).hasCause(exception);
-        assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(IOException.class).hasRootCause(exception);
-    }
-
 
     @Test
     public void executeRequest_failedOfNonRetryableHttpException_shouldNotWrapIOException() {
         HttpException exception = new HttpException(0x0801); // AWS_ERROR_HTTP_HEADER_NOT_FOUND
-        CrtAsyncRequestContext context = crtRequestContext();
+        CrtRequestContext context = crtRequestContext();
         CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
 
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
         completableFuture.complete(httpClientConnection);
 
-        Mockito.when(httpClientConnection.makeRequest(Mockito.any(HttpRequest.class), Mockito.any(CrtResponseAdapter.class)))
+        Mockito.when(httpClientConnection.makeRequest(Mockito.any(HttpRequest.class), Mockito.any(HttpStreamResponseHandler.class)))
                .thenThrow(exception);
 
-        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
-
-        ArgumentCaptor<Exception> argumentCaptor = ArgumentCaptor.forClass(Exception.class);
-        Mockito.verify(responseHandler).onError(argumentCaptor.capture());
-
-        Exception actualException = argumentCaptor.getValue();
-        assertThat(actualException).isEqualTo(exception);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
         assertThatThrownBy(executeFuture::join).hasCause(exception);
     }
 
-    private CrtAsyncRequestContext crtRequestContext() {
+    private CrtRequestContext crtRequestContext() {
         SdkHttpFullRequest request = createRequest(URI.create("http://localhost"));
-        return CrtAsyncRequestContext.builder()
-                                     .readBufferSize(2000)
-                                     .crtConnPool(connectionManager)
-                                     .request(AsyncExecuteRequest.builder()
-                                                            .request(request)
-                                                            .requestContentPublisher(createProvider(""))
-                                                            .responseHandler(responseHandler)
-                                                            .build())
-                                     .build();
+        return CrtRequestContext.builder()
+                                .readBufferSize(2000)
+                                .crtConnPool(connectionManager)
+                                .request(HttpExecuteRequest.builder()
+                                                           .request(request)
+                                                           .contentStreamProvider(SdkBytes.fromUtf8String("test").asContentStreamProvider())
+                                                           .build())
+                                .build();
     }
-
 }

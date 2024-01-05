@@ -28,7 +28,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
 import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestContext;
-import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
+import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestExecutor;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -98,7 +98,7 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
                                                                    .request(asyncRequest)
                                                                    .build();
 
-            return new CrtRequestExecutor().execute(context);
+            return new CrtAsyncRequestExecutor().execute(context);
         }
     }
 
