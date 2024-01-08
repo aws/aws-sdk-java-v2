@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "Aws CodeBuild now supports new compute type BUILD_GENERAL1_XLARGE"
+}
