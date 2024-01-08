@@ -1,3 +1,16 @@
+# __2.22.13__ __2024-01-08__
+## __AWS CodeBuild__
+  - ### Features
+    - Aws CodeBuild now supports new compute type BUILD_GENERAL1_XLARGE
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 R7iz bare metal instances are powered by custom 4th generation Intel Xeon Scalable processors.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - This release adds support for query type configuration on firewall rules that enables customers for granular action (ALLOW, ALERT, BLOCK) by DNS query type.
+
 # __2.22.12__ __2024-01-05__
 ## __AWS Key Management Service__
   - ### Features
@@ -2637,7 +2650,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -4378,7 +4391,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
