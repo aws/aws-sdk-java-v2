@@ -1,3 +1,53 @@
+# __2.22.12__ __2024-01-05__
+## __AWS Key Management Service__
+  - ### Features
+    - Documentation updates for AWS Key Management Service (KMS).
+
+## __Amazon Connect Service__
+  - ### Features
+    - Minor trait updates for User APIs
+
+## __Amazon Q Connect__
+  - ### Features
+    - Marked SearchQuickResponses API as readonly.
+
+## __Redshift Serverless__
+  - ### Features
+    - use_fips_ssl and require_ssl parameter support for Workgroup, UpdateWorkgroup, and CreateWorkgroup
+
+# __2.22.11__ __2024-01-04__
+## __AWS Config__
+  - ### Features
+    - Updated ResourceType enum with new resource types onboarded by AWS Config in November and December 2023.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Added Idempotency token support to Service Catalog AssociateServiceActionWithProvisioningArtifact, DisassociateServiceActionFromProvisioningArtifact, DeleteServiceAction API
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Adding PerformanceInsightsEnabled and PerformanceInsightsKMSKeyId fields to DescribeDBInstances Response.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for managed instance draining which facilitates graceful termination of Amazon ECS instances.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds support for new or existing Amazon OpenSearch domains to enable TLS 1.3 or TLS 1.2 with perfect forward secrecy cipher suites for domain endpoints.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to set up an HTTPS endpoint on an instance.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for new or existing Amazon OpenSearch domains to enable TLS 1.3 or TLS 1.2 with perfect forward secrecy cipher suites for domain endpoints.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding support for provisioned throughput mode for SageMaker Feature Groups
+
 # __2.22.10__ __2024-01-03__
 ## __AWS Elemental MediaConvert__
   - ### Features
