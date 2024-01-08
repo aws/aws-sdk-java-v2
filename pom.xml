@@ -95,7 +95,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.22.10</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.22.13</awsjavasdk.previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
