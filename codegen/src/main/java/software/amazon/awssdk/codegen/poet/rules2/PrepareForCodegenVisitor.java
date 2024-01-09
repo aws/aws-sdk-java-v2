@@ -22,7 +22,7 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 /**
  * Visitor that rewrites some expressions in preparation for codegen and also renaming locals assignments to use idiomatic java
  * names. This visitor in particular rewrites variable references to the equivalent to {@code getAttr(params, NAME)} or {@code
- * getAttr(locals, NAME)}, depending on whether the reference is a endpoint params variable or a locally assigned one.
+ * getAttr(locals, NAME)}, depending on whether the reference is an endpoint params variable or a locally assigned one.
  */
 public final class PrepareForCodegenVisitor extends RewriteRuleExpressionVisitor {
     private final SymbolTable symbolTable;

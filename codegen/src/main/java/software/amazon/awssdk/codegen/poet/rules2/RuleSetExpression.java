@@ -72,7 +72,48 @@ public final class RuleSetExpression implements RuleExpression {
 
     @Override
     public StringBuilder appendTo(StringBuilder buf) {
+        buf.append("{:type ");
+        if (isEndpoint()) {
+            buf.append(":endpoint");
+            appendConditions(buf, conditions);
+            buf.append(", :endpoint ");
+            endpoint.appendTo(buf);
+        } else if (isError()) {
+            buf.append(":error");
+            appendConditions(buf, conditions);
+            buf.append(", :error ");
+            error.appendTo(buf);
+        } else if (isTree()) {
+            buf.append(":tree");
+            appendConditions(buf, conditions);
+            buf.append(", :tree [");
+            boolean isFirst = true;
+            for (RuleSetExpression expr : children) {
+                if (!isFirst) {
+                    buf.append(", ");
+                }
+                expr.appendTo(buf);
+                isFirst = false;
+            }
+            buf.append("]");
+        } else {
+            buf.append("UNKNOWN");
+        }
+        buf.append("}");
         return buf;
+    }
+
+    static void appendConditions(StringBuilder buf, List<RuleExpression> conditions) {
+        buf.append(", :conditions [");
+        boolean isFirst = true;
+        for (RuleExpression expr : conditions) {
+            if (!isFirst) {
+                buf.append(", ");
+            }
+            expr.appendTo(buf);
+            isFirst = false;
+        }
+        buf.append("]");
     }
 
     @Override

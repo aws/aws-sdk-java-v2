@@ -36,9 +36,9 @@ public final class ErrorExpression implements RuleExpression {
 
     @Override
     public StringBuilder appendTo(StringBuilder buf) {
-        buf.append("(error ");
+        buf.append("{:type :error, :message ");
         error.appendTo(buf);
-        return buf.append(")");
+        return buf.append("}");
     }
 
     @Override

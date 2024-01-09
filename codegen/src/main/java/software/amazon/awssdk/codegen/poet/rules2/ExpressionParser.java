@@ -285,10 +285,7 @@ public final class ExpressionParser {
 
     private static RuleExpression getFunctionCallExpression(String fn, List<TreeNode> argv) {
         if ("getAttr".equals(fn)) {
-            if (argv.size() != 2) {
-                throw new IllegalArgumentException("getAttr expects two arguments");
-            }
-            return getAttrExpression(argv.get(0), argv.get(1));
+            return getAttrExpression(argv);
         }
         FunctionCallExpression.Builder builder = FunctionCallExpression.builder()
                                                                        .name(fn);
@@ -298,7 +295,12 @@ public final class ExpressionParser {
         return builder.build();
     }
 
-    private static RuleExpression getAttrExpression(TreeNode argv0, TreeNode argv1) {
+    private static RuleExpression getAttrExpression(List<TreeNode> argv) {
+        if (argv.size() != 2) {
+            throw new IllegalArgumentException("getAttr expects two arguments");
+        }
+        TreeNode argv0 = argv.get(0);
+        TreeNode argv1 = argv.get(1);
         RuleExpression variable = getReference(argv0);
         TreeNode nameNode = argv1;
         if (!(nameNode instanceof JrsString)) {

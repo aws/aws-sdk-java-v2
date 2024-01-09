@@ -57,6 +57,14 @@ public final class EndpointExpression implements RuleExpression {
 
     @Override
     public StringBuilder appendTo(StringBuilder buf) {
+        buf.append("{:type :endpoint");
+        buf.append(", :url ");
+        url.appendTo(buf);
+        buf.append(", :properties ");
+        properties.appendTo(buf);
+        buf.append(", :headers ");
+        headers.appendTo(buf);
+        buf.append("}");
         return buf;
     }
 

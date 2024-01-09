@@ -21,6 +21,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * Tokenizer for string literals inside a rule set document.
+ */
 public class Tokenizer {
     private static final Token EOF = new Token(TokenKind.EOF, "");
     private final List<Token> tokens;
@@ -167,6 +170,10 @@ public class Tokenizer {
     }
 
     public Token peek() {
+        if (index >= tokens.size()) {
+            // This should never happen.
+            throw new IllegalStateException("Peek called with out of bounds index");
+        }
         return tokens.get(index);
     }
 

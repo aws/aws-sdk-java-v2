@@ -28,7 +28,7 @@ public final class RuleResult {
     }
 
     public boolean isResolved() {
-        return error != null || endpoint != null;
+        return !isUnresolved();
     }
 
     public boolean isUnresolved() {

@@ -54,6 +54,12 @@ public final class PropertiesExpression implements RuleExpression {
 
     @Override
     public StringBuilder appendTo(StringBuilder buf) {
+        buf.append("{:type :properties");
+        properties.forEach((k, v) -> {
+            buf.append(", :").append(k).append(" ");
+            v.appendTo(buf);
+        });
+        buf.append("}");
         return buf;
     }
 
