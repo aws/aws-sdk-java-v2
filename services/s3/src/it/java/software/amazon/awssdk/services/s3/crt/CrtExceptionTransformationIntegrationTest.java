@@ -61,7 +61,7 @@ public class CrtExceptionTransformationIntegrationTest extends S3IntegrationTest
     public static void tearDownFixture() {
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
         s3Crt.close();
-        CrtResource.waitForNoResources();
+
     }
 
     @Test

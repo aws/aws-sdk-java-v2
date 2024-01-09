@@ -1,0 +1,36 @@
+{
+    "version": "2.22.1",
+    "date": "2023-12-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Amazon Cognito now supports trigger versions that define the fields in the request sent to pre token generation Lambda triggers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Add support for EKS Cluster Access Management."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "A docs-only release to add missing entities to the API reference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "Add DOH protocols in resolver endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -22,12 +22,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
@@ -37,15 +36,20 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectTaggingResponse;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
+import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
-public class ChecksumIntegrationTest extends S3IntegrationTestBase {
-    private static final String TEST_BUCKET = temporaryBucketName(ChecksumIntegrationTest.class);
+public class CrtChecksumIntegrationTest extends S3IntegrationTestBase {
+    private static final String TEST_BUCKET = temporaryBucketName(CrtChecksumIntegrationTest.class);
     private static final String TEST_KEY = "10mib_file.dat";
     private static final int OBJ_SIZE = 10 * 1024 * 1024;
 
     private static RandomTempFile testFile;
+
+    private static String testFileSha1;
+    private static String testFileCrc32;
+
     private static S3AsyncClient s3Crt;
 
     @BeforeAll
@@ -54,10 +58,15 @@ public class ChecksumIntegrationTest extends S3IntegrationTestBase {
         S3IntegrationTestBase.createBucket(TEST_BUCKET);
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
+        testFileSha1 = ChecksumUtils.calculatedChecksum(testFile.toPath(), Algorithm.SHA1);
+        testFileCrc32 = ChecksumUtils.calculatedChecksum(testFile.toPath(), Algorithm.CRC32);
 
         s3Crt = S3CrtAsyncClient.builder()
                                 .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
                                 .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                // make sure we don't do a multipart upload, it will mess with validation against the precomputed
+                                // checksums above
+                                .thresholdInBytes(2L * OBJ_SIZE)
                                 .build();
     }
 
@@ -66,43 +75,39 @@ public class ChecksumIntegrationTest extends S3IntegrationTestBase {
         S3IntegrationTestBase.deleteBucketAndAllContents(TEST_BUCKET);
         Files.delete(testFile.toPath());
         s3Crt.close();
-        CrtResource.waitForNoResources();
+
     }
 
     @Test
     void noChecksumCustomization_crc32ShouldBeUsed() {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
-        PutObjectResponse putObjectResponse =
-            s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
-        assertThat(putObjectResponse).isNotNull();
+        s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
         ResponseBytes<GetObjectResponse> getObjectResponseResponseBytes =
-            s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY).partNumber(1), AsyncResponseTransformer.toBytes()).join();
+            s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), AsyncResponseTransformer.toBytes()).join();
         String getObjectChecksum = getObjectResponseResponseBytes.response().checksumCRC32();
-        assertThat(getObjectChecksum).isNotNull();
+        assertThat(getObjectChecksum).isEqualTo(testFileCrc32);
     }
 
     @Test
     void putObject_checksumProvidedInRequest_shouldTakePrecendence() {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
-        PutObjectResponse putObjectResponse =
-            s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY).checksumAlgorithm(ChecksumAlgorithm.SHA1), body).join();
-        assertThat(putObjectResponse).isNotNull();
+        s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY).checksumAlgorithm(ChecksumAlgorithm.SHA1), body).join();
 
         ResponseBytes<GetObjectResponse> getObjectResponseResponseBytes =
-            s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY).partNumber(1), AsyncResponseTransformer.toBytes()).join();
+            s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), AsyncResponseTransformer.toBytes()).join();
         String getObjectChecksum = getObjectResponseResponseBytes.response().checksumSHA1();
-        assertThat(getObjectChecksum).isNotNull();
+        assertThat(getObjectChecksum).isEqualTo(testFileSha1);
     }
 
     @Test
     void checksumDisabled_shouldNotPerformChecksumValidationByDefault() {
 
         try (S3AsyncClient s3Crt = S3CrtAsyncClient.builder()
-                                                      .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
-                                                      .region(S3IntegrationTestBase.DEFAULT_REGION)
-                                                      .checksumValidationEnabled(Boolean.FALSE)
-                                                      .build()) {
+                                                   .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
+                                                   .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                                   .checksumValidationEnabled(Boolean.FALSE)
+                                                   .build()) {
             AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
             PutObjectResponse putObjectResponse =
                 s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();

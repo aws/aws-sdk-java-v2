@@ -17,12 +17,14 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.crt.Log;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
@@ -51,9 +53,16 @@ public class S3IntegrationTestBase extends AwsTestBase {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+        System.setProperty("aws.crt.debugnative", "true");
         Log.initLoggingToStdout(Log.LogLevel.Warn);
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
+    }
+
+    @AfterClass
+    public static void cleanUpResources() {
+        s3.close();
+        s3Async.close();
     }
 
     protected static S3ClientBuilder s3ClientBuilder() {
@@ -62,6 +71,15 @@ public class S3IntegrationTestBase extends AwsTestBase {
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                        .overrideConfiguration(o -> o.addExecutionInterceptor(
                            new UserAgentVerifyingExecutionInterceptor("Apache", ClientType.SYNC)));
+    }
+
+    protected static S3ClientBuilder s3ClientBuilderWithCrtHttpClient() {
+        return S3Client.builder()
+                       .region(DEFAULT_REGION)
+                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                       .httpClientBuilder(AwsCrtHttpClient.builder())
+                       .overrideConfiguration(o -> o.addExecutionInterceptor(
+                           new UserAgentVerifyingExecutionInterceptor("AwsCommonRuntime", ClientType.SYNC)));
     }
 
     protected static S3AsyncClientBuilder s3AsyncClientBuilder() {

@@ -77,7 +77,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         } finally {
             s3AsyncClients().forEach(SdkAutoCloseable::close);
             s3.close();
-            CrtResource.waitForNoResources();
+
         }
     }
 
