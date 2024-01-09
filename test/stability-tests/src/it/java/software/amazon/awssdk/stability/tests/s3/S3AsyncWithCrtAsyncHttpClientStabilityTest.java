@@ -13,7 +13,7 @@ import software.amazon.awssdk.stability.tests.utils.RetryableTest;
 /**
  * Stability tests for {@link S3AsyncClient} using {@link AwsCrtAsyncHttpClient}
  */
-public class S3WithCrtAsyncHttpClientStabilityTest extends S3BaseStabilityTest {
+public class S3AsyncWithCrtAsyncHttpClientStabilityTest extends S3AsyncBaseStabilityTest {
 
     private static String bucketName = "s3withcrtasyncclientstabilitytests" + System.currentTimeMillis();
 
@@ -33,7 +33,7 @@ public class S3WithCrtAsyncHttpClientStabilityTest extends S3BaseStabilityTest {
                 .build();
     }
 
-    public S3WithCrtAsyncHttpClientStabilityTest() {
+    public S3AsyncWithCrtAsyncHttpClientStabilityTest() {
         super(s3CrtClient);
     }
 

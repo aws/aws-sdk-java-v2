@@ -25,9 +25,9 @@ import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 /**
  * Stability tests for {@link S3CrtAsyncClient}
  */
-public class S3CrtAsyncClientStabilityTest extends S3BaseStabilityTest {
-    private static final String BUCKET_NAME = "s3crtasyncclinetstabilitytests" + System.currentTimeMillis();
-    private static S3AsyncClient s3CrtAsyncClient;
+public class S3CrtAsyncClientStabilityTest extends S3AsyncBaseStabilityTest {
+    private static final String BUCKET_NAME = String.format("s3crtasyncclinetstabilitytests%d", System.currentTimeMillis());
+    private static final S3AsyncClient s3CrtAsyncClient;
 
     static {
         s3CrtAsyncClient = S3CrtAsyncClient.builder()

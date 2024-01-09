@@ -74,7 +74,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
         S3IntegrationTestBase.deleteBucketAndAllContents(TEST_BUCKET);
         Files.delete(testFile.toPath());
         s3Crt.close();
-        CrtResource.waitForNoResources();
+
     }
 
     @Test

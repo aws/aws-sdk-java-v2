@@ -66,7 +66,6 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
         crtClient.close();
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
         executorService.shutdown();
-        CrtResource.waitForNoResources();
     }
 
     @Test

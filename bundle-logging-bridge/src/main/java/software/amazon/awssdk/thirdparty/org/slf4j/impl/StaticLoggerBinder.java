@@ -86,6 +86,11 @@ public class StaticLoggerBinder {
         }
     }
 
+    // SLF4J API
+    public String getLoggerFactoryClassStr() {
+        return ILoggerFactoryAdapter.class.getCanonicalName();
+    }
+
     @SdkTestInternalApi
     Object getActualStaticLoggerBinder() {
         return IMPL;
