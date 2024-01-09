@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.async;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -28,6 +27,7 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
+import software.amazon.awssdk.utils.async.DelegatingBufferingSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
@@ -41,7 +41,7 @@ public class SplittingTransformer<ResponseT, ResultT>
     // transformer on which `.split()` was called
     private final AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
 
-    private final ByteBufferStoringSubscriber bufferingSubscriber;
+    private ByteBufferStoringSubscriber bufferingSubscriber;
 
     // link between individual byte buffers of each AsyncResponseTransformer and ByteBufferStoringSubscriber
     private SimplePublisher<ByteBuffer> publisherToBuffering;
@@ -59,21 +59,20 @@ public class SplittingTransformer<ResponseT, ResultT>
     // method to the publisher of the onStream method
     private CompletableFuture<ResultT> upstreamFuture;
 
-    private final long maximumBufferSize;
-    private AtomicInteger currentlyBuffered = new AtomicInteger(0);
+    private final int maximumBufferSize;
+    // private AtomicInteger currentlyBuffered = new AtomicInteger(0);
 
     // the subscriber for the upstream publisher
     private Subscriber<? super ByteBuffer> upstreamSubscriber;
 
-    private SimplePublisher<ByteBuffer> tmp_publisherToUpstream = new SimplePublisher<>();
+    // publisher that sends the bytes to the
+    private final SimplePublisher<ByteBuffer> publisherToUpstream = new SimplePublisher<>();
 
     public SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
                                 long bufferSize, CompletableFuture<ResultT> returnFuture) {
         this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
         this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
-        this.maximumBufferSize = bufferSize;
-        this.bufferingSubscriber = new ByteBufferStoringSubscriber(bufferSize);
-        // this.publisherToBuffering = new SimplePublisher<>();
+        this.maximumBufferSize = NumericUtils.saturatedCast(bufferSize);
     }
 
     /**
@@ -81,7 +80,6 @@ public class SplittingTransformer<ResponseT, ResultT>
      */
     @Override
     public void subscribe(Subscriber<? super AsyncResponseTransformer<ResponseT, ResponseT>> downStreamSubscriber) {
-        // publisherToBuffering.subscribe(bufferingSubscriber);
         downStreamSubscriber.onSubscribe(new Subscription() {
             @Override
             public void request(long n) {
@@ -92,7 +90,7 @@ public class SplittingTransformer<ResponseT, ResultT>
             // called by downstream subscriber to notify no more data is needed, we are done
             public void cancel() {
                 System.out.printf("[%s] cancel: cleaning up%n", "SplittingTransformer");
-                tmp_publisherToUpstream.complete();
+                publisherToUpstream.complete();
                 // bufferingSubscriber.onComplete();
                 // publisherToBuffering.complete();
                 // upstreamSubscriber.onComplete();
@@ -144,12 +142,12 @@ public class SplittingTransformer<ResponseT, ResultT>
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
             // call onStream on upstream only once
             if (onStreamCalled.compareAndSet(false, true)) {
-                // upstreamResponseTransformer.onStream(new UpstreamPublisher());
-                upstreamResponseTransformer.onStream(SdkPublisher.adapt(tmp_publisherToUpstream));
+                log.trace(() -> "calling onStream on upstreamResponseTransformer");
+                upstreamResponseTransformer.onStream(
+                    s -> publisherToUpstream.subscribe(new DelegatingBufferingSubscriber(maximumBufferSize, s)));
             }
 
             // send the bytes to publisherToBuffering
-            System.out.println("[IndividualTransformer] onStream");
             publisher.subscribe(new IndividualPartSubscriber(requested, this.individualFuture, response));
         }
 
@@ -174,28 +172,23 @@ public class SplittingTransformer<ResponseT, ResultT>
 
         @Override
         public void onSubscribe(Subscription s) {
-            System.out.println("[IndividualPartSubscriber] onSubscribe");
             this.subscription = s;
-            s.request(Long.MAX_VALUE); // todo
+            s.request(Long.MAX_VALUE);
         }
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            // System.out.println("[IndividualBufferingSubscriber] onNext");
-            // todo check if we have enough memory buffered left
-            currentlyBuffered.addAndGet(byteBuffer.capacity());
+            // currentlyBuffered.addAndGet(byteBuffer.capacity());
 
-            // send data to bufferingSubscriber via publisherToBuffering
-            // publisherToBuffering.send(byteBuffer);
-
-            tmp_publisherToUpstream.send(byteBuffer);
+            publisherToUpstream.send(byteBuffer);
             subscription.request(Long.MAX_VALUE);
         }
 
         @Override
         public void onError(Throwable t) {
             System.out.println("[IndividualPartSubscriber] onError");
-            bufferingSubscriber.onError(t);
+            publisherToUpstream.error(t);
+            future.completeExceptionally(t);
         }
 
         @Override
@@ -206,43 +199,43 @@ public class SplittingTransformer<ResponseT, ResultT>
     }
 
     // byte buffer publisher for the upstream AsyncResponseTransformer
-    private class UpstreamPublisher implements SdkPublisher<ByteBuffer> {
-        private AtomicBoolean completed = new AtomicBoolean(false);
-
-        @Override
-        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-            upstreamSubscriber = subscriber;
-            subscriber.onSubscribe(new Subscription() {
-                @Override
-                public void request(long requested) {
-                    System.out.printf("[UpstreamPublisher] requested %d%n", requested);
-                    if (completed.get()) {
-                        System.out.println("[UpstreamPublisher] already completed");
-                        return;
-                    }
-                    int bufferedAmount = currentlyBuffered.get();
-                    if (bufferedAmount <= 0) {
-                        // I don't have any data to send you, I can't fulfill this request right now
-                        System.out.println("[UpstreamPublisher] nothing buffered yet");
-                        return;
-                    }
-                    System.out.printf("[UpstreamPublisher] currently buffered: %d%n", bufferedAmount);
-                    int amountToSend = Math.min(NumericUtils.saturatedCast(requested), bufferedAmount);
-                    System.out.printf("[UpstreamPublisher] sending: %d%n", amountToSend);
-                    ByteBuffer out = ByteBuffer.allocate(amountToSend);
-                    bufferingSubscriber.transferTo(out);
-                    currentlyBuffered.addAndGet(-amountToSend);
-                    subscriber.onNext(out);
-                }
-
-                @Override
-                public void cancel() {
-                    System.out.println("[UpstreamPublisher] cancel");
-                    completed.compareAndSet(false, true);
-                    upstreamSubscriber.onComplete();
-                }
-            });
-        }
-    }
+    // private class UpstreamPublisher implements SdkPublisher<ByteBuffer> {
+    //     private AtomicBoolean completed = new AtomicBoolean(false);
+    //
+    //     @Override
+    //     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+    //         upstreamSubscriber = subscriber;
+    //         subscriber.onSubscribe(new Subscription() {
+    //             @Override
+    //             public void request(long requested) {
+    //                 System.out.printf("[UpstreamPublisher] requested %d%n", requested);
+    //                 if (completed.get()) {
+    //                     System.out.println("[UpstreamPublisher] already completed");
+    //                     return;
+    //                 }
+    //                 int bufferedAmount = currentlyBuffered.get();
+    //                 if (bufferedAmount <= 0) {
+    //                     // I don't have any data to send you, I can't fulfill this request right now
+    //                     System.out.println("[UpstreamPublisher] nothing buffered yet");
+    //                     return;
+    //                 }
+    //                 System.out.printf("[UpstreamPublisher] currently buffered: %d%n", bufferedAmount);
+    //                 int amountToSend = Math.min(NumericUtils.saturatedCast(requested), bufferedAmount);
+    //                 System.out.printf("[UpstreamPublisher] sending: %d%n", amountToSend);
+    //                 ByteBuffer out = ByteBuffer.allocate(amountToSend);
+    //                 // bufferingSubscriber.transferTo(out);
+    //                 currentlyBuffered.addAndGet(-amountToSend);
+    //                 subscriber.onNext(out);
+    //             }
+    //
+    //             @Override
+    //             public void cancel() {
+    //                 System.out.println("[UpstreamPublisher] cancel");
+    //                 completed.compareAndSet(false, true);
+    //                 upstreamSubscriber.onComplete();
+    //             }
+    //         });
+    //     }
+    // }
 
 }
