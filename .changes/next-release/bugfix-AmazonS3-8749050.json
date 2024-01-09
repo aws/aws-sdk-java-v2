@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixes a bug in DeleteObjects to properly encode the key in the request."
+}
