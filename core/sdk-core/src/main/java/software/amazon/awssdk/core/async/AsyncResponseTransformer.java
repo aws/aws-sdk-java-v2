@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransfor
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
 import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.SplittingTransformer;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -113,6 +114,15 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @param error Error that occurred.
      */
     void exceptionOccurred(Throwable error);
+
+    /**
+     * todo
+     * @return
+     */
+    default SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> split(long bufferSize,
+                                                                               CompletableFuture<ResultT> future) {
+        return new SplittingTransformer<>(this, bufferSize, future);
+    }
 
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
