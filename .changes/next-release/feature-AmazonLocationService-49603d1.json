@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service",
+    "contributor": "",
+    "description": "This release adds API support for custom layers for the maps service APIs: CreateMap, UpdateMap, DescribeMap."
+}
