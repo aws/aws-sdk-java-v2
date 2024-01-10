@@ -120,10 +120,10 @@ public class S3PresignerIntegrationTest {
 
     @Test
     public void keysWithDoubleBackslashWorks() throws IOException {
-        String scaryObjectKey = "key//image.png" + testGetObjectKey;
-        S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testBucket, scaryObjectKey, testObjectContent);
+        String doubleBackslashKey = "key//image.png" + testGetObjectKey;
+        S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testBucket, doubleBackslashKey, testObjectContent);
 
-        assertThatPresigningWorks(testBucket, scaryObjectKey);
+        assertThatPresigningWorks(testBucket, doubleBackslashKey);
     }
 
     private void assertThatPresigningWorks(String bucket, String objectKey) throws IOException {
