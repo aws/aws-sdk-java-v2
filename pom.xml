@@ -71,6 +71,7 @@
         <module>codegen-lite-maven-plugin</module>
         <module>archetypes</module>
         <module>third-party</module>
+        <module>migration-tool</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>

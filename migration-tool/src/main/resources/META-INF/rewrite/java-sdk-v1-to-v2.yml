@@ -1,0 +1,38 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.UpgradeJavaSdk2
+displayName: Migrate to the AWS SDK for Java v2
+description: Migrate applications to the AWS SDK for Java v2.
+tags:
+  - aws
+  - sdk
+recipeList:
+  - software.amazon.awssdk.UpgradeSdkDependencies
+  - software.amazon.awssdk.UpdateSdkBom
+  - software.amazon.awssdk.UpdateSdkTypes
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.UpdateSdkBom
+displayName: Update to AWS SDK for Java v2 BOM
+description: This recipe will update a Gradle or Maven build to reference the AWS SDK for Java v2 BOM.
+recipeList:
+  - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-bom
+      newGroupId: software.amazon.awssdk
+      newArtifactId: bom
+      newVersion: 2.22.13-SNAPSHOT
