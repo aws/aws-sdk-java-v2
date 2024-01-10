@@ -26,7 +26,6 @@ import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -38,7 +37,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  * Response handler adaptor for {@link AwsCrtHttpClient}.
  */
 @SdkInternalApi
-public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamResponseHandler {
+public final class InputStreamAdaptingHttpStreamResponseHandler extends BaseResponseAdapter {
     private final SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder();
     private volatile InputStreamSubscriber inputStreamSubscriber;
     private final SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
@@ -59,9 +58,8 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
             for (HttpHeader h : nextHeaders) {
                 responseBuilder.appendHeader(h.getName(), h.getValue());
             }
+            responseBuilder.statusCode(responseStatusCode);
         }
-
-        responseBuilder.statusCode(responseStatusCode);
     }
 
     @Override
@@ -84,7 +82,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
-                failFutureAndCloseConnection(stream, failure);
+                failFutureAndReleaseConnection(stream, failure);
                 return;
             }
 
@@ -105,11 +103,14 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         }
     }
 
+    private void failFutureAndReleaseConnection(HttpStream stream, Throwable failure) {
+        requestCompletionFuture.completeExceptionally(failure);
+        releaseCrtConnection(crtConn, stream);
+    }
+
     private void failFutureAndCloseConnection(HttpStream stream, Throwable failure) {
         requestCompletionFuture.completeExceptionally(failure);
-        crtConn.shutdown();
-        crtConn.close();
-        stream.close();
+        closeCrtConnection(crtConn, stream);
     }
 
     private void onFailedResponseComplete(HttpStream stream, int errorCode) {
@@ -121,16 +122,16 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     }
 
     private void onSuccessfulResponseComplete(HttpStream stream) {
-        // always close the connection on a 5XX response code.
-        if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-            crtConn.shutdown();
-        }
-
         // For response without a payload, for example, S3 PutObjectResponse, we need to complete the future
         // in onResponseComplete callback since onResponseBody will never be invoked.
         requestCompletionFuture.complete(responseBuilder.build());
         simplePublisher.complete();
-        crtConn.close();
-        stream.close();
+
+        // always close the connection on a 5XX response code.
+        if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
+            closeCrtConnection(crtConn, stream);
+        } else {
+            releaseCrtConnection(crtConn, stream);
+        }
     }
 }

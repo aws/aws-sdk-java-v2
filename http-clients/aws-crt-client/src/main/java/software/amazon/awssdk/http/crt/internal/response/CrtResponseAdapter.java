@@ -41,7 +41,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  * Implements the CrtHttpStreamHandler API and converts CRT callbacks into calls to SDK AsyncExecuteRequest methods
  */
 @SdkInternalApi
-public final class CrtResponseAdapter implements HttpStreamResponseHandler {
+public final class CrtResponseAdapter extends BaseResponseAdapter {
     private static final Logger log = Logger.loggerFor(CrtResponseAdapter.class);
 
     private final HttpClientConnection connection;
@@ -71,13 +71,13 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
             for (HttpHeader h : nextHeaders) {
                 responseBuilder.appendHeader(h.getName(), h.getValue());
             }
+            responseBuilder.statusCode(responseStatusCode);
         }
     }
 
     @Override
     public void onResponseHeadersDone(HttpStream stream, int headerType) {
         if (headerType == HttpHeaderBlock.MAIN.getValue()) {
-            responseBuilder.statusCode(stream.getResponseStatusCode());
             responseHandler.onHeaders(responseBuilder.build());
             responseHandler.onStream(responsePublisher);
         }
@@ -95,6 +95,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
                 failResponseHandlerAndFuture(stream, failure);
+                closeCrtConnection(connection, stream);
                 return;
             }
 
@@ -117,15 +118,16 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
         responsePublisher.complete().whenComplete((result, failure) -> {
             if (failure != null) {
                 failResponseHandlerAndFuture(stream, failure);
+                releaseCrtConnection(connection, stream);
                 return;
             }
 
             if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-                connection.shutdown();
+                closeCrtConnection(connection, stream);
+            } else {
+                releaseCrtConnection(connection, stream);
             }
 
-            connection.close();
-            stream.close();
             completionFuture.complete(null);
         });
     }
@@ -136,14 +138,12 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
         Throwable toThrow = wrapWithIoExceptionIfRetryable(error);;
         responsePublisher.error(toThrow);
         failResponseHandlerAndFuture(stream, toThrow);
+        closeCrtConnection(connection, stream);
     }
 
     private void failResponseHandlerAndFuture(HttpStream stream, Throwable error) {
         callResponseHandlerOnError(error);
         completionFuture.completeExceptionally(error);
-        connection.shutdown();
-        connection.close();
-        stream.close();
     }
 
     private void callResponseHandlerOnError(Throwable error) {
