@@ -48,7 +48,7 @@ public class EndpointProviderSpec2 implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final Map<String, KeyTypePair> knownEndpointAttributes;
-    private final RuleSetUtil utils;
+    private final CodegenExpressionBuidler utils;
     private final RuleRuntimeTypeMirror typeMirror;
 
     public EndpointProviderSpec2(IntermediateModel intermediateModel) {
@@ -80,11 +80,11 @@ public class EndpointProviderSpec2 implements ClassSpec {
         return root;
     }
 
-    private static RuleSetUtil createCodegenRulesUtil(List<RuleModel> rules,
-                                                      Map<String, ParameterModel> parameters,
-                                                      RuleRuntimeTypeMirror typeMirror) {
+    private static CodegenExpressionBuidler createCodegenRulesUtil(List<RuleModel> rules,
+                                                                   Map<String, ParameterModel> parameters,
+                                                                   RuleRuntimeTypeMirror typeMirror) {
         RuleSetExpression root = ExpressionParser.parseRuleSetExpression(createRootRule(rules));
-        return RuleSetUtil.from(root, typeMirror, initSymbolTable(parameters));
+        return CodegenExpressionBuidler.from(root, typeMirror, initSymbolTable(parameters));
     }
 
     private static SymbolTable initSymbolTable(Map<String, ParameterModel> parameters) {

@@ -18,16 +18,16 @@ package software.amazon.awssdk.codegen.poet.rules2;
 import java.util.List;
 import java.util.Map;
 
-public final class RuleSetUtil {
+public final class CodegenExpressionBuidler {
     private final RuleSetExpression root;
     private final SymbolTable symbolTable;
 
-    public RuleSetUtil(RuleSetExpression root, SymbolTable symbolTable) {
+    public CodegenExpressionBuidler(RuleSetExpression root, SymbolTable symbolTable) {
         this.root = root;
         this.symbolTable = symbolTable;
     }
 
-    public static RuleSetUtil from(RuleSetExpression root, RuleRuntimeTypeMirror typeMirror, SymbolTable table) {
+    public static CodegenExpressionBuidler from(RuleSetExpression root, RuleRuntimeTypeMirror typeMirror, SymbolTable table) {
         AssignTypesVisitor assignTypesVisitor = new AssignTypesVisitor(typeMirror, table);
         root = (RuleSetExpression) root.accept(assignTypesVisitor);
         List<String> errors = assignTypesVisitor.errors();
@@ -39,7 +39,7 @@ public final class RuleSetUtil {
         PrepareForCodegenVisitor prepareForCodegenVisitor = new PrepareForCodegenVisitor(table);
         root = (RuleSetExpression) root.accept(prepareForCodegenVisitor);
         table = prepareForCodegenVisitor.symbolTable();
-        return new RuleSetUtil(root, table);
+        return new CodegenExpressionBuidler(root, table);
     }
 
     private static RuleSetExpression assignIdentifier(RuleSetExpression root) {
