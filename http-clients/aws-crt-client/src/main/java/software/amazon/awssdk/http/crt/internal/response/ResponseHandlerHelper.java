@@ -18,11 +18,14 @@ package software.amazon.awssdk.http.crt.internal.response;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
+import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.http.HttpStatusFamily;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
- * This is the base class that contains common logic shared between {@link CrtResponseAdapter} and
+ * This is the helper class that contains common logic shared between {@link CrtResponseAdapter} and
  * {@link InputStreamAdaptingHttpStreamResponseHandler}.
  *
  * CRT connection will only be closed, i.e., not reused, in one of the following conditions:
@@ -30,13 +33,30 @@ import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
  * 2. It fails to read the response.
  */
 @SdkInternalApi
-public abstract class BaseResponseAdapter implements HttpStreamResponseHandler {
+public class ResponseHandlerHelper {
+
+    private final SdkHttpResponse.Builder responseBuilder;
+    private final HttpClientConnection connection;
     private AtomicBoolean connectionClosed = new AtomicBoolean(false);
+
+    public ResponseHandlerHelper(SdkHttpResponse.Builder responseBuilder, HttpClientConnection connection) {
+        this.responseBuilder = responseBuilder;
+        this.connection = connection;
+    }
+
+    public void onResponseHeaders(HttpStream stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
+        if (headerType == HttpHeaderBlock.MAIN.getValue()) {
+            for (HttpHeader h : nextHeaders) {
+                responseBuilder.appendHeader(h.getName(), h.getValue());
+            }
+            responseBuilder.statusCode(responseStatusCode);
+        }
+    }
 
     /**
      * Release the connection back to the pool so that it can be reused.
      */
-    public void releaseCrtConnection(HttpClientConnection connection, HttpStream stream) {
+    public void releaseCrtConnection(HttpStream stream) {
         if (connectionClosed.compareAndSet(false, true)) {
             connection.close();
             stream.close();
@@ -46,11 +66,20 @@ public abstract class BaseResponseAdapter implements HttpStreamResponseHandler {
     /**
      * Close the connection completely
      */
-    public void closeCrtConnection(HttpClientConnection connection, HttpStream stream) {
+    public void closeCrtConnection(HttpStream stream) {
         if (connectionClosed.compareAndSet(false, true)) {
             connection.shutdown();
             connection.close();
             stream.close();
+        }
+    }
+
+    public void cleanUpCrtConnectionBasedOnStatusCode(HttpStream stream) {
+        // always close the connection on a 5XX response code.
+        if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
+            closeCrtConnection(stream);
+        } else {
+            releaseCrtConnection(stream);
         }
     }
 }

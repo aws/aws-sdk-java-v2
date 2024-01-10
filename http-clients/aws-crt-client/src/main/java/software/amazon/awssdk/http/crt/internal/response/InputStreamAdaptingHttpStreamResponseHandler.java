@@ -26,9 +26,10 @@ import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
+import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.utils.async.InputStreamSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -37,18 +38,23 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  * Response handler adaptor for {@link AwsCrtHttpClient}.
  */
 @SdkInternalApi
-public final class InputStreamAdaptingHttpStreamResponseHandler extends BaseResponseAdapter {
-    private final SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder();
+public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamResponseHandler {
+
     private volatile InputStreamSubscriber inputStreamSubscriber;
     private final SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
 
     private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
     private final HttpClientConnection crtConn;
 
+    private final SdkHttpFullResponse.Builder responseBuilder;
+    private final ResponseHandlerHelper responseHandlerUtils;
+
     public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
                                                         CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
         this.crtConn = crtConn;
         this.requestCompletionFuture = requestCompletionFuture;
+        this.responseBuilder = SdkHttpResponse.builder();
+        this.responseHandlerUtils = new ResponseHandlerHelper(responseBuilder, crtConn);
     }
 
     @Override
@@ -105,12 +111,12 @@ public final class InputStreamAdaptingHttpStreamResponseHandler extends BaseResp
 
     private void failFutureAndReleaseConnection(HttpStream stream, Throwable failure) {
         requestCompletionFuture.completeExceptionally(failure);
-        releaseCrtConnection(crtConn, stream);
+        responseHandlerUtils.releaseCrtConnection(stream);
     }
 
     private void failFutureAndCloseConnection(HttpStream stream, Throwable failure) {
         requestCompletionFuture.completeExceptionally(failure);
-        closeCrtConnection(crtConn, stream);
+        responseHandlerUtils.closeCrtConnection(stream);
     }
 
     private void onFailedResponseComplete(HttpStream stream, int errorCode) {
@@ -125,13 +131,12 @@ public final class InputStreamAdaptingHttpStreamResponseHandler extends BaseResp
         // For response without a payload, for example, S3 PutObjectResponse, we need to complete the future
         // in onResponseComplete callback since onResponseBody will never be invoked.
         requestCompletionFuture.complete(responseBuilder.build());
-        simplePublisher.complete();
+        simplePublisher.complete().whenComplete((result, failure) -> {
+            if (failure != null) {
+                failFutureAndReleaseConnection(stream, failure);
+            }
+        });
 
-        // always close the connection on a 5XX response code.
-        if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-            closeCrtConnection(crtConn, stream);
-        } else {
-            releaseCrtConnection(crtConn, stream);
-        }
+        responseHandlerUtils.cleanUpCrtConnectionBasedOnStatusCode(stream);
     }
 }
