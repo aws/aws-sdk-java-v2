@@ -47,14 +47,14 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     private final HttpClientConnection crtConn;
 
     private final SdkHttpFullResponse.Builder responseBuilder;
-    private final ResponseHandlerHelper responseHandlerUtils;
+    private final ResponseHandlerHelper responseHandlerHelper;
 
     public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
                                                         CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
         this.crtConn = crtConn;
         this.requestCompletionFuture = requestCompletionFuture;
         this.responseBuilder = SdkHttpResponse.builder();
-        this.responseHandlerUtils = new ResponseHandlerHelper(responseBuilder, crtConn);
+        this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, crtConn);
     }
 
     @Override
@@ -96,7 +96,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
             stream.incrementWindow(bodyBytesIn.length);
         });
 
-        // the bodyBytesIn have not cleared the queues yet, so do let backpressure do its thing.
+        // Window will be incremented after the subscriber consumes the data, returning 0 here to disable it.
         return 0;
     }
 
@@ -111,12 +111,12 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
     private void failFutureAndReleaseConnection(HttpStream stream, Throwable failure) {
         requestCompletionFuture.completeExceptionally(failure);
-        responseHandlerUtils.releaseCrtConnection(stream);
+        responseHandlerHelper.releaseConnection(stream);
     }
 
     private void failFutureAndCloseConnection(HttpStream stream, Throwable failure) {
         requestCompletionFuture.completeExceptionally(failure);
-        responseHandlerUtils.closeCrtConnection(stream);
+        responseHandlerHelper.closeConnection(stream);
     }
 
     private void onFailedResponseComplete(HttpStream stream, int errorCode) {
@@ -131,12 +131,9 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         // For response without a payload, for example, S3 PutObjectResponse, we need to complete the future
         // in onResponseComplete callback since onResponseBody will never be invoked.
         requestCompletionFuture.complete(responseBuilder.build());
-        simplePublisher.complete().whenComplete((result, failure) -> {
-            if (failure != null) {
-                failFutureAndReleaseConnection(stream, failure);
-            }
-        });
 
-        responseHandlerUtils.cleanUpCrtConnectionBasedOnStatusCode(stream);
+        // requestCompletionFuture has been completed at this point, no need to notify hte future
+        simplePublisher.complete();
+        responseHandlerHelper.cleanUpConnectionBasedOnStatusCode(stream);
     }
 }

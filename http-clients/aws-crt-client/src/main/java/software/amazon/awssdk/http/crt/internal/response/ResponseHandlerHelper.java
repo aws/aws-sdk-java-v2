@@ -56,7 +56,7 @@ public class ResponseHandlerHelper {
     /**
      * Release the connection back to the pool so that it can be reused.
      */
-    public void releaseCrtConnection(HttpStream stream) {
+    public void releaseConnection(HttpStream stream) {
         if (connectionClosed.compareAndSet(false, true)) {
             connection.close();
             stream.close();
@@ -66,7 +66,7 @@ public class ResponseHandlerHelper {
     /**
      * Close the connection completely
      */
-    public void closeCrtConnection(HttpStream stream) {
+    public void closeConnection(HttpStream stream) {
         if (connectionClosed.compareAndSet(false, true)) {
             connection.shutdown();
             connection.close();
@@ -74,12 +74,12 @@ public class ResponseHandlerHelper {
         }
     }
 
-    public void cleanUpCrtConnectionBasedOnStatusCode(HttpStream stream) {
+    public void cleanUpConnectionBasedOnStatusCode(HttpStream stream) {
         // always close the connection on a 5XX response code.
         if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-            closeCrtConnection(stream);
+            closeConnection(stream);
         } else {
-            releaseCrtConnection(stream);
+            releaseConnection(stream);
         }
     }
 }

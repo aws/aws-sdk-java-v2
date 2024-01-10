@@ -49,7 +49,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private final SimplePublisher<ByteBuffer> responsePublisher = new SimplePublisher<>();
 
     private final SdkHttpResponse.Builder responseBuilder;
-    private final ResponseHandlerHelper responseHandlerUtils;
+    private final ResponseHandlerHelper responseHandlerHelper;
 
     private CrtResponseAdapter(HttpClientConnection connection,
                                CompletableFuture<Void> completionFuture,
@@ -58,7 +58,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.responseHandler = Validate.paramNotNull(responseHandler, "responseHandler");
         this.responseBuilder = SdkHttpResponse.builder();
-        this.responseHandlerUtils = new ResponseHandlerHelper(responseBuilder, connection);
+        this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, connection);
     }
 
     public static HttpStreamResponseHandler toCrtResponseHandler(HttpClientConnection crtConn,
@@ -69,7 +69,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
 
     @Override
     public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType, HttpHeader[] nextHeaders) {
-        responseHandlerUtils.onResponseHeaders(stream, responseStatusCode, blockType, nextHeaders);
+        responseHandlerHelper.onResponseHeaders(stream, responseStatusCode, blockType, nextHeaders);
     }
 
     @Override
@@ -119,12 +119,12 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
             completionFuture.complete(null);
         });
 
-        responseHandlerUtils.cleanUpCrtConnectionBasedOnStatusCode(stream);
+        responseHandlerHelper.cleanUpConnectionBasedOnStatusCode(stream);
     }
 
     private void handlePublisherError(HttpStream stream, Throwable failure) {
         failResponseHandlerAndFuture(stream, failure);
-        responseHandlerUtils.releaseCrtConnection(stream);
+        responseHandlerHelper.releaseConnection(stream);
     }
 
     private void onFailedResponseComplete(HttpStream stream, HttpException error) {
@@ -133,7 +133,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
         Throwable toThrow = wrapWithIoExceptionIfRetryable(error);;
         responsePublisher.error(toThrow);
         failResponseHandlerAndFuture(stream, toThrow);
-        responseHandlerUtils.closeCrtConnection(stream);
+        responseHandlerHelper.closeConnection(stream);
     }
 
     private void failResponseHandlerAndFuture(HttpStream stream, Throwable error) {
