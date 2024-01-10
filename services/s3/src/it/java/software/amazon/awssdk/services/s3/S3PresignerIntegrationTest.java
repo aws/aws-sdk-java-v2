@@ -118,6 +118,14 @@ public class S3PresignerIntegrationTest {
         assertThatPresigningWorks(testBucket, scaryObjectKey);
     }
 
+    @Test
+    public void keysWithDoubleBackslashWorks() throws IOException {
+        String scaryObjectKey = "key//image.png" + testGetObjectKey;
+        S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testBucket, scaryObjectKey, testObjectContent);
+
+        assertThatPresigningWorks(testBucket, scaryObjectKey);
+    }
+
     private void assertThatPresigningWorks(String bucket, String objectKey) throws IOException {
         PresignedGetObjectRequest presigned =
             presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
