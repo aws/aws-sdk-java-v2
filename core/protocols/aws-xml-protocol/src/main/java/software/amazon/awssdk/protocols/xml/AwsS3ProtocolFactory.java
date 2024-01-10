@@ -22,7 +22,9 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.protocols.xml.internal.marshall.XmlGenerator;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.DecorateErrorFromResponseBodyUnmarshaller;
 
@@ -70,6 +72,16 @@ public final class AwsS3ProtocolFactory extends AwsXmlProtocolFactory {
         Supplier<SdkPojo> pojoSupplier, XmlOperationMetadata staxOperationMetadata) {
 
         return createErrorCouldBeInBodyResponseHandler(pojoSupplier, staxOperationMetadata);
+    }
+
+    /**
+     * Creates a {@link XmlGenerator} with a S3XmlWriter.
+     */
+    @Override
+    protected XmlGenerator createGenerator(OperationInfo operationInfo) {
+        return operationInfo.hasPayloadMembers() ?
+               XmlGenerator.create(operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE), true) :
+               null;
     }
 
     private <T extends AwsResponse> HttpResponseHandler<Response<T>> createErrorCouldBeInBodyResponseHandler(

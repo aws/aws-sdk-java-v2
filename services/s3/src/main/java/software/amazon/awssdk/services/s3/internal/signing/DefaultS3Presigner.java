@@ -585,6 +585,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED, false)
             .putProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION, expirationDuration)
             .putProperty(HttpSigner.SIGNING_CLOCK, signingClock)
+            .putProperty(AwsV4FamilyHttpSigner.NORMALIZE_PATH, false)
+            .putProperty(AwsV4FamilyHttpSigner.DOUBLE_URL_ENCODE, false)
             .request(request)
             .payload(request.contentStreamProvider().orElse(null));
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();

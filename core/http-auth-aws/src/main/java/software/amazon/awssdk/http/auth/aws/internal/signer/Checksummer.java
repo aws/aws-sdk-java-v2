@@ -35,6 +35,11 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * An interface for defining how a checksum is formed from a payload synchronously and asynchronously.
  * <p>
  * The implementation may choose to also manipulate the request with the checksum, such as adding it as a header.
+ *
+ * <b>Note:<b/> Currently, checksummers set the X_AMZ_CONTENT_SHA256 header for all requests. It is not strictly
+ * required to add the headers to all AWS requests - it's required for S3 and a couple of other select use cases. The
+ * pre-SRA implementation has a stricter set of rules for when to add the header. Being more restrictive with adding
+ * the header would require restructuring the signer / checksummer design.
  */
 @SdkInternalApi
 public interface Checksummer {
