@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Route 53",
-    "contributor": "",
-    "description": "Route53 now supports geoproximity routing in AWS regions"
-}
