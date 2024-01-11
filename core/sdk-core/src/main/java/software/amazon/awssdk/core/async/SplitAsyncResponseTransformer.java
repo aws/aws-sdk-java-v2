@@ -37,7 +37,7 @@ public final class SplitAsyncResponseTransformer<ResponseT, ResultT> {
 
     private SplitAsyncResponseTransformer(Builder<ResponseT, ResultT> builder) {
         this.asyncResponseTransformerPublisher = Validate.paramNotNull(
-            builder.asyncResponseTransformerPublisher, "asyncResponseTransformer");
+            builder.asyncResponseTransformerPublisher, "asyncResponseTransformerPublisher");
         this.future = Validate.paramNotNull(
             builder.future, "future");
     }

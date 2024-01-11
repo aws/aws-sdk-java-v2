@@ -53,11 +53,6 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
     private final SimplePublisher<ByteBuffer> publisherToStorage = new SimplePublisher<>();
 
     /**
-     * onNext lock, only one thread should be processing the StoringSubscriber at once
-     */
-    private final Object lock = new Object();
-
-    /**
      * Subscription of the publisher this subscriber subscribe to
      */
     private Subscription subscription;
@@ -96,8 +91,6 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
             return;
         }
 
-        // if the incoming ByteBuffer would exceed the maximum buffered amount, send it in chunk of maximumBuffered (or less)
-        // to the delegate
         sendBytesToStorage(byteBuffer);
         if (currentlyBuffered.get() >= maximumBuffer) {
             flushStorageToDelegate();
@@ -112,9 +105,14 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
 
     @Override
     public void onComplete() {
-        System.out.println("DELEGATING BUFFERING SUBSCRIBER ON COMPLETE");
         flushStorageToDelegate();
         super.onComplete();
+    }
+
+    @Override
+    public void onError(Throwable throwable) {
+        flushStorageToDelegate();
+        super.onError(throwable);
     }
 
     private void sendBytesToStorage(ByteBuffer buffer) {

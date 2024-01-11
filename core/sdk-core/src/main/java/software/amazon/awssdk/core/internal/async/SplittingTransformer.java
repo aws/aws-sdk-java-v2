@@ -31,7 +31,16 @@ import software.amazon.awssdk.utils.async.DelegatingBufferingSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
- *
+ * Split a {@link AsyncResponseTransformer} into multiple ones, publishing them as a {@link SdkPublisher}. Created using the
+ * {@link AsyncResponseTransformer#split(long) split} method. The upstream {@link AsyncResponseTransformer} that is split will
+ * receive data from the individual transformers.
+ * <p>
+ * This publisher also buffers an amount of data before sending it to the upstream transformer, as specified by the
+ * maximumBufferSize. ByteBuffers will be published once the buffer has been reached, or when the subscription to this
+ * publisher is cancelled.
+ * <p>
+ * Cancelling the subscription to this publisher signals that no more data needs to be sent to the upstream transformer. This
+ * publisher will then send all data currently buffered to the upstream transformer and complete the downstream subscriber.
  */
 @SdkInternalApi
 public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> {
@@ -58,6 +67,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicBoolean onStreamCalled = new AtomicBoolean(false);
 
     /**
+     * Set to true once {@code .concel()} is called in the subscription of the downstream subscriber
+     */
+    private final AtomicBoolean isCancelled = new AtomicBoolean(false);
+
+    /**
      * Future to track the status of the upstreamResponseTransformer. Will be completed when the future returned by calling
      * {@code prepare()} on the upstreamResponseTransformer itself completes.
      */
@@ -69,7 +83,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final int maximumBufferSize;
 
     /**
-     * This publisher is used to send the bytes received from the downstream subscriber to a
+     * This publisher is used to send the bytes received from the downstream subscriber's transformers to a
      * {@link DelegatingBufferingSubscriber} that will buffer a number of bytes specified by the {@code maximumBufferSize}.
      */
     private final SimplePublisher<ByteBuffer> publisherToUpstream = new SimplePublisher<>();
@@ -89,15 +103,18 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         downstreamSubscriber.onSubscribe(new Subscription() {
             @Override
             public void request(long n) {
-                downstreamSubscriber.onNext(new IndividualTransformer(n));
+                if (!isCancelled.get()) {
+                    downstreamSubscriber.onNext(new IndividualTransformer(n));
+                }
             }
 
             @Override
             public void cancel() {
                 // called by downstream subscriber to notify no more data is needed, we are done
-                // System.out.printf("[%s] cancel: cleaning up%n", "SplittingTransformer");
-                publisherToUpstream.complete();
-                downstreamSubscriber.onComplete();
+                if (isCancelled.compareAndSet(false, true)) {
+                    publisherToUpstream.complete();
+                    downstreamSubscriber.onComplete();
+                }
             }
         });
     }
@@ -121,7 +138,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 CompletableFuture<ResultT> upstreamFuture = upstreamResponseTransformer.prepare();
                 CompletableFutureUtils.forwardExceptionTo(returnFuture, upstreamFuture);
                 upstreamFuture.whenComplete((res, e) -> {
-                    // System.out.println("[IndividualTransformer] upstream future complete");
                     if (e != null) {
                         returnFuture.completeExceptionally(e);
                     } else {
@@ -134,7 +150,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onResponse(ResponseT response) {
-            // System.out.println("[IndividualTransformer] onResponse: " + response.toString());
             if (onResponseCalled.compareAndSet(false, true)) {
                 upstreamResponseTransformer.onResponse(response);
             }
@@ -144,11 +159,10 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
             if (onStreamCalled.compareAndSet(false, true)) {
-                upstreamResponseTransformer.onStream(
-                    subscriber -> publisherToUpstream.subscribe(new DelegatingBufferingSubscriber(maximumBufferSize, subscriber)));
+                upstreamResponseTransformer.onStream(upstreamSubscriber ->
+                    publisherToUpstream.subscribe(new DelegatingBufferingSubscriber(maximumBufferSize, upstreamSubscriber))
+                );
             }
-
-            // send the bytes to publisherToBuffering
             publisher.subscribe(new IndividualPartSubscriber(requested, this.individualFuture, response));
         }
 
@@ -180,22 +194,19 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            // currentlyBuffered.addAndGet(byteBuffer.capacity());
-
             publisherToUpstream.send(byteBuffer);
+            // we can request everything, buffering is done in DelegatingBufferingSubscriber
             subscription.request(Long.MAX_VALUE);
         }
 
         @Override
         public void onError(Throwable t) {
-            // System.out.println("[IndividualPartSubscriber] onError");
             publisherToUpstream.error(t);
             future.completeExceptionally(t);
         }
 
         @Override
         public void onComplete() {
-            // System.out.println("[IndividualPartSubscriber] onComplete");
             future.complete(response);
         }
     }
