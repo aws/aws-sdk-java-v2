@@ -1,3 +1,80 @@
+# __2.23.1__ __2024-01-11__
+## __AWS IoT__
+  - ### Features
+    - Add ConflictException to Update APIs of AWS IoT Software Package Catalog
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - The following dataTypes have been removed: CUSTOMER_DECODED_INTERFACE in NetworkInterfaceType; CUSTOMER_DECODED_SIGNAL_INFO_IS_NULL in SignalDecoderFailureReason; CUSTOMER_DECODED_SIGNAL_NETWORK_INTERFACE_INFO_IS_NULL in NetworkInterfaceFailureReason; CUSTOMER_DECODED_SIGNAL in SignalDecoderType
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix IllegalArgumentException in FullJitterBackoffStrategy when base delay and max backoff time are zero.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for adding an ElasticBlockStorage volume configurations in ECS RunTask/StartTask/CreateService/UpdateService APIs. The configuration allows for attaching EBS volumes to ECS Tasks.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for adding an ElasticBlockStorage volume configurations in ECS RunTask/StartTask/CreateService/UpdateService APIs. The configuration allows for attaching EBS volumes to ECS Tasks.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Adding AppSync as an EventBridge Target
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added AWS Workspaces RebootWorkspaces API - Extended Reboot documentation update
+
+# __2.23.0__ __2024-01-10__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fixed the issue where `AWS_ERROR_HTTP_CONNECTION_CLOSED` was not retried by the SDK.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Add support for account level subscription filter policies to PutAccountPolicy, DescribeAccountPolicies, and DeleteAccountPolicy APIs. Additionally, PutAccountPolicy has been modified with new optional "selectionCriteria" parameter for resource selection.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - QueryAssistant and GetRecommendations will be discontinued starting June 1, 2024. To receive generative responses after March 1, 2024 you will need to create a new Assistant in the Connect console and integrate the Amazon Q in Connect JavaScript library (amazon-q-connectjs) into your applications.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds API support for custom layers for the maps service APIs: CreateMap, UpdateMap, DescribeMap.
+
+## __Amazon Q Connect__
+  - ### Features
+    - QueryAssistant and GetRecommendations will be discontinued starting June 1, 2024. To receive generative responses after March 1, 2024 you will need to create a new Assistant in the Connect console and integrate the Amazon Q in Connect JavaScript library (amazon-q-connectjs) into your applications.
+
+## __Amazon Route 53__
+  - ### Features
+    - Route53 now supports geoproximity routing in AWS regions
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixes a bug in DeleteObjects to properly encode the key in the request.
+
+## __AmazonConnectCampaignService__
+  - ### Features
+    - Minor pattern updates for Campaign and Dial Request API fields.
+
+## __Redshift Serverless__
+  - ### Features
+    - Updates to ConfigParameter for RSS workgroup, removal of use_fips_ssl
+
 # __2.22.13__ __2024-01-08__
 ## __AWS CodeBuild__
   - ### Features
@@ -2650,7 +2727,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -4391,7 +4468,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

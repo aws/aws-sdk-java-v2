@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Fixed the issue where `AWS_ERROR_HTTP_CONNECTION_CLOSED` was not retried by the SDK."
-}
