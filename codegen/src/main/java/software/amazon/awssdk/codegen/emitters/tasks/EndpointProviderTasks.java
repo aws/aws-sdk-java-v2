@@ -34,6 +34,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointProviderTestSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointResolverInterceptorSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesClientTestSpec;
 import software.amazon.awssdk.codegen.poet.rules.RequestEndpointInterceptorSpec;
+import software.amazon.awssdk.codegen.poet.rules2.EndpointProviderSpec2;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -48,7 +49,14 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         List<GeneratorTask> tasks = new ArrayList<>();
         tasks.add(generateInterface());
         tasks.add(generateParams());
-        tasks.add(generateDefaultProvider());
+        if (shouldGenerateCompiledEndpointRules()) {
+            tasks.add(generateDefaultProvider2());
+            tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
+            tasks.add(new RulesEngineRuntimeGeneratorTask2(generatorTaskParams));
+        } else {
+            tasks.add(generateDefaultProvider());
+            tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
+        }
         tasks.addAll(generateInterceptors());
         if (shouldGenerateEndpointTests()) {
             tasks.add(generateProviderTests());
@@ -59,7 +67,6 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         if (hasClientContextParams()) {
             tasks.add(generateClientContextParams());
         }
-        tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
         tasks.add(generateDefaultPartitionsProvider());
         return tasks;
     }
@@ -76,9 +83,18 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointProviderSpec(model));
     }
 
+    private GeneratorTask generateDefaultProvider2() {
+        return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointProviderSpec2(model));
+    }
+
     private GeneratorTask generateDefaultPartitionsProvider() {
         return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(),
                                      new DefaultPartitionDataProviderSpec(model));
+    }
+
+    private boolean shouldGenerateCompiledEndpointRules() {
+        CustomizationConfig customizationConfig = generatorTaskParams.getModel().getCustomizationConfig();
+        return customizationConfig.isEnableGenerateCompiledEndpointRules();
     }
 
     private Collection<GeneratorTask> generateInterceptors() {
