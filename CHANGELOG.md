@@ -1,3 +1,39 @@
+# __2.23.1__ __2024-01-11__
+## __AWS IoT__
+  - ### Features
+    - Add ConflictException to Update APIs of AWS IoT Software Package Catalog
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - The following dataTypes have been removed: CUSTOMER_DECODED_INTERFACE in NetworkInterfaceType; CUSTOMER_DECODED_SIGNAL_INFO_IS_NULL in SignalDecoderFailureReason; CUSTOMER_DECODED_SIGNAL_NETWORK_INTERFACE_INFO_IS_NULL in NetworkInterfaceFailureReason; CUSTOMER_DECODED_SIGNAL in SignalDecoderType
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix IllegalArgumentException in FullJitterBackoffStrategy when base delay and max backoff time are zero.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for adding an ElasticBlockStorage volume configurations in ECS RunTask/StartTask/CreateService/UpdateService APIs. The configuration allows for attaching EBS volumes to ECS Tasks.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for adding an ElasticBlockStorage volume configurations in ECS RunTask/StartTask/CreateService/UpdateService APIs. The configuration allows for attaching EBS volumes to ECS Tasks.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Adding AppSync as an EventBridge Target
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added AWS Workspaces RebootWorkspaces API - Extended Reboot documentation update
+
 # __2.23.0__ __2024-01-10__
 ## __AWS CRT HTTP Client__
   - ### Bugfixes
