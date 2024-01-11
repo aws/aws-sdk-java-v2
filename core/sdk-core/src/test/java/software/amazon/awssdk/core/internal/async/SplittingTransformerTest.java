@@ -17,11 +17,10 @@ package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -30,10 +29,6 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 
 class SplittingTransformerTest {
-
-    @BeforeEach
-    void init() {
-    }
 
     @Test
     void manualTest() {
@@ -47,26 +42,23 @@ class SplittingTransformerTest {
             @Override
             public void onSubscribe(Subscription s) {
                 this.subscription = s;
-                System.out.println("[TestSubscriber] onSubscribe: " + total);
+                // System.out.println("[TestSubscriber] onSubscribe: " + total);
                 s.request(1);
             }
 
             @Override
             public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
                 // simulate what is done during a service call
-                System.out.println("[TestSubscriber] onNext: " + total);
+                // System.out.println("[TestSubscriber] onNext: " + total);
                 if (total >= 4) {
-                    System.out.println("[TestSubscriber] max reached, cancelling subscription");
+                    // System.out.println("[TestSubscriber] max reached, cancelling subscription");
                     subscription.cancel();
                     return;
                 }
                 CompletableFuture<TestResultObject> future = transformer.prepare();
                 future.whenComplete((r, e) -> {
                     if (e != null) {
-                        System.out.println("[TestSubscriber] future completed with error " + total);
-                        System.out.println(e);
-                    } else {
-                        System.out.println("[TestSubscriber] future completed: " + total);
+                        fail(e);
                     }
                 });
                 transformer.onResponse(new TestResultObject("container msg: " + total));

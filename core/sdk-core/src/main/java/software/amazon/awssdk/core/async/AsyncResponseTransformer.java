@@ -117,11 +117,17 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
 
     /**
      * todo
+     *
      * @return
      */
-    default SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> split(long bufferSize,
-                                                                               CompletableFuture<ResultT> future) {
-        return new SplittingTransformer<>(this, bufferSize, future);
+    default SplitAsyncResponseTransformer<ResponseT, ResultT> split(long bufferSize) {
+        CompletableFuture<ResultT> future = new CompletableFuture<>();
+        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
+            new SplittingTransformer<>(this, bufferSize, future);
+        SplitAsyncResponseTransformer.Builder<ResponseT, ResultT> builder = SplitAsyncResponseTransformer.builder();
+        return builder.asyncResponseTransformerPublisher(transformer)
+                      .future(future)
+                      .build();
     }
 
     /**

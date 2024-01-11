@@ -57,6 +57,11 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
      */
     private final Object lock = new Object();
 
+    /**
+     * Subscription of the publisher this subscriber subscribe to
+     */
+    private Subscription subscription;
+
     public DelegatingBufferingSubscriber(int maximumBuffer, Subscriber<? super ByteBuffer> subscriber) {
         super(subscriber);
         this.maximumBuffer = maximumBuffer;
@@ -65,19 +70,21 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
     @Override
     public void onSubscribe(Subscription subscription) {
         super.onSubscribe(subscription);
+        this.subscription = subscription;
         publisherToStorage.subscribe(storage);
+        subscription.request(maximumBuffer);
     }
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
-        // First, if the incoming ByteBuffer would amke the total buffered amount exceed the maximum buffer, send what is
+        // First, if the incoming ByteBuffer would make the total buffered amount exceed the maximum buffer, send what is
         // currently buffered in the storage to the delegate.
         if (currentlyBuffered.get() + byteBuffer.remaining() > maximumBuffer) {
             flushStorageToDelegate();
         }
 
-        // Then, if the incoming ByteBuffer would still alone bust the buffer size, Remove one chunk of it, of maximumBuffer
-        // size, then try again
+        // Then, if the incoming ByteBuffer would still alone bust the buffer size, remove one chunk of it (of maximumBuffer
+        // size) then try again
         if (currentlyBuffered.get() + byteBuffer.remaining() > maximumBuffer) {
             ByteBuffer chunk = ByteBuffer.allocate(maximumBuffer);
             while (chunk.hasRemaining()) {
@@ -95,10 +102,17 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
         if (currentlyBuffered.get() >= maximumBuffer) {
             flushStorageToDelegate();
         }
+
+        // request more if available
+        long available = maximumBuffer - currentlyBuffered.get();
+        if (available > 0) {
+            subscription.request(available);
+        }
     }
 
     @Override
     public void onComplete() {
+        System.out.println("DELEGATING BUFFERING SUBSCRIBER ON COMPLETE");
         flushStorageToDelegate();
         super.onComplete();
     }

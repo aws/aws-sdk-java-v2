@@ -25,8 +25,8 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-// [WIP] Stub
-public class DownloaderSubscriber implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
+// [WIP] Still work in progress, currently only used to help manual testing
+public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
     private final S3AsyncClient s3;
     private final GetObjectRequest getObjectRequest;
 
@@ -40,7 +40,7 @@ public class DownloaderSubscriber implements Subscriber<AsyncResponseTransformer
     private CompletableFuture<GetObjectResponse> responseFuture;
     private GetObjectResponse returnResponse;
 
-    public DownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
+    public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
         this.responseFuture = new CompletableFuture<>();
@@ -58,10 +58,12 @@ public class DownloaderSubscriber implements Subscriber<AsyncResponseTransformer
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         int part = currentPart.incrementAndGet();
         if (totalPartKnown.get()) {
-            System.out.printf("[DownloaderSubscriber] total part: %s, current part: %s%n", totalParts.get(), part);
+            System.out.printf("[MultipartDownloaderSubscriber] total part: %s, current part: %s%n", totalParts.get(), part);
+        } else {
+            System.out.printf("[MultipartDownloaderSubscriber] part %s%n", part);
         }
         if (totalPartKnown.get() && part > totalParts.get()) {
-            System.out.printf("[DownloaderSubscriber] no more parts available, stopping%n");
+            System.out.printf("[MultipartDownloaderSubscriber] no more parts available, stopping%n");
             subscription.cancel();
             return;
         }
@@ -74,13 +76,13 @@ public class DownloaderSubscriber implements Subscriber<AsyncResponseTransformer
             }
             completed.incrementAndGet();
             returnResponse = response;
-            System.out.printf("[DownloaderSubscriber] received '%s'%n", response.contentRange());
+            System.out.printf("[MultipartDownloaderSubscriber] received '%s'%n", response.contentRange());
             Integer partCount = response.partsCount();
             if (totalPartKnown.compareAndSet(false, true)) {
                 totalParts.set(partCount);
                 totalPartKnown.set(true);
             }
-            System.out.printf("[DownloaderSubscriber] total parts: %s%n", partCount);
+            System.out.printf("[MultipartDownloaderSubscriber] total parts: %s%n", partCount);
             if (totalParts.get() > 1) {
                 subscription.request(1);
             }
