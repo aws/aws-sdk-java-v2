@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
@@ -39,18 +37,16 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-// WIP - please ignore
+// WIP - please ignore for now, only used in manually testing
 class MultipartDownloadIntegrationTest {
 
     static final int fileTestSize = 128;
-    // 134217728
-    // 134172672 123624010
     static final String bucket = "olapplin-test-bucket";
     static final String key = String.format("debug-test-%smb", fileTestSize);
 
     private S3AsyncClient s3;
 
-    @BeforeEach
+    // @BeforeEach
     void init() {
         this.s3 = S3AsyncClient.builder()
                                .region(Region.US_WEST_2)
@@ -59,7 +55,7 @@ class MultipartDownloadIntegrationTest {
                                .build();
     }
 
-    @Test
+    // @Test
     void testByteAsyncResponseTransformer() {
         AsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> transformer =
             AsyncResponseTransformer.toBytes();
@@ -76,7 +72,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(bytes.length).isEqualTo(fileTestSize * 1024 * 1024);
     }
 
-    @Test
+    // @Test
     void testFileAsyncResponseTransformer() {
         Path path = Paths.get("/Users/olapplin/Develop/tmp/" + key);
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
@@ -93,7 +89,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(path.toFile().length()).isEqualTo(fileTestSize * 1024 * 1024);
     }
 
-    @Test
+    // @Test
     void testPublisherAsyncResponseTransformer() {
         AsyncResponseTransformer<GetObjectResponse, ResponsePublisher<GetObjectResponse>> transformer =
             AsyncResponseTransformer.toPublisher();
@@ -134,7 +130,7 @@ class MultipartDownloadIntegrationTest {
         split.future().join();
     }
 
-    @Test
+    // @Test
     void testBlockingInputStreamResponseTransformer() {
         AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
             AsyncResponseTransformer.toBlockingInputStream();

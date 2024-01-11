@@ -25,7 +25,8 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-// [WIP] Still work in progress, currently only used to help manual testing
+// [WIP]
+// Still work in progress, currently only used to help manual testing, please ignore
 public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
     private final S3AsyncClient s3;
     private final GetObjectRequest getObjectRequest;
