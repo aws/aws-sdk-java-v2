@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EventBridge",
+    "contributor": "",
+    "description": "Adding AppSync as an EventBridge Target"
+}
