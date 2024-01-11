@@ -132,7 +132,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         // in onResponseComplete callback since onResponseBody will never be invoked.
         requestCompletionFuture.complete(responseBuilder.build());
 
-        // requestCompletionFuture has been completed at this point, no need to notify hte future
+        // requestCompletionFuture has been completed at this point, no need to notify the future
         simplePublisher.complete();
         responseHandlerHelper.cleanUpConnectionBasedOnStatusCode(stream);
     }
