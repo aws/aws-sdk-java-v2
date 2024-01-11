@@ -60,24 +60,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
      *        	The distribution to delete
      */
     protected static void waitForDistributionToDeploy(String distributionId) throws InterruptedException {
-        int timeoutInMinutes = 20;
-        long startTime = System.currentTimeMillis();
-        while (true) {
-            GetDistributionResponse getDistributionResponse =
-                cloudFrontClient.getDistribution(GetDistributionRequest.builder().id(distributionId).build());
-            String status = getDistributionResponse.distribution().status();
-            System.out.println(status);
-            if (status.equalsIgnoreCase("Deployed")) {
-                return;
-            }
-
-            if ((System.currentTimeMillis() - startTime) > (1000 * 60 * timeoutInMinutes)) {
-                throw new RuntimeException("Waited " + timeoutInMinutes
-                                           + " minutes for distribution to be deployed, but never happened");
-            }
-
-            Thread.sleep(1000 * 20);
-        }
+        cloudFrontClient.waiter().waitUntilDistributionDeployed(b -> b.id(distributionId));
     }
 
     /**

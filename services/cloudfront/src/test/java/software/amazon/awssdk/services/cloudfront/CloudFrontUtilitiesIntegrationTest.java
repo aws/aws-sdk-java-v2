@@ -316,6 +316,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         keyGroupId = keyGroup.id();
 
         s3Client.createBucket(CreateBucketRequest.builder().bucket(callerReference).build());
+        s3Client.waiter().waitUntilBucketExists(b -> b.bucket(callerReference));
+
         File content = new RandomTempFile("testFile", 1000L);
         s3Client.putObject(PutObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build(), RequestBody.fromFile(content));
 
