@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Supervisor Barge for Chat is now supported through the MonitorContact API."
-}
