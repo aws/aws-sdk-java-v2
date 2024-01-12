@@ -24,8 +24,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
-// buffers event it receives and send them to the delegate subscriber once buffer size is reached
-
 /**
  * This Subscriber buffers the {@link ByteBuffer} it receives until the specififed maxiimumBuffer is reached, at which point
  * it sends those bytes to the delegate {@link Subscriber}.
