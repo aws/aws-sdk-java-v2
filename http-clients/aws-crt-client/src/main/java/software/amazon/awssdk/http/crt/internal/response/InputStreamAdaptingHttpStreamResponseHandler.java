@@ -28,8 +28,8 @@ import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.utils.async.InputStreamSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -39,17 +39,22 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  */
 @SdkInternalApi
 public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamResponseHandler {
-    private final SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder();
+
     private volatile InputStreamSubscriber inputStreamSubscriber;
     private final SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
 
     private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
     private final HttpClientConnection crtConn;
 
+    private final SdkHttpFullResponse.Builder responseBuilder;
+    private final ResponseHandlerHelper responseHandlerHelper;
+
     public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
                                                         CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
         this.crtConn = crtConn;
         this.requestCompletionFuture = requestCompletionFuture;
+        this.responseBuilder = SdkHttpResponse.builder();
+        this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, crtConn);
     }
 
     @Override
@@ -59,9 +64,8 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
             for (HttpHeader h : nextHeaders) {
                 responseBuilder.appendHeader(h.getName(), h.getValue());
             }
+            responseBuilder.statusCode(responseStatusCode);
         }
-
-        responseBuilder.statusCode(responseStatusCode);
     }
 
     @Override
@@ -84,7 +88,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
-                failFutureAndCloseConnection(stream, failure);
+                failFutureAndReleaseConnection(stream, failure);
                 return;
             }
 
@@ -92,7 +96,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
             stream.incrementWindow(bodyBytesIn.length);
         });
 
-        // the bodyBytesIn have not cleared the queues yet, so do let backpressure do its thing.
+        // Window will be incremented after the subscriber consumes the data, returning 0 here to disable it.
         return 0;
     }
 
@@ -105,11 +109,14 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         }
     }
 
+    private void failFutureAndReleaseConnection(HttpStream stream, Throwable failure) {
+        requestCompletionFuture.completeExceptionally(failure);
+        responseHandlerHelper.releaseConnection(stream);
+    }
+
     private void failFutureAndCloseConnection(HttpStream stream, Throwable failure) {
         requestCompletionFuture.completeExceptionally(failure);
-        crtConn.shutdown();
-        crtConn.close();
-        stream.close();
+        responseHandlerHelper.closeConnection(stream);
     }
 
     private void onFailedResponseComplete(HttpStream stream, int errorCode) {
@@ -121,16 +128,12 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     }
 
     private void onSuccessfulResponseComplete(HttpStream stream) {
-        // always close the connection on a 5XX response code.
-        if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-            crtConn.shutdown();
-        }
-
         // For response without a payload, for example, S3 PutObjectResponse, we need to complete the future
         // in onResponseComplete callback since onResponseBody will never be invoked.
         requestCompletionFuture.complete(responseBuilder.build());
+
+        // requestCompletionFuture has been completed at this point, no need to notify the future
         simplePublisher.complete();
-        crtConn.close();
-        stream.close();
+        responseHandlerHelper.cleanUpConnectionBasedOnStatusCode(stream);
     }
 }

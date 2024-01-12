@@ -129,7 +129,7 @@ class AsyncOperationDocProvider extends OperationDocProvider {
         }
 
         @Override
-        protected String appendToDescription() {
+        protected String getDescription() {
             return paginationDocs.getDocsForAsyncOperation();
         }
 
