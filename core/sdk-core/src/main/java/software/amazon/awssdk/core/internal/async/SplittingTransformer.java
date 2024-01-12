@@ -210,5 +210,4 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             future.complete(response);
         }
     }
-
 }
