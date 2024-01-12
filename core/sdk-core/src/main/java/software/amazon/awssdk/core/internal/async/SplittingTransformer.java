@@ -104,7 +104,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             @Override
             public void request(long n) {
                 if (!isCancelled.get()) {
-                    downstreamSubscriber.onNext(new IndividualTransformer(n));
+                    downstreamSubscriber.onNext(new IndividualTransformer());
                 }
             }
 
@@ -123,13 +123,8 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     // requested. A future is created per request that is completed when onComplete is called on the subscriber for that request
     // body publisher.
     private class IndividualTransformer implements AsyncResponseTransformer<ResponseT, ResponseT> {
-        private final long requested;
         private ResponseT response;
         private CompletableFuture<ResponseT> individualFuture;
-
-        public IndividualTransformer(long requested) {
-            this.requested = requested;
-        }
 
         @Override
         public CompletableFuture<ResponseT> prepare() {
@@ -163,7 +158,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                     publisherToUpstream.subscribe(new DelegatingBufferingSubscriber(maximumBufferSize, upstreamSubscriber))
                 );
             }
-            publisher.subscribe(new IndividualPartSubscriber(requested, this.individualFuture, response));
+            publisher.subscribe(new IndividualPartSubscriber(this.individualFuture, response));
         }
 
         @Override
@@ -174,13 +169,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
     // the Subscriber for each of the individual request ByteBuffer publisher
     private class IndividualPartSubscriber implements Subscriber<ByteBuffer> {
-        private final long requested;
         private final CompletableFuture<ResponseT> future;
         private final ResponseT response;
         private Subscription subscription;
 
-        public IndividualPartSubscriber(long requested, CompletableFuture<ResponseT> future, ResponseT response) {
-            this.requested = requested;
+        IndividualPartSubscriber(CompletableFuture<ResponseT> future, ResponseT response) {
             this.future = future;
             this.response = response;
         }
