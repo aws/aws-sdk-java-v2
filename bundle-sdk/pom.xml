@@ -83,6 +83,9 @@
                             <relocation>
                                 <pattern>org.apache</pattern>
                                 <shadedPattern>software.amazon.awssdk.thirdparty.org.apache</shadedPattern>
+                                <excludes>
+                                    <exclude>org.apache.log4j.*</exclude>
+                                </excludes>
                             </relocation>
                             <relocation>
                                 <pattern>io.netty</pattern>

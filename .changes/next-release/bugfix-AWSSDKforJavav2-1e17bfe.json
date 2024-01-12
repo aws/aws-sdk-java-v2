@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix shading of artifacts in the `bundle` by not `org.apache.log4j.*` packages. This allows proper binding of `commons-logging` to Log4J and enables dependencies that use commons logging (e.g. Apache HTTP Client) to properly bind to Log4j."
+}
