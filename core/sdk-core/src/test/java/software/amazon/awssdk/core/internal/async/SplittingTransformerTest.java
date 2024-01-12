@@ -29,8 +29,10 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.utils.Logger;
 
 class SplittingTransformerTest {
+    private static final Logger log = Logger.loggerFor(SplittingTransformerTest.class);
 
     @Test
     void whenSubscriberCancelSubscription_AllDataSentToTransformer() {
@@ -180,6 +182,48 @@ class SplittingTransformerTest {
         assertThat(upstreamTestTransformer.contentAsString()).isEqualTo(expected.toString());
     }
 
+    @Test
+    void whenRequestingMany_allDemandGetsFulfilled() {
+        UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
+        CompletableFuture<Object> future = new CompletableFuture<>();
+        SplittingTransformer<TestResultObject, Object> split =
+            new SplittingTransformer<>(upstreamTestTransformer, 1024*1024*32, future);
+        split.subscribe(new Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>>() {
+            private Subscription subscription;
+            private int received = 0;
+            @Override
+            public void onSubscribe(Subscription s) {
+                this.subscription = s;
+                s.request(4);
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
+                received++;
+                transformer.prepare();
+                transformer.onResponse(new TestResultObject("container msg: " + received));
+                transformer.onStream(AsyncRequestBody.fromString(String.format("This is the body of %d.", received)));
+                if (received >= 4) {
+                    subscription.cancel();
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                fail("unexpected onError", t);
+            }
+
+            @Override
+            public void onComplete() {
+                // do nothing, test only
+            }
+        });
+
+        future.join();
+        String expected = "This is the body of 1.This is the body of 2.This is the body of 3.This is the body of 4.";
+        assertThat(upstreamTestTransformer.contentAsString()).isEqualTo(expected);
+    }
+
     private static class UpstreamTestTransformer implements AsyncResponseTransformer<TestResultObject, Object> {
         private final CompletableFuture<Object> future;
         private final StringBuilder content = new StringBuilder();
@@ -190,18 +234,18 @@ class SplittingTransformerTest {
 
         @Override
         public CompletableFuture<Object> prepare() {
-            System.out.println("[UpstreamTestTransformer] prepare");
+            log.info(() -> "[UpstreamTestTransformer] prepare");
             return this.future;
         }
 
         @Override
         public void onResponse(TestResultObject response) {
-            System.out.printf("[UpstreamTestTransformer] onResponse: %s%n", response.toString());
+            log.info(() -> String.format("[UpstreamTestTransformer] onResponse: %s", response.toString()));
         }
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            System.out.println("[UpstreamTestTransformer] onStream");
+            log.info(() -> "[UpstreamTestTransformer] onStream");
             publisher.subscribe(new Subscriber<ByteBuffer>() {
                 private Subscription subscription;
                 @Override

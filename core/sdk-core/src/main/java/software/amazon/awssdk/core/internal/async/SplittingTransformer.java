@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.async;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -88,6 +89,19 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      */
     private final SimplePublisher<ByteBuffer> publisherToUpstream = new SimplePublisher<>();
 
+    /**
+     * The downstream subscriber that is subscribed to this publisher.
+     */
+    private Subscriber<? super AsyncResponseTransformer<ResponseT, ResponseT>> downstreamSubscriber;
+
+    /**
+     * The amount requested by the downstream subscriber that is still left to fulfill. Updated. when the
+     * {@link Subscription#request(long) request} method is called on the downstream subscriber's subscription.
+     * Corresponds to the number of {@code AsyncResponseTransformer} that will be published to the downstream subscriber.
+     */
+    private final AtomicLong outstandingDemand = new AtomicLong(0);
+
+
     public SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
                                 long bufferSize, CompletableFuture<ResultT> returnFuture) {
         this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
@@ -100,10 +114,13 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      */
     @Override
     public void subscribe(Subscriber<? super AsyncResponseTransformer<ResponseT, ResponseT>> downstreamSubscriber) {
+        this.downstreamSubscriber = downstreamSubscriber;
         downstreamSubscriber.onSubscribe(new Subscription() {
             @Override
             public void request(long n) {
                 if (!isCancelled.get()) {
+                    long totalNewDemand = outstandingDemand.addAndGet(n);
+                    log.trace(() -> String.format("new outstanding demand: %s", totalNewDemand));
                     downstreamSubscriber.onNext(new IndividualTransformer());
                 }
             }
@@ -112,6 +129,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             public void cancel() {
                 // called by downstream subscriber to notify no more data is needed, we are done
                 if (isCancelled.compareAndSet(false, true)) {
+                    log.trace(() -> "Cancelling splitting transformer");
                     publisherToUpstream.complete();
                     downstreamSubscriber.onComplete();
                 }
@@ -130,6 +148,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public CompletableFuture<ResponseT> prepare() {
             this.individualFuture = new CompletableFuture<>();
             if (preparedCalled.compareAndSet(false, true)) {
+                log.trace(() -> "calling prepare on the upstream transformer");
                 CompletableFuture<ResultT> upstreamFuture = upstreamResponseTransformer.prepare();
                 CompletableFutureUtils.forwardExceptionTo(returnFuture, upstreamFuture);
                 upstreamFuture.whenComplete((res, e) -> {
@@ -146,6 +165,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         @Override
         public void onResponse(ResponseT response) {
             if (onResponseCalled.compareAndSet(false, true)) {
+                log.trace(() -> "calling onResponse on the upstream transformer");
                 upstreamResponseTransformer.onResponse(response);
             }
             this.response = response;
@@ -154,6 +174,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
             if (onStreamCalled.compareAndSet(false, true)) {
+                log.trace(() -> "calling onStream on the upstream transformer");
                 upstreamResponseTransformer.onStream(upstreamSubscriber ->
                     publisherToUpstream.subscribe(new DelegatingBufferingSubscriber(maximumBufferSize, upstreamSubscriber))
                 );
@@ -201,6 +222,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         @Override
         public void onComplete() {
             future.complete(response);
+            long demandLeft = outstandingDemand.decrementAndGet();
+            log.trace(() -> String.format("demand left: %s", demandLeft));
+            if (demandLeft > 0) {
+                downstreamSubscriber.onNext(new IndividualTransformer());
+            }
         }
     }
 }
