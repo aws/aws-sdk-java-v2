@@ -24,10 +24,13 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.Logger;
 
 // [WIP]
 // Still work in progress, currently only used to help manual testing, please ignore
 public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
+    private static final Logger log = Logger.loggerFor(MultipartDownloaderSubscriber.class);
+
     private final S3AsyncClient s3;
     private final GetObjectRequest getObjectRequest;
 
@@ -59,12 +62,12 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         int part = currentPart.incrementAndGet();
         if (totalPartKnown.get()) {
-            System.out.printf("[MultipartDownloaderSubscriber] total part: %s, current part: %s%n", totalParts.get(), part);
+            log.info(() -> String.format("total part: %s, current part: %s", totalParts.get(), part));
         } else {
-            System.out.printf("[MultipartDownloaderSubscriber] part %s%n", part);
+            log.info(() -> String.format("part %s", part));
         }
         if (totalPartKnown.get() && part > totalParts.get()) {
-            System.out.printf("[MultipartDownloaderSubscriber] no more parts available, stopping%n");
+            log.info(() -> "no more parts available, stopping");
             subscription.cancel();
             return;
         }
@@ -77,13 +80,13 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             }
             completed.incrementAndGet();
             returnResponse = response;
-            System.out.printf("[MultipartDownloaderSubscriber] received '%s'%n", response.contentRange());
+            log.info(() -> String.format("received '%s'", response.contentRange()));
             Integer partCount = response.partsCount();
             if (totalPartKnown.compareAndSet(false, true)) {
                 totalParts.set(partCount);
                 totalPartKnown.set(true);
             }
-            System.out.printf("[MultipartDownloaderSubscriber] total parts: %s%n", partCount);
+            log.info(() -> String.format("total parts: %s", partCount));
             if (totalParts.get() > 1) {
                 subscription.request(1);
             }

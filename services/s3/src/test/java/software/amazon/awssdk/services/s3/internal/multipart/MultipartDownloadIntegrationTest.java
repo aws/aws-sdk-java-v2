@@ -36,9 +36,11 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.Logger;
 
 // WIP - please ignore for now, only used in manually testing
 class MultipartDownloadIntegrationTest {
+    private static final Logger log = Logger.loggerFor(MultipartDownloadIntegrationTest.class);
 
     static final int fileTestSize = 128;
     static final String bucket = "olapplin-test-bucket";
@@ -66,9 +68,9 @@ class MultipartDownloadIntegrationTest {
             transformer.split(1024 * 1024 * 32);
         split.publisher().subscribe(downloaderSubscriber);
         ResponseBytes<GetObjectResponse> res = split.future().join();
-        System.out.println("[Test] complete");
+        log.info(() -> "complete");
         byte[] bytes = res.asByteArray();
-        System.out.printf("[Test] Byte len: %s%n", bytes.length);
+        log.info(() -> String.format("Byte len: %s", bytes.length));
         assertThat(bytes.length).isEqualTo(fileTestSize * 1024 * 1024);
     }
 
@@ -84,7 +86,7 @@ class MultipartDownloadIntegrationTest {
         SplitAsyncResponseTransformer<GetObjectResponse, GetObjectResponse> split = transformer.split(1024 * 1024 * 32);
         split.publisher().subscribe(downloaderSubscriber);
         GetObjectResponse res = split.future().join();
-        System.out.println("[Test] complete");
+        log.info(() -> "complete");
         assertTrue(path.toFile().exists());
         assertThat(path.toFile().length()).isEqualTo(fileTestSize * 1024 * 1024);
     }
@@ -100,7 +102,7 @@ class MultipartDownloadIntegrationTest {
             transformer.split(1024 * 1024 * 32);
         split.publisher().subscribe(downloaderSubscriber);
         split.future().whenComplete((res, e) -> {
-            System.out.println("[Test] complete");
+            log.info(() -> "complete");
             res.subscribe(new Subscriber<ByteBuffer>() {
                 Subscription subscription;
 
@@ -112,7 +114,7 @@ class MultipartDownloadIntegrationTest {
 
                 @Override
                 public void onNext(ByteBuffer byteBuffer) {
-                    System.out.println("received " + byteBuffer.remaining());
+                    log.info(() -> "received " + byteBuffer.remaining());
                     subscription.request(Long.MAX_VALUE);
                 }
 
@@ -142,7 +144,7 @@ class MultipartDownloadIntegrationTest {
             transformer.split(1024 * 1024 * 32);
         split.publisher().subscribe(downloaderSubscriber);
         ResponseInputStream<GetObjectResponse> res = split.future().join();
-        System.out.println("[Test] complete");
+        log.info(() -> "complete");
         int total = 0;
         try {
             while (res.read() != -1) {
