@@ -1,3 +1,39 @@
+# __2.23.2__ __2024-01-12__
+## __AWS S3 Control__
+  - ### Features
+    - S3 On Outposts team adds dualstack endpoints support for S3Control and S3Outposts API calls.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix shading of artifacts in the `bundle` by not `org.apache.log4j.*` packages. This allows proper binding of `commons-logging` to Log4J and enables dependencies that use commons logging (e.g. Apache HTTP Client) to properly bind to Log4j.
+
+## __AWS Supply Chain__
+  - ### Features
+    - This release includes APIs CreateBillOfMaterialsImportJob and GetBillOfMaterialsImportJob.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now supports static IP addresses for SFTP & AS2 connectors and for async MDNs on AS2 servers.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Introduce new Supervisor participant role
+
+## __Amazon Connect Service__
+  - ### Features
+    - Supervisor Barge for Chat is now supported through the MonitorContact API.
+
+## __Amazon Location Service__
+  - ### Features
+    - Location SDK documentation update. Added missing fonts to the MapConfiguration data type. Updated note for the SubMunicipality property in the place data type.
+
+## __AmazonMWAA__
+  - ### Features
+    - This Amazon MWAA feature release includes new fields in CreateWebLoginToken response model. The new fields IamIdentity and AirflowIdentity will let you match identifications, as the Airflow identity length is currently hashed to 64 characters.
+
 # __2.23.1__ __2024-01-11__
 ## __AWS IoT__
   - ### Features
@@ -2727,7 +2763,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -4468,7 +4504,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
