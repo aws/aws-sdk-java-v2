@@ -16,9 +16,11 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,6 +95,22 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         verify(crtConn).shutdown();
         verify(crtConn).close();
         verify(httpStream).close();
+    }
+
+    @Test
+    void streamClosed_shouldNotIncreaseStreamWindow() throws InterruptedException {
+        HttpHeader[] httpHeaders = getHttpHeaders();
+        responseHandler.onResponseHeaders(httpStream, 500, HttpHeaderBlock.MAIN.getValue(),
+                                          httpHeaders);
+        responseHandler.onResponseHeadersDone(httpStream, 0);
+        responseHandler.onResponseBody(httpStream, "{}".getBytes(StandardCharsets.UTF_8));
+
+        responseHandler.onResponseComplete(httpStream, 0);
+        requestFuture.join();
+        verify(crtConn).shutdown();
+        verify(crtConn).close();
+        verify(httpStream).close();
+        verify(httpStream, never()).incrementWindow(anyInt());
     }
 
     private static HttpHeader[] getHttpHeaders() {

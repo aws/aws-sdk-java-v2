@@ -95,7 +95,9 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
                 return;
             }
 
-            stream.incrementWindow(bodyBytesIn.length);
+            if (!responseHandlerHelper.connectionClosed().get()) {
+                stream.incrementWindow(bodyBytesIn.length);
+            }
         });
 
         return 0;

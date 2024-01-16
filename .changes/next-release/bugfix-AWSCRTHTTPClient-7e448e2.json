@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Fixed the issue in the AWS CRT HTTP client where the application could crash if stream.incrementWindow was invoked on a closed stream"
+}
