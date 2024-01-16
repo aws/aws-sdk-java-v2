@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup Storage, Amazon CodeCatalyst, Amazon Cognito Identity, Amazon Cognito Identity Provider, AWS Identity and Access Management (IAM), Amazon Kinesis, AWS Elemental MediaStore Data Plane, Amazon Transcribe Service, Amazon Transcribe Streaming Service",
+    "contributor": "",
+    "description": "Switching a set of services onto the new SRA (Smithy Reference Architecture) identity and auth logic that was released in v2.21.0."
+}
