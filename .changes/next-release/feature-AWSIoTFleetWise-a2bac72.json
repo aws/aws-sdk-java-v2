@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT FleetWise",
+    "contributor": "",
+    "description": "Updated APIs: SignalNodeType query parameter has been added to ListSignalCatalogNodesRequest and ListVehiclesResponse has been extended with attributes field."
+}
