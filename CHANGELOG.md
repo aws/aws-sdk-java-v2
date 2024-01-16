@@ -1,3 +1,44 @@
+# __2.23.4__ __2024-01-16__
+## __AWS IoT__
+  - ### Features
+    - Revert release of LogTargetTypes
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Updated APIs: SignalNodeType query parameter has been added to ListSignalCatalogNodesRequest and ListVehiclesResponse has been extended with attributes field.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for analyzing Amazon S3 objects that are encrypted using dual-layer server-side encryption with AWS KMS keys (DSSE-KMS). It also adds support for reporting DSSE-KMS details in statistics and metadata about encryption settings for S3 buckets and objects.
+
+## __Amazon Personalize__
+  - ### Features
+    - Documentation updates for Amazon Personalize.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Documentation updates for Amazon Personalize
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds ContentType and TaxonomyLevel attributes to DetectModerationLabels and GetMediaAnalysisJob API responses.
+
+## __Amazon S3__
+  - ### Features
+    - Propagating client apiCallTimeout values to S3Express createSession calls. If existing, this value overrides the default timeout value of 10s when making the nested S3Express session credentials call.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Provide an additional option for key exchange using RSA wrap/unwrap in addition to tr-34/tr-31 in ImportKey and ExportKey operations. Added new key usage (type) TR31_M1_ISO_9797_1_MAC_KEY, for use with Generate/VerifyMac dataplane operations with ISO9797 Algorithm 1 MAC calculations.
+
 # __2.23.3__ __2024-01-13__
 ## __Amazon SageMaker Service__
   - ### Features
