@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Propagating client apiCallTimeout values to S3Express createSession calls. If existing, this value overrides the default timeout value of 10s when making the nested S3Express session credentials call."
-}
