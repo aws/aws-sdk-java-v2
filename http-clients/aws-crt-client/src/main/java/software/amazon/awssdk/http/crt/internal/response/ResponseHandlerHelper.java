@@ -82,4 +82,8 @@ public class ResponseHandlerHelper {
             releaseConnection(stream);
         }
     }
+
+    public AtomicBoolean connectionClosed() {
+        return connectionClosed;
+    }
 }
