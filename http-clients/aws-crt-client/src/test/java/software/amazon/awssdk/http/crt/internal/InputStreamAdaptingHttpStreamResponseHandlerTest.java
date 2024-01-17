@@ -15,10 +15,17 @@
 
 package software.amazon.awssdk.http.crt.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import io.reactivex.Completable;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import net.bytebuddy.utility.RandomString;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +38,7 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 
@@ -39,5 +47,27 @@ public class InputStreamAdaptingHttpStreamResponseHandlerTest extends BaseHttpSt
     @Override
     HttpStreamResponseHandler responseHandler() {
         return new InputStreamAdaptingHttpStreamResponseHandler(crtConn, requestFuture);
+    }
+
+    @Test
+    void abortStream_shouldShutDownConnection() throws IOException {
+        HttpHeader[] httpHeaders = getHttpHeaders();
+
+        responseHandler.onResponseHeaders(httpStream, 500, HttpHeaderBlock.MAIN.getValue(),
+                                          httpHeaders);
+        responseHandler.onResponseHeadersDone(httpStream, 0);
+        responseHandler.onResponseBody(httpStream,
+                                       RandomStringUtils.random(1 * 1024 * 1024).getBytes(StandardCharsets.UTF_8));
+
+        SdkHttpFullResponse response = ((CompletableFuture<SdkHttpFullResponse>) requestFuture).join();
+        assertThat(response.content()).isPresent();
+        AbortableInputStream abortableInputStream = response.content().get();
+
+        abortableInputStream.read();
+        abortableInputStream.abort();
+
+        verify(crtConn).shutdown();
+        verify(crtConn).close();
+        verify(httpStream).close();
     }
 }
