@@ -92,8 +92,10 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
                 return;
             }
 
-            // increment the window upon buffer consumption.
-            stream.incrementWindow(bodyBytesIn.length);
+            if (!responseHandlerHelper.connectionClosed().get()) {
+                // increment the window upon buffer consumption.
+                stream.incrementWindow(bodyBytesIn.length);
+            }
         });
 
         // Window will be incremented after the subscriber consumes the data, returning 0 here to disable it.
