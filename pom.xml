@@ -89,6 +89,7 @@
         <module>test/ruleset-testing-core</module>
         <module>test/old-client-version-compatibility-test</module>
         <module>test/bundle-logging-bridge-binding-test</module>
+        <module>test/migration-tool-tests</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>

@@ -35,4 +35,4 @@ recipeList:
       oldArtifactId: aws-java-sdk-bom
       newGroupId: software.amazon.awssdk
       newArtifactId: bom
-      newVersion: 2.22.13-SNAPSHOT
+      newVersion: 2.23.0-SNAPSHOT

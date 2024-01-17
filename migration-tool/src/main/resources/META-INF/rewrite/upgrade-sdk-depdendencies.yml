@@ -23,4 +23,4 @@ recipeList:
       oldArtifactId: aws-java-sdk-sqs
       newGroupId: software.amazon.awssdk
       newArtifactId: sqs
-      newVersion: 2.22.13-SNAPSHOT
+      newVersion: 2.23.0-SNAPSHOT
