@@ -49,6 +49,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -185,6 +186,17 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                  AwsExecutionAttribute.class);
             builder.addStatement("builder.region(region)");
         }
+        ClassName paramsBuilderClass = authSchemeSpecUtils.parametersEndpointAwareDefaultImplName().nestedClass("Builder");
+        builder.beginControlFlow("if (builder instanceof $T)",
+                                 paramsBuilderClass);
+        ClassName endpointProviderClass = endpointRulesSpecUtils.providerInterfaceName();
+        builder.addStatement("$T endpointProvider = executionAttributes.getAttribute($T.ENDPOINT_PROVIDER)",
+                             EndpointProvider.class,
+                             SdkInternalExecutionAttribute.class);
+        builder.beginControlFlow("if (endpointProvider instanceof $T)", endpointProviderClass);
+        builder.addStatement("(($T)builder).endpointProvider(($T)endpointProvider)", paramsBuilderClass, endpointProviderClass);
+        builder.endControlFlow();
+        builder.endControlFlow();
         builder.addStatement("return builder.build()");
         return builder.build();
     }
