@@ -34,6 +34,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
@@ -418,7 +421,7 @@ public class SyncClientClass extends SyncClientInterface {
                                     poetExtensions.getSyncWaiterInterface());
     }
 
-    protected static MethodSpec updateSdkClientConfigurationMethod(
+    protected MethodSpec updateSdkClientConfigurationMethod(
         TypeName serviceClientConfigurationBuilderClassName,
         boolean shouldAddClientReference) {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
@@ -442,9 +445,27 @@ public class SyncClientClass extends SyncClientInterface {
                .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
                .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
-               .endControlFlow()
-               .addStatement("return configuration.build()");
+               .endControlFlow();
+        EndpointRulesSpecUtils endpointRulesSpecUtils = new EndpointRulesSpecUtils(this.model);
+        Map<String, ClientContextParam> customClientConfigParams = model.getCustomizationConfig().getCustomClientContextParams();
+        if (customClientConfigParams != null) {
+            customClientConfigParams.forEach((n, m) -> {
+                String keyName = model.getNamingStrategy().getEnumValueName(n);
 
+                builder.beginControlFlow("if ((configuration.option($T.CLIENT_CONTEXT_PARAMS) != null)\n "
+                                         + "             &&  !clientConfiguration.option($T.CLIENT_CONTEXT_PARAMS)\n"
+                                         + "                          .get($T.$N).equals(configuration.build()\n"
+                                         + "                          .option($T.CLIENT_CONTEXT_PARAMS).get($T.$N)))",
+                                         SdkClientOption.class, SdkClientOption.class,
+                                         endpointRulesSpecUtils.clientContextParamsName(), keyName,
+                                         SdkClientOption.class, endpointRulesSpecUtils.clientContextParamsName(), keyName)
+                       .addStatement("throw new $T($S)",
+                                     IllegalStateException.class, keyName + " cannot be modified by request level plugins")
+                       .endControlFlow();
+
+            });
+        }
+        builder.addStatement("return configuration.build()");
         return builder.build();
     }
 }
