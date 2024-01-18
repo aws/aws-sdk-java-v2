@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Firehose",
+    "contributor": "",
+    "description": "Allow support for Snowflake as a Kinesis Data Firehose delivery destination."
+}
