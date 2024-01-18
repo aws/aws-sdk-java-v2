@@ -1,3 +1,36 @@
+# __2.23.6__ __2024-01-18__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Increasing TestMapping inputFileContent file size limit to 5MB and adding file size limit 250KB for TestParsing input file. This release also includes exposing InternalServerException for Tag APIs.
+
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fixed the issue in the AWS CRT sync HTTP client where the connection was left open after the stream was aborted.
+
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds a new API ListInsightsMetricData to retrieve metric data from CloudTrail Insights.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 now supports 3 groupings
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Allow support for Snowflake as a Kinesis Data Firehose delivery destination.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Increase BatchGetRecord limits from 10 items to 100 items
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Removed invalid and unnecessary default values.
+
 # __2.23.5__ __2024-01-17__
 ## __AWS Backup Storage, Amazon CodeCatalyst, Amazon Cognito Identity, Amazon Cognito Identity Provider, AWS Identity and Access Management (IAM), Amazon Kinesis, AWS Elemental MediaStore Data Plane, Amazon Transcribe Service, Amazon Transcribe Streaming Service__
   - ### Features
@@ -2830,7 +2863,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
