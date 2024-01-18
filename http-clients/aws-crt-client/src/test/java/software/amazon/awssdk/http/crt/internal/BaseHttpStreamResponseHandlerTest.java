@@ -42,9 +42,9 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     CompletableFuture requestFuture;
 
     @Mock
-    private HttpStream httpStream;
+    HttpStream httpStream;
 
-    private HttpStreamResponseHandler responseHandler;
+    HttpStreamResponseHandler responseHandler;
 
     abstract HttpStreamResponseHandler responseHandler();
 
@@ -113,7 +113,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         verify(httpStream, never()).incrementWindow(anyInt());
     }
 
-    private static HttpHeader[] getHttpHeaders() {
+    static HttpHeader[] getHttpHeaders() {
         HttpHeader[] httpHeaders = new HttpHeader[1];
         httpHeaders[0] = new HttpHeader("Content-Length", "1");
         return httpHeaders;
