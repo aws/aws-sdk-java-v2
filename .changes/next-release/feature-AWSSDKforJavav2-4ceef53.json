@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "anirudh9391",
+    "description": "Enabled consumption of custom client context params defined in customization.config and made them accessible and modifiable via service client configuration instances"
+}
