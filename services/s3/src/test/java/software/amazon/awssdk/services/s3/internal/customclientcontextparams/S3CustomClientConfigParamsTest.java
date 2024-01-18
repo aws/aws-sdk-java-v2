@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.customclientcontextparams;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,14 @@ public class S3CustomClientConfigParamsTest {
                                     .crossRegionAccessEnabled(true).build();
 
         assertTrue(s3Client.serviceClientConfiguration().crossRegionAccessEnabled());
+    }
+
+    @Test
+    public void test_defaultCrossRegionAccess_equalsNull() {
+        S3Client s3Client = S3Client.builder().
+                                    build();
+
+        assertNull(s3Client.serviceClientConfiguration().crossRegionAccessEnabled());
     }
 
     @Test

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -72,8 +73,11 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public class SyncClientClass extends SyncClientInterface {
 
@@ -447,24 +451,31 @@ public class SyncClientClass extends SyncClientInterface {
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
                .endControlFlow();
         EndpointRulesSpecUtils endpointRulesSpecUtils = new EndpointRulesSpecUtils(this.model);
-        Map<String, ClientContextParam> customClientConfigParams = model.getCustomizationConfig().getCustomClientContextParams();
-        if (customClientConfigParams != null) {
-            customClientConfigParams.forEach((n, m) -> {
-                String keyName = model.getNamingStrategy().getEnumValueName(n);
 
-                builder.beginControlFlow("if ((configuration.option($T.CLIENT_CONTEXT_PARAMS) != null)\n "
-                                         + "             &&  !clientConfiguration.option($T.CLIENT_CONTEXT_PARAMS)\n"
-                                         + "                          .get($T.$N).equals(configuration.build()\n"
-                                         + "                          .option($T.CLIENT_CONTEXT_PARAMS).get($T.$N)))",
-                                         SdkClientOption.class, SdkClientOption.class,
-                                         endpointRulesSpecUtils.clientContextParamsName(), keyName,
-                                         SdkClientOption.class, endpointRulesSpecUtils.clientContextParamsName(), keyName)
-                       .addStatement("throw new $T($S)",
-                                     IllegalStateException.class, keyName + " cannot be modified by request level plugins")
-                       .endControlFlow();
-
-            });
+        if (model.getCustomizationConfig() == null ||
+            CollectionUtils.isNullOrEmpty(model.getCustomizationConfig().getCustomClientContextParams())) {
+            builder.addStatement("return configuration.build()");
+            return builder.build();
         }
+
+        Map<String, ClientContextParam> customClientConfigParams = model.getCustomizationConfig().getCustomClientContextParams();
+
+        builder.addCode("$1T newContextParams = configuration.option($2T.CLIENT_CONTEXT_PARAMS);\n"
+                        + "$1T originalContextParams = clientConfiguration.option($2T.CLIENT_CONTEXT_PARAMS);",
+                        AttributeMap.class, SdkClientOption.class);
+
+        builder.addCode("newContextParams = (newContextParams != null) ? newContextParams : $1T.empty();\n"
+                        + "originalContextParams = originalContextParams != null ? originalContextParams : $1T.empty();",
+                        AttributeMap.class);
+
+        customClientConfigParams.forEach((n, m) -> {
+            String keyName = model.getNamingStrategy().getEnumValueName(n);
+            builder.addStatement("$1T.validState($2T.equals(originalContextParams.get($3T.$4N), newContextParams.get($3T.$4N)),"
+                                 + " $5S)",
+                                 Validate.class, Objects.class, endpointRulesSpecUtils.clientContextParamsName(), keyName,
+                                 keyName + " cannot be modified by request level plugins");
+        });
+
         builder.addStatement("return configuration.build()");
         return builder.build();
     }

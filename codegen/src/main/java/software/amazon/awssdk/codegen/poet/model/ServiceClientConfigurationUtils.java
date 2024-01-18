@@ -51,7 +51,7 @@ public class ServiceClientConfigurationUtils {
     private final ClassName configurationClassName;
     private final ClassName configurationBuilderClassName;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
-    private List<Field> fields;
+    private final List<Field> fields;
 
     public ServiceClientConfigurationUtils(IntermediateModel model) {
         String basePackage = model.getMetadata().getFullClientPackageName();
@@ -128,12 +128,12 @@ public class ServiceClientConfigurationUtils {
 
     private Field overrideConfigurationField() {
         return fieldBuilder("overrideConfiguration", ClientOverrideConfiguration.class)
-            .doc("client override configuration")
-            .localSetter(basicLocalSetterCode("overrideConfiguration"))
-            .localGetter(basicLocalGetterCode("overrideConfiguration"))
-            .configSetter(overrideConfigurationConfigSetter())
-            .configGetter(overrideConfigurationConfigGetter())
-            .build();
+                    .doc("client override configuration")
+                    .localSetter(basicLocalSetterCode("overrideConfiguration"))
+                    .localGetter(basicLocalGetterCode("overrideConfiguration"))
+                    .configSetter(overrideConfigurationConfigSetter())
+                    .configGetter(overrideConfigurationConfigGetter())
+                    .build();
     }
 
     private CodeBlock overrideConfigurationConfigSetter() {
@@ -303,11 +303,11 @@ public class ServiceClientConfigurationUtils {
 
     private CodeBlock customClientConfigParamSetter(String parameterName, String keyName) {
         return CodeBlock.builder()
-                        .addStatement("$T clientContextParams = config.option($T.CLIENT_CONTEXT_PARAMS)",
-                                      AttributeMap.class, SdkClientOption.class)
-                        .addStatement("config.option($T.CLIENT_CONTEXT_PARAMS, "
-                                      + "clientContextParams.builder().put($T.$N, $N).build())",
+                        .addStatement("config.option($1T.CLIENT_CONTEXT_PARAMS, "
+                                      + "config.computeOptionIfAbsent($1T.CLIENT_CONTEXT_PARAMS, $2T::empty)"
+                                      + ".toBuilder().put($3T.$4N, $5N).build())",
                                       SdkClientOption.class,
+                                      AttributeMap.class,
                                       endpointRulesSpecUtils.clientContextParamsName(),
                                       keyName, parameterName)
                         .addStatement("return this")
@@ -316,12 +316,8 @@ public class ServiceClientConfigurationUtils {
 
     private CodeBlock customClientConfigParamGetter(String keyName) {
         return CodeBlock.builder()
-                        .addStatement("$T clientContextParams = config.option($T.CLIENT_CONTEXT_PARAMS)",
-                                      AttributeMap.class, SdkClientOption.class)
-                        .beginControlFlow("if (clientContextParams == null)")
-                        .addStatement("return null")
-                        .endControlFlow()
-                        .addStatement("return clientContextParams.get($T.$N)",
+                        .addStatement("return config.computeOptionIfAbsent($T.CLIENT_CONTEXT_PARAMS, $T::empty)\n"
+                                      + ".get($T.$N)", SdkClientOption.class, AttributeMap.class,
                                       endpointRulesSpecUtils.clientContextParamsName(), keyName)
                         .build();
     }
