@@ -126,7 +126,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
 
     private void handlePublisherError(HttpStream stream, Throwable failure) {
         failResponseHandlerAndFuture(stream, failure);
-        responseHandlerHelper.releaseConnection(stream);
+        responseHandlerHelper.closeConnection(stream);
     }
 
     private void onFailedResponseComplete(HttpStream stream, HttpException error) {
