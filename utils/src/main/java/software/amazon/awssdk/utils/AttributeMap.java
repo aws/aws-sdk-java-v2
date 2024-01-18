@@ -52,7 +52,7 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
     private final Map<Key<?>, Value<?>> attributes;
     private final DependencyGraph dependencyGraph;
 
-    public AttributeMap(Builder builder) {
+    private AttributeMap(Builder builder) {
         this.attributes = builder.attributes;
         this.dependencyGraph = builder.dependencyGraph;
     }
