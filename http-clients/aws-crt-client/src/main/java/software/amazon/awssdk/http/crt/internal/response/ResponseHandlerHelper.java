@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.crt.internal.response;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpHeader;
