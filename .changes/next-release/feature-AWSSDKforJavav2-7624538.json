@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "anirudh9391",
-    "description": "Allowing SDK plugins to read and modify S3's crossRegionEnabled and SQS's checksumValidationEnabled"
-}

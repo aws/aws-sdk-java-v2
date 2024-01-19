@@ -1,3 +1,30 @@
+# __2.23.7__ __2024-01-19__
+## __AWS CodeBuild__
+  - ### Features
+    - Release CodeBuild Reserved Capacity feature
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Allowing SDK plugins to read and modify S3's crossRegionEnabled and SQS's checksumValidationEnabled
+        - Contributed by: [@anirudh9391](https://github.com/anirudh9391)
+    - Updated endpoint and partition metadata.
+
+## __Amazon Athena__
+  - ### Features
+    - Introducing new NotebookS3LocationUri parameter to Athena ImportNotebook API. Payload is no longer required and either Payload or NotebookS3LocationUri needs to be provided (not both) for a successful ImportNotebook API call. If both are provided, an InvalidRequestException will be thrown.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release adds support for including ApproximateCreationDateTimePrecision configurations in EnableKinesisStreamingDestination API, adds the same as an optional field in the response of DescribeKinesisStreamingDestination, and adds support for a new UpdateKinesisStreamingDestination API.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Increased Quick Response name max length to 100
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@anirudh9391](https://github.com/anirudh9391)
 # __2.23.6__ __2024-01-18__
 ## __AWS B2B Data Interchange__
   - ### Features
@@ -2863,7 +2890,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
