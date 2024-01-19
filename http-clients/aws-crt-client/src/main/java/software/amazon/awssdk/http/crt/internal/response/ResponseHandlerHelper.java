@@ -30,14 +30,16 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  *
  * CRT connection will only be closed, i.e., not reused, in one of the following conditions:
  * 1. 5xx server error OR
- * 2. It fails to read the response.
+ * 2. It fails to read the response OR
+ * 3. the response stream is closed/aborted by the caller.
  */
 @SdkInternalApi
 public class ResponseHandlerHelper {
 
     private final SdkHttpResponse.Builder responseBuilder;
     private final HttpClientConnection connection;
-    private AtomicBoolean connectionClosed = new AtomicBoolean(false);
+    private boolean connectionClosed;
+    private final Object lock = new Object();
 
     public ResponseHandlerHelper(SdkHttpResponse.Builder responseBuilder, HttpClientConnection connection) {
         this.responseBuilder = responseBuilder;
@@ -57,9 +59,20 @@ public class ResponseHandlerHelper {
      * Release the connection back to the pool so that it can be reused.
      */
     public void releaseConnection(HttpStream stream) {
-        if (connectionClosed.compareAndSet(false, true)) {
-            connection.close();
-            stream.close();
+        synchronized (lock) {
+            if (!connectionClosed) {
+                connectionClosed = true;
+                connection.close();
+                stream.close();
+            }
+        }
+    }
+
+    public void incrementWindow(HttpStream stream, int windowSize) {
+        synchronized (lock) {
+            if (!connectionClosed) {
+                stream.incrementWindow(windowSize);
+            }
         }
     }
 
@@ -67,10 +80,13 @@ public class ResponseHandlerHelper {
      * Close the connection completely
      */
     public void closeConnection(HttpStream stream) {
-        if (connectionClosed.compareAndSet(false, true)) {
-            connection.shutdown();
-            connection.close();
-            stream.close();
+        synchronized (lock) {
+            if (!connectionClosed) {
+                connectionClosed = true;
+                connection.shutdown();
+                connection.close();
+                stream.close();
+            }
         }
     }
 
@@ -81,9 +97,5 @@ public class ResponseHandlerHelper {
         } else {
             releaseConnection(stream);
         }
-    }
-
-    public AtomicBoolean connectionClosed() {
-        return connectionClosed;
     }
 }
