@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "Release CodeBuild Reserved Capacity feature"
+}
