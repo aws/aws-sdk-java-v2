@@ -16,11 +16,14 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.assertj.core.data.Offset;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
@@ -30,11 +33,13 @@ import software.amazon.awssdk.enhanced.dynamodb.model.Record;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegrationTestBase {
 
@@ -53,7 +58,7 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
     private static DynamoDbTable<Record> mappedTable;
 
     @BeforeClass
-    public static void setup() {
+    public static void beforeClass() {
         dynamoDbClient = createDynamoDbClient();
         enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
         mappedTable = enhancedClient.table(TABLE_NAME, TABLE_SCHEMA);
@@ -61,8 +66,15 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(TABLE_NAME));
     }
 
+    @After
+    public void tearDown() {
+        mappedTable.scan()
+                   .items()
+                   .forEach(record -> mappedTable.deleteItem(record));
+    }
+
     @AfterClass
-    public static void teardown() {
+    public static void afterClass() {
         try {
             dynamoDbClient.deleteTable(r -> r.tableName(TABLE_NAME));
         } finally {
@@ -118,6 +130,113 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         assertThat(response.itemCollectionMetrics()).isNotNull();
         assertThat(response.consumedCapacity()).isNotNull();
         assertThat(response.consumedCapacity().capacityUnits()).isNotNull();
+    }
+
+    @Test
+    public void putItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNull() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record);
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        PutItemEnhancedRequest<Record> request = PutItemEnhancedRequest.builder(Record.class)
+                                                                       .item(record)
+                                                                       .conditionExpression(itemDoesNotExist)
+                                                                       .build();
+
+        assertThatThrownBy(() -> mappedTable.putItem(request))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e).hasItem()).isFalse());
+    }
+
+    @Test
+    public void putItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNotNull() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record);
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        PutItemEnhancedRequest<Record> request = PutItemEnhancedRequest.builder(Record.class)
+                                                                       .item(record)
+                                                                       .conditionExpression(itemDoesNotExist)
+                                                                       .returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure.ALL_OLD)
+                                                                       .build();
+
+        assertThatThrownBy(() -> mappedTable.putItem(request))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e).hasItem()).isTrue());
+    }
+
+    @Test
+    public void updateItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNull() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record);
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        UpdateItemEnhancedRequest<Record> request = UpdateItemEnhancedRequest.builder(Record.class)
+                                                                             .item(record)
+                                                                             .conditionExpression(itemDoesNotExist)
+                                                                             .build();
+
+        assertThatThrownBy(() -> mappedTable.updateItem(request))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e).hasItem()).isFalse());
+    }
+
+    @Test
+    public void updateItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNotNull() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record);
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        UpdateItemEnhancedRequest<Record> request = UpdateItemEnhancedRequest.builder(Record.class)
+                                                                             .item(record)
+                                                                             .conditionExpression(itemDoesNotExist)
+                                                                             .returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure.ALL_OLD)
+                                                                             .build();
+
+        assertThatThrownBy(() -> mappedTable.updateItem(request))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e).hasItem()).isTrue());
+    }
+
+    @Test
+    public void deleteItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNull() {
+        Record record = new Record().setId("1").setSort(10);
+        Key recordKey = Key.builder()
+                           .partitionValue(record.getId())
+                           .sortValue(record.getSort())
+                           .build();
+        mappedTable.putItem(record);
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder()
+                                                                     .key(recordKey)
+                                                                     .conditionExpression(itemDoesNotExist)
+                                                                     .build();
+
+        assertThatThrownBy(() -> mappedTable.deleteItem(request))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e).hasItem()).isFalse());
+    }
+
+    @Test
+    public void deleteItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNotNull() {
+        Record record = new Record().setId("1").setSort(10);
+        Key recordKey = Key.builder()
+                           .partitionValue(record.getId())
+                           .sortValue(record.getSort())
+                           .build();
+        mappedTable.putItem(record);
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder()
+                                                                     .key(recordKey)
+                                                                     .conditionExpression(itemDoesNotExist)
+                                                                     .returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure.ALL_OLD)
+                                                                     .build();
+
+        assertThatThrownBy(() -> mappedTable.deleteItem(request))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e).hasItem()).isTrue());
     }
 
     @Test

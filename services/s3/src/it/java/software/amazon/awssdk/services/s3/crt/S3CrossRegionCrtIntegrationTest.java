@@ -84,7 +84,7 @@ public class S3CrossRegionCrtIntegrationTest extends S3IntegrationTestBase {
         crtClient.close();
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
         executorService.shutdown();
-        CrtResource.waitForNoResources();
+
     }
 
     @Test

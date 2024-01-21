@@ -26,12 +26,15 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtS3V4aSigner;
@@ -42,6 +45,7 @@ import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
@@ -290,5 +294,99 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(response).isEqualTo("");
+    }
+
+    private static Stream<Arguments> getObjectChecksumValidationParams() {
+        return Stream.of(Arguments.of(true, ChecksumAlgorithm.CRC32, ChecksumMode.ENABLED),
+                         Arguments.of(true, null, ChecksumMode.ENABLED),
+                         Arguments.of(true, ChecksumAlgorithm.CRC32, null),
+                         Arguments.of(true, null, null),
+                         Arguments.of(false, ChecksumAlgorithm.CRC32, ChecksumMode.ENABLED),
+                         Arguments.of(false, null, ChecksumMode.ENABLED),
+                         Arguments.of(false, ChecksumAlgorithm.CRC32, null),
+                         Arguments.of(false, null, null));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getObjectChecksumValidationParams")
+    public void testGetObjectChecksumValidation(boolean checksumValidationEnabled, ChecksumAlgorithm checksumAlgorithm,
+                                                ChecksumMode checksumMode) {
+        S3AsyncClient s3Async = s3AsyncClientBuilder().overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
+                                                 .serviceConfiguration(S3Configuration.builder()
+                                                                                      .checksumValidationEnabled(checksumValidationEnabled)
+                                                                                      .build())
+                                                 .build();
+
+        s3Async.putObject(PutObjectRequest.builder()
+                                     .bucket(BUCKET)
+                                     .key(KEY)
+                                     .checksumAlgorithm(checksumAlgorithm)
+                                     .build(), AsyncRequestBody.fromString("Hello world")).join();
+
+        s3Async.getObject(GetObjectRequest.builder()
+                                     .bucket(BUCKET)
+                                     .key(KEY)
+                                     .checksumMode(checksumMode)
+                                     .build(), AsyncResponseTransformer.toBytes()).join();
+
+        validateChecksumValidation(checksumValidationEnabled, checksumAlgorithm, checksumMode);
+        interceptor.reset();
+    }
+
+    private void validateChecksumValidation(boolean checksumValidationEnabled, ChecksumAlgorithm checksumAlgorithm,
+                                            ChecksumMode checksumMode) {
+        if (checksumValidationEnabled) {
+            if (checksumMode == ChecksumMode.ENABLED) {
+                assertChecksumModeEnabledWithChecksumValidationEnabled(checksumAlgorithm);
+            } else {
+                assertChecksumModeNotEnabledWithChecksumValidationEnabled();
+            }
+        } else {
+            if (checksumMode == ChecksumMode.ENABLED) {
+                assertChecksumModeEnabledWithChecksumValidationDisabled(checksumAlgorithm);
+            } else {
+                assertChecksumModeNotEnabledWithChecksumValidationDisabled();
+            }
+        }
+    }
+
+    private void assertChecksumModeEnabledWithChecksumValidationEnabled(ChecksumAlgorithm checksumAlgorithm) {
+        if (checksumAlgorithm == null) {
+            assertRequestAndResponseDoNotContainMd5Header();
+            assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+        } else {
+            assertRequestAndResponseDoNotContainMd5Header();
+            assertThat(interceptor.responseFlexibleChecksumHeader()).isNotNull();
+        }
+    }
+
+    private void assertChecksumModeNotEnabledWithChecksumValidationEnabled() {
+        assertRequestAndResponseContainMd5Header();
+        assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+    }
+
+    private void assertChecksumModeEnabledWithChecksumValidationDisabled(ChecksumAlgorithm checksumAlgorithm) {
+        if (checksumAlgorithm == null) {
+            assertRequestAndResponseDoNotContainMd5Header();
+            assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+        } else {
+            assertRequestAndResponseDoNotContainMd5Header();
+            assertThat(interceptor.responseFlexibleChecksumHeader()).isNotNull();
+        }
+    }
+
+    private void assertChecksumModeNotEnabledWithChecksumValidationDisabled() {
+        assertRequestAndResponseDoNotContainMd5Header();
+        assertThat(interceptor.responseFlexibleChecksumHeader()).isNull();
+    }
+
+    private void assertRequestAndResponseContainMd5Header() {
+        assertThat(interceptor.requestTransferEncodingHeader()).isEqualTo("append-md5");
+        assertThat(interceptor.responseTransferEncodingHeader()).isEqualTo("append-md5");
+    }
+
+    private void assertRequestAndResponseDoNotContainMd5Header() {
+        assertThat(interceptor.requestTransferEncodingHeader()).isNull();
+        assertThat(interceptor.responseTransferEncodingHeader()).isNull();
     }
 }

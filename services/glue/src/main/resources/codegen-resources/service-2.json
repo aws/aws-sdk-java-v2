@@ -408,7 +408,7 @@
         {"shape":"ResourceNumberLimitExceededException"},
         {"shape":"GlueEncryptionException"}
       ],
-      "documentation":"<p>Creates a connection definition in the Data Catalog.</p>"
+      "documentation":"<p>Creates a connection definition in the Data Catalog.</p> <p>Connections used for creating federated resources require the IAM <code>glue:PassConnection</code> permission.</p>"
     },
     "CreateCrawler":{
       "name":"CreateCrawler",
@@ -3589,6 +3589,11 @@
       "type":"list",
       "member":{"shape":"Action"}
     },
+    "AdditionalContextMap":{
+      "type":"map",
+      "key":{"shape":"ContextKey"},
+      "value":{"shape":"ContextValue"}
+    },
     "AdditionalOptionKeys":{
       "type":"string",
       "enum":[
@@ -6476,6 +6481,16 @@
       "key":{"shape":"GenericString"},
       "value":{"shape":"GenericString"}
     },
+    "ContextKey":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "ContextValue":{
+      "type":"string",
+      "max":256,
+      "min":0
+    },
     "ContextWords":{
       "type":"list",
       "member":{"shape":"NameString"},
@@ -8359,6 +8374,34 @@
       "max":255,
       "min":1
     },
+    "DataQualityAnalyzerResult":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the data quality analyzer.</p>"
+        },
+        "Description":{
+          "shape":"DataQualityRuleResultDescription",
+          "documentation":"<p>A description of the data quality analyzer.</p>"
+        },
+        "EvaluationMessage":{
+          "shape":"DataQualityRuleResultDescription",
+          "documentation":"<p>An evaluation message.</p>"
+        },
+        "EvaluatedMetrics":{
+          "shape":"EvaluatedMetricsMap",
+          "documentation":"<p>A map of metrics associated with the evaluation of the analyzer.</p>"
+        }
+      },
+      "documentation":"<p>Describes the result of the evaluation of a data quality analyzer.</p>"
+    },
+    "DataQualityAnalyzerResults":{
+      "type":"list",
+      "member":{"shape":"DataQualityAnalyzerResult"},
+      "max":2000,
+      "min":0
+    },
     "DataQualityEvaluationRunAdditionalRunOptions":{
       "type":"structure",
       "members":{
@@ -8372,6 +8415,54 @@
         }
       },
       "documentation":"<p>Additional run options you can specify for an evaluation run.</p>"
+    },
+    "DataQualityMetricValues":{
+      "type":"structure",
+      "members":{
+        "ActualValue":{
+          "shape":"NullableDouble",
+          "documentation":"<p>The actual value of the data quality metric.</p>"
+        },
+        "ExpectedValue":{
+          "shape":"NullableDouble",
+          "documentation":"<p>The expected value of the data quality metric according to the analysis of historical data.</p>"
+        },
+        "LowerLimit":{
+          "shape":"NullableDouble",
+          "documentation":"<p>The lower limit of the data quality metric value according to the analysis of historical data.</p>"
+        },
+        "UpperLimit":{
+          "shape":"NullableDouble",
+          "documentation":"<p>The upper limit of the data quality metric value according to the analysis of historical data.</p>"
+        }
+      },
+      "documentation":"<p>Describes the data quality metric value according to the analysis of historical data.</p>"
+    },
+    "DataQualityObservation":{
+      "type":"structure",
+      "members":{
+        "Description":{
+          "shape":"DataQualityObservationDescription",
+          "documentation":"<p>A description of the data quality observation.</p>"
+        },
+        "MetricBasedObservation":{
+          "shape":"MetricBasedObservation",
+          "documentation":"<p>An object of type <code>MetricBasedObservation</code> representing the observation that is based on evaluated data quality metrics.</p>"
+        }
+      },
+      "documentation":"<p>Describes the observation generated after evaluating the rules and analyzers.</p>"
+    },
+    "DataQualityObservationDescription":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+    },
+    "DataQualityObservations":{
+      "type":"list",
+      "member":{"shape":"DataQualityObservation"},
+      "max":50,
+      "min":0
     },
     "DataQualityResult":{
       "type":"structure",
@@ -8419,6 +8510,14 @@
         "RuleResults":{
           "shape":"DataQualityRuleResults",
           "documentation":"<p>A list of <code>DataQualityRuleResult</code> objects representing the results for each rule. </p>"
+        },
+        "AnalyzerResults":{
+          "shape":"DataQualityAnalyzerResults",
+          "documentation":"<p>A list of <code>DataQualityAnalyzerResult</code> objects representing the results for each analyzer. </p>"
+        },
+        "Observations":{
+          "shape":"DataQualityObservations",
+          "documentation":"<p>A list of <code>DataQualityObservation</code> objects representing the observations generated after evaluating the rules and analyzers. </p>"
         }
       },
       "documentation":"<p>Describes a data quality result.</p>"
@@ -8548,11 +8647,11 @@
           "documentation":"<p>The name of the data quality rule.</p>"
         },
         "Description":{
-          "shape":"DescriptionString",
+          "shape":"DataQualityRuleResultDescription",
           "documentation":"<p>A description of the data quality rule.</p>"
         },
         "EvaluationMessage":{
-          "shape":"DescriptionString",
+          "shape":"DataQualityRuleResultDescription",
           "documentation":"<p>An evaluation message.</p>"
         },
         "Result":{
@@ -8566,6 +8665,12 @@
       },
       "documentation":"<p>Describes the result of the evaluation of a data quality rule.</p>"
     },
+    "DataQualityRuleResultDescription":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+    },
     "DataQualityRuleResultStatus":{
       "type":"string",
       "enum":[
@@ -8578,7 +8683,7 @@
       "type":"list",
       "member":{"shape":"DataQualityRuleResult"},
       "max":2000,
-      "min":1
+      "min":0
     },
     "DataQualityRulesetEvaluationRunDescription":{
       "type":"structure",
@@ -10385,8 +10490,12 @@
     "FederationSourceRetryableException":{
       "type":"structure",
       "members":{
-        "Message":{"shape":"MessageString"}
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
       },
+      "documentation":"<p>A federation source failed, but the operation may be retried.</p>",
       "exception":true
     },
     "FieldName":{
@@ -11190,6 +11299,14 @@
         "RuleResults":{
           "shape":"DataQualityRuleResults",
           "documentation":"<p>A list of <code>DataQualityRuleResult</code> objects representing the results for each rule. </p>"
+        },
+        "AnalyzerResults":{
+          "shape":"DataQualityAnalyzerResults",
+          "documentation":"<p>A list of <code>DataQualityAnalyzerResult</code> objects representing the results for each analyzer. </p>"
+        },
+        "Observations":{
+          "shape":"DataQualityObservations",
+          "documentation":"<p>A list of <code>DataQualityObservation</code> objects representing the observations generated after evaluating the rules and analyzers. </p>"
         }
       }
     },
@@ -12751,6 +12868,10 @@
         "SupportedPermissionTypes"
       ],
       "members":{
+        "Region":{
+          "shape":"ValueString",
+          "documentation":"<p>Specified only if the base tables belong to a different Amazon Web Services Region.</p>"
+        },
         "CatalogId":{
           "shape":"CatalogIdString",
           "documentation":"<p>The catalog ID where the partition resides.</p>"
@@ -12774,6 +12895,10 @@
         "SupportedPermissionTypes":{
           "shape":"PermissionTypeList",
           "documentation":"<p>(Required) A list of supported permission types. </p>"
+        },
+        "QuerySessionContext":{
+          "shape":"QuerySessionContext",
+          "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
         }
       }
     },
@@ -12803,6 +12928,10 @@
         "SupportedPermissionTypes"
       ],
       "members":{
+        "Region":{
+          "shape":"ValueString",
+          "documentation":"<p>Specified only if the base tables belong to a different Amazon Web Services Region.</p>"
+        },
         "CatalogId":{
           "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog where the partitions in question reside. If none is provided, the AWS account ID is used by default. </p>"
@@ -12838,6 +12967,10 @@
         "MaxResults":{
           "shape":"PageSize",
           "documentation":"<p>The maximum number of partitions to return in a single response.</p>"
+        },
+        "QuerySessionContext":{
+          "shape":"QuerySessionContext",
+          "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
         }
       }
     },
@@ -12863,6 +12996,10 @@
         "SupportedPermissionTypes"
       ],
       "members":{
+        "Region":{
+          "shape":"ValueString",
+          "documentation":"<p>Specified only if the base tables belong to a different Amazon Web Services Region.</p>"
+        },
         "CatalogId":{
           "shape":"CatalogIdString",
           "documentation":"<p>The catalog ID where the table resides.</p>"
@@ -12882,6 +13019,18 @@
         "SupportedPermissionTypes":{
           "shape":"PermissionTypeList",
           "documentation":"<p>(Required) A list of supported permission types. </p>"
+        },
+        "SupportedDialect":{
+          "shape":"SupportedDialect",
+          "documentation":"<p>A structure specifying the dialect and dialect version used by the query engine.</p>"
+        },
+        "Permissions":{
+          "shape":"PermissionList",
+          "documentation":"<p>The Lake Formation data permissions of the caller on the table. Used to authorize the call when no view context is found.</p>"
+        },
+        "QuerySessionContext":{
+          "shape":"QuerySessionContext",
+          "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
         }
       }
     },
@@ -12903,6 +13052,18 @@
         "CellFilters":{
           "shape":"ColumnRowFilterList",
           "documentation":"<p>A list of column row filters.</p>"
+        },
+        "QueryAuthorizationId":{
+          "shape":"HashString",
+          "documentation":"<p>A cryptographically generated query identifier generated by Glue or Lake Formation.</p>"
+        },
+        "ResourceArn":{
+          "shape":"ArnString",
+          "documentation":"<p>The resource ARN of the parent resource extracted from the request.</p>"
+        },
+        "Permissions":{
+          "shape":"PermissionList",
+          "documentation":"<p>The Lake Formation data permissions of the caller on the table. Used to authorize the call when no view context is found.</p>"
         }
       }
     },
@@ -15650,6 +15811,24 @@
       "min":1,
       "pattern":"[a-zA-Z0-9+-=._./@]+"
     },
+    "MetricBasedObservation":{
+      "type":"structure",
+      "members":{
+        "MetricName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the data quality metric used for generating the observation.</p>"
+        },
+        "MetricValues":{
+          "shape":"DataQualityMetricValues",
+          "documentation":"<p>An object of type <code>DataQualityMetricValues</code> representing the analysis of the data quality metric value.</p>"
+        },
+        "NewRules":{
+          "shape":"NewRules",
+          "documentation":"<p>A list of new data quality rules generated as part of the observation based on the data quality metric value.</p>"
+        }
+      },
+      "documentation":"<p>Describes the metric based observation generated based on evaluated data quality metrics.</p>"
+    },
     "MicrosoftSQLServerCatalogSource":{
       "type":"structure",
       "required":[
@@ -15782,6 +15961,10 @@
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
     },
     "NameStringList":{
+      "type":"list",
+      "member":{"shape":"NameString"}
+    },
+    "NewRules":{
       "type":"list",
       "member":{"shape":"NameString"}
     },
@@ -15933,6 +16116,10 @@
     },
     "NullableInteger":{
       "type":"integer",
+      "box":true
+    },
+    "NullableString":{
+      "type":"string",
       "box":true
     },
     "OneInput":{
@@ -16809,6 +16996,32 @@
           "documentation":"<p>A continuation token for paginating the returned list of tokens, returned if the current segment of the list is not the last.</p>"
         }
       }
+    },
+    "QuerySessionContext":{
+      "type":"structure",
+      "members":{
+        "QueryId":{
+          "shape":"HashString",
+          "documentation":"<p>A unique identifier generated by the query engine for the query.</p>"
+        },
+        "QueryStartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>A timestamp provided by the query engine for when the query started.</p>"
+        },
+        "ClusterId":{
+          "shape":"NullableString",
+          "documentation":"<p>An identifier string for the consumer cluster.</p>"
+        },
+        "QueryAuthorizationId":{
+          "shape":"HashString",
+          "documentation":"<p>A cryptographically generated query identifier generated by Glue or Lake Formation.</p>"
+        },
+        "AdditionalContext":{
+          "shape":"AdditionalContextMap",
+          "documentation":"<p>An opaque string-string map passed by the query engine.</p>"
+        }
+      },
+      "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
     },
     "QuoteChar":{
       "type":"string",
@@ -19822,6 +20035,20 @@
       "type":"list",
       "member":{"shape":"GenericString"}
     },
+    "SupportedDialect":{
+      "type":"structure",
+      "members":{
+        "Dialect":{
+          "shape":"ViewDialect",
+          "documentation":"<p>The dialect of the query engine.</p>"
+        },
+        "DialectVersion":{
+          "shape":"ViewDialectVersionString",
+          "documentation":"<p>The version of the dialect of the query engine. For example, 3.0.0.</p>"
+        }
+      },
+      "documentation":"<p>A structure specifying the dialect and dialect version used by the query engine.</p>"
+    },
     "Table":{
       "type":"structure",
       "required":["Name"],
@@ -21799,6 +22026,19 @@
       "max":100000,
       "min":1,
       "pattern":"[1-9][0-9]*|[1-9][0-9]*-[1-9][0-9]*"
+    },
+    "ViewDialect":{
+      "type":"string",
+      "enum":[
+        "REDSHIFT",
+        "ATHENA",
+        "SPARK"
+      ]
+    },
+    "ViewDialectVersionString":{
+      "type":"string",
+      "max":255,
+      "min":1
     },
     "ViewTextString":{
       "type":"string",

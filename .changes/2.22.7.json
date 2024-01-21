@@ -1,0 +1,18 @@
+{
+    "version": "2.22.7",
+    "date": "2023-12-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "Add support for customers to modify cluster attribute auto-terminate post cluster launch"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

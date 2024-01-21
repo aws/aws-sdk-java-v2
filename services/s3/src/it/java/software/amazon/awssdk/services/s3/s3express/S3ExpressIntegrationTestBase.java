@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.BucketInfo;
 import software.amazon.awssdk.services.s3.model.BucketType;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
@@ -58,6 +59,13 @@ public class S3ExpressIntegrationTestBase {
 
     protected static S3AsyncClientBuilder s3AsyncClientBuilder(Region region) {
         return S3AsyncClient.builder()
+                            .region(region)
+                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
+
+    }
+
+    protected static S3CrtAsyncClientBuilder s3CrtAsyncClientBuilder(Region region) {
+        return S3AsyncClient.crtBuilder()
                             .region(region)
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
 

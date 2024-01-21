@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionSyncClient;
@@ -33,8 +34,8 @@ public class S3SyncClientDecorator {
     }
 
     public S3Client decorate(S3Client base,
-                             SdkClientConfiguration clientConfiguration,
-                             AttributeMap clientContextParams) {
+                             SdkClientConfiguration clientConfiguration) {
+        AttributeMap clientContextParams = clientConfiguration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS);
         List<ConditionalDecorator<S3Client>> decorators = new ArrayList<>();
         decorators.add(ConditionalDecorator.create(isCrossRegionEnabledSync(clientContextParams),
                                                    S3CrossRegionSyncClient::new));

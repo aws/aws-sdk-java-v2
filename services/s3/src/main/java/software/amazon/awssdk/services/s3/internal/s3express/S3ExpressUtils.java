@@ -15,11 +15,16 @@
 
 package software.amazon.awssdk.services.s3.internal.s3express;
 
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.services.s3.endpoints.internal.KnownS3ExpressEndpointProperty;
+import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
 
 @SdkInternalApi
 public final class S3ExpressUtils {
@@ -37,6 +42,18 @@ public final class S3ExpressUtils {
         if (endpoint != null) {
             String useS3Express = endpoint.attribute(KnownS3ExpressEndpointProperty.BACKEND);
             return "S3Express".equals(useS3Express);
+        }
+        return false;
+    }
+
+    /**
+     * Whether aws.auth#sigv4-s3express is used or not
+     */
+    public static boolean useS3ExpressAuthScheme(ExecutionAttributes executionAttributes) {
+        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+        if (selectedAuthScheme != null) {
+            AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+            return S3ExpressAuthScheme.SCHEME_ID.equals(authSchemeOption.schemeId());
         }
         return false;
     }

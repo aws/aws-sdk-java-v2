@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,6 +98,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
     private static final String AZ = "use1-az4";
     private static S3Client s3;
     private static S3AsyncClient s3Async;
+    private static S3AsyncClient s3CrtAsync;
     private static String testBucket;
 
     @BeforeAll
@@ -104,6 +107,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
                                          .build();
         s3Async = s3AsyncClientBuilder(TEST_REGION).overrideConfiguration(o -> o.addExecutionInterceptor(capturingInterceptor))
                                                    .build();
+        s3CrtAsync = s3CrtAsyncClientBuilder(TEST_REGION).build();
         testBucket = getS3ExpressBucketNameForAz(AZ);
         createBucketS3Express(s3, testBucket, AZ);
     }
@@ -113,6 +117,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
         deleteBucketAndAllContents(s3, testBucket);
         s3.close();
         s3Async.close();
+        s3CrtAsync.close();
     }
 
     @BeforeEach
@@ -120,18 +125,23 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
         capturingInterceptor.reset();
     }
 
-    @Test
-    public void putCopyGetDeleteAsync() {
-        s3Async.putObject(r -> r.bucket(testBucket).key(KEY), AsyncRequestBody.fromString(CONTENTS)).join();
-        s3Async.headObject(r -> r.bucket(testBucket).key(KEY)).join();
+    private static Stream<S3AsyncClient> asyncClients() {
+        return Stream.of(s3Async, s3CrtAsync);
+    }
+
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("asyncClients")
+    public void putCopyGetDeleteAsync(S3AsyncClient s3AsyncClient) {
+        s3AsyncClient.putObject(r -> r.bucket(testBucket).key(KEY), AsyncRequestBody.fromString(CONTENTS)).join();
+        s3AsyncClient.headObject(r -> r.bucket(testBucket).key(KEY)).join();
 
         s3.copyObject(r -> r.sourceBucket(testBucket).sourceKey(KEY).destinationBucket(testBucket).destinationKey(COPY_DESTINATION_KEY));
-        s3Async.headObject(r -> r.bucket(testBucket).key(COPY_DESTINATION_KEY)).join();
+        s3AsyncClient.headObject(r -> r.bucket(testBucket).key(COPY_DESTINATION_KEY)).join();
 
-        String result = s3Async.getObject(r -> r.bucket(testBucket).key(KEY), AsyncResponseTransformer.toBytes()).join().asUtf8String();
+        String result = s3AsyncClient.getObject(r -> r.bucket(testBucket).key(KEY), AsyncResponseTransformer.toBytes()).join().asUtf8String();
         assertThat(result).isEqualTo(CONTENTS);
 
-        s3Async.deleteObject(r -> r.bucket(testBucket).key(KEY)).join();
+        s3AsyncClient.deleteObject(r -> r.bucket(testBucket).key(KEY)).join();
     }
 
     @Test
@@ -148,16 +158,17 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
         s3.deleteObject(r -> r.bucket(testBucket).key(KEY));
     }
 
-    @Test
-    public void uploadMultiplePartAsync() {
-        String uploadId = s3Async.createMultipartUpload(b -> b.bucket(testBucket).key(KEY)).join().uploadId();
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("asyncClients")
+    public void uploadMultiplePartAsync(S3AsyncClient s3AsyncClient) {
+        String uploadId = s3AsyncClient.createMultipartUpload(b -> b.bucket(testBucket).key(KEY)).join().uploadId();
 
         UploadPartRequest uploadPartRequest = UploadPartRequest.builder().bucket(testBucket).key(KEY)
                                                                .uploadId(uploadId)
                                                                .partNumber(1)
                                                                .build();
 
-        UploadPartResponse response = s3Async.uploadPart(uploadPartRequest, AsyncRequestBody.fromString(CONTENTS)).join();
+        UploadPartResponse response = s3AsyncClient.uploadPart(uploadPartRequest, AsyncRequestBody.fromString(CONTENTS)).join();
 
         List<CompletedPart> completedParts = new ArrayList<>();
         completedParts.add(CompletedPart.builder().eTag(response.eTag()).partNumber(1).build());
@@ -168,7 +179,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
                                                                                        .uploadId(uploadId)
                                                                                        .multipartUpload(completedUploadParts)
                                                                                        .build();
-        CompleteMultipartUploadResponse completeMultipartUploadResponse = s3Async.completeMultipartUpload(completeRequest).join();
+        CompleteMultipartUploadResponse completeMultipartUploadResponse = s3AsyncClient.completeMultipartUpload(completeRequest).join();
         assertThat(completeMultipartUploadResponse).isNotNull();
 
         ResponseBytes<GetObjectResponse> objectAsBytes = s3.getObject(b -> b.bucket(testBucket).key(KEY), ResponseTransformer.toBytes());
@@ -183,7 +194,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
     }
 
     @MethodSource("asyncTestCases")
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     public void s3Express_nonObjectTransferApis_Async(AsyncTestCase tc) {
         runAndVerify(tc);
     }
@@ -351,30 +362,36 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
     }
 
     private static List<AsyncTestCase> asyncTestCases() {
+        return Stream.concat(asyncTestCasesPerClient(s3Async).stream(), asyncTestCasesPerClient(s3CrtAsync).stream()).collect(Collectors.toList());
+    }
+
+    private static List<AsyncTestCase> asyncTestCasesPerClient(S3AsyncClient s3Async) {
+        // getSimpleName is not "simple", but it's fine to be used for testing
+        String simpleName = s3Async.getClass().getSimpleName();
         return Arrays.asList(
             //control plane APIs
-            new AsyncTestCase("ListDirectoryBuckets", () -> {
+            new AsyncTestCase("ListDirectoryBuckets-" + simpleName, () -> {
                 ListDirectoryBucketsRequest request = ListDirectoryBucketsRequest.builder().build();
                 return s3Async.listDirectoryBuckets(request);
             }, Expect.builder().build()),
-            new AsyncTestCase("PutBucketPolicy", () -> {
+            new AsyncTestCase("PutBucketPolicy-" + simpleName, () -> {
                 PutBucketPolicyRequest request = PutBucketPolicyRequest.builder().bucket(testBucket).policy("fake").build();
                 return s3Async.putBucketPolicy(request);
             }, Expect.builder().error("Policies must be valid JSON").build()),
-            new AsyncTestCase("GetBucketPolicy", () -> {
+            new AsyncTestCase("GetBucketPolicy-" + simpleName, () -> {
                 GetBucketPolicyRequest request = GetBucketPolicyRequest.builder().bucket(testBucket).build();
                 return s3Async.getBucketPolicy(request);
             }, Expect.builder().error("The bucket policy does not exist").build()),
-            new AsyncTestCase("DeleteBucketPolicy", () -> {
+            new AsyncTestCase("DeleteBucketPolicy-" + simpleName, () -> {
                 DeleteBucketPolicyRequest request = DeleteBucketPolicyRequest.builder().bucket(testBucket).build();
                 return s3Async.deleteBucketPolicy(request);
             }, Expect.builder().build()),
             //data plane APIs
-            new AsyncTestCase("ListObjectsV2", () -> {
+            new AsyncTestCase("ListObjectsV2-" + simpleName, () -> {
                 ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(testBucket).build();
                 return s3Async.listObjectsV2(request);
             }, Expect.builder().build()),
-            new AsyncTestCase("DeleteObjects", () -> {
+            new AsyncTestCase("DeleteObjects-" + simpleName, () -> {
                 DeleteObjectsRequest request = DeleteObjectsRequest.builder()
                                                                    .bucket(testBucket)
                                                                    .delete(Delete.builder()
@@ -385,7 +402,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
                                                                    .build();
                 return s3Async.deleteObjects(request);
             }, Expect.builder().build()),
-            new AsyncTestCase("HeadBucket", () -> {
+            new AsyncTestCase("HeadBucket-" + simpleName, () -> {
                 HeadBucketRequest request = HeadBucketRequest.builder().bucket(testBucket).build();
                 return s3Async.headBucket(request);
             }, Expect.builder().build())
@@ -422,8 +439,6 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
             }
             List<String> contentSha256Value = req.headers().get("x-amz-content-sha256");
             assertThat(contentSha256Value).isNotNull().hasSize(1).isEqualTo(Collections.singletonList("UNSIGNED-PAYLOAD"));
-
-            req.headers().keySet().forEach(k -> System.out.println(k + " " + req.headers().get(k)));
         });
     }
 

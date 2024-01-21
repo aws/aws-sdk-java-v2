@@ -25,6 +25,25 @@
       ],
       "documentation":"<p>Allows the destination Amazon OpenSearch Service domain owner to accept an inbound cross-cluster search connection request. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cross-cluster-search.html\">Cross-cluster search for Amazon OpenSearch Service</a>.</p>"
     },
+    "AddDataSource":{
+      "name":"AddDataSource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/dataSource"
+      },
+      "input":{"shape":"AddDataSourceRequest"},
+      "output":{"shape":"AddDataSourceResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"},
+        {"shape":"LimitExceededException"}
+      ],
+      "documentation":"<p>Creates a new direct-query data source to the specified domain. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/direct-query-s3-creating.html\">Creating Amazon OpenSearch Service data source integrations with Amazon S3</a>.</p>"
+    },
     "AddTags":{
       "name":"AddTags",
       "http":{
@@ -163,6 +182,24 @@
         {"shape":"BaseException"}
       ],
       "documentation":"<p>Creates an Amazon OpenSearch Service-managed VPC endpoint.</p>"
+    },
+    "DeleteDataSource":{
+      "name":"DeleteDataSource",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/dataSource/{DataSourceName}"
+      },
+      "input":{"shape":"DeleteDataSourceRequest"},
+      "output":{"shape":"DeleteDataSourceResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"}
+      ],
+      "documentation":"<p>Deletes a direct-query data source. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/direct-query-s3-delete.html\">Deleting an Amazon OpenSearch Service data source with Amazon S3</a>.</p>"
     },
     "DeleteDomain":{
       "name":"DeleteDomain",
@@ -519,6 +556,24 @@
       ],
       "documentation":"<p>Returns a map of OpenSearch or Elasticsearch versions and the versions you can upgrade them to.</p>"
     },
+    "GetDataSource":{
+      "name":"GetDataSource",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/dataSource/{DataSourceName}"
+      },
+      "input":{"shape":"GetDataSourceRequest"},
+      "output":{"shape":"GetDataSourceResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"}
+      ],
+      "documentation":"<p>Retrieves information about a direct query data source.</p>"
+    },
     "GetDomainMaintenanceStatus":{
       "name":"GetDomainMaintenanceStatus",
       "http":{
@@ -586,6 +641,24 @@
         {"shape":"InternalException"}
       ],
       "documentation":"<p>Returns the most recent status of the last upgrade or upgrade eligibility check performed on an Amazon OpenSearch Service domain.</p>"
+    },
+    "ListDataSources":{
+      "name":"ListDataSources",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/dataSource"
+      },
+      "input":{"shape":"ListDataSourcesRequest"},
+      "output":{"shape":"ListDataSourcesResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"}
+      ],
+      "documentation":"<p>Lists direct-query data sources for a specific domain. For more information, see For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/direct-query-s3.html\">Working with Amazon OpenSearch Service direct queries with Amazon S3</a>.</p>"
     },
     "ListDomainMaintenances":{
       "name":"ListDomainMaintenances",
@@ -860,6 +933,24 @@
       ],
       "documentation":"<p>Schedules a service software update for an Amazon OpenSearch Service domain. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/service-software.html\">Service software updates in Amazon OpenSearch Service</a>.</p>"
     },
+    "UpdateDataSource":{
+      "name":"UpdateDataSource",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/dataSource/{DataSourceName}"
+      },
+      "input":{"shape":"UpdateDataSourceRequest"},
+      "output":{"shape":"UpdateDataSourceResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"}
+      ],
+      "documentation":"<p>Updates a direct-query data source. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/direct-query-s3-creating.html\">Working with Amazon OpenSearch Service data source integrations with Amazon S3</a>.</p>"
+    },
     "UpdateDomainConfig":{
       "name":"UpdateDomainConfig",
       "http":{
@@ -955,7 +1046,7 @@
   "shapes":{
     "ARN":{
       "type":"string",
-      "documentation":"<p>The Amazon Resource Name (ARN) of the domain. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/index.html\">Identifiers for IAM Entities </a> in <i>Using AWS Identity and Access Management</i> for more information. </p>",
+      "documentation":"<p>The Amazon Resource Name (ARN) of the domain. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/index.html\">Identifiers for IAM Entities </a> in <i>Using Amazon Web Services Identity and Access Management</i> for more information. </p>",
       "max":2048,
       "min":20,
       "pattern":".*"
@@ -1058,6 +1149,45 @@
         "JVM_HEAP_SIZE_TUNING",
         "JVM_YOUNG_GEN_TUNING"
       ]
+    },
+    "AddDataSourceRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "Name",
+        "DataSourceType"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "documentation":"<p>The name of the domain to add the data source to.</p>",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "Name":{
+          "shape":"DataSourceName",
+          "documentation":"<p>A name for the data source.</p>"
+        },
+        "DataSourceType":{
+          "shape":"DataSourceType",
+          "documentation":"<p>The type of data source.</p>"
+        },
+        "Description":{
+          "shape":"DataSourceDescription",
+          "documentation":"<p>A description of the data source.</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>AddDataSource</code> operation.</p>"
+    },
+    "AddDataSourceResponse":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>A message associated with creation of the data source.</p>"
+        }
+      },
+      "documentation":"<p>The result of an <code>AddDataSource</code> operation.</p>"
     },
     "AddTagsRequest":{
       "type":"structure",
@@ -1850,7 +1980,7 @@
         },
         "IPAddressType":{
           "shape":"IPAddressType",
-          "documentation":"<p>The type of IP addresses supported by the endpoint for the domain.</p>"
+          "documentation":"<p>Specify either dual stack or IPv4 as your IP address type. Dual stack allows you to share domain resources across IPv4 and IPv6 address types, and is the recommended option. If you set your IP address type to dual stack, you can't change your address type later.</p>"
         },
         "SnapshotOptions":{
           "shape":"SnapshotOptions",
@@ -2059,6 +2189,82 @@
         }
       },
       "documentation":"<p>Cross-cluster search specific connection properties.</p>"
+    },
+    "DataSourceDescription":{
+      "type":"string",
+      "max":1000,
+      "pattern":"^([a-zA-Z0-9_])*[\\\\a-zA-Z0-9_@#%*+=:?./!\\s-]*$"
+    },
+    "DataSourceDetails":{
+      "type":"structure",
+      "members":{
+        "DataSourceType":{
+          "shape":"DataSourceType",
+          "documentation":"<p>The type of data source.</p>"
+        },
+        "Name":{
+          "shape":"DataSourceName",
+          "documentation":"<p>The name of the data source.</p>"
+        },
+        "Description":{
+          "shape":"DataSourceDescription",
+          "documentation":"<p>A description of the data source.</p>"
+        }
+      },
+      "documentation":"<p>Details about a direct-query data source.</p>"
+    },
+    "DataSourceList":{
+      "type":"list",
+      "member":{"shape":"DataSourceDetails"}
+    },
+    "DataSourceName":{
+      "type":"string",
+      "max":80,
+      "min":3,
+      "pattern":"[a-z][a-z0-9_]+"
+    },
+    "DataSourceType":{
+      "type":"structure",
+      "members":{
+        "S3GlueDataCatalog":{
+          "shape":"S3GlueDataCatalog",
+          "documentation":"<p>An Amazon S3 data source.</p>"
+        }
+      },
+      "documentation":"<p>The type of data source.</p>",
+      "union":true
+    },
+    "DeleteDataSourceRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "Name"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "documentation":"<p>The name of the domain.</p>",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "Name":{
+          "shape":"DataSourceName",
+          "documentation":"<p>The name of the data source to delete.</p>",
+          "location":"uri",
+          "locationName":"DataSourceName"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>DeleteDataSource</code> operation.</p>"
+    },
+    "DeleteDataSourceResponse":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>A message associated with deletion of the data source.</p>"
+        }
+      },
+      "documentation":"<p>The result of a <code>GetDataSource</code> operation.</p>"
     },
     "DeleteDomainRequest":{
       "type":"structure",
@@ -2811,7 +3017,7 @@
         },
         "IPAddressType":{
           "shape":"IPAddressTypeStatus",
-          "documentation":"<p>The type of IP addresses supported by the endpoint for the domain.</p>"
+          "documentation":"<p>Choose either dual stack or IPv4 as your IP address type. Dual stack allows you to share domain resources across IPv4 and IPv6 address types, and is the recommended option. If you set your IP address type to dual stack, you can't change your address type later.</p>"
         },
         "SnapshotOptions":{
           "shape":"SnapshotOptionsStatus",
@@ -2877,7 +3083,7 @@
         },
         "TLSSecurityPolicy":{
           "shape":"TLSSecurityPolicy",
-          "documentation":"<p>Specify the TLS security policy to apply to the HTTPS endpoint of the domain.</p> <p> Can be one of the following values:</p> <ul> <li> <p> <b>Policy-Min-TLS-1-0-2019-07:</b> TLS security policy which supports TLS version 1.0 and higher.</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-2019-07:</b> TLS security policy which supports only TLS version 1.2 </p> </li> </ul>"
+          "documentation":"<p>Specify the TLS security policy to apply to the HTTPS endpoint of the domain. The policy can be one of the following values:</p> <ul> <li> <p> <b>Policy-Min-TLS-1-0-2019-07:</b> TLS security policy that supports TLS version 1.0 to TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-2019-07:</b> TLS security policy that supports only TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-PFS-2023-10:</b> TLS security policy that supports TLS version 1.2 to TLS version 1.3 with perfect forward secrecy cipher suites</p> </li> </ul>"
         },
         "CustomEndpointEnabled":{
           "shape":"Boolean",
@@ -3156,10 +3362,13 @@
           "shape":"ServiceUrl",
           "documentation":"<p>Domain-specific endpoint used to submit index, search, and data upload requests to the domain.</p>"
         },
-        "EndpointV2":{"shape":"ServiceUrl"},
+        "EndpointV2":{
+          "shape":"ServiceUrl",
+          "documentation":"<p>If <code>IPAddressType</code> to set to <code>dualstack</code>, a version 2 domain endpoint is provisioned. This endpoint functions like a normal endpoint, except that it works with both IPv4 and IPv6 IP addresses. Normal endpoints work only with IPv4 IP addresses. </p>"
+        },
         "Endpoints":{
           "shape":"EndpointsMap",
-          "documentation":"<p>The key-value pair that exists if the OpenSearch Service domain uses VPC endpoints.. Example <code>key, value</code>: <code>'vpc','vpc-endpoint-h2dsd34efgyghrtguk5gt6j2foh4.us-east-1.es.amazonaws.com'</code>.</p>"
+          "documentation":"<p>The key-value pair that exists if the OpenSearch Service domain uses VPC endpoints. Example <code>key, value</code>: <code>'vpc','vpc-endpoint-h2dsd34efgyghrtguk5gt6j2foh4.us-east-1.es.amazonaws.com'</code>.</p>"
         },
         "Processing":{
           "shape":"Boolean",
@@ -3499,6 +3708,46 @@
         }
       },
       "documentation":"<p>Container for the response returned by the <code>GetCompatibleVersions</code> operation.</p>"
+    },
+    "GetDataSourceRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "Name"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "documentation":"<p>The name of the domain.</p>",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "Name":{
+          "shape":"DataSourceName",
+          "documentation":"<p>The name of the data source to get information about.</p>",
+          "location":"uri",
+          "locationName":"DataSourceName"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>GetDataSource</code> operation.</p>"
+    },
+    "GetDataSourceResponse":{
+      "type":"structure",
+      "members":{
+        "DataSourceType":{
+          "shape":"DataSourceType",
+          "documentation":"<p>The type of data source.</p>"
+        },
+        "Name":{
+          "shape":"DataSourceName",
+          "documentation":"<p>The name of the data source.</p>"
+        },
+        "Description":{
+          "shape":"DataSourceDescription",
+          "documentation":"<p>A description of the data source.</p>"
+        }
+      },
+      "documentation":"<p>The result of a <code>GetDataSource</code> operation.</p>"
     },
     "GetDomainMaintenanceStatusRequest":{
       "type":"structure",
@@ -3907,6 +4156,29 @@
       "key":{"shape":"InstanceRole"},
       "value":{"shape":"Limits"},
       "documentation":"<p> The role of a given instance and all applicable limits. The role performed by a given OpenSearch instance can be one of the following: </p> <ul> <li> <p> <b>data</b> - A data node.</p> </li> <li> <p> <b>master</b> - A dedicated master node.</p> </li> <li> <p> <b>ultra_warm</b> - An UltraWarm node.</p> </li> </ul>"
+    },
+    "ListDataSourcesRequest":{
+      "type":"structure",
+      "required":["DomainName"],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "documentation":"<p>The name of the domain.</p>",
+          "location":"uri",
+          "locationName":"DomainName"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>ListDataSources</code> operation.</p>"
+    },
+    "ListDataSourcesResponse":{
+      "type":"structure",
+      "members":{
+        "DataSources":{
+          "shape":"DataSourceList",
+          "documentation":"<p>A list of data sources associated with specified domain.</p>"
+        }
+      },
+      "documentation":"<p>The result of a <code>ListDataSources</code> operation.</p>"
     },
     "ListDomainMaintenancesRequest":{
       "type":"structure",
@@ -5236,6 +5508,16 @@
       "max":63,
       "min":3
     },
+    "S3GlueDataCatalog":{
+      "type":"structure",
+      "members":{
+        "RoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>&gt;The Amazon Resource Name (ARN) for the S3 Glue Data Catalog.</p>"
+        }
+      },
+      "documentation":"<p>Information about the Amazon S3 Glue Data Catalog.</p>"
+    },
     "S3Key":{
       "type":"string",
       "max":1024,
@@ -5689,7 +5971,8 @@
       "type":"string",
       "enum":[
         "Policy-Min-TLS-1-0-2019-07",
-        "Policy-Min-TLS-1-2-2019-07"
+        "Policy-Min-TLS-1-2-2019-07",
+        "Policy-Min-TLS-1-2-PFS-2023-10"
       ]
     },
     "Tag":{
@@ -5740,6 +6023,47 @@
       "min":0
     },
     "UncompressedPluginSizeInBytes":{"type":"long"},
+    "UpdateDataSourceRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "Name",
+        "DataSourceType"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "documentation":"<p>The name of the domain.</p>",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "Name":{
+          "shape":"DataSourceName",
+          "documentation":"<p>The name of the data source to modify.</p>",
+          "location":"uri",
+          "locationName":"DataSourceName"
+        },
+        "DataSourceType":{
+          "shape":"DataSourceType",
+          "documentation":"<p>The type of data source.</p>"
+        },
+        "Description":{
+          "shape":"DataSourceDescription",
+          "documentation":"<p>A new description of the data source.</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>UpdateDataSource</code> operation.</p>"
+    },
+    "UpdateDataSourceResponse":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>A message associated with the updated data source.</p>"
+        }
+      },
+      "documentation":"<p>The result of an <code>UpdateDataSource</code> operation.</p>"
+    },
     "UpdateDomainConfigRequest":{
       "type":"structure",
       "required":["DomainName"],
@@ -5780,7 +6104,7 @@
         },
         "IPAddressType":{
           "shape":"IPAddressType",
-          "documentation":"<p>The type of IP addresses supported by the endpoint for the domain.</p>"
+          "documentation":"<p>Specify either dual stack or IPv4 as your IP address type. Dual stack allows you to share domain resources across IPv4 and IPv6 address types, and is the recommended option. If your IP address type is currently set to dual stack, you can't change it. </p>"
         },
         "LogPublishingOptions":{
           "shape":"LogPublishingOptions",

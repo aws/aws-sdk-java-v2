@@ -29,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeleteItemEnhancedRequestTest {
@@ -43,6 +44,7 @@ public class DeleteItemEnhancedRequestTest {
         assertThat(builtObject.returnConsumedCapacityAsString(), is(nullValue()));
         assertThat(builtObject.returnItemCollectionMetrics(), is(nullValue()));
         assertThat(builtObject.returnItemCollectionMetricsAsString(), is(nullValue()));
+        assertThat(builtObject.returnValuesOnConditionCheckFailureAsString(), is(nullValue()));
     }
 
     @Test
@@ -59,12 +61,14 @@ public class DeleteItemEnhancedRequestTest {
 
         ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
         ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
 
         DeleteItemEnhancedRequest builtObject = DeleteItemEnhancedRequest.builder()
                                                                          .key(key)
                                                                          .conditionExpression(conditionExpression)
                                                                          .returnConsumedCapacity(returnConsumedCapacity)
                                                                          .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                         .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                                          .build();
 
         assertThat(builtObject.key(), is(key));
@@ -73,6 +77,7 @@ public class DeleteItemEnhancedRequestTest {
         assertThat(builtObject.returnConsumedCapacityAsString(), is(returnConsumedCapacity.toString()));
         assertThat(builtObject.returnItemCollectionMetrics(), is(returnItemCollectionMetrics));
         assertThat(builtObject.returnItemCollectionMetricsAsString(), is(returnItemCollectionMetrics.toString()));
+        assertThat(builtObject.returnValuesOnConditionCheckFailureAsString(), is(returnValuesOnConditionCheckFailure.toString()));
     }
 
     @Test
@@ -89,12 +94,14 @@ public class DeleteItemEnhancedRequestTest {
 
         ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
         ReturnItemCollectionMetrics returnItemCollectionMetrics = ReturnItemCollectionMetrics.SIZE;
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
 
         DeleteItemEnhancedRequest builtObject = DeleteItemEnhancedRequest.builder()
                                                                          .key(key)
                                                                          .conditionExpression(conditionExpression)
                                                                          .returnConsumedCapacity(returnConsumedCapacity)
                                                                          .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                         .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                                          .build();
 
         DeleteItemEnhancedRequest copiedObject = builtObject.toBuilder().build();
@@ -173,6 +180,21 @@ public class DeleteItemEnhancedRequestTest {
     }
 
     @Test
+    public void equals_returnValuesOnConditionCheckFailureNotEqual() {
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure1 = ReturnValuesOnConditionCheckFailure.NONE;
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure2 = ReturnValuesOnConditionCheckFailure.ALL_OLD;
+
+        DeleteItemEnhancedRequest builtObject1 = DeleteItemEnhancedRequest.builder()
+                                                                          .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure1)
+                                                                          .build();
+        DeleteItemEnhancedRequest builtObject2 = DeleteItemEnhancedRequest.builder()
+                                                                          .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure2)
+                                                                          .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
     public void hashCode_minimal() {
         DeleteItemEnhancedRequest emptyRequest = DeleteItemEnhancedRequest.builder().build();
 
@@ -230,6 +252,19 @@ public class DeleteItemEnhancedRequestTest {
 
         DeleteItemEnhancedRequest containsKey = DeleteItemEnhancedRequest.builder()
                                                                          .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                                                                         .build();
+
+        assertThat(containsKey.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void hashCode_returnValuesOnConditionCheckFailure() {
+        DeleteItemEnhancedRequest emptyRequest = DeleteItemEnhancedRequest.builder().build();
+
+        ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure = ReturnValuesOnConditionCheckFailure.ALL_OLD;
+
+        DeleteItemEnhancedRequest containsKey = DeleteItemEnhancedRequest.builder()
+                                                                         .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                                          .build();
 
         assertThat(containsKey.hashCode(), not(equalTo(emptyRequest.hashCode())));

@@ -21,15 +21,12 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.21.34-SNAPSHOT</version>
+        <version>2.23.8-SNAPSHOT</version>
     </parent>
     <artifactId>bundle</artifactId>
     <packaging>jar</packaging>
 
     <name>AWS Java SDK :: Bundle</name>
-    <description>A single bundled dependency that includes all service and dependent JARs with third-party libraries
-        relocated to different namespaces.
-    </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <properties>
@@ -52,7 +49,12 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>aws-sdk-java</artifactId>
+            <artifactId>bundle-sdk</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bundle-logging-bridge</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
@@ -64,40 +66,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>3.5.0</version>
-                    <configuration>
-                        <artifactSet>
-                            <includes>
-                                <include>com.fasterxml.jackson.jr:*</include>
-                                <include>io.netty:*</include>
-                                <include>org.apache.httpcomponents:*</include>
-                                <include>org.reactivestreams:*</include>
-                                <include>org.slf4j:*</include>
-                                <include>commons-codec:commons-codec</include>
-                                <include>software.amazon.awssdk:*</include>
-                                <include>software.amazon:*</include>
-                                <include>commons-logging:*</include>
-                            </includes>
-                        </artifactSet>
-                        <relocations>
-                            <relocation>
-                                <pattern>org.apache</pattern>
-                                <shadedPattern>software.amazon.awssdk.thirdparty.org.apache</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>io.netty</pattern>
-                                <shadedPattern>software.amazon.awssdk.thirdparty.io.netty</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>org.slf4j</pattern>
-                                <shadedPattern>software.amazon.awssdk.thirdparty.org.slf4j</shadedPattern>
-                            </relocation>
-                        </relocations>
-                        <shadedArtifactAttached>false</shadedArtifactAttached>
-                        <createDependencyReducedPom>true</createDependencyReducedPom>
-                        <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml
-                        </dependencyReducedPomLocation>
-                        <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
-                    </configuration>
                     <executions>
                         <execution>
                             <phase>package</phase>
@@ -109,8 +77,20 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+	<plugins>
+           <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-dependency-plugin</artifactId>
+               <configuration>
+                   <ignoredUnusedDeclaredDependencies>
+                       <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-sdk</ignoredUnusedDeclaredDependency>
+                       <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-logging-bridge</ignoredUnusedDeclaredDependency>
+                   </ignoredUnusedDeclaredDependencies>
+               </configuration>
+           </plugin>
+	</plugins>
     </build>
-    
+
     <profiles>
         <profile>
             <id>publishing</id>
@@ -137,6 +117,16 @@
                         <configuration>
                             <sourcepath>${basedir}/../core/profiles/src/main/java/software/amazon/awssdk/profiles;${basedir}/../core/sdk-core/src/main/java/software/amazon/awssdk/core</sourcepath>
                             <failOnError>false</failOnError>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <configuration>
+                            <ignoredUnusedDeclaredDependencies>
+                                <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-sdk</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-logging-bridge</ignoredUnusedDeclaredDependency>
+                            </ignoredUnusedDeclaredDependencies>
                         </configuration>
                     </plugin>
                 </plugins>
