@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "FinSpace User Environment Management service",
+    "contributor": "",
+    "description": "Allow customer to set zip default through command line arguments."
+}
