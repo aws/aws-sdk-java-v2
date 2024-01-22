@@ -74,11 +74,61 @@ public class BaseClientBuilderClassTest {
                                                  "test-composed-sync-default-client-builder.java");
     }
 
-    private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {
-        model.getCustomizationConfig().setUseSraAuth(false);
-        validateGeneration(BaseClientBuilderClass::new, model, expectedClassName);
 
-        model.getCustomizationConfig().setUseSraAuth(true);
-        validateGeneration(BaseClientBuilderClass::new, model, "sra/" + expectedClassName);
+    @Test
+    public void baseClientBuilderClass_sra() {
+        validateBaseClientBuilderClassGeneration(restJsonServiceModels(), "test-client-builder-class.java", true);
+    }
+
+    @Test
+    public void baseClientBuilderClassWithBearerAuth_sra() {
+        validateBaseClientBuilderClassGeneration(bearerAuthServiceModels(), "test-bearer-auth-client-builder-class.java", true);
+    }
+
+    @Test
+    public void baseClientBuilderClassWithNoAuthOperation_sra() {
+        validateBaseClientBuilderClassGeneration(operationWithNoAuth(), "test-no-auth-ops-client-builder-class.java", true);
+    }
+
+    @Test
+    public void baseClientBuilderClassWithNoAuthService_sra() {
+        validateBaseClientBuilderClassGeneration(serviceWithNoAuth(), "test-no-auth-service-client-builder-class.java", true);
+    }
+
+    @Test
+    public void baseClientBuilderClassWithInternalUserAgent_sra() {
+        validateBaseClientBuilderClassGeneration(internalConfigModels(), "test-client-builder-internal-defaults-class.java",
+                                                 true);
+    }
+
+    @Test
+    public void baseQueryClientBuilderClass_sra() {
+        validateBaseClientBuilderClassGeneration(queryServiceModels(), "test-query-client-builder-class.java", true);
+    }
+
+    @Test
+    public void baseClientBuilderClassWithEndpointsAuthParams_sra() {
+        validateBaseClientBuilderClassGeneration(queryServiceModelsEndpointAuthParamsWithAllowList(),
+                                                 "test-client-builder-endpoints-auth-params.java", true);
+    }
+
+    @Test
+    public void syncComposedDefaultClientBuilderClass_sra() {
+        validateBaseClientBuilderClassGeneration(composedClientJsonServiceModels(),
+                                                 "test-composed-sync-default-client-builder.java", true);
+    }
+
+    private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {
+        validateBaseClientBuilderClassGeneration(model, expectedClassName, false);
+    }
+
+    private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName, boolean sra) {
+        if (sra) {
+            model.getCustomizationConfig().setUseSraAuth(true);
+            validateGeneration(BaseClientBuilderClass::new, model, "sra/" + expectedClassName);
+        } else {
+            model.getCustomizationConfig().setUseSraAuth(false);
+            validateGeneration(BaseClientBuilderClass::new, model, expectedClassName);
+        }
     }
 }

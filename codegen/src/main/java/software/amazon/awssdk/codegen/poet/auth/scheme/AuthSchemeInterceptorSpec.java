@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -49,10 +50,14 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProperty;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
@@ -94,7 +99,8 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addMethod(generateAuthSchemeParams())
                .addMethod(generateTrySelectAuthScheme())
                .addMethod(generateGetIdentityMetric())
-               .addMethod(putSelectedAuthSchemeMethodSpec());
+               .addMethod(putSelectedAuthSchemeMethodSpec())
+               .addType(addAuthOptionBuilderWrapper());
         return builder.build();
     }
 
@@ -324,10 +330,11 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         builder.beginControlFlow("if (existingAuthScheme != null)")
                .addStatement("$T selectedOption = $N.authSchemeOption().toBuilder()",
                              AuthSchemeOption.Builder.class, selectedAuthSchemeParamName)
+               .addStatement("$1T wrapper = new $1T(selectedOption)", ClassName.bestGuess("AuthOptionBuilderWrapper"))
                .addStatement("existingAuthScheme.authSchemeOption().forEachIdentityProperty"
-                             + "(selectedOption::putIdentityPropertyIfAbsent)")
+                             + "(wrapper::putIdentityProperty)")
                .addStatement("existingAuthScheme.authSchemeOption().forEachSignerProperty"
-                             + "(selectedOption::putSignerPropertyIfAbsent)")
+                             + "(wrapper::putSignerProperty)")
                .addStatement("$N = new $T<>($N.identity(), $N.signer(), selectedOption.build())",
                              selectedAuthSchemeParamName,
                              SelectedAuthScheme.class,
@@ -341,6 +348,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         return builder.build();
     }
 
+
     private void addLogDebugDiscardedOptions(MethodSpec.Builder builder) {
         builder.beginControlFlow("if (!discardedReasons.isEmpty())");
         {
@@ -350,6 +358,62 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                  Supplier.class, Collectors.class)
                    .endControlFlow();
         }
+    }
+
+    private TypeSpec addAuthOptionBuilderWrapper() {
+        TypeSpec.Builder builder = TypeSpec.classBuilder("AuthOptionBuilderWrapper")
+                                           .addModifiers(Modifier.STATIC, Modifier.PRIVATE)
+                                           .addField(FieldSpec.builder(AuthSchemeOption.Builder.class, "wrapped")
+                                                              .addModifiers(Modifier.PRIVATE, Modifier.PRIVATE)
+                                                              .build())
+                                           .addMethod(MethodSpec.constructorBuilder()
+                                                                .addParameter(AuthSchemeOption.Builder.class, "wrapped")
+                                                                .addStatement("this.wrapped = wrapped")
+                                                                .build())
+                                           .addMethod(putIdentityPropertyMethod())
+                                           .addMethod(putSignerPropertyMethod());
+
+        return builder.build();
+    }
+
+    private MethodSpec putIdentityPropertyMethod() {
+        TypeName identityProperty = ParameterizedTypeName.get(ClassName.get(IdentityProperty.class), TypeVariableName.get("T"));
+        return MethodSpec.methodBuilder("putIdentityProperty")
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(ClassName.bestGuess("AuthOptionBuilderWrapper"))
+                         .addTypeVariable(TypeVariableName.get("T"))
+                         .addParameter(identityProperty, "key")
+                         .addParameter(TypeVariableName.get("T"), "value")
+                         .addStatement("wrapped.putIdentityPropertyIfAbsent(key, value)")
+                         .addStatement("return this")
+                         .build();
+    }
+
+    private MethodSpec putSignerPropertyMethod() {
+        TypeName signerProperty = ParameterizedTypeName.get(ClassName.get(SignerProperty.class), TypeVariableName.get("T"));
+        return MethodSpec.methodBuilder("putSignerProperty")
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(ClassName.bestGuess("AuthOptionBuilderWrapper"))
+                         .addTypeVariable(TypeVariableName.get("T"))
+                         .addParameter(signerProperty, "key")
+                         .addParameter(TypeVariableName.get("T"), "value")
+                         .beginControlFlow(addDontOverrideCondition())
+                         .addStatement("wrapped.putSignerPropertyIfAbsent(key, value)")
+                         .addStatement("return this")
+                         .endControlFlow()
+                         .addStatement("wrapped.putSignerProperty(key, value)")
+                         .addStatement("return this")
+                         .build();
+    }
+
+    private CodeBlock addDontOverrideCondition() {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("if ($T.SERVICE_SIGNING_NAME.equals(key)", AwsV4HttpSigner.class);
+        builder.add(" || $T.REGION_NAME.equals(key)", AwsV4HttpSigner.class);
+        builder.add(" || $T.REGION_SET.equals(key)", AwsV4aHttpSigner.class);
+        builder.add(" || $T.DOUBLE_URL_ENCODE.equals(key)", AwsV4HttpSigner.class);
+        builder.add(")");
+        return builder.build();
     }
 
     // IdentityProvider<T>

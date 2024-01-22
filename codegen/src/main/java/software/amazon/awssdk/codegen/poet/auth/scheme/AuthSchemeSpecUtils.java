@@ -18,6 +18,8 @@ package software.amazon.awssdk.codegen.poet.auth.scheme;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -28,12 +30,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import software.amazon.awssdk.codegen.model.config.customization.AuthScheme;
+import software.amazon.awssdk.codegen.model.config.customization.AuthSchemeConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.config.customization.OperationAuthSchemeConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
@@ -184,6 +188,106 @@ public final class AuthSchemeSpecUtils {
         return operationsToAuthType;
     }
 
+    public Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToModeledMetadata() {
+        Map<List<String>, List<AuthType>> operationsToAuthType = operationsToAuthType();
+        Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToMetadata = new LinkedHashMap<>();
+        operationsToAuthType.forEach((k, v) -> {
+            operationsToMetadata.put(k, authTypeToCodegenMetadata(v));
+        });
+        return operationsToMetadata;
+    }
+
+    public Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToMetadata() {
+        AuthSchemeConfig config = intermediateModel.getCustomizationConfig().getAuthSchemeConfig();
+        if (config != null) {
+            return operationsToCustomizedMetadata();
+        }
+        return operationsToModeledMetadata();
+    }
+
+    public Map<List<String>, AuthSchemeCodegenMetadata> operationsToSigv4Metadata() {
+        Map<List<String>, AuthSchemeCodegenMetadata> result =
+            operationsToMetadata()
+                .entrySet()
+                .stream()
+                .filter(kvp -> containsSigv4(kvp.getValue()))
+                .map(kvp -> new AbstractMap.SimpleEntry<List<String>, AuthSchemeCodegenMetadata>(
+                    kvp.getKey(),
+                    getSigv4(kvp.getValue())))
+                .collect(
+                    Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue,
+                                     (a, b) -> b,
+                                     LinkedHashMap::new));
+        return result;
+    }
+
+    private boolean containsSigv4(List<AuthSchemeCodegenMetadata> options) {
+        return getSigv4(options) != null;
+    }
+
+    private AuthSchemeCodegenMetadata getSigv4(List<AuthSchemeCodegenMetadata> options) {
+        Map<String, Object> defaultSigv4Properties =
+            AuthSchemeCodegenMetadata.constantProperties(AuthSchemeCodegenMetadata.SIGV4);
+        for (AuthSchemeCodegenMetadata metadata : options) {
+            if (metadata.authSchemeClass() == AwsV4AuthScheme.class) {
+                Map<String, Object> sigv4Properties = AuthSchemeCodegenMetadata.constantProperties(metadata);
+                if (defaultSigv4Properties.equals(sigv4Properties)) {
+                    return null;
+                }
+                List<AuthSchemeCodegenMetadata.SignerPropertyValueProvider> properties =
+                    metadata
+                        .properties()
+                        .stream()
+                        .filter(AuthSchemeSpecUtils::isNonDefaultSigv4Property)
+                        .collect(Collectors.toList());
+                if (!properties.isEmpty()) {
+                    return metadata.toBuilder().properties(properties).build();
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isNonDefaultSigv4Property(AuthSchemeCodegenMetadata.SignerPropertyValueProvider provider) {
+        switch (provider.fieldName()) {
+            case "SERVICE_SIGNING_NAME":
+            case "REGION_NAME":
+            case "DOUBLE_URL_ENCODE":
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    public Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToCustomizedMetadata() {
+        AuthSchemeConfig config = intermediateModel.getCustomizationConfig().getAuthSchemeConfig();
+        List<AuthSchemeCodegenMetadata> defaultAuthSchemes = authSchemeToCodegenMetadata(config.getAuthSchemes());
+        Map<List<String>, List<AuthSchemeCodegenMetadata>> operationToMetadata = new LinkedHashMap<>();
+        operationToMetadata.put(Collections.emptyList(), defaultAuthSchemes);
+        List<OperationAuthSchemeConfig> operations = config.getOperations();
+        for (OperationAuthSchemeConfig operationConfig : operations) {
+            List<AuthSchemeCodegenMetadata> operationAuthSchemes = authSchemeToCodegenMetadata(operationConfig.getAuthSchemes());
+            operationToMetadata.put(Collections.singletonList(operationConfig.getOperation()), operationAuthSchemes);
+        }
+        return operationToMetadata;
+    }
+
+    private static List<AuthSchemeCodegenMetadata> authSchemeToCodegenMetadata(List<AuthScheme> schemes) {
+        return fromNullable(schemes).stream().map(AuthSchemeCodegenMetadata::fromCustomization).collect(Collectors.toList());
+    }
+
+    private List<AuthSchemeCodegenMetadata> authTypeToCodegenMetadata(List<AuthType> authTypes) {
+        return authTypes.stream().map(AuthSchemeCodegenMetadata::fromAuthType).collect(Collectors.toList());
+    }
+
+    private static <T> List<T> fromNullable(List<T> value) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+        return value;
+    }
+
     public List<AuthType> serviceDefaultAuthTypes() {
         List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
         if (!modeled.isEmpty()) {
@@ -193,16 +297,12 @@ public final class AuthSchemeSpecUtils {
     }
 
     public Set<Class<?>> allServiceConcreteAuthSchemeClasses() {
-        Set<Class<?>> result =
-            Stream.concat(intermediateModel.getOperations()
-                                           .values()
-                                           .stream()
-                                           .map(OperationModel::getAuth)
-                                           .flatMap(List::stream),
-                          intermediateModel.getMetadata().getAuth().stream())
-                  .map(AuthSchemeCodegenMetadata::fromAuthType)
-                  .map(AuthSchemeCodegenMetadata::authSchemeClass)
-                  .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Class::getSimpleName))));
+        Set<Class<?>> result = operationsToMetadata()
+            .values()
+            .stream()
+            .flatMap(Collection::stream)
+            .map(AuthSchemeCodegenMetadata::authSchemeClass)
+            .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Class::getSimpleName))));
 
         if (useEndpointBasedAuthProvider()) {
             // sigv4a is not modeled but needed for the endpoints based auth-scheme cases.

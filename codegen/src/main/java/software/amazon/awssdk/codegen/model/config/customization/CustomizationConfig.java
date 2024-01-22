@@ -311,6 +311,8 @@ public class CustomizationConfig {
      */
     private String rootPackageName;
 
+    private AuthSchemeConfig authSchemeConfig;
+
     private CustomizationConfig() {
     }
 
@@ -827,5 +829,13 @@ public class CustomizationConfig {
     public CustomizationConfig withRootPackageName(String packageName) {
         this.rootPackageName = packageName;
         return this;
+    }
+
+    public AuthSchemeConfig getAuthSchemeConfig() {
+        return authSchemeConfig;
+    }
+
+    public void setAuthSchemeConfig(AuthSchemeConfig authSchemeConfig) {
+        this.authSchemeConfig = authSchemeConfig;
     }
 }
