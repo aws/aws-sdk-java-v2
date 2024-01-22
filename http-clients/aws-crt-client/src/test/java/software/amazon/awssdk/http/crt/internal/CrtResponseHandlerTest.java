@@ -41,6 +41,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
 
@@ -51,6 +52,15 @@ public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
 
         responseHandler.prepare();
         return CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, responseHandler);
+    }
+
+    @Override
+    HttpStreamResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher) {
+        AsyncResponseHandler<Void> responseHandler = new AsyncResponseHandler<>((response,
+                                                                                 executionAttributes) -> null, Function.identity(), new ExecutionAttributes());
+
+        responseHandler.prepare();
+        return new CrtResponseAdapter(crtConn, requestFuture, responseHandler, simplePublisher);
     }
 
     @Test
