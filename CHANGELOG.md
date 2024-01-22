@@ -1,3 +1,44 @@
+# __2.23.8__ __2024-01-22__
+## __AWS AppConfig Data__
+  - ### Features
+    - Fix FIPS Endpoints in aws-us-gov.
+
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fixed a thread safety issue that could cause application to crash in the edge case where the SDK attempted to invoke `incrementWindow` after the stream is closed in AWS CRT HTTP Client.
+
+## __AWS Cloud9__
+  - ### Features
+    - Doc-only update around removing AL1 from list of available AMIs for Cloud9
+
+## __AWS Organizations__
+  - ### Features
+    - Doc only update for quota increase change
+
+## __Amazon CloudFront KeyValueStore__
+  - ### Features
+    - This release improves upon the DescribeKeyValueStore API by returning two additional fields, Status of the KeyValueStore and the FailureReason in case of failures during creation of KeyValueStore.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to view audit history on a case and introduces a new parameter, performedBy, for CreateCase and UpdateCase API's.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for Transport Layer Security (TLS) and Configurable Timeout to ECS Service Connect. TLS facilitates privacy and data security for inter-service communications, while Configurable Timeout allows customized per-request timeout and idle timeout for Service Connect services.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Introduced support for the InsufficientDBInstanceCapacityFault error in the RDS CreateDBCluster API method. This provides enhanced error handling, ensuring a more robust experience when creating database clusters with insufficient instance capacity.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Allow customer to set zip default through command line arguments.
+
 # __2.23.7__ __2024-01-19__
 ## __AWS CodeBuild__
   - ### Features
@@ -2890,7 +2931,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
