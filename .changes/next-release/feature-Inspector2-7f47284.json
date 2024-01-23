@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Inspector2",
+    "contributor": "",
+    "description": "This release adds support for CIS scans on EC2 instances."
+}
