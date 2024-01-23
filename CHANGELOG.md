@@ -1,3 +1,8 @@
+# __2.23.9__ __2024-01-23__
+## __Inspector2__
+  - ### Features
+    - This release adds support for CIS scans on EC2 instances.
+
 # __2.23.8__ __2024-01-22__
 ## __AWS AppConfig Data__
   - ### Features
@@ -4672,7 +4677,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
