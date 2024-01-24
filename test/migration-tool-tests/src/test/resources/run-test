@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+import subprocess
+import filecmp
+import os
+import shutil, errno
+import argparse
+
+RESOURCE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "resources")
+BEFORE_DIR = os.path.join(RESOURCE_DIR, "before")
+AFTER_DIR = os.path.join(RESOURCE_DIR, "after")
+TARGET_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../../")))), "target/generated-test-sources/project")
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--version', dest='version',
+                        default='')
+    args = parser.parse_args()
+    run_test(args.version.strip())
+
+def run_test(version):
+    if os.path.exists(TARGET_DIR) and os.path.isdir(TARGET_DIR):
+        shutil.rmtree(TARGET_DIR)
+    copy_directory(BEFORE_DIR, TARGET_DIR)
+
+    subprocess.run(["mvn", "org.openrewrite.maven:rewrite-maven-plugin:run",
+                    "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:migration-tool:"+ version,
+                    "-Drewrite.activeRecipes=software.amazon.awssdk.UpgradeJavaSdk2"], cwd=TARGET_DIR)
+    shutil.rmtree(os.path.join(TARGET_DIR, "target"))
+    comparison = filecmp.dircmp(TARGET_DIR, AFTER_DIR)
+    is_same = compare_directory(filecmp.dircmp(TARGET_DIR, AFTER_DIR))
+    if not is_same:
+        comparison.report_full_closure()
+        raise Exception("The transformed directory('target/generated-test-sources/project') does not match with the expected one('src/test/resources/after')")
+
+def compare_directory(dcmp):
+    if dcmp.diff_files or dcmp.left_only or dcmp.right_only:
+        return False
+    for sub_dcmp in dcmp.subdirs.values():
+        if not compare_directory(sub_dcmp):
+            return False
+    return True
+
+def copy_directory(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc:
+        if exc.errno in (errno.ENOTDIR, errno.EINVAL):
+            shutil.copy(src, dst)
+        else: raise
+
+if __name__ == '__main__':
+    main()

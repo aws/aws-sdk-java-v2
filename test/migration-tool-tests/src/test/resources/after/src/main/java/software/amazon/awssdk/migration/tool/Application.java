@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.migrationtool.test;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClient;
-import com.amazonaws.services.sqs.model.ListQueuesResult;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 public class Application {
 
@@ -26,7 +24,7 @@ public class Application {
     }
 
     public static void main(String... args) {
-        AmazonSQS sqs = AmazonSQSClient.builder().build();
-        ListQueuesResult listQueuesResult = sqs.listQueues();
+        SqsClient sqs = SqsClient.builder().build();
+        sqs.listQueues();
     }
 }

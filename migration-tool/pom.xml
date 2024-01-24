@@ -30,12 +30,6 @@
         Migration tool to help users migrate from AWS SDK for Java v1 to AWS SDK for Java v2
     </description>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -88,6 +82,13 @@
             <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- Used in UpgradeSdkDependenciesTest -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sqs</artifactId>
+            <scope>test</scope>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -111,9 +112,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>python</executable>
-                            <commandlineArgs>${basedir}/src/main/resources/generate-recipes
-                            </commandlineArgs>
+                            <executable>${basedir}/src/main/resources/generate-recipes</executable>
                         </configuration>
                     </execution>
                 </executions>

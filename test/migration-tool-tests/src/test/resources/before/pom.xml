@@ -19,15 +19,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>software.amazon.awssdk</groupId>
-        <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.23.0-SNAPSHOT</version>
-        <relativePath>../..</relativePath>
-    </parent>
-
     <groupId>software.amazon.awssdk</groupId>
-    <artifactId>migration-tool-tests</artifactId>
+    <artifactId>sample-application</artifactId>
+    <version>1.2.3</version>
 
     <dependencyManagement>
         <dependencies>
@@ -46,40 +40,6 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-sqs</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>migration-tool</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>exec-maven-plugin</artifactId>
-                <groupId>org.codehaus.mojo</groupId>
-                <version>${exec-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>run-test-script</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>${basedir}/src/test/resources/run-test</executable>
-                            <arguments>
-                                <argument>-v ${project.version}</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-
 </project>
