@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Outposts",
-    "contributor": "",
-    "description": "DeviceSerialNumber parameter is now optional in StartConnection API"
-}
