@@ -38,6 +38,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.auth.scheme.internal.DefaultS3AuthSchemeProvider;
 import software.amazon.awssdk.services.s3.auth.scheme.internal.S3AuthSchemeInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressSessionCredentials;
@@ -71,6 +72,8 @@ class S3ExpressAuthSchemeProviderTest {
                                          DefaultIdentityProviders.builder()
                                                                  .putIdentityProvider(DefaultCredentialsProvider.create())
                                                                  .build());
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER,
+                                         S3EndpointProvider.defaultProvider());
         return executionAttributes;
     }
 
