@@ -17,6 +17,8 @@ package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponseWithUnknownErrorCode;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.successHttpResponse;
@@ -25,8 +27,10 @@ import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossReg
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CROSS_REGION_BUCKET;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.OVERRIDE_CONFIGURED_REGION;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,16 +39,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
 import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -78,23 +90,13 @@ class S3CrossRegionSyncClientTest {
         Consumer<MockSyncHttpClient> successStubConsumer = mockSyncHttpClient ->
             mockSyncHttpClient.stubResponses(successHttpResponse(), successHttpResponse());
 
-        Consumer<MockSyncHttpClient> malFormerAuthError = mockSyncHttpClient ->
-            mockSyncHttpClient.stubResponses(
-                customHttpResponse(400, "AuthorizationHeaderMalformed",null ),
-                customHttpResponse(400, "AuthorizationHeaderMalformed",CROSS_REGION_BUCKET ),
-                successHttpResponse());
-
         return Stream.of(
             Arguments.of(redirectStubConsumer,
                          BucketEndpointProvider.class,
                          "Redirect Error with region in x-amz-bucket-header"),
             Arguments.of(successStubConsumer,
-                         DefaultS3EndpointProvider.class,
-                         "Success response" ),
-            Arguments.of(malFormerAuthError,
                          BucketEndpointProvider.class,
-                         "Authorization Malformed Error with region in x-amz-bucket-header in Head bucket response" )
-        );
+                         "Success response" ));
     }
 
     public static Stream<Arguments> stubFailureResponses() {
@@ -113,14 +115,6 @@ class S3CrossRegionSyncClientTest {
                                              customHttpResponseWithUnknownErrorCode(301, null),
                                               successHttpResponse(), successHttpResponse());
 
-        Consumer<MockSyncHttpClient> authMalformedWithNoRegion = mockSyncHttpClient ->
-            mockSyncHttpClient.stubResponses(customHttpResponse(400, "AuthorizationHeaderMalformed", null),
-                                              customHttpResponse(400, "AuthorizationHeaderMalformed", null));
-
-        Consumer<MockSyncHttpClient> authMalformedAuthorizationFailureAfterRegionRetrieval = mockSyncHttpClient ->
-            mockSyncHttpClient.stubResponses(customHttpResponse(400, "AuthorizationHeaderMalformed", null),
-                                              customHttpResponse(400, "AuthorizationHeaderMalformed", CROSS_REGION.id()),
-                                              customHttpResponse(400, "AuthorizationHeaderMalformed", CROSS_REGION.id()));
 
 
         return Stream.of(
@@ -129,20 +123,7 @@ class S3CrossRegionSyncClientTest {
                          2,
                          noRegionOnHeadBucket,
                          noregionOnHeadBucketHttpMethodListMethodList
-            ),
-            Arguments.of(authMalformedWithNoRegion,
-                         400,
-                         2,
-                         noRegionOnHeadBucket,
-                         noregionOnHeadBucketHttpMethodListMethodList
-            ),
-            Arguments.of(authMalformedAuthorizationFailureAfterRegionRetrieval,
-                         400,
-                         3,
-                         regionOnHeadBucket,
-                         regionOnHeadBucketHttpMethodList
             )
-
         );
     }
 
@@ -156,7 +137,7 @@ class S3CrossRegionSyncClientTest {
         return Stream.of(
             Arguments.of(redirectStubConsumer, BucketEndpointProvider.class, CROSS_REGION,
                          "Redirect error with Region in x-amz-bucket-region header"),
-            Arguments.of(successStubConsumer, TestEndpointProvider.class, OVERRIDE_CONFIGURED_REGION,
+            Arguments.of(successStubConsumer, BucketEndpointProvider.class, OVERRIDE_CONFIGURED_REGION,
                          "Success response.")
         );
     }
@@ -181,10 +162,7 @@ class S3CrossRegionSyncClientTest {
         String testCaseName) {
         stubConsumer.accept(mockSyncHttpClient);
         S3Client crossRegionClient = new S3CrossRegionSyncClient(defaultS3Client);
-        GetObjectRequest request = GetObjectRequest.builder()
-                                                   .bucket(BUCKET)
-                                                   .key(KEY)
-                                                   .overrideConfiguration(o -> o.putHeader("someheader", "somevalue"))
+        GetObjectRequest request = getObjectBuilder()
                                                    .build();
         crossRegionClient.getObject(request);
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(endpointProviderType);
@@ -252,16 +230,58 @@ class S3CrossRegionSyncClientTest {
                                                     .endpointProvider(new TestEndpointProvider())
                                                     .region(OVERRIDE_CONFIGURED_REGION)
                                                     .build();
-        GetObjectRequest request = GetObjectRequest.builder()
-                                                   .bucket(BUCKET)
-                                                   .key(KEY)
-                                                   .overrideConfiguration(o -> o.putHeader("someheader", "somevalue"))
+        GetObjectRequest request = getObjectBuilder()
                                                    .build();
         crossRegionClient.getObject(request);
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(endpointProviderType);
         assertThat(mockSyncHttpClient.getLastRequest().headers().get("someheader")).isNotNull();
         assertThat(mockSyncHttpClient.getLastRequest().encodedPath()).contains("test_prefix_");
         assertThat(mockSyncHttpClient.getLastRequest().host()).contains(region.id());
+    }
+    @Test
+    void given_US_EAST_1_Client_resolvesToGlobalEndpoints_when_crossRegion_is_False(){
+        mockSyncHttpClient.stubResponses(successHttpResponse());
+        S3Client s3Client = clientBuilder().region(Region.US_EAST_1).build();
+        s3Client.getObject(getObjectBuilder().build());
+        assertThat(mockSyncHttpClient.getLastRequest().host()).isEqualTo("bucket.s3.amazonaws.com");
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(DefaultS3EndpointProvider.class);
+    }
+
+    @Test
+    void given_US_EAST_1_Client_resolveToRegionalEndpoints_when_crossRegion_is_True(){
+        mockSyncHttpClient.stubResponses(successHttpResponse());
+        S3Client s3Client = clientBuilder().crossRegionAccessEnabled(true).region(Region.US_EAST_1).build();
+        s3Client.getObject(getObjectBuilder().build());
+        assertThat(mockSyncHttpClient.getLastRequest().host()).isEqualTo("bucket.s3.us-east-1.amazonaws.com");
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"us-east-1", "us-east-2", "us-west-1", "aws-global"})
+    void given_AnyRegion_Client_Updates_the_useGlobalEndpointFlag_asFalse(String region) {
+        mockSyncHttpClient.stubResponses(successHttpResponse());
+        S3EndpointProvider mockEndpointProvider = Mockito.mock(S3EndpointProvider.class);
+
+        when(mockEndpointProvider.resolveEndpoint(ArgumentMatchers.any(S3EndpointParams.class)))
+            .thenReturn(CompletableFuture.completedFuture(Endpoint.builder().url(URI.create("https://bucket.s3.amazonaws.com")).build()));
+
+        S3Client s3Client = clientBuilder().crossRegionAccessEnabled(true)
+                                           .region(Region.of(region))
+                                           .endpointProvider(mockEndpointProvider).build();
+        s3Client.getObject(getObjectBuilder().build());
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
+        ArgumentCaptor<S3EndpointParams> collectionCaptor = ArgumentCaptor.forClass(S3EndpointParams.class);
+        verify(mockEndpointProvider).resolveEndpoint(collectionCaptor.capture());
+        S3EndpointParams resolvedParams = collectionCaptor.getAllValues().get(0);
+        assertThat(resolvedParams.region()).isEqualTo(Region.of(region));
+        assertThat(resolvedParams.useGlobalEndpoint()).isEqualTo(false);
+    }
+
+    private static GetObjectRequest.Builder getObjectBuilder() {
+        return GetObjectRequest.builder()
+                               .bucket(BUCKET)
+                               .key(KEY)
+                               .overrideConfiguration(o -> o.putHeader("someheader", "somevalue"));
     }
 
     @Test
@@ -365,7 +385,7 @@ class S3CrossRegionSyncClientTest {
 
     @ParameterizedTest(name = "{index} - Status code = {1} with HeadBucket bucket regions {3}.")
     @MethodSource("stubFailureResponses")
-    void given_CrossRegionClient_when_CallsHeadObjectErrors_then_ShouldTerminateTheAPI(
+    void given_CrossRegionClient_when_CallsHeadBucketErrors_then_ShouldTerminateTheAPI(
         Consumer<MockSyncHttpClient> stubFailureResponses,
         Integer statusCode, Integer numberOfRequests,
         List<String> redirectedBucketRegions,
