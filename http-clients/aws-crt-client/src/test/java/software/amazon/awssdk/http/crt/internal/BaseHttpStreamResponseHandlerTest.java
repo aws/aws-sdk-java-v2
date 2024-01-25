@@ -16,16 +16,25 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
@@ -33,6 +42,8 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseHttpStreamResponseHandlerTest {
@@ -40,11 +51,16 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     CompletableFuture requestFuture;
 
     @Mock
-    private HttpStream httpStream;
+    HttpStream httpStream;
 
-    private HttpStreamResponseHandler responseHandler;
+    @Mock
+    SimplePublisher<ByteBuffer> simplePublisher;
+
+    HttpStreamResponseHandler responseHandler;
 
     abstract HttpStreamResponseHandler responseHandler();
+
+    abstract HttpStreamResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher);
 
     @BeforeEach
     public void setUp() {
@@ -95,7 +111,118 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         verify(httpStream).close();
     }
 
-    private static HttpHeader[] getHttpHeaders() {
+    @Test
+    void streamClosed_shouldNotIncreaseStreamWindow() throws InterruptedException {
+        HttpHeader[] httpHeaders = getHttpHeaders();
+        responseHandler.onResponseHeaders(httpStream, 500, HttpHeaderBlock.MAIN.getValue(),
+                                          httpHeaders);
+        responseHandler.onResponseHeadersDone(httpStream, 0);
+        responseHandler.onResponseBody(httpStream, "{}".getBytes(StandardCharsets.UTF_8));
+
+        responseHandler.onResponseComplete(httpStream, 0);
+        requestFuture.join();
+        verify(crtConn).shutdown();
+        verify(crtConn).close();
+        verify(httpStream).close();
+        verify(httpStream, never()).incrementWindow(anyInt());
+    }
+
+    @Test
+    void publisherWritesFutureFails_shouldShutdownConnection() {
+        SimplePublisher<ByteBuffer> simplePublisher = Mockito.mock(SimplePublisher.class);
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
+
+        HttpStreamResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
+        HttpHeader[] httpHeaders = getHttpHeaders();
+
+        handler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
+                                  httpHeaders);
+        handler.onResponseHeadersDone(httpStream, 0);
+        handler.onResponseBody(httpStream,
+                               RandomStringUtils.random(1 * 1024 * 1024).getBytes(StandardCharsets.UTF_8));
+        RuntimeException runtimeException = new RuntimeException();
+        future.completeExceptionally(runtimeException);
+
+        try {
+            requestFuture.join();
+        } catch (Exception e) {
+            // we don't verify here because it behaves differently in async and sync
+        }
+
+        verify(crtConn).shutdown();
+        verify(crtConn).close();
+        verify(httpStream).close();
+        verify(httpStream, never()).incrementWindow(anyInt());
+    }
+
+    @Test
+    void publisherWritesFutureCompletesAfterConnectionClosed_shouldNotInvokeIncrementWindow() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
+        when(simplePublisher.complete()).thenReturn(future);
+
+        HttpStreamResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
+
+
+        HttpHeader[] httpHeaders = getHttpHeaders();
+
+        handler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
+                                  httpHeaders);
+        handler.onResponseHeadersDone(httpStream, 0);
+        handler.onResponseBody(httpStream,
+                               RandomStringUtils.random(1 * 1024 * 1024).getBytes(StandardCharsets.UTF_8));
+        handler.onResponseComplete(httpStream, 0);
+        future.complete(null);
+
+        requestFuture.join();
+        verify(crtConn, never()).shutdown();
+        verify(crtConn).close();
+        verify(httpStream).close();
+        verify(httpStream, never()).incrementWindow(anyInt());
+    }
+
+    @Test
+    void publisherWritesFutureCompletesWhenConnectionClosed_shouldNotInvokeIncrementWindow() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
+        when(simplePublisher.complete()).thenReturn(future);
+
+        HttpStreamResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
+
+
+        HttpHeader[] httpHeaders = getHttpHeaders();
+
+        handler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
+                                  httpHeaders);
+        handler.onResponseHeadersDone(httpStream, 0);
+        handler.onResponseBody(httpStream,
+                               RandomStringUtils.random(1 * 1024 * 1024).getBytes(StandardCharsets.UTF_8));
+
+        // This tracker tracks which of the two operation completes first
+        AtomicInteger whenCompleteTracker = new AtomicInteger(0);
+        CompletableFuture<Void> onResponseComplete = CompletableFuture.runAsync(() -> handler.onResponseComplete(httpStream, 0))
+                                                           .whenComplete((r, t) -> whenCompleteTracker.compareAndSet(0, 1));
+
+        CompletableFuture<Void> writeComplete = CompletableFuture.runAsync(() -> future.complete(null))
+                                                           .whenComplete((r, t) -> whenCompleteTracker.compareAndSet(0, 2));
+        requestFuture.join();
+
+        CompletableFuture.allOf(onResponseComplete, writeComplete).join();
+
+        if (whenCompleteTracker.get() == 1) {
+            // onResponseComplete finishes first
+            verify(httpStream, never()).incrementWindow(anyInt());
+        } else {
+            verify(httpStream).incrementWindow(anyInt());
+        }
+
+        verify(crtConn, never()).shutdown();
+        verify(crtConn).close();
+        verify(httpStream).close();
+    }
+
+    static HttpHeader[] getHttpHeaders() {
         HttpHeader[] httpHeaders = new HttpHeader[1];
         httpHeaders[0] = new HttpHeader("Content-Length", "1");
         return httpHeaders;

@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapWithIoExcept
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.async.InputStreamSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
@@ -39,9 +41,9 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  */
 @SdkInternalApi
 public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamResponseHandler {
-
-    private volatile InputStreamSubscriber inputStreamSubscriber;
-    private final SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
+    private static final Logger log = Logger.loggerFor(InputStreamAdaptingHttpStreamResponseHandler.class);
+    private volatile AbortableInputStreamSubscriber inputStreamSubscriber;
+    private final SimplePublisher<ByteBuffer> simplePublisher;
 
     private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
     private final HttpClientConnection crtConn;
@@ -51,10 +53,18 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
     public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
                                                         CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
+        this(crtConn, requestCompletionFuture, new SimplePublisher<>());
+    }
+
+    @SdkTestInternalApi
+    public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
+                                                        CompletableFuture<SdkHttpFullResponse> requestCompletionFuture,
+                                                        SimplePublisher<ByteBuffer> simplePublisher) {
         this.crtConn = crtConn;
         this.requestCompletionFuture = requestCompletionFuture;
         this.responseBuilder = SdkHttpResponse.builder();
         this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, crtConn);
+        this.simplePublisher = simplePublisher;
     }
 
     @Override
@@ -66,12 +76,19 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
             }
             responseBuilder.statusCode(responseStatusCode);
         }
+
+        // Propagate cancellation
+        requestCompletionFuture.exceptionally(t -> {
+            responseHandlerHelper.closeConnection(stream);
+            return null;
+        });
     }
 
     @Override
     public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
         if (inputStreamSubscriber == null) {
-            inputStreamSubscriber = new InputStreamSubscriber();
+            inputStreamSubscriber = new AbortableInputStreamSubscriber(() -> responseHandlerHelper.closeConnection(stream),
+                                                                       new InputStreamSubscriber());
             simplePublisher.subscribe(inputStreamSubscriber);
             // For response with a payload, we need to complete the future here to allow downstream to retrieve the data from
             // the stream directly.
@@ -88,12 +105,13 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
-                failFutureAndReleaseConnection(stream, failure);
+                log.debug(() -> "The subscriber failed to receive the data, closing the connection and failing the future",
+                          failure);
+                failFutureAndCloseConnection(stream, failure);
                 return;
             }
-
             // increment the window upon buffer consumption.
-            stream.incrementWindow(bodyBytesIn.length);
+            responseHandlerHelper.incrementWindow(stream, bodyBytesIn.length);
         });
 
         // Window will be incremented after the subscriber consumes the data, returning 0 here to disable it.
@@ -107,11 +125,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         } else {
             onFailedResponseComplete(stream, errorCode);
         }
-    }
-
-    private void failFutureAndReleaseConnection(HttpStream stream, Throwable failure) {
-        requestCompletionFuture.completeExceptionally(failure);
-        responseHandlerHelper.releaseConnection(stream);
     }
 
     private void failFutureAndCloseConnection(HttpStream stream, Throwable failure) {

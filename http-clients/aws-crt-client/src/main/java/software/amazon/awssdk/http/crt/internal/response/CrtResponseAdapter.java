@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapWithIoExcept
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
@@ -46,7 +47,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private final HttpClientConnection connection;
     private final CompletableFuture<Void> completionFuture;
     private final SdkAsyncHttpResponseHandler responseHandler;
-    private final SimplePublisher<ByteBuffer> responsePublisher = new SimplePublisher<>();
+    private final SimplePublisher<ByteBuffer> responsePublisher;
 
     private final SdkHttpResponse.Builder responseBuilder;
     private final ResponseHandlerHelper responseHandlerHelper;
@@ -54,11 +55,21 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private CrtResponseAdapter(HttpClientConnection connection,
                                CompletableFuture<Void> completionFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
+        this(connection, completionFuture, responseHandler, new SimplePublisher<>());
+    }
+
+
+    @SdkTestInternalApi
+    public CrtResponseAdapter(HttpClientConnection connection,
+                               CompletableFuture<Void> completionFuture,
+                               SdkAsyncHttpResponseHandler responseHandler,
+                               SimplePublisher<ByteBuffer> simplePublisher) {
         this.connection = Validate.paramNotNull(connection, "connection");
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.responseHandler = Validate.paramNotNull(responseHandler, "responseHandler");
         this.responseBuilder = SdkHttpResponse.builder();
         this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, connection);
+        this.responsePublisher = simplePublisher;
     }
 
     public static HttpStreamResponseHandler toCrtResponseHandler(HttpClientConnection crtConn,
@@ -95,7 +106,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
                 return;
             }
 
-            stream.incrementWindow(bodyBytesIn.length);
+            responseHandlerHelper.incrementWindow(stream, bodyBytesIn.length);
         });
 
         return 0;
@@ -124,7 +135,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
 
     private void handlePublisherError(HttpStream stream, Throwable failure) {
         failResponseHandlerAndFuture(stream, failure);
-        responseHandlerHelper.releaseConnection(stream);
+        responseHandlerHelper.closeConnection(stream);
     }
 
     private void onFailedResponseComplete(HttpStream stream, HttpException error) {
