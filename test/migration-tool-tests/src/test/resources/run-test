@@ -22,7 +22,7 @@ def run_test(version):
         shutil.rmtree(TARGET_DIR)
     copy_directory(BEFORE_DIR, TARGET_DIR)
 
-    subprocess.run(["mvn", "org.openrewrite.maven:rewrite-maven-plugin:run",
+    subprocess.run(["mvn", "org.openrewrite.maven:rewrite-maven-plugin:5.21.0:run",
                     "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:migration-tool:"+ version,
                     "-Drewrite.activeRecipes=software.amazon.awssdk.UpgradeJavaSdk2"], cwd=TARGET_DIR)
     shutil.rmtree(os.path.join(TARGET_DIR, "target"))
