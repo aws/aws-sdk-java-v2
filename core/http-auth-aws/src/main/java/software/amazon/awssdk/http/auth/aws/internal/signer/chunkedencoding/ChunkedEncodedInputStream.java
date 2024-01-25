@@ -77,11 +77,20 @@ public final class ChunkedEncodedInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
+        return currentChunk().stream().read();
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        return currentChunk().stream().read(b, off, len);
+    }
+
+    private Chunk currentChunk() throws IOException {
         if (currentChunk == null || !currentChunk.hasRemaining() && !isFinished) {
             currentChunk = getChunk(inputStream);
         }
 
-        return currentChunk.stream().read();
+        return currentChunk;
     }
 
     /**
