@@ -22,17 +22,4 @@ tags:
   - sdk
 recipeList:
   - software.amazon.awssdk.UpgradeSdkDependencies
-  - software.amazon.awssdk.UpdateSdkBom
   - software.amazon.awssdk.UpdateSdkTypes
----
-type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.UpdateSdkBom
-displayName: Update to AWS SDK for Java v2 BOM
-description: This recipe will update a Gradle or Maven build to reference the AWS SDK for Java v2 BOM.
-recipeList:
-  - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-bom
-      newGroupId: software.amazon.awssdk
-      newArtifactId: bom
-      newVersion: 2.23.0-SNAPSHOT

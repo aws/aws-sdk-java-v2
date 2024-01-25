@@ -35,17 +35,30 @@ def load_all_service_modules():
 def find_v1_equivalent(s):
     return "aws-java-sdk-" + s
 
+
+def write_bom_recipe(f, version):
+    change_bom = '''
+  - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-bom
+      newGroupId: software.amazon.awssdk
+      newArtifactId: bom
+      newVersion: {0}'''
+    f.write(change_bom.format(version))
+
+
 def write_recipe_yml_file(service_mapping):
     filename = os.path.join(RECIPE_ROOT_DIR, MAPPING_FILE_NAME)
-
+    version = find_sdk_version()
     with open(filename, 'w') as f:
         write_copy_right_header(f)
-        write_recipe_metadata(f)
+        write_recipe_metadata(f, version)
+        write_bom_recipe(f, version)
         for s in service_mapping:
-            write_recipe(f, s, service_mapping)
+            write_recipe(f, s, service_mapping, version)
     return filename
 
-def write_recipe_metadata(f):
+def write_recipe_metadata(f, version):
     f.write('''---
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.UpgradeSdkDependencies
@@ -53,15 +66,14 @@ displayName: Change Maven dependency groupId, artifactId and/or the version exam
 recipeList:
 ''')
 
-def write_recipe(f, s, service_mapping):
+def write_recipe(f, s, service_mapping, version):
     change_dependency_group_id_and_artifact_id = '''
-- org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-    oldGroupId: com.amazonaws
-    oldArtifactId: {0}
-    newGroupId: software.amazon.awssdk
-    newArtifactId: {1}
-    newVersion: {2}'''
-    version = find_sdk_version()
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: {0}
+      newGroupId: software.amazon.awssdk
+      newArtifactId: {1}
+      newVersion: {2}'''
     f.write(change_dependency_group_id_and_artifact_id.format(service_mapping[s], s, version))
 
 
