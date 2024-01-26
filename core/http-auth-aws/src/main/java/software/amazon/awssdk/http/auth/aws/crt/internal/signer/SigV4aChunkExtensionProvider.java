@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
+import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
@@ -38,11 +40,8 @@ public class SigV4aChunkExtensionProvider implements ChunkExtensionProvider {
     }
 
     @Override
-    public Pair<byte[], byte[]> get(byte[] chunk) {
+    public Pair<byte[], byte[]> get(ByteBuffer chunk) {
         byte[] chunkSig = signer.sign(chunk);
-        return Pair.of(
-            "chunk-signature".getBytes(StandardCharsets.UTF_8),
-            chunkSig
-        );
+        return Pair.of("chunk-signature".getBytes(StandardCharsets.UTF_8), chunkSig);
     }
 }

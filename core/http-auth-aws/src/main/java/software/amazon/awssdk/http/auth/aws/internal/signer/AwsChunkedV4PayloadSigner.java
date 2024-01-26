@@ -26,6 +26,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerCo
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.moveContentLength;
 
+import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -84,7 +85,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
             .builder()
             .inputStream(payload.newStream())
             .chunkSize(chunkSize)
-            .header(chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8));
+            .header(chunk -> Integer.toHexString(chunk.remaining()).getBytes(StandardCharsets.UTF_8));
 
         preExistingTrailers.forEach(trailer -> chunkedEncodedInputStreamBuilder.addTrailer(() -> trailer));
 
