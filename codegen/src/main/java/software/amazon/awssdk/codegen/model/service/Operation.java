@@ -55,7 +55,7 @@ public class Operation {
 
     private HttpChecksum httpChecksum;
 
-    private RequestCompression requestCompression;
+    private RequestCompression requestcompression;
 
     private Map<String, StaticContextParam> staticContextParams;
 
@@ -202,12 +202,12 @@ public class Operation {
         this.httpChecksum = httpChecksum;
     }
 
-    public RequestCompression getRequestCompression() {
-        return requestCompression;
+    public RequestCompression getRequestcompression() {
+        return requestcompression;
     }
 
-    public void setRequestCompression(RequestCompression requestCompression) {
-        this.requestCompression = requestCompression;
+    public void setRequestcompression(RequestCompression requestcompression) {
+        this.requestcompression = requestcompression;
     }
 
     public Map<String, StaticContextParam> getStaticContextParams() {
