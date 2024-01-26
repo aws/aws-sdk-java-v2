@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Inspector2",
-    "contributor": "",
-    "description": "This release adds ECR container image scanning based on their lastRecordedPullTime."
-}

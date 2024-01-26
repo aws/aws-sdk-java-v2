@@ -1,3 +1,23 @@
+# __2.23.12__ __2024-01-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Improved performance of chunk-encoded streaming uploads, like S3's PutObject.
+
+  - ### Bugfixes
+    - Fixed bug where the ProfileCredentialsProvider would re-read the credentials file with each request by default.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Update list and string length limits for predefined attributes.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now provides an API to programmatically delete tuning jobs.
+
+## __Inspector2__
+  - ### Features
+    - This release adds ECR container image scanning based on their lastRecordedPullTime.
+
 # __2.23.11__ __2024-01-25__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
@@ -4707,7 +4727,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
