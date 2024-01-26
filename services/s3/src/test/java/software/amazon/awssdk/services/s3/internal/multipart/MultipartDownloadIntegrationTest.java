@@ -67,7 +67,7 @@ class MultipartDownloadIntegrationTest {
         SplitAsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> split =
             transformer.split(1024 * 1024 * 32);
         split.publisher().subscribe(downloaderSubscriber);
-        ResponseBytes<GetObjectResponse> res = split.future().join();
+        ResponseBytes<GetObjectResponse> res = split.preparedFuture().join();
         log.info(() -> "complete");
         byte[] bytes = res.asByteArray();
         log.info(() -> String.format("Byte len: %s", bytes.length));
@@ -85,7 +85,7 @@ class MultipartDownloadIntegrationTest {
 
         SplitAsyncResponseTransformer<GetObjectResponse, GetObjectResponse> split = transformer.split(1024 * 1024 * 32);
         split.publisher().subscribe(downloaderSubscriber);
-        GetObjectResponse res = split.future().join();
+        GetObjectResponse res = split.preparedFuture().join();
         log.info(() -> "complete");
         assertTrue(path.toFile().exists());
         assertThat(path.toFile().length()).isEqualTo(fileTestSize * 1024 * 1024);
@@ -101,7 +101,7 @@ class MultipartDownloadIntegrationTest {
         SplitAsyncResponseTransformer<GetObjectResponse, ResponsePublisher<GetObjectResponse>> split =
             transformer.split(1024 * 1024 * 32);
         split.publisher().subscribe(downloaderSubscriber);
-        split.future().whenComplete((res, e) -> {
+        split.preparedFuture().whenComplete((res, e) -> {
             log.info(() -> "complete");
             res.subscribe(new Subscriber<ByteBuffer>() {
                 Subscription subscription;
@@ -129,7 +129,7 @@ class MultipartDownloadIntegrationTest {
                 }
             });
         });
-        split.future().join();
+        split.preparedFuture().join();
     }
 
     // @Test
@@ -143,7 +143,7 @@ class MultipartDownloadIntegrationTest {
         SplitAsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> split =
             transformer.split(1024 * 1024 * 32);
         split.publisher().subscribe(downloaderSubscriber);
-        ResponseInputStream<GetObjectResponse> res = split.future().join();
+        ResponseInputStream<GetObjectResponse> res = split.preparedFuture().join();
         log.info(() -> "complete");
         int total = 0;
         try {

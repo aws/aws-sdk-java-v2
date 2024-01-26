@@ -39,8 +39,8 @@ import software.amazon.awssdk.utils.Validate;
  * <h2>Synchronization</h2>
  * <p>
  * All operations, including those called on the {@link org.reactivestreams.Subscriber} of the stream are guaranteed to be
- * synchronized externally; i.e. no two methods on this interface or on the {@link org.reactivestreams.Subscriber} will be
- * invoked concurrently. It is <b>not</b> guaranteed that the methods will being invoked by the same thread.
+ * synchronized externally; i.e. no two methods on this interface or on the {@link org.reactivestreams.Subscriber} will be invoked
+ * concurrently. It is <b>not</b> guaranteed that the methods will being invoked by the same thread.
  * <p>
  * <h2>Invocation Order</h2>
  * <p>
@@ -82,11 +82,10 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Initial call to enable any setup required before the response is handled.
      * <p>
-     * Note that this will be called for each request attempt, up to the number of retries allowed by the configured {@link
-     * software.amazon.awssdk.core.retry.RetryPolicy}.
+     * Note that this will be called for each request attempt, up to the number of retries allowed by the configured
+     * {@link software.amazon.awssdk.core.retry.RetryPolicy}.
      * <p>
-     * This method is guaranteed to be called before the request is executed, and before {@link #onResponse(Object)} is
-     * signaled.
+     * This method is guaranteed to be called before the request is executed, and before {@link #onResponse(Object)} is signaled.
      *
      * @return The future holding the transformed response.
      */
@@ -107,9 +106,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     void onStream(SdkPublisher<ByteBuffer> publisher);
 
     /**
-     * Called when an error is encountered while making the request or receiving the response.
-     * Implementations should free up any resources in this method. This method may be called
-     * multiple times during the lifecycle of a request if automatic retries are enabled.
+     * Called when an error is encountered while making the request or receiving the response. Implementations should free up any
+     * resources in this method. This method may be called multiple times during the lifecycle of a request if automatic retries
+     * are enabled.
      *
      * @param error Error that occurred.
      */
@@ -124,16 +123,16 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
         CompletableFuture<ResultT> future = new CompletableFuture<>();
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
             new SplittingTransformer<>(this, bufferSize, future);
-        SplitAsyncResponseTransformer.Builder<ResponseT, ResultT> builder = SplitAsyncResponseTransformer.builder();
-        return builder.asyncResponseTransformerPublisher(transformer)
-                      .future(future)
-                      .build();
+        return SplitAsyncResponseTransformer.<ResponseT, ResultT>builder()
+                                            .asyncResponseTransformerPublisher(transformer)
+                                            .future(future)
+                                            .build();
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
-     * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
-     * exception will be thrown.
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
+     * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
+     * be thrown.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
@@ -145,8 +144,8 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified {@link
-     * FileTransformerConfiguration}.
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified
+     * {@link FileTransformerConfiguration}.
      *
      * @param path        Path to file to write to.
      * @param config      configuration for the transformer
@@ -159,8 +158,8 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder,
-     * avoiding the need to create one manually via {@link FileTransformerConfiguration#builder()}.
+     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder, avoiding the
+     * need to create one manually via {@link FileTransformerConfiguration#builder()}.
      *
      * @see #toFile(Path, FileTransformerConfiguration)
      */
@@ -171,9 +170,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
-     * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
-     * exception will be thrown.
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
+     * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
+     * be thrown.
      *
      * @param file        File to write to.
      * @param <ResponseT> Pojo Response type.
@@ -184,8 +183,8 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified {@link
-     * FileTransformerConfiguration}.
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified
+     * {@link FileTransformerConfiguration}.
      *
      * @param file        File to write to.
      * @param config      configuration for the transformer
@@ -198,8 +197,8 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder,
-     * avoiding the need to create one manually via {@link FileTransformerConfiguration#builder()}.
+     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder, avoiding the
+     * need to create one manually via {@link FileTransformerConfiguration#builder()}.
      *
      * @see #toFile(File, FileTransformerConfiguration)
      */
@@ -253,16 +252,14 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an
-     * {@link InputStream}.
+     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an {@link InputStream}.
      * <p>
-     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will
-     * be completed once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This
-     * behavior differs from some other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only
-     * have their {@link CompletableFuture} completed after the entire response body has finished streaming.
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.
      * <p>
-     * You are responsible for performing blocking reads from this input stream and closing the stream when you are
-     * finished.
+     * You are responsible for performing blocking reads from this input stream and closing the stream when you are finished.
      * <p>
      * Example usage:
      * <pre>
@@ -276,7 +273,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * </pre>
      */
     static <ResponseT extends SdkResponse>
-            AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
+    AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
         return new InputStreamResponseTransformer<>();
     }
 }

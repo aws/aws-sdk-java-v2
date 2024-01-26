@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
@@ -39,45 +40,9 @@ class SplittingTransformerTest {
         UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
         CompletableFuture<Object> future = new CompletableFuture<>();
         SplittingTransformer<TestResultObject, Object> split =
-            new SplittingTransformer<>(upstreamTestTransformer, 1024*1024*32, future);
-        split.subscribe(new Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>>() {
-            private Subscription subscription;
-            private int total = 0;
-            @Override
-            public void onSubscribe(Subscription s) {
-                this.subscription = s;
-                s.request(1);
-            }
-
-            @Override
-            public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
-                // simulate what is done during a service call
-                if (total >= 4) {
-                    subscription.cancel();
-                    return;
-                }
-                CompletableFuture<TestResultObject> future = transformer.prepare();
-                future.whenComplete((r, e) -> {
-                    if (e != null) {
-                        fail(e);
-                    }
-                });
-                transformer.onResponse(new TestResultObject("container msg: " + total));
-                transformer.onStream(AsyncRequestBody.fromString(String.format("This is the body of %d.", total)));
-                total++;
-                subscription.request(1);
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                fail("Unexpected onError", t);
-            }
-
-            @Override
-            public void onComplete() {
-                // do nothing, test only
-            }
-        });
+            new SplittingTransformer<>(upstreamTestTransformer, 1024 * 1024 * 32, future);
+        split.subscribe(new CancelAfterNTestSubscriber(
+            4, n -> AsyncRequestBody.fromString(String.format("This is the body of %d.", n))));
         future.join();
         String expected = "This is the body of 0.This is the body of 1.This is the body of 2.This is the body of 3.";
         assertThat(upstreamTestTransformer.contentAsString()).isEqualTo(expected);
@@ -88,97 +53,37 @@ class SplittingTransformerTest {
         UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
         CompletableFuture<Object> future = new CompletableFuture<>();
         SplittingTransformer<TestResultObject, Object> split =
-            new SplittingTransformer<>(upstreamTestTransformer, 1024*1024*32, future);
-        split.subscribe(new Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>>() {
-            private Subscription subscription;
-            private int total = 0;
-
-            @Override
-            public void onSubscribe(Subscription s) {
-                this.subscription = s;
-                s.request(1);
-            }
-
-            @Override
-            public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
-                if (total > 2) {
-                    fail("Did not expect more than 2 request to be made");
-                }
-
-                if (total == 2) {
-                    transformer.exceptionOccurred(new RuntimeException("TEST ERROR " + total));
-                    return;
-                }
-
-                transformer.prepare();
-                transformer.onResponse(new TestResultObject("container msg: " + total));
-                transformer.onStream(AsyncRequestBody.fromString(String.format("This is the body of %d.", total)));
-                total++;
-                subscription.request(1);
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                // do nothing, test only
-            }
-
-            @Override
-            public void onComplete() {
-                // do nothing, test only
-            }
-        });
+            new SplittingTransformer<>(upstreamTestTransformer, 1024 * 1024 * 32, future);
+        split.subscribe(new FailAfterNTestSubscriber(2));
         assertThatThrownBy(future::join).hasMessageContaining("TEST ERROR 2");
     }
 
     @Test
     void whenDataExceedsBufferSize_UpstreamShouldReceiveAllData() {
-        int bodyLength = 7*1024;
-        int amount = 9;
+        int evenBufferSize = 16 * 1024;
+
+        // We send 9 split body of 7kb with a buffer size of 16kb. This is to test when uneven body size is used compared to
+        // the buffer size, this test use a body size which does not evenly divides with the buffer size.
+        int unevenBodyLength = 7 * 1024;
+        int splitAmount = 9;
         UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
         CompletableFuture<Object> future = new CompletableFuture<>();
         SplittingTransformer<TestResultObject, Object> split =
-            new SplittingTransformer<>(upstreamTestTransformer, 16*1024, future);
-        split.subscribe(new Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>>() {
-            private Subscription subscription;
-            private int total = 0;
-            @Override
-            public void onSubscribe(Subscription s) {
-                this.subscription = s;
-                s.request(1);
-            }
-
-            @Override
-            public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
-                if (total >= amount) {
-                    subscription.cancel();
-                    return;
-                }
-                transformer.prepare();
+            new SplittingTransformer<>(upstreamTestTransformer, evenBufferSize, future);
+        split.subscribe(new CancelAfterNTestSubscriber(
+            splitAmount,
+            n -> {
                 String content =
-                    IntStream.range(0, bodyLength).mapToObj(i -> String.valueOf(total)).collect(Collectors.joining());
-                transformer.onResponse(new TestResultObject("response :" + total));
-                transformer.onStream(AsyncRequestBody.fromString(content));
-                total++;
-                subscription.request(1);
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                fail("Unexpected onError", t);
-            }
-
-            @Override
-            public void onComplete() {
-                // do nothing, test only
-            }
-        });
+                    IntStream.range(0, unevenBodyLength).mapToObj(i -> String.valueOf(n)).collect(Collectors.joining());
+                return AsyncRequestBody.fromString(content);
+            }));
         future.join();
         StringBuilder expected = new StringBuilder();
-        for (int i = 0; i < amount; i++) {
+        for (int i = 0; i < splitAmount; i++) {
             int value = i;
-            expected.append(IntStream.range(0, bodyLength).mapToObj(j -> String.valueOf(value)).collect(Collectors.joining()));
+            expected.append(IntStream.range(0, unevenBodyLength).mapToObj(j -> String.valueOf(value)).collect(Collectors.joining()));
         }
-        assertThat(upstreamTestTransformer.contentAsString()).hasSize(bodyLength*amount);
+        assertThat(upstreamTestTransformer.contentAsString()).hasSize(unevenBodyLength * splitAmount);
         assertThat(upstreamTestTransformer.contentAsString()).isEqualTo(expected.toString());
     }
 
@@ -187,48 +92,155 @@ class SplittingTransformerTest {
         UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
         CompletableFuture<Object> future = new CompletableFuture<>();
         SplittingTransformer<TestResultObject, Object> split =
-            new SplittingTransformer<>(upstreamTestTransformer, 1024*1024*32, future);
-        split.subscribe(new Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>>() {
-            private Subscription subscription;
-            private int received = 0;
-            @Override
-            public void onSubscribe(Subscription s) {
-                this.subscription = s;
-                s.request(4);
-            }
-
-            @Override
-            public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
-                received++;
-                transformer.prepare();
-                transformer.onResponse(new TestResultObject("container msg: " + received));
-                transformer.onStream(AsyncRequestBody.fromString(String.format("This is the body of %d.", received)));
-                if (received >= 4) {
-                    subscription.cancel();
-                }
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                fail("unexpected onError", t);
-            }
-
-            @Override
-            public void onComplete() {
-                // do nothing, test only
-            }
-        });
+            new SplittingTransformer<>(upstreamTestTransformer, 1024 * 1024 * 32, future);
+        split.subscribe(new RequestingTestSubscriber(4));
 
         future.join();
         String expected = "This is the body of 1.This is the body of 2.This is the body of 3.This is the body of 4.";
         assertThat(upstreamTestTransformer.contentAsString()).isEqualTo(expected);
     }
 
+    private static class CancelAfterNTestSubscriber
+        implements Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>> {
+
+        private final int n;
+        private Subscription subscription;
+        private int total = 0;
+        private final Function<Integer, AsyncRequestBody> bodySupplier;
+
+        CancelAfterNTestSubscriber(int n, Function<Integer, AsyncRequestBody> bodySupplier) {
+            this.n = n;
+            this.bodySupplier = bodySupplier;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            this.subscription = s;
+            s.request(1);
+        }
+
+        @Override
+        public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
+            // simulate what is done during a service call
+            if (total >= n) {
+                subscription.cancel();
+                return;
+            }
+            CompletableFuture<TestResultObject> future = transformer.prepare();
+            future.whenComplete((r, e) -> {
+                if (e != null) {
+                    fail(e);
+                }
+            });
+            transformer.onResponse(new TestResultObject("container msg: " + total));
+            transformer.onStream(bodySupplier.apply(total));
+            total++;
+            subscription.request(1);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            fail("Unexpected onError", t);
+        }
+
+        @Override
+        public void onComplete() {
+            // do nothing, test only
+        }
+    }
+
+    private static class FailAfterNTestSubscriber
+        implements Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>> {
+
+        private final int n;
+        private Subscription subscription;
+        private int total = 0;
+
+        FailAfterNTestSubscriber(int n) {
+            this.n = n;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            this.subscription = s;
+            s.request(1);
+        }
+
+        @Override
+        public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
+            if (total > n) {
+                fail("Did not expect more than 2 request to be made");
+            }
+
+            if (total == n) {
+                transformer.exceptionOccurred(new RuntimeException("TEST ERROR " + total));
+                return;
+            }
+
+            transformer.prepare();
+            transformer.onResponse(new TestResultObject("container msg: " + total));
+            transformer.onStream(AsyncRequestBody.fromString(String.format("This is the body of %d.", total)));
+            total++;
+            subscription.request(1);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            // do nothing, test only
+        }
+
+        @Override
+        public void onComplete() {
+            // do nothing, test only
+        }
+    }
+
+    private static class RequestingTestSubscriber
+        implements Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>> {
+
+        private final int totalToRequest;
+        private Subscription subscription;
+        private int received = 0;
+
+        RequestingTestSubscriber(int totalToRequest) {
+            this.totalToRequest = totalToRequest;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            this.subscription = s;
+            s.request(totalToRequest);
+        }
+
+        @Override
+        public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
+            received++;
+            transformer.prepare();
+            transformer.onResponse(new TestResultObject("container msg: " + received));
+            transformer.onStream(AsyncRequestBody.fromString(String.format("This is the body of %d.", received)));
+            if (received >= totalToRequest) {
+                subscription.cancel();
+            }
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            fail("unexpected onError", t);
+        }
+
+        @Override
+        public void onComplete() {
+            // do nothing, test only
+        }
+    }
+
+
     private static class UpstreamTestTransformer implements AsyncResponseTransformer<TestResultObject, Object> {
+
         private final CompletableFuture<Object> future;
         private final StringBuilder content = new StringBuilder();
 
-        public UpstreamTestTransformer() {
+        UpstreamTestTransformer() {
             this.future = new CompletableFuture<>();
         }
 
@@ -248,6 +260,7 @@ class SplittingTransformerTest {
             log.info(() -> "[UpstreamTestTransformer] onStream");
             publisher.subscribe(new Subscriber<ByteBuffer>() {
                 private Subscription subscription;
+
                 @Override
                 public void onSubscribe(Subscription s) {
                     this.subscription = s;
@@ -287,8 +300,10 @@ class SplittingTransformerTest {
     }
 
     private static class TestResultObject {
-        String msg;
-        public TestResultObject(String msg) {
+
+        private final String msg;
+
+        TestResultObject(String msg) {
             this.msg = msg;
         }
 

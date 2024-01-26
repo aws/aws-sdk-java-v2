@@ -42,11 +42,20 @@ public final class SplitAsyncResponseTransformer<ResponseT, ResultT> {
             builder.future, "future");
     }
 
+    /**
+     * The individual {@link AsyncResponseTransformer} will be available through the publisher returned by this method.
+     * @return the publisher which publishes the individual {@link AsyncResponseTransformer}
+     */
     public SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher() {
         return this.asyncResponseTransformerPublisher;
     }
 
-    public CompletableFuture<ResultT> future() {
+    /**
+     * The future returned by this method will be completed when the future returned by calling the
+     * {@link AsyncResponseTransformer#prepare()} method on the AsyncResponseTransformer which was split completes.
+     * @return The future
+     */
+    public CompletableFuture<ResultT> preparedFuture() {
         return this.future;
     }
 

@@ -25,7 +25,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * This Subscriber buffers the {@link ByteBuffer} it receives until the specififed maxiimumBuffer is reached, at which point
+ * This Subscriber buffers the {@link ByteBuffer} it receives until the specified maximumBuffer is reached, at which point
  * it sends those bytes to the delegate {@link Subscriber}.
  */
 @SdkInternalApi
