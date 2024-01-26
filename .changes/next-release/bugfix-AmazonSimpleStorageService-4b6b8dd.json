@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "Amazon Simple Storage Service",
     "contributor": "",
-    "description": "Fix for issue [#4720](https://github.com/aws/aws-sdk-java-v2/issues/4720) , Cross Region enabled Clients created in US-EAST-1 will by internally disable global endpoint and do a regional endpoint call."
+    "description": "S3 client configured with crossRegionEnabled(true) will now use us-east-1 regional endpoint instead of the global endpoint. See [#4720](https://github.com/aws/aws-sdk-java-v2/issues/4720)."
 }

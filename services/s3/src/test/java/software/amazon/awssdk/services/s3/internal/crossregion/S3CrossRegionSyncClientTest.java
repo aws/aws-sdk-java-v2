@@ -274,7 +274,7 @@ class S3CrossRegionSyncClientTest {
         verify(mockEndpointProvider).resolveEndpoint(collectionCaptor.capture());
         S3EndpointParams resolvedParams = collectionCaptor.getAllValues().get(0);
         assertThat(resolvedParams.region()).isEqualTo(Region.of(region));
-        assertThat(resolvedParams.useGlobalEndpoint()).isEqualTo(false);
+        assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
     }
 
     private static GetObjectRequest.Builder getObjectBuilder() {
