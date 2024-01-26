@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
+import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataDisableV1Resolver;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.LoadedCredentials;
 import software.amazon.awssdk.auth.credentials.internal.StaticResourcesEndpointProvider;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.Logger;
@@ -53,10 +55,13 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
- *
- * <P>
+ * <p>
  * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
  * credentials from EC2 metadata service and will return null.
+ * <p>
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_V1_DISABLED} or {@link ProfileProperty#EC2_METADATA_V1_DISABLED}
+ * is set to true, credentials will only be loaded from EC2 metadata service if a token is successfully retrieved -
+ * fallback to load credentials without a token will be disabled.
  */
 @SdkPublicApi
 public final class InstanceProfileCredentialsProvider
@@ -225,17 +230,15 @@ public final class InstanceProfileCredentialsProvider
             return HttpResourcesUtils.instance().readResource(tokenEndpoint, "PUT");
         } catch (SdkServiceException e) {
             if (e.statusCode() == 400) {
+
                 throw SdkClientException.builder()
                                         .message("Unable to fetch metadata token.")
                                         .cause(e)
                                         .build();
             }
-
-            log.debug(() -> "Ignoring non-fatal exception while attempting to load metadata token from instance profile.", e);
-            return null;
+            return handleTokenErrorResponse(e);
         } catch (Exception e) {
-            log.debug(() -> "Ignoring non-fatal exception while attempting to load metadata token from instance profile.", e);
-            return null;
+            return handleTokenErrorResponse(e);
         }
     }
 
@@ -245,6 +248,27 @@ public final class InstanceProfileCredentialsProvider
             finalHost = finalHost.substring(0, finalHost.length() - 1);
         }
         return URI.create(finalHost + TOKEN_RESOURCE);
+    }
+
+    private String handleTokenErrorResponse(Exception e) {
+        if (isInsecureFallbackDisabled()) {
+            String message = String.format("Failed to retrieve IMDS token, and fallback to IMDS v1 is disabled via the "
+                                           + "%s system property, %s environment variable, or %s configuration file profile"
+                                           + " setting.",
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.environmentVariable(),
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(),
+                                           ProfileProperty.EC2_METADATA_V1_DISABLED);
+            throw SdkClientException.builder()
+                                    .message(message)
+                                    .cause(e)
+                                    .build();
+        }
+        log.debug(() -> "Ignoring non-fatal exception while attempting to load metadata token from instance profile.", e);
+        return null;
+    }
+
+    private boolean isInsecureFallbackDisabled() {
+        return Ec2MetadataDisableV1Resolver.create(profileFile, profileName).resolve();
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
