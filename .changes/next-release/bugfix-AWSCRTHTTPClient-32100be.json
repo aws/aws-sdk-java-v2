@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Fixed the issue in the AWS CRT sync HTTP client where the connection was left open after the stream was aborted."
-}

@@ -20,14 +20,20 @@ import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3ServiceClientConfiguration;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 import software.amazon.awssdk.services.s3.internal.s3express.S3DisableChunkEncodingAuthSchemeProvider;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * Internal plugin that uses the check if {@link S3Configuration#chunkedEncodingEnabled()} is configured and equals to {@code
+ * false}, if so, then it installs an instance of {@link S3DisableChunkEncodingAuthSchemeProvider} wrapping the configured
+ * {@link S3AuthSchemeProvider} that sets {@link  AwsV4FamilyHttpSigner#CHUNK_ENCODING_ENABLED} to false.
+ */
 @SdkInternalApi
-public class S3DisableChunkEncodingIfConfiguredPlugin implements SdkPlugin {
+public final class S3DisableChunkEncodingIfConfiguredPlugin implements SdkPlugin {
 
     private static final Logger LOG = Logger.loggerFor(S3DisableChunkEncodingIfConfiguredPlugin.class);
 

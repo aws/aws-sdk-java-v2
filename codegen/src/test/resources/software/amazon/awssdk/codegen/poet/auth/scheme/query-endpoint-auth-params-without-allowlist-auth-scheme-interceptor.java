@@ -19,6 +19,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
+import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -96,6 +98,12 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         builder.operationContextParam(endpointParams.operationContextParam());
         String operation = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         builder.operation(operation);
+        if (builder instanceof QueryEndpointResolverAware.Builder) {
+            EndpointProvider endpointProvider = executionAttributes.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+            if (endpointProvider instanceof QueryEndpointProvider) {
+                ((QueryEndpointResolverAware.Builder) builder).endpointProvider((QueryEndpointProvider) endpointProvider);
+            }
+        }
         return builder.build();
     }
 

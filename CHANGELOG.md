@@ -1,3 +1,139 @@
+# __2.23.11__ __2024-01-25__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - AWS Private CA now supports an option to omit the CDP extension from issued certificates, when CRL revocation is enabled.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for IPv6-only instance plans.
+
+# __2.23.10__ __2024-01-24__
+## __AWS Outposts__
+  - ### Features
+    - DeviceSerialNumber parameter is now optional in StartConnection API
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Add DeprecationDate and SoftwareVersion to response of ListGateways.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introduced a new clientToken request parameter on CreateNetworkAcl and CreateRouteTable APIs. The clientToken parameter allows idempotent operations on the APIs.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for Aurora Limitless Database.
+
+# __2.23.9__ __2024-01-23__
+## __Inspector2__
+  - ### Features
+    - This release adds support for CIS scans on EC2 instances.
+
+# __2.23.8__ __2024-01-22__
+## __AWS AppConfig Data__
+  - ### Features
+    - Fix FIPS Endpoints in aws-us-gov.
+
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fixed a thread safety issue that could cause application to crash in the edge case where the SDK attempted to invoke `incrementWindow` after the stream is closed in AWS CRT HTTP Client.
+
+## __AWS Cloud9__
+  - ### Features
+    - Doc-only update around removing AL1 from list of available AMIs for Cloud9
+
+## __AWS Organizations__
+  - ### Features
+    - Doc only update for quota increase change
+
+## __Amazon CloudFront KeyValueStore__
+  - ### Features
+    - This release improves upon the DescribeKeyValueStore API by returning two additional fields, Status of the KeyValueStore and the FailureReason in case of failures during creation of KeyValueStore.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to view audit history on a case and introduces a new parameter, performedBy, for CreateCase and UpdateCase API's.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for Transport Layer Security (TLS) and Configurable Timeout to ECS Service Connect. TLS facilitates privacy and data security for inter-service communications, while Configurable Timeout allows customized per-request timeout and idle timeout for Service Connect services.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Introduced support for the InsufficientDBInstanceCapacityFault error in the RDS CreateDBCluster API method. This provides enhanced error handling, ensuring a more robust experience when creating database clusters with insufficient instance capacity.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Allow customer to set zip default through command line arguments.
+
+# __2.23.7__ __2024-01-19__
+## __AWS CodeBuild__
+  - ### Features
+    - Release CodeBuild Reserved Capacity feature
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Allowing SDK plugins to read and modify S3's crossRegionEnabled and SQS's checksumValidationEnabled
+        - Contributed by: [@anirudh9391](https://github.com/anirudh9391)
+    - Updated endpoint and partition metadata.
+
+## __Amazon Athena__
+  - ### Features
+    - Introducing new NotebookS3LocationUri parameter to Athena ImportNotebook API. Payload is no longer required and either Payload or NotebookS3LocationUri needs to be provided (not both) for a successful ImportNotebook API call. If both are provided, an InvalidRequestException will be thrown.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release adds support for including ApproximateCreationDateTimePrecision configurations in EnableKinesisStreamingDestination API, adds the same as an optional field in the response of DescribeKinesisStreamingDestination, and adds support for a new UpdateKinesisStreamingDestination API.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Increased Quick Response name max length to 100
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@anirudh9391](https://github.com/anirudh9391)
+# __2.23.6__ __2024-01-18__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Increasing TestMapping inputFileContent file size limit to 5MB and adding file size limit 250KB for TestParsing input file. This release also includes exposing InternalServerException for Tag APIs.
+
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fixed the issue in the AWS CRT sync HTTP client where the connection was left open after the stream was aborted.
+
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds a new API ListInsightsMetricData to retrieve metric data from CloudTrail Insights.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 now supports 3 groupings
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Allow support for Snowflake as a Kinesis Data Firehose delivery destination.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Increase BatchGetRecord limits from 10 items to 100 items
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Removed invalid and unnecessary default values.
+
 # __2.23.5__ __2024-01-17__
 ## __AWS Backup Storage, Amazon CodeCatalyst, Amazon Cognito Identity, Amazon Cognito Identity Provider, AWS Identity and Access Management (IAM), Amazon Kinesis, AWS Elemental MediaStore Data Plane, Amazon Transcribe Service, Amazon Transcribe Streaming Service__
   - ### Features
@@ -4571,7 +4707,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

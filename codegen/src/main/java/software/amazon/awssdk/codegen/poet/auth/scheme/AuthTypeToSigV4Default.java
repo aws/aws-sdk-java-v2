@@ -23,6 +23,9 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.utils.Lazy;
 
+/**
+ * Contains maps from all {@link AuthType} to {@link SigV4SignerDefaults} that we can then transform for use in codegen.
+ */
 public final class AuthTypeToSigV4Default {
 
     public static final SigV4SignerDefaults SIGV4_DEFAULT = SigV4SignerDefaults
@@ -65,6 +68,10 @@ public final class AuthTypeToSigV4Default {
         return AUTH_TYPE_TO_DEFAULTS.getValue();
     }
 
+    /**
+     * Returns the list fo all known auth types to s3v4Defaults instances.
+     * @return
+     */
     public static List<SigV4SignerDefaults> knownAuthTypes() {
         return Arrays.asList(
             sigv4Default(),
@@ -132,7 +139,6 @@ public final class AuthTypeToSigV4Default {
     /**
      * Set of default signer defaults for auth-type s3v4. Currently only used by S3Control.
      */
-
     private static SigV4SignerDefaults s3v4Defaults() {
         SigV4SignerDefaults s3v4 = sigv4Default().toBuilder()
                                                  .authType("s3v4")

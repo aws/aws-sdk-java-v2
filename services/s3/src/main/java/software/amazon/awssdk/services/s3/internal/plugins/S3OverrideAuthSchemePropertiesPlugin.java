@@ -42,7 +42,7 @@ import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
  *                                 .credentialsProvider(CREDENTIALS)
  *                                 .httpClient(httpClient)
  *                                 .addPlugin(S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin())
- *                                 .build());
+ *                                 .build();
  * }
  *
  * The plugin can also be used for a particular request, e.g.,

@@ -32,8 +32,6 @@ import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,17 +39,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
-import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -174,41 +168,7 @@ public class S3SignerTest {
         verify(putRequestedFor(anyUrl()).withoutHeader("Content-Encoding"));
     }
 
-    @Test
-    public void headerBasedSignedPayload2() {
-        S3Client s3Client = getS3Client(false, false, URI.create(getEndpoint()));
-        stubFor(any(urlMatching(".*"))
-                    .willReturn(response()));
-        s3Client.putObject(PutObjectRequest.builder()
-                                           .overrideConfiguration(c -> c.addPlugin(S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin()))
-                                           .checksumAlgorithm(ChecksumAlgorithm.SHA256)
-                                           .bucket("test").key("test").build(), RequestBody.fromBytes("abc".getBytes()));
-        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
-        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo("3")));
-        verify(putRequestedFor(anyUrl()).withHeader(SHA256_HEADER.headerName(), equalTo("ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD"
-                                                                                        + "/YfIAFa0=")));
-        verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", notMatching("STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
-                                                                                        + "-TRAILER")));
-        // This keeps changing based on time so matching if a valid string exist as signature.
-        // TODO : mock the clock and make the signature static for given time.
-        verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", matching("\\w+")));
-        verify(putRequestedFor(anyUrl()).withoutHeader("x-amz-trailer"));
-        verify(putRequestedFor(anyUrl()).withoutHeader("Content-Encoding"));
-    }
-
     private ResponseDefinitionBuilder response() {
         return aResponse().withStatus(200).withHeader(CONTENT_LENGTH, "0").withBody("");
-    }
-
-    private static <T> SdkPlugin createPluginToOverride(SignerProperty<T> property, T value) {
-        return config -> {
-            S3ServiceClientConfiguration.Builder s3Config = (S3ServiceClientConfiguration.Builder) config;
-            S3AuthSchemeProvider authSchemeProvider = s3Config.authSchemeProvider();
-            s3Config.authSchemeProvider(authSchemeParams -> {
-                List<AuthSchemeOption> result = authSchemeProvider.resolveAuthScheme(authSchemeParams);
-                return result.stream().map(o -> o.copy(b -> b.putSignerProperty(property, value)))
-                             .collect(Collectors.toList());
-            });
-        };
     }
 }

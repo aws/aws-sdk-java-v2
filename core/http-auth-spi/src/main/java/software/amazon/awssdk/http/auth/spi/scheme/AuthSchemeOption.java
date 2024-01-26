@@ -75,6 +75,7 @@ public interface AuthSchemeOption extends ToCopyableBuilder<AuthSchemeOption.Bui
     /**
      * Interface for operating on an {@link IdentityProperty} value.
      */
+    @FunctionalInterface
     interface IdentityPropertyConsumer {
         /**
          * A method to operate on an {@link IdentityProperty} and it's value.
@@ -88,6 +89,7 @@ public interface AuthSchemeOption extends ToCopyableBuilder<AuthSchemeOption.Bui
     /**
      * Interface for operating on an {@link SignerProperty} value.
      */
+    @FunctionalInterface
     interface SignerPropertyConsumer {
         /**
          * A method to operate on a {@link SignerProperty} and it's value.

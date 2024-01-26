@@ -75,7 +75,8 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                                             .addField(modeledResolverInstance())
                                             .addField(endpointDelegateInstance())
                                             .addMethod(createMethod())
-                                            .addMethod(resolveAuthSchemeMethod(applyServiceDefaults));
+                                            .addMethod(resolveAuthSchemeMethod(applyServiceDefaults))
+                                            .addMethod(endpointProvider());
 
         if (applyServiceDefaults) {
             builder.addMethod(addV4Defaults(operationsToSigv4));
@@ -99,6 +100,25 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                         .initializer("$T.defaultProvider()", endpointRulesSpecUtils.providerInterfaceName())
                         .build();
+    }
+
+    private MethodSpec endpointProvider() {
+        ClassName endpointProviderClass = endpointRulesSpecUtils.providerInterfaceName();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("endpointProvider")
+                                               .addModifiers(Modifier.PRIVATE)
+                                               .returns(endpointProviderClass)
+                                               .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "params");
+
+        ClassName endpointAwareParams = authSchemeSpecUtils.parametersEndpointAwareDefaultImplName();
+        builder.beginControlFlow("if (params instanceof $T)", endpointAwareParams);
+        builder.addStatement("$1T endpointAwareParams = ($1T) params", endpointAwareParams);
+        builder.addStatement("$T endpointProvider = endpointAwareParams.endpointProvider()", endpointProviderClass);
+        builder.beginControlFlow("if (endpointProvider != null)");
+        builder.addStatement("return endpointProvider");
+        builder.endControlFlow();
+        builder.endControlFlow();
+        builder.addStatement("return DELEGATE");
+        return builder.build();
     }
 
     private FieldSpec modeledResolverInstance() {
@@ -132,7 +152,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
             }
         });
         spec.addStatement(".build()");
-        spec.addStatement("$T endpoint = $T.joinLikeSync(DELEGATE.resolveEndpoint(endpointParameters))",
+        spec.addStatement("$T endpoint = $T.joinLikeSync(endpointProvider(params).resolveEndpoint(endpointParameters))",
                           Endpoint.class, CompletableFutureUtils.class);
         spec.addStatement("$T authSchemes = endpoint.attribute($T.AUTH_SCHEMES)",
                           ParameterizedTypeName.get(List.class, EndpointAuthScheme.class), AwsEndpointAttribute.class);

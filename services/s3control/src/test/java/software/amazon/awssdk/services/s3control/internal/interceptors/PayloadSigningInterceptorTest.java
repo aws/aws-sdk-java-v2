@@ -31,7 +31,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 
-public class CreateRequestBodyIfNeededInterceptorTest {
+public class PayloadSigningInterceptorTest {
 
     private SdkHttpRequest request;
 

@@ -45,7 +45,7 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                                                                     .defaultTrueParam(params.defaultTrueParam()).defaultStringParam(params.defaultStringParam())
                                                                     .deprecatedParam(params.deprecatedParam()).booleanContextParam(params.booleanContextParam())
                                                                     .stringContextParam(params.stringContextParam()).operationContextParam(params.operationContextParam()).build();
-        Endpoint endpoint = CompletableFutureUtils.joinLikeSync(DELEGATE.resolveEndpoint(endpointParameters));
+        Endpoint endpoint = CompletableFutureUtils.joinLikeSync(endpointProvider(params).resolveEndpoint(endpointParameters));
         List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
         if (authSchemes == null) {
             return MODELED_RESOLVER.resolveAuthScheme(params);
@@ -80,5 +80,16 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
             }
         }
         return Collections.unmodifiableList(options);
+    }
+
+    private QueryEndpointProvider endpointProvider(QueryAuthSchemeParams params) {
+        if (params instanceof QueryEndpointResolverAware) {
+            QueryEndpointResolverAware endpointAwareParams = (QueryEndpointResolverAware) params;
+            QueryEndpointProvider endpointProvider = endpointAwareParams.endpointProvider();
+            if (endpointProvider != null) {
+                return endpointProvider;
+            }
+        }
+        return DELEGATE;
     }
 }

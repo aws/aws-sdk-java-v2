@@ -18,12 +18,17 @@ package software.amazon.awssdk.services.s3.internal.s3express;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 
-
+/**
+ * Internal plugin that sets the signer property {@link AwsV4FamilyHttpSigner#CHUNK_ENCODING_ENABLED} to {@code false}. This
+ * plugin is invoked by the client builder only if {@link S3Configuration#chunkedEncodingEnabled()} is set to {@code false}.
+ */
 @SdkInternalApi
 public final class S3DisableChunkEncodingAuthSchemeProvider implements S3AuthSchemeProvider {
 
@@ -42,21 +47,21 @@ public final class S3DisableChunkEncodingAuthSchemeProvider implements S3AuthSch
         List<AuthSchemeOption> options = delegate.resolveAuthScheme(authSchemeParams);
         List<AuthSchemeOption> result = options;
 
-        // Duplicates the legacy logic that only disables chunk encoding for the
-        // PutObject and UploadPart operations.
+        // Disables chunk encoding but only for PutObject or UploadPart operations.
         String operation = authSchemeParams.operation();
         if ("PutObject".equals(operation) || "UploadPart".equals(operation)) {
             result = new ArrayList<>(options.size());
             for (AuthSchemeOption option : options) {
-                result.add(option.toBuilder()
-                                 .putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED, false)
-                                 .build());
+                String schemeId = option.schemeId();
+                // We check here that the scheme id is sigV4 or sigV4a or some other in the same family.
+                // We don't set the overrides for non-sigV4 auth schemes.
+                if (schemeId.startsWith(AwsV4AuthScheme.SCHEME_ID)) {
+                    result.add(option.toBuilder()
+                                     .putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED, false)
+                                     .build());
+                }
             }
         }
         return result;
-    }
-
-    public S3AuthSchemeProvider delegate() {
-        return delegate;
     }
 }

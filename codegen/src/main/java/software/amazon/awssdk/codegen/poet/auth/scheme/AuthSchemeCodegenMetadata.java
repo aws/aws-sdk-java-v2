@@ -47,48 +47,6 @@ public final class AuthSchemeCodegenMetadata {
                                                 .build())
         .build();
 
-    static final AuthSchemeCodegenMetadata SIGV4_UNSIGNED_BODY =
-        SIGV4.toBuilder()
-             .addProperty(SignerPropertyValueProvider.builder()
-                                                     .containingClass(AwsV4HttpSigner.class)
-                                                     .fieldName("PAYLOAD_SIGNING_ENABLED")
-                                                     .constantValueSupplier(() -> false)
-                                                     .build())
-             .build();
-
-    static final AuthSchemeCodegenMetadata S3 =
-        SIGV4.toBuilder()
-             .addProperty(SignerPropertyValueProvider.builder()
-                                                     .containingClass(AwsV4HttpSigner.class)
-                                                     .fieldName("DOUBLE_URL_ENCODE")
-                                                     .constantValueSupplier(() -> false)
-                                                     .build())
-             .addProperty(SignerPropertyValueProvider.builder()
-                                                     .containingClass(AwsV4HttpSigner.class)
-                                                     .fieldName("NORMALIZE_PATH")
-                                                     .constantValueSupplier(() -> false)
-                                                     .build())
-             .addProperty(SignerPropertyValueProvider.builder()
-                                                     .containingClass(AwsV4HttpSigner.class)
-                                                     .fieldName("PAYLOAD_SIGNING_ENABLED")
-                                                     .constantValueSupplier(() -> false)
-                                                     .build())
-             .build();
-
-    static final AuthSchemeCodegenMetadata S3V4 =
-        SIGV4.toBuilder()
-             .addProperty(SignerPropertyValueProvider.builder()
-                                                     .containingClass(AwsV4HttpSigner.class)
-                                                     .fieldName("DOUBLE_URL_ENCODE")
-                                                     .constantValueSupplier(() -> false)
-                                                     .build())
-             .addProperty(SignerPropertyValueProvider.builder()
-                                                     .containingClass(AwsV4HttpSigner.class)
-                                                     .fieldName("NORMALIZE_PATH")
-                                                     .constantValueSupplier(() -> false)
-                                                     .build())
-             .build();
-
     static final AuthSchemeCodegenMetadata BEARER = builder()
         .schemeId(BearerAuthScheme.SCHEME_ID)
         .authSchemeClass(BearerAuthScheme.class)
@@ -172,16 +130,13 @@ public final class AuthSchemeCodegenMetadata {
                 return BEARER;
             case NONE:
                 return NO_AUTH;
-            case V4:
-                return SIGV4;
-            case V4_UNSIGNED_BODY:
-                return SIGV4_UNSIGNED_BODY;
-            case S3:
-                return S3;
-            case S3V4:
-                return S3V4;
             default:
-                throw new IllegalArgumentException("Unknown auth type: " + type);
+                String authTypeName = type.value();
+                SigV4SignerDefaults defaults = AuthTypeToSigV4Default.authTypeToDefaults().get(authTypeName);
+                if (defaults == null) {
+                    throw new IllegalArgumentException("Unknown auth type: " + type);
+                }
+                return fromConstants(defaults);
         }
     }
 
