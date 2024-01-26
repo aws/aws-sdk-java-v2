@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -62,17 +63,24 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        return PoetUtils.createClassBuilder(className())
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                        .addAnnotation(SdkInternalApi.class)
-                        .addSuperinterface(authSchemeSpecUtils.providerInterfaceName())
-                        .addMethod(constructor())
-                        .addField(defaultInstance())
-                        .addField(modeledResolverInstance())
-                        .addField(endpointDelegateInstance())
-                        .addMethod(createMethod())
-                        .addMethod(resolveAuthSchemeMethod())
-                        .build();
+        Map<List<String>, AuthSchemeCodegenMetadata> operationsToSigv4 =
+            authSchemeSpecUtils.operationsToNonStandardSigv4Metadata();
+        boolean applyServiceDefaults = !operationsToSigv4.isEmpty();
+        TypeSpec.Builder builder = PoetUtils.createClassBuilder(className())
+                                            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                                            .addAnnotation(SdkInternalApi.class)
+                                            .addSuperinterface(authSchemeSpecUtils.providerInterfaceName())
+                                            .addMethod(constructor())
+                                            .addField(defaultInstance())
+                                            .addField(modeledResolverInstance())
+                                            .addField(endpointDelegateInstance())
+                                            .addMethod(createMethod())
+                                            .addMethod(resolveAuthSchemeMethod(applyServiceDefaults));
+
+        if (applyServiceDefaults) {
+            builder.addMethod(addV4Defaults(operationsToSigv4));
+        }
+        return builder.build();
     }
 
     private MethodSpec constructor() {
@@ -108,7 +116,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec resolveAuthSchemeMethod() {
+    private MethodSpec resolveAuthSchemeMethod(boolean applyServiceDefaults) {
         MethodSpec.Builder spec = MethodSpec.methodBuilder("resolveAuthScheme")
                                             .addModifiers(Modifier.PUBLIC)
                                             .addAnnotation(Override.class)
@@ -136,40 +144,52 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.addStatement("$T options = new $T<>()", ParameterizedTypeName.get(List.class, AuthSchemeOption.class),
                           TypeName.get(ArrayList.class));
         spec.beginControlFlow("for ($T authScheme : authSchemes)", EndpointAuthScheme.class);
-        addAuthSchemeSwitch(spec);
+        addAuthSchemeSwitch(spec, applyServiceDefaults);
         spec.endControlFlow();
         return spec.addStatement("return $T.unmodifiableList(options)", Collections.class)
                    .build();
     }
 
-    private void addAuthSchemeSwitch(MethodSpec.Builder spec) {
+    private void addAuthSchemeSwitch(MethodSpec.Builder spec, boolean applyServiceDefaults) {
         spec.addStatement("$T name = authScheme.name()", String.class);
         spec.beginControlFlow("switch(name)");
-        addAuthSchemeSwitchSigV4Case(spec);
-        addAuthSchemeSwitchSigV4aCase(spec);
+        addAuthSchemeSwitchSigV4Case(spec, applyServiceDefaults);
+        addAuthSchemeSwitchSigV4aCase(spec, applyServiceDefaults);
         if (endpointRulesSpecUtils.useS3Express()) {
-            addAuthSchemeSwitchS3ExpressCase(spec);
+            addAuthSchemeSwitchS3ExpressCase(spec, applyServiceDefaults);
         }
         addAuthSchemeSwitchDefaultCase(spec);
         spec.endControlFlow();
     }
 
-    private void addAuthSchemeSwitchSigV4Case(MethodSpec.Builder spec) {
+    private void addAuthSchemeSwitchSigV4Case(MethodSpec.Builder spec, boolean applyServiceDefaults) {
         spec.addCode("case $S:", "sigv4");
         spec.addStatement("$T sigv4AuthScheme = $T.isInstanceOf($T.class, authScheme, $S, authScheme.getClass().getName())",
                           SigV4AuthScheme.class, Validate.class, SigV4AuthScheme.class,
                           "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s");
 
-        spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4AuthScheme.SCHEME_ID)
-            .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4AuthScheme.signingName())", AwsV4HttpSigner.class)
-            .addCode(".putSignerProperty($T.REGION_NAME, sigv4AuthScheme.signingRegion())", AwsV4HttpSigner.class)
-            .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding())",
-                     AwsV4HttpSigner.class)
-            .addCode(".build());");
+        CodeBlock.Builder block = CodeBlock.builder();
+        block.add("$1T.builder().schemeId($2T.SCHEME_ID)", AuthSchemeOption.class, AwsV4AuthScheme.class)
+             .add(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4AuthScheme.signingName())", AwsV4HttpSigner.class)
+             .add(".putSignerProperty($T.REGION_NAME, sigv4AuthScheme.signingRegion())", AwsV4HttpSigner.class)
+             .add(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding())",
+                  AwsV4HttpSigner.class);
+
+        if (applyServiceDefaults) {
+            spec.addCode("$1T sigv4AuthSchemeOption = applySigV4FamilyDefaults(", AuthSchemeOption.class)
+                .addCode(block.build())
+                .addCode(", params)")
+                .addStatement(".build()");
+        } else {
+            spec.addCode("$1T sigv4AuthSchemeOption = ", AuthSchemeOption.class)
+                .addCode(block.build())
+                .addStatement(".build()");
+        }
+        spec.addStatement("options.add(sigv4AuthSchemeOption)");
         spec.addStatement("break");
     }
 
-    private void addAuthSchemeSwitchSigV4aCase(MethodSpec.Builder spec) {
+    private void addAuthSchemeSwitchSigV4aCase(MethodSpec.Builder spec, boolean applyServiceDefaults) {
         spec.addCode("case $S:", "sigv4a");
 
         spec.addStatement("$T sigv4aAuthScheme = $T.isInstanceOf($T.class, authScheme, $S, authScheme.getClass().getName())",
@@ -178,38 +198,123 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
 
         spec.addStatement("$1T regionSet = $1T.create(sigv4aAuthScheme.signingRegionSet())", RegionSet.class);
 
-        spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, AwsV4aAuthScheme.SCHEME_ID)
-            .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())", AwsV4aHttpSigner.class)
-            .addCode(".putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class)
-            .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4aAuthScheme.disableDoubleEncoding())",
-                     AwsV4aHttpSigner.class)
-            .addCode(".build());");
+        CodeBlock.Builder block = CodeBlock.builder();
+        block.add("$1T.builder().schemeId($2T.SCHEME_ID)", AuthSchemeOption.class,
+                  AwsV4aAuthScheme.class)
+             .add(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())", AwsV4HttpSigner.class)
+             .add(".putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class)
+             .add(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4aAuthScheme.disableDoubleEncoding())", AwsV4HttpSigner.class);
+
+        if (applyServiceDefaults) {
+            spec.addCode("$1T sigv4aAuthSchemeOption = applySigV4FamilyDefaults(", AuthSchemeOption.class)
+                .addCode(block.build())
+                .addCode(", params)")
+                .addStatement(".build()");
+
+        } else {
+            spec.addCode("$1T sigv4aAuthSchemeOption = ", AuthSchemeOption.class)
+                .addCode(block.build())
+                .addStatement(".build()");
+        }
+        spec.addStatement("options.add(sigv4aAuthSchemeOption)");
         spec.addStatement("break");
     }
 
-    private void addAuthSchemeSwitchS3ExpressCase(MethodSpec.Builder spec) {
+    private void addAuthSchemeSwitchS3ExpressCase(MethodSpec.Builder spec, boolean applyServiceDefaults) {
         spec.addCode("case $S:", "sigv4-s3express");
         ClassName s3ExpressEndpointAuthScheme = ClassName.get(
             authSchemeSpecUtils.baseClientPackageName() + ".endpoints.authscheme",
             "S3ExpressEndpointAuthScheme");
+
         spec.addStatement("$T s3ExpressAuthScheme = $T.isInstanceOf($T.class, authScheme, $S, authScheme.getClass().getName())",
                           s3ExpressEndpointAuthScheme, Validate.class, s3ExpressEndpointAuthScheme,
                           "Expecting auth scheme of class S3ExpressAuthScheme, got instead object of class %s");
 
         ClassName s3ExpressAuthScheme = ClassName.get(authSchemeSpecUtils.baseClientPackageName() + ".s3express",
                                                       "S3ExpressAuthScheme");
-        spec.addCode("options.add($T.builder().schemeId($T.SCHEME_ID)", AuthSchemeOption.class, s3ExpressAuthScheme)
-            .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, s3ExpressAuthScheme.signingName())", AwsV4HttpSigner.class)
-            .addCode(".putSignerProperty($T.REGION_NAME, s3ExpressAuthScheme.signingRegion())", AwsV4HttpSigner.class)
-            .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !s3ExpressAuthScheme.disableDoubleEncoding())",
-                     AwsV4HttpSigner.class)
-            .addCode(".build());");
+
+        CodeBlock.Builder block = CodeBlock.builder();
+        block.add("$1T.builder().schemeId($2T.SCHEME_ID)", AuthSchemeOption.class, s3ExpressAuthScheme)
+             .add(".putSignerProperty($T.SERVICE_SIGNING_NAME, s3ExpressAuthScheme.signingName())", AwsV4HttpSigner.class)
+             .add(".putSignerProperty($T.REGION_NAME, s3ExpressAuthScheme.signingRegion())", AwsV4HttpSigner.class)
+             .add(".putSignerProperty($T.DOUBLE_URL_ENCODE, !s3ExpressAuthScheme.disableDoubleEncoding())",
+                  AwsV4HttpSigner.class);
+
+        if (applyServiceDefaults) {
+            spec.addCode("$1T s3ExpressAuthSchemeOption = applySigV4FamilyDefaults(", AuthSchemeOption.class)
+                .addCode(block.build())
+                .addCode(", params)")
+                .addStatement(".build()");
+        } else {
+            spec.addCode("$1T s3ExpressAuthSchemeOption = ", AuthSchemeOption.class)
+                .addCode(block.build())
+                .addStatement(".build()");
+        }
+        spec.addStatement("options.add(s3ExpressAuthSchemeOption)");
         spec.addStatement("break");
+
     }
 
     private void addAuthSchemeSwitchDefaultCase(MethodSpec.Builder spec) {
         spec.addCode("default:");
         spec.addStatement("throw new $T($S + name)", IllegalArgumentException.class, "Unknown auth scheme: ");
+    }
+
+
+    private MethodSpec addV4Defaults(Map<List<String>, AuthSchemeCodegenMetadata> operationsToSigv4) {
+        MethodSpec.Builder spec = MethodSpec.methodBuilder("applySigV4FamilyDefaults")
+                                            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                            .returns(AuthSchemeOption.Builder.class)
+                                            .addParameter(AuthSchemeOption.Builder.class, "option")
+                                            .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "params");
+
+        if (operationsToSigv4.isEmpty()) {
+            return spec.addStatement("return option").build();
+        }
+
+        // All the operations share the same set of auth schemes, no need to create a switch statement.
+        if (operationsToSigv4.size() == 1) {
+            AuthSchemeCodegenMetadata authType = operationsToSigv4.get(Collections.emptyList());
+            addAuthTypeProperties(spec, authType);
+            return spec.build();
+        }
+        spec.beginControlFlow("switch(params.operation())");
+        operationsToSigv4.forEach((ops, scheme) -> {
+            if (!ops.isEmpty()) {
+                addCasesForOperations(spec, ops, scheme);
+            }
+        });
+        AuthSchemeCodegenMetadata authType = operationsToSigv4.get(Collections.emptyList());
+        if (authType != null) {
+            addCasesForOperations(spec, Collections.emptyList(), authType);
+        }
+        spec.endControlFlow();
+        return spec.build();
+    }
+
+    private void addCasesForOperations(MethodSpec.Builder spec, List<String> operations,
+                                       AuthSchemeCodegenMetadata metadata) {
+        if (operations.isEmpty()) {
+            spec.addCode("default:");
+        } else {
+            for (String name : operations) {
+                spec.addCode("case $S:", name);
+            }
+        }
+        addAuthTypeProperties(spec, metadata);
+    }
+
+    public void addAuthTypeProperties(MethodSpec.Builder spec, AuthSchemeCodegenMetadata metadata) {
+        spec.addCode("return option");
+        for (AuthSchemeCodegenMetadata.SignerPropertyValueProvider property : metadata.properties()) {
+            if ("REGION_NAME".equals(property.fieldName())) {
+                continue;
+            }
+            spec.addCode(".putSignerPropertyIfAbsent($T.$N, ", property.containingClass(), property.fieldName());
+            property.emitValue(spec, authSchemeSpecUtils);
+            spec.addCode(")");
+        }
+        spec.addStatement("");
     }
 
     private Map<String, ParameterModel> parameters() {

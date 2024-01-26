@@ -18,6 +18,8 @@ package software.amazon.awssdk.http.auth.aws.signer;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.Identity;
@@ -28,6 +30,12 @@ import software.amazon.awssdk.identity.spi.Identity;
  */
 @SdkPublicApi
 public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T> {
+
+    static boolean isSupported(String schemeId) {
+        return AwsV4AuthScheme.SCHEME_ID.equals(schemeId)
+               || AwsV4aAuthScheme.SCHEME_ID.equals(schemeId);
+    }
+
     /**
      * The name of the AWS service. This property is required.
      */

@@ -34,9 +34,12 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,15 +49,21 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.testing.BaseRuleSetClientTest;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -70,6 +79,7 @@ import software.amazon.awssdk.services.s3.model.Protocol;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @WireMockTest(httpsEnabled = true)
@@ -202,12 +212,14 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         if (clientType == ClientType.SYNC) {
             getSyncClient(protocol, wm, s3ExpressSessionAuth).putObject(putObjectRequest, RequestBody.fromString(PUT_BODY));
         } else {
-            getAsyncClient(protocol, wm, s3ExpressSessionAuth).putObject(putObjectRequest, AsyncRequestBody.fromString(PUT_BODY)).join();
+            getAsyncClient(protocol, wm, s3ExpressSessionAuth).putObject(putObjectRequest,
+                                                                         AsyncRequestBody.fromString(PUT_BODY)).join();
         }
     }
 
-    private void createClientAndCallUploadPart(ClientType clientType, Protocol protocol, S3ExpressSessionAuth s3ExpressSessionAuth,
-                                              ChecksumAlgorithm checksumAlgorithm, WireMockRuntimeInfo wm) {
+    private void createClientAndCallUploadPart(ClientType clientType, Protocol protocol,
+                                               S3ExpressSessionAuth s3ExpressSessionAuth,
+                                               ChecksumAlgorithm checksumAlgorithm, WireMockRuntimeInfo wm) {
         UploadPartRequest.Builder requestBuilder =
             UploadPartRequest.builder().bucket(DEFAULT_BUCKET).key(DEFAULT_KEY).partNumber(0).uploadId("test");
         if (checksumAlgorithm != ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION) {
@@ -217,7 +229,8 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         if (clientType == ClientType.SYNC) {
             getSyncClient(protocol, wm, s3ExpressSessionAuth).uploadPart(uploadPartRequest, RequestBody.fromString(PUT_BODY));
         } else {
-            getAsyncClient(protocol, wm, s3ExpressSessionAuth).uploadPart(uploadPartRequest, AsyncRequestBody.fromString(PUT_BODY)).join();
+            getAsyncClient(protocol, wm, s3ExpressSessionAuth).uploadPart(uploadPartRequest,
+                                                                          AsyncRequestBody.fromString(PUT_BODY)).join();
         }
     }
 
@@ -294,8 +307,8 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         assertThat(headers.get("Content-Length")).isNotNull();
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
 
-        if ((protocol == Protocol.HTTPS || clientType == ClientType.ASYNC)  &&
-              checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION) {
+        if ((protocol == Protocol.HTTPS || clientType == ClientType.ASYNC) &&
+            checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION) {
             assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase("UNSIGNED-PAYLOAD");
         } else {
             assertThat(headers.get("x-amz-decoded-content-length")).isNotNull();
@@ -406,9 +419,9 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
     }
 
     /**
-     * S3Express does not support path style enforcement through client configuration and the endpoint will resolve
-     * to virtual style. However, path style is required for the HTTP client to be able to direct requests to localhost
-     * and the WireMock port.
+     * S3Express does not support path style enforcement through client configuration and the endpoint will resolve to virtual
+     * style. However, path style is required for the HTTP client to be able to direct requests to localhost and the WireMock
+     * port.
      */
     private static final class PathStyleEnforcingInterceptor implements ExecutionInterceptor {
 
@@ -425,15 +438,211 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
     }
 
     private static final class CapturingInterceptor implements ExecutionInterceptor {
+        private SelectedAuthScheme<?> selectedAuthScheme;
         private Map<String, List<String>> headers;
 
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            selectedAuthScheme = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            System.out.printf("AuthScheme Option: %s%n", selectedAuthScheme.authSchemeOption());
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             this.headers = sdkHttpRequest.headers();
             System.out.printf("%s %s%n", sdkHttpRequest.method(), sdkHttpRequest.encodedPath());
             headers.forEach((k, strings) -> System.out.printf("%s, %s%n", k, strings));
             System.out.println();
         }
+    }
+
+    private static class SigV4SignerProperties {
+        private final String schemeId;
+        private final Boolean doubleUrlEncode;
+        private final Boolean normalizePath;
+        private final Boolean payloadSigningEnabled;
+        private final Boolean chunkEncodingEnabled;
+        private final Map<String, SigV4SignerProperties> operations;
+
+        public SigV4SignerProperties(Builder builder) {
+            this.schemeId = Validate.notNull(builder.schemeId, "schemeId");
+            this.doubleUrlEncode = builder.doubleUrlEncode;
+            this.normalizePath = builder.normalizePath;
+            this.payloadSigningEnabled = builder.payloadSigningEnabled;
+            this.chunkEncodingEnabled = builder.chunkEncodingEnabled;
+            this.operations = Collections.unmodifiableMap(new HashMap<>(builder.operations));
+        }
+
+        public String schemeId() {
+            return schemeId;
+        }
+
+        public Boolean doubleUrlEncode() {
+            return doubleUrlEncode;
+        }
+
+        public Boolean normalizePath() {
+            return normalizePath;
+        }
+
+        public Boolean payloadSigningEnabled() {
+            return payloadSigningEnabled;
+        }
+
+        public Boolean chunkEncodingEnabled() {
+            return chunkEncodingEnabled;
+        }
+
+        public Map<String, SigV4SignerProperties> operations() {
+            return operations;
+        }
+
+        public Builder toBuilder() {
+            return new Builder(this);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            SigV4SignerProperties defaults = (SigV4SignerProperties) o;
+            if (!schemeId.equals(defaults.schemeId)) {
+                return false;
+            }
+            if (!Objects.equals(doubleUrlEncode, defaults.doubleUrlEncode)) {
+                return false;
+            }
+            if (!Objects.equals(normalizePath, defaults.normalizePath)) {
+                return false;
+            }
+            if (!Objects.equals(payloadSigningEnabled, defaults.payloadSigningEnabled)) {
+                return false;
+            }
+            if (!Objects.equals(chunkEncodingEnabled, defaults.chunkEncodingEnabled)) {
+                return false;
+            }
+            return operations.equals(defaults.operations);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = schemeId.hashCode();
+            result = 31 * result + (doubleUrlEncode != null ? doubleUrlEncode.hashCode() : 0);
+            result = 31 * result + (normalizePath != null ? normalizePath.hashCode() : 0);
+            result = 31 * result + (payloadSigningEnabled != null ? payloadSigningEnabled.hashCode() : 0);
+            result = 31 * result + (chunkEncodingEnabled != null ? chunkEncodingEnabled.hashCode() : 0);
+            result = 31 * result + operations.hashCode();
+            return result;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static Builder fromAuthSchemeOption(AuthSchemeOption option) {
+            if (!option.schemeId().startsWith(AwsV4AuthScheme.SCHEME_ID)) {
+                throw new IllegalArgumentException("unsupported auth scheme option");
+            }
+            Builder builder = builder();
+            builder.schemeId(option.schemeId());
+            option.forEachSignerProperty(builder::putSignerProperty);
+            return builder;
+        }
+
+
+        public static class Builder {
+            private String schemeId;
+            private Boolean doubleUrlEncode;
+            private Boolean normalizePath;
+            private Boolean payloadSigningEnabled;
+            private Boolean chunkEncodingEnabled;
+
+            private Map<String, SigV4SignerProperties> operations = new HashMap<>();
+
+            public Builder() {
+            }
+
+            public Builder(SigV4SignerProperties other) {
+                this.schemeId = Validate.notNull(other.schemeId, "schemeId");
+                this.doubleUrlEncode = other.doubleUrlEncode;
+                this.normalizePath = other.normalizePath;
+                this.payloadSigningEnabled = other.payloadSigningEnabled;
+                this.chunkEncodingEnabled = other.chunkEncodingEnabled;
+                this.operations.putAll(other.operations);
+            }
+
+            public String schemeId() {
+                return schemeId;
+            }
+
+            public Builder schemeId(String schemeId) {
+                this.schemeId = schemeId;
+                return this;
+            }
+
+            public Boolean doubleUrlEncode() {
+                return doubleUrlEncode;
+            }
+
+            public Builder doubleUrlEncode(Boolean doubleUrlEncode) {
+                this.doubleUrlEncode = doubleUrlEncode;
+                return this;
+            }
+
+            public Boolean normalizePath() {
+                return normalizePath;
+            }
+
+            public Builder normalizePath(Boolean normalizePath) {
+                this.normalizePath = normalizePath;
+                return this;
+            }
+
+            public Boolean payloadSigningEnabled() {
+                return payloadSigningEnabled;
+            }
+
+            public Builder payloadSigningEnabled(Boolean payloadSigningEnabled) {
+                this.payloadSigningEnabled = payloadSigningEnabled;
+                return this;
+            }
+
+            public Boolean chunkEncodingEnabled() {
+                return chunkEncodingEnabled;
+            }
+
+            public Builder chunkEncodingEnabled(Boolean chunkEncodingEnabled) {
+                this.chunkEncodingEnabled = chunkEncodingEnabled;
+                return this;
+            }
+
+            public Map<String, SigV4SignerProperties> operations() {
+                return operations;
+            }
+
+            public Builder putOperation(String name, SigV4SignerProperties constants) {
+                this.operations.put(name, constants);
+                return this;
+            }
+
+            public <T> void putSignerProperty(SignerProperty<T> key, T value) {
+                if (AwsV4HttpSigner.DOUBLE_URL_ENCODE.equals(key)) {
+                    doubleUrlEncode((Boolean) value);
+                } else if (AwsV4HttpSigner.NORMALIZE_PATH.equals(key)) {
+                    normalizePath((Boolean) value);
+                } else if (AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED.equals(key)) {
+                    payloadSigningEnabled((Boolean) value);
+                } else if (AwsV4HttpSigner.CHUNK_ENCODING_ENABLED.equals(key)) {
+                    normalizePath((Boolean) value);
+                }
+            }
+
+            public SigV4SignerProperties build() {
+                return new SigV4SignerProperties(this);
+            }
+        }
+
     }
 }

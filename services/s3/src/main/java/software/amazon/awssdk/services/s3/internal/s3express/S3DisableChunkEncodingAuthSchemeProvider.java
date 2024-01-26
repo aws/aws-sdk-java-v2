@@ -18,35 +18,40 @@ package software.amazon.awssdk.services.s3.internal.s3express;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
-import software.amazon.awssdk.identity.spi.IdentityProperty;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 
 
 @SdkInternalApi
-public final class S3ExpressAuthSchemeProvider implements S3AuthSchemeProvider {
-
-    public static final IdentityProperty<String> BUCKET = IdentityProperty.create(String.class, "Bucket");
+public final class S3DisableChunkEncodingAuthSchemeProvider implements S3AuthSchemeProvider {
 
     private final S3AuthSchemeProvider delegate;
 
-    private S3ExpressAuthSchemeProvider(S3AuthSchemeProvider delegate) {
+    private S3DisableChunkEncodingAuthSchemeProvider(S3AuthSchemeProvider delegate) {
         this.delegate = delegate;
     }
 
-    public static S3ExpressAuthSchemeProvider create(S3AuthSchemeProvider delegate) {
-        return new S3ExpressAuthSchemeProvider(delegate);
+    public static S3DisableChunkEncodingAuthSchemeProvider create(S3AuthSchemeProvider delegate) {
+        return new S3DisableChunkEncodingAuthSchemeProvider(delegate);
     }
 
     @Override
     public List<AuthSchemeOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams) {
         List<AuthSchemeOption> options = delegate.resolveAuthScheme(authSchemeParams);
-        List<AuthSchemeOption> result = new ArrayList<>(options.size());
-        for (AuthSchemeOption option : options) {
-            result.add(option.toBuilder()
-                             .putIdentityProperty(BUCKET, authSchemeParams.bucket())
-                             .build());
+        List<AuthSchemeOption> result = options;
+
+        // Duplicates the legacy logic that only disables chunk encoding for the
+        // PutObject and UploadPart operations.
+        String operation = authSchemeParams.operation();
+        if ("PutObject".equals(operation) || "UploadPart".equals(operation)) {
+            result = new ArrayList<>(options.size());
+            for (AuthSchemeOption option : options) {
+                result.add(option.toBuilder()
+                                 .putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED, false)
+                                 .build());
+            }
         }
         return result;
     }
