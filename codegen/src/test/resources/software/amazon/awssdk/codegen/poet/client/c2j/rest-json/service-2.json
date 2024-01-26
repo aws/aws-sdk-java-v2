@@ -28,7 +28,7 @@
         "method": "POST",
         "requestUri": "/"
       },
-      "requestCompression": {
+      "requestcompression": {
         "encodings": ["gzip"]
       }
     },
