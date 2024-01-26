@@ -64,13 +64,10 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
         }
         String bucketName = bucketRequest.get();
         try {
-            if (bucketToRegionCache.containsKey(bucketName)) {
-                return operation.apply(
-                    requestWithDecoratedEndpointProvider(userAgentUpdatedRequest,
-                                                         () -> bucketToRegionCache.get(bucketName),
-                                                         serviceClientConfiguration().endpointProvider().get()));
-            }
-            return operation.apply(userAgentUpdatedRequest);
+            return operation.apply(
+                requestWithDecoratedEndpointProvider(userAgentUpdatedRequest,
+                                                     () -> bucketToRegionCache.get(bucketName),
+                                                     serviceClientConfiguration().endpointProvider().get()));
         } catch (S3Exception exception) {
             if (isS3RedirectException(exception)) {
                 updateCacheFromRedirectException(exception, bucketName);
