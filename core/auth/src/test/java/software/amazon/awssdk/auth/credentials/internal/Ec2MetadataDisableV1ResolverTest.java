@@ -18,7 +18,6 @@ package software.amazon.awssdk.auth.credentials.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,7 +33,6 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 
-@WireMockTest
 public class Ec2MetadataDisableV1ResolverTest {
 
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();

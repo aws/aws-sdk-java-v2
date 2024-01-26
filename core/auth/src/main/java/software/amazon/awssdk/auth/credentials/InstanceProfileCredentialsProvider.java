@@ -252,10 +252,12 @@ public final class InstanceProfileCredentialsProvider
 
     private String handleTokenErrorResponse(Exception e) {
         if (isInsecureFallbackDisabled()) {
-            String message = String.format("Failed to retrieve IMDS token, and fallback to IMDS v1 is disabled via the %s "
-                                           + "environment variable and/or %s system property",
+            String message = String.format("Failed to retrieve IMDS token, and fallback to IMDS v1 is disabled via the "
+                                           + "%s system property, %s environment variable, or %s configuration file profile"
+                                           + " setting.",
                                            SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.environmentVariable(),
-                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property());
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(),
+                                           ProfileProperty.EC2_METADATA_V1_DISABLED);
             throw SdkClientException.builder()
                                     .message(message)
                                     .cause(e)

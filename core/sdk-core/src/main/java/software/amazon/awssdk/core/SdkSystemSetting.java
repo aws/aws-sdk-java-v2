@@ -77,7 +77,7 @@ public enum SdkSystemSetting implements SystemSetting {
 
     /**
      * The EC2 instance metadata service endpoint.
-     // *
+     *
      * This allows a service running in EC2 to automatically load its credentials and region without needing to configure them
      * in the SdkClientBuilder.
      */
