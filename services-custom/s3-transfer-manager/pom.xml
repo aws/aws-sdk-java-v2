@@ -25,7 +25,6 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>s3-transfer-manager</artifactId>
-    <version>${awsjavasdk.version}</version>
     <name>AWS Java SDK :: S3 :: Transfer Manager</name>
     <description>
         The S3 Transfer Manager allows customers to easily and optimally
