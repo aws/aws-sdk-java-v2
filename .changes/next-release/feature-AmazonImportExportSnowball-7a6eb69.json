@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Import/Export Snowball",
+    "contributor": "",
+    "description": "Modified description of createaddress to include direction to add path when providing a JSON file."
+}
