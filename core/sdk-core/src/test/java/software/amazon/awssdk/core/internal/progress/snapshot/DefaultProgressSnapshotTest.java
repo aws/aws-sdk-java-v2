@@ -39,10 +39,6 @@ public class DefaultProgressSnapshotTest {
                                                              .transferredBytes(2L)
                                                              .totalBytes(1L),
                                       new IllegalArgumentException()),
-                         Arguments.of("startTime must not be null.",
-                                      DefaultProgressSnapshot.builder()
-                                                             .transferredBytes(2L),
-                                      new NullPointerException()),
                          Arguments.of("transferredBytes must not be negative",
                                       DefaultProgressSnapshot.builder()
                                                              .transferredBytes(-2L),

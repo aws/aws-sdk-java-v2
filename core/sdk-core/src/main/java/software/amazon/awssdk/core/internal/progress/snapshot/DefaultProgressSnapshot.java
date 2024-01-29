@@ -52,7 +52,6 @@ public class DefaultProgressSnapshot
         this.transferredBytes = Validate.isNotNegative(builder.transferredBytes, "transferredBytes");
         this.totalBytes = builder.totalBytes;
 
-        Validate.paramNotNull(builder.startTime, "startTime");
         this.startTime = builder.startTime;
     }
 
