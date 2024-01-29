@@ -132,14 +132,6 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3CrossRegionRedirectT
     }
 
     @Override
-    protected void stubApiWithAuthorizationHeaderMalformedError() {
-        when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(
-                new CompletionException(redirectException(400, null, "AuthorizationHeaderMalformed", null))))
-            .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()));
-    }
-
-    @Override
     protected void stubApiWithAuthorizationHeaderWithInternalSoftwareError() {
 
         when(mockDelegateAsyncClient.headBucket(any(HeadBucketRequest.class)))
@@ -148,16 +140,6 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3CrossRegionRedirectT
         when(mockDelegateAsyncClient.headBucket(any(Consumer.class)))
             .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(500,null,
                                                                                                       "InternalError", null))));
-    }
-
-    @Override
-    protected void stubHeadBucketRedirectWithAuthorizationHeaderMalformed() {
-        when(mockDelegateAsyncClient.headBucket(any(HeadBucketRequest.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(
-                new CompletionException(redirectException(400,CROSS_REGION.id(), "AuthorizationHeaderMalformed", null))));
-        when(mockDelegateAsyncClient.headBucket(any(Consumer.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(
-                new CompletionException(redirectException(400,CROSS_REGION.id(), "AuthorizationHeaderMalformed", null))));
     }
 
     @Override
