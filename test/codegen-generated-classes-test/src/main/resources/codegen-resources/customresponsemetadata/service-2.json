@@ -294,7 +294,7 @@
       },
       "input":{"shape":"RequestCompressionStructure"},
       "output":{"shape":"RequestCompressionStructure"},
-      "requestCompression": {
+      "requestcompression": {
         "encodings": ["gzip"]
       }
     },
@@ -306,7 +306,7 @@
       },
       "input":{"shape":"RequestCompressionStructureWithStreaming"},
       "output":{"shape":"RequestCompressionStructureWithStreaming"},
-      "requestCompression": {
+      "requestcompression": {
         "encodings": ["gzip"]
       },
       "authtype":"v4-unsigned-body"
