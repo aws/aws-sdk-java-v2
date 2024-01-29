@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Comprehend",
+    "contributor": "",
+    "description": "Comprehend PII analysis now supports Spanish input documents."
+}
