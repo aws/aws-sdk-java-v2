@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMWAA",
-    "contributor": "",
-    "description": "This release adds MAINTENANCE environment status for Amazon MWAA environments."
-}
