@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CHANGED_CROSS_REGION;
@@ -437,17 +438,17 @@ class S3CrossRegionAsyncClientTest {
             .thenReturn(CompletableFuture.completedFuture(Endpoint.builder().url(URI.create("https://bucket.s3.amazonaws.com")).build()));
 
         S3AsyncClient s3Client = clientBuilder().crossRegionAccessEnabled(true)
-                                           .region(Region.of(region))
-                                           .endpointProvider(mockEndpointProvider).build();
+                                                .region(Region.of(region))
+                                                .endpointProvider(mockEndpointProvider).build();
         s3Client.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
         ArgumentCaptor<S3EndpointParams> collectionCaptor = ArgumentCaptor.forClass(S3EndpointParams.class);
-        verify(mockEndpointProvider).resolveEndpoint(collectionCaptor.capture());
-        S3EndpointParams resolvedParams = collectionCaptor.getAllValues().get(0);
-        assertThat(resolvedParams.region()).isEqualTo(Region.of(region));
-        assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
+        verify(mockEndpointProvider, atLeastOnce()).resolveEndpoint(collectionCaptor.capture());
+        collectionCaptor.getAllValues().forEach(resolvedParams -> {
+            assertThat(resolvedParams.region()).isEqualTo(Region.of(region));
+            assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
+        });
     }
-
 
     private S3AsyncClientBuilder clientBuilder() {
         return S3AsyncClient.builder()
