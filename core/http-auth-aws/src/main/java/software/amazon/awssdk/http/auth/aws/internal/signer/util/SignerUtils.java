@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerCo
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
@@ -232,6 +233,16 @@ public final class SignerUtils {
                 read = input.read(buf);
                 md.update(buf, 0, read);
             }
+            return md.digest();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to compute hash while signing request: ", e);
+        }
+    }
+
+    public static byte[] hash(ByteBuffer input) {
+        try {
+            MessageDigest md = getMessageDigestInstance();
+            md.update(input);
             return md.digest();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
