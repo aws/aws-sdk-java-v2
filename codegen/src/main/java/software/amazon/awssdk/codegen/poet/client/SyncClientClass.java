@@ -148,8 +148,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethod(resolveMetricPublishersMethod());
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
-        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
-                                                          "S3".equals(model.getMetadata().getServiceName())));
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         type.addMethod(protocolSpec.initProtocolFactory(model));
     }
 
@@ -197,7 +196,9 @@ public class SyncClientClass extends SyncClientInterface {
                         .addModifiers(PROTECTED)
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
-                        .addStatement("this.clientConfiguration = clientConfiguration");
+                        .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
+                                      + ".option($T.SDK_CLIENT, this)"
+                                      + ".build()", SdkClientOption.class);
 
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
@@ -426,8 +427,7 @@ public class SyncClientClass extends SyncClientInterface {
     }
 
     protected MethodSpec updateSdkClientConfigurationMethod(
-        TypeName serviceClientConfigurationBuilderClassName,
-        boolean shouldAddClientReference) {
+        TypeName serviceClientConfigurationBuilderClassName) {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
                                                .addModifiers(PRIVATE)
                                                .addParameter(SdkRequest.class, "request")
@@ -438,10 +438,6 @@ public class SyncClientClass extends SyncClientInterface {
                              + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class))
                .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
-
-        if (shouldAddClientReference) {
-            builder.addStatement("configuration.option($T.SDK_CLIENT, this)", SdkClientOption.class);
-        }
 
         builder.beginControlFlow("if (plugins.isEmpty())")
                .addStatement("return configuration.build()")
