@@ -1,3 +1,36 @@
+# __2.23.13__ __2024-01-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Comprehend PII analysis now supports Spanish input documents.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 Fleet customers who use attribute based instance-type selection can now intuitively define their Spot instances price protection limit as a percentage of the lowest priced On-Demand instance type.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Modified description of createaddress to include direction to add path when providing a JSON file.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Introduced support for the InsufficientDBInstanceCapacityFault error in the RDS RestoreDBClusterFromSnapshot and RestoreDBClusterToPointInTime API methods. This provides enhanced error handling, ensuring a more robust experience.
+
+## __Amazon Simple Storage Service__
+  - ### Bugfixes
+    - S3 client configured with crossRegionEnabled(true) will now use us-east-1 regional endpoint instead of the global endpoint. See [#4720](https://github.com/aws/aws-sdk-java-v2/issues/4720).
+
+## __AmazonMWAA__
+  - ### Features
+    - This release adds MAINTENANCE environment status for Amazon MWAA environments.
+
+## __Auto Scaling__
+  - ### Features
+    - EC2 Auto Scaling customers who use attribute based instance-type selection can now intuitively define their Spot instances price protection limit as a percentage of the lowest priced On-Demand instance type.
+
 # __2.23.12__ __2024-01-26__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -2986,7 +3019,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes

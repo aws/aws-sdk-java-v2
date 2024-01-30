@@ -17,14 +17,13 @@ package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponseWithUnknownErrorCode;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.successHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CHANGED_CROSS_REGION;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CROSS_REGION;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CROSS_REGION_BUCKET;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.OVERRIDE_CONFIGURED_REGION;
 
 import java.net.URI;
@@ -271,10 +270,11 @@ class S3CrossRegionSyncClientTest {
         s3Client.getObject(getObjectBuilder().build());
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
         ArgumentCaptor<S3EndpointParams> collectionCaptor = ArgumentCaptor.forClass(S3EndpointParams.class);
-        verify(mockEndpointProvider).resolveEndpoint(collectionCaptor.capture());
-        S3EndpointParams resolvedParams = collectionCaptor.getAllValues().get(0);
-        assertThat(resolvedParams.region()).isEqualTo(Region.of(region));
-        assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
+        verify(mockEndpointProvider,  atLeastOnce()).resolveEndpoint(collectionCaptor.capture());
+        collectionCaptor.getAllValues().forEach(resolvedParams ->{
+            assertThat(resolvedParams.region()).isEqualTo(Region.of(region));
+            assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
+        });
     }
 
     private static GetObjectRequest.Builder getObjectBuilder() {
