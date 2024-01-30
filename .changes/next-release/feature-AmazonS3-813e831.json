@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Reduce memory usage when request-level plugins aren't used."
+}
