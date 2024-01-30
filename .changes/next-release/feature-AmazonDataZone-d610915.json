@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DataZone",
-    "contributor": "",
-    "description": "Add new skipDeletionCheck to DeleteDomain. Add new skipDeletionCheck to DeleteProject which also automatically deletes dependent objects"
-}
