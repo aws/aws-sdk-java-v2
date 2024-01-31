@@ -28,7 +28,6 @@
     <artifactId>aws-crt-client</artifactId>
     <name>AWS Java SDK :: HTTP Clients :: AWS Common Runtime Client</name>
     <packaging>jar</packaging>
-    <version>${awsjavasdk.version}</version>
 
     <properties>
         <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
