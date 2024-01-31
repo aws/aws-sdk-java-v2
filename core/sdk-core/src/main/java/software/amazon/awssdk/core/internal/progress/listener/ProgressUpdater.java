@@ -19,17 +19,13 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
 import software.amazon.awssdk.core.internal.progress.ProgressListenerContext;
 import software.amazon.awssdk.core.internal.progress.ProgressListenerFailedContext;
 import software.amazon.awssdk.core.internal.progress.snapshot.DefaultProgressSnapshot;
-import software.amazon.awssdk.core.progress.listener.SdkRequestProgress;
+import software.amazon.awssdk.core.progress.listener.SdkExchangeProgress;
 import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 
 /**
@@ -37,8 +33,8 @@ import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
  */
 @SdkInternalApi
 public class ProgressUpdater {
-    private final DefaultSdkRequestProgress uploadProgress;
-    private final DefaultSdkRequestProgress downloadProgress;
+    private final DefaultSdkExchangeProgress requestBodyProgress;
+    private final DefaultSdkExchangeProgress responseBodyProgress;
     private final ProgressListenerContext context;
     private final ProgressListenerInvoker listenerInvoker;
     private final CompletableFuture<Void> endOfStreamFuture;
@@ -50,14 +46,14 @@ public class ProgressUpdater {
         Optional.ofNullable(contentLength).ifPresent(uploadProgressSnapshotBuilder::totalBytes);
 
         ProgressSnapshot uploadProgressSnapshot = uploadProgressSnapshotBuilder.build();
-        uploadProgress = new DefaultSdkRequestProgress(uploadProgressSnapshot);
+        requestBodyProgress = new DefaultSdkExchangeProgress(uploadProgressSnapshot);
 
         DefaultProgressSnapshot.Builder downloadProgressSnapshotBuilder = DefaultProgressSnapshot.builder();
         downloadProgressSnapshotBuilder.transferredBytes(0L);
         Optional.ofNullable(contentLength).ifPresent(downloadProgressSnapshotBuilder::totalBytes);
 
         ProgressSnapshot downloadProgressSnapshot = downloadProgressSnapshotBuilder.build();
-        downloadProgress = new DefaultSdkRequestProgress(downloadProgressSnapshot);
+        responseBodyProgress = new DefaultSdkExchangeProgress(downloadProgressSnapshot);
 
         context = ProgressListenerContext.builder()
                                          .request(sdkRequest)
@@ -65,97 +61,19 @@ public class ProgressUpdater {
                                          .downloadProgressSnapshot(downloadProgressSnapshot)
                                          .build();
 
-        listenerInvoker = sdkRequest.overrideConfiguration().get().progressListeners() == null
+        listenerInvoker = (!sdkRequest.overrideConfiguration().isPresent() || sdkRequest.overrideConfiguration().get().progressListeners() == null)
                           ? new ProgressListenerInvoker((Collections.emptyList()))
                           : new ProgressListenerInvoker(sdkRequest.overrideConfiguration().get().progressListeners());
 
         endOfStreamFuture = new CompletableFuture<>();
     }
 
-    public SdkRequestProgress uploadProgress() {
-        return uploadProgress;
+    public SdkExchangeProgress requestBodyProgress() {
+        return requestBodyProgress;
     }
 
-    public SdkRequestProgress downloadProgress() {
-        return downloadProgress;
-    }
-
-    public AsyncRequestBody wrapUploadRequestBody(AsyncRequestBody requestBody) {
-        return AsyncRequestBodyListener.wrap(
-            requestBody,
-            new AsyncRequestBodyListener() {
-                final AtomicBoolean done = new AtomicBoolean(false);
-
-                @Override
-                public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    resetBytesSent();
-                }
-
-                @Override
-                public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    incrementBytesSent(byteBuffer.limit());
-                    uploadProgress.progressSnapshot().ratioTransferred().ifPresent(ratioTransferred -> {
-                        if (Double.compare(ratioTransferred, 1.0) == 0) {
-                            endOfStreamFutureCompleted();
-                        }
-                    });
-                }
-
-                @Override
-                public void subscriberOnError(Throwable t) {
-                    attemptFailure(t);
-                }
-
-                @Override
-                public void subscriberOnComplete() {
-                    endOfStreamFutureCompleted();
-                }
-
-                private void endOfStreamFutureCompleted() {
-                    if (done.compareAndSet(false, true)) {
-                        endOfStreamFuture.complete(null);
-                    }
-                }
-            });
-    }
-
-    public AsyncRequestBody wrapDownloadRequestBody(AsyncRequestBody requestBody) {
-        return AsyncRequestBodyListener.wrap(
-            requestBody,
-            new AsyncRequestBodyListener() {
-                final AtomicBoolean done = new AtomicBoolean(false);
-
-                @Override
-                public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    resetBytesReceived();
-                }
-
-                @Override
-                public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    incrementBytesReceived(byteBuffer.limit());
-                    downloadProgress.progressSnapshot().ratioTransferred().ifPresent(ratioTransferred -> {
-                        if (Double.compare(ratioTransferred, 1.0) == 0) {
-                            endOfStreamFutureCompleted();
-                        }
-                    });
-                }
-
-                @Override
-                public void subscriberOnError(Throwable t) {
-                    attemptFailure(t);
-                }
-
-                @Override
-                public void subscriberOnComplete() {
-                    endOfStreamFutureCompleted();
-                }
-
-                private void endOfStreamFutureCompleted() {
-                    if (done.compareAndSet(false, true)) {
-                        endOfStreamFuture.complete(null);
-                    }
-                }
-            });
+    public SdkExchangeProgress responseBodyProgress() {
+        return responseBodyProgress;
     }
 
     public void requestPrepared() {
@@ -167,37 +85,31 @@ public class ProgressUpdater {
     }
 
     public void resetBytesSent() {
-        uploadProgress.updateAndGet(b -> b.transferredBytes(0L));
+        requestBodyProgress.updateAndGet(b -> b.transferredBytes(0L));
     }
 
     public void resetBytesReceived() {
-        downloadProgress.updateAndGet(b -> b.transferredBytes(0L));
+        responseBodyProgress.updateAndGet(b -> b.transferredBytes(0L));
     }
 
     public void incrementBytesSent(long numBytes) {
-        long uploadBytes = uploadProgress.progressSnapshot().transferredBytes();
+        long uploadBytes = requestBodyProgress.progressSnapshot().transferredBytes();
 
-        ProgressSnapshot snapshot = uploadProgress.updateAndGet(b -> b.transferredBytes(uploadBytes + numBytes));
+        ProgressSnapshot snapshot = requestBodyProgress.updateAndGet(b -> b.transferredBytes(uploadBytes + numBytes));
         listenerInvoker.requestBytesSent(context.copy(b -> b.uploadProgressSnapshot(snapshot)));
     }
 
     public void incrementBytesReceived(long numBytes) {
-        long downloadedBytes = downloadProgress.progressSnapshot().transferredBytes();
+        long downloadedBytes = responseBodyProgress.progressSnapshot().transferredBytes();
 
-        ProgressSnapshot snapshot = downloadProgress.updateAndGet(b -> b.transferredBytes(downloadedBytes + numBytes));
+        ProgressSnapshot snapshot = responseBodyProgress.updateAndGet(b -> b.transferredBytes(downloadedBytes + numBytes));
         listenerInvoker.responseBytesReceived(context.copy(b -> b.downloadProgressSnapshot(snapshot)));
     }
 
     public void registerCompletion(CompletableFuture<? extends SdkResponse> future) {
         future.whenComplete((r, t) -> {
             if (t == null) {
-                endOfStreamFuture.whenComplete((r2, t2) -> {
-                    if (t2 == null) {
-                        executionSuccess(r);
-                    } else {
-                        attemptFailure(t2);
-                    }
-                });
+                attachEndOfStreamFutureCallback(r);
             } else {
                 executionFailure(t);
             }
@@ -219,9 +131,9 @@ public class ProgressUpdater {
                                                                           context.copy(
                                                                               b -> {
                                                                                   b.uploadProgressSnapshot(
-                                                                                      uploadProgress.progressSnapshot());
+                                                                                      requestBodyProgress.progressSnapshot());
                                                                                   b.downloadProgressSnapshot(
-                                                                                      downloadProgress.progressSnapshot());
+                                                                                      responseBodyProgress.progressSnapshot());
                                                                               }))
                                                                       .exception(t)
                                                                       .build());
@@ -233,11 +145,21 @@ public class ProgressUpdater {
                                                                           context.copy(
                                                                               b -> {
                                                                                   b.uploadProgressSnapshot(
-                                                                                      uploadProgress.progressSnapshot());
+                                                                                      requestBodyProgress.progressSnapshot());
                                                                                   b.downloadProgressSnapshot(
-                                                                                      downloadProgress.progressSnapshot());
+                                                                                      responseBodyProgress.progressSnapshot());
                                                                               }))
                                                                       .exception(t)
                                                                       .build());
+    }
+
+    public void attachEndOfStreamFutureCallback(SdkResponse response) {
+        endOfStreamFuture.whenComplete((r2, t2) -> {
+            if (t2 == null) {
+                executionSuccess(response);
+            } else {
+                attemptFailure(t2);
+            }
+        });
     }
 }

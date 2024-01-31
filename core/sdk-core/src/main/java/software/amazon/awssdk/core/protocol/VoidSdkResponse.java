@@ -31,7 +31,7 @@ public final class VoidSdkResponse extends SdkResponse {
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Collections.emptyList());
 
-    public VoidSdkResponse(Builder builder) {
+    private VoidSdkResponse(Builder builder) {
         super(builder);
     }
 
@@ -51,7 +51,7 @@ public final class VoidSdkResponse extends SdkResponse {
 
     public static final class Builder extends BuilderImpl implements SdkPojo, SdkBuilder<Builder, SdkResponse> {
 
-        public Builder() {
+        private Builder() {
         }
 
         @Override

@@ -22,38 +22,38 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 
 public class CaptureProgressListener implements ProgressListener {
-    public Boolean isRequestPrepared() {
+    public Boolean requestPrepared() {
         return requestPrepared;
     }
 
-    public Boolean isRequestHeaderSent() {
+    public Boolean requestHeaderSent() {
         return requestHeaderSent;
     }
 
-    public Boolean isResponseHeaderReceived() {
+    public Boolean responseHeaderReceived() {
         return responseHeaderReceived;
     }
 
-    public Boolean isExecutionSuccess() {
+    public Boolean executionSuccess() {
         return executionSuccess;
     }
 
-    public List<Double> getRatioTransferredList() {
+    public List<Double> ratioTransferredList() {
         return Collections.unmodifiableList(ratioTransferredList);
     }
 
-    public CompletableFuture<Void> getCompletionFuture() {
+    public CompletableFuture<Void> completionFuture() {
         return completionFuture;
     }
 
-    public Throwable getExceptionCaught() {
+    public Throwable exceptionCaught() {
         return exceptionCaught;
     }
 
-    private Boolean requestPrepared = false;
-    private Boolean requestHeaderSent = false;
-    private Boolean responseHeaderReceived = false;
-    private Boolean executionSuccess = false;
+    private volatile boolean requestPrepared = false;
+    private volatile boolean requestHeaderSent = false;
+    private volatile boolean responseHeaderReceived = false;
+    private volatile boolean executionSuccess = false;
     CompletableFuture<Void> completionFuture = new CompletableFuture<>();
 
     private final List<Double> ratioTransferredList = new ArrayList<>();
