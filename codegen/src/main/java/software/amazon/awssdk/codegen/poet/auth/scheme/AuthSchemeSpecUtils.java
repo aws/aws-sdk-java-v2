@@ -79,6 +79,10 @@ public final class AuthSchemeSpecUtils {
         return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "AuthSchemeParams");
     }
 
+    public ClassName parametersEndpointAwareDefaultImplName() {
+        return ClassName.get(internalPackage(), intermediateModel.getMetadata().getServiceName() + "EndpointResolverAware");
+    }
+
     public ClassName parametersInterfaceBuilderInterfaceName() {
         return parametersInterfaceName().nestedClass("Builder");
     }

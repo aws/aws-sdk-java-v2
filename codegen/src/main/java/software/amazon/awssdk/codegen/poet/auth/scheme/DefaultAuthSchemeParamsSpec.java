@@ -59,6 +59,10 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                       .addMethod(builderMethod())
                                       .addType(builderImplSpec());
 
+        if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+            b.addSuperinterface(authSchemeSpecUtils.parametersEndpointAwareDefaultImplName());
+        }
+
         addFieldsAndAccessors(b);
         addToBuilder(b);
         return b.build();
@@ -89,6 +93,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
                 }
             });
+            b.addStatement("this.endpointProvider = builder.endpointProvider");
         }
 
         return b.build();
@@ -111,6 +116,10 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         TypeSpec.Builder b = TypeSpec.classBuilder(builderClassName())
                                      .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                                      .addSuperinterface(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName());
+
+        if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+            b.addSuperinterface(authSchemeSpecUtils.parametersEndpointAwareDefaultImplName().nestedClass("Builder"));
+        }
 
         addBuilderConstructors(b);
         addBuilderFieldsAndSetter(b);
@@ -142,6 +151,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                     builderFromInstance.addStatement("this.$1N = params.$1N", endpointRulesSpecUtils.variableName(name));
                 }
             });
+            builderFromInstance.addStatement("this.endpointProvider = params.endpointProvider");
         }
         b.addMethod(builderFromInstance.build());
     }
@@ -181,6 +191,17 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                                       .build());
                 }
             });
+            ClassName endpointProvider = endpointRulesSpecUtils.providerInterfaceName();
+            b.addField(FieldSpec.builder(endpointProvider, "endpointProvider")
+                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                                .build());
+            b.addMethod(MethodSpec.methodBuilder("endpointProvider")
+                                  .addModifiers(Modifier.PUBLIC)
+                                  .addAnnotation(Override.class)
+                                  .returns(endpointProvider)
+                                  .addStatement("return endpointProvider")
+                                  .build());
+
         }
     }
 
@@ -213,6 +234,10 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                     b.addMethod(endpointRulesSpecUtils.parameterBuilderSetterMethod(className(), name, model));
                 }
             });
+            b.addField(FieldSpec.builder(endpointRulesSpecUtils.providerInterfaceName(), "endpointProvider")
+                                .addModifiers(Modifier.PRIVATE)
+                                .build());
+            b.addMethod(builderSetterMethod("endpointProvider", endpointRulesSpecUtils.providerInterfaceName()));
         }
     }
 

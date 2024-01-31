@@ -52,23 +52,17 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
 
         AwsRequestOverrideConfiguration overrideConfiguration = updateUserAgentInConfig(request);
         T userAgentUpdatedRequest = (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
-
         if (!bucket.isPresent()) {
             return operation.apply(userAgentUpdatedRequest);
         }
         String bucketName = bucket.get();
 
         CompletableFuture<ReturnT> returnFuture = new CompletableFuture<>();
-        CompletableFuture<ReturnT> apiOperationFuture = bucketToRegionCache.containsKey(bucketName) ?
-                                                        operation.apply(
-                                                            requestWithDecoratedEndpointProvider(
-                                                                userAgentUpdatedRequest,
-                                                                () -> bucketToRegionCache.get(bucketName),
-                                                                serviceClientConfiguration().endpointProvider().get()
-                                                            )
-                                                        ) :
-                                                        operation.apply(userAgentUpdatedRequest);
-
+        CompletableFuture<ReturnT> apiOperationFuture = operation.apply(
+            requestWithDecoratedEndpointProvider(userAgentUpdatedRequest,
+                                                 () -> bucketToRegionCache.get(bucketName),
+                                                 serviceClientConfiguration().endpointProvider().get())
+        );
         apiOperationFuture.whenComplete(redirectToCrossRegionIfRedirectException(operation,
                                                                                  userAgentUpdatedRequest,
                                                                                  bucketName,

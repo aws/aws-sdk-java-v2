@@ -70,7 +70,7 @@ public interface BaseSignRequest<PayloadT, IdentityT extends Identity> {
      * The value, {@link T}, is return when present, and an exception is thrown otherwise.
      */
     default <T> T requireProperty(SignerProperty<T> property) {
-        return Validate.notNull(property(property), property.toString() + " must not be null!");
+        return Validate.notNull(property(property), "%s must not be null!", property);
     }
 
     /**

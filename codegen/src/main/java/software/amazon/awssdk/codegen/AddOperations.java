@@ -176,7 +176,7 @@ final class AddOperations {
             operationModel.setEndpointTrait(op.getEndpoint());
             operationModel.setHttpChecksumRequired(op.isHttpChecksumRequired());
             operationModel.setHttpChecksum(op.getHttpChecksum());
-            operationModel.setRequestCompression(op.getRequestCompression());
+            operationModel.setRequestcompression(op.getRequestcompression());
             operationModel.setStaticContextParams(op.getStaticContextParams());
             operationModel.setAuth(getAuthFromOperation(op));
 

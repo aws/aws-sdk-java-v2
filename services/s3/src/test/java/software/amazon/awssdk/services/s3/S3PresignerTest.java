@@ -950,7 +950,7 @@ public class S3PresignerTest {
 
     private S3Presigner presignerWithS3ExpressWithMockS3Client(boolean disableS3ExpressSessionAuth) {
         S3Client mockS3SyncClient = mock(S3Client.class);
-        when(mockS3SyncClient.createSession((Consumer<CreateSessionRequest.Builder>) any())).thenReturn(
+        when(mockS3SyncClient.createSession((CreateSessionRequest) any())).thenReturn(
             createS3ExpressSessionResponse());
 
         return presignerForS3Express(disableS3ExpressSessionAuth, mockS3SyncClient);

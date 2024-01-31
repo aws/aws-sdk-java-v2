@@ -16,12 +16,13 @@
 package software.amazon.awssdk.services.s3.internal.s3express;
 
 import java.time.Duration;
-import java.util.function.Consumer;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -75,28 +76,42 @@ public class S3ExpressIdentityCache {
                                          .build();
     }
 
-    //TODO (s3express) user experience and error messaging when calls fail
     SessionCredentials getCredentials(S3ExpressIdentityKey key, IdentityProvider<AwsCredentialsIdentity> provider) {
         SdkClient client = key.client();
         String bucket = key.bucket();
+        SdkServiceClientConfiguration serviceClientConfiguration = client.serviceClientConfiguration();
 
         if (client instanceof S3AsyncClient) {
             // TODO (s3express) don't join here
-            return ((S3AsyncClient) client).createSession(createSessionRequest(bucket, provider)).join().credentials();
+            return ((S3AsyncClient) client).createSession(createSessionRequest(bucket, provider, serviceClientConfiguration))
+                                           .join()
+                                           .credentials();
         }
         if (client instanceof S3Client) {
-            return ((S3Client) client).createSession(createSessionRequest(bucket, provider)).credentials();
+            return ((S3Client) client).createSession(createSessionRequest(bucket, provider, serviceClientConfiguration))
+                                      .credentials();
         }
         throw new UnsupportedOperationException("SdkClient must be either an S3Client or an S3AsyncClient, but was " +
                                                 client.getClass());
     }
 
-    private static Consumer<CreateSessionRequest.Builder>
+    private static CreateSessionRequest
             createSessionRequest(String bucket,
-                                 IdentityProvider<AwsCredentialsIdentity> provider) {
-        return r -> r.bucket(bucket)
+                                 IdentityProvider<AwsCredentialsIdentity> provider,
+                                 SdkServiceClientConfiguration serviceClientConfiguration) {
+
+        Duration requestApiCallTimeout = clientSetTimeoutIfExists(serviceClientConfiguration).orElse(DEFAULT_API_CALL_TIMEOUT);
+
+        return CreateSessionRequest.builder().bucket(bucket)
                      .sessionMode(SessionMode.READ_WRITE)
                      .overrideConfiguration(o -> o.credentialsProvider(provider)
-                                                  .apiCallTimeout(DEFAULT_API_CALL_TIMEOUT));
+                                                  .apiCallTimeout(requestApiCallTimeout)).build();
+    }
+
+    private static Optional<Duration> clientSetTimeoutIfExists(SdkServiceClientConfiguration serviceClientConfiguration) {
+        if (serviceClientConfiguration != null && serviceClientConfiguration.overrideConfiguration() != null) {
+            return serviceClientConfiguration.overrideConfiguration().apiCallTimeout();
+        }
+        return Optional.empty();
     }
 }

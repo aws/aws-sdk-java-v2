@@ -30,6 +30,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -73,5 +75,10 @@ public abstract class S3CrossRegionAsyncIntegrationTestBase extends S3CrossRegio
     @Override
     protected ResponseBytes<GetObjectResponse> getAPICall(GetObjectRequest getObjectRequest) {
         return crossRegionS3Client.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join();
+    }
+
+    @Override
+    protected HeadObjectResponse headObjectAPICall(HeadObjectRequest headObjectRequest) {
+        return crossRegionS3Client.headObject(headObjectRequest).join();
     }
 }
