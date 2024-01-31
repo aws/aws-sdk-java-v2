@@ -55,6 +55,7 @@ public class EC2MetadataUtilsTest {
     public void methodSetup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
         EC2MetadataUtils.clearCache();
+        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property());
     }
 
     @Test

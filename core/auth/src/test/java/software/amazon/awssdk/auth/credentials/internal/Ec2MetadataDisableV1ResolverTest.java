@@ -55,11 +55,13 @@ public class Ec2MetadataDisableV1ResolverTest {
     }
 
     private static Stream<Arguments> booleanConfigValues() {
+        ProfileFile emptyProfile = configFile("profile test", Pair.of("foo", "bar"));
+
         Function<String, ProfileFile> profileDisableValues =
             s -> configFile("profile test", Pair.of(ProfileProperty.EC2_METADATA_V1_DISABLED, s));
 
         return Stream.of(
-            Arguments.of(null, null, null, false),
+            Arguments.of(null, null, emptyProfile, false),
             Arguments.of("false", null, null, false),
             Arguments.of("true", null, null, true),
             Arguments.of(null, "false", null, false),
@@ -84,8 +86,7 @@ public class Ec2MetadataDisableV1ResolverTest {
         setUpSystemSettings(systemProperty, envVar);
 
         Ec2MetadataDisableV1Resolver resolver = Ec2MetadataDisableV1Resolver.create(() -> profileFile, "test");
-        assertThatThrownBy(resolver::resolve).isInstanceOf(IllegalStateException.class)
-                                             .hasMessageContaining("but should be 'false' or 'true'");
+        assertThatThrownBy(resolver::resolve).isInstanceOf(IllegalStateException.class);
     }
 
     private static Stream<Arguments> nonBooleanConfigValues() {

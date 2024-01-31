@@ -78,6 +78,7 @@ public final class InstanceProfileCredentialsProvider
     private final Clock clock;
     private final String endpoint;
     private final Ec2MetadataConfigProvider configProvider;
+    private final Ec2MetadataDisableV1Resolver ec2MetadataDisableV1Resolver;
     private final HttpCredentialsLoader httpCredentialsLoader;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
@@ -89,6 +90,7 @@ public final class InstanceProfileCredentialsProvider
 
     private final String profileName;
 
+
     /**
      * @see #builder()
      */
@@ -97,15 +99,18 @@ public final class InstanceProfileCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.profileFile = builder.profileFile;
-        this.profileName = builder.profileName;
+        this.profileFile = Optional.ofNullable(builder.profileFile)
+                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
+        this.profileName = Optional.ofNullable(builder.profileName)
+                                   .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
 
         this.httpCredentialsLoader = HttpCredentialsLoader.create();
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
-                                     .profileFile(builder.profileFile)
-                                     .profileName(builder.profileName)
+                                     .profileFile(profileFile)
+                                     .profileName(profileName)
                                      .build();
+        this.ec2MetadataDisableV1Resolver = Ec2MetadataDisableV1Resolver.create(profileFile, profileName);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -268,7 +273,7 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private boolean isInsecureFallbackDisabled() {
-        return Ec2MetadataDisableV1Resolver.create(profileFile, profileName).resolve();
+        return ec2MetadataDisableV1Resolver.resolve();
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
