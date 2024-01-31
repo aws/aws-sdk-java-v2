@@ -181,7 +181,7 @@ public final class V4CanonicalRequest {
      * Each header-value pair is separated by a newline.
      */
     public static String getCanonicalHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
-        StringBuilder result = new StringBuilder(512);
+        StringBuilder result = new StringBuilder(2048);
         canonicalHeaders.forEach(header -> {
             result.append(header.left());
             result.append(":");
@@ -246,35 +246,42 @@ public final class V4CanonicalRequest {
      * Matcher object as well.
      */
     private static void addAndTrim(StringBuilder result, String value) {
-        int lengthBefore = result.length();
-        boolean isStart = true;
-        boolean previousIsWhiteSpace = false;
+        int start = 0;
+        int valueLength = value.length();
 
-        for (int i = 0; i < value.length(); i++) {
-            char ch = value.charAt(i);
-            if (isWhiteSpace(ch)) {
-                if (previousIsWhiteSpace || isStart) {
-                    continue;
-                }
-                result.append(' ');
-                previousIsWhiteSpace = true;
-            } else {
-                result.append(ch);
-                isStart = false;
-                previousIsWhiteSpace = false;
+        // Find first non-whitespace
+        while (isWhiteSpace(value.charAt(start))) {
+            ++start;
+            if (start > valueLength) {
+                return;
             }
         }
 
-        if (lengthBefore == result.length()) {
-            return;
+        // Add things word-by-word
+        int lastWordStart = start;
+        boolean lastWasWhitespace = false;
+        for (int i = start; i < valueLength; i++) {
+            char c = value.charAt(i);
+
+            if (isWhiteSpace(c)) {
+                if (!lastWasWhitespace) {
+                    // End of word, add word
+                    result.append(value, lastWordStart, i);
+                    lastWasWhitespace = true;
+                }
+            } else {
+                if (lastWasWhitespace) {
+                    // Start of new word, add space
+                    result.append(' ');
+                    lastWordStart = i;
+                    lastWasWhitespace = false;
+                }
+            }
         }
 
-        int lastNonWhitespaceChar = result.length() - 1;
-        while (isWhiteSpace(result.charAt(lastNonWhitespaceChar))) {
-            --lastNonWhitespaceChar;
+        if (!lastWasWhitespace) {
+            result.append(value, lastWordStart, valueLength);
         }
-
-        result.setLength(lastNonWhitespaceChar + 1);
     }
 
     /**
@@ -365,7 +372,17 @@ public final class V4CanonicalRequest {
     }
 
     private static boolean isWhiteSpace(char ch) {
-        return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
+        switch (ch) {
+            case ' ':
+            case '\t':
+            case '\n':
+            case '\u000b':
+            case '\r':
+            case '\f':
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**
