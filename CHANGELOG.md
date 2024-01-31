@@ -1,3 +1,69 @@
+# __2.23.14__ __2024-01-30__
+## __Amazon DataZone__
+  - ### Features
+    - Add new skipDeletionCheck to DeleteDomain. Add new skipDeletionCheck to DeleteProject which also automatically deletes dependent objects
+
+## __Amazon Route 53__
+  - ### Features
+    - Update the SDKs for text changes in the APIs.
+
+## __Amazon S3__
+  - ### Features
+    - Reduce memory usage when request-level plugins aren't used.
+
+# __2.23.13__ __2024-01-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Comprehend PII analysis now supports Spanish input documents.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 Fleet customers who use attribute based instance-type selection can now intuitively define their Spot instances price protection limit as a percentage of the lowest priced On-Demand instance type.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Modified description of createaddress to include direction to add path when providing a JSON file.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Introduced support for the InsufficientDBInstanceCapacityFault error in the RDS RestoreDBClusterFromSnapshot and RestoreDBClusterToPointInTime API methods. This provides enhanced error handling, ensuring a more robust experience.
+
+## __Amazon Simple Storage Service__
+  - ### Bugfixes
+    - S3 client configured with crossRegionEnabled(true) will now use us-east-1 regional endpoint instead of the global endpoint. See [#4720](https://github.com/aws/aws-sdk-java-v2/issues/4720).
+
+## __AmazonMWAA__
+  - ### Features
+    - This release adds MAINTENANCE environment status for Amazon MWAA environments.
+
+## __Auto Scaling__
+  - ### Features
+    - EC2 Auto Scaling customers who use attribute based instance-type selection can now intuitively define their Spot instances price protection limit as a percentage of the lowest priced On-Demand instance type.
+
+# __2.23.12__ __2024-01-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Improved performance of chunk-encoded streaming uploads, like S3's PutObject.
+
+  - ### Bugfixes
+    - Fixed bug where the ProfileCredentialsProvider would re-read the credentials file with each request by default.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Update list and string length limits for predefined attributes.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now provides an API to programmatically delete tuning jobs.
+
+## __Inspector2__
+  - ### Features
+    - This release adds ECR container image scanning based on their lastRecordedPullTime.
+
 # __2.23.11__ __2024-01-25__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
