@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Update page size limits for GetJobRuns and GetTriggers APIs."
+}
