@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
-import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,14 +46,14 @@ public final class RollingSigner {
         this.signingConfig = signingConfig;
     }
 
-    private static byte[] signChunk(byte[] chunkBody, byte[] previousSignature, AwsSigningConfig signingConfig) {
+    private static byte[] signChunk(ByteBuffer chunkBody, byte[] previousSignature, AwsSigningConfig signingConfig) {
         // All the config remains the same as signing config except the Signature Type.
         AwsSigningConfig configCopy = signingConfig.clone();
         configCopy.setSignatureType(AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_CHUNK);
         configCopy.setSignedBodyHeader(AwsSigningConfig.AwsSignedBodyHeaderType.NONE);
         configCopy.setSignedBodyValue(null);
 
-        HttpRequestBodyStream crtBody = new CrtInputStream(() -> new ByteArrayInputStream(chunkBody));
+        HttpRequestBodyStream crtBody = new CrtInputStream(() -> new ByteBufferBackedInputStream(chunkBody));
         return CompletableFutureUtils.joinLikeSync(AwsSigner.signChunk(crtBody, previousSignature, configCopy));
     }
 
@@ -75,7 +76,7 @@ public final class RollingSigner {
     /**
      * Using a template that incorporates the previous calculated signature, sign the string and return it.
      */
-    public byte[] sign(byte[] chunkBody) {
+    public byte[] sign(ByteBuffer chunkBody) {
         previousSignature = signChunk(chunkBody, previousSignature, signingConfig);
         return previousSignature;
     }
@@ -88,5 +89,30 @@ public final class RollingSigner {
 
     public void reset() {
         previousSignature = seedSignature;
+    }
+
+    private static class ByteBufferBackedInputStream extends InputStream {
+        private final ByteBuffer buf;
+
+        private ByteBufferBackedInputStream(ByteBuffer buf) {
+            this.buf = buf;
+        }
+
+        public int read() {
+            if (!buf.hasRemaining()) {
+                return -1;
+            }
+            return buf.get() & 0xFF;
+        }
+
+        public int read(byte[] bytes, int off, int len) {
+            if (!buf.hasRemaining()) {
+                return -1;
+            }
+
+            len = Math.min(len, buf.remaining());
+            buf.get(bytes, off, len);
+            return len;
+        }
     }
 }
