@@ -21,11 +21,10 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.23.14-SNAPSHOT</version>
+        <version>2.23.15-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>iam-policy-builder</artifactId>
-    <version>${awsjavasdk.version}</version>
     <name>AWS Java SDK :: IAM :: Policy Builder</name>
     <description>
         Library simplifying the building, marshalling and unmarshalling of IAM Policies.

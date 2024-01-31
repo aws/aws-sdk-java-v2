@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.hash;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
@@ -42,7 +43,7 @@ public class SigV4ChunkExtensionProvider implements ChunkExtensionProvider {
         signer.reset();
     }
 
-    private String getStringToSign(String previousSignature, byte[] chunk) {
+    private String getStringToSign(String previousSignature, ByteBuffer chunk) {
         // build the string-to-sign template for the rolling-signer to sign
         return String.join("\n",
                            "AWS4-HMAC-SHA256-PAYLOAD",
@@ -55,11 +56,9 @@ public class SigV4ChunkExtensionProvider implements ChunkExtensionProvider {
     }
 
     @Override
-    public Pair<byte[], byte[]> get(byte[] chunk) {
+    public Pair<byte[], byte[]> get(ByteBuffer chunk) {
         String chunkSig = signer.sign(previousSig -> getStringToSign(previousSig, chunk));
-        return Pair.of(
-            "chunk-signature".getBytes(StandardCharsets.UTF_8),
-            chunkSig.getBytes(StandardCharsets.UTF_8)
-        );
+        return Pair.of("chunk-signature".getBytes(StandardCharsets.UTF_8),
+                       chunkSig.getBytes(StandardCharsets.UTF_8));
     }
 }

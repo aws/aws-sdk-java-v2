@@ -1,3 +1,16 @@
+# __2.23.14__ __2024-01-30__
+## __Amazon DataZone__
+  - ### Features
+    - Add new skipDeletionCheck to DeleteDomain. Add new skipDeletionCheck to DeleteProject which also automatically deletes dependent objects
+
+## __Amazon Route 53__
+  - ### Features
+    - Update the SDKs for text changes in the APIs.
+
+## __Amazon S3__
+  - ### Features
+    - Reduce memory usage when request-level plugins aren't used.
+
 # __2.23.13__ __2024-01-29__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -3019,7 +3032,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
+[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -4760,7 +4773,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
