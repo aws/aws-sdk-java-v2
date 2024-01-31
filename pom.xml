@@ -624,6 +624,14 @@
                             <includeModule>auth</includeModule>
                             <includeModule>auth-crt</includeModule>
                             <includeModule>aws-core</includeModule>
+                            <includeModule>crt-core</includeModule>
+                            <includeModule>http-auth</includeModule>
+                            <includeModule>http-auth-spi</includeModule>
+                            <includeModule>http-auth-aws</includeModule>
+                            <includeModule>http-auth-aws-crt</includeModule>
+                            <includeModule>http-auth-aws-eventstream</includeModule>
+                            <includeModule>endpoints-spi</includeModule>
+                            <includeModule>identity-spi</includeModule>
                             <includeModule>json-utils</includeModule>
                             <includeModule>metrics-spi</includeModule>
                             <includeModule>profiles</includeModule>
@@ -640,11 +648,13 @@
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>
+                            <includeModule>s3-transfer-manager</includeModule>
+                            <includeModule>iam-policy-builder</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
-<!--                            <includeModule>s3</includeModule>-->
+                            <includeModule>s3</includeModule>
                             <includeModule>s3-control</includeModule>
-<!--                            <includeModule>sqs</includeModule>-->
+                            <includeModule>sqs</includeModule>
                             <includeModule>rds</includeModule>
                             <includeModule>apigateway</includeModule>
                             <includeModule>polly</includeModule>
@@ -653,13 +663,6 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <!-- Moving the interface methods to new SRA super interfaces causes japicmp to complain -->
-                            <exclude>software.amazon.awssdk.auth.credentials.AwsCredentials</exclude>
-                            <exclude>software.amazon.awssdk.auth.token.credentials.SdkToken</exclude>
-                            <!-- exclude ObjectPart size change TODO: re-enable -->
-                            <exclude>software.amazon.awssdk.services.s3.model.ObjectPart</exclude>
-                            <!-- exclude mappedBuilder change, TODO: remove after merged -->
-                            <exclude>software.amazon.awssdk.core.interceptor.ExecutionAttribute</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
