@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
@@ -54,11 +55,13 @@ import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
  * retrieve their content from the Amazon S3 bucket you specify at launch. To
  * add a new customer at any time, simply create a bucket for the customer, add
  * their content, and launch your AMI.<br>
- *
- * <P>
+ * <p>
  * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, EC2 metadata usage
  * will be disabled and {@link SdkClientException} will be thrown for any metadata retrieval attempt.
- *
+ * <p>
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_V1_DISABLED} or {@link ProfileProperty#EC2_METADATA_V1_DISABLED}
+ * is set to true, data will only be loaded from EC2 metadata service if a token is successfully retrieved -
+ * fallback to load data without a token will be disabled.
  * <p>
  * More information about Amazon EC2 Metadata
  *
@@ -434,9 +437,28 @@ public final class EC2MetadataUtils {
                         .cause(e)
                         .build();
             }
-
-            return null;
+            return handleTokenErrorResponse(e);
         }
+    }
+
+    private static String handleTokenErrorResponse(Exception e) {
+        if (isInsecureFallbackDisabled()) {
+            String message = String.format("Failed to retrieve IMDS token, and fallback to IMDS v1 is disabled via the "
+                                           + "%s system property, %s environment variable, or %s configuration file profile"
+                                           + " setting.",
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.environmentVariable(),
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(),
+                                           ProfileProperty.EC2_METADATA_V1_DISABLED);
+            throw SdkClientException.builder()
+                                    .message(message)
+                                    .cause(e)
+                                    .build();
+        }
+        return null;
+    }
+
+    private static boolean isInsecureFallbackDisabled() {
+        return Ec2MetadataDisableV1Resolver.create().resolve();
     }
 
     private static String fetchData(String path) {

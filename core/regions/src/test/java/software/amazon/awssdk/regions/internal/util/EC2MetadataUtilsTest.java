@@ -39,10 +39,10 @@ public class EC2MetadataUtilsTest {
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
     private static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
-
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
-
     private static final String AMI_ID_RESOURCE = EC2_METADATA_ROOT + "/ami-id";
+    private static final String TOKEN_STUB = "some-token";
+    private static final String EMPTY_BODY = "{}";
 
 
     @Rule
@@ -59,28 +59,27 @@ public class EC2MetadataUtilsTest {
 
     @Test
     public void getToken_queriesCorrectPath() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
 
         String token = EC2MetadataUtils.getToken();
-        assertThat(token).isEqualTo("some-token");
+        assertThat(token).isEqualTo(TOKEN_STUB);
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
     }
 
     @Test
     public void getAmiId_queriesAndIncludesToken() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
         EC2MetadataUtils.getAmiId();
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withHeader(TOKEN_HEADER, equalTo("some-token")));
+        WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
     }
 
     @Test
     public void getAmiId_tokenQueryTimeout_fallsBackToInsecure() {
-
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withFixedDelay(Integer.MAX_VALUE)));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
@@ -93,7 +92,7 @@ public class EC2MetadataUtilsTest {
     @Test
     public void getAmiId_queriesTokenResource_403Error_fallbackToInsecure() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(403).withBody("oops")));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody(EMPTY_BODY)));
 
         EC2MetadataUtils.getAmiId();
 
@@ -104,7 +103,7 @@ public class EC2MetadataUtilsTest {
     @Test
     public void getAmiId_queriesTokenResource_404Error_fallbackToInsecure() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(404).withBody("oops")));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody(EMPTY_BODY)));
 
         EC2MetadataUtils.getAmiId();
 
@@ -115,12 +114,41 @@ public class EC2MetadataUtilsTest {
     @Test
     public void getAmiId_queriesTokenResource_405Error_fallbackToInsecure() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(405).withBody("oops")));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody(EMPTY_BODY)));
 
         EC2MetadataUtils.getAmiId();
 
         WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
         WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withoutHeader(TOKEN_HEADER));
+    }
+
+    @Test
+    public void getAmiId_fallbackToInsecureDisabledThroughProperty_throwsWhenTokenFails() {
+        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(), "true");
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(403).withBody("oops")));
+        try {
+            EC2MetadataUtils.getAmiId();
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(SdkClientException.class);
+            assertThat(e).hasMessageContaining("fallback to IMDS v1 is disabled");
+        }
+        finally {
+            System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property());
+        }
+    }
+
+    @Test
+    public void getAmiId_fallbackToInsecureDisabledThroughProperty_returnsDataWhenTokenReturned() {
+        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(), "true");
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
+        try {
+            EC2MetadataUtils.getAmiId();
+            WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+            WireMock.verify(getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)).withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+        } finally {
+            System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property());
+        }
     }
 
     @Test
@@ -140,7 +168,7 @@ public class EC2MetadataUtilsTest {
         thrown.expect(SdkClientException.class);
         thrown.expectMessage("Unable to contact EC2 metadata service");
 
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));;
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
         EC2MetadataUtils.fetchData(AMI_ID_RESOURCE, false, attempts);
