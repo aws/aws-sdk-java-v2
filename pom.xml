@@ -270,6 +270,8 @@
                             <exclude>**/*IntegrationTests.java</exclude>
                             <exclude>**/*IntegTest.java</exclude>
                             <exclude>**/*IntegrationTestCase.java</exclude>
+                            <exclude>**/*ClientEndpointTests.java</exclude>
+                            <exclude>**/*EndpointProviderTests.java</exclude>
                         </excludes>
                         <includes>
                             <include>**/Test*.java</include>
