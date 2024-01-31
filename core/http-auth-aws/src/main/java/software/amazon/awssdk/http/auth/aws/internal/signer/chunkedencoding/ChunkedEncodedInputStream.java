@@ -16,12 +16,13 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
@@ -52,6 +53,10 @@ public final class ChunkedEncodedInputStream extends InputStream {
     private static final Logger LOG = Logger.loggerFor(ChunkedEncodedInputStream.class);
     private static final byte[] CRLF = {'\r', '\n'};
     private static final byte[] END = {};
+    private static final byte[] SEMICOLON = {';'};
+    private static final byte[] EQUALS = {'='};
+    private static final byte[] COLON = {':'};
+    private static final byte[] COMMA = {','};
 
     private final InputStream inputStream;
     private final int chunkSize;
@@ -101,14 +106,14 @@ public final class ChunkedEncodedInputStream extends InputStream {
         if (currentChunk != null) {
             currentChunk.close();
         }
-        // we *have* to read from the backing stream in order to figure out if it's the end or not
-        // TODO(sra-identity-and-auth): We can likely optimize this by not copying the entire chunk of data into memory
+
+        // We have to read from the input stream into a format that can be used for signing and headers.
         byte[] chunkData = new byte[chunkSize];
         int read = read(stream, chunkData, chunkSize);
 
         if (read > 0) {
             // set the current chunk to the newly written chunk
-            return getNextChunk(Arrays.copyOf(chunkData, read));
+            return getNextChunk(ByteBuffer.wrap(chunkData, 0, read));
         }
 
         LOG.debug(() -> "End of backing stream reached. Reading final chunk.");
@@ -142,58 +147,71 @@ public final class ChunkedEncodedInputStream extends InputStream {
      * Create a chunk from a byte-array, which includes the header, the extensions, and the chunk data. The input array should be
      * correctly sized, i.e. the number of bytes should equal its length.
      */
-    private Chunk getNextChunk(byte[] data) throws IOException {
-        ByteArrayOutputStream chunkStream = new ByteArrayOutputStream();
-        writeChunk(data, chunkStream);
-        chunkStream.write(CRLF);
-        byte[] newChunkData = chunkStream.toByteArray();
-
-        return Chunk.create(new ByteArrayInputStream(newChunkData), newChunkData.length);
+    private Chunk getNextChunk(ByteBuffer data) {
+        LengthAwareSequenceInputStream newChunkData =
+            LengthAwareSequenceInputStream.builder()
+                                          .add(createChunkStream(data))
+                                          .add(CRLF)
+                                          .build();
+        return Chunk.create(newChunkData, newChunkData.size);
     }
 
     /**
      * Create the final chunk, which includes the header, the extensions, the chunk (if applicable), and the trailer
      */
     private Chunk getFinalChunk() throws IOException {
-        ByteArrayOutputStream chunkStream = new ByteArrayOutputStream();
-        writeChunk(END, chunkStream);
-        writeTrailers(chunkStream);
-        chunkStream.write(CRLF);
-        byte[] newChunkData = chunkStream.toByteArray();
+        LengthAwareSequenceInputStream chunkData =
+            LengthAwareSequenceInputStream.builder()
+                                          .add(createChunkStream(ByteBuffer.wrap(END)))
+                                          .add(createTrailerStream())
+                                          .add(CRLF)
+                                          .build();
 
-        return Chunk.create(new ByteArrayInputStream(newChunkData), newChunkData.length);
+        return Chunk.create(chunkData, chunkData.size);
     }
 
-    private void writeChunk(byte[] chunk, ByteArrayOutputStream outputStream) throws IOException {
-        writeHeader(chunk, outputStream);
-        writeExtensions(chunk, outputStream);
-        outputStream.write(CRLF);
-        outputStream.write(chunk);
+    private LengthAwareSequenceInputStream createChunkStream(ByteBuffer chunkData) {
+        return LengthAwareSequenceInputStream.builder()
+                                             .add(createHeaderStream(chunkData.asReadOnlyBuffer()))
+                                             .add(createExtensionsStream(chunkData.asReadOnlyBuffer()))
+                                             .add(CRLF)
+                                             .add(new ByteArrayInputStream(chunkData.array(),
+                                                                           chunkData.arrayOffset(),
+                                                                           chunkData.remaining()))
+                                             .build();
     }
 
-    private void writeHeader(byte[] chunk, ByteArrayOutputStream outputStream) throws IOException {
-        byte[] hdr = header.get(chunk);
-        outputStream.write(hdr);
+    private ByteArrayInputStream createHeaderStream(ByteBuffer chunkData) {
+        return new ByteArrayInputStream(header.get(chunkData));
     }
 
-    private void writeExtensions(byte[] chunk, ByteArrayOutputStream outputStream) throws IOException {
+    private LengthAwareSequenceInputStream createExtensionsStream(ByteBuffer chunkData) {
+        LengthAwareSequenceInputStream.Builder result = LengthAwareSequenceInputStream.builder();
         for (ChunkExtensionProvider chunkExtensionProvider : extensions) {
-            Pair<byte[], byte[]> ext = chunkExtensionProvider.get(chunk);
-            outputStream.write((byte) ';');
-            outputStream.write(ext.left());
-            outputStream.write((byte) '=');
-            outputStream.write(ext.right());
+            Pair<byte[], byte[]> ext = chunkExtensionProvider.get(chunkData);
+            result.add(SEMICOLON);
+            result.add(ext.left());
+            result.add(EQUALS);
+            result.add(ext.right());
         }
+        return result.build();
     }
 
-    private void writeTrailers(ByteArrayOutputStream outputStream) throws IOException {
+    private LengthAwareSequenceInputStream createTrailerStream() throws IOException {
+        LengthAwareSequenceInputStream.Builder result = LengthAwareSequenceInputStream.builder();
         for (TrailerProvider trailer : trailers) {
             Pair<String, List<String>> tlr = trailer.get();
-            outputStream.write(tlr.left().getBytes(StandardCharsets.UTF_8));
-            outputStream.write((byte) ':');
-            outputStream.write(String.join(",", tlr.right()).getBytes(StandardCharsets.UTF_8));
-            outputStream.write(CRLF);
+            result.add(tlr.left().getBytes(StandardCharsets.UTF_8));
+            result.add(COLON);
+            for (String trailerValue : tlr.right()) {
+                result.add(trailerValue.getBytes(StandardCharsets.UTF_8));
+                result.add(COMMA);
+            }
+
+            // Replace trailing comma with clrf
+            result.replaceLast(new ByteArrayInputStream(CRLF), COMMA.length);
         }
+        return result.build();
     }
 
     @Override
@@ -216,7 +234,8 @@ public final class ChunkedEncodedInputStream extends InputStream {
         private final List<TrailerProvider> trailers = new ArrayList<>();
         private InputStream inputStream;
         private int chunkSize;
-        private ChunkHeaderProvider header = chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8);
+        private ChunkHeaderProvider header =
+            chunk -> Integer.toHexString(chunk.remaining()).getBytes(StandardCharsets.UTF_8);
 
         public InputStream inputStream() {
             return this.inputStream;
@@ -265,6 +284,52 @@ public final class ChunkedEncodedInputStream extends InputStream {
 
         public ChunkedEncodedInputStream build() {
             return new ChunkedEncodedInputStream(this);
+        }
+    }
+
+
+    private static class LengthAwareSequenceInputStream extends SequenceInputStream {
+        private final int size;
+
+        private LengthAwareSequenceInputStream(Builder builder) {
+            super(Collections.enumeration(builder.streams));
+            this.size = builder.size;
+        }
+
+        private static Builder builder() {
+            return new Builder();
+        }
+
+        private static class Builder {
+            private final List<InputStream> streams = new ArrayList<>();
+            private int size = 0;
+
+            public Builder add(ByteArrayInputStream stream) {
+                streams.add(stream);
+                size += stream.available();
+                return this;
+            }
+
+            public Builder add(byte[] stream) {
+                return add(new ByteArrayInputStream(stream));
+            }
+
+            public Builder add(LengthAwareSequenceInputStream stream) {
+                streams.add(stream);
+                size += stream.size;
+                return this;
+            }
+
+            public Builder replaceLast(ByteArrayInputStream stream, int lastLength) {
+                streams.set(streams.size() - 1, stream);
+                size -= lastLength;
+                size += stream.available();
+                return this;
+            }
+
+            public LengthAwareSequenceInputStream build() {
+                return new LengthAwareSequenceInputStream(this);
+            }
         }
     }
 }

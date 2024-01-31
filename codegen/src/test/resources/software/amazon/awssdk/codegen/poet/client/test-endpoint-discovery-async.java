@@ -74,7 +74,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
     protected DefaultEndpointDiscoveryTestAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration;
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache
