@@ -89,8 +89,6 @@ public final class InstanceProfileCredentialsProvider
     private final Supplier<ProfileFile> profileFile;
 
     private final String profileName;
-    private final Object lock = new Object();
-    private volatile Boolean isInsecureFallbackDisabled;
 
     /**
      * @see #builder()
@@ -273,14 +271,7 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private boolean isInsecureFallbackDisabled() {
-        if (isInsecureFallbackDisabled == null) {
-            synchronized (lock) {
-                if (isInsecureFallbackDisabled == null) {
-                    isInsecureFallbackDisabled = ec2MetadataDisableV1Resolver.resolve();
-                }
-            }
-        }
-        return isInsecureFallbackDisabled;
+        return ec2MetadataDisableV1Resolver.resolve();
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {

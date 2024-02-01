@@ -21,16 +21,19 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.OptionalUtils;
 
 @SdkInternalApi
 public final class Ec2MetadataDisableV1Resolver {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
+    private final Lazy<Boolean> resolvedValue;
 
     private Ec2MetadataDisableV1Resolver(Supplier<ProfileFile> profileFile, String profileName) {
         this.profileFile = profileFile;
         this.profileName = profileName;
+        this.resolvedValue = new Lazy<>(this::doResolve);
     }
 
     public static Ec2MetadataDisableV1Resolver create(Supplier<ProfileFile> profileFile, String profileName) {
@@ -38,6 +41,10 @@ public final class Ec2MetadataDisableV1Resolver {
     }
 
     public boolean resolve() {
+        return resolvedValue.getValue();
+    }
+
+    public boolean doResolve() {
         return OptionalUtils.firstPresent(fromSystemSettings(),
                                           () -> fromProfileFile(profileFile, profileName))
                             .orElse(false);
