@@ -1,3 +1,29 @@
+# __2.23.16__ __2024-02-01__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes support for broadcast-mixed audio description tracks.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Switching a set of services onto the new SRA (Smithy Reference Architecture) identity and auth logic that was released in v2.21.0. For a list of individual services affected, please check the committed files.
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Added CreateIdentityProvider and UpdateIdentityProvider details for new SAML IdP features
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - This release introduces a new resource Playback Restriction Policy which can be used to geo-restrict or domain-restrict channel stream playback when associated with a channel. New APIs to support this resource were introduced in the form of Create/Delete/Get/Update/List.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - This release adds support for transactions that have not reached finality. It also removes support for the status property from the response of the GetTransaction operation. You can use the confirmationStatus and executionStatus properties to determine the status of the transaction.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Adding new APIs in SDK for Amazon Neptune Analytics. These APIs include operations to execute, cancel, list queries and get the graph summary.
+
 # __2.23.15__ __2024-01-31__
 ## __AWS CloudFormation__
   - ### Features
@@ -3054,7 +3080,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@faucct](https://github.com/faucct), [@psnilesh](https://github.com/psnilesh)
+[@psnilesh](https://github.com/psnilesh), [@faucct](https://github.com/faucct)
 # __2.20.146__ __2023-09-12__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
