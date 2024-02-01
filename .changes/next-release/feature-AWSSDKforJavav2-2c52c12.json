@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Adds setting to disable making EC2 Instance Metadata Service (IMDS) calls without a token header when prefetching a token does not work. This feature can be configured through environment variables (AWS_EC2_METADATA_V1_DISABLED), system property (aws.disableEc2MetadataV1) or AWS config file (ec2_metadata_v1_disabled). When you configure this setting to true, no calls without token headers will be made to IMDS."
+}
