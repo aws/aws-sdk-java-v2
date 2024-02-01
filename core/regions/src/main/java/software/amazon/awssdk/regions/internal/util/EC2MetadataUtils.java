@@ -88,6 +88,10 @@ public final class EC2MetadataUtils {
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
     private static final Map<String, String> CACHE = new ConcurrentHashMap<>();
 
+    private static final Ec2MetadataDisableV1Resolver EC2_METADATA_DISABLE_V1_RESOLVER = Ec2MetadataDisableV1Resolver.create();
+    private static final Object FALLBACK_LOCK = new Object();
+    private static volatile Boolean IS_INSECURE_FALLBACK_DISABLED;
+
     private static final InstanceProviderTokenEndpointProvider TOKEN_ENDPOINT_PROVIDER =
             new InstanceProviderTokenEndpointProvider();
 
@@ -375,6 +379,11 @@ public final class EC2MetadataUtils {
         CACHE.clear();
     }
 
+    @SdkTestInternalApi
+    public static void resetIsFallbackDisableResolved() {
+        IS_INSECURE_FALLBACK_DISABLED = null;
+    }
+
     private static List<String> getItems(String path, int tries, boolean slurp) {
         if (tries == 0) {
             throw SdkClientException.builder().message("Unable to contact EC2 metadata service.").build();
@@ -458,7 +467,14 @@ public final class EC2MetadataUtils {
     }
 
     private static boolean isInsecureFallbackDisabled() {
-        return Ec2MetadataDisableV1Resolver.create().resolve();
+        if (IS_INSECURE_FALLBACK_DISABLED == null) {
+            synchronized (FALLBACK_LOCK) {
+                if (IS_INSECURE_FALLBACK_DISABLED == null) {
+                    IS_INSECURE_FALLBACK_DISABLED = EC2_METADATA_DISABLE_V1_RESOLVER.resolve();
+                }
+            }
+        }
+        return IS_INSECURE_FALLBACK_DISABLED;
     }
 
     private static String fetchData(String path) {
