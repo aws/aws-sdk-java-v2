@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "contributor": "",
-    "description": "Added CreateIdentityProvider and UpdateIdentityProvider details for new SAML IdP features"
-}
