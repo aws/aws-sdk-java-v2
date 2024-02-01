@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.progress.listener;
 
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -61,7 +60,9 @@ public class ProgressUpdater {
                                          .downloadProgressSnapshot(downloadProgressSnapshot)
                                          .build();
 
-        listenerInvoker = (!sdkRequest.overrideConfiguration().isPresent() || sdkRequest.overrideConfiguration().get().progressListeners() == null)
+        listenerInvoker =
+            (!sdkRequest.overrideConfiguration().isPresent() ||
+             sdkRequest.overrideConfiguration().get().progressListeners() == null)
                           ? new ProgressListenerInvoker((Collections.emptyList()))
                           : new ProgressListenerInvoker(sdkRequest.overrideConfiguration().get().progressListeners());
 

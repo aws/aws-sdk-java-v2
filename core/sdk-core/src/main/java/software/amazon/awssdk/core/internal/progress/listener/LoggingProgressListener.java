@@ -22,13 +22,12 @@ import java.math.RoundingMode;
 import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
-import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * An implementation of {@link ProgressListener} that logs a progress bar at the {@code INFO} level for upload operations. This implementation
- * effectively limits the frequency of updates by limiting logging to events of progress advancement. By default, the
- * progress bar has {@value #DEFAULT_MAX_TICKS} ticks, meaning an update is logged for every 5% progression, at most.
+ * An implementation of {@link ProgressListener} that logs a progress bar at the {@code INFO} level for upload operations. This
+ * implementation effectively limits the frequency of updates by limiting logging to events of progress advancement. By default,
+ * the progress bar has {@value #DEFAULT_MAX_TICKS} ticks, meaning an update is logged for every 5% progression, at most.
  */
 @SdkPublicApi
 public final class LoggingProgressListener implements ProgressListener {
@@ -40,40 +39,72 @@ public final class LoggingProgressListener implements ProgressListener {
         progressBar = new ProgressBar(maxTicks);
     }
 
+    /**
+     * Create an instance of {@link LoggingProgressListener} with a custom {@code maxTicks} value.
+     *
+     * @param maxTicks the number of ticks in the logged progress bar
+     */
+    public static LoggingProgressListener create(int maxTicks) {
+        return new LoggingProgressListener(maxTicks);
+    }
+
+    /**
+     * Create an instance of {@link LoggingProgressListener} with the default configuration.
+     */
+    public static LoggingProgressListener create() {
+        return new LoggingProgressListener(DEFAULT_MAX_TICKS);
+    }
+
+
     @Override
     public void requestPrepared(Context.RequestPrepared context) {
-        log.info(() -> "Request Prepared... ");
+        log.info(() -> "Request Prepared...");
         context.uploadProgressSnapshot().ratioTransferred().ifPresent(progressBar::update);
     }
 
     @Override
     public void requestHeaderSent(Context.RequestHeaderSent context) {
-        log.info(() -> "Request Header Sent... ");
         context.uploadProgressSnapshot().ratioTransferred().ifPresent(progressBar::update);
     }
 
     @Override
     public void requestBytesSent(Context.RequestBytesSent context) {
-        log.info(() -> "Request Bytes Sent... ");
         context.uploadProgressSnapshot().ratioTransferred().ifPresent(progressBar::update);
     }
 
     @Override
     public void responseHeaderReceived(Context.ResponseHeaderReceived context) {
-        log.info(() -> "Response Header Received... ");
+        log.info(() -> "Upload Successful! Starting Download...");
         context.downloadProgressSnapshot().ratioTransferred().ifPresent(progressBar::update);
+    }
+
+    @Override
+    public void responseBytesReceived(Context.ResponseBytesReceived context) {
+        context.downloadProgressSnapshot().ratioTransferred().ifPresent(progressBar::update);
+    }
+
+    @Override
+    public void executionSuccess(Context.ExecutionSuccess context) {
+        log.info(() -> "Execution Successful!");
+        context.downloadProgressSnapshot().ratioTransferred().ifPresent(progressBar::update);
+    }
+
+    @Override
+    public void executionFailure(Context.ExecutionFailure context) {
+        log.warn(() -> "Execution Failed!", context.exception());
     }
 
     private static class ProgressBar {
         private final int maxTicks;
         private final AtomicInteger prevTicks = new AtomicInteger(-1);
+
         private ProgressBar(int maxTicks) {
             this.maxTicks = maxTicks;
         }
 
         void update(double ratio) {
             int ticks = (int) Math.floor(ratio * maxTicks);
-            if (prevTicks.getAndSet(ticks) < ticks) {
+            if (prevTicks.getAndSet(ticks) != ticks) {
                 log.info(() -> String.format("|%s%s| %s",
                                              repeat("=", ticks),
                                              repeat(" ", maxTicks - ticks),

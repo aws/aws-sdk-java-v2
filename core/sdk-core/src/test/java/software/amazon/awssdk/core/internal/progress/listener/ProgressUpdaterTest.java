@@ -15,24 +15,14 @@
 
 package software.amazon.awssdk.core.internal.progress.listener;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,16 +30,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
-import software.amazon.awssdk.core.protocol.VoidSdkResponse;
-import software.amazon.awssdk.http.async.SimpleSubscriber;
-import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class ProgressUpdaterTest {
     private CaptureProgressListener captureProgressListener;
