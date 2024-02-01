@@ -29,6 +29,7 @@ import software.amazon.awssdk.utils.ClassLoaderHelper;
 public class Crc32CChecksum implements SdkChecksum {
 
     private static final String CRT_CLASSPATH_FOR_CRC32C = "software.amazon.awssdk.crt.checksums.CRC32C";
+    private static final ThreadLocal<Boolean> IS_CRT_AVAILABLE = ThreadLocal.withInitial(Crc32CChecksum::isCrtAvailable);
 
     private Checksum crc32c;
     private Checksum lastMarkedCrc32C;
@@ -37,7 +38,7 @@ public class Crc32CChecksum implements SdkChecksum {
      * Creates CRT Based Crc32C checksum if Crt classpath for Crc32c is loaded, else create Sdk Implemented Crc32c
      */
     public Crc32CChecksum() {
-        if (isCrtAvailable()) {
+        if (IS_CRT_AVAILABLE.get()) {
             crc32c = new CRC32C();
         } else {
             crc32c = SdkCrc32CChecksum.create();
