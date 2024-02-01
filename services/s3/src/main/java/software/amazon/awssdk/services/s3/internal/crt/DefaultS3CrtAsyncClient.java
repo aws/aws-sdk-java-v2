@@ -39,9 +39,7 @@ import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
-import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -125,27 +123,28 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             builder.executionInterceptors.forEach(overrideConfigurationBuilder::addExecutionInterceptor);
         }
 
-        S3AsyncClientBuilder s3AsyncClientBuilder = S3AsyncClient.builder()
-                                                                 // Disable checksum for streaming operations, it is handled in
-                                                                 // CRT. Checksumming for non-streaming
-                                                                 // operations is still handled in HttpChecksumStage
-                                                                 .serviceConfiguration(S3Configuration.builder()
-                                                                                                      .checksumValidationEnabled(false)
-                                                                                                      .build())
-                                                                 .region(builder.region)
-                                                                 .endpointOverride(builder.endpointOverride)
-                                                                 .credentialsProvider(builder.credentialsProvider)
-                                                                 .overrideConfiguration(overrideConfigurationBuilder.build())
-                                                                 .accelerate(builder.accelerate)
-                                                                 .forcePathStyle(builder.forcePathStyle)
-                                                                 .crossRegionAccessEnabled(builder.crossRegionAccessEnabled)
-                                                                 .putAuthScheme(new CrtS3ExpressNoOpAuthScheme())
-                                                                 .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder));
+        S3AsyncClientBuilder s3AsyncClientBuilder =
+            S3AsyncClient.builder()
+                         // Disable checksum for streaming operations, it is handled in
+                         // CRT. Checksumming for non-streaming
+                         // operations is still handled in HttpChecksumStage
+                         .serviceConfiguration(S3Configuration.builder()
+                                                              .checksumValidationEnabled(false)
+                                                              .build())
+                         .region(builder.region)
+                         .endpointOverride(builder.endpointOverride)
+                         .credentialsProvider(builder.credentialsProvider)
+                         .overrideConfiguration(overrideConfigurationBuilder.build())
+                         .accelerate(builder.accelerate)
+                         .forcePathStyle(builder.forcePathStyle)
+                         .crossRegionAccessEnabled(builder.crossRegionAccessEnabled)
+                         .putAuthScheme(new CrtS3ExpressNoOpAuthScheme())
+                         .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder));
 
 
         if (builder.futureCompletionExecutor != null) {
             s3AsyncClientBuilder.asyncConfiguration(b -> b.advancedOption(FUTURE_COMPLETION_EXECUTOR,
-                                                                          builder.futureCompletionExecutor).build());
+                                                                          builder.futureCompletionExecutor));
         }
         return s3AsyncClientBuilder.build();
     }
