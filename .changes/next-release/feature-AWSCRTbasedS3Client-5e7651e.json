@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT-based S3 Client",
+    "contributor": "",
+    "description": "Allow users to configure future completion executor on the AWS CRT-based S3 client via `S3CrtAsyncClientBuilder#futureCompletionExecutor`. See [#4879](https://github.com/aws/aws-sdk-java-v2/issues/4879)"
+}

@@ -17,9 +17,13 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -280,6 +284,30 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * @return an instance of this builder.
      */
     S3CrtAsyncClientBuilder thresholdInBytes(Long thresholdInBytes);
+
+    /**
+     * Configure the {@link Executor} that should be used to complete the {@link CompletableFuture} that is returned by the async
+     * service client. By default, this is a dedicated, per-client {@link ThreadPoolExecutor} that is managed by the SDK.
+     * <p>
+     * The configured {@link Executor} will be invoked by the async HTTP client's I/O threads (e.g., EventLoops), which must be
+     * reserved for non-blocking behavior. Blocking an I/O thread can cause severe performance degradation, including across
+     * multiple clients, as clients are configured, by default, to share a single I/O thread pool (e.g., EventLoopGroup).
+     * <p>
+     * You should typically only want to customize the future-completion {@link Executor} for a few possible reasons:
+     * <ol>
+     *     <li>You want more fine-grained control over the {@link ThreadPoolExecutor} used, such as configuring the pool size
+     *     or sharing a single pool between multiple clients.
+     *     <li>You want to add instrumentation (i.e., metrics) around how the {@link Executor} is used.
+     *     <li>You know, for certain, that all of your {@link CompletableFuture} usage is strictly non-blocking, and you wish to
+     *     remove the minor overhead incurred by using a separate thread. In this case, you can use
+     *     {@code Runnable::run} to execute the future-completion directly from within the I/O thread.
+     * </ol>
+     *
+     * @param futureCompletionExecutor the executor
+     * @return an instance of this builder.
+     */
+    S3CrtAsyncClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor);
+
 
     @Override
     S3AsyncClient build();
