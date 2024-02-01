@@ -181,6 +181,9 @@ public final class V4CanonicalRequest {
      * Each header-value pair is separated by a newline.
      */
     public static String getCanonicalHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
+        // 2048 chosen experimentally to avoid always needing to resize the string builder's internal byte array.
+        // The minimal DynamoDB get-item request at the time of testing used ~1100 bytes. 2048 was chosen as the
+        // next-highest power-of-two.
         StringBuilder result = new StringBuilder(2048);
         canonicalHeaders.forEach(header -> {
             result.append(header.left());
