@@ -56,6 +56,11 @@
             <version>${awsjavasdk.version}</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.s3.accessgrants</groupId>
+            <artifactId>aws-s3-accessgrants-java-plugin</artifactId>
+            <version>${s3accessgrants.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -77,6 +82,7 @@
                                 <include>software.amazon.awssdk:*</include>
                                 <include>software.amazon:*</include>
                                 <include>software.amazon.s3.accessgrants:*</include>
+                                <inlcude>com.github.ben-manes.caffeine:*</inlcude>
                                 <include>commons-logging:*</include>
                             </includes>
                         </artifactSet>
@@ -114,6 +120,12 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+            </plugin>
+        </plugins>
     </build>
     
     <profiles>
@@ -143,6 +155,10 @@
                             <sourcepath>${basedir}/../core/profiles/src/main/java/software/amazon/awssdk/profiles;${basedir}/../core/sdk-core/src/main/java/software/amazon/awssdk/core</sourcepath>
                             <failOnError>false</failOnError>
                         </configuration>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <groupId>org.apache.maven.plugins</groupId>
                     </plugin>
                 </plugins>
             </build>

@@ -729,11 +729,6 @@ Amazon AutoScaling, etc).</description>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <groupId>software.amazon.s3.accessgrants</groupId>
-            <artifactId>aws-s3-accessgrants-java-plugin</artifactId>
-            <version>${s3accessgrants.version}</version>
-        </dependency>
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3-transfer-manager</artifactId>
             <version>${awsjavasdk.version}</version>
@@ -1928,7 +1923,6 @@ Amazon AutoScaling, etc).</description>
                 <configuration>
                     <ignoredUnusedDeclaredDependencies>
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:*</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>

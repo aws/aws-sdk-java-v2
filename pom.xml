@@ -537,6 +537,9 @@
                              old interfaces, but that should become a test scoped dependency in modules where needed.
                              And the line below removed. -->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
+
+            <!-- Ignoring any unsued delcared dependency warnings across the bundle -->
+                        <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
