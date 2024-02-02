@@ -15,18 +15,9 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import java.nio.file.Paths;
-import java.util.concurrent.CompletableFuture;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
-import software.amazon.awssdk.transfer.s3.model.FileUpload;
-import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
-import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 class DefaultFileUploadTest {
     @Test
@@ -36,17 +27,6 @@ class DefaultFileUploadTest {
                       .verify();
     }
 
-    @Test
-    void pause_shouldThrowUnsupportedOperation() {
-        TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
-        UploadFileRequest request = UploadFileRequest.builder()
-                                                   .source(Paths.get("test"))
-                                                   .putObjectRequest(p -> p.key("test").bucket("bucket"))
-                                                   .build();
-        FileUpload fileUpload = new DefaultFileUpload(new CompletableFuture<>(),
-                                                      transferProgress,
-                                                      request);
+        // TODO add tests
 
-        assertThatThrownBy(() -> fileUpload.pause()).isInstanceOf(UnsupportedOperationException.class);
-    }
 }

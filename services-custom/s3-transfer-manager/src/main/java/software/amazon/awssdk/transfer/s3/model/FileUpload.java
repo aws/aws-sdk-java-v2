@@ -17,8 +17,6 @@ package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
  * An upload transfer of a single object to S3.
@@ -32,12 +30,6 @@ public interface FileUpload extends ObjectTransfer {
      * <p>
      * The information object is serializable for persistent storage until it should be resumed.
      * See {@link ResumableFileUpload} for supported formats.
-     * 
-     * <p>
-     * Currently, it's only supported if the underlying {@link S3AsyncClient} is CRT-based (created via
-     * {@link S3AsyncClient#crtBuilder()} or {@link S3AsyncClient#crtCreate()}).
-     * It will throw {@link UnsupportedOperationException} if the {@link S3TransferManager} is created
-     * with a non CRT-based S3 client (created via {@link S3AsyncClient#builder()}).
      *
      * @return A {@link ResumableFileUpload} that can be used to resume the upload.
      */

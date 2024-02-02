@@ -75,6 +75,8 @@ class S3TransferManagerUploadPauseAndResumeTest {
         tm.close();
     }
 
+    // TODO - add tests for Java TM
+
     @Test
     void resumeUploadFile_noResumeToken_shouldUploadFromBeginning() {
         PutObjectRequest putObjectRequest = putObjectRequest();

@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -29,6 +30,8 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class UploadObjectHelper {
     private static final Logger log = Logger.loggerFor(UploadObjectHelper.class);
+    public static final ExecutionAttribute<PauseObservable> PAUSE_OBSERVABLE = new ExecutionAttribute<>("PauseObservable");
+    public static final ExecutionAttribute<S3ResumeToken> RESUME_TOKEN = new ExecutionAttribute<>("ResumeToken");
 
     private final S3AsyncClient s3AsyncClient;
     private final long partSizeInBytes;
