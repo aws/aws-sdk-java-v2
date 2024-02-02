@@ -115,11 +115,29 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long uploadPartSize);
 
     /**
+     * The amount of memory that CRT is allowed to use when making requests to S3.
+     * <p>
+     * If not provided, the CRT attempts to limit memory usage in an optimal way, based on a number of parameters
+     * such as target throughput. Therefore, only configure the memory limit explicitly when needed.
+     * <p>
+     * Supported range:
+     * <ul>
+     *     <li><b>Min: </b>1 GB</li>
+     *     <li><b>Max: </b>The lowest value of the supplied value and the SIZE_MAX of the system</li>
+     * </ul>
+     *
+     * @param memoryLimitInBytes the memory limit in bytes
+     * @return this builder for method chaining.
+     * @see #targetThroughputInGbps(Double)
+     */
+    S3CrtAsyncClientBuilder memoryLimitInBytes(Long memoryLimitInBytes);
+
+    /**
      * The target throughput for transfer requests. Higher value means more connections will be established with S3.
      *
      * <p>
      * Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network
-     * bandwidth of the environment and whether {@link #maxConcurrency} is configured.
+     * bandwidth of the environment, whether {@link #maxConcurrency} is configured and amount of available memory.
      *
      * <p>
      * By default, it is 10 gigabits per second. If users want to transfer as fast as possible, it's recommended to set it to the
@@ -128,10 +146,14 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * instance type in <a href="https://aws.amazon.com/ec2/instance-types/">Amazon EC2 instance type page</a>.
      * If you are running into out of file descriptors error, consider using {@link #maxConcurrency(Integer)} to limit the
      * number of connections.
+     * <p>
+     * <b>Note: </b> this setting affects the memory usage of CRT; a higher throughput value will result in a larger memory
+     * usage. Typically, a range of throughput values maps to a discrete memory limit value in CRT, with a maximum upper limit.
      *
      * @param targetThroughputInGbps the target throughput in Gbps
      * @return this builder for method chaining.
      * @see #maxConcurrency(Integer)
+     * @see #memoryLimitInBytes(Long)
      */
     S3CrtAsyncClientBuilder targetThroughputInGbps(Double targetThroughputInGbps);
 
