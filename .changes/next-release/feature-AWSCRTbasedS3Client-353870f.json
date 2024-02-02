@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT-based S3 Client",
+    "contributor": "",
+    "description": "Bump `aws-crt` version to `0.29.9`"
+}
