@@ -76,6 +76,7 @@
                                 <include>commons-codec:commons-codec</include>
                                 <include>software.amazon.awssdk:*</include>
                                 <include>software.amazon:*</include>
+                                <include>software.amazon.s3.accessgrants:*</include>
                                 <include>commons-logging:*</include>
                             </includes>
                         </artifactSet>
