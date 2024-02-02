@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectResult;
 import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.Part;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
@@ -99,6 +100,12 @@ public final class SdkPojoConversionUtils {
         CompletedPart.Builder builder = CompletedPart.builder();
         setSdkFields(builder, partResponse);
         return builder.partNumber(partNumber).build();
+    }
+
+    public static CompletedPart toCompletedPart(Part part) {
+        CompletedPart.Builder builder = CompletedPart.builder();
+        setSdkFields(builder, part);
+        return builder.build();
     }
 
     private static void setSdkFields(SdkPojo targetBuilder, SdkPojo sourceObject) {

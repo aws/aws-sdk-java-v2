@@ -48,7 +48,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
+import software.amazon.awssdk.services.s3.internal.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
@@ -443,6 +443,7 @@ public class UploadDirectoryHelperTest {
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
                                                                                                 .build()),
+                                     new PauseObservable(),
                                      UploadFileRequest.builder()
                                                       .source(Paths.get(".")).putObjectRequest(b -> b.bucket("bucket").key("key"))
                                                       .build());
@@ -453,6 +454,7 @@ public class UploadDirectoryHelperTest {
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
                                                                                                 .build()),
+                                     new PauseObservable(),
                                      UploadFileRequest.builder()
                                                       .putObjectRequest(p -> p.key("key").bucket("bucket")).source(Paths.get(
                                                           "test.txt"))
