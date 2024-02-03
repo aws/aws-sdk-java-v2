@@ -43,12 +43,13 @@ public class S3ResumeToken {
         }
         S3ResumeToken that = (S3ResumeToken) o;
 
-        return partSize == that.partSize && totalNumParts == that.totalNumParts && numPartsCompleted == that.numPartsCompleted && Objects.equals(uploadId, that.uploadId);
+        return partSize == that.partSize && totalNumParts == that.totalNumParts && numPartsCompleted == that.numPartsCompleted
+               && Objects.equals(uploadId, that.uploadId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uploadId, partSize, totalNumParts, numPartsCompleted);
+        return Objects.hashCode(uploadId);
     }
 
     public String uploadId() {

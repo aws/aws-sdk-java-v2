@@ -29,9 +29,9 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class UploadObjectHelper {
-    private static final Logger log = Logger.loggerFor(UploadObjectHelper.class);
-    public static final ExecutionAttribute<PauseObservable> PAUSE_OBSERVABLE = new ExecutionAttribute<>("PauseObservable");
     public static final ExecutionAttribute<S3ResumeToken> RESUME_TOKEN = new ExecutionAttribute<>("ResumeToken");
+    public static final ExecutionAttribute<PauseObservable> PAUSE_OBSERVABLE = new ExecutionAttribute<>("PauseObservable");
+    private static final Logger log = Logger.loggerFor(UploadObjectHelper.class);
 
     private final S3AsyncClient s3AsyncClient;
     private final long partSizeInBytes;

@@ -55,7 +55,6 @@ public final class DefaultFileUpload implements FileUpload {
     }
 
     private ResumableFileUpload doPause() {
-        System.out.println("doPause()");
         File sourceFile = request.source().toFile();
         Instant fileLastModified = Instant.ofEpochMilli(sourceFile.lastModified());
 
@@ -106,25 +105,25 @@ public final class DefaultFileUpload implements FileUpload {
         if (!resumableFileUpload.equals(that.resumableFileUpload)) {
             return false;
         }
-        if (!pauseObservable.equals(that.pauseObservable)) {
-            return false;
-        }
         if (!completionFuture.equals(that.completionFuture)) {
             return false;
         }
         if (!progress.equals(that.progress)) {
             return false;
         }
-        return request.equals(that.request);
+        if (!request.equals(that.request)) {
+            return false;
+        }
+        return pauseObservable == that.pauseObservable;
     }
 
     @Override
     public int hashCode() {
         int result = resumableFileUpload.hashCode();
-        result = 31 * result + pauseObservable.hashCode();
         result = 31 * result + completionFuture.hashCode();
         result = 31 * result + progress.hashCode();
         result = 31 * result + request.hashCode();
+        result = 31 * result + pauseObservable.hashCode();
         return result;
     }
 

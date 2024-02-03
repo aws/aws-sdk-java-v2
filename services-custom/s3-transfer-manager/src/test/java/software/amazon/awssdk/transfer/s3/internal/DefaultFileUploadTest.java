@@ -17,13 +17,15 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.s3.internal.multipart.PauseObservable;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 
 class DefaultFileUploadTest {
     @Test
     void equals_hashcode() {
         EqualsVerifier.forClass(DefaultFileUpload.class)
-                      .withNonnullFields("completionFuture", "progress", "request")
+                      .withNonnullFields("completionFuture", "progress", "request", "resumableFileUpload", "pauseObservable")
+                      .withPrefabValues(PauseObservable.class, new PauseObservable(), new PauseObservable())
                       .verify();
     }
 

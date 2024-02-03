@@ -127,8 +127,8 @@ public final class UploadWithKnownContentLengthHelper {
             partSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
             partCount = genericMultipartHelper.determinePartCount(contentLength, partSize);
             if (partSize > partSizeInBytes) {
-                log.debug(() -> String.format("Configured partSize is %d, but using %d to prevent reaching maximum number of parts "
-                                              + "allowed", partSizeInBytes, partSize));
+                log.debug(() -> String.format("Configured partSize is %d, but using %d to prevent reaching maximum number of "
+                                              + "parts allowed", partSizeInBytes, partSize));
             }
 
             log.debug(() -> String.format("Starting multipart upload with partCount: %d, optimalPartSize: %d", partCount,
@@ -157,7 +157,7 @@ public final class UploadWithKnownContentLengthHelper {
     }
 
     private HashMap<Integer, CompletedPart> identifyExistingPartsForResume(String uploadId, PutObjectRequest putObjectRequest) {
-        HashMap<Integer, CompletedPart> existingParts= new HashMap<>();
+        HashMap<Integer, CompletedPart> existingParts = new HashMap<>();
         int partNumberMarker = 0;
 
         while (true) {
@@ -181,7 +181,8 @@ public final class UploadWithKnownContentLengthHelper {
 
     private void attachSubscriberToObservable(KnownContentLengthAsyncRequestBodySubscriber subscriber,
                                               PutObjectRequest putObjectRequest) {
-        PauseObservable pauseObservable = putObjectRequest.overrideConfiguration().get().executionAttributes().getAttribute(PAUSE_OBSERVABLE);
+        PauseObservable pauseObservable =
+            putObjectRequest.overrideConfiguration().get().executionAttributes().getAttribute(PAUSE_OBSERVABLE);
         pauseObservable.setSubscriber(subscriber);
     }
 
@@ -218,7 +219,6 @@ public final class UploadWithKnownContentLengthHelper {
         private final AtomicReferenceArray<CompletedPart> completedParts;
         private final String uploadId;
         private final Collection<CompletableFuture<CompletedPart>> futures = new ConcurrentLinkedQueue<>();
-
         private final PutObjectRequest putObjectRequest;
         private final CompletableFuture<PutObjectResponse> returnFuture;
         private Subscription subscription;
@@ -230,7 +230,8 @@ public final class UploadWithKnownContentLengthHelper {
 
         KnownContentLengthAsyncRequestBodySubscriber(MpuRequestContext mpuRequestContext,
                                                      CompletableFuture<PutObjectResponse> returnFuture) {
-            this.partCount = genericMultipartHelper.determinePartCount(mpuRequestContext.contentLength, mpuRequestContext.partSize);
+            this.partCount =
+                genericMultipartHelper.determinePartCount(mpuRequestContext.contentLength, mpuRequestContext.partSize);
             this.putObjectRequest = mpuRequestContext.request.left();
             this.returnFuture = returnFuture;
             this.uploadId = mpuRequestContext.uploadId;
@@ -275,7 +276,7 @@ public final class UploadWithKnownContentLengthHelper {
             returnFuture.whenComplete((r, t) -> {
                 if (t != null) {
                     s.cancel();
-                    if (failureActionInitiated.compareAndSet(false, true) && !isPaused){
+                    if (failureActionInitiated.compareAndSet(false, true) && !isPaused) {
                         multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
                     }
                 }
@@ -301,11 +302,13 @@ public final class UploadWithKnownContentLengthHelper {
 
             Consumer<CompletedPart> completedPartConsumer =
                 completedPart -> completedParts.set(completedPart.partNumber() - 1 - numExistingParts, completedPart);
-            multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedPartConsumer, futures, Pair.of(uploadRequest, asyncRequestBody))
+            multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedPartConsumer, futures,
+                                                                  Pair.of(uploadRequest, asyncRequestBody))
                                  .whenComplete((r, t) -> {
                                      if (t != null) {
                                          if (failureActionInitiated.compareAndSet(false, true) && !isPaused) {
-                                             multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
+                                             multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture,
+                                                                                         putObjectRequest);
                                          }
                                      } else {
                                          completeMultipartUploadIfFinish(asyncRequestBodyInFlight.decrementAndGet());
@@ -344,7 +347,8 @@ public final class UploadWithKnownContentLengthHelper {
                 } else {
                     parts = existingParts.values().toArray(new CompletedPart[0]);
                 }
-                completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest);
+                completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts,
+                                                                                  putObjectRequest);
             }
         }
 
