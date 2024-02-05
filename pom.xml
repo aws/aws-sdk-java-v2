@@ -538,7 +538,7 @@
                              And the line below removed. -->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
 
-            <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
+                        <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
                         <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
