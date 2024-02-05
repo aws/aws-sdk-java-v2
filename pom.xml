@@ -178,7 +178,7 @@
         <reactive-streams.version>1.0.4</reactive-streams.version>
 
         <!-- S3 Access Grants plugin version -->
-        <s3accessgrants.version>2.0.0</s3accessgrants.version>
+        <s3accessgrants.version>2.0.1</s3accessgrants.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
@@ -538,7 +538,7 @@
                              And the line below removed. -->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
 
-            <!-- Ignoring any unsued delcared dependency warnings across the bundle -->
+            <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
                         <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
