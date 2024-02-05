@@ -32,23 +32,14 @@ public class SplittingTransformerTckTest extends PublisherVerification<AsyncResp
     public Publisher<AsyncResponseTransformer<Object, Object>> createPublisher(long l) {
         CompletableFuture<ResponseBytes<Object>> future = new CompletableFuture<>();
         AsyncResponseTransformer<Object, ResponseBytes<Object>> upstreamTransformer = AsyncResponseTransformer.toBytes();
-        SplittingTransformer<Object, ResponseBytes<Object>> tr =
-            new SplittingTransformer<>(upstreamTransformer, 64 * 1024, future);
-        return tr;
+        return new SplittingTransformer<>(upstreamTransformer, 64 * 1024, future, l);
     }
 
     @Override
     public Publisher<AsyncResponseTransformer<Object, Object>> createFailedPublisher() {
-        return null;
-        // CompletableFuture<ResponseBytes<Object>> future = new CompletableFuture<>();
-        // AsyncResponseTransformer<Object, ResponseBytes<Object>> upstreamTransformer = AsyncResponseTransformer.toBytes();
-        // SplittingTransformer<Object, ResponseBytes<Object>> spl =
-        //     new SplittingTransformer<>(upstreamTransformer, 64 * 1024, future);
+        CompletableFuture<ResponseBytes<Object>> future = new CompletableFuture<>();
+        AsyncResponseTransformer<Object, ResponseBytes<Object>> upstreamTransformer = AsyncResponseTransformer.toBytes();
+        return new SplittingTransformer<>(upstreamTransformer, 64 * 1024, future, -1);
     }
 
-    @Override
-    public long maxElementsFromPublisher() {
-        // splitting-transformer is an unbounded publisher
-        return Long.MAX_VALUE;
-    }
 }

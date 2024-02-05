@@ -64,6 +64,11 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
 
     @Override
     public void onSubscribe(Subscription subscription) {
+        // §2.05 must call subscription.cancel() if it already has a subscription and receives another on subscribe signal
+        if (this.subscription != null) {
+            subscription.cancel();
+            return;
+        }
         super.onSubscribe(subscription);
         this.subscription = subscription;
         publisherToStorage.subscribe(storage);
@@ -72,23 +77,21 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
-        // First, if the incoming ByteBuffer would make the total buffered amount exceed the maximum buffer, send what is
-        // currently buffered in the storage to the delegate.
-        if (currentlyBuffered.get() + byteBuffer.remaining() > maximumBuffer) {
+        while (bufferOverflows(byteBuffer)) {
             flushStorageToDelegate();
-        }
+            if (!bufferOverflows(byteBuffer)) {
+                break;
+            }
 
-        // Then, if the incoming ByteBuffer would still alone bust the buffer size, remove one chunk of it (of maximumBuffer
-        // size) then try again
-        if (currentlyBuffered.get() + byteBuffer.remaining() > maximumBuffer) {
+            // even after flushing the storage buffer and being empty, the incoming ByteBuffer might itself still be too large and
+            // overflow the buffer (byteBuffer.remainig > maximumBuffer). If so, send chunks of maximumBuffer out of the
+            // incoming ByteBuffer to the storage and to the delegate until what is left in the incoming ByteBuffer can be stored.
             ByteBuffer chunk = ByteBuffer.allocate(maximumBuffer);
             while (chunk.hasRemaining()) {
                 chunk.put(byteBuffer.get());
             }
             chunk.position(0);
             sendBytesToStorage(chunk);
-            onNext(byteBuffer);
-            return;
         }
 
         sendBytesToStorage(byteBuffer);
@@ -101,6 +104,10 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
         if (available > 0) {
             subscription.request(available);
         }
+    }
+
+    private boolean bufferOverflows(ByteBuffer byteBuffer) {
+        return currentlyBuffered.get() + byteBuffer.remaining() > maximumBuffer;
     }
 
     @Override
@@ -116,7 +123,7 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
     }
 
     private void sendBytesToStorage(ByteBuffer buffer) {
-        publisherToStorage.send(buffer);
+        publisherToStorage.send(buffer.duplicate());
         currentlyBuffered.addAndGet(buffer.remaining());
     }
 
