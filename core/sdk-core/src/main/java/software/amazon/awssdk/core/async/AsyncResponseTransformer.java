@@ -273,7 +273,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * </pre>
      */
     static <ResponseT extends SdkResponse>
-    AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
+        AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
         return new InputStreamResponseTransformer<>();
     }
 }
