@@ -249,13 +249,16 @@ public final class V4CanonicalRequest {
      * Matcher object as well.
      */
     private static void addAndTrim(StringBuilder result, String value) {
-        int start = 0;
         int valueLength = value.length();
+        if (valueLength == 0) {
+            return;
+        }
 
+        int start = 0;
         // Find first non-whitespace
         while (isWhiteSpace(value.charAt(start))) {
             ++start;
-            if (start > valueLength) {
+            if (start >= valueLength) {
                 return;
             }
         }

@@ -1,4 +1,31 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+ # __2.23.18__ __2024-02-05__
+## __AWS Glue__
+  - ### Features
+    - Introduce Catalog Encryption Role within Glue Data Catalog Settings. Introduce SASL/PLAIN as an authentication method for Glue Kafka connections
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added definitions of various WorkSpace states
+
+# __2.23.17__ __2024-02-02__
+## __AWS CRT-based S3 Client__
+  - ### Features
+    - Allow users to configure future completion executor on the AWS CRT-based S3 client via `S3CrtAsyncClientBuilder#futureCompletionExecutor`. See [#4879](https://github.com/aws/aws-sdk-java-v2/issues/4879)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds setting to disable making EC2 Instance Metadata Service (IMDS) calls without a token header when prefetching a token does not work. This feature can be configured through environment variables (AWS_EC2_METADATA_V1_DISABLED), system property (aws.disableEc2MetadataV1) or AWS config file (ec2_metadata_v1_disabled). When you configure this setting to true, no calls without token headers will be made to IMDS.
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Any number of users can execute up to 50 concurrent restores (any type of restore) in a given account.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Canvas adds GenerativeAiSettings support for CanvasAppSettings.
+
 # __2.23.16__ __2024-02-01__
 ## __AWS Elemental MediaConvert__
   - ### Features
