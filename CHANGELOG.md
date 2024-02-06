@@ -1,5 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
- # __2.23.18__ __2024-02-05__
+# __2.23.19__ __2024-02-06__
+## __AWS AppSync__
+  - ### Features
+    - Support for environment variables in AppSync GraphQL APIs
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now delete an API key that you've created for use with your CAPTCHA JavaScript integration API.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release adds a new field, logGroupArn, to the response of the logs:DescribeLogGroups action.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release is a documentation only update to address customer issues.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release adds clear visibility to the customers on the changes that they make on the domain.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds clear visibility to the customers on the changes that they make on the domain.
+
+# __2.23.18__ __2024-02-05__
 ## __AWS Glue__
   - ### Features
     - Introduce Catalog Encryption Role within Glue Data Catalog Settings. Introduce SASL/PLAIN as an authentication method for Glue Kafka connections
