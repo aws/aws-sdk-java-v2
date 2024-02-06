@@ -177,6 +177,9 @@
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
 
+        <!-- S3 Access Grants plugin version -->
+        <s3accessgrants.version>2.0.1</s3accessgrants.version>
+
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
         <javadoc.resourcesDir>${session.executionRootDirectory}</javadoc.resourcesDir>
@@ -534,6 +537,9 @@
                              old interfaces, but that should become a test scoped dependency in modules where needed.
                              And the line below removed. -->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
+
+                        <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
+                        <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
