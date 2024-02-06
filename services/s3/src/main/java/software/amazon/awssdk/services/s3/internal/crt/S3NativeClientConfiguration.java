@@ -64,7 +64,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final Duration connectionTimeout;
     private final HttpMonitoringOptions httpMonitoringOptions;
     private final Boolean useEnvironmentVariableProxyOptionsValues;
-    private final long memoryLimitInBytes;
+    private final long maxNativeMemoryLimitInBytes;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -97,7 +97,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         // Using 0 so that CRT will calculate it based on targetThroughputGbps
         this.maxConcurrency = builder.maxConcurrency == null ? 0 : builder.maxConcurrency;
-        this.memoryLimitInBytes = builder.memoryLimitInBytes == null ? 0 : builder.memoryLimitInBytes;
+        this.maxNativeMemoryLimitInBytes = builder.maxNativeMemoryLimitInBytes == null ? 0 : builder.maxNativeMemoryLimitInBytes;
 
         this.endpointOverride = builder.endpointOverride;
 
@@ -177,8 +177,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return targetThroughputInGbps;
     }
 
-    public long memoryLimitInBytes() {
-        return memoryLimitInBytes;
+    public long maxNativeMemoryLimitInBytes() {
+        return maxNativeMemoryLimitInBytes;
     }
 
     public int maxConcurrency() {
@@ -222,7 +222,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private S3CrtHttpConfiguration httpConfiguration;
         private StandardRetryOptions standardRetryOptions;
         private Long thresholdInBytes;
-        private Long memoryLimitInBytes;
+        private Long maxNativeMemoryLimitInBytes;
 
         private Builder() {
         }
@@ -252,8 +252,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             return this;
         }
 
-        public Builder memoryLimitInBytes(Long memoryLimitInBytes) {
-            this.memoryLimitInBytes = memoryLimitInBytes;
+        public Builder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes) {
+            this.maxNativeMemoryLimitInBytes = maxNativeMemoryLimitInBytes;
             return this;
         }
 

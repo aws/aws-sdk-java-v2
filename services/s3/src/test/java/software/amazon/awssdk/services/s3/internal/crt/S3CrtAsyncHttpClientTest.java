@@ -380,7 +380,7 @@ public class S3CrtAsyncHttpClientTest {
                                        .signingRegion(signingRegion)
                                        .thresholdInBytes(1024L)
                                        .targetThroughputInGbps(3.5)
-                                       .memoryLimitInBytes(5L * 1024 * 1024 * 1024)
+                                       .maxNativeMemoryLimitInBytes(5L * 1024 * 1024 * 1024)
                                        .standardRetryOptions(
                                            new StandardRetryOptions()
                                                .withBackoffRetryOptions(new ExponentialBackoffRetryOptions().withMaxRetries(7)))

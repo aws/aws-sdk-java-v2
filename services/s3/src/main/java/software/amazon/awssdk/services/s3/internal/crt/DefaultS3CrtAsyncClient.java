@@ -158,7 +158,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .httpConfiguration(builder.httpConfiguration)
                                        .thresholdInBytes(builder.thresholdInBytes)
-                                       .memoryLimitInBytes(builder.memoryLimitInBytes);
+                                       .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes);
 
         if (builder.retryConfiguration != null) {
             nativeClientBuilder.standardRetryOptions(
@@ -176,7 +176,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Region region;
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
-        private Long memoryLimitInBytes;
+        private Long maxNativeMemoryLimitInBytes
+;
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
@@ -215,8 +216,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
-        public S3CrtAsyncClientBuilder memoryLimitInBytes(Long memoryLimitInBytes) {
-            this.memoryLimitInBytes = memoryLimitInBytes;
+        public S3CrtAsyncClientBuilder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes) {
+            this.maxNativeMemoryLimitInBytes = maxNativeMemoryLimitInBytes;
             return this;
         }
 
