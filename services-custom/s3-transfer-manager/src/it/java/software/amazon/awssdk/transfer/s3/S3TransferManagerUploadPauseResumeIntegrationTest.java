@@ -133,13 +133,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
 
-        if (s3ClientType == S3ClientType.CRT) {
-            validateEmptyResumeToken(resumableFileUpload);
-        } else {
-            // join() is called on CreateMultipartUpload so resume token will be returned
-            assertThat(resumableFileUpload.transferredParts().isPresent()).isTrue();
-            assertThat(resumableFileUpload.transferredParts().getAsLong()).isZero();
-        }
+        validateEmptyResumeToken(resumableFileUpload);
 
         FileUpload resumedUpload = transferManager.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();

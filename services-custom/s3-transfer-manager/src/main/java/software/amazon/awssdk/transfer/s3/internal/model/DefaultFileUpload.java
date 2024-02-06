@@ -44,13 +44,20 @@ public final class DefaultFileUpload implements FileUpload {
                              UploadFileRequest request) {
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.progress = Validate.paramNotNull(progress, "progress");
-        this.pauseObservable = Validate.paramNotNull(pauseObservable, "pauseObservable");
         this.request = Validate.paramNotNull(request, "request");
+        this.pauseObservable = pauseObservable;
         this.resumableFileUpload = new Lazy<>(this::doPause);
     }
 
     @Override
     public ResumableFileUpload pause() {
+        if (pauseObservable == null) {
+            throw new UnsupportedOperationException("Pausing an upload is not supported in a non CRT-based S3Client that does "
+                                                    + "not have multipart configuration enabled. For upload pause support, pass "
+                                                    + "a CRT-based S3Client or an S3Client with multipart enabled to "
+                                                    + "S3TransferManager.");
+        }
+
         return resumableFileUpload.getValue();
     }
 
