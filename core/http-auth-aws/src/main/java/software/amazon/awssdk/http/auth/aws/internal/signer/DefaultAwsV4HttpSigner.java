@@ -44,6 +44,7 @@ import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An implementation of a {@link AwsV4HttpSigner} that uses properties to compose v4-signers in order to delegate signing of a
@@ -53,6 +54,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
+    private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
     @Override
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
@@ -313,7 +315,20 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEncrypted = "https".equals(request.request().protocol());
 
-        return !isAnonymous && (isPayloadSigningEnabled || !isEncrypted);
+        if (isAnonymous) {
+            return false;
+        }
+
+        // presigning requests should always have a null payload, and should always be unsigned-payload
+        if (!isEncrypted && request.payload().isPresent()) {
+            if (!isPayloadSigningEnabled) {
+                LOG.debug(() -> "Payload signing was disabled for an HTTP request with a payload. " +
+                          "Signing will be enabled. Use HTTPS for unsigned payloads.");
+            }
+            return true;
+        }
+
+        return isPayloadSigningEnabled;
     }
 
     private static boolean isEventStreaming(SdkHttpRequest request) {

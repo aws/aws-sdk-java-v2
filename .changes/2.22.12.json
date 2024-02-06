@@ -1,0 +1,30 @@
+{
+    "version": "2.22.12",
+    "date": "2024-01-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Documentation updates for AWS Key Management Service (KMS)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Minor trait updates for User APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "Marked SearchQuickResponses API as readonly."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "use_fips_ssl and require_ssl parameter support for Workgroup, UpdateWorkgroup, and CreateWorkgroup"
+        }
+    ]
+}

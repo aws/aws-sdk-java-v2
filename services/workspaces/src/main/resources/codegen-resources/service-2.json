@@ -980,7 +980,7 @@
       "errors":[
         {"shape":"OperationNotSupportedException"}
       ],
-      "documentation":"<p>Reboots the specified WorkSpaces.</p> <p>You cannot reboot a WorkSpace unless its state is <code>AVAILABLE</code> or <code>UNHEALTHY</code>.</p> <p>This operation is asynchronous and returns before the WorkSpaces have rebooted.</p>"
+      "documentation":"<p>Reboots the specified WorkSpaces.</p> <p>You cannot reboot a WorkSpace unless its state is <code>AVAILABLE</code>, <code>UNHEALTHY</code>, or <code>REBOOTING</code>. Reboot a WorkSpace in the <code>REBOOTING</code> state only if your WorkSpace has been stuck in the <code>REBOOTING</code> state for over 20 minutes.</p> <p>This operation is asynchronous and returns before the WorkSpaces have rebooted.</p>"
     },
     "RebuildWorkspaces":{
       "name":"RebuildWorkspaces",
@@ -2142,6 +2142,27 @@
           "documentation":"<p>Information about the WorkSpaces that were created.</p> <p>Because this operation is asynchronous, the identifier returned is not immediately available for use with other operations. For example, if you call <a>DescribeWorkspaces</a> before the WorkSpace is created, the information returned can be incomplete.</p>"
         }
       }
+    },
+    "DataReplication":{
+      "type":"string",
+      "enum":[
+        "NO_REPLICATION",
+        "PRIMARY_AS_SOURCE"
+      ]
+    },
+    "DataReplicationSettings":{
+      "type":"structure",
+      "members":{
+        "DataReplication":{
+          "shape":"DataReplication",
+          "documentation":"<p>Indicates whether data replication is enabled, and if enabled, the type of data replication.</p>"
+        },
+        "RecoverySnapshotTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time at which the last successful snapshot was taken of the primary WorkSpace used for replicating data.</p>"
+        }
+      },
+      "documentation":"<p>Describes the data replication settings.</p>"
     },
     "DedicatedTenancyCidrRangeList":{
       "type":"list",
@@ -3853,10 +3874,7 @@
     },
     "ModifyWorkspacePropertiesRequest":{
       "type":"structure",
-      "required":[
-        "WorkspaceId",
-        "WorkspaceProperties"
-      ],
+      "required":["WorkspaceId"],
       "members":{
         "WorkspaceId":{
           "shape":"WorkspaceId",
@@ -3865,6 +3883,10 @@
         "WorkspaceProperties":{
           "shape":"WorkspaceProperties",
           "documentation":"<p>The properties of the WorkSpace.</p>"
+        },
+        "DataReplication":{
+          "shape":"DataReplication",
+          "documentation":"<p>Indicates the data replication status.</p>"
         }
       }
     },
@@ -4402,6 +4424,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>The tags associated with the standby WorkSpace.</p>"
+        },
+        "DataReplication":{
+          "shape":"DataReplication",
+          "documentation":"<p>Indicates whether data replication is enabled, and if enabled, the type of data replication.</p>"
         }
       },
       "documentation":"<p>Describes a standby WorkSpace.</p>"
@@ -4416,6 +4442,28 @@
     "StandbyWorkspacesList":{
       "type":"list",
       "member":{"shape":"StandbyWorkspace"}
+    },
+    "StandbyWorkspacesProperties":{
+      "type":"structure",
+      "members":{
+        "StandbyWorkspaceId":{
+          "shape":"WorkspaceId",
+          "documentation":"<p>The identifier of the standby WorkSpace</p>"
+        },
+        "DataReplication":{
+          "shape":"DataReplication",
+          "documentation":"<p>Indicates whether data replication is enabled, and if enabled, the type of data replication.</p>"
+        },
+        "RecoverySnapshotTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time at which the last successful snapshot was taken of the primary WorkSpace used for replicating data.</p>"
+        }
+      },
+      "documentation":"<p>Describes the properties of the related standby WorkSpaces. </p>"
+    },
+    "StandbyWorkspacesPropertiesList":{
+      "type":"list",
+      "member":{"shape":"StandbyWorkspacesProperties"}
     },
     "StartRequest":{
       "type":"structure",
@@ -4873,7 +4921,7 @@
         },
         "State":{
           "shape":"WorkspaceState",
-          "documentation":"<p>The operational state of the WorkSpace.</p> <note> <p>After a WorkSpace is terminated, the <code>TERMINATED</code> state is returned only briefly before the WorkSpace directory metadata is cleaned up, so this state is rarely returned. To confirm that a WorkSpace is terminated, check for the WorkSpace ID by using <a href=\"https://docs.aws.amazon.com/workspaces/latest/api/API_DescribeWorkspaces.html\"> DescribeWorkSpaces</a>. If the WorkSpace ID isn't returned, then the WorkSpace has been successfully terminated.</p> </note>"
+          "documentation":"<p>The operational state of the WorkSpace.</p> <ul> <li> <p> <code>PENDING</code> – The WorkSpace is in a waiting state (for example, the WorkSpace is being created).</p> </li> <li> <p> <code>AVAILABLE</code> – The WorkSpace is running and has passed the health checks.</p> </li> <li> <p> <code>IMPAIRED</code> – Refer to <code>UNHEALTHY</code> state.</p> </li> <li> <p> <code>UNHEALTHY</code> – The WorkSpace is not responding to health checks.</p> </li> <li> <p> <code>REBOOTING</code> – The WorkSpace is being rebooted (restarted).</p> </li> <li> <p> <code>STARTING</code> – The WorkSpace is starting up and health checks are being run.</p> </li> <li> <p> <code>REBUILDING</code> – The WorkSpace is being rebuilt.</p> </li> <li> <p> <code>RESTORING</code> – The WorkSpace is being restored.</p> </li> <li> <p> <code>MAINTENANCE</code> – The WorkSpace is undergoing scheduled maintenance by Amazon Web Services.</p> </li> <li> <p> <code>ADMIN_MAINTENANCE</code> – The WorkSpace is undergoing maintenance by the WorkSpaces administrator.</p> </li> <li> <p> <code>TERMINATING</code> – The WorkSpace is being deleted.</p> </li> <li> <p> <code>TERMINATED</code> – The WorkSpace has been deleted.</p> </li> <li> <p> <code>SUSPENDED</code> – The WorkSpace has been suspended for image creation.</p> </li> <li> <p> <code>UPDATING</code> – The WorkSpace is undergoing an update.</p> </li> <li> <p> <code>STOPPING</code> – The WorkSpace is being stopped.</p> </li> <li> <p> <code>STOPPED</code> – The WorkSpace has been stopped.</p> </li> <li> <p> <code>ERROR </code> – The WorkSpace is an error state (for example, an error occurred during startup).</p> </li> </ul> <note> <p>After a WorkSpace is terminated, the <code>TERMINATED</code> state is returned only briefly before the WorkSpace directory metadata is cleaned up, so this state is rarely returned. To confirm that a WorkSpace is terminated, check for the WorkSpace ID by using <a href=\"https://docs.aws.amazon.com/workspaces/latest/api/API_DescribeWorkspaces.html\"> DescribeWorkSpaces</a>. If the WorkSpace ID isn't returned, then the WorkSpace has been successfully terminated.</p> </note>"
         },
         "BundleId":{
           "shape":"BundleId",
@@ -4918,6 +4966,14 @@
         "RelatedWorkspaces":{
           "shape":"RelatedWorkspaces",
           "documentation":"<p>The standby WorkSpace or primary WorkSpace related to the specified WorkSpace.</p>"
+        },
+        "DataReplicationSettings":{
+          "shape":"DataReplicationSettings",
+          "documentation":"<p>Indicates the settings of the data replication.</p>"
+        },
+        "StandbyWorkspacesProperties":{
+          "shape":"StandbyWorkspacesPropertiesList",
+          "documentation":"<p>The properties of the standby WorkSpace</p>"
         }
       },
       "documentation":"<p>Describes a WorkSpace.</p>"

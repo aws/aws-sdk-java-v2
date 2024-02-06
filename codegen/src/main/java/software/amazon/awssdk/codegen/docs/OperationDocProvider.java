@@ -69,19 +69,13 @@ abstract class OperationDocProvider {
     String getDocs() {
         DocumentationBuilder docBuilder = new DocumentationBuilder();
 
-        String description = StringUtils.isNotBlank(opModel.getDocumentation()) ?
-                             opModel.getDocumentation() :
-                             getDefaultServiceDocs();
-
-        String appendedDescription = appendToDescription();
+        String description = getDescription();
 
         if (config.isConsumerBuilder()) {
-            appendedDescription += getConsumerBuilderDocs();
+            description += "<br/>" + getConsumerBuilderDocs();
         }
 
-        docBuilder.description(StringUtils.isNotBlank(appendedDescription) ?
-                               description + "<br/>" + appendedDescription :
-                               description);
+        docBuilder.description(description);
 
         applyParams(docBuilder);
         applyReturns(docBuilder);
@@ -96,10 +90,12 @@ abstract class OperationDocProvider {
     }
 
     /**
-     * @return A string that will be appended to the standard description.
+     * @return The String description for the operation.
      */
-    protected String appendToDescription() {
-        return "";
+    protected String getDescription() {
+        return StringUtils.isNotBlank(opModel.getDocumentation()) ?
+               opModel.getDocumentation() :
+               getDefaultServiceDocs();
     }
 
     /**

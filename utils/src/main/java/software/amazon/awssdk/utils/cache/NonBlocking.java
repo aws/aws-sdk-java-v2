@@ -123,6 +123,16 @@ public class NonBlocking implements CachedSupplier.PrefetchStrategy {
         return EXECUTOR;
     }
 
+    @SdkTestInternalApi
+    public boolean isTaskScheduled() {
+        ScheduledFuture<?> refreshTask = this.refreshTask.get();
+        if (refreshTask == null) {
+            return true;
+        }
+
+        return !refreshTask.isDone();
+    }
+
     @Override
     public void initializeCachedSupplier(CachedSupplier<?> cachedSupplier) {
         this.cachedSupplier = cachedSupplier;

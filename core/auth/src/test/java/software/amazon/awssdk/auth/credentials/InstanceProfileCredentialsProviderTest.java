@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -33,7 +34,8 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.time.Clock;
@@ -45,11 +47,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
@@ -60,6 +63,7 @@ import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 
+@WireMockTest
 public class InstanceProfileCredentialsProviderTest {
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
     private static final String CREDENTIALS_RESOURCE_PATH = "/latest/meta-data/iam/security-credentials/";
@@ -67,169 +71,197 @@ public class InstanceProfileCredentialsProviderTest {
             + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
             + "\"}";
     private static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
+    private static final String USER_AGENT_HEADER = "User-Agent";
+    private static final String TOKEN_STUB = "some-token";
+    private static final String PROFILE_NAME = "some-profile";
+    private static final String USER_AGENT = SdkUserAgent.create().userAgent();
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
 
+    @RegisterExtension
+    static WireMockExtension wireMockServer = WireMockExtension.newInstance()
+                                                               .options(wireMockConfig().dynamicPort().dynamicPort())
+                                                               .configureStaticDsl(true)
+                                                               .build();
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Rule
-    public WireMockRule mockMetadataEndpoint = new WireMockRule();
-
-    @Before
+    @BeforeEach
     public void methodSetup() {
-        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
+        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + wireMockServer.getPort());
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
     }
 
-    @Test
-    public void resolveCredentials_metadataLookupDisabled_throws() {
-        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property(), "true");
-        thrown.expect(SdkClientException.class);
-        thrown.expectMessage("IMDS credentials have been disabled");
-        try {
-            InstanceProfileCredentialsProvider.builder().build().resolveCredentials();
-        } finally {
-            System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property());
-        }
+    private void stubSecureCredentialsResponse(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
+        stubCredentialsResponse(responseDefinitionBuilder);
+    }
+
+    private void stubTokenFetchErrorResponse(ResponseDefinitionBuilder responseDefinitionBuilder, int statusCode) {
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(statusCode)
+                                                                                              .withBody("oops")));
+        stubCredentialsResponse(responseDefinitionBuilder);
+    }
+
+    private void stubCredentialsResponse(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody(PROFILE_NAME)));
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME)).willReturn(responseDefinitionBuilder));
+    }
+
+    private void verifyImdsCallWithToken() {
+        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                            .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT))
+                            .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
+                            .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB))
+                            .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile"))
+                            .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB))
+                            .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+    }
+
+    private void verifyImdsCallInsecure() {
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
+                            .withoutHeader(TOKEN_HEADER)
+                            .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile"))
+                            .withoutHeader(TOKEN_HEADER)
+                            .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
     }
 
     @Test
-    public void resolveCredentials_requestsIncludeUserAgent() {
-        String stubToken = "some-token";
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(stubToken)));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
-
+    public void resolveCredentials_queriesTokenResource_includesTokenInCredentialsRequests() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
         provider.resolveCredentials();
-
-        String userAgentHeader = "User-Agent";
-        String userAgent = SdkUserAgent.create().userAgent();
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(userAgentHeader, equalTo(userAgent)));
+        verifyImdsCallWithToken();
     }
 
-    @Test
-    public void resolveCredentials_queriesTokenResource() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
-
+    @ParameterizedTest
+    @ValueSource(ints = {403, 404, 405})
+    public void resolveCredentials_queriesTokenResource_40xError_fallbackToInsecure(int statusCode) {
+        stubTokenFetchErrorResponse(aResponse().withBody(STUB_CREDENTIALS), statusCode);
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
         provider.resolveCredentials();
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-    }
-
-    @Test
-    public void resolveCredentials_queriesTokenResource_includedInCredentialsRequests() {
-        String stubToken = "some-token";
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(stubToken)));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
-
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        provider.resolveCredentials();
-
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(TOKEN_HEADER, equalTo(stubToken)));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(TOKEN_HEADER, equalTo(stubToken)));
-    }
-
-    @Test
-    public void resolveCredentials_queriesTokenResource_403Error_fallbackToInsecure() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(403).withBody("oops")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
-
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        provider.resolveCredentials();
-
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
-    }
-
-    @Test
-    public void resolveCredentials_queriesTokenResource_404Error_fallbackToInsecure() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(404).withBody("oops")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
-
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        provider.resolveCredentials();
-
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
-    }
-
-    @Test
-    public void resolveCredentials_queriesTokenResource_405Error_fallbackToInsecure() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(405).withBody("oops")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
-
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        provider.resolveCredentials();
-
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
-    }
-
-    @Test
-    public void resolveCredentials_queriesTokenResource_400Error_throws() {
-        thrown.expect(SdkClientException.class);
-        thrown.expectMessage("Failed to load credentials from IMDS");
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(400).withBody("oops")));
-
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        provider.resolveCredentials();
+        verifyImdsCallInsecure();
     }
 
     @Test
     public void resolveCredentials_queriesTokenResource_socketTimeout_fallbackToInsecure() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token").withFixedDelay(Integer.MAX_VALUE)));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
-        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody(PROFILE_NAME)));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME)).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
 
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
         provider.resolveCredentials();
+        verifyImdsCallInsecure();
+    }
 
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
+    @ParameterizedTest
+    @ValueSource(ints = {403, 404, 405})
+    public void resolveCredentials_fallbackToInsecureDisabledThroughProperty_throwsWhenTokenFails(int statusCode) {
+        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(), "true");
+        stubTokenFetchErrorResponse(aResponse().withBody(STUB_CREDENTIALS), statusCode);
+        try {
+            InstanceProfileCredentialsProvider.builder().build().resolveCredentials();
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(SdkClientException.class);
+            Throwable cause = e.getCause();
+            assertThat(cause).isInstanceOf(SdkClientException.class);
+            assertThat(cause).hasMessageContaining("fallback to IMDS v1 is disabled");
+        }
+        finally {
+            System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property());
+        }
+    }
+
+    @Test
+    public void resolveCredentials_fallbackToInsecureDisabledThroughProperty_returnsCredentialsWhenTokenReturned() {
+        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(), "true");
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
+        try {
+            InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+            provider.resolveCredentials();
+            verifyImdsCallWithToken();
+        } finally {
+            System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {403, 404, 405})
+    public void resolveCredentials_fallbackToInsecureDisabledThroughConfig_throwsWhenTokenFails(int statusCode) {
+        stubTokenFetchErrorResponse(aResponse().withBody(STUB_CREDENTIALS), statusCode);
+        try {
+            InstanceProfileCredentialsProvider.builder()
+                                              .profileFile(configFile("profile test", Pair.of(ProfileProperty.EC2_METADATA_V1_DISABLED, "true")))
+                                              .profileName("test")
+                                              .build()
+                                              .resolveCredentials();
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(SdkClientException.class);
+            Throwable cause = e.getCause();
+            assertThat(cause).isInstanceOf(SdkClientException.class);
+            assertThat(cause).hasMessageContaining("fallback to IMDS v1 is disabled");
+        }
+    }
+
+    @Test
+    public void resolveCredentials_fallbackToInsecureDisabledThroughConfig_returnsCredentialsWhenTokenReturned() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
+        InstanceProfileCredentialsProvider.builder()
+                                          .profileFile(configFile("profile test", Pair.of(ProfileProperty.EC2_METADATA_V1_DISABLED, "true")))
+                                          .profileName("test")
+                                          .build()
+                                          .resolveCredentials();
+        verifyImdsCallWithToken();
+    }
+
+    @Test
+    public void resolveCredentials_fallbackToInsecureEnabledThroughConfig_returnsCredentialsWhenTokenReturned() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
+        InstanceProfileCredentialsProvider.builder()
+                                          .profileFile(configFile("profile test",
+                                                                  Pair.of(ProfileProperty.EC2_METADATA_V1_DISABLED, "false")))
+                                          .profileName("test")
+                                          .build()
+                                          .resolveCredentials();
+        verifyImdsCallWithToken();
+    }
+
+    @Test
+    public void resolveCredentials_queriesTokenResource_400Error_throws() {
+        stubTokenFetchErrorResponse(aResponse().withBody(STUB_CREDENTIALS), 400);
+
+        assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
+            .isInstanceOf(SdkClientException.class).hasMessage("Failed to load credentials from IMDS.");
     }
 
     @Test
     public void resolveCredentials_endpointSettingEmpty_throws() {
-        thrown.expect(SdkClientException.class);
-
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "");
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        provider.resolveCredentials();
+        assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
+            .isInstanceOf(SdkClientException.class).hasMessage("Failed to load credentials from IMDS.");
     }
 
     @Test
     public void resolveCredentials_endpointSettingHostNotExists_throws() {
-        thrown.expect(SdkClientException.class);
-
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "some-host-that-does-not-exist");
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
+            .isInstanceOf(SdkClientException.class).hasMessage("Failed to load credentials from IMDS.");
+    }
 
-        provider.resolveCredentials();
+    @Test
+    public void resolveCredentials_metadataLookupDisabled_throws() {
+        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property(), "true");
+        try {
+            assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
+                .isInstanceOf(SdkClientException.class)
+                .hasMessage("IMDS credentials have been disabled by environment variable or system property.");
+        } finally {
+            System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property());
+        }
     }
 
     @Test
@@ -250,14 +282,15 @@ public class InstanceProfileCredentialsProviderTest {
 
             provider.resolveCredentials();
 
-            String userAgentHeader = "User-Agent";
-            String userAgent = SdkUserAgent.create().userAgent();
-            mockMetadataEndpoint_2.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(userAgentHeader, equalTo(userAgent)));
+            mockMetadataEndpoint_2.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile"))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
 
             // all requests should have gone to the second server, and none to the other one
-            mockMetadataEndpoint.verify(0, RequestPatternBuilder.allRequests());
+            wireMockServer.verify(0, RequestPatternBuilder.allRequests());
         } finally {
             mockMetadataEndpoint_2.stop();
         }
@@ -293,14 +326,15 @@ public class InstanceProfileCredentialsProviderTest {
 
             assertThat(awsCredentials1).isNotNull();
 
-            String userAgentHeader = "User-Agent";
-            String userAgent = SdkUserAgent.create().userAgent();
-            mockMetadataEndpoint_2.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(userAgentHeader, equalTo(userAgent)));
+            mockMetadataEndpoint_2.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile"))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
 
             // all requests should have gone to the second server, and none to the other one
-            mockMetadataEndpoint.verify(0, RequestPatternBuilder.allRequests());
+            wireMockServer.verify(0, RequestPatternBuilder.allRequests());
         } finally {
             mockMetadataEndpoint_2.stop();
         }
@@ -334,14 +368,15 @@ public class InstanceProfileCredentialsProviderTest {
 
             assertThat(awsCredentials1).isNotNull();
 
-            String userAgentHeader = "User-Agent";
-            String userAgent = SdkUserAgent.create().userAgent();
-            mockMetadataEndpoint_2.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
-            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(userAgentHeader, equalTo(userAgent)));
+            mockMetadataEndpoint_2.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
+            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile"))
+                                              .withHeader(USER_AGENT_HEADER, equalTo(USER_AGENT)));
 
             // all requests should have gone to the second server, and none to the other one
-            mockMetadataEndpoint.verify(0, RequestPatternBuilder.allRequests());
+            wireMockServer.verify(0, RequestPatternBuilder.allRequests());
         } finally {
             mockMetadataEndpoint_2.stop();
         }
@@ -356,7 +391,7 @@ public class InstanceProfileCredentialsProviderTest {
             + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().minus(Duration.ofHours(1))) + '"'
             + "}";
 
-        stubCredentialsResponse(aResponse().withBody(credentialsResponse));
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse));
 
         AwsCredentials credentials = InstanceProfileCredentialsProvider.builder().build().resolveCredentials();
 
@@ -373,18 +408,18 @@ public class InstanceProfileCredentialsProviderTest {
             + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().minus(Duration.ofHours(1))) + '"'
             + "}";
 
-        stubCredentialsResponse(aResponse().withBody(credentialsResponse));
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse));
 
         AwsCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.builder().build();
 
         credentialsProvider.resolveCredentials();
 
-        int requestCountAfterOneRefresh = mockMetadataEndpoint.countRequestsMatching(RequestPattern.everything()).getCount();
+        int requestCountAfterOneRefresh = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
 
         credentialsProvider.resolveCredentials();
         credentialsProvider.resolveCredentials();
 
-        int requestCountAfterThreeRefreshes = mockMetadataEndpoint.countRequestsMatching(RequestPattern.everything()).getCount();
+        int requestCountAfterThreeRefreshes = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
 
         assertThat(requestCountAfterThreeRefreshes).isEqualTo(requestCountAfterOneRefresh);
     }
@@ -398,8 +433,8 @@ public class InstanceProfileCredentialsProviderTest {
             + "\"message\": \"" + errorMessage + "\""
             + "}";
 
-        stubCredentialsResponse(aResponse().withStatus(500)
-                                           .withBody(credentialsResponse));
+        stubSecureCredentialsResponse(aResponse().withStatus(500)
+                                                 .withBody(credentialsResponse));
 
         assertThatThrownBy(InstanceProfileCredentialsProvider.builder().build()::resolveCredentials)
             .isInstanceOf(SdkClientException.class)
@@ -419,12 +454,12 @@ public class InstanceProfileCredentialsProviderTest {
 
         // Set the time to the past, so that the cache expiration time is still is in the past, and then prime the cache
         clock.time = Instant.now().minus(24, HOURS);
-        stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse));
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse));
         AwsCredentials credentialsBefore = credentialsProvider.resolveCredentials();
 
         // Travel to the present time take down IMDS, so we can see if we use the cached credentials
         clock.time = Instant.now();
-        stubCredentialsResponse(aResponse().withStatus(500));
+        stubSecureCredentialsResponse(aResponse().withStatus(500));
         AwsCredentials credentialsAfter = credentialsProvider.resolveCredentials();
 
         assertThat(credentialsBefore).isEqualTo(credentialsAfter);
@@ -451,18 +486,18 @@ public class InstanceProfileCredentialsProviderTest {
 
         // Set the time to the past and call IMDS to prime the cache
         clock.time = now.minus(24, HOURS);
-        stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
         AwsCredentials credentials24HoursAgo = credentialsProvider.resolveCredentials();
 
         // Set the time to 10 minutes before expiration, and fail to call IMDS
         clock.time = now.minus(10, MINUTES);
-        stubCredentialsResponse(aResponse().withStatus(500));
+        stubSecureCredentialsResponse(aResponse().withStatus(500));
         AwsCredentials credentials10MinutesAgo = credentialsProvider.resolveCredentials();
 
         // Set the time to 10 seconds before expiration, and verify that we still call IMDS to try to get credentials in at the
         // last moment before expiration
         clock.time = now.minus(10, SECONDS);
-        stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
         AwsCredentials credentials10SecondsAgo = credentialsProvider.resolveCredentials();
 
         assertThat(credentials24HoursAgo).isEqualTo(credentials10MinutesAgo);
@@ -493,12 +528,12 @@ public class InstanceProfileCredentialsProviderTest {
 
             // Set the time to 5 minutes before expiration and call IMDS
             clock.time = now.minus(5, MINUTES);
-            stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
+            stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
             AwsCredentials credentials5MinutesAgo = credentialsProvider.resolveCredentials();
 
             // Set the time to 2 seconds before expiration, and verify that do not call IMDS because it hasn't been 5 minutes yet
             clock.time = now.minus(2, SECONDS);
-            stubCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
+            stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
             AwsCredentials credentials2SecondsAgo = credentialsProvider.resolveCredentials();
 
             assertThat(credentials2SecondsAgo).isEqualTo(credentials5MinutesAgo);
@@ -511,15 +546,6 @@ public class InstanceProfileCredentialsProviderTest {
             (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
         builder.clock(clock);
         return builder.build();
-    }
-
-    private void stubCredentialsResponse(ResponseDefinitionBuilder responseDefinitionBuilder) {
-        mockMetadataEndpoint.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-                                         .willReturn(aResponse().withBody("some-token")));
-        mockMetadataEndpoint.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
-                                         .willReturn(aResponse().withBody("some-profile")));
-        mockMetadataEndpoint.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile"))
-                                         .willReturn(responseDefinitionBuilder));
     }
 
     private static class AdjustableClock extends Clock {

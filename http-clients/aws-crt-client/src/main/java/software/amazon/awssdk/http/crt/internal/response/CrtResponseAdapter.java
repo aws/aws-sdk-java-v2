@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.http.crt.internal.response;
 
-import java.io.IOException;
+import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapWithIoExceptionIfRetryable;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
@@ -26,14 +28,16 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
-import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
+ * Response handler adaptor for {@link AwsCrtAsyncHttpClient}.
+ * <p>
  * Implements the CrtHttpStreamHandler API and converts CRT callbacks into calls to SDK AsyncExecuteRequest methods
  */
 @SdkInternalApi
@@ -43,16 +47,29 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private final HttpClientConnection connection;
     private final CompletableFuture<Void> completionFuture;
     private final SdkAsyncHttpResponseHandler responseHandler;
-    private final SimplePublisher<ByteBuffer> responsePublisher = new SimplePublisher<>();
+    private final SimplePublisher<ByteBuffer> responsePublisher;
 
-    private final SdkHttpResponse.Builder responseBuilder = SdkHttpResponse.builder();
+    private final SdkHttpResponse.Builder responseBuilder;
+    private final ResponseHandlerHelper responseHandlerHelper;
 
     private CrtResponseAdapter(HttpClientConnection connection,
                                CompletableFuture<Void> completionFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
+        this(connection, completionFuture, responseHandler, new SimplePublisher<>());
+    }
+
+
+    @SdkTestInternalApi
+    public CrtResponseAdapter(HttpClientConnection connection,
+                               CompletableFuture<Void> completionFuture,
+                               SdkAsyncHttpResponseHandler responseHandler,
+                               SimplePublisher<ByteBuffer> simplePublisher) {
         this.connection = Validate.paramNotNull(connection, "connection");
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.responseHandler = Validate.paramNotNull(responseHandler, "responseHandler");
+        this.responseBuilder = SdkHttpResponse.builder();
+        this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, connection);
+        this.responsePublisher = simplePublisher;
     }
 
     public static HttpStreamResponseHandler toCrtResponseHandler(HttpClientConnection crtConn,
@@ -62,18 +79,13 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     }
 
     @Override
-    public void onResponseHeaders(HttpStream stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
-        if (headerType == HttpHeaderBlock.MAIN.getValue()) {
-            for (HttpHeader h : nextHeaders) {
-                responseBuilder.appendHeader(h.getName(), h.getValue());
-            }
-        }
+    public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType, HttpHeader[] nextHeaders) {
+        responseHandlerHelper.onResponseHeaders(stream, responseStatusCode, blockType, nextHeaders);
     }
 
     @Override
     public void onResponseHeadersDone(HttpStream stream, int headerType) {
         if (headerType == HttpHeaderBlock.MAIN.getValue()) {
-            responseBuilder.statusCode(stream.getResponseStatusCode());
             responseHandler.onHeaders(responseBuilder.build());
             responseHandler.onStream(responsePublisher);
         }
@@ -90,11 +102,11 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
 
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
-                failResponseHandlerAndFuture(stream, failure);
+                handlePublisherError(stream, failure);
                 return;
             }
 
-            stream.incrementWindow(bodyBytesIn.length);
+            responseHandlerHelper.incrementWindow(stream, bodyBytesIn.length);
         });
 
         return 0;
@@ -112,41 +124,32 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private void onSuccessfulResponseComplete(HttpStream stream) {
         responsePublisher.complete().whenComplete((result, failure) -> {
             if (failure != null) {
-                failResponseHandlerAndFuture(stream, failure);
+                handlePublisherError(stream, failure);
                 return;
             }
-
-            if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-                connection.shutdown();
-            }
-
-            connection.close();
-            stream.close();
             completionFuture.complete(null);
         });
+
+        responseHandlerHelper.cleanUpConnectionBasedOnStatusCode(stream);
+    }
+
+    private void handlePublisherError(HttpStream stream, Throwable failure) {
+        failResponseHandlerAndFuture(stream, failure);
+        responseHandlerHelper.closeConnection(stream);
     }
 
     private void onFailedResponseComplete(HttpStream stream, HttpException error) {
         log.debug(() -> "HTTP response encountered an error.", error);
 
-        Throwable toThrow = error;
-
-        if (HttpClientConnection.isErrorRetryable(error)) {
-            // IOExceptions get retried, and if the CRT says this error is retryable,
-            // it's semantically an IOException anyway.
-            toThrow = new IOException(error);
-        }
-
+        Throwable toThrow = wrapWithIoExceptionIfRetryable(error);;
         responsePublisher.error(toThrow);
         failResponseHandlerAndFuture(stream, toThrow);
+        responseHandlerHelper.closeConnection(stream);
     }
 
     private void failResponseHandlerAndFuture(HttpStream stream, Throwable error) {
         callResponseHandlerOnError(error);
         completionFuture.completeExceptionally(error);
-        connection.shutdown();
-        connection.close();
-        stream.close();
     }
 
     private void callResponseHandlerOnError(Throwable error) {

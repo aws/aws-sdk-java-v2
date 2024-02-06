@@ -73,12 +73,20 @@ public class ProxyConfigurationTest {
                          "All parameters are Blank"),
 
             Arguments.of(Collections.singletonList(
-                             Pair.of("http.nonProxyHosts", "one,two,three")),
+                             Pair.of("http.nonProxyHosts", "one|two|three")),
                          Collections.singletonList(
                              Pair.of("no_proxy", "one,two,three")
                          ),
-                         new ExpectedProxySetting().port(0).nonProxyHost("one,two,three"),
+                         new ExpectedProxySetting().port(0).nonProxyHost("one", "two", "three"),
                          "Only Non Proxy Hosts are set with multiple value"),
+
+            Arguments.of(Collections.singletonList(
+                             Pair.of("http.nonProxyHosts", "one|two|three")),
+                         Collections.singletonList(
+                             Pair.of("no_proxy", "one|two|three")
+                         ),
+                         new ExpectedProxySetting().port(0).nonProxyHost("one", "two", "three"),
+                         "Only Non Proxy Hosts are set with multiple value where environment variables are Pipe separated"),
 
             Arguments.of(Arrays.asList(
                              Pair.of("%s.proxyVaildHost", "foo.com"),
@@ -199,7 +207,6 @@ public class ProxyConfigurationTest {
         setEnvironmentProperties(envSystemSetting, "https");
         assertProxyEquals(ProxyConfigProvider.fromSystemPropertySettings("https"), expectedProxySetting);
         assertProxyEquals(ProxyConfigProvider.fromEnvironmentSettings("https"), expectedProxySetting);
-
     }
 
     private static class ExpectedProxySetting {

@@ -185,6 +185,10 @@ public class EndpointRulesSpecUtils {
         return "S3Control".equals(intermediateModel.getMetadata().getServiceName());
     }
 
+    public boolean useS3Express() {
+        return intermediateModel.getCustomizationConfig().getS3ExpressAuthSupport();
+    }
+
     public TypeName resolverReturnType() {
         return ParameterizedTypeName.get(CompletableFuture.class, Endpoint.class);
     }
@@ -194,7 +198,19 @@ public class EndpointRulesSpecUtils {
         try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
             return jarFile.stream()
                           .map(ZipEntry::getName)
-                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules"))
+                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules/"))
+                          .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<String> rulesEngineResourceFiles2() {
+        URL currentJarUrl = EndpointRulesSpecUtils.class.getProtectionDomain().getCodeSource().getLocation();
+        try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
+            return jarFile.stream()
+                          .map(ZipEntry::getName)
+                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules2/"))
                           .collect(Collectors.toList());
         } catch (IOException e) {
             throw new UncheckedIOException(e);

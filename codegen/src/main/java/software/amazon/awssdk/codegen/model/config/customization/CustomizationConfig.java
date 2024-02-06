@@ -208,7 +208,7 @@ public class CustomizationConfig {
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private String userAgent;
-    
+
     private RetryMode defaultRetryMode;
 
     /**
@@ -257,7 +257,11 @@ public class CustomizationConfig {
 
     private boolean useGlobalEndpoint;
 
+    private boolean useS3ExpressSessionAuth;
+
     private List<String> interceptors = new ArrayList<>();
+
+    private List<String> internalPlugins = new ArrayList<>();
 
     /**
      * Whether marshallers perform validations against members marked with RequiredTrait.
@@ -288,6 +292,24 @@ public class CustomizationConfig {
      * Customization to attach map of Custom client param configs that can be set on a client builder.
      */
     private Map<String, ClientContextParam> customClientContextParams;
+
+    private boolean s3ExpressAuthSupport;
+
+    /**
+     * Set to true to enable compiled endpoint rules. Currently defaults to false.
+     */
+    private boolean enableGenerateCompiledEndpointRules = false;
+
+    /**
+     * Customization related to auth scheme derived from endpoints.
+     */
+    private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
+
+    /**
+     * Customization to change the root package name.
+     * By default, it's "software.amazon.awssdk.services.[serviceId]"
+     */
+    private String rootPackageName;
 
     private CustomizationConfig() {
     }
@@ -683,6 +705,22 @@ public class CustomizationConfig {
         this.useGlobalEndpoint = useGlobalEndpoint;
     }
 
+    public boolean useS3ExpressSessionAuth() {
+        return useS3ExpressSessionAuth;
+    }
+
+    public void setUseS3ExpressSessionAuth(boolean useS3ExpressSessionAuth) {
+        this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
+    }
+
+    public boolean isEnableGenerateCompiledEndpointRules() {
+        return enableGenerateCompiledEndpointRules;
+    }
+
+    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
+        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
+    }
+
     public Map<String, String> getSkipEndpointTests() {
         return skipEndpointTests;
     }
@@ -698,7 +736,15 @@ public class CustomizationConfig {
     public void setInterceptors(List<String> interceptors) {
         this.interceptors = interceptors;
     }
-    
+
+    public List<String> getInternalPlugins() {
+        return internalPlugins;
+    }
+
+    public void setInternalPlugins(List<String> internalPlugins) {
+        this.internalPlugins = internalPlugins;
+    }
+
     public boolean isRequiredTraitValidationEnabled() {
         return requiredTraitValidationEnabled;
     }
@@ -746,11 +792,40 @@ public class CustomizationConfig {
         this.customClientContextParams = customClientContextParams;
     }
 
+    public boolean getS3ExpressAuthSupport() {
+        return s3ExpressAuthSupport;
+    }
+
+    public void setS3ExpressAuthSupport(boolean s3ExpressAuthSupport) {
+        this.s3ExpressAuthSupport = s3ExpressAuthSupport;
+    }
+
     public MultipartCustomization getMultipartCustomization() {
         return this.multipartCustomization;
     }
 
     public void setMultipartCustomization(MultipartCustomization multipartCustomization) {
         this.multipartCustomization = multipartCustomization;
+    }
+
+    public EndpointAuthSchemeConfig getEndpointAuthSchemeConfig() {
+        return endpointAuthSchemeConfig;
+    }
+
+    public void setEndpointAuthSchemeConfig(EndpointAuthSchemeConfig endpointAuthSchemeConfig) {
+        this.endpointAuthSchemeConfig = endpointAuthSchemeConfig;
+    }
+
+    public String getRootPackageName() {
+        return rootPackageName;
+    }
+
+    public void setRootPackageName(String rootPackageName) {
+        this.rootPackageName = rootPackageName;
+    }
+
+    public CustomizationConfig withRootPackageName(String packageName) {
+        this.rootPackageName = packageName;
+        return this;
     }
 }

@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
@@ -54,11 +55,13 @@ import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
  * retrieve their content from the Amazon S3 bucket you specify at launch. To
  * add a new customer at any time, simply create a bucket for the customer, add
  * their content, and launch your AMI.<br>
- *
- * <P>
+ * <p>
  * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, EC2 metadata usage
  * will be disabled and {@link SdkClientException} will be thrown for any metadata retrieval attempt.
- *
+ * <p>
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_V1_DISABLED} or {@link ProfileProperty#EC2_METADATA_V1_DISABLED}
+ * is set to true, data will only be loaded from EC2 metadata service if a token is successfully retrieved -
+ * fallback to load data without a token will be disabled.
  * <p>
  * More information about Amazon EC2 Metadata
  *
@@ -84,6 +87,10 @@ public final class EC2MetadataUtils {
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
     private static final Map<String, String> CACHE = new ConcurrentHashMap<>();
+
+    private static final Ec2MetadataDisableV1Resolver EC2_METADATA_DISABLE_V1_RESOLVER = Ec2MetadataDisableV1Resolver.create();
+    private static final Object FALLBACK_LOCK = new Object();
+    private static volatile Boolean IS_INSECURE_FALLBACK_DISABLED;
 
     private static final InstanceProviderTokenEndpointProvider TOKEN_ENDPOINT_PROVIDER =
             new InstanceProviderTokenEndpointProvider();
@@ -372,6 +379,11 @@ public final class EC2MetadataUtils {
         CACHE.clear();
     }
 
+    @SdkTestInternalApi
+    public static void resetIsFallbackDisableResolved() {
+        IS_INSECURE_FALLBACK_DISABLED = null;
+    }
+
     private static List<String> getItems(String path, int tries, boolean slurp) {
         if (tries == 0) {
             throw SdkClientException.builder().message("Unable to contact EC2 metadata service.").build();
@@ -434,9 +446,35 @@ public final class EC2MetadataUtils {
                         .cause(e)
                         .build();
             }
-
-            return null;
+            return handleTokenErrorResponse(e);
         }
+    }
+
+    private static String handleTokenErrorResponse(Exception e) {
+        if (isInsecureFallbackDisabled()) {
+            String message = String.format("Failed to retrieve IMDS token, and fallback to IMDS v1 is disabled via the "
+                                           + "%s system property, %s environment variable, or %s configuration file profile"
+                                           + " setting.",
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.environmentVariable(),
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(),
+                                           ProfileProperty.EC2_METADATA_V1_DISABLED);
+            throw SdkClientException.builder()
+                                    .message(message)
+                                    .cause(e)
+                                    .build();
+        }
+        return null;
+    }
+
+    private static boolean isInsecureFallbackDisabled() {
+        if (IS_INSECURE_FALLBACK_DISABLED == null) {
+            synchronized (FALLBACK_LOCK) {
+                if (IS_INSECURE_FALLBACK_DISABLED == null) {
+                    IS_INSECURE_FALLBACK_DISABLED = EC2_METADATA_DISABLE_V1_RESOLVER.resolve();
+                }
+            }
+        }
+        return IS_INSECURE_FALLBACK_DISABLED;
     }
 
     private static String fetchData(String path) {

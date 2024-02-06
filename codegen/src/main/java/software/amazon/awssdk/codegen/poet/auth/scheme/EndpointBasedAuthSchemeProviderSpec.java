@@ -72,6 +72,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                         .addField(endpointDelegateInstance())
                         .addMethod(createMethod())
                         .addMethod(resolveAuthSchemeMethod())
+                        .addMethod(endpointProvider())
                         .build();
     }
 
@@ -91,6 +92,25 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                         .initializer("$T.defaultProvider()", endpointRulesSpecUtils.providerInterfaceName())
                         .build();
+    }
+
+    private MethodSpec endpointProvider() {
+        ClassName endpointProviderClass = endpointRulesSpecUtils.providerInterfaceName();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("endpointProvider")
+                                               .addModifiers(Modifier.PRIVATE)
+                                               .returns(endpointProviderClass)
+                                               .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "params");
+
+        ClassName endpointAwareParams = authSchemeSpecUtils.parametersEndpointAwareDefaultImplName();
+        builder.beginControlFlow("if (params instanceof $T)", endpointAwareParams);
+        builder.addStatement("$1T endpointAwareParams = ($1T) params", endpointAwareParams);
+        builder.addStatement("$T endpointProvider = endpointAwareParams.endpointProvider()", endpointProviderClass);
+        builder.beginControlFlow("if (endpointProvider != null)");
+        builder.addStatement("return endpointProvider");
+        builder.endControlFlow();
+        builder.endControlFlow();
+        builder.addStatement("return DELEGATE");
+        return builder.build();
     }
 
     private FieldSpec modeledResolverInstance() {
@@ -124,7 +144,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
             }
         });
         spec.addStatement(".build()");
-        spec.addStatement("$T endpoint = $T.joinLikeSync(DELEGATE.resolveEndpoint(endpointParameters))",
+        spec.addStatement("$T endpoint = $T.joinLikeSync(endpointProvider(params).resolveEndpoint(endpointParameters))",
                           Endpoint.class, CompletableFutureUtils.class);
         spec.addStatement("$T authSchemes = endpoint.attribute($T.AUTH_SCHEMES)",
                           ParameterizedTypeName.get(List.class, EndpointAuthScheme.class), AwsEndpointAttribute.class);
@@ -147,6 +167,9 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.beginControlFlow("switch(name)");
         addAuthSchemeSwitchSigV4Case(spec);
         addAuthSchemeSwitchSigV4aCase(spec);
+        if (endpointRulesSpecUtils.useS3Express()) {
+            addAuthSchemeSwitchS3ExpressCase(spec);
+        }
         addAuthSchemeSwitchDefaultCase(spec);
         spec.endControlFlow();
     }
@@ -180,6 +203,26 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
             .addCode(".putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class)
             .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4aAuthScheme.disableDoubleEncoding())",
                      AwsV4aHttpSigner.class)
+            .addCode(".build());");
+        spec.addStatement("break");
+    }
+
+    private void addAuthSchemeSwitchS3ExpressCase(MethodSpec.Builder spec) {
+        spec.addCode("case $S:", "sigv4-s3express");
+        ClassName s3ExpressEndpointAuthScheme = ClassName.get(
+            authSchemeSpecUtils.baseClientPackageName() + ".endpoints.authscheme",
+            "S3ExpressEndpointAuthScheme");
+        spec.addStatement("$T s3ExpressAuthScheme = $T.isInstanceOf($T.class, authScheme, $S, authScheme.getClass().getName())",
+                          s3ExpressEndpointAuthScheme, Validate.class, s3ExpressEndpointAuthScheme,
+                          "Expecting auth scheme of class S3ExpressAuthScheme, got instead object of class %s");
+
+        ClassName s3ExpressAuthScheme = ClassName.get(authSchemeSpecUtils.baseClientPackageName() + ".s3express",
+                                                      "S3ExpressAuthScheme");
+        spec.addCode("options.add($T.builder().schemeId($T.SCHEME_ID)", AuthSchemeOption.class, s3ExpressAuthScheme)
+            .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, s3ExpressAuthScheme.signingName())", AwsV4HttpSigner.class)
+            .addCode(".putSignerProperty($T.REGION_NAME, s3ExpressAuthScheme.signingRegion())", AwsV4HttpSigner.class)
+            .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !s3ExpressAuthScheme.disableDoubleEncoding())",
+                     AwsV4HttpSigner.class)
             .addCode(".build());");
         spec.addStatement("break");
     }

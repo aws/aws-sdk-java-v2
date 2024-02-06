@@ -53,6 +53,7 @@ import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An implementation of a {@link AwsV4aHttpSigner} that uses properties to compose v4a-signers in order to delegate signing of a
@@ -62,6 +63,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
     private static final int DEFAULT_CHUNK_SIZE_IN_BYTES = 128 * 1024;
+    private static final Logger LOG = Logger.loggerFor(DefaultAwsCrtV4aHttpSigner.class);
 
     private static V4aProperties v4aProperties(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
         Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
@@ -174,7 +176,20 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEncrypted = "https".equals(request.request().protocol());
 
-        return !isAnonymous && (isPayloadSigningEnabled || !isEncrypted);
+        if (isAnonymous) {
+            return false;
+        }
+
+        // presigning requests should always have a null payload, and should always be unsigned-payload
+        if (!isEncrypted && request.payload().isPresent()) {
+            if (!isPayloadSigningEnabled) {
+                LOG.debug(() -> "Payload signing was disabled for an HTTP request with a payload. " +
+                                "Signing will be enabled. Use HTTPS for unsigned payloads.");
+            }
+            return true;
+        }
+
+        return isPayloadSigningEnabled;
     }
 
     private static void configureUnsignedPayload(AwsSigningConfig signingConfig, boolean isChunkEncoding,

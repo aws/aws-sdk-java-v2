@@ -9,20 +9,19 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
 import software.amazon.awssdk.services.database.auth.scheme.internal.DatabaseAuthSchemeInterceptor;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseResolveEndpointInterceptor;
 import software.amazon.awssdk.services.database.internal.DatabaseServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.database.internal.SdkClientConfigurationUtil;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
@@ -66,6 +65,10 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         SdkClientConfiguration.Builder builder = config.toBuilder();
+        builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, c -> {
+            IdentityProviders.Builder result = IdentityProviders.builder();
+            return result.build();
+        });
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         return builder.build();
     }
@@ -99,32 +102,28 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         NoAuthAuthScheme noAuthAuthScheme = NoAuthAuthScheme.create();
         schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
         schemes.putAll(this.additionalAuthSchemes);
-        return Collections.unmodifiableMap(schemes);
-    }
-
-    @Override
-    protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
-        ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
-        if (overrideConfiguration == null) {
-            return configuration;
-        }
-        return SdkClientConfigurationUtil.copyOverridesToConfiguration(overrideConfiguration, configuration.toBuilder()).build();
+        return schemes;
     }
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> plugins = plugins();
-        if (plugins.isEmpty()) {
+        List<SdkPlugin> internalPlugins = internalPlugins();
+        List<SdkPlugin> externalPlugins = plugins();
+        if (internalPlugins.isEmpty() && externalPlugins.isEmpty()) {
             return config;
         }
-        DatabaseServiceClientConfigurationBuilder.BuilderInternal serviceConfigBuilder = DatabaseServiceClientConfigurationBuilder
-            .builder(config.toBuilder());
-        serviceConfigBuilder.overrideConfiguration(overrideConfiguration());
+        List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
+        SdkClientConfiguration.Builder configuration = config.toBuilder();
+        DatabaseServiceClientConfigurationBuilder serviceConfigBuilder = new DatabaseServiceClientConfigurationBuilder(
+            configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        overrideConfiguration(serviceConfigBuilder.overrideConfiguration());
-        return serviceConfigBuilder.buildSdkClientConfiguration();
+        return configuration.build();
+    }
+
+    private List<SdkPlugin> internalPlugins() {
+        return Collections.emptyList();
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

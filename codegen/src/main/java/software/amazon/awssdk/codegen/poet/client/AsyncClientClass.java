@@ -147,8 +147,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addField(protocolMetadata())
             .addField(AsyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
@@ -220,11 +219,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
         MethodSpec.Builder builder
             = MethodSpec.constructorBuilder()
                         .addModifiers(PROTECTED)
-                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
-                        .addStatement("this.clientConfiguration = clientConfiguration")
-                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
+                        .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
+                                      + ".option($T.SDK_CLIENT, this)"
+                                      + ".build()", SdkClientOption.class);
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -289,7 +288,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
                          .returns(serviceClientConfigurationClassName)
-                         .addStatement("return this.serviceClientConfiguration")
+                         .addStatement("return new $T(this.clientConfiguration.toBuilder()).build()",
+                                       this.configurationUtils.serviceClientConfigurationBuilderClassName())
                          .build();
     }
 
@@ -301,20 +301,20 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                                                .returns(SdkClientConfiguration.class);
 
-
         builder.addStatement("$T plugins = request.overrideConfiguration()\n"
                              + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class))
-               .beginControlFlow("if (plugins.isEmpty())")
-               .addStatement("return clientConfiguration")
-               .endControlFlow();
-        builder.addStatement("$1T.BuilderInternal serviceConfigBuilder = $1T.builder(clientConfiguration.toBuilder())",
-                             serviceClientConfigurationBuilderClassName);
-        builder.addStatement("serviceConfigBuilder.overrideConfiguration(serviceClientConfiguration.overrideConfiguration())");
-        builder.beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
+
+        builder.beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return configuration.build()")
+               .endControlFlow()
+               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
+               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
-               .endControlFlow();
-        builder.addStatement("return serviceConfigBuilder.buildSdkClientConfiguration()");
+               .endControlFlow()
+               .addStatement("return configuration.build()");
+
         return builder.build();
     }
 

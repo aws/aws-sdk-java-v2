@@ -16,13 +16,14 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.assertj.core.data.Offset;
+import java.util.concurrent.CompletionException;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
@@ -32,18 +33,17 @@ import software.amazon.awssdk.enhanced.dynamodb.model.Record;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
-import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegrationTestBase {
 
 
     private static final String TABLE_NAME = createTestTableName();
-
-
     private static final EnhancedLocalSecondaryIndex LOCAL_SECONDARY_INDEX = EnhancedLocalSecondaryIndex.builder()
                                                                                                         .indexName("index1")
                                                                                                         .projection(Projection.builder()
@@ -56,7 +56,7 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
     private static DynamoDbAsyncTable<Record> mappedTable;
 
     @BeforeClass
-    public static void setup() {
+    public static void beforeClass() {
         dynamoDbClient = createAsyncDynamoDbClient();
         enhancedClient = DynamoDbEnhancedAsyncClient.builder().dynamoDbClient(dynamoDbClient).build();
         mappedTable = enhancedClient.table(TABLE_NAME, TABLE_SCHEMA);
@@ -64,8 +64,16 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(TABLE_NAME)).join();
     }
 
+    @After
+    public void tearDown() {
+        mappedTable.scan()
+                   .items()
+                   .subscribe(record -> mappedTable.deleteItem(record).join())
+                   .join();
+    }
+
     @AfterClass
-    public static void teardown() {
+    public static void afterClass() {
         try {
             dynamoDbClient.deleteTable(r -> r.tableName(TABLE_NAME)).join();
         } finally {
@@ -125,6 +133,133 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
     }
 
     @Test
+    public void deleteItem_returnItemCollectionMetrics_set_itemCollectionMetricsNull() {
+        Key key = Key.builder().partitionValue("1").sortValue(10).build();
+
+        DeleteItemEnhancedResponse<Record> response = mappedTable.deleteItemWithResponse(r -> r.key(key)).join();
+
+        assertThat(response.itemCollectionMetrics()).isNull();
+    }
+
+    @Test
+    public void deleteItem_returnItemCollectionMetrics_set_itemCollectionMetricsNotNull() {
+        Key key = Key.builder().partitionValue("1").sortValue(10).build();
+
+        DeleteItemEnhancedResponse<Record> response =
+            mappedTable.deleteItemWithResponse(r -> r.key(key).returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE))
+                       .join();
+
+        assertThat(response.itemCollectionMetrics()).isNotNull();
+    }
+
+    @Test
+    public void putItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNull() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record).join();
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        PutItemEnhancedRequest<Record> request = PutItemEnhancedRequest.builder(Record.class)
+                                                                       .item(record)
+                                                                       .conditionExpression(itemDoesNotExist)
+                                                                       .build();
+
+        assertThatThrownBy(() -> mappedTable.putItem(request).join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e.getCause()).hasItem()).isFalse());
+    }
+
+    @Test
+    public void putItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNotNull() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record).join();
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        PutItemEnhancedRequest<Record> request = PutItemEnhancedRequest.builder(Record.class)
+                                                                       .item(record)
+                                                                       .conditionExpression(itemDoesNotExist)
+                                                                       .returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure.ALL_OLD)
+                                                                       .build();
+
+        assertThatThrownBy(() -> mappedTable.putItem(request).join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e.getCause()).hasItem()).isTrue());
+    }
+
+    @Test
+    public void updateItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNull() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record).join();
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        UpdateItemEnhancedRequest<Record> request = UpdateItemEnhancedRequest.builder(Record.class)
+                                                                             .item(record)
+                                                                             .conditionExpression(itemDoesNotExist)
+                                                                             .build();
+
+        assertThatThrownBy(() -> mappedTable.updateItem(request).join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e.getCause()).hasItem()).isFalse());
+    }
+
+    @Test
+    public void updateItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNotNull() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record).join();
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        UpdateItemEnhancedRequest<Record> request = UpdateItemEnhancedRequest.builder(Record.class)
+                                                                             .item(record)
+                                                                             .conditionExpression(itemDoesNotExist)
+                                                                             .returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure.ALL_OLD)
+                                                                             .build();
+
+        assertThatThrownBy(() -> mappedTable.updateItem(request).join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e.getCause()).hasItem()).isTrue());
+    }
+
+    @Test
+    public void deleteItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNull() {
+        Record record = new Record().setId("1").setSort(10);
+        Key recordKey = Key.builder()
+                           .partitionValue(record.getId())
+                           .sortValue(record.getSort())
+                           .build();
+        mappedTable.putItem(record).join();
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder()
+                                                                     .key(recordKey)
+                                                                     .conditionExpression(itemDoesNotExist)
+                                                                     .build();
+
+        assertThatThrownBy(() -> mappedTable.deleteItem(request).join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e.getCause()).hasItem()).isFalse());
+    }
+
+    @Test
+    public void deleteItem_returnValuesOnConditionCheckFailure_set_returnValuesOnConditionCheckFailureNotNull() {
+        Record record = new Record().setId("1").setSort(10);
+        Key recordKey = Key.builder()
+                           .partitionValue(record.getId())
+                           .sortValue(record.getSort())
+                           .build();
+        mappedTable.putItem(record).join();
+
+        Expression itemDoesNotExist = Expression.builder().expression("attribute_not_exists(id)").build();
+        DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder()
+                                                                     .key(recordKey)
+                                                                     .conditionExpression(itemDoesNotExist)
+                                                                     .returnValuesOnConditionCheckFailure(ReturnValuesOnConditionCheckFailure.ALL_OLD)
+                                                                     .build();
+
+        assertThatThrownBy(() -> mappedTable.deleteItem(request).join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(((ConditionalCheckFailedException) e.getCause()).hasItem()).isTrue());
+    }
+
+    @Test
     public void deleteItem_returnConsumedCapacity_unset_consumedCapacityNull() {
         Key key = Key.builder().partitionValue("1").sortValue(10).build();
 
@@ -144,17 +279,6 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
     }
 
     @Test
-    public void delete_returnItemCollectionMetrics_set_itemCollectionMetricsNotNull() {
-        Key key = Key.builder().partitionValue("1").sortValue(10).build();
-
-        DeleteItemEnhancedResponse<Record> response =
-            mappedTable.deleteItemWithResponse(r -> r.key(key).returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE))
-                       .join();
-
-        assertThat(response.itemCollectionMetrics()).isNotNull();
-    }
-
-    @Test
     public void getItem_withoutReturnConsumedCapacity() {
         Record record = new Record().setId("101").setSort(102).setStringAttribute(getStringAttrValue(80_000));
         Key key = Key.builder()
@@ -164,41 +288,5 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
 
         GetItemEnhancedResponse<Record> response = mappedTable.getItemWithResponse(req -> req.key(key)).join();
         assertThat(response.consumedCapacity()).isNull();
-    }
-
-    @Test
-    public void getItem_withReturnConsumedCapacity_eventualConsistent() {
-        Record record = new Record().setId("101").setSort(102).setStringAttribute(getStringAttrValue(80 * 1024));
-        Key key = Key.builder()
-                     .partitionValue(record.getId())
-                     .sortValue(record.getSort())
-                     .build();
-        mappedTable.putItem(record).join();
-
-        GetItemEnhancedResponse<Record> response = mappedTable.getItemWithResponse(
-            req -> req.key(key).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
-        ).join();
-        ConsumedCapacity consumedCapacity = response.consumedCapacity();
-        assertThat(consumedCapacity).isNotNull();
-        // An eventually consistent read request of an item up to 4 KB requires one-half read request unit.
-        assertThat(consumedCapacity.capacityUnits()).isCloseTo(10.0, Offset.offset(1.0));
-    }
-
-    @Test
-    public void getItem_withReturnConsumedCapacity_stronglyConsistent() {
-        Record record = new Record().setId("201").setSort(202).setStringAttribute(getStringAttrValue(80 * 1024));
-        Key key = Key.builder()
-                     .partitionValue(record.getId())
-                     .sortValue(record.getSort())
-                     .build();
-        mappedTable.putItem(record).join();
-
-        GetItemEnhancedResponse<Record> response = mappedTable.getItemWithResponse(
-            req -> req.key(key).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).consistentRead(true)
-        ).join();
-        ConsumedCapacity consumedCapacity = response.consumedCapacity();
-        assertThat(consumedCapacity).isNotNull();
-        // A strongly consistent read request of an item up to 4 KB requires one read request unit.
-        assertThat(consumedCapacity.capacityUnits()).isCloseTo(20.0, Offset.offset(1.0));
     }
 }

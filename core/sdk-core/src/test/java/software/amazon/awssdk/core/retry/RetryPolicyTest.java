@@ -185,4 +185,16 @@ public class RetryPolicyTest {
     public void hashCodeDoesNotThrow() {
         RetryPolicy.defaultRetryPolicy().hashCode();
     }
+
+    @Test
+    public void fullJitter_zeroBackoffTimeZeroDelayZeroRetries_delayShouldBeZero() {
+        RetryPolicyContext context = RetryPolicyContext.builder()
+                                                       .retriesAttempted(0)
+                                                       .build();
+        FullJitterBackoffStrategy strategy = FullJitterBackoffStrategy.builder()
+                                                            .baseDelay(Duration.ZERO)
+                                                            .maxBackoffTime(Duration.ZERO)
+                                                            .build();
+        assertThat(strategy.computeDelayBeforeNextRetry(context)).isEqualTo(Duration.ofMillis(0L));
+    }
 }

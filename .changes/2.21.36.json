@@ -1,0 +1,24 @@
+{
+    "version": "2.21.36",
+    "date": "2023-11-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS ARC - Zonal Shift",
+            "contributor": "",
+            "description": "This release adds a new capability, zonal autoshift. You can configure zonal autoshift so that AWS shifts traffic for a resource away from an Availability Zone, on your behalf, when AWS determines that there is an issue that could potentially affect customers in the Availability Zone."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Adds observation and analyzer support to the GetDataQualityResult and BatchGetDataQualityResult APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for 1/ Code Editor, based on Code-OSS, Visual Studio Code Open Source, a new fully managed IDE option in SageMaker Studio 2/ JupyterLab, a new fully managed JupyterLab IDE experience in SageMaker Studio"
+        }
+    ]
+}

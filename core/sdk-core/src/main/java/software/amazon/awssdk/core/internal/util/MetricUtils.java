@@ -21,11 +21,14 @@ import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HE
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.OptionalLong;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
@@ -41,6 +44,7 @@ import software.amazon.awssdk.utils.Pair;
  */
 @SdkInternalApi
 public final class MetricUtils {
+    private static final long ONE_SEC_IN_NS = 1_000_000_000L;
 
     private MetricUtils() {
     }
@@ -85,9 +89,15 @@ public final class MetricUtils {
      * @return A {@code Pair} containing the result of {@code c} and the duration.
      */
     public static <T> Pair<T, Duration> measureDurationUnsafe(Callable<T> c) throws Exception {
-        long start = System.nanoTime();
+        return measureDurationUnsafe(c, System.nanoTime());
+    }
+
+    /**
+     * Measure the duration of the given callable, using the provided time as the basis.
+     */
+    public static <T> Pair<T, Duration> measureDurationUnsafe(Callable<T> c, long startTime) throws Exception {
         T result = c.call();
-        Duration d = Duration.ofNanos(System.nanoTime() - start);
+        Duration d = Duration.ofNanos(System.nanoTime() - startTime);
         return Pair.of(result, d);
     }
 
@@ -133,5 +143,41 @@ public final class MetricUtils {
             return parentCollector.createChild("HttpClient");
         }
         return NoOpMetricCollector.create();
+    }
+
+    public static OptionalLong apiCallAttemptStartNanoTime(RequestExecutionContext context) {
+        Long t = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.API_CALL_ATTEMPT_START_NANO_TIME);
+        if (t == null) {
+            return OptionalLong.empty();
+        }
+        return OptionalLong.of(t);
+    }
+
+    public static long resetApiCallAttemptStartNanoTime(RequestExecutionContext context) {
+        long now = System.nanoTime();
+        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.API_CALL_ATTEMPT_START_NANO_TIME, now);
+        return now;
+    }
+
+    public static OptionalLong apiCallAttemptResponseBytesRead(RequestExecutionContext context) {
+        AtomicLong read = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
+        if (read == null) {
+            return OptionalLong.empty();
+        }
+        return OptionalLong.of(read.get());
+    }
+
+    public static OptionalLong responseHeadersReadEndNanoTime(RequestExecutionContext context) {
+        Long startTime = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.HEADERS_READ_END_NANO_TIME);
+        if (startTime == null) {
+            return OptionalLong.empty();
+        }
+        return OptionalLong.of(startTime);
+    }
+
+    public static double bytesPerSec(long totalBytes, long nanoStart, long nanoEnd) {
+        long duration = nanoEnd - nanoStart;
+        double bytesPerNs = (double) totalBytes / duration;
+        return bytesPerNs * ONE_SEC_IN_NS;
     }
 }

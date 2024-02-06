@@ -15,10 +15,18 @@
 
 package software.amazon.awssdk.core.client.config;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.SIGNER_OVERRIDDEN;
+
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -49,10 +57,42 @@ public final class SdkClientConfiguration
     }
 
     /**
+     * Create a {@link SdkClientConfiguration} from the provided {@link ClientOverrideConfiguration}. This copies the
+     * properties out of the configuration and ensures that _OVERRIDDEN properties are properly set, like
+     * {@link SdkClientOption#SIGNER_OVERRIDDEN}.
+     */
+    public static SdkClientConfiguration fromOverrideConfiguration(ClientOverrideConfiguration configuration) {
+        SdkClientConfiguration result = configuration.asSdkClientConfiguration();
+
+        Boolean endpointOverriddenOverride = result.option(SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE);
+        Signer signerFromOverride = result.option(SdkAdvancedClientOption.SIGNER);
+
+        if (endpointOverriddenOverride == null && signerFromOverride == null) {
+            return result;
+        }
+
+        SdkClientConfiguration.Builder resultBuilder = result.toBuilder();
+        if (signerFromOverride != null) {
+            resultBuilder.option(SIGNER_OVERRIDDEN, true);
+        }
+        if (endpointOverriddenOverride != null) {
+            resultBuilder.option(ENDPOINT_OVERRIDDEN, endpointOverriddenOverride);
+        }
+        return resultBuilder.build();
+    }
+
+    /**
      * Retrieve the value of a specific option.
      */
     public <T> T option(ClientOption<T> option) {
         return attributes.get(option);
+    }
+
+    /**
+     * Create a {@link ClientOverrideConfiguration} using the values currently in this configuration.
+     */
+    public ClientOverrideConfiguration asOverrideConfiguration() {
+        return new ClientOverrideConfiguration.DefaultBuilder(toBuilder()).build();
     }
 
     /**
@@ -63,7 +103,14 @@ public final class SdkClientConfiguration
     }
 
     public SdkClientConfiguration merge(Consumer<SdkClientConfiguration.Builder> configuration) {
-        return merge(SdkClientConfiguration.builder().applyMutation(configuration).build());
+        return merge(builder().applyMutation(configuration).build());
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("SdkClientConfiguration")
+                       .add("attributes", attributes)
+                       .build();
     }
 
     @Override
@@ -106,6 +153,13 @@ public final class SdkClientConfiguration
         }
 
         /**
+         * Create a {@link ClientOverrideConfiguration.Builder} using the values currently in this builder.
+         */
+        public ClientOverrideConfiguration.Builder asOverrideConfigurationBuilder() {
+            return new ClientOverrideConfiguration.DefaultBuilder(this);
+        }
+
+        /**
          * Configure the value of a specific option.
          */
         public <T> Builder option(ClientOption<T> option, T value) {
@@ -114,10 +168,63 @@ public final class SdkClientConfiguration
         }
 
         /**
+         * Add a mapping between the provided option and value provider.
+         *
+         * The lazy value will only be resolved when the value is needed. During resolution, the lazy value is provided with a
+         * value reader. The value reader will fail if the reader attempts to read its own value (directly, or indirectly
+         * through other lazy values).
+         *
+         * If a value is updated that a lazy value is depended on, the lazy value will be re-resolved the next time the lazy
+         * value is accessed.
+         */
+        public <T> Builder lazyOption(ClientOption<T> option, AttributeMap.LazyValue<T> lazyValue) {
+            this.attributes.putLazy(option, lazyValue);
+            return this;
+        }
+
+        /**
+         * Equivalent to {@link #lazyOption(ClientOption, AttributeMap.LazyValue)}, but does not assign the value if there is
+         * already a non-null value assigned for the provided option.
+         */
+        public <T> Builder lazyOptionIfAbsent(ClientOption<T> option, AttributeMap.LazyValue<T> lazyValue) {
+            this.attributes.putLazyIfAbsent(option, lazyValue);
+            return this;
+        }
+
+        /**
          * Retrieve the value of a specific option.
          */
         public <T> T option(ClientOption<T> option) {
             return this.attributes.get(option);
+        }
+
+        /**
+         * Add a mapping between the provided key and value, if the current value for the option is null. Returns the value.
+         */
+        public <T> T computeOptionIfAbsent(ClientOption<T> option, Supplier<T> valueSupplier) {
+            return this.attributes.computeIfAbsent(option, valueSupplier);
+        }
+
+        /**
+         * Adds all the options from the map provided. This is not type safe, and will throw an exception during creation if
+         * a value in the map is not of the correct type for its option.
+         */
+        public Builder putAll(Map<? extends ClientOption<?>, ?> options) {
+            this.attributes.putAll(options);
+            return this;
+        }
+
+        /**
+         * Put all of the attributes from the provided override configuration into this one.
+         */
+        public Builder putAll(ClientOverrideConfiguration configuration) {
+            this.attributes.putAll(fromOverrideConfiguration(configuration).attributes);
+            return this;
+        }
+
+        @Override
+        public Builder copy() {
+            return new Builder(attributes.copy());
         }
 
         @Override

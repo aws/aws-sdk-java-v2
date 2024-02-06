@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.token.credentials.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.token.TestBearerToken;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
