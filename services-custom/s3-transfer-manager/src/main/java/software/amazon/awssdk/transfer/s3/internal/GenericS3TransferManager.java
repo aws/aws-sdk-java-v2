@@ -18,8 +18,6 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.services.s3.internal.multipart.UploadObjectHelper.PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.multipart.UploadObjectHelper.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
-import static software.amazon.awssdk.transfer.s3.internal.TransferManagerHelper.fileModified;
-import static software.amazon.awssdk.transfer.s3.internal.TransferManagerHelper.hasResumeToken;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
 import java.util.concurrent.CompletableFuture;
@@ -90,6 +88,7 @@ import software.amazon.awssdk.utils.Validate;
 class GenericS3TransferManager implements S3TransferManager {
     protected static final int DEFAULT_FILE_UPLOAD_CHUNK_SIZE = (int) (16 * MB);
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
     private final UploadDirectoryHelper uploadDirectoryHelper;
     private final DownloadDirectoryHelper downloadDirectoryHelper;
@@ -208,8 +207,8 @@ class GenericS3TransferManager implements S3TransferManager {
     public FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
         Validate.paramNotNull(resumableFileUpload, "resumableFileUpload");
 
-        boolean fileModified = fileModified(resumableFileUpload, s3AsyncClient);
-        boolean noResumeToken = !hasResumeToken(resumableFileUpload);
+        boolean fileModified = PAUSE_RESUME_HELPER.fileModified(resumableFileUpload, s3AsyncClient);
+        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
 
         if (fileModified || noResumeToken) {
             return uploadFile(resumableFileUpload.uploadFileRequest());
@@ -219,6 +218,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     private boolean isS3ClientMultipartEnabled() {
+        // TODO use configuration getter when available
         return s3AsyncClient instanceof MultipartS3AsyncClient;
     }
 
@@ -238,10 +238,20 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     private static S3ResumeToken s3ResumeToken(ResumableFileUpload resumableFileUpload) {
-        return new S3ResumeToken(resumableFileUpload.multipartUploadId().get(),
-                                 resumableFileUpload.partSizeInBytes().getAsLong(),
-                                 resumableFileUpload.totalParts().getAsLong(),
-                                 resumableFileUpload.transferredParts().getAsLong());
+        S3ResumeToken.Builder builder = S3ResumeToken.builder();
+
+        builder.uploadId(resumableFileUpload.multipartUploadId().orElse(null));
+        if (resumableFileUpload.partSizeInBytes().isPresent()) {
+            builder.partSize(resumableFileUpload.partSizeInBytes().getAsLong());
+        }
+        if (resumableFileUpload.totalParts().isPresent()) {
+            builder.totalNumParts(resumableFileUpload.totalParts().getAsLong());
+        }
+        if (resumableFileUpload.transferredParts().isPresent()) {
+            builder.numPartsCompleted(resumableFileUpload.transferredParts().getAsLong());
+        }
+
+        return builder.build();
     }
 
     private PutObjectRequest attachSdkAttribute(PutObjectRequest putObjectRequest,

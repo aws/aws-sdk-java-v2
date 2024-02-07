@@ -20,8 +20,6 @@ import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttrib
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.internal.GenericS3TransferManager.assertNotUnsupportedArn;
-import static software.amazon.awssdk.transfer.s3.internal.TransferManagerHelper.fileModified;
-import static software.amazon.awssdk.transfer.s3.internal.TransferManagerHelper.hasResumeToken;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -51,6 +49,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 class CrtS3TransferManager extends DelegatingS3TransferManager {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
 
     CrtS3TransferManager(TransferManagerConfiguration transferConfiguration, S3AsyncClient s3AsyncClient,
@@ -103,8 +102,8 @@ class CrtS3TransferManager extends DelegatingS3TransferManager {
     public FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
         Validate.paramNotNull(resumableFileUpload, "resumableFileUpload");
 
-        boolean fileModified = fileModified(resumableFileUpload, s3AsyncClient);
-        boolean noResumeToken = !hasResumeToken(resumableFileUpload);
+        boolean fileModified = PAUSE_RESUME_HELPER.fileModified(resumableFileUpload, s3AsyncClient);
+        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
 
         if (fileModified || noResumeToken) {
             return uploadFile(resumableFileUpload.uploadFileRequest());

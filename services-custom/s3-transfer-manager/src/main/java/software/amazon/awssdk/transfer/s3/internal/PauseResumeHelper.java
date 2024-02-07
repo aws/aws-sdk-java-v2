@@ -26,13 +26,10 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
-public class TransferManagerHelper {
-    private static final Logger log = Logger.loggerFor(TransferManagerHelper.class);
+public class PauseResumeHelper {
+    private static final Logger log = Logger.loggerFor(PauseResumeHelper.class);
 
-    private TransferManagerHelper() {
-    }
-
-    protected static boolean fileModified(ResumableFileUpload resumableFileUpload, S3AsyncClient s3AsyncClient) {
+    protected boolean fileModified(ResumableFileUpload resumableFileUpload, S3AsyncClient s3AsyncClient) {
         boolean fileModified = !fileNotModified(resumableFileUpload.fileLength(),
                                                 resumableFileUpload.fileLastModified(),
                                                 resumableFileUpload.uploadFileRequest().source());
@@ -74,7 +71,7 @@ public class TransferManagerHelper {
         return fileModified;
     }
 
-    protected static boolean hasResumeToken(ResumableFileUpload resumableFileUpload) {
+   protected boolean hasResumeToken(ResumableFileUpload resumableFileUpload) {
         boolean hasResumeToken =
             resumableFileUpload.totalParts().isPresent() && resumableFileUpload.partSizeInBytes().isPresent();
 
