@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Redshift",
+    "contributor": "",
+    "description": "LisRecommendations API to fetch Amazon Redshift Advisor recommendations."
+}
