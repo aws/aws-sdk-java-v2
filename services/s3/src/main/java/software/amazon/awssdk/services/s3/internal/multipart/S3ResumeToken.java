@@ -26,11 +26,15 @@ public class S3ResumeToken {
     private final long totalNumParts;
     private final long numPartsCompleted;
 
-    public S3ResumeToken(String uploadId, long partSize, long totalNumParts, long numPartsCompleted) {
-        this.uploadId = uploadId;
-        this.partSize = partSize;
-        this.totalNumParts = totalNumParts;
-        this.numPartsCompleted = numPartsCompleted;
+    public S3ResumeToken(Builder builder) {
+        this.uploadId = builder.uploadId;
+        this.partSize = builder.partSize;
+        this.totalNumParts = builder.totalNumParts;
+        this.numPartsCompleted = builder.totalNumParts;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -66,5 +70,39 @@ public class S3ResumeToken {
 
     public long numPartsCompleted() {
         return numPartsCompleted;
+    }
+
+    public static final class Builder {
+        private String uploadId;
+        private long partSize;
+        private long totalNumParts;
+        private long numPartsCompleted;
+
+        private Builder() {
+        }
+
+        public Builder uploadId(String uploadId) {
+            this.uploadId = uploadId;
+            return this;
+        }
+
+        public Builder partSize(long partSize) {
+            this.partSize = partSize;
+            return this;
+        }
+
+        public Builder totalNumParts(long totalNumParts) {
+            this.totalNumParts = totalNumParts;
+            return this;
+        }
+
+        public Builder numPartsCompleted(long numPartsCompleted) {
+            this.numPartsCompleted = numPartsCompleted;
+            return this;
+        }
+
+        public S3ResumeToken build() {
+            return new S3ResumeToken(this);
+        }
     }
 }

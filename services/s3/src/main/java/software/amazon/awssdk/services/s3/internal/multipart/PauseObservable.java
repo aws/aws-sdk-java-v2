@@ -27,7 +27,7 @@ public class PauseObservable {
     }
 
     public S3ResumeToken pause() {
-        // subscriber will not be set for single part uploads
+        // single part upload or TM is not used
         if (subscriber == null) {
             return null;
         }
