@@ -193,9 +193,9 @@ public final class UploadWithKnownContentLengthHelper {
 
     private void attachSubscriberToObservable(KnownContentLengthAsyncRequestBodySubscriber subscriber,
                                               PutObjectRequest putObjectRequest) {
-        PauseObservable pauseObservable =
-            putObjectRequest.overrideConfiguration().get().executionAttributes().getAttribute(PAUSE_OBSERVABLE);
-        pauseObservable.setSubscriber(subscriber);
+        // observable will be present if TransferManager is used
+        putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes().getAttribute(PAUSE_OBSERVABLE))
+                        .ifPresent(p -> p.setSubscriber(subscriber));
     }
 
     private static final class MpuRequestContext {
