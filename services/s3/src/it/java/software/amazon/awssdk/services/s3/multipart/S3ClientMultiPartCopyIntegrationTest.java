@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 import javax.crypto.KeyGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,6 +48,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
@@ -92,11 +92,6 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         deleteBucketAndAllContents(BUCKET);
     }
 
-    @BeforeEach
-    public void reset() {
-        CAPTURING_INTERCEPTOR.reset();
-    }
-
     public static Stream<S3AsyncClient> s3AsyncClient() {
         return Stream.of(s3MpuClient, s3CrtAsyncClient);
     }
@@ -130,7 +125,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
 
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClient")
-    void copy_ssecServerSideEncryption_shouldSucceed(S3AsyncClient s3AsyncClient) {
+    void copy_withSSECAndChecksum_shouldSucceed(S3AsyncClient s3AsyncClient) {
         byte[] originalContent = randomBytes(OBJ_SIZE);
         byte[] secretKey = generateSecretKey();
         String b64Key = Base64.getEncoder().encodeToString(secretKey);
@@ -160,7 +155,8 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
             .copySourceSSECustomerKey(b64Key)
             .copySourceSSECustomerKeyMD5(b64KeyMd5)
             .destinationBucket(BUCKET)
-            .destinationKey(COPIED_OBJ));
+            .destinationKey(COPIED_OBJ)
+            .checksumAlgorithm(ChecksumAlgorithm.CRC32));
 
         CopyObjectResponse copyObjectResponse = future.join();
         assertThat(copyObjectResponse.responseMetadata().requestId()).isNotNull();
@@ -184,8 +180,6 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         s3CrtAsyncClient.putObject(r -> r.bucket(BUCKET)
                                          .key(originalKey),
                                    AsyncRequestBody.fromBytes(originalContent)).join();
-
-        CAPTURING_INTERCEPTOR.reset();
     }
 
     private void copyObject(String original, String destination, S3AsyncClient s3AsyncClient) {
@@ -198,7 +192,6 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         CopyObjectResponse copyObjectResponse = future.join();
         assertThat(copyObjectResponse.responseMetadata().requestId()).isNotNull();
         assertThat(copyObjectResponse.sdkHttpResponse()).isNotNull();
-        verifyCopyContainsCrc32Header(s3AsyncClient);
     }
 
     private void verifyCopyContainsCrc32Header(S3AsyncClient s3AsyncClient) {
@@ -222,13 +215,14 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
 
     private static final class CapturingInterceptor implements ExecutionInterceptor {
         private String checksumHeader;
+
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             Map<String, List<String>> headers = sdkHttpRequest.headers();
-            String headerName1 = "x-amz-checksum-algorithm";
-            if (headers.containsKey(headerName1)) {
-                checksumHeader = headers.get(headerName1).get(0);
+            String checksumHeaderName = "x-amz-checksum-algorithm";
+            if (headers.containsKey(checksumHeaderName)) {
+                checksumHeader = headers.get(checksumHeaderName).get(0);
             }
         }
 

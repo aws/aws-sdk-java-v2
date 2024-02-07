@@ -168,8 +168,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
                                     .key(TEST_KEY)
                                     .sseCustomerKey(b64Key)
                                     .sseCustomerAlgorithm(AES256.name())
-                                    .sseCustomerKeyMD5(b64KeyMd5)
-                                    .checksumAlgorithm(ChecksumAlgorithm.CRC32),
+                                    .sseCustomerKeyMD5(b64KeyMd5),
                               body).join();
 
         assertThat(CAPTURING_INTERCEPTOR.checksumHeader).isEqualTo("CRC32");
@@ -204,9 +203,9 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             Map<String, List<String>> headers = sdkHttpRequest.headers();
-            String headerName = "x-amz-sdk-checksum-algorithm";
-            if (headers.containsKey(headerName)) {
-                checksumHeader = headers.get(headerName).get(0);
+            String checksumHeaderName = "x-amz-sdk-checksum-algorithm";
+            if (headers.containsKey(checksumHeaderName)) {
+                checksumHeader = headers.get(checksumHeaderName).get(0);
 
                 System.out.println(headers);
             }
