@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "Amazon S3",
+    "category": "AWS CRT-based S3 Client",
     "contributor": "",
     "description": "Exposes a setting to set the memory limit when making asynchronous calls with the CRT-based S3 client"
 }
