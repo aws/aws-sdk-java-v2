@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
@@ -48,7 +50,7 @@ class MultipartDownloadIntegrationTest {
 
     private S3AsyncClient s3;
 
-    // @BeforeEach
+    @BeforeEach
     void init() {
         this.s3 = S3AsyncClient.builder()
                                .region(Region.US_WEST_2)
@@ -57,7 +59,7 @@ class MultipartDownloadIntegrationTest {
                                .build();
     }
 
-    // @Test
+    @Test
     void testByteAsyncResponseTransformer() {
         AsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> transformer =
             AsyncResponseTransformer.toBytes();
@@ -74,7 +76,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(bytes.length).isEqualTo(fileTestSize * 1024 * 1024);
     }
 
-    // @Test
+    @Test
     void testFileAsyncResponseTransformer() {
         Path path = Paths.get("/Users/olapplin/Develop/tmp/" + key);
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =

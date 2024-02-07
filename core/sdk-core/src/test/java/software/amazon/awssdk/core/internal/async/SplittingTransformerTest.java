@@ -40,7 +40,12 @@ class SplittingTransformerTest {
         UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
         CompletableFuture<Object> future = new CompletableFuture<>();
         SplittingTransformer<TestResultObject, Object> split =
-            new SplittingTransformer<>(upstreamTestTransformer, 1024 * 1024 * 32, future);
+            SplittingTransformer.<TestResultObject, Object>builder()
+                                .upstreamResponseTransformer(upstreamTestTransformer)
+                                .bufferSize(1024 * 1024 * 32)
+                                .returnFuture(future)
+                                .maxElements(4L)
+                                .build();
         split.subscribe(new CancelAfterNTestSubscriber(
             4, n -> AsyncRequestBody.fromString(String.format("This is the body of %d.", n))));
         future.join();
@@ -53,7 +58,11 @@ class SplittingTransformerTest {
         UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
         CompletableFuture<Object> future = new CompletableFuture<>();
         SplittingTransformer<TestResultObject, Object> split =
-            new SplittingTransformer<>(upstreamTestTransformer, 1024 * 1024 * 32, future);
+            SplittingTransformer.<TestResultObject, Object>builder()
+                                .upstreamResponseTransformer(upstreamTestTransformer)
+                                .bufferSize(1024 * 1024 * 32)
+                                .returnFuture(future)
+                                .build();
         split.subscribe(new FailAfterNTestSubscriber(2));
         assertThatThrownBy(future::join).hasMessageContaining("TEST ERROR 2");
     }
@@ -69,7 +78,11 @@ class SplittingTransformerTest {
         UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
         CompletableFuture<Object> future = new CompletableFuture<>();
         SplittingTransformer<TestResultObject, Object> split =
-            new SplittingTransformer<>(upstreamTestTransformer, evenBufferSize, future);
+            SplittingTransformer.<TestResultObject, Object>builder()
+                                .upstreamResponseTransformer(upstreamTestTransformer)
+                                .bufferSize(evenBufferSize)
+                                .returnFuture(future)
+                                .build();
         split.subscribe(new CancelAfterNTestSubscriber(
             splitAmount,
             n -> {
@@ -92,7 +105,12 @@ class SplittingTransformerTest {
         UpstreamTestTransformer upstreamTestTransformer = new UpstreamTestTransformer();
         CompletableFuture<Object> future = new CompletableFuture<>();
         SplittingTransformer<TestResultObject, Object> split =
-            new SplittingTransformer<>(upstreamTestTransformer, 1024 * 1024 * 32, future);
+            SplittingTransformer.<TestResultObject, Object>builder()
+                                .upstreamResponseTransformer(upstreamTestTransformer)
+                                .bufferSize(1024 * 1024 * 32)
+                                .returnFuture(future)
+                                .maxElements(4L)
+                                .build();
         split.subscribe(new RequestingTestSubscriber(4));
 
         future.join();

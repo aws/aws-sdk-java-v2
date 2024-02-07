@@ -23,18 +23,20 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.NumericUtils;
 
 /**
  * This Subscriber buffers the {@link ByteBuffer} it receives until the specified maximumBuffer is reached, at which point
  * it sends those bytes to the delegate {@link Subscriber}.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuffer, ByteBuffer> {
 
     /**
      * The maximum amount of bytes allowed to be stored in the StoringSubscriber
      */
-    private final int maximumBuffer;
+    private final long maximumBuffer;
 
     /**
      * Current amount of bytes buffered in the StoringSubscriber
@@ -57,7 +59,7 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
      */
     private Subscription subscription;
 
-    public DelegatingBufferingSubscriber(int maximumBuffer, Subscriber<? super ByteBuffer> subscriber) {
+    public DelegatingBufferingSubscriber(long maximumBuffer, Subscriber<? super ByteBuffer> subscriber) {
         super(subscriber);
         this.maximumBuffer = maximumBuffer;
     }
@@ -86,7 +88,7 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
             // even after flushing the storage buffer and being empty, the incoming ByteBuffer might itself still be too large and
             // overflow the buffer (byteBuffer.remainig > maximumBuffer). If so, send chunks of maximumBuffer out of the
             // incoming ByteBuffer to the storage and to the delegate until what is left in the incoming ByteBuffer can be stored.
-            ByteBuffer chunk = ByteBuffer.allocate(maximumBuffer);
+            ByteBuffer chunk = ByteBuffer.allocate(NumericUtils.saturatedCast(maximumBuffer));
             while (chunk.hasRemaining()) {
                 chunk.put(byteBuffer.get());
             }

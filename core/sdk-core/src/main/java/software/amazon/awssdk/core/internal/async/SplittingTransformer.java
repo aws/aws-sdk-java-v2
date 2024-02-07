@@ -46,7 +46,6 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  */
 @SdkInternalApi
 public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> {
-    // Note: comments in this class that start with '§' reference a rule from the reactive stream specification.
 
     private static final Logger log = Logger.loggerFor(SplittingTransformer.class);
 
@@ -84,7 +83,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     /**
      * The buffer size used to buffer the content received from the downstream subscriber
      */
-    private final int maximumBufferSize;
+    private final long maximumBufferSize;
 
     /**
      * This publisher is used to send the bytes received from the downstream subscriber's transformers to a
@@ -105,7 +104,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicLong outstandingDemand = new AtomicLong(0);
 
     /**
-     * tracks if the publisher is currently sending AsyncResponseTransformer to the downstreamSubscriber
+     * This flag stops the current thread from publishing transformers while another thread is already publishing
      */
     private final AtomicBoolean emitting = new AtomicBoolean(false);
 
@@ -119,27 +118,15 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      * Creates a publisher bounded by the {@code maxElements} provided. As per reactive stream specification, this publisher will
      * be considered 'unbounded' if {@code maxElements == LONG.MAX_VALUE}.
      */
-    public SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
-                                long bufferSize, CompletableFuture<ResultT> returnFuture,
-                                long maxElements) {
+    private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
+                                 Long bufferSize,
+                                 CompletableFuture<ResultT> returnFuture,
+                                 Long maxElements) {
         this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
         this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
-        this.maximumBufferSize = NumericUtils.saturatedCast(bufferSize);
-        this.maxElements = maxElements;
-        this.isBounded = maxElements != Long.MAX_VALUE;
-    }
-
-    /**
-     * Creates an unbounded publisher.
-     */
-    public SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
-                                long bufferSize, CompletableFuture<ResultT> returnFuture) {
-        this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
-        this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
-        this.maximumBufferSize = NumericUtils.saturatedCast(bufferSize);
-        // unbounded by default
-        this.maxElements = Long.MAX_VALUE;
-        this.isBounded = false;
+        this.maximumBufferSize = Validate.notNull(bufferSize, "bufferSize");
+        this.maxElements = Validate.getOrDefault(maxElements, () -> Long.MAX_VALUE);
+        this.isBounded = maxElements != null && maxElements != Long.MAX_VALUE;
     }
 
     /**
@@ -148,15 +135,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     @Override
     public void subscribe(Subscriber<? super AsyncResponseTransformer<ResponseT, ResponseT>> downstreamSubscriber) {
         if (downstreamSubscriber == null) {
-            // §1.09 Subscribe throw NPE on null subscriber
             throw new NullPointerException("downstreamSubscriber must not be null");
         }
         this.downstreamSubscriber = downstreamSubscriber;
         downstreamSubscriber.onSubscribe(new DownstreamSubscription());
         if (maxElements < 0) {
-            // §1.04 (optional) must signal on error when fails
-            // §1.09 may reject calls to subscribe if publisher is unable or unwilling to serve them
-            // Rejection must trigger on error after onSubscribe
             downstreamSubscriber.onError(new IllegalArgumentException("Maximum element to request must be positive"));
         }
     }
@@ -164,12 +147,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     /**
      * The subscription implementation for the subscriber to this SplittingTransformer.
      */
-    private class DownstreamSubscription implements Subscription {
+    private final class DownstreamSubscription implements Subscription {
 
         @Override
         public void request(long n) {
             if (n <= 0) {
-                // §3.09 request zero must signal IllegalArgumentException
                 downstreamSubscriber.onError(new IllegalArgumentException("Amount requested must be positive"));
                 return;
             }
@@ -185,19 +167,15 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                     return current + n;
                 });
                 log.trace(() -> String.format("new outstanding demand: %s", newDemand));
-                if (newDemand > 0) {
-                    emit();
-                }
+                emit();
             }
         }
 
         @Override
         public void cancel() {
-            // called by downstream subscriber to notify no more data is needed, we are done
             if (isCancelled.compareAndSet(false, true)) {
                 log.trace(() -> "Cancelling splitting transformer");
                 publisherToUpstream.complete();
-                // §3.13 Cancel must make the publisher eventually drop all references to the subscriber
                 downstreamSubscriber = null;
             }
         }
@@ -207,15 +185,16 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         if (terminated.compareAndSet(false, true)) {
             publisherToUpstream.complete();
             downstreamSubscriber.onComplete();
-            // §3.13 Cancel must make the publisher eventually drop all references to the subscriber
             downstreamSubscriber = null;
         }
     }
 
     private void emit() {
-        if (emitting.compareAndSet(false, true)) {
-            // §3.02 must allow synchronous request calls from onNext and onSubscribe
-            while (outstandingDemand.get() > 0) {
+        do {
+            if (!emitting.compareAndSet(false, true)) {
+                return;
+            }
+            try {
                 if (isBounded && totalEmitted.get() >= maxElements) {
                     terminate();
                     return;
@@ -223,12 +202,15 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 if (isCancelled.get() || terminated.get()) {
                     return;
                 }
-                outstandingDemand.decrementAndGet();
-                downstreamSubscriber.onNext(new IndividualTransformer());
-                totalEmitted.incrementAndGet();
+                if (outstandingDemand.get() > 0) {
+                    outstandingDemand.decrementAndGet();
+                    downstreamSubscriber.onNext(new IndividualTransformer());
+                    totalEmitted.incrementAndGet();
+                }
+            } finally {
+                emitting.compareAndSet(true, false);
             }
-            emitting.compareAndSet(true, false);
-        }
+        } while (outstandingDemand.get() > 0);
     }
 
     /**
@@ -300,7 +282,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onSubscribe(Subscription s) {
-            // §2.05 must call subscription.cancel() if it already has a subscription and receives another on subscribe signal
             if (this.subscription != null) {
                 s.cancel();
                 return;
@@ -312,7 +293,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            // §2.13 onNext must throw null pointer exception when parameters are null
             if (byteBuffer == null) {
                 throw new NullPointerException("onNext must not be called with null byteBuffer");
             }
@@ -330,6 +310,49 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         @Override
         public void onComplete() {
             future.complete(response);
+        }
+    }
+
+    public static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
+        return new Builder<>();
+    }
+
+    public static final class Builder<ResponseT, ResultT> {
+
+        private Builder() {
+        }
+
+        private AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
+        private long bufferSize;
+        private CompletableFuture<ResultT> returnFuture;
+        private Long maxElements;
+
+        public Builder<ResponseT, ResultT> upstreamResponseTransformer(
+            AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer) {
+            this.upstreamResponseTransformer = upstreamResponseTransformer;
+            return this;
+        }
+
+        public Builder<ResponseT, ResultT> bufferSize(long bufferSize) {
+            this.bufferSize = bufferSize;
+            return this;
+        }
+
+        public Builder<ResponseT, ResultT> returnFuture(CompletableFuture<ResultT> returnFuture) {
+            this.returnFuture = returnFuture;
+            return this;
+        }
+
+        public Builder<ResponseT, ResultT> maxElements(Long maxElements) {
+            this.maxElements = maxElements;
+            return this;
+        }
+
+        public SplittingTransformer<ResponseT, ResultT> build() {
+            return new SplittingTransformer<>(this.upstreamResponseTransformer,
+                                              this.bufferSize,
+                                              this.returnFuture,
+                                              this.maxElements);
         }
     }
 }

@@ -115,14 +115,19 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     void exceptionOccurred(Throwable error);
 
     /**
-     * todo
+     * todo - javadoc
+     * todo - use configuration class as input instead of bufferSize
      *
      * @return
      */
     default SplitAsyncResponseTransformer<ResponseT, ResultT> split(long bufferSize) {
         CompletableFuture<ResultT> future = new CompletableFuture<>();
-        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
-            new SplittingTransformer<>(this, bufferSize, future);
+        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer = SplittingTransformer
+            .<ResponseT, ResultT>builder()
+            .upstreamResponseTransformer(this)
+            .bufferSize(bufferSize)
+            .returnFuture(future)
+            .build();
         return SplitAsyncResponseTransformer.<ResponseT, ResultT>builder()
                                             .asyncResponseTransformerPublisher(transformer)
                                             .future(future)
