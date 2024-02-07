@@ -71,7 +71,7 @@ public class PauseResumeHelper {
         return fileModified;
     }
 
-   protected boolean hasResumeToken(ResumableFileUpload resumableFileUpload) {
+    protected boolean hasResumeToken(ResumableFileUpload resumableFileUpload) {
         boolean hasResumeToken =
             resumableFileUpload.totalParts().isPresent() && resumableFileUpload.partSizeInBytes().isPresent();
 

@@ -190,7 +190,7 @@ public final class UploadWithKnownContentLengthHelper {
                                               PutObjectRequest putObjectRequest) {
         // observable will be present if TransferManager is used
         putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes().getAttribute(PAUSE_OBSERVABLE))
-                        .ifPresent(p -> p.setSubscriber(subscriber));
+                        .ifPresent(p -> p.setPausibleUpload(new DefaultPausibleUpload(subscriber)));
     }
 
     private static final class MpuRequestContext {
@@ -213,7 +213,21 @@ public final class UploadWithKnownContentLengthHelper {
         }
     }
 
-    public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<AsyncRequestBody> {
+    private static final class DefaultPausibleUpload implements PausibleUpload {
+
+        private KnownContentLengthAsyncRequestBodySubscriber subscriber;
+
+        private DefaultPausibleUpload(KnownContentLengthAsyncRequestBodySubscriber subscriber) {
+            this.subscriber = subscriber;
+        }
+
+        @Override
+        public S3ResumeToken pause() {
+            return subscriber.pause();
+        }
+    }
+
+    private class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<AsyncRequestBody> {
 
         /**
          * The number of AsyncRequestBody has been received but yet to be processed
