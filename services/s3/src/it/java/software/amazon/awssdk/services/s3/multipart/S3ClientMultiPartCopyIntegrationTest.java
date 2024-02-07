@@ -24,6 +24,8 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -31,16 +33,22 @@ import java.util.stream.Stream;
 import javax.crypto.KeyGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
@@ -49,6 +57,7 @@ import software.amazon.awssdk.utils.Md5Utils;
 @Timeout(value = 3, unit = TimeUnit.MINUTES)
 public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3ClientMultiPartCopyIntegrationTest.class);
+    private static final CapturingInterceptor CAPTURING_INTERCEPTOR = new CapturingInterceptor();
     private static final String ORIGINAL_OBJ = "test_file.dat";
     private static final String COPIED_OBJ = "test_file_copy.dat";
     private static final String ORIGINAL_OBJ_SPECIAL_CHARACTER = "original-special-chars-@$%";
@@ -70,7 +79,8 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
                                    .region(DEFAULT_REGION)
                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                    .overrideConfiguration(o -> o.addExecutionInterceptor(
-                                       new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)))
+                                       new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC))
+                                                                .addExecutionInterceptor(CAPTURING_INTERCEPTOR))
                                    .multipartEnabled(true)
                                    .build();
     }
@@ -80,6 +90,11 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         s3CrtAsyncClient.close();
         s3MpuClient.close();
         deleteBucketAndAllContents(BUCKET);
+    }
+
+    @BeforeEach
+    public void reset() {
+        CAPTURING_INTERCEPTOR.reset();
     }
 
     public static Stream<S3AsyncClient> s3AsyncClient() {
@@ -132,6 +147,8 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
                                       .sseCustomerKeyMD5(b64KeyMd5),
                                 AsyncRequestBody.fromBytes(originalContent)).join();
 
+        CAPTURING_INTERCEPTOR.reset();
+
         CompletableFuture<CopyObjectResponse> future = s3AsyncClient.copyObject(c -> c
             .sourceBucket(BUCKET)
             .sourceKey(ORIGINAL_OBJ)
@@ -148,6 +165,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         CopyObjectResponse copyObjectResponse = future.join();
         assertThat(copyObjectResponse.responseMetadata().requestId()).isNotNull();
         assertThat(copyObjectResponse.sdkHttpResponse()).isNotNull();
+        verifyCopyContainsCrc32Header(s3AsyncClient);
     }
 
     private static byte[] generateSecretKey() {
@@ -166,6 +184,8 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         s3CrtAsyncClient.putObject(r -> r.bucket(BUCKET)
                                          .key(originalKey),
                                    AsyncRequestBody.fromBytes(originalContent)).join();
+
+        CAPTURING_INTERCEPTOR.reset();
     }
 
     private void copyObject(String original, String destination, S3AsyncClient s3AsyncClient) {
@@ -178,6 +198,13 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         CopyObjectResponse copyObjectResponse = future.join();
         assertThat(copyObjectResponse.responseMetadata().requestId()).isNotNull();
         assertThat(copyObjectResponse.sdkHttpResponse()).isNotNull();
+        verifyCopyContainsCrc32Header(s3AsyncClient);
+    }
+
+    private void verifyCopyContainsCrc32Header(S3AsyncClient s3AsyncClient) {
+        if (s3AsyncClient instanceof MultipartS3AsyncClient) {
+            assertThat(CAPTURING_INTERCEPTOR.checksumHeader).isEqualTo("CRC32");
+        }
     }
 
     private void validateCopiedObject(byte[] originalContent, String originalKey) {
@@ -191,5 +218,22 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         byte[] bytes = new byte[Math.toIntExact(size)];
         ThreadLocalRandom.current().nextBytes(bytes);
         return bytes;
+    }
+
+    private static final class CapturingInterceptor implements ExecutionInterceptor {
+        private String checksumHeader;
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            SdkHttpRequest sdkHttpRequest = context.httpRequest();
+            Map<String, List<String>> headers = sdkHttpRequest.headers();
+            String headerName1 = "x-amz-checksum-algorithm";
+            if (headers.containsKey(headerName1)) {
+                checksumHeader = headers.get(headerName1).get(0);
+            }
+        }
+
+        public void reset() {
+            checksumHeader = null;
+        }
     }
 }

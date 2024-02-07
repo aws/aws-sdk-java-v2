@@ -27,20 +27,27 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.crypto.KeyGenerator;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
@@ -54,7 +61,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     private static final String TEST_BUCKET = temporaryBucketName(S3MultipartClientPutObjectIntegrationTest.class);
     private static final String TEST_KEY = "testfile.dat";
     private static final int OBJ_SIZE = 19 * 1024 * 1024;
-
+    private static final CapturingInterceptor CAPTURING_INTERCEPTOR = new CapturingInterceptor();
     private static File testFile;
     private static S3AsyncClient mpuS3Client;
 
@@ -71,8 +78,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
             .builder()
             .region(DEFAULT_REGION)
             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-            .overrideConfiguration(o -> o.addExecutionInterceptor(
-                new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)))
+            .overrideConfiguration(o -> o.addExecutionInterceptor(new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC))
+                                         .addExecutionInterceptor(CAPTURING_INTERCEPTOR))
             .multipartEnabled(true)
             .build();
     }
@@ -84,10 +91,17 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         deleteBucketAndAllContents(TEST_BUCKET);
     }
 
+    @BeforeEach
+    public void reset() {
+        CAPTURING_INTERCEPTOR.reset();
+    }
+
     @Test
     void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
+
+        assertThat(CAPTURING_INTERCEPTOR.checksumHeader).isEqualTo("CRC32");
 
         ResponseInputStream<GetObjectResponse> objContent =
             S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
@@ -103,6 +117,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         byte[] bytes = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
         AsyncRequestBody body = AsyncRequestBody.fromBytes(bytes);
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
+
+        assertThat(CAPTURING_INTERCEPTOR.checksumHeader).isEqualTo("CRC32");
 
         ResponseInputStream<GetObjectResponse> objContent =
             S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
@@ -130,6 +146,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
             }
         }).get(30, SECONDS);
 
+        assertThat(CAPTURING_INTERCEPTOR.checksumHeader).isEqualTo("CRC32");
+
         ResponseInputStream<GetObjectResponse> objContent =
             S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
                                                ResponseTransformer.toInputStream());
@@ -153,6 +171,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
                                     .sseCustomerKeyMD5(b64KeyMd5)
                                     .checksumAlgorithm(ChecksumAlgorithm.CRC32),
                               body).join();
+
+        assertThat(CAPTURING_INTERCEPTOR.checksumHeader).isEqualTo("CRC32");
 
         ResponseInputStream<GetObjectResponse> objContent =
             S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET)
@@ -178,4 +198,22 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         }
     }
 
+    private static final class CapturingInterceptor implements ExecutionInterceptor {
+        private String checksumHeader;
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            SdkHttpRequest sdkHttpRequest = context.httpRequest();
+            Map<String, List<String>> headers = sdkHttpRequest.headers();
+            String headerName = "x-amz-sdk-checksum-algorithm";
+            if (headers.containsKey(headerName)) {
+                checksumHeader = headers.get(headerName).get(0);
+
+                System.out.println(headers);
+            }
+        }
+
+        public void reset() {
+            checksumHeader = null;
+        }
+    }
 }

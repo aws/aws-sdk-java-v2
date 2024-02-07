@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -36,8 +37,9 @@ import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@link S3AsyncClient} that automatically converts put, copy requests to their respective multipart call. Note: get is not
- * yet supported.
+ * An {@link S3AsyncClient} that automatically converts PUT, COPY requests to their respective multipart call. CRC32 will be
+ * enabled for the PUT and COPY requests.
+ * Note: GET is not yet supported.
  *
  * @see MultipartConfiguration
  */
@@ -62,11 +64,13 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
+        putObjectRequest = putObjectRequest.toBuilder().checksumAlgorithm(ChecksumAlgorithm.CRC32).build();
         return mpuHelper.uploadObject(putObjectRequest, requestBody);
     }
 
     @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
+        copyObjectRequest = copyObjectRequest.toBuilder().checksumAlgorithm(ChecksumAlgorithm.CRC32).build();
         return copyObjectHelper.copyObject(copyObjectRequest);
     }
 
