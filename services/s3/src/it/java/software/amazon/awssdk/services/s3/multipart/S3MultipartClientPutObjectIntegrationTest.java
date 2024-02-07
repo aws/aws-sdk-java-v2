@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.multipart;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AES256;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.ByteArrayInputStream;
@@ -24,8 +25,11 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import javax.crypto.KeyGenerator;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,8 +43,10 @@ import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
+import software.amazon.awssdk.utils.Md5Utils;
 
 @Timeout(value = 30, unit = SECONDS)
 public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTestBase {
@@ -131,6 +137,45 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
         byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
         assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+    }
+
+    @Test
+    void putObject_withSSECAndChecksum_objectSentCorrectly() throws Exception {
+        byte[] secretKey = generateSecretKey();
+        String b64Key = Base64.getEncoder().encodeToString(secretKey);
+        String b64KeyMd5 = Md5Utils.md5AsBase64(secretKey);
+
+        AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
+        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET)
+                                    .key(TEST_KEY)
+                                    .sseCustomerKey(b64Key)
+                                    .sseCustomerAlgorithm(AES256.name())
+                                    .sseCustomerKeyMD5(b64KeyMd5)
+                                    .checksumAlgorithm(ChecksumAlgorithm.CRC32),
+                              body).join();
+
+        ResponseInputStream<GetObjectResponse> objContent =
+            S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET)
+                                                     .key(TEST_KEY)
+                                                     .sseCustomerKey(b64Key)
+                                                     .sseCustomerAlgorithm(AES256.name())
+                                                     .sseCustomerKeyMD5(b64KeyMd5),
+                                               ResponseTransformer.toInputStream());
+
+        assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
+        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+    }
+
+    private static byte[] generateSecretKey() {
+        KeyGenerator generator;
+        try {
+            generator = KeyGenerator.getInstance("AES");
+            generator.init(256, new SecureRandom());
+            return generator.generateKey().getEncoded();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }

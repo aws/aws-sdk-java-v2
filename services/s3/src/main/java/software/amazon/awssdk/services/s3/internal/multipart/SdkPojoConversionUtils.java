@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -47,18 +47,13 @@ import software.amazon.awssdk.utils.Logger;
 public final class SdkPojoConversionUtils {
     private static final Logger log = Logger.loggerFor(SdkPojoConversionUtils.class);
 
-    private static final HashSet<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
-        new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32"));
-
     private SdkPojoConversionUtils() {
     }
 
     public static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest, int partNumber, String uploadId) {
 
         UploadPartRequest.Builder builder = UploadPartRequest.builder();
-
-        setSdkFields(builder, putObjectRequest, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE);
-
+        setSdkFields(builder, putObjectRequest);
         return builder.uploadId(uploadId).partNumber(partNumber).build();
     }
 
@@ -67,6 +62,13 @@ public final class SdkPojoConversionUtils {
         CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
         setSdkFields(builder, putObjectRequest);
         return builder.build();
+    }
+
+    public static CompleteMultipartUploadRequest toCompleteMultipartUploadRequest(PutObjectRequest putObjectRequest,
+                                                                                  String uploadId, CompletedPart[] parts) {
+        CompleteMultipartUploadRequest.Builder builder = CompleteMultipartUploadRequest.builder();
+        setSdkFields(builder, putObjectRequest);
+        return builder.uploadId(uploadId).multipartUpload(c -> c.parts(parts)).build();
     }
 
     public static HeadObjectRequest toHeadObjectRequest(CopyObjectRequest copyObjectRequest) {
