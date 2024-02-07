@@ -15,22 +15,12 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
-public class PauseObservable {
+@SdkProtectedApi
+public interface PausibleUpload {
 
-    private volatile PausibleUpload pausibleUpload;
-
-    public void setPausibleUpload(PausibleUpload pausibleUpload) {
-        this.pausibleUpload = pausibleUpload;
-    }
-
-    public S3ResumeToken pause() {
-        // single part upload or TM is not used
-        if (pausibleUpload == null) {
-            return null;
-        }
-        return pausibleUpload.pause();
+    default S3ResumeToken pause() {
+        throw new UnsupportedOperationException();
     }
 }
