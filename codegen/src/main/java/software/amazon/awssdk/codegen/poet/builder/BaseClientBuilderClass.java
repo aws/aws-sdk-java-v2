@@ -51,6 +51,7 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.ModelAuthSchemeClassesKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
@@ -724,7 +725,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addModifiers(PRIVATE)
                                                .returns(returns);
 
-        Set<Class<?>> concreteAuthSchemeClasses = authSchemeSpecUtils.allServiceConcreteAuthSchemeClasses();
+        ModelAuthSchemeClassesKnowledgeIndex index = ModelAuthSchemeClassesKnowledgeIndex.of(model);
+        Set<Class<?>> concreteAuthSchemeClasses = index.serviceConcreteAuthSchemeClasses();
         builder.addStatement("$T schemes = new $T<>($L + this.additionalAuthSchemes.size())",
                              returns, HashMap.class, concreteAuthSchemeClasses.size());
         for (Class<?> concreteAuthScheme : concreteAuthSchemeClasses) {

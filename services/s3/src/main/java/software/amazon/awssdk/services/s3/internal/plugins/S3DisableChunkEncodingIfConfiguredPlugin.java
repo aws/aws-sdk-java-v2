@@ -24,13 +24,15 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3ServiceClientConfiguration;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
-import software.amazon.awssdk.services.s3.internal.s3express.S3DisableChunkEncodingAuthSchemeProvider;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Internal plugin that uses the check if {@link S3Configuration#chunkedEncodingEnabled()} is configured and equals to {@code
- * false}, if so, then it installs an instance of {@link S3DisableChunkEncodingAuthSchemeProvider} wrapping the configured
+ * Internal plugin that uses the check if {@link S3Configuration#chunkedEncodingEnabled()} is configured and equals to
+ * {@code false}, if so, then it installs an instance of {@link S3DisableChunkEncodingAuthSchemeProvider} wrapping the configured
  * {@link S3AuthSchemeProvider} that sets {@link  AwsV4FamilyHttpSigner#CHUNK_ENCODING_ENABLED} to false.
+ * <p>
+ * This pre SRA logic was implemented before using an interceptor but now requires wrapping the S3AuthSchemeProvider for it to
+ * work.
  */
 @SdkInternalApi
 public final class S3DisableChunkEncodingIfConfiguredPlugin implements SdkPlugin {
@@ -72,22 +74,9 @@ public final class S3DisableChunkEncodingIfConfiguredPlugin implements SdkPlugin
                                           + "`S3DisableChunkEncodingAuthSchemeProvider` auth provider wrapper."));
             S3ServiceClientConfiguration.Builder s3Config = (S3ServiceClientConfiguration.Builder) config;
 
-            // We wrap the default S3AuthSchemeProvider with a S3DisableChunkEncodingAuthSchemeProvider
-            // instance that sets the AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED signer
-            // property to false but only if the operations is `"PutObject" or "UploadPart"`
-            // This legacy logic was implemented before using an interceptor but now requires
-            // wrapping the S3AuthSchemeProvider for it to work.
             S3AuthSchemeProvider disablingAuthSchemeProvider =
                 S3DisableChunkEncodingAuthSchemeProvider.create(s3Config.authSchemeProvider());
             s3Config.authSchemeProvider(disablingAuthSchemeProvider);
-        } else {
-            LOG.debug(() -> String.format("chunkedEncodingEnabled was not explicitly disabled in the configuration, not adding "
-                                          + "the `S3DisableChunkEncodingAuthSchemeProvider` auth provider wrapper."
-                                          + "[isServiceConfigurationPresent: %s, isChunkedEncodingEnabledConfigured: %s,  "
-                                          + "isChunkedEncodingEnabledDisabled: %s]",
-                                          isServiceConfigurationPresent,
-                                          isChunkedEncodingEnabledConfigured,
-                                          isChunkedEncodingEnabledDisabled));
         }
     }
 }

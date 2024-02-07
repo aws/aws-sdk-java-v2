@@ -23,9 +23,8 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * Tracks a set of explicitly enabled signer properties for the family of AWS SigV4 signers. The currently supported attributes
- * are {@code doubleUrlEncode}, {@code normalizePath}, {@code payloadSigningEnabled}, {@code chunkEncodingEnabled}. If their
- * value is not null then is taken as-is, otherwise is ignored as in the value is not overridden. An auth type can also
- * represent a service-wide set of defaults when the set of operations is not empty.
+ * are {@code doubleUrlEncode}, {@code normalizePath}, {@code payloadSigningEnabled}, {@code chunkEncodingEnabled}. If the
+ * value is null then is not overridden. An auth type can also represent a service-wide set of defaults.
  */
 public final class SigV4SignerDefaults {
     private final String service;
@@ -37,7 +36,7 @@ public final class SigV4SignerDefaults {
     private final Boolean chunkEncodingEnabled;
     private final Map<String, SigV4SignerDefaults> operations;
 
-    public SigV4SignerDefaults(Builder builder) {
+    private SigV4SignerDefaults(Builder builder) {
         this.service = builder.service;
         this.authType = Validate.notNull(builder.authType, "authType");
         this.schemeId = Validate.notNull(builder.schemeId, "schemeId");
@@ -46,6 +45,10 @@ public final class SigV4SignerDefaults {
         this.payloadSigningEnabled = builder.payloadSigningEnabled;
         this.chunkEncodingEnabled = builder.chunkEncodingEnabled;
         this.operations = Collections.unmodifiableMap(new HashMap<>(builder.operations));
+    }
+
+    public boolean isServiceOverrideAuthScheme() {
+        return service != null;
     }
 
     public String service() {

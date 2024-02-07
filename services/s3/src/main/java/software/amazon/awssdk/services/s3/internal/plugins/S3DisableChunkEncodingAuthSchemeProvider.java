@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.s3express;
+package software.amazon.awssdk.services.s3.internal.plugins;
 
 import java.util.ArrayList;
 import java.util.List;

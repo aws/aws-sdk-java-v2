@@ -73,47 +73,46 @@ public class BaseClientBuilderClassTest {
         validateBaseClientBuilderClassGeneration(composedClientJsonServiceModels(),
                                                  "test-composed-sync-default-client-builder.java");
     }
-
-
+    
     @Test
-    public void baseClientBuilderClass_sra() {
+    void baseClientBuilderClass_sra() {
         validateBaseClientBuilderClassGeneration(restJsonServiceModels(), "test-client-builder-class.java", true);
     }
 
     @Test
-    public void baseClientBuilderClassWithBearerAuth_sra() {
+    void baseClientBuilderClassWithBearerAuth_sra() {
         validateBaseClientBuilderClassGeneration(bearerAuthServiceModels(), "test-bearer-auth-client-builder-class.java", true);
     }
 
     @Test
-    public void baseClientBuilderClassWithNoAuthOperation_sra() {
+    void baseClientBuilderClassWithNoAuthOperation_sra() {
         validateBaseClientBuilderClassGeneration(operationWithNoAuth(), "test-no-auth-ops-client-builder-class.java", true);
     }
 
     @Test
-    public void baseClientBuilderClassWithNoAuthService_sra() {
+    void baseClientBuilderClassWithNoAuthService_sra() {
         validateBaseClientBuilderClassGeneration(serviceWithNoAuth(), "test-no-auth-service-client-builder-class.java", true);
     }
 
     @Test
-    public void baseClientBuilderClassWithInternalUserAgent_sra() {
+    void baseClientBuilderClassWithInternalUserAgent_sra() {
         validateBaseClientBuilderClassGeneration(internalConfigModels(), "test-client-builder-internal-defaults-class.java",
                                                  true);
     }
 
     @Test
-    public void baseQueryClientBuilderClass_sra() {
+    void baseQueryClientBuilderClass_sra() {
         validateBaseClientBuilderClassGeneration(queryServiceModels(), "test-query-client-builder-class.java", true);
     }
 
     @Test
-    public void baseClientBuilderClassWithEndpointsAuthParams_sra() {
+    void baseClientBuilderClassWithEndpointsAuthParams_sra() {
         validateBaseClientBuilderClassGeneration(queryServiceModelsEndpointAuthParamsWithAllowList(),
                                                  "test-client-builder-endpoints-auth-params.java", true);
     }
 
     @Test
-    public void syncComposedDefaultClientBuilderClass_sra() {
+    void syncComposedDefaultClientBuilderClass_sra() {
         validateBaseClientBuilderClassGeneration(composedClientJsonServiceModels(),
                                                  "test-composed-sync-default-client-builder.java", true);
     }

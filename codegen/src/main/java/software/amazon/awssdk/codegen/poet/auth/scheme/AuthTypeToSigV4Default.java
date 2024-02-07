@@ -24,7 +24,8 @@ import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.utils.Lazy;
 
 /**
- * Contains maps from all {@link AuthType} to {@link SigV4SignerDefaults} that we can then transform for use in codegen.
+ * Contains maps from all sigv4 based {@link AuthType} to {@link SigV4SignerDefaults} that we can then transform for use in
+ * codegen.
  */
 public final class AuthTypeToSigV4Default {
 
@@ -59,17 +60,8 @@ public final class AuthTypeToSigV4Default {
     }
 
     /**
-     * Returns a mapping from an auth-type name to a set of AWS sigV4 default values.The auth-type names are the same as the
-     * {@link AuthType} enum values.
-     *
-     * @see SigV4SignerDefaults
-     */
-    public static Map<String, SigV4SignerDefaults> authTypeToDefaults0() {
-        return AUTH_TYPE_TO_DEFAULTS.getValue();
-    }
-
-    /**
      * Returns the list fo all known auth types to s3v4Defaults instances.
+     *
      * @return
      */
     public static List<SigV4SignerDefaults> knownAuthTypes() {
@@ -140,16 +132,11 @@ public final class AuthTypeToSigV4Default {
      * Set of default signer defaults for auth-type s3v4. Currently only used by S3Control.
      */
     private static SigV4SignerDefaults s3v4Defaults() {
-        SigV4SignerDefaults s3v4 = sigv4Default().toBuilder()
-                                                 .authType("s3v4")
-                                                 .doubleUrlEncode(false)
-                                                 .normalizePath(false)
-                                                 // Figure out if s3Control uses this
-                                                 // .payloadSigningEnabled(false)
-                                                 .build();
-
-        // TODO: Figure out if there are any ops overrides needed that are currently habdled by interceptors.
-        return s3v4;
+        return sigv4Default().toBuilder()
+                             .authType("s3v4")
+                             .doubleUrlEncode(false)
+                             .normalizePath(false)
+                             .build();
     }
 
 

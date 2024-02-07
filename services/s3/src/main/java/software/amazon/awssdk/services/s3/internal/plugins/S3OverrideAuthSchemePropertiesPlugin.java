@@ -18,8 +18,10 @@ package software.amazon.awssdk.services.s3.internal.plugins;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
@@ -29,6 +31,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
 import software.amazon.awssdk.services.s3.S3ServiceClientConfiguration;
+import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 
 /**
@@ -59,6 +62,7 @@ import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
     private final Map<IdentityProperty<?>, Object> identityProperties;
     private final Map<SignerProperty<?>, Object> signerProperties;
+    private final Set<String> operationConstraints;
 
     private S3OverrideAuthSchemePropertiesPlugin(Builder builder) {
         if (builder.identityProperties.isEmpty()) {
@@ -70,6 +74,11 @@ public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
             this.signerProperties = Collections.emptyMap();
         } else {
             this.signerProperties = Collections.unmodifiableMap(new HashMap<>(builder.signerProperties));
+        }
+        if (builder.operationConstraints.isEmpty()) {
+            this.operationConstraints = Collections.emptySet();
+        } else {
+            this.operationConstraints = Collections.unmodifiableSet(new HashSet<>(builder.operationConstraints));
         }
     }
 
@@ -84,10 +93,10 @@ public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
             List<AuthSchemeOption> options = delegate.resolveAuthScheme(params);
             List<AuthSchemeOption> result = new ArrayList<>(options.size());
             for (AuthSchemeOption option : options) {
-                String schemeId = option.schemeId();
                 // We check here that the scheme id is sigV4 or sigV4a or some other in the same family.
-                // We don't set the overrides for non-sigV4 auth schemes.
-                if (schemeId.startsWith(AwsV4AuthScheme.SCHEME_ID)) {
+                // We don't set the overrides for non-sigV4 auth schemes. If the plugin was configured to
+                // constraint using operations then that's also checked on the call below.
+                if (addConfiguredProperties(option, params)) {
                     AuthSchemeOption.Builder builder = option.toBuilder();
                     identityProperties.forEach((k, v) -> putIdentityProperty(builder, k, v));
                     signerProperties.forEach((k, v) -> putSingerProperty(builder, k, v));
@@ -113,12 +122,36 @@ public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
     }
 
 
+    private boolean addConfiguredProperties(AuthSchemeOption option, S3AuthSchemeParams params) {
+        String schemeId = option.schemeId();
+        // We check here that the scheme id is sigV4 or sigV4a or some other in the same family.
+        // We don't set the overrides for non-sigV4 auth schemes.
+        if (schemeId.startsWith(AwsV4AuthScheme.SCHEME_ID)) {
+            if (this.operationConstraints.isEmpty() || this.operationConstraints.contains(params.operation())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Creates a new plugin that enables payload signing. This plugin can be used per client or by per-request.
      */
     public static SdkPlugin enablePayloadSigningPlugin() {
         return builder()
             .payloadSigningEnabled(true)
+            .build();
+    }
+
+    /**
+     * Creates a new plugin that disables the ChunkEncoding signers property for the `UploadPart` and `PutObject` operations.
+     * This plugin can be used per client or by per-request.
+     */
+    public static SdkPlugin disableChunkEncodingPlugin() {
+        return builder()
+            .chunkEncodingEnabled(false)
+            .addOperationConstraint("UploadPart")
+            .addOperationConstraint("PutObject")
             .build();
     }
 
@@ -132,6 +165,15 @@ public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
     public static class Builder {
         private final Map<IdentityProperty<?>, Object> identityProperties = new HashMap<>();
         private final Map<SignerProperty<?>, Object> signerProperties = new HashMap<>();
+        private final Set<String> operationConstraints = new HashSet<>();
+
+        /**
+         * Adds an operation constraint to use the configured properties.
+         */
+        public Builder addOperationConstraint(String operation) {
+            this.operationConstraints.add(operation);
+            return this;
+        }
 
         /**
          * Adds the provided property value as an override.
