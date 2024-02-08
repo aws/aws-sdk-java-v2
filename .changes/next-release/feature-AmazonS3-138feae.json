@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Automatically trim object metadata keys of whitespace for `PutObject` and `CreateMultipartUpload`."
+}
