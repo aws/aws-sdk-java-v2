@@ -1,4 +1,47 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.23.21__ __2024-02-08__
+## __AWS CodePipeline__
+  - ### Features
+    - Add ability to execute pipelines with new parallel & queued execution modes and add support for triggers with filtering on branches and file paths.
+
+## __Amazon QuickSight__
+  - ### Features
+    - General Interactions for Visuals; Waterfall Chart Color Configuration; Documentation Update
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release introduces User-Decoupling feature. This feature allows Workspaces Core customers to provision workspaces without providing users. CreateWorkspaces and DescribeWorkspaces APIs will now take a new optional parameter "WorkspaceName".
+
+# __2.23.20__ __2024-02-07__
+## __AWS CRT Sync HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where `CancellationException` was thrown incorrectly from AWS CRT Sync HTTP client when execution time exceeded the total configured API call attempt timeout or API call timeout. Now it throws `ApiCallAttemptTimeoutException`/`ApiCallTimeoutException` accordingly. See [#4820](https://github.com/aws/aws-sdk-java-v2/issues/4820)
+
+## __AWS CRT-based S3 Client__
+  - ### Features
+    - Exposes a setting to set the memory limit when making asynchronous calls with the CRT-based S3 client
+
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports manifests for specifying files or objects to transfer.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump `aws-crt` version to `0.29.9`
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront KeyValueStore__
+  - ### Features
+    - Switching CloudFront KeyValueStore onto the new SRA (Smithy Reference Architecture) identity and auth logic that was released in v2.21.0.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release introduces a new bot replication feature as part of Lex Global Resiliency offering. This feature leverages a new set of APIs that allow customers to create bot replicas and replicate changes to bots across regions.
+
+## __Amazon Redshift__
+  - ### Features
+    - LisRecommendations API to fetch Amazon Redshift Advisor recommendations.
+
 # __2.23.19__ __2024-02-06__
 ## __AWS AppSync__
   - ### Features

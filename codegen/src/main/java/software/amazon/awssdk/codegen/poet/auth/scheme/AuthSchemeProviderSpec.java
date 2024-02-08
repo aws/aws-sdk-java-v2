@@ -62,7 +62,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
         b.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
         b.addParameter(authSchemeSpecUtils.parametersInterfaceName(), "authSchemeParams");
         b.returns(authSchemeSpecUtils.resolverReturnType());
-        b.addJavadoc(resolveMethodJavadoc());
+        b.addJavadoc("Resolve the auth schemes based on the given set of parameters.");
         return b.build();
     }
 
@@ -75,7 +75,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
         b.addModifiers(Modifier.PUBLIC, Modifier.DEFAULT);
         b.addParameter(consumerType, "consumer");
         b.returns(authSchemeSpecUtils.resolverReturnType());
-        b.addJavadoc(resolveMethodJavadoc());
+        b.addJavadoc("Resolve the auth schemes based on the given set of parameters.");
 
         b.addStatement("$T builder = $T.builder()", parametersBuilderInterface, parametersInterface);
         b.addStatement("consumer.accept(builder)");
@@ -101,14 +101,6 @@ public class AuthSchemeProviderSpec implements ClassSpec {
               intermediateModel.getMetadata().getServiceName(),
               authSchemeSpecUtils.parametersInterfaceName(),
               AuthSchemeOption.class);
-
-        return b.build();
-    }
-
-    private CodeBlock resolveMethodJavadoc() {
-        CodeBlock.Builder b = CodeBlock.builder();
-
-        b.add("Resolve the auth schemes based on the given set of parameters.");
 
         return b.build();
     }
