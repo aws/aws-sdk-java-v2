@@ -41,7 +41,7 @@ class TransferManagerLoggingTest {
                                                 .region(Region.US_WEST_2)
                                                 .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
                                                 .build();
-             LogCaptor logCaptor = LogCaptor.create(Level.WARN);
+             LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3AsyncClient).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertThat(events).isEmpty();
@@ -76,14 +76,24 @@ class TransferManagerLoggingTest {
                                               + " upload/download feature may not be enabled and resumable file upload may not be supported.");
         }
     }
+
     @Test
-    void transferManager_withCustomJavaClientMultiPartEnabled_shouldNotLogWarnMessage() {
+    void transferManager_withDefaultJavaClient_shouldNotLogDebugMessage() {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
+             S3TransferManager tm = S3TransferManager.builder().build()) {
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertThat(events).isEmpty();
+        }
+    }
+
+    @Test
+    void transferManager_withCustomJavaClientMultiPartEnabled_shouldNotLogDebugMessage() {
         try (S3AsyncClient s3Crt = S3AsyncClient.builder()
                                                 .region(Region.US_WEST_2)
                                                 .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
                                                 .multipartEnabled(true)
                                                 .build();
-             LogCaptor logCaptor = LogCaptor.create(Level.WARN);
+             LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertThat(events).isEmpty();
