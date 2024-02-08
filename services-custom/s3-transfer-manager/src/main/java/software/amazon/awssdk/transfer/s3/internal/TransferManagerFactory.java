@@ -52,11 +52,7 @@ public final class TransferManagerFactory {
             return new CrtS3TransferManager(transferConfiguration, s3AsyncClient, isDefaultS3AsyncClient);
         }
 
-        if (s3AsyncClient.getClass().getName().equals("software.amazon.awssdk.services.s3.DefaultS3AsyncClient")) {
-            log.warn(() -> "The provided DefaultS3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
-                           + " upload/download feature is not enabled and resumable file upload is not supported. To benefit "
-                           + "from maximum throughput, consider using S3AsyncClient.crtBuilder().build() instead.");
-        } else {
+        if (!Boolean.TRUE.equals(s3AsyncClient.serviceClientConfiguration().multipartEnabled())) {
             log.debug(() -> "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
                             + " upload/download feature may not be enabled and resumable file upload may not be supported.");
         }
@@ -68,7 +64,7 @@ public final class TransferManagerFactory {
         if (crtInClasspath()) {
             return S3AsyncClient::crtCreate;
         }
-        return S3AsyncClient::create;
+        return S3AsyncClient::createWithMultipartEnabled;
     }
 
     private static boolean crtInClasspath() {

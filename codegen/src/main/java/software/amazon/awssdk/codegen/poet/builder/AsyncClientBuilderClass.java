@@ -81,7 +81,6 @@ public class AsyncClientBuilderClass implements ClassSpec {
 
         MultipartCustomization multipartCustomization = model.getCustomizationConfig().getMultipartCustomization();
         if (multipartCustomization != null) {
-            builder.addMethod(multipartEnabledMethod(multipartCustomization));
             builder.addMethod(multipartConfigMethods(multipartCustomization));
         }
 
@@ -155,18 +154,6 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .returns(builderClassName)
                          .addStatement("clientConfiguration.option($T.TOKEN_IDENTITY_PROVIDER, tokenProvider)",
                                        AwsClientOption.class)
-                         .addStatement("return this")
-                         .build();
-    }
-
-    private MethodSpec multipartEnabledMethod(MultipartCustomization multipartCustomization) {
-        return MethodSpec.methodBuilder("multipartEnabled")
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC)
-                         .returns(builderInterfaceName)
-                         .addParameter(Boolean.class, "enabled")
-                         .addStatement("clientContextParams.put($N, enabled)",
-                                       multipartCustomization.getContextParamEnabledKey())
                          .addStatement("return this")
                          .build();
     }
