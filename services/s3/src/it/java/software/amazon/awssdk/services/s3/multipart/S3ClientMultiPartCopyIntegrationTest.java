@@ -222,7 +222,9 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
             Map<String, List<String>> headers = sdkHttpRequest.headers();
             String checksumHeaderName = "x-amz-checksum-algorithm";
             if (headers.containsKey(checksumHeaderName)) {
-                checksumHeader = headers.get(checksumHeaderName).get(0);
+                List<String> checksumHeaderVals = headers.get(checksumHeaderName);
+                assertThat(checksumHeaderVals).hasSize(1);
+                checksumHeader = checksumHeaderVals.get(0);
             }
         }
 

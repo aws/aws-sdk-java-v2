@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,13 +48,16 @@ import software.amazon.awssdk.utils.Logger;
 public final class SdkPojoConversionUtils {
     private static final Logger log = Logger.loggerFor(SdkPojoConversionUtils.class);
 
+    private static final HashSet<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
+        new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32"));
+
     private SdkPojoConversionUtils() {
     }
 
     public static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest, int partNumber, String uploadId) {
 
         UploadPartRequest.Builder builder = UploadPartRequest.builder();
-        setSdkFields(builder, putObjectRequest);
+        setSdkFields(builder, putObjectRequest, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE);
         return builder.uploadId(uploadId).partNumber(partNumber).build();
     }
 
