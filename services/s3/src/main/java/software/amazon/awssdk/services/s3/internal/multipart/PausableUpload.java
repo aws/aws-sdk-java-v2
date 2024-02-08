@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
-public interface PausibleUpload {
+public interface PausableUpload {
 
     default S3ResumeToken pause() {
         throw new UnsupportedOperationException();

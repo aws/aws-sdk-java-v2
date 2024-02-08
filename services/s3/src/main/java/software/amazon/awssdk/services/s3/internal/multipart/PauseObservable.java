@@ -20,17 +20,17 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class PauseObservable {
 
-    private volatile PausibleUpload pausibleUpload;
+    private volatile PausableUpload pausableUpload;
 
-    public void setPausibleUpload(PausibleUpload pausibleUpload) {
-        this.pausibleUpload = pausibleUpload;
+    public void setPausableUpload(PausableUpload pausableUpload) {
+        this.pausableUpload = pausableUpload;
     }
 
     public S3ResumeToken pause() {
         // single part upload or TM is not used
-        if (pausibleUpload == null) {
+        if (pausableUpload == null) {
             return null;
         }
-        return pausibleUpload.pause();
+        return pausableUpload.pause();
     }
 }
