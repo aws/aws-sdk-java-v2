@@ -42,9 +42,8 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .bufferSize(1024 * 1024 * 32)
+                                .maximumBufferSize(1024 * 1024 * 32)
                                 .returnFuture(future)
-                                .maxElements(4L)
                                 .build();
         split.subscribe(new CancelAfterNTestSubscriber(
             4, n -> AsyncRequestBody.fromString(String.format("This is the body of %d.", n))));
@@ -60,7 +59,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .bufferSize(1024 * 1024 * 32)
+                                .maximumBufferSize(1024 * 1024 * 32)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new FailAfterNTestSubscriber(2));
@@ -80,7 +79,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .bufferSize(evenBufferSize)
+                                .maximumBufferSize(evenBufferSize)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new CancelAfterNTestSubscriber(
@@ -107,9 +106,8 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .bufferSize(1024 * 1024 * 32)
+                                .maximumBufferSize(1024 * 1024 * 32)
                                 .returnFuture(future)
-                                .maxElements(4L)
                                 .build();
         split.subscribe(new RequestingTestSubscriber(4));
 

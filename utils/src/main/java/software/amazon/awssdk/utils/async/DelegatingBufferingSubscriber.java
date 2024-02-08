@@ -65,7 +65,6 @@ public class DelegatingBufferingSubscriber extends DelegatingSubscriber<ByteBuff
 
     @Override
     public void onSubscribe(Subscription subscription) {
-        // §2.05 must call subscription.cancel() if it already has a subscription and receives another on subscribe signal
         if (this.subscription != null) {
             subscription.cancel();
             return;

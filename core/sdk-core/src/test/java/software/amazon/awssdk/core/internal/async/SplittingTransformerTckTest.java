@@ -21,6 +21,7 @@ import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 
 public class SplittingTransformerTckTest extends PublisherVerification<AsyncResponseTransformer<Object, Object>> {
 
@@ -32,26 +33,22 @@ public class SplittingTransformerTckTest extends PublisherVerification<AsyncResp
     public Publisher<AsyncResponseTransformer<Object, Object>> createPublisher(long l) {
         CompletableFuture<ResponseBytes<Object>> future = new CompletableFuture<>();
         AsyncResponseTransformer<Object, ResponseBytes<Object>> upstreamTransformer = AsyncResponseTransformer.toBytes();
-        SplittingTransformer.Builder<Object, ResponseBytes<Object>> builder =
+        SplittingTransformer<Object, ResponseBytes<Object>> transformer =
             SplittingTransformer.<Object, ResponseBytes<Object>>builder()
                                 .upstreamResponseTransformer(upstreamTransformer)
-                                .bufferSize(64 * 1024)
+                                .maximumBufferSize(64 * 1024)
                                 .returnFuture(future)
-                                .maxElements(l);
-        return builder.build();
+                                .build();
+        return SdkPublisher.adapt(transformer).limit(Math.toIntExact(l));
     }
 
     @Override
     public Publisher<AsyncResponseTransformer<Object, Object>> createFailedPublisher() {
-        CompletableFuture<ResponseBytes<Object>> future = new CompletableFuture<>();
-        AsyncResponseTransformer<Object, ResponseBytes<Object>> upstreamTransformer = AsyncResponseTransformer.toBytes();
-        SplittingTransformer.Builder<Object, ResponseBytes<Object>> builder =
-            SplittingTransformer.<Object, ResponseBytes<Object>>builder()
-                                .upstreamResponseTransformer(upstreamTransformer)
-                                .bufferSize(64 * 1024)
-                                .returnFuture(future)
-                                .maxElements(-1L);
-        return builder.build();
+        return null;
     }
 
+    @Override
+    public long maxElementsFromPublisher() {
+        return Long.MAX_VALUE;
+    }
 }

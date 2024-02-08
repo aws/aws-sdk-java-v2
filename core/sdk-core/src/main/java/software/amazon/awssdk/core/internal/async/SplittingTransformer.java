@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.async;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -103,29 +102,16 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicLong outstandingDemand = new AtomicLong(0);
 
     /**
-     * This flag stops the current thread from publishing transformers while another thread is already publishing
+     * This flag stops the current thread from publishing transformers while another thread is already publishing.
      */
     private final AtomicBoolean emitting = new AtomicBoolean(false);
 
-    // 'boundedness' info
-    private final long maxElements;
-    private final boolean isBounded;
-    private final AtomicInteger totalEmitted = new AtomicInteger(0);
-    private final AtomicBoolean terminated = new AtomicBoolean(false);
-
-    /**
-     * Creates a publisher bounded by the {@code maxElements} provided. As per reactive stream specification, this publisher will
-     * be considered 'unbounded' if {@code maxElements == LONG.MAX_VALUE}.
-     */
     private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
                                  Long bufferSize,
-                                 CompletableFuture<ResultT> returnFuture,
-                                 Long maxElements) {
+                                 CompletableFuture<ResultT> returnFuture) {
         this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
         this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
         this.maximumBufferSize = Validate.notNull(bufferSize, "bufferSize");
-        this.maxElements = Validate.getOrDefault(maxElements, () -> Long.MAX_VALUE);
-        this.isBounded = maxElements != null && maxElements != Long.MAX_VALUE;
     }
 
     /**
@@ -138,9 +124,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         }
         this.downstreamSubscriber = downstreamSubscriber;
         downstreamSubscriber.onSubscribe(new DownstreamSubscription());
-        if (maxElements < 0) {
-            downstreamSubscriber.onError(new IllegalArgumentException("Maximum element to request must be positive"));
-        }
     }
 
     /**
@@ -152,10 +135,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void request(long n) {
             if (n <= 0) {
                 downstreamSubscriber.onError(new IllegalArgumentException("Amount requested must be positive"));
-                return;
-            }
-            if (isBounded && totalEmitted.get() >= maxElements) {
-                terminate();
                 return;
             }
             if (isCancelled.get()) {
@@ -181,31 +160,18 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         }
     }
 
-    private void terminate() {
-        if (terminated.compareAndSet(false, true)) {
-            publisherToUpstream.complete();
-            downstreamSubscriber.onComplete();
-            downstreamSubscriber = null;
-        }
-    }
-
     private void emit() {
         do {
             if (!emitting.compareAndSet(false, true)) {
                 return;
             }
             try {
-                if (isBounded && totalEmitted.get() >= maxElements) {
-                    terminate();
-                    return;
-                }
-                if (isCancelled.get() || terminated.get()) {
+                if (isCancelled.get()) {
                     return;
                 }
                 if (outstandingDemand.get() > 0) {
                     outstandingDemand.decrementAndGet();
                     downstreamSubscriber.onNext(new IndividualTransformer());
-                    totalEmitted.incrementAndGet();
                 }
             } finally {
                 emitting.compareAndSet(true, false);
@@ -319,40 +285,57 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
     public static final class Builder<ResponseT, ResultT> {
 
+        private long maximumBufferSize;
+        private CompletableFuture<ResultT> returnFuture;
+        private AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
+
         private Builder() {
         }
 
-        private AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
-        private long bufferSize;
-        private CompletableFuture<ResultT> returnFuture;
-        private Long maxElements;
-
+        /**
+         * The {@link AsyncResponseTransformer} that will receive the data from each of the individually published
+         * {@link IndividualTransformer}, usually intended to be the one on which the {@link AsyncResponseTransformer#split(long)}
+         * method was called.
+         *
+         * @param upstreamResponseTransformer the {@code AsyncResponseTransformer} that was split.
+         * @return an instance of this builder
+         */
         public Builder<ResponseT, ResultT> upstreamResponseTransformer(
             AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer) {
             this.upstreamResponseTransformer = upstreamResponseTransformer;
             return this;
         }
 
-        public Builder<ResponseT, ResultT> bufferSize(long bufferSize) {
-            this.bufferSize = bufferSize;
+        /**
+         * The amount of data in byte this publisher will buffer into memory before sending it to the upstream transformer.
+         * The data will be sent if chunk of {@code maximumBufferSize} to the upstream transformer unless the subscription is
+         * cancelled while less amount is buffered, in which case a chunk with a size less than {@code maximumBufferSize} will
+         * be sent.
+         *
+         * @param maximumBufferSize the amount of data buffered and the size of the chunk of data
+         * @return an instance of this builder
+         */
+        public Builder<ResponseT, ResultT> maximumBufferSize(long maximumBufferSize) {
+            this.maximumBufferSize = maximumBufferSize;
             return this;
         }
 
+        /**
+         * The future that will be completed when the future which is returned by the call to
+         * {@link AsyncResponseTransformer#prepare()} completes.
+         *
+         * @param returnFuture the future to complete.
+         * @return an instance of this builder
+         */
         public Builder<ResponseT, ResultT> returnFuture(CompletableFuture<ResultT> returnFuture) {
             this.returnFuture = returnFuture;
             return this;
         }
 
-        public Builder<ResponseT, ResultT> maxElements(Long maxElements) {
-            this.maxElements = maxElements;
-            return this;
-        }
-
         public SplittingTransformer<ResponseT, ResultT> build() {
             return new SplittingTransformer<>(this.upstreamResponseTransformer,
-                                              this.bufferSize,
-                                              this.returnFuture,
-                                              this.maxElements);
+                                              this.maximumBufferSize,
+                                              this.returnFuture);
         }
     }
 }
