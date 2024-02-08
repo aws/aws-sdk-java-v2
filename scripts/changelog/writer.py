@@ -127,6 +127,10 @@ class ChangelogWriter(object):
     def write(self, s):
         self.output_file.write(s)
 
+def write_archived_changelogs_message(changelog_file):
+    message = " #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._\n"
+    changelog_file.write(message)
+
 def write_changelog():
     unreleased = load_unreleased_changes(".changes/next-release")
     released = load_all_released_changes(".changes")
@@ -141,6 +145,7 @@ def write_changelog():
         return
 
     with open('CHANGELOG.md', 'w') as cl:
+        write_archived_changelogs_message(cl)
         writer = ChangelogWriter(cl)
         for changes in all_changes:
             writer.write_changes(changes)
