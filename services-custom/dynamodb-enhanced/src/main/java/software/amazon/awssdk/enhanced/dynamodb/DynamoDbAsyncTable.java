@@ -324,7 +324,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * </pre>
      *
      * @param request A {@link GetItemEnhancedRequest} with key and optional directives for retrieving an item from the table.
-     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
+     * @return a {@link CompletableFuture} of the retrieved item.
      */
     default CompletableFuture<T> getItem(GetItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
@@ -423,7 +423,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * </pre>
      *
      * @param request A {@link GetItemEnhancedRequest} with key and optional directives for retrieving an item from the table.
-     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
+     * @return a {@link CompletableFuture} containing the response returned by DynamoDB.
      */
     default CompletableFuture<GetItemEnhancedResponse<T>> getItemWithResponse(GetItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
@@ -454,7 +454,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *
      * @param requestConsumer A {@link Consumer} of {@link GetItemEnhancedRequest.Builder} with key and optional directives
      * for retrieving an item from the table.
-     * @return a {@link CompletableFuture} of the retrieved item
+     * @return a {@link CompletableFuture} containing the response returned by DynamoDB.
      */
     default CompletableFuture<GetItemEnhancedResponse<T>> getItemWithResponse(
         Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
@@ -931,7 +931,7 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     }
 
     /**
-     * Describes a table in DynamoDb with the name defined for this {@link DynamoDbAsyncTable).
+     * Describes a table in DynamoDb with the name defined for this {@link DynamoDbAsyncTable}.
      * This operation calls the low-level DynamoDB API DescribeTable operation,
      * see {@link DynamoDbAsyncClient#describeTable(DescribeTableRequest)}
      *

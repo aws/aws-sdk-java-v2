@@ -74,7 +74,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
             .builder()
             .inputStream(inputStream)
             .chunkSize(chunkSize)
-            .header(chunk -> Integer.toHexString(chunk.length).getBytes(StandardCharsets.UTF_8));
+            .header(chunk -> Integer.toHexString(chunk.remaining()).getBytes(StandardCharsets.UTF_8));
 
         preExistingTrailers.forEach(trailer -> chunkedEncodedInputStreamBuilder.addTrailer(() -> trailer));
 

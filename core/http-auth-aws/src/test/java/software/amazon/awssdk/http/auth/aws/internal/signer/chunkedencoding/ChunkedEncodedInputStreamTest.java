@@ -54,7 +54,7 @@ public class ChunkedEncodedInputStreamTest {
             .builder()
             .inputStream(payload)
             .chunkSize(chunkSize)
-            .header(chunk -> Integer.toHexString(chunk.length).getBytes())
+            .header(chunk -> Integer.toHexString(chunk.remaining()).getBytes())
             .build();
 
         byte[] tmp = new byte[64];
@@ -90,7 +90,7 @@ public class ChunkedEncodedInputStreamTest {
             .builder()
             .inputStream(payload)
             .chunkSize(chunkSize)
-            .header(chunk -> Integer.toHexString(chunk.length).getBytes())
+            .header(chunk -> Integer.toHexString(chunk.remaining()).getBytes())
             .extensions(Collections.singletonList(helloWorldExt))
             .build();
 
@@ -128,7 +128,7 @@ public class ChunkedEncodedInputStreamTest {
             .builder()
             .inputStream(payload)
             .chunkSize(chunkSize)
-            .header(chunk -> Integer.toHexString(chunk.length).getBytes())
+            .header(chunk -> Integer.toHexString(chunk.remaining()).getBytes())
             .trailers(Collections.singletonList(helloWorldTrailer))
             .build();
 
@@ -168,7 +168,7 @@ public class ChunkedEncodedInputStreamTest {
             .builder()
             .inputStream(payload)
             .chunkSize(chunkSize)
-            .header(chunk -> Integer.toHexString(chunk.length).getBytes())
+            .header(chunk -> Integer.toHexString(chunk.remaining()).getBytes())
             .addExtension(aExt)
             .addExtension(bExt)
             .addTrailer(aTrailer)
@@ -243,7 +243,7 @@ public class ChunkedEncodedInputStreamTest {
             .builder()
             .inputStream(payload)
             .chunkSize(chunkSize)
-            .header(chunk -> Integer.toHexString(chunk.length).getBytes())
+            .header(chunk -> Integer.toHexString(chunk.remaining()).getBytes())
             .extensions(Collections.singletonList(ext))
             .trailers(Arrays.asList(checksumTrailer, signatureTrailer))
             .build();
@@ -274,8 +274,8 @@ public class ChunkedEncodedInputStreamTest {
                            "\r\n").getBytes(StandardCharsets.UTF_8)
         );
 
-        assertEquals(expectedBytesRead, bytesRead);
         assertArrayEquals(expected.toByteArray(), actualBytes);
+        assertEquals(expectedBytesRead, bytesRead);
     }
 
     @ParameterizedTest
@@ -316,10 +316,9 @@ public class ChunkedEncodedInputStreamTest {
         int read = 0;
         int offset = 0;
         while (read >= 0) {
-            read = src.read();
+            read = src.read(dst, offset, dst.length - offset);
             if (read >= 0) {
-                dst[offset] = (byte) read;
-                offset += 1;
+                offset += read;
             }
         }
         return offset;
