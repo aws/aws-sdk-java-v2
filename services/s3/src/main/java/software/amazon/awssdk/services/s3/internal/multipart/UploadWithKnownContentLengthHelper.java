@@ -190,7 +190,7 @@ public final class UploadWithKnownContentLengthHelper {
                                               PutObjectRequest putObjectRequest) {
         // observable will be present if TransferManager is used
         putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes().getAttribute(PAUSE_OBSERVABLE))
-                        .ifPresent(p -> p.setPausibleUpload(new DefaultPausibleUpload(subscriber)));
+                        .ifPresent(p -> p.setPausableUpload(new DefaultPausableUpload(subscriber)));
     }
 
     private static final class MpuRequestContext {
@@ -213,11 +213,11 @@ public final class UploadWithKnownContentLengthHelper {
         }
     }
 
-    private static final class DefaultPausibleUpload implements PausibleUpload {
+    private static final class DefaultPausableUpload implements PausableUpload {
 
         private KnownContentLengthAsyncRequestBodySubscriber subscriber;
 
-        private DefaultPausibleUpload(KnownContentLengthAsyncRequestBodySubscriber subscriber) {
+        private DefaultPausableUpload(KnownContentLengthAsyncRequestBodySubscriber subscriber) {
             this.subscriber = subscriber;
         }
 
