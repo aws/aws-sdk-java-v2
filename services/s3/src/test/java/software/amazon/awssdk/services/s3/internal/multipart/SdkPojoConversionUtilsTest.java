@@ -183,7 +183,6 @@ class SdkPojoConversionUtilsTest {
         PutObjectRequest randomObject = randomPutObjectRequest();
         CreateMultipartUploadRequest convertedObject = SdkPojoConversionUtils.toCreateMultipartUploadRequest(randomObject);
         Set<String> fieldsToIgnore = new HashSet<>();
-        System.out.println(convertedObject);
         verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
                               PutObjectRequest.builder().sdkFields(),
                               CreateMultipartUploadRequest.builder().sdkFields());
