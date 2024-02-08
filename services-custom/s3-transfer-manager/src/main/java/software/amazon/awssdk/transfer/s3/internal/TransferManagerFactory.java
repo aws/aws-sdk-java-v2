@@ -64,9 +64,7 @@ public final class TransferManagerFactory {
         if (crtInClasspath()) {
             return S3AsyncClient::crtCreate;
         }
-        return () -> S3AsyncClient.builder()
-                                  .multipartEnabled(true)
-                                  .build();
+        return () -> S3AsyncClient.builder().multipartEnabled(true).build();
     }
 
     private static boolean crtInClasspath() {
