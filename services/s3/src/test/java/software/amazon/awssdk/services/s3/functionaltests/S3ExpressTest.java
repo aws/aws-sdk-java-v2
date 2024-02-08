@@ -207,7 +207,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
     }
 
     private void createClientAndCallUploadPart(ClientType clientType, Protocol protocol, S3ExpressSessionAuth s3ExpressSessionAuth,
-                                              ChecksumAlgorithm checksumAlgorithm, WireMockRuntimeInfo wm) {
+                                               ChecksumAlgorithm checksumAlgorithm, WireMockRuntimeInfo wm) {
         UploadPartRequest.Builder requestBuilder =
             UploadPartRequest.builder().bucket(DEFAULT_BUCKET).key(DEFAULT_KEY).partNumber(0).uploadId("test");
         if (checksumAlgorithm != ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION) {
@@ -295,7 +295,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
 
         if ((protocol == Protocol.HTTPS || clientType == ClientType.ASYNC)  &&
-              checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION) {
+            checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION) {
             assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase("UNSIGNED-PAYLOAD");
         } else {
             assertThat(headers.get("x-amz-decoded-content-length")).isNotNull();

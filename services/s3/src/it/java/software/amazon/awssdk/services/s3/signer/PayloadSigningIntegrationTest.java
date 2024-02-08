@@ -29,7 +29,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -39,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
 import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 
 /**
@@ -99,7 +99,8 @@ public class PayloadSigningIntegrationTest extends S3IntegrationTestBase {
     public void standardSyncApacheHttpClient_manuallyEnabled_signedPayload() {
         S3Client syncClient = s3ClientBuilder()
             .overrideConfiguration(o -> o.addExecutionInterceptor(capturingInterceptor)
-                                         .addExecutionInterceptor(new PayloadSigningInterceptor()))
+                                         .addExecutionInterceptor(new CreateRequestBodyIfNeededInterceptor()))
+            .addPlugin(S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin())
             .build();
         assertThat(syncClient.putObject(b -> b.bucket(BUCKET).key(KEY),
                                         RequestBody.fromBytes("helloworld".getBytes()))).isNotNull();
@@ -132,12 +133,11 @@ public class PayloadSigningIntegrationTest extends S3IntegrationTestBase {
         }
     }
 
-    private static class PayloadSigningInterceptor implements ExecutionInterceptor {
+    private static class CreateRequestBodyIfNeededInterceptor implements ExecutionInterceptor {
 
         @Override
         public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                        ExecutionAttributes executionAttributes) {
-            executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true);
             if (!context.requestBody().isPresent() && context.httpRequest().method().equals(SdkHttpMethod.POST)) {
                 return Optional.of(RequestBody.fromBytes(new byte[0]));
             }

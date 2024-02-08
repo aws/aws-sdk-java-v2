@@ -19,27 +19,17 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
-import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 
 public final class AuthSchemeSpecUtils {
-    private static final Set<String> DEFAULT_AUTH_SCHEME_PARAMS = Collections.unmodifiableSet(setOf("region", "operation"));
+    private static final Set<String> DEFAULT_AUTH_SCHEME_PARAMS = setOf("region", "operation");
     private final IntermediateModel intermediateModel;
     private final boolean useSraAuth;
     private final Set<String> allowedEndpointAuthSchemeParams;
@@ -161,66 +151,10 @@ public final class AuthSchemeSpecUtils {
         return intermediateModel.getMetadata().getSigningName();
     }
 
-    public Map<List<String>, List<AuthType>> operationsToAuthType() {
-        Map<List<AuthType>, List<String>> authSchemesToOperations =
-            intermediateModel.getOperations()
-                             .entrySet()
-                             .stream()
-                             .filter(kvp -> !kvp.getValue().getAuth().isEmpty())
-                             .collect(Collectors.groupingBy(kvp -> kvp.getValue().getAuth(),
-                                                            Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
-
-        Map<List<String>, List<AuthType>> operationsToAuthType = authSchemesToOperations
-            .entrySet()
-            .stream()
-            .sorted(Comparator.comparing(left -> left.getValue().get(0)))
-            .collect(Collectors.toMap(Map.Entry::getValue,
-                                      Map.Entry::getKey, (a, b) -> b,
-                                      LinkedHashMap::new));
-
-        List<AuthType> serviceDefaults = serviceDefaultAuthTypes();
-
-        // Get the list of operations that share the same auth schemes as the system defaults and remove it from the result. We
-        // will take care of all of these in the fallback `default` case.
-        List<String> operationsWithDefaults = authSchemesToOperations.remove(serviceDefaults);
-        operationsToAuthType.remove(operationsWithDefaults);
-        operationsToAuthType.put(Collections.emptyList(), serviceDefaults);
-        return operationsToAuthType;
-    }
-
-    public List<AuthType> serviceDefaultAuthTypes() {
-        List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
-        if (!modeled.isEmpty()) {
-            return modeled;
-        }
-        return Collections.singletonList(intermediateModel.getMetadata().getAuthType());
-    }
-
-    public Set<Class<?>> allServiceConcreteAuthSchemeClasses() {
-        Set<Class<?>> result =
-            Stream.concat(intermediateModel.getOperations()
-                                           .values()
-                                           .stream()
-                                           .map(OperationModel::getAuth)
-                                           .flatMap(List::stream),
-                          intermediateModel.getMetadata().getAuth().stream())
-                  .map(AuthSchemeCodegenMetadata::fromAuthType)
-                  .map(AuthSchemeCodegenMetadata::authSchemeClass)
-                  .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Class::getSimpleName))));
-
-        if (useEndpointBasedAuthProvider()) {
-            // sigv4a is not modeled but needed for the endpoints based auth-scheme cases.
-            result.add(AwsV4aAuthScheme.class);
-        }
-        // Make the no-auth scheme available.
-        result.add(NoAuthAuthScheme.class);
-        return result;
-    }
-
-    private static Set<String> setOf(String v1, String v2) {
-        Set<String> set = new HashSet<>();
-        set.add(v1);
-        set.add(v2);
-        return set;
+    private static Set<String> setOf(String val1, String val2) {
+        Set<String> result = new HashSet<>();
+        result.add(val1);
+        result.add(val2);
+        return Collections.unmodifiableSet(result);
     }
 }
