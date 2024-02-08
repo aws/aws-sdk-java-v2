@@ -71,42 +71,41 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         executorService.shutdown();
     }
 
-    enum S3ClientType {
-        CRT, JAVA
-    }
-
-    private static Stream<Arguments> s3ClientType() {
-        return Stream.of(Arguments.of(S3ClientType.CRT), Arguments.of(S3ClientType.JAVA));
+    private static Stream<Arguments> transferManagers() {
+        return Stream.of(
+            Arguments.of(tmJava, tmJava),
+            Arguments.of(tmCrt, tmCrt),
+            Arguments.of(tmCrt, tmJava),
+            Arguments.of(tmJava, tmCrt)
+        );
     }
 
     @ParameterizedTest
-    @MethodSource("s3ClientType")
-    void pause_singlePart_shouldResume(S3ClientType s3ClientType) {
-        S3TransferManager transferManager = s3ClientType == S3ClientType.CRT ? tmCrt : tmJava;
+    @MethodSource("transferManagers")
+    void pause_singlePart_shouldResume(S3TransferManager uploadTm, S3TransferManager resumeTm) {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                      .source(smallFile)
                                                      .build();
-        FileUpload fileUpload = transferManager.uploadFile(request);
+        FileUpload fileUpload = uploadTm.uploadFile(request);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
 
         validateEmptyResumeToken(resumableFileUpload);
 
-        FileUpload resumedUpload = transferManager.resumeUploadFile(resumableFileUpload);
+        FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
     }
 
     @ParameterizedTest
-    @MethodSource("s3ClientType")
-    void pause_fileNotChanged_shouldResume(S3ClientType s3ClientType) {
-        S3TransferManager transferManager = s3ClientType == S3ClientType.CRT ? tmCrt : tmJava;
+    @MethodSource("transferManagers")
+    void pause_fileNotChanged_shouldResume(S3TransferManager uploadTm, S3TransferManager resumeTm) {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                      .addTransferListener(LoggingTransferListener.create())
                                                      .source(largeFile)
                                                      .build();
-        FileUpload fileUpload = transferManager.uploadFile(request);
+        FileUpload fileUpload = uploadTm.uploadFile(request);
         waitUntilMultipartUploadExists();
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
@@ -117,37 +116,35 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
         verifyMultipartUploadIdExists(resumableFileUpload);
 
-        FileUpload resumedUpload = transferManager.resumeUploadFile(resumableFileUpload);
+        FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
     }
 
     @ParameterizedTest
-    @MethodSource("s3ClientType")
-    void pauseImmediately_resume_shouldStartFromBeginning(S3ClientType s3ClientType) {
-        S3TransferManager transferManager = s3ClientType == S3ClientType.CRT ? tmCrt : tmJava;
+    @MethodSource("transferManagers")
+    void pauseImmediately_resume_shouldStartFromBeginning(S3TransferManager uploadTm, S3TransferManager resumeTm) {
         UploadFileRequest request = UploadFileRequest.builder()
-                                                   .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                                   .source(largeFile)
-                                                   .build();
-        FileUpload fileUpload = transferManager.uploadFile(request);
+                                                     .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                                     .source(largeFile)
+                                                     .build();
+        FileUpload fileUpload = uploadTm.uploadFile(request);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
 
         validateEmptyResumeToken(resumableFileUpload);
 
-        FileUpload resumedUpload = transferManager.resumeUploadFile(resumableFileUpload);
+        FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
     }
 
     @ParameterizedTest
-    @MethodSource("s3ClientType")
-    void pause_fileChanged_resumeShouldStartFromBeginning(S3ClientType s3ClientType) throws Exception {
-        S3TransferManager transferManager = s3ClientType == S3ClientType.CRT ? tmCrt : tmJava;
+    @MethodSource("transferManagers")
+    void pause_fileChanged_resumeShouldStartFromBeginning(S3TransferManager uploadTm, S3TransferManager resumeTm) throws Exception {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                      .source(largeFile)
                                                      .build();
-        FileUpload fileUpload = transferManager.uploadFile(request);
+        FileUpload fileUpload = uploadTm.uploadFile(request);
         waitUntilMultipartUploadExists();
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         log.debug(() -> "Paused: " + resumableFileUpload);
@@ -161,7 +158,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         byte[] bytes = "helloworld".getBytes(StandardCharsets.UTF_8);
         Files.write(largeFile.toPath(), bytes);
 
-        FileUpload resumedUpload = transferManager.resumeUploadFile(resumableFileUpload);
+        FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
         verifyMultipartUploadIdNotExist(resumableFileUpload);
         assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(bytes.length);
