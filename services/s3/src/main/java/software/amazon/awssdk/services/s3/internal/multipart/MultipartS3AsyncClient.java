@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.ApiName;
@@ -76,18 +77,26 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     }
 
     private boolean shouldEnableCrc32(PutObjectRequest putObjectRequest) {
+        return !checksumSetOnRequest(putObjectRequest) && checksumEnabledPerConfig(putObjectRequest);
+    }
+
+    private boolean checksumSetOnRequest(PutObjectRequest putObjectRequest) {
+        if (putObjectRequest.checksumAlgorithm() != null) {
+            return true;
+        }
+
+        return Stream.of("ChecksumCRC32", "ChecksumCRC32C", "ChecksumSHA1", "ChecksumSHA256")
+                     .anyMatch(s -> putObjectRequest.getValueForField(s, String.class).isPresent());
+    }
+
+    private boolean checksumEnabledPerConfig(PutObjectRequest putObjectRequest) {
         ExecutionAttributes executionAttributes =
             putObjectRequest.overrideConfiguration().map(RequestOverrideConfiguration::executionAttributes).orElse(null);
 
-        boolean shouldEnableCrc32 = true;
-        if (executionAttributes != null) {
-            shouldEnableCrc32 = checksumEnabledPerConfig(executionAttributes);
+        if (executionAttributes == null) {
+            return true;
         }
 
-        return shouldEnableCrc32 && putObjectRequest.checksumAlgorithm() == null;
-    }
-
-    private static boolean checksumEnabledPerConfig(ExecutionAttributes executionAttributes) {
         S3Configuration serviceConfiguration =
             (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
 
