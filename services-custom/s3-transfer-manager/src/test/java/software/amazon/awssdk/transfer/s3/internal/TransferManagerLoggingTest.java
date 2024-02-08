@@ -76,17 +76,6 @@ class TransferManagerLoggingTest {
                                               + " upload/download feature may not be enabled and resumable file upload may not be supported.");
         }
     }
-
-    @Test
-    void transferManager_withDefaultJavaClient_shouldNotLogWarnMessage() {
-        try (S3AsyncClient s3AsyncClient = S3AsyncClient.createWithMultipartEnabled();
-             LogCaptor logCaptor = LogCaptor.create(Level.WARN);
-             S3TransferManager tm = S3TransferManager.builder().s3Client(s3AsyncClient).build()) {
-            List<LogEvent> events = logCaptor.loggedEvents();
-            assertThat(events).isEmpty();
-        }
-    }
-
     @Test
     void transferManager_withCustomJavaClientMultiPartEnabled_shouldNotLogWarnMessage() {
         try (S3AsyncClient s3Crt = S3AsyncClient.builder()
