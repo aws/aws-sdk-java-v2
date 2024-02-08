@@ -43,7 +43,7 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * An {@link S3AsyncClient} that automatically converts PUT, COPY requests to their respective multipart call. CRC32 will be
- * enabled for the PUT and COPY requests.
+ * enabled for the PUT and COPY requests, unless the the checksum is specified or checksum validation is disabled.
  * Note: GET is not yet supported.
  *
  * @see MultipartConfiguration
