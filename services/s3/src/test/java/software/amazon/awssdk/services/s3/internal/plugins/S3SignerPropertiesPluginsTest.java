@@ -59,24 +59,32 @@ class S3SignerPropertiesPluginsTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    public void validateTestCase(TestCase testCase) {
+    void validateTestCase(TestCase testCase) {
         CapturingInterceptor capturingInterceptor = new CapturingInterceptor();
         S3ClientBuilder clientBuilder = getS3ClientBuilder(capturingInterceptor);
         testCase.configureClient().accept(clientBuilder);
         S3Client client = clientBuilder.build();
+
         assertThatThrownBy(() -> testCase.useClient().accept(client))
             .hasMessageContaining("boom")
-            .as(testCase.name());
+            .as(testCase.name() + " - Expected exception");
 
         AuthSchemeOption expectedValues = testCase.expectedSignerProperties();
         Map<SignerProperty<?>, Object> expectedProperties = signerProperties(expectedValues);
 
-        assertThat(selectSignerProperties(signerProperties(capturingInterceptor.authSchemeOption()), expectedProperties.keySet()))
+        assertThat(
+            selectSignerProperties(
+                signerProperties(capturingInterceptor.authSchemeOption()),
+                expectedProperties.keySet()))
             .isEqualTo(expectedProperties)
-            .as(testCase.name());
-        assertThat(selectSignerProperties(signerProperties(capturingInterceptor.authSchemeOption()), testCase.unsetProperties()))
+            .as(testCase.name() + " - Expected Properties");
+
+        assertThat(
+            selectSignerProperties(
+                signerProperties(capturingInterceptor.authSchemeOption()),
+                testCase.unsetProperties()))
             .isEqualTo(Collections.emptyMap())
-            .as(testCase.name());
+            .as(testCase.name() + " - Expected Unset Properties");
     }
 
     static Map<SignerProperty<?>, Object> signerProperties(AuthSchemeOption option) {
@@ -112,14 +120,14 @@ class S3SignerPropertiesPluginsTest {
             testUploadPartEnablesPayloadSigningUsingPlugin(),
             // S3OverrideAuthSchemePropertiesPlugin.disableChunkEncoding()
             testUploadPartDisablesChunkEncodingUsingPlugin(),
-            testPutObjectDisablesChunkEncodingUsingPlugin() ,
+            testPutObjectDisablesChunkEncodingUsingPlugin(),
             testGetObjectDoesNotDisablesChunkEncodingUsingPlugin()
         );
     }
 
     // S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin()
     private static TestCase testUploadPartDisablesPayloadSigningByDefault() {
-        return forUploadPart("UploadPartDisablesPayloadSigningByDefault")
+        return forUploadPart("Disables PayloadSigning By Default")
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder()
                                           .putSignerProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED, false)
                                           .build())
@@ -127,7 +135,7 @@ class S3SignerPropertiesPluginsTest {
     }
 
     private static TestCase testUploadPartEnablesPayloadSigningUsingPlugin() {
-        return forUploadPart("UploadPartEnablesPayloadSigningUsingPlugin")
+        return forUploadPart("Enables PayloadSigning Using Plugin")
             .configureClient(c -> c.addPlugin(S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin()))
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder()
                                           .putSignerProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED, true)
@@ -136,10 +144,9 @@ class S3SignerPropertiesPluginsTest {
 
     }
 
-
     // S3OverrideAuthSchemePropertiesPlugin.disableChunkEncoding()
     private static TestCase testUploadPartDisablesChunkEncodingUsingPlugin() {
-        return forUploadPart("UploadPartDisablesChunkEncodingUsingPlugin")
+        return forUploadPart("Disables ChunkEncoding Using Plugin")
             .configureClient(c -> c.addPlugin(S3OverrideAuthSchemePropertiesPlugin.disableChunkEncodingPlugin()))
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder()
                                           .putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED, false)
@@ -149,7 +156,7 @@ class S3SignerPropertiesPluginsTest {
     }
 
     static TestCase testPutObjectDisablesChunkEncodingUsingPlugin() {
-        return forPutObject("PutObjectDisablesChunkEncodingUsingPlugin")
+        return forPutObject("Disables ChunkEncoding Using Plugin")
             .configureClient(c -> c.addPlugin(S3OverrideAuthSchemePropertiesPlugin.disableChunkEncodingPlugin()))
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder()
                                           .putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED, false)
@@ -158,17 +165,17 @@ class S3SignerPropertiesPluginsTest {
     }
 
     static TestCase testGetObjectDoesNotDisablesChunkEncodingUsingPlugin() {
-        return forGetObject("GetObjectDoesNotDisablesChunkEncodingUsingPlugin")
+        return forGetObject("Does Not Disable ChunkEncoding Using Plugin")
             .configureClient(c -> c.addPlugin(S3OverrideAuthSchemePropertiesPlugin.disableChunkEncodingPlugin()))
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder()
                                           .build())
-            .addUnsetProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED)
+            .addExpectedUnsetProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED)
             .build();
     }
 
     // S3DisableChunkEncodingIfConfiguredPlugin
     static TestCase testUploadPartEnablesChunkEncodingByDefault() {
-        return forUploadPart("UploadPartEnablesChunkEncodingByDefault")
+        return forUploadPart("Enables ChunkEncoding By Default")
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder()
                                           .putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED, true)
                                           .build())
@@ -176,7 +183,7 @@ class S3SignerPropertiesPluginsTest {
     }
 
     static TestCase testUploadPartDisablesChunkEncodingWhenConfigured() {
-        return forUploadPart("UploadPartDisablesChunkEncodingWhenConfigured")
+        return forUploadPart("Disables ChunkEncoding When Configured")
             .configureClient(c -> c.serviceConfiguration(S3Configuration.builder()
                                                                         .chunkedEncodingEnabled(false)
                                                                         .build()))
@@ -184,11 +191,10 @@ class S3SignerPropertiesPluginsTest {
                                           .putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED, false)
                                           .build())
             .build();
-
     }
 
     static TestCase testPutObjectEnablesChunkEncodingByDefault() {
-        return forPutObject("PutObjectEnablesChunkEncodingByDefault")
+        return forPutObject("Enables ChunkEncoding By Default")
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder()
                                           .putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED, true)
                                           .build())
@@ -196,7 +202,7 @@ class S3SignerPropertiesPluginsTest {
     }
 
     static TestCase testPutObjectDisablesChunkEncodingWhenConfigured() {
-        return forPutObject("PutObjectDisablesChunkEncodingWhenConfigured")
+        return forPutObject("Disables ChunkEncoding When Configured")
             .configureClient(c -> c.serviceConfiguration(S3Configuration.builder()
                                                                         .chunkedEncodingEnabled(false)
                                                                         .build()))
@@ -207,32 +213,35 @@ class S3SignerPropertiesPluginsTest {
     }
 
     static TestCase testGetObjectDoesNotSetChunkEncoding() {
-        return forGetObject("GetObjectDoesNotSetChunkEncoding")
+        return forGetObject("Does Not Set ChunkEncoding")
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder().build())
+            .addExpectedUnsetProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED)
             .build();
     }
 
     static TestCase testGetObjectDoesNotSetChunkEncodingIfNotConfigured() {
-        return forGetObject("GetObjectDoesNotSetChunkEncodingIfNotConfigured")
+        return forGetObject("Does Not Set ChunkEncoding If Not Configured")
             .configureClient(c -> c.serviceConfiguration(S3Configuration.builder()
                                                                         .chunkedEncodingEnabled(true)
                                                                         .build()))
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder().build())
+            .addExpectedUnsetProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED)
             .build();
     }
 
     static TestCase testGetObjectDoesNotSetChunkEncodingIfConfigured() {
-        return forGetObject("GetObjectDoesNotSetChunkEncodingIfConfigured")
+        return forGetObject("Does Not Set ChunkEncoding If Configured")
             .configureClient(c -> c.serviceConfiguration(S3Configuration.builder()
                                                                         .chunkedEncodingEnabled(false)
                                                                         .build()))
             .expectedSignerProperties(defaultExpectedAuthSchemeOptionBuilder().build())
+            .addExpectedUnsetProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED)
             .build();
     }
 
     // End of tests, utils next
     static TestCaseBuilder forUploadPart(String name) {
-        return testCaseBuilder(name)
+        return testCaseBuilder("UploadPart " + name)
             .useClient(c -> {
                 UploadPartRequest.Builder requestBuilder =
                     UploadPartRequest.builder().bucket(DEFAULT_BUCKET).key(DEFAULT_KEY).partNumber(0).uploadId("test");
@@ -241,7 +250,7 @@ class S3SignerPropertiesPluginsTest {
     }
 
     static TestCaseBuilder forPutObject(String name) {
-        return testCaseBuilder(name)
+        return testCaseBuilder("PutObject " + name)
             .useClient(c -> {
                 PutObjectRequest.Builder requestBuilder =
                     PutObjectRequest.builder().bucket(DEFAULT_BUCKET).key(DEFAULT_KEY);
@@ -250,7 +259,7 @@ class S3SignerPropertiesPluginsTest {
     }
 
     static TestCaseBuilder forGetObject(String name) {
-        return testCaseBuilder(name)
+        return testCaseBuilder("GetObject " + name)
             .useClient(c -> {
                 GetObjectRequest.Builder requestBuilder =
                     GetObjectRequest.builder().bucket(DEFAULT_BUCKET).key(DEFAULT_KEY);
@@ -329,7 +338,7 @@ class S3SignerPropertiesPluginsTest {
             return this;
         }
 
-        public TestCaseBuilder addUnsetProperty(SignerProperty<?> unsetProperty) {
+        public TestCaseBuilder addExpectedUnsetProperty(SignerProperty<?> unsetProperty) {
             this.unsetProperties.add(unsetProperty);
             return this;
         }
@@ -376,6 +385,11 @@ class S3SignerPropertiesPluginsTest {
 
         public Set<SignerProperty<?>> unsetProperties() {
             return unsetProperties;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
     }
 
