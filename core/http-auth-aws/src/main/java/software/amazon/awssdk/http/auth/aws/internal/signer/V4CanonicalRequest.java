@@ -181,10 +181,7 @@ public final class V4CanonicalRequest {
      * Each header-value pair is separated by a newline.
      */
     public static String getCanonicalHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
-        // 2048 chosen experimentally to avoid always needing to resize the string builder's internal byte array.
-        // The minimal DynamoDB get-item request at the time of testing used ~1100 bytes. 2048 was chosen as the
-        // next-highest power-of-two.
-        StringBuilder result = new StringBuilder(2048);
+        StringBuilder result = new StringBuilder(512);
         canonicalHeaders.forEach(header -> {
             result.append(header.left());
             result.append(":");
@@ -249,45 +246,35 @@ public final class V4CanonicalRequest {
      * Matcher object as well.
      */
     private static void addAndTrim(StringBuilder result, String value) {
-        int valueLength = value.length();
-        if (valueLength == 0) {
+        int lengthBefore = result.length();
+        boolean isStart = true;
+        boolean previousIsWhiteSpace = false;
+
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (isWhiteSpace(ch)) {
+                if (previousIsWhiteSpace || isStart) {
+                    continue;
+                }
+                result.append(' ');
+                previousIsWhiteSpace = true;
+            } else {
+                result.append(ch);
+                isStart = false;
+                previousIsWhiteSpace = false;
+            }
+        }
+
+        if (lengthBefore == result.length()) {
             return;
         }
 
-        int start = 0;
-        // Find first non-whitespace
-        while (isWhiteSpace(value.charAt(start))) {
-            ++start;
-            if (start >= valueLength) {
-                return;
-            }
+        int lastNonWhitespaceChar = result.length() - 1;
+        while (isWhiteSpace(result.charAt(lastNonWhitespaceChar))) {
+            --lastNonWhitespaceChar;
         }
 
-        // Add things word-by-word
-        int lastWordStart = start;
-        boolean lastWasWhitespace = false;
-        for (int i = start; i < valueLength; i++) {
-            char c = value.charAt(i);
-
-            if (isWhiteSpace(c)) {
-                if (!lastWasWhitespace) {
-                    // End of word, add word
-                    result.append(value, lastWordStart, i);
-                    lastWasWhitespace = true;
-                }
-            } else {
-                if (lastWasWhitespace) {
-                    // Start of new word, add space
-                    result.append(' ');
-                    lastWordStart = i;
-                    lastWasWhitespace = false;
-                }
-            }
-        }
-
-        if (!lastWasWhitespace) {
-            result.append(value, lastWordStart, valueLength);
-        }
+        result.setLength(lastNonWhitespaceChar + 1);
     }
 
     /**
@@ -378,17 +365,7 @@ public final class V4CanonicalRequest {
     }
 
     private static boolean isWhiteSpace(char ch) {
-        switch (ch) {
-            case ' ':
-            case '\t':
-            case '\n':
-            case '\u000b':
-            case '\r':
-            case '\f':
-                return true;
-            default:
-                return false;
-        }
+        return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
     }
 
     /**

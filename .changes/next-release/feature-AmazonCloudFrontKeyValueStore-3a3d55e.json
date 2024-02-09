@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront KeyValueStore",
-    "contributor": "",
-    "description": "Switching CloudFront KeyValueStore onto the new SRA (Smithy Reference Architecture) identity and auth logic that was released in v2.21.0."
-}

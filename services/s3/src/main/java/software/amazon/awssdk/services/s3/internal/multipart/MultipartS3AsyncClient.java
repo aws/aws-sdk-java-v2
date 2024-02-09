@@ -18,19 +18,13 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
-import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -42,9 +36,8 @@ import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@link S3AsyncClient} that automatically converts PUT, COPY requests to their respective multipart call. CRC32 will be
- * enabled for the PUT and COPY requests, unless the the checksum is specified or checksum validation is disabled.
- * Note: GET is not yet supported.
+ * An {@link S3AsyncClient} that automatically converts put, copy requests to their respective multipart call. Note: get is not
+ * yet supported.
  *
  * @see MultipartConfiguration
  */
@@ -69,38 +62,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
-        if (shouldEnableCrc32(putObjectRequest)) {
-            putObjectRequest = putObjectRequest.toBuilder().checksumAlgorithm(ChecksumAlgorithm.CRC32).build();
-        }
-
         return mpuHelper.uploadObject(putObjectRequest, requestBody);
-    }
-
-    private boolean shouldEnableCrc32(PutObjectRequest putObjectRequest) {
-        return !checksumSetOnRequest(putObjectRequest) && checksumEnabledPerConfig(putObjectRequest);
-    }
-
-    private boolean checksumSetOnRequest(PutObjectRequest putObjectRequest) {
-        if (putObjectRequest.checksumAlgorithm() != null) {
-            return true;
-        }
-
-        return Stream.of("ChecksumCRC32", "ChecksumCRC32C", "ChecksumSHA1", "ChecksumSHA256")
-                     .anyMatch(s -> putObjectRequest.getValueForField(s, String.class).isPresent());
-    }
-
-    private boolean checksumEnabledPerConfig(PutObjectRequest putObjectRequest) {
-        ExecutionAttributes executionAttributes =
-            putObjectRequest.overrideConfiguration().map(RequestOverrideConfiguration::executionAttributes).orElse(null);
-
-        if (executionAttributes == null) {
-            return true;
-        }
-
-        S3Configuration serviceConfiguration =
-            (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
-
-        return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
     }
 
     @Override
@@ -111,8 +73,6 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        // TODO uncomment once implemented
-        // getObjectRequest = getObjectRequest.toBuilder().checksumMode(ChecksumMode.ENABLED).build();
         throw new UnsupportedOperationException(
             "Multipart download is not yet supported. Instead use the CRT based S3 client for multipart download.");
     }
