@@ -51,7 +51,6 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
-import software.amazon.awssdk.codegen.poet.auth.scheme.ModelAuthSchemeClassesKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
@@ -725,8 +724,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addModifiers(PRIVATE)
                                                .returns(returns);
 
-        ModelAuthSchemeClassesKnowledgeIndex index = ModelAuthSchemeClassesKnowledgeIndex.of(model);
-        Set<Class<?>> concreteAuthSchemeClasses = index.serviceConcreteAuthSchemeClasses();
+        Set<Class<?>> concreteAuthSchemeClasses = authSchemeSpecUtils.allServiceConcreteAuthSchemeClasses();
         builder.addStatement("$T schemes = new $T<>($L + this.additionalAuthSchemes.size())",
                              returns, HashMap.class, concreteAuthSchemeClasses.size());
         for (Class<?> concreteAuthScheme : concreteAuthSchemeClasses) {
@@ -746,7 +744,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addParameter(SdkClientConfiguration.class, "config")
                                                .returns(SdkClientConfiguration.class);
 
-        builder.addStatement("$T internalPlugins = internalPlugins(config)",
+        builder.addStatement("$T internalPlugins = internalPlugins()",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class));
 
         builder.addStatement("$T externalPlugins = plugins()",
@@ -775,7 +773,6 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("internalPlugins")
                                                .addModifiers(PRIVATE)
-                                               .addParameter(SdkClientConfiguration.class, "config")
                                                .returns(parameterizedTypeName);
 
         List<String> internalPlugins = model.getCustomizationConfig().getInternalPlugins();
@@ -787,30 +784,12 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addStatement("$T internalPlugins = new $T<>()", parameterizedTypeName,  ArrayList.class);
 
         for (String internalPlugin : internalPlugins) {
-            String arguments = internalPluginNewArguments(internalPlugin);
-            String internalPluginClass = internalPluginClass(internalPlugin);
-            ClassName pluginClass = ClassName.bestGuess(internalPluginClass);
-            builder.addStatement("internalPlugins.add(new $T($L))", pluginClass, arguments);
+            ClassName pluginClass = ClassName.bestGuess(internalPlugin);
+            builder.addStatement("internalPlugins.add(new $T())", pluginClass);
         }
 
         builder.addStatement("return internalPlugins");
         return builder.build();
-    }
-
-    private String internalPluginClass(String internalPlugin) {
-        int openParenthesisIndex = internalPlugin.indexOf('(');
-        if (openParenthesisIndex == -1) {
-            return internalPlugin;
-        }
-        return internalPlugin.substring(0, openParenthesisIndex);
-    }
-
-    private String internalPluginNewArguments(String internalPlugin) {
-        int openParenthesisIndex = internalPlugin.indexOf('(');
-        if (openParenthesisIndex == -1) {
-            return "";
-        }
-        return internalPlugin.substring(openParenthesisIndex);
     }
 
     @Override

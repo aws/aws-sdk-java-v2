@@ -20,10 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
@@ -32,6 +33,10 @@ import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
  */
 public class PayloadSigningDisabledTest {
     private static final AwsCredentialsProvider CREDENTIALS = () -> AwsBasicCredentials.create("akid", "skid");
+    private static final ClientOverrideConfiguration ENABLE_PAYLOAD_SIGNING_CONFIG =
+        ClientOverrideConfiguration.builder()
+                                   .putExecutionAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true)
+                                   .build();
 
     @Test
     public void syncPayloadSigningIsDisabled() {
@@ -78,7 +83,7 @@ public class PayloadSigningDisabledTest {
                                    .region(Region.US_WEST_2)
                                    .credentialsProvider(CREDENTIALS)
                                    .httpClient(httpClient)
-                                   .addPlugin(S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin())
+                                   .overrideConfiguration(ENABLE_PAYLOAD_SIGNING_CONFIG)
                                    .build()) {
             httpClient.stubNextResponse(HttpExecuteResponse.builder()
                                                            .response(SdkHttpResponse.builder().statusCode(200).build())
@@ -98,7 +103,7 @@ public class PayloadSigningDisabledTest {
                                              .region(Region.US_WEST_2)
                                              .credentialsProvider(CREDENTIALS)
                                              .httpClient(httpClient)
-                                             .addPlugin(S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin())
+                                             .overrideConfiguration(ENABLE_PAYLOAD_SIGNING_CONFIG)
                                              .build()) {
             httpClient.stubNextResponse(HttpExecuteResponse.builder()
                                                            .response(SdkHttpResponse.builder().statusCode(200).build())

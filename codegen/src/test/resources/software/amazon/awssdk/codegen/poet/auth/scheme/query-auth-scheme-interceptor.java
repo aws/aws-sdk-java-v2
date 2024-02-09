@@ -60,12 +60,14 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                                                                     ExecutionAttributes executionAttributes) {
         MetricCollector metricCollector = executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
-        IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+        IdentityProviders identityProviders = executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
         List<Supplier<String>> discardedReasons = new ArrayList<>();
         for (AuthSchemeOption authOption : authOptions) {
             AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
             SelectedAuthScheme<? extends Identity> selectedAuthScheme = trySelectAuthScheme(authOption, authScheme,
-                                                                                            identityProviders, discardedReasons, metricCollector, executionAttributes);
+                                                                                            identityProviders, discardedReasons,
+                                                                                            metricCollector, executionAttributes);
             if (selectedAuthScheme != null) {
                 if (!discardedReasons.isEmpty()) {
                     LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
@@ -88,7 +90,8 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
     }
 
     private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,
-                                                                           IdentityProviders identityProviders, List<Supplier<String>> discardedReasons, MetricCollector metricCollector,
+                                                                           IdentityProviders identityProviders, List<Supplier<String>> discardedReasons,
+                                                                           MetricCollector metricCollector,
                                                                            ExecutionAttributes executionAttributes) {
         if (authScheme == null) {
             discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));

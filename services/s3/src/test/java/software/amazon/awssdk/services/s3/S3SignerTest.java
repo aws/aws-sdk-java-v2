@@ -39,6 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
+import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -46,7 +47,6 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -69,13 +69,10 @@ public class S3SignerTest {
     }
 
     private S3Client getS3Client(boolean chunkedEncoding, boolean payloadSigning, URI endpoint) {
-        S3OverrideAuthSchemePropertiesPlugin plugin = S3OverrideAuthSchemePropertiesPlugin.builder()
-                                                                                          .chunkEncodingEnabled(chunkedEncoding)
-                                                                                          .payloadSigningEnabled(payloadSigning)
-                                                                                          .build();
         return S3Client.builder()
-                       .addPlugin(plugin)
                        .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                                         .putExecutionAttribute(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING, chunkedEncoding)
+                                                                         .putExecutionAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, payloadSigning)
                                                                          .putAdvancedOption(SdkAdvancedClientOption.SIGNER,
                                                                                             AwsS3V4Signer.create()).build())
                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
@@ -153,7 +150,7 @@ public class S3SignerTest {
         stubFor(any(urlMatching(".*"))
                     .willReturn(response()));
         s3Client.putObject(PutObjectRequest.builder()
-                                           .checksumAlgorithm(ChecksumAlgorithm.SHA256)
+                               .checksumAlgorithm(ChecksumAlgorithm.SHA256)
                                            .bucket("test").key("test").build(), RequestBody.fromBytes("abc".getBytes()));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo("3")));
