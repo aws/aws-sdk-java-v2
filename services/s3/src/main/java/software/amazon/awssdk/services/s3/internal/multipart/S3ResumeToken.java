@@ -30,7 +30,7 @@ public class S3ResumeToken {
         this.uploadId = builder.uploadId;
         this.partSize = builder.partSize;
         this.totalNumParts = builder.totalNumParts;
-        this.numPartsCompleted = builder.totalNumParts;
+        this.numPartsCompleted = builder.numPartsCompleted;
     }
 
     public static Builder builder() {

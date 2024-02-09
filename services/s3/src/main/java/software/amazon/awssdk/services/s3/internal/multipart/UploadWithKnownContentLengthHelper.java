@@ -32,6 +32,7 @@ import java.util.stream.IntStream;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -227,7 +228,8 @@ public final class UploadWithKnownContentLengthHelper {
         }
     }
 
-    private class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<AsyncRequestBody> {
+    @SdkInternalApi
+    public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<AsyncRequestBody> {
 
         /**
          * The number of AsyncRequestBody has been received but yet to be processed
@@ -280,7 +282,7 @@ public final class UploadWithKnownContentLengthHelper {
             });
         }
 
-        protected S3ResumeToken pause() {
+        public S3ResumeToken pause() {
             isPaused = true;
 
             if (completeMpuFuture != null && completeMpuFuture.isDone()) {
@@ -417,5 +419,10 @@ public final class UploadWithKnownContentLengthHelper {
             }
             return merged;
         }
+    }
+
+    @SdkTestInternalApi
+    public static DefaultPausableUpload defaultPausableUpload(KnownContentLengthAsyncRequestBodySubscriber subscriber) {
+        return new DefaultPausableUpload(subscriber);
     }
 }

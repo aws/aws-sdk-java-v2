@@ -81,8 +81,7 @@ public class UploadObjectHelperTest {
     private UploadObjectHelper uploadHelper;
     private S3AsyncClient s3AsyncClient;
 
-    // TODO - update failing tests
-    /*@BeforeAll
+    @BeforeAll
     public static void beforeAll() throws IOException {
         testFile = new RandomTempFile("testfile.dat", MPU_CONTENT_SIZE);
     }
@@ -171,9 +170,9 @@ public class UploadObjectHelperTest {
         }
     }
 
-    *
+    /**
      * The second part failed, it should cancel ongoing part(first part).
-
+     */
     @ParameterizedTest
     @MethodSource("asyncRequestBody")
     void mpu_onePartFailed_shouldFailOtherPartsAndAbort(AsyncRequestBody asyncRequestBody) {
@@ -213,11 +212,10 @@ public class UploadObjectHelperTest {
         }
     }
 
-    *
+    /**
      * This test is not parameterized because for unknown content length, the progress is nondeterministic. For example, we
      * don't know if it has created multipart upload when we cancel the future.
-
-    // TODO - hanging
+     */
     @Test
     void upload_knownContentLengthCancelResponseFuture_shouldCancelCreateMultipart() {
         PutObjectRequest putObjectRequest = putObjectRequest(null);
@@ -235,7 +233,6 @@ public class UploadObjectHelperTest {
         assertThat(createMultipartFuture).isCancelled();
     }
 
-    // hanging
     @Test
     void upload_knownContentLengthCancelResponseFuture_shouldCancelUploadPart() {
         PutObjectRequest putObjectRequest = putObjectRequest(null);
@@ -246,8 +243,8 @@ public class UploadObjectHelperTest {
 
         CompletableFuture<UploadPartResponse> ongoingRequest = new CompletableFuture<>();
 
-            when(s3AsyncClient.uploadPart(any(UploadPartRequest.class),
-                                          any(AsyncRequestBody.class))).thenReturn(ongoingRequest);
+        when(s3AsyncClient.uploadPart(any(UploadPartRequest.class),
+                                      any(AsyncRequestBody.class))).thenReturn(ongoingRequest);
 
         CompletableFuture<PutObjectResponse> future =
             uploadHelper.uploadObject(putObjectRequest, AsyncRequestBody.fromFile(testFile));
@@ -328,7 +325,7 @@ public class UploadObjectHelperTest {
                                                                                 erroneousAsyncRequestBody);
         assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart upload requests")
                                         .hasRootCause(exception);
-    }*/
+    }
 
     private static PutObjectRequest putObjectRequest(Long contentLength) {
         return PutObjectRequest.builder()
@@ -360,15 +357,15 @@ public class UploadObjectHelperTest {
     private OngoingStubbing<CompletableFuture<UploadPartResponse>> stubFailedUploadPartCalls(OngoingStubbing<CompletableFuture<UploadPartResponse>> stubbing, Exception exception) {
         return stubbing.thenAnswer(new Answer<CompletableFuture<UploadPartResponse>>() {
 
-                @Override
-                public CompletableFuture<UploadPartResponse> answer(InvocationOnMock invocationOnMock) {
-                    AsyncRequestBody AsyncRequestBody = invocationOnMock.getArgument(1);
-                    // Draining the request body
-                    AsyncRequestBody.subscribe(b -> {});
+            @Override
+            public CompletableFuture<UploadPartResponse> answer(InvocationOnMock invocationOnMock) {
+                AsyncRequestBody AsyncRequestBody = invocationOnMock.getArgument(1);
+                // Draining the request body
+                AsyncRequestBody.subscribe(b -> {});
 
-                    return  CompletableFutureUtils.failedFuture(exception);
-                }
-            });
+                return  CompletableFutureUtils.failedFuture(exception);
+            }
+        });
     }
 
     private static class UnknownContentLengthAsyncRequestBody implements AsyncRequestBody {
