@@ -379,8 +379,6 @@ public class S3CrtAsyncHttpClientTest {
                                        .maxConcurrency(100)
                                        .signingRegion(signingRegion)
                                        .thresholdInBytes(1024L)
-                                       .targetThroughputInGbps(3.5)
-                                       .maxNativeMemoryLimitInBytes(5L * 1024 * 1024 * 1024)
                                        .standardRetryOptions(
                                            new StandardRetryOptions()
                                                .withBackoffRetryOptions(new ExponentialBackoffRetryOptions().withMaxRetries(7)))
@@ -411,8 +409,6 @@ public class S3CrtAsyncHttpClientTest {
                 assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
             });
             assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
-            assertThat(clientOptions.getThroughputTargetGbps()).isEqualTo(3.5);
-            assertThat(clientOptions.getMemoryLimitInBytes()).isEqualTo(5L * 1024 * 1024 * 1024);
         }
     }
 

@@ -28,11 +28,7 @@ import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createReque
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -55,20 +51,16 @@ public class AwsCrtHttpClientWireMockTest {
     public WireMockRule mockServer = new WireMockRule(wireMockConfig()
                                                           .dynamicPort());
 
-    private static ScheduledExecutorService executorService;
-
     @BeforeClass
     public static void setup() {
         System.setProperty("aws.crt.debugnative", "true");
         Log.initLoggingToStdout(Log.LogLevel.Warn);
-        executorService = Executors.newScheduledThreadPool(1);
     }
 
     @AfterClass
     public static void tearDown() {
         // Verify there is no resource leak.
         CrtResource.waitForNoResources();
-        executorService.shutdown();
     }
 
     @Test
@@ -112,26 +104,6 @@ public class AwsCrtHttpClientWireMockTest {
 
         try (SdkHttpClient anotherClient = AwsCrtHttpClient.create()) {
             makeSimpleRequest(anotherClient, null);
-        }
-    }
-
-    @Test
-    public void abortRequest_shouldFailTheExceptionWithIOException() throws Exception {
-        try (SdkHttpClient client = AwsCrtHttpClient.create()) {
-            String body = randomAlphabetic(10);
-            URI uri = URI.create("http://localhost:" + mockServer.port());
-            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withFixedDelay(1000).withBody(body)));
-            SdkHttpRequest request = createRequest(uri);
-
-            HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
-            executeRequestBuilder.request(request)
-                                 .contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]));
-
-            ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
-            executorService.schedule(() -> executableRequest.abort(), 100, TimeUnit.MILLISECONDS);
-                executableRequest.abort();
-            assertThatThrownBy(() -> executableRequest.call()).isInstanceOf(IOException.class)
-                .hasMessageContaining("cancelled");
         }
     }
 

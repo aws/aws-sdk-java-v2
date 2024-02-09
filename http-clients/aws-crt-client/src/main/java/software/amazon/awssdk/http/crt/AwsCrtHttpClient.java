@@ -129,10 +129,6 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
                     throw (HttpException) cause;
                 }
 
-                if (cause instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                    throw new IOException("Request was cancelled", cause);
-                }
                 throw new RuntimeException(e.getCause());
             }
         }
@@ -140,7 +136,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         @Override
         public void abort() {
             if (responseFuture != null) {
-                responseFuture.completeExceptionally(new IOException("Request ws cancelled"));
+                responseFuture.cancel(true);
             }
         }
     }

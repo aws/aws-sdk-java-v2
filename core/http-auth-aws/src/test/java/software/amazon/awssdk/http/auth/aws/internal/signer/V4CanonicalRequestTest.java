@@ -124,36 +124,6 @@ public class V4CanonicalRequestTest {
     }
 
     @Test
-    public void canonicalRequest_withEmptyHeaders_shouldSucceed() {
-        SdkHttpRequest request = SdkHttpRequest.builder()
-                                               .protocol("https")
-                                               .host("localhost")
-                                               .method(SdkHttpMethod.PUT)
-                                               .putHeader("foo", "")
-                                               .build();
-        V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256",
-                                                       new V4CanonicalRequest.Options(true,
-                                                                                      true));
-
-        assertEquals("PUT\n/\n\nfoo:\n\nfoo\nsha-256", cr.getCanonicalRequestString());
-    }
-
-    @Test
-    public void canonicalRequest_withWhitespaceHeaders_shouldSucceed() {
-        SdkHttpRequest request = SdkHttpRequest.builder()
-                                               .protocol("https")
-                                               .host("localhost")
-                                               .method(SdkHttpMethod.PUT)
-                                               .putHeader("foo", " ")
-                                               .build();
-        V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256",
-                                                       new V4CanonicalRequest.Options(true,
-                                                                                      true));
-
-        assertEquals("PUT\n/\n\nfoo:\n\nfoo\nsha-256", cr.getCanonicalRequestString());
-    }
-
-    @Test
     public void canonicalRequest_WithNullParamValue_shouldIncludeEquals() {
         SdkHttpRequest request = SdkHttpRequest.builder()
                                                .protocol("https")
