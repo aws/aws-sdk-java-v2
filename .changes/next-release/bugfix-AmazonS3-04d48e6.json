@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fix bug where PUT fails when using SSE-C with Checksum when using S3AsyncClient with multipart enabled. Enable CRC32 for putObject when using multipart client if checksum validation is not disabled and checksum is not set by user"
+}

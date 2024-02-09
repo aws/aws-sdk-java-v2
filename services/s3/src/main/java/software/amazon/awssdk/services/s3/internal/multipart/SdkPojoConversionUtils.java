@@ -59,7 +59,7 @@ public final class SdkPojoConversionUtils {
     public static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest, int partNumber, String uploadId) {
 
         UploadPartRequest.Builder builder = UploadPartRequest.builder();
-        setSdkFields(builder, putObjectRequest);
+        setSdkFields(builder, putObjectRequest, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE);
         return builder.uploadId(uploadId).partNumber(partNumber).build();
     }
 
