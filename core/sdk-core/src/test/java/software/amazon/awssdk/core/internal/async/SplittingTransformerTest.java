@@ -188,12 +188,12 @@ class SplittingTransformerTest {
                 fail("Did not expect more than 2 request to be made");
             }
 
+            transformer.prepare();
             if (total == n) {
                 transformer.exceptionOccurred(new RuntimeException("TEST ERROR " + total));
                 return;
             }
 
-            transformer.prepare();
             transformer.onResponse(new TestResultObject("container msg: " + total));
             transformer.onStream(AsyncRequestBody.fromString(String.format("This is the body of %d.", total)));
             total++;

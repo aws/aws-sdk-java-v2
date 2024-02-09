@@ -16,29 +16,40 @@
 package software.amazon.awssdk.utils.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.utils.NumericUtils;
 
 class DelegatingBufferingSubscriberTest {
 
     @Test
     void givenMultipleBufferTotalToBufferSize_ExpectSubscriberGetThemAll() {
         TestSubscriber testSubscriber = new TestSubscriber(32);
-        DelegatingBufferingSubscriber subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
+        Subscriber<ByteBuffer> subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
         publisher.subscribe(subscriber);
 
+        testSubscriber.assertNothingReceived();
         for (int i = 0; i < 3; i++) {
-            ByteBuffer buff = ByteBuffer.wrap(byteArrayWithValue((byte)i, 8));
+            ByteBuffer buff = byteArrayWithValue((byte)i, 8);
             publisher.send(buff);
-            assertThat(testSubscriber.onNextCallAmount).isZero();
-            assertThat(testSubscriber.totalReceived).isZero();
         }
 
-        ByteBuffer buff = ByteBuffer.wrap(byteArrayWithValue((byte)3, 8));
+        ByteBuffer buff = byteArrayWithValue((byte)3, 8);
         publisher.send(buff);
         assertThat(testSubscriber.onNextCallAmount).isEqualTo(4);
         assertThat(testSubscriber.totalReceived).isEqualTo(32);
@@ -48,20 +59,21 @@ class DelegatingBufferingSubscriberTest {
         assertThat(testSubscriber.totalReceived).isEqualTo(32);
 
         testSubscriber.assertAllReceivedInChunk(8);
+        assertThat(testSubscriber.onCompleteCalled).isTrue();
     }
 
     @Test
     void givenMultipleBufferLessThenBufferSize_ExpectSubscriberGetThemAll() {
         TestSubscriber testSubscriber = new TestSubscriber(32);
-        DelegatingBufferingSubscriber subscriber = new DelegatingBufferingSubscriber(64, testSubscriber);
+        Subscriber<ByteBuffer> subscriber = new DelegatingBufferingSubscriber(64, testSubscriber);
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
         publisher.subscribe(subscriber);
 
+        testSubscriber.assertNothingReceived();
         for (int i = 0; i < 4; i++) {
-            ByteBuffer buff = ByteBuffer.wrap(byteArrayWithValue((byte)i, 8));
+            ByteBuffer buff = byteArrayWithValue((byte)i, 8);
             publisher.send(buff);
         }
-        testSubscriber.assertNothingReceived();
 
         publisher.complete();
         testSubscriber.assertBytesReceived(4, 32);
@@ -71,18 +83,18 @@ class DelegatingBufferingSubscriberTest {
     @Test
     void exceedsBufferInMultipleChunk_BytesReceivedInMultipleBatches() {
         TestSubscriber testSubscriber = new TestSubscriber(64);
-        DelegatingBufferingSubscriber subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
+        Subscriber<ByteBuffer> subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
         publisher.subscribe(subscriber);
 
+        testSubscriber.assertNothingReceived();
         for (int i = 0; i < 3; i++) {
-            ByteBuffer buff = ByteBuffer.wrap(byteArrayWithValue((byte)i, 8));
+            ByteBuffer buff = byteArrayWithValue((byte)i, 8);
             publisher.send(buff);
         }
-        testSubscriber.assertNothingReceived();
 
         for (int i = 3; i < 8; i++) {
-            ByteBuffer buff = ByteBuffer.wrap(byteArrayWithValue((byte)i, 8));
+            ByteBuffer buff = byteArrayWithValue((byte)i, 8);
             publisher.send(buff);
         }
         testSubscriber.assertBytesReceived(8, 64);
@@ -95,17 +107,17 @@ class DelegatingBufferingSubscriberTest {
     }
 
     @Test
-    void exceedsBufferSingle_BytesReceivedInMultipleBatches() {
+    void whenDataExceedsBufferSingle_ExpectAllBytesReceived() {
         TestSubscriber testSubscriber = new TestSubscriber(256);
-        DelegatingBufferingSubscriber subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
+        Subscriber<ByteBuffer> subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
         publisher.subscribe(subscriber);
 
-        publisher.send(ByteBuffer.wrap(byteArrayWithValue((byte)0, 256)));
-        testSubscriber.assertBytesReceived(8, 256);
+        publisher.send(byteArrayWithValue((byte)0, 256));
+        testSubscriber.assertBytesReceived(1, 256);
 
         publisher.complete();
-        testSubscriber.assertBytesReceived(8, 256);
+        testSubscriber.assertBytesReceived(1, 256);
 
         testSubscriber.assertAllReceivedInChunk(256);
     }
@@ -113,18 +125,17 @@ class DelegatingBufferingSubscriberTest {
     @Test
     void multipleBuffer_unevenSizes() {
         TestSubscriber testSubscriber = new TestSubscriber(59);
-        DelegatingBufferingSubscriber subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
+        Subscriber<ByteBuffer> subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
         publisher.subscribe(subscriber);
 
-        publisher.send(ByteBuffer.wrap(byteArrayWithValue((byte)0, 9)));
         testSubscriber.assertNothingReceived();
+        publisher.send(byteArrayWithValue((byte)0, 9));
 
-        publisher.send(ByteBuffer.wrap(byteArrayWithValue((byte)1, 20)));
-        testSubscriber.assertNothingReceived();
+        publisher.send(byteArrayWithValue((byte)1, 20));
 
-        publisher.send(ByteBuffer.wrap(byteArrayWithValue((byte)2, 30)));
-        testSubscriber.assertBytesReceived(2, 29);
+        publisher.send(byteArrayWithValue((byte)2, 30));
+        testSubscriber.assertBytesReceived(3, 59);
 
         publisher.complete();
         testSubscriber.assertBytesReceived(3, 59);
@@ -140,13 +151,62 @@ class DelegatingBufferingSubscriberTest {
         for (int i = 0; i < 30; i++) {
             assertThat(received.get()).isEqualTo((byte)2);
         }
+    }
 
+    @Test
+    void stochastic_ExpectAllBytesReceived() {
+        AtomicInteger i = new AtomicInteger(0);
+        int totalSendToMake = 16;
+        TestSubscriber testSubscriber = new TestSubscriber(512*1024);
+        Subscriber<ByteBuffer> subscriber = new DelegatingBufferingSubscriber(32*1024, testSubscriber);
+        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+        publisher.subscribe(subscriber);
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        CountDownLatch latch = new CountDownLatch(totalSendToMake);
+        for (int j = 0; j < totalSendToMake; j++) {
+            executor.submit(() -> {
+                ByteBuffer buffer = byteArrayWithValue((byte) i.incrementAndGet(), 32*1024);
+                publisher.send(buffer).whenComplete((res, err) -> {
+                    if (err != null) {
+                        fail("unexpected error sending data");
+                    }
+                    latch.countDown();
+                });
+            });
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            fail("Test interrupted while waiting for all submitted task to finish");
+        }
+        publisher.complete();
+        testSubscriber.assertBytesReceived(totalSendToMake, 512*1024);
+    }
+
+    @Test
+    void publisherError_ExpectSubscriberOnErrorToBeCalled() {
+        TestSubscriber testSubscriber = new TestSubscriber(32);
+        Subscriber<ByteBuffer> subscriber = new DelegatingBufferingSubscriber(32, testSubscriber);
+        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+        publisher.subscribe(subscriber);
+
+        for (int i = 0; i < 4; i++) {
+            ByteBuffer buff = byteArrayWithValue((byte)i, 8);
+            publisher.send(buff);
+        }
+        publisher.error(new RuntimeException("test exception"));
+
+        publisher.complete();
+        testSubscriber.assertBytesReceived(4, 32);
+        assertThat(testSubscriber.onErrorCalled).isTrue();
     }
 
     private class TestSubscriber implements Subscriber<ByteBuffer> {
         int onNextCallAmount = 0;
         int totalReceived = 0;
         int totalSizeExpected;
+        boolean onErrorCalled = false;
+        boolean onCompleteCalled = false;
         ByteBuffer received;
 
         public TestSubscriber(int totalSizeExpected) {
@@ -169,12 +229,12 @@ class DelegatingBufferingSubscriberTest {
 
         @Override
         public void onError(Throwable t) {
-            // do nothing, test purpose only
+            onErrorCalled = true;
         }
 
         @Override
         public void onComplete() {
-            // do nothing, test purpose only
+            onCompleteCalled = true;
         }
 
         void assertNothingReceived() {
@@ -185,7 +245,6 @@ class DelegatingBufferingSubscriberTest {
         void assertBytesReceived(int timesOnNextWasCalled, int totalBytesReceived) {
             assertThat(onNextCallAmount).isEqualTo(timesOnNextWasCalled);
             assertThat(totalReceived).isEqualTo(totalBytesReceived);
-
         }
 
         void assertAllReceivedInChunk(int chunkSize) {
@@ -198,11 +257,9 @@ class DelegatingBufferingSubscriberTest {
         }
     }
 
-    private static byte[] byteArrayWithValue(byte value, int size) {
+    private static ByteBuffer byteArrayWithValue(byte value, int size) {
         byte[] arr = new byte[size];
-        for (int i = 0; i < size; i++) {
-            arr[i] = value;
-        }
-        return arr;
+        Arrays.fill(arr, value);
+        return ByteBuffer.wrap(arr);
     }
 }

@@ -85,7 +85,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
     /**
      * This publisher is used to send the bytes received from the downstream subscriber's transformers to a
-     * {@link DelegatingBufferingSubscriber} that will buffer a number of bytes specified by the {@code maximumBufferSize}.
+     * {@link DelegatingBufferingSubscriber} that will buffer a number of bytes up to {@code maximumBufferSize}.
      */
     private final SimplePublisher<ByteBuffer> publisherToUpstream = new SimplePublisher<>();
 
@@ -166,17 +166,28 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 return;
             }
             try {
-                if (isCancelled.get()) {
+                if (doEmit()) {
                     return;
-                }
-                if (outstandingDemand.get() > 0) {
-                    outstandingDemand.decrementAndGet();
-                    downstreamSubscriber.onNext(new IndividualTransformer());
                 }
             } finally {
                 emitting.compareAndSet(true, false);
             }
         } while (outstandingDemand.get() > 0);
+    }
+
+    private boolean doEmit() {
+        long demand = outstandingDemand.get();
+
+        while (demand > 0) {
+            if (isCancelled.get()) {
+                return true;
+            }
+            if (outstandingDemand.get() > 0) {
+                demand = outstandingDemand.decrementAndGet();
+                downstreamSubscriber.onNext(new IndividualTransformer());
+            }
+        }
+        return false;
     }
 
     /**
@@ -225,6 +236,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void exceptionOccurred(Throwable error) {
+            individualFuture.completeExceptionally(error);
             upstreamResponseTransformer.exceptionOccurred(error);
         }
     }
@@ -262,22 +274,30 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             if (byteBuffer == null) {
                 throw new NullPointerException("onNext must not be called with null byteBuffer");
             }
-            bodyPartPublisher.send(byteBuffer);
-            // we can request everything, buffering is done in DelegatingBufferingSubscriber
-            subscription.request(Long.MAX_VALUE);
+            bodyPartPublisher.send(byteBuffer).whenComplete((r, t) -> {
+                if (t != null) {
+                    handleError(t);
+                }
+                subscription.request(1);
+            });
         }
 
         @Override
         public void onError(Throwable t) {
             bodyPartPublisher.error(t);
-            future.completeExceptionally(t);
+            handleError(t);
         }
 
         @Override
         public void onComplete() {
             future.complete(response);
         }
+
+        private void handleError(Throwable t) {
+            future.completeExceptionally(t);
+        }
     }
+
 
     public static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
         return new Builder<>();
@@ -307,10 +327,10 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         }
 
         /**
-         * The amount of data in byte this publisher will buffer into memory before sending it to the upstream transformer.
-         * The data will be sent if chunk of {@code maximumBufferSize} to the upstream transformer unless the subscription is
-         * cancelled while less amount is buffered, in which case a chunk with a size less than {@code maximumBufferSize} will
-         * be sent.
+         * The amount of data in byte this publisher will buffer into memory before sending it to the upstream transformer. The
+         * data will be sent if chunk of {@code maximumBufferSize} to the upstream transformer unless the subscription is
+         * cancelled while less amount is buffered, in which case a chunk with a size less than {@code maximumBufferSize} will be
+         * sent.
          *
          * @param maximumBufferSize the amount of data buffered and the size of the chunk of data
          * @return an instance of this builder
