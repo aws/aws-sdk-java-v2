@@ -19,7 +19,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Class to map the RequestCompression trait of an operation.
+ * Class to map the requestcompression trait of an operation.
  */
 @SdkInternalApi
 public class RequestCompression {

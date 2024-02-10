@@ -59,6 +59,9 @@
       "ca-central-1" : {
         "description" : "Canada (Central)"
       },
+      "ca-west-1" : {
+        "description" : "Canada West (Calgary)"
+      },
       "eu-central-1" : {
         "description" : "Europe (Frankfurt)"
       },
@@ -133,6 +136,7 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -243,6 +247,19 @@
             },
             "deprecated" : true,
             "hostname" : "acm-fips.ca-central-1.amazonaws.com"
+          },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "acm-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "ca-west-1-fips" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "acm-fips.ca-west-1.amazonaws.com"
           },
           "eu-central-1" : { },
           "eu-central-2" : { },
@@ -675,6 +692,12 @@
               "region" : "ca-central-1"
             },
             "hostname" : "api.ecr.ca-central-1.amazonaws.com"
+          },
+          "ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "hostname" : "api.ecr.ca-west-1.amazonaws.com"
           },
           "dkr-us-east-1" : {
             "credentialScope" : {
@@ -1116,6 +1139,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -1290,6 +1314,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "apigateway-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -1304,6 +1334,13 @@
             },
             "deprecated" : true,
             "hostname" : "apigateway-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "apigateway-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -1391,6 +1428,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -1423,6 +1461,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -1526,6 +1565,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -1898,6 +1938,7 @@
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
           "ap-southeast-3" : { },
+          "ap-southeast-4" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
@@ -1907,6 +1948,7 @@
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
+          "il-central-1" : { },
           "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
@@ -1951,6 +1993,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -2231,6 +2274,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "autoscaling-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -2245,6 +2294,13 @@
             },
             "deprecated" : true,
             "hostname" : "autoscaling-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "autoscaling-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -2441,6 +2497,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -2796,6 +2853,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "cloudcontrolapi-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -2810,6 +2873,13 @@
             },
             "deprecated" : true,
             "hostname" : "cloudcontrolapi-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "cloudcontrolapi-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -2896,6 +2966,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -2993,6 +3064,7 @@
           "ap-northeast-2" : { },
           "ap-northeast-3" : { },
           "ap-south-1" : { },
+          "ap-south-2" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
           "ap-southeast-3" : { },
@@ -3042,6 +3114,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -3350,6 +3423,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -3584,12 +3658,14 @@
       },
       "cognito-identity" : {
         "endpoints" : {
+          "af-south-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
           "ap-northeast-3" : { },
           "ap-south-1" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ap-southeast-3" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-north-1" : { },
@@ -3656,12 +3732,14 @@
       },
       "cognito-idp" : {
         "endpoints" : {
+          "af-south-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
           "ap-northeast-3" : { },
           "ap-south-1" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ap-southeast-3" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-north-1" : { },
@@ -4029,6 +4107,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -4674,6 +4753,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "datasync-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -4688,6 +4773,13 @@
             },
             "deprecated" : true,
             "hostname" : "datasync-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "datasync-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -4796,6 +4888,9 @@
               "hostname" : "datazone-fips.ca-central-1.amazonaws.com",
               "tags" : [ "fips" ]
             } ]
+          },
+          "ca-west-1" : {
+            "hostname" : "datazone.ca-west-1.api.aws"
           },
           "eu-central-1" : {
             "hostname" : "datazone.eu-central-1.api.aws"
@@ -4978,6 +5073,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -5069,6 +5165,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -5077,6 +5174,7 @@
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
+          "il-central-1" : { },
           "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
@@ -5100,6 +5198,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "dms" : {
             "credentialScope" : {
               "region" : "us-west-1"
@@ -5293,14 +5392,62 @@
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
+          "fips-us-east-1" : {
+            "credentialScope" : {
+              "region" : "us-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "drs-fips.us-east-1.amazonaws.com"
+          },
+          "fips-us-east-2" : {
+            "credentialScope" : {
+              "region" : "us-east-2"
+            },
+            "deprecated" : true,
+            "hostname" : "drs-fips.us-east-2.amazonaws.com"
+          },
+          "fips-us-west-1" : {
+            "credentialScope" : {
+              "region" : "us-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "drs-fips.us-west-1.amazonaws.com"
+          },
+          "fips-us-west-2" : {
+            "credentialScope" : {
+              "region" : "us-west-2"
+            },
+            "deprecated" : true,
+            "hostname" : "drs-fips.us-west-2.amazonaws.com"
+          },
           "il-central-1" : { },
           "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
-          "us-east-1" : { },
-          "us-east-2" : { },
-          "us-west-1" : { },
-          "us-west-2" : { }
+          "us-east-1" : {
+            "variants" : [ {
+              "hostname" : "drs-fips.us-east-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-east-2" : {
+            "variants" : [ {
+              "hostname" : "drs-fips.us-east-2.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-west-1" : {
+            "variants" : [ {
+              "hostname" : "drs-fips.us-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-west-2" : {
+            "variants" : [ {
+              "hostname" : "drs-fips.us-west-2.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          }
         }
       },
       "ds" : {
@@ -5322,6 +5469,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "ds-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -5336,6 +5489,13 @@
             },
             "deprecated" : true,
             "hostname" : "ds-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "ds-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -5423,6 +5583,19 @@
             },
             "deprecated" : true,
             "hostname" : "dynamodb-fips.ca-central-1.amazonaws.com"
+          },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "dynamodb-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "ca-west-1-fips" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "dynamodb-fips.ca-west-1.amazonaws.com"
           },
           "eu-central-1" : { },
           "eu-central-2" : { },
@@ -5516,6 +5689,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "ebs-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -5530,6 +5709,13 @@
             },
             "deprecated" : true,
             "hostname" : "ebs-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "ebs-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -5722,6 +5908,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -5819,6 +6006,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -5885,6 +6073,105 @@
           }
         }
       },
+      "eks-auth" : {
+        "defaults" : {
+          "dnsSuffix" : "api.aws",
+          "variants" : [ {
+            "dnsSuffix" : "api.aws",
+            "hostname" : "{service}-fips.{region}.{dnsSuffix}",
+            "tags" : [ "fips" ]
+          } ]
+        },
+        "endpoints" : {
+          "af-south-1" : {
+            "hostname" : "eks-auth.af-south-1.api.aws"
+          },
+          "ap-east-1" : {
+            "hostname" : "eks-auth.ap-east-1.api.aws"
+          },
+          "ap-northeast-1" : {
+            "hostname" : "eks-auth.ap-northeast-1.api.aws"
+          },
+          "ap-northeast-2" : {
+            "hostname" : "eks-auth.ap-northeast-2.api.aws"
+          },
+          "ap-northeast-3" : {
+            "hostname" : "eks-auth.ap-northeast-3.api.aws"
+          },
+          "ap-south-1" : {
+            "hostname" : "eks-auth.ap-south-1.api.aws"
+          },
+          "ap-south-2" : {
+            "hostname" : "eks-auth.ap-south-2.api.aws"
+          },
+          "ap-southeast-1" : {
+            "hostname" : "eks-auth.ap-southeast-1.api.aws"
+          },
+          "ap-southeast-2" : {
+            "hostname" : "eks-auth.ap-southeast-2.api.aws"
+          },
+          "ap-southeast-3" : {
+            "hostname" : "eks-auth.ap-southeast-3.api.aws"
+          },
+          "ap-southeast-4" : {
+            "hostname" : "eks-auth.ap-southeast-4.api.aws"
+          },
+          "ca-central-1" : {
+            "hostname" : "eks-auth.ca-central-1.api.aws"
+          },
+          "ca-west-1" : {
+            "hostname" : "eks-auth.ca-west-1.api.aws"
+          },
+          "eu-central-1" : {
+            "hostname" : "eks-auth.eu-central-1.api.aws"
+          },
+          "eu-central-2" : {
+            "hostname" : "eks-auth.eu-central-2.api.aws"
+          },
+          "eu-north-1" : {
+            "hostname" : "eks-auth.eu-north-1.api.aws"
+          },
+          "eu-south-1" : {
+            "hostname" : "eks-auth.eu-south-1.api.aws"
+          },
+          "eu-south-2" : {
+            "hostname" : "eks-auth.eu-south-2.api.aws"
+          },
+          "eu-west-1" : {
+            "hostname" : "eks-auth.eu-west-1.api.aws"
+          },
+          "eu-west-2" : {
+            "hostname" : "eks-auth.eu-west-2.api.aws"
+          },
+          "eu-west-3" : {
+            "hostname" : "eks-auth.eu-west-3.api.aws"
+          },
+          "il-central-1" : {
+            "hostname" : "eks-auth.il-central-1.api.aws"
+          },
+          "me-central-1" : {
+            "hostname" : "eks-auth.me-central-1.api.aws"
+          },
+          "me-south-1" : {
+            "hostname" : "eks-auth.me-south-1.api.aws"
+          },
+          "sa-east-1" : {
+            "hostname" : "eks-auth.sa-east-1.api.aws"
+          },
+          "us-east-1" : {
+            "hostname" : "eks-auth.us-east-1.api.aws"
+          },
+          "us-east-2" : {
+            "hostname" : "eks-auth.us-east-2.api.aws"
+          },
+          "us-west-1" : {
+            "hostname" : "eks-auth.us-west-1.api.aws"
+          },
+          "us-west-2" : {
+            "hostname" : "eks-auth.us-west-2.api.aws"
+          }
+        }
+      },
       "elasticache" : {
         "endpoints" : {
           "af-south-1" : { },
@@ -5899,6 +6186,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -6432,6 +6720,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -6521,6 +6810,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "elasticmapreduce-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : {
             "sslCommonName" : "{service}.{region}.{dnsSuffix}"
           },
@@ -6537,6 +6832,13 @@
             },
             "deprecated" : true,
             "hostname" : "elasticmapreduce-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "elasticmapreduce-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -6956,6 +7258,12 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "aos.ca-west-1.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
           "eu-central-1" : {
             "variants" : [ {
               "hostname" : "aos.eu-central-1.api.aws",
@@ -7115,6 +7423,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -7249,6 +7558,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -8462,6 +8772,7 @@
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
           "ap-southeast-3" : { },
+          "ap-southeast-4" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
@@ -8471,6 +8782,7 @@
           "eu-west-2" : { },
           "eu-west-3" : { },
           "il-central-1" : { },
+          "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
           "us-east-1" : { },
@@ -8743,6 +9055,9 @@
               "hostname" : "internetmonitor-fips.ca-central-1.amazonaws.com",
               "tags" : [ "fips" ]
             } ]
+          },
+          "ca-west-1" : {
+            "hostname" : "internetmonitor.ca-west-1.api.aws"
           },
           "eu-central-1" : {
             "hostname" : "internetmonitor.eu-central-1.api.aws"
@@ -9700,6 +10015,9 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "hostname" : "kendra-ranking.ca-west-1.api.aws"
+          },
           "eu-central-2" : {
             "hostname" : "kendra-ranking.eu-central-2.api.aws"
           },
@@ -9770,6 +10088,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -10052,6 +10371,19 @@
             },
             "deprecated" : true,
             "hostname" : "kms-fips.ca-central-1.amazonaws.com"
+          },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "kms-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "ca-west-1-fips" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "kms-fips.ca-west-1.amazonaws.com"
           },
           "eu-central-1" : {
             "variants" : [ {
@@ -10417,6 +10749,12 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "lambda.ca-west-1.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
           "eu-central-1" : {
             "variants" : [ {
               "hostname" : "lambda.eu-central-1.api.aws",
@@ -10649,6 +10987,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -10827,6 +11166,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -10926,8 +11266,10 @@
       },
       "m2" : {
         "endpoints" : {
+          "af-south-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
+          "ap-northeast-3" : { },
           "ap-south-1" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
@@ -10937,6 +11279,9 @@
             } ]
           },
           "eu-central-1" : { },
+          "eu-north-1" : { },
+          "eu-south-1" : { },
+          "eu-south-2" : { },
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
@@ -10955,6 +11300,7 @@
           "fips-us-west-2" : {
             "deprecated" : true
           },
+          "il-central-1" : { },
           "sa-east-1" : { },
           "us-east-1" : {
             "variants" : [ {
@@ -11118,14 +11464,17 @@
           "ap-northeast-2" : { },
           "ap-northeast-3" : { },
           "ap-south-1" : { },
+          "ap-south-2" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ap-southeast-4" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-north-1" : { },
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
+          "me-central-1" : { },
           "sa-east-1" : { },
           "us-east-1" : { },
           "us-east-2" : { },
@@ -11278,6 +11627,7 @@
           "ap-south-1" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ap-southeast-4" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-north-1" : { },
@@ -11299,6 +11649,7 @@
           "ap-south-1" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ap-southeast-4" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-north-1" : { },
@@ -11320,6 +11671,7 @@
           "ap-south-1" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ap-southeast-4" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-north-1" : { },
@@ -11482,6 +11834,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -11695,6 +12048,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -11811,6 +12165,7 @@
             "deprecated" : true,
             "hostname" : "mq-fips.us-west-2.amazonaws.com"
           },
+          "il-central-1" : { },
           "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
@@ -12105,6 +12460,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -12232,6 +12588,12 @@
               "region" : "il-central-1"
             },
             "hostname" : "oidc.il-central-1.amazonaws.com"
+          },
+          "me-central-1" : {
+            "credentialScope" : {
+              "region" : "me-central-1"
+            },
+            "hostname" : "oidc.me-central-1.amazonaws.com"
           },
           "me-south-1" : {
             "credentialScope" : {
@@ -12566,6 +12928,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -12881,6 +13244,12 @@
             },
             "hostname" : "portal.sso.il-central-1.amazonaws.com"
           },
+          "me-central-1" : {
+            "credentialScope" : {
+              "region" : "me-central-1"
+            },
+            "hostname" : "portal.sso.me-central-1.amazonaws.com"
+          },
           "me-south-1" : {
             "credentialScope" : {
               "region" : "me-south-1"
@@ -13041,6 +13410,9 @@
           "ca-central-1" : {
             "hostname" : "qbusiness.ca-central-1.api.aws"
           },
+          "ca-west-1" : {
+            "hostname" : "qbusiness.ca-west-1.api.aws"
+          },
           "eu-central-1" : {
             "hostname" : "qbusiness.eu-central-1.api.aws"
           },
@@ -13192,6 +13564,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "ram-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -13206,6 +13584,13 @@
             },
             "deprecated" : true,
             "hostname" : "ram-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "ram-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -13284,6 +13669,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "rbin-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -13298,6 +13689,13 @@
             },
             "deprecated" : true,
             "hostname" : "rbin-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "rbin-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -13383,6 +13781,19 @@
             "deprecated" : true,
             "hostname" : "rds-fips.ca-central-1.amazonaws.com"
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "rds-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "ca-west-1-fips" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "rds-fips.ca-west-1.amazonaws.com"
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -13400,6 +13811,13 @@
             },
             "deprecated" : true,
             "hostname" : "rds-fips.ca-central-1.amazonaws.com"
+          },
+          "rds-fips.ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "rds-fips.ca-west-1.amazonaws.com"
           },
           "rds-fips.us-east-1" : {
             "credentialScope" : {
@@ -13436,6 +13854,16 @@
             "deprecated" : true,
             "variants" : [ {
               "hostname" : "rds-fips.ca-central-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "rds.ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "variants" : [ {
+              "hostname" : "rds-fips.ca-west-1.amazonaws.com",
               "tags" : [ "fips" ]
             } ]
           },
@@ -13620,6 +14048,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "redshift-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -13634,6 +14068,13 @@
             },
             "deprecated" : true,
             "hostname" : "redshift-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "redshift-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -13909,12 +14350,6 @@
           } ]
         },
         "endpoints" : {
-          "af-south-1" : {
-            "hostname" : "resource-explorer-2.af-south-1.api.aws"
-          },
-          "ap-east-1" : {
-            "hostname" : "resource-explorer-2.ap-east-1.api.aws"
-          },
           "ap-northeast-1" : {
             "hostname" : "resource-explorer-2.ap-northeast-1.api.aws"
           },
@@ -13927,9 +14362,6 @@
           "ap-south-1" : {
             "hostname" : "resource-explorer-2.ap-south-1.api.aws"
           },
-          "ap-south-2" : {
-            "hostname" : "resource-explorer-2.ap-south-2.api.aws"
-          },
           "ap-southeast-1" : {
             "hostname" : "resource-explorer-2.ap-southeast-1.api.aws"
           },
@@ -13939,23 +14371,14 @@
           "ap-southeast-3" : {
             "hostname" : "resource-explorer-2.ap-southeast-3.api.aws"
           },
-          "ap-southeast-4" : {
-            "hostname" : "resource-explorer-2.ap-southeast-4.api.aws"
-          },
           "ca-central-1" : {
             "hostname" : "resource-explorer-2.ca-central-1.api.aws"
           },
           "eu-central-1" : {
             "hostname" : "resource-explorer-2.eu-central-1.api.aws"
           },
-          "eu-central-2" : {
-            "hostname" : "resource-explorer-2.eu-central-2.api.aws"
-          },
           "eu-north-1" : {
             "hostname" : "resource-explorer-2.eu-north-1.api.aws"
-          },
-          "eu-south-1" : {
-            "hostname" : "resource-explorer-2.eu-south-1.api.aws"
           },
           "eu-west-1" : {
             "hostname" : "resource-explorer-2.eu-west-1.api.aws"
@@ -13965,12 +14388,6 @@
           },
           "eu-west-3" : {
             "hostname" : "resource-explorer-2.eu-west-3.api.aws"
-          },
-          "il-central-1" : {
-            "hostname" : "resource-explorer-2.il-central-1.api.aws"
-          },
-          "me-central-1" : {
-            "hostname" : "resource-explorer-2.me-central-1.api.aws"
           },
           "me-south-1" : {
             "hostname" : "resource-explorer-2.me-south-1.api.aws"
@@ -14006,6 +14423,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -14091,22 +14509,76 @@
           "ap-northeast-2" : { },
           "ap-northeast-3" : { },
           "ap-south-1" : { },
+          "ap-south-2" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
           "ap-southeast-3" : { },
+          "ap-southeast-4" : { },
           "ca-central-1" : { },
           "eu-central-1" : { },
+          "eu-central-2" : { },
           "eu-north-1" : { },
           "eu-south-1" : { },
+          "eu-south-2" : { },
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
+          "fips-us-east-1" : {
+            "credentialScope" : {
+              "region" : "us-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "rolesanywhere-fips.us-east-1.amazonaws.com"
+          },
+          "fips-us-east-2" : {
+            "credentialScope" : {
+              "region" : "us-east-2"
+            },
+            "deprecated" : true,
+            "hostname" : "rolesanywhere-fips.us-east-2.amazonaws.com"
+          },
+          "fips-us-west-1" : {
+            "credentialScope" : {
+              "region" : "us-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "rolesanywhere-fips.us-west-1.amazonaws.com"
+          },
+          "fips-us-west-2" : {
+            "credentialScope" : {
+              "region" : "us-west-2"
+            },
+            "deprecated" : true,
+            "hostname" : "rolesanywhere-fips.us-west-2.amazonaws.com"
+          },
+          "il-central-1" : { },
+          "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
-          "us-east-1" : { },
-          "us-east-2" : { },
-          "us-west-1" : { },
-          "us-west-2" : { }
+          "us-east-1" : {
+            "variants" : [ {
+              "hostname" : "rolesanywhere-fips.us-east-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-east-2" : {
+            "variants" : [ {
+              "hostname" : "rolesanywhere-fips.us-east-2.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-west-1" : {
+            "variants" : [ {
+              "hostname" : "rolesanywhere-fips.us-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-west-2" : {
+            "variants" : [ {
+              "hostname" : "rolesanywhere-fips.us-west-2.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          }
         }
       },
       "route53" : {
@@ -14164,6 +14636,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -14276,6 +14749,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -14448,6 +14922,18 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "s3-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            }, {
+              "hostname" : "s3-fips.dualstack.ca-west-1.amazonaws.com",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "s3.dualstack.ca-west-1.amazonaws.com",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
           "eu-central-1" : {
             "variants" : [ {
               "hostname" : "s3.dualstack.eu-central-1.amazonaws.com",
@@ -14504,6 +14990,13 @@
             },
             "deprecated" : true,
             "hostname" : "s3-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "s3-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -15216,6 +15709,18 @@
           "ca-central-1-fips" : {
             "deprecated" : true
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "tags" : [ "dualstack" ]
+            }, {
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "ca-west-1-fips" : {
+            "deprecated" : true
+          },
           "eu-central-1" : {
             "variants" : [ {
               "tags" : [ "dualstack" ]
@@ -15340,6 +15845,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -15420,11 +15926,59 @@
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
+          "fips-us-east-1" : {
+            "credentialScope" : {
+              "region" : "us-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "securitylake-fips.us-east-1.amazonaws.com"
+          },
+          "fips-us-east-2" : {
+            "credentialScope" : {
+              "region" : "us-east-2"
+            },
+            "deprecated" : true,
+            "hostname" : "securitylake-fips.us-east-2.amazonaws.com"
+          },
+          "fips-us-west-1" : {
+            "credentialScope" : {
+              "region" : "us-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "securitylake-fips.us-west-1.amazonaws.com"
+          },
+          "fips-us-west-2" : {
+            "credentialScope" : {
+              "region" : "us-west-2"
+            },
+            "deprecated" : true,
+            "hostname" : "securitylake-fips.us-west-2.amazonaws.com"
+          },
           "sa-east-1" : { },
-          "us-east-1" : { },
-          "us-east-2" : { },
-          "us-west-1" : { },
-          "us-west-2" : { }
+          "us-east-1" : {
+            "variants" : [ {
+              "hostname" : "securitylake-fips.us-east-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-east-2" : {
+            "variants" : [ {
+              "hostname" : "securitylake-fips.us-east-2.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-west-1" : {
+            "variants" : [ {
+              "hostname" : "securitylake-fips.us-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-west-2" : {
+            "variants" : [ {
+              "hostname" : "securitylake-fips.us-west-2.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          }
         }
       },
       "serverlessrepo" : {
@@ -15587,6 +16141,7 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -15914,6 +16469,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -16257,10 +16813,16 @@
       },
       "sms-voice" : {
         "endpoints" : {
+          "af-south-1" : { },
           "ap-northeast-1" : { },
+          "ap-northeast-2" : { },
+          "ap-northeast-3" : { },
           "ap-south-1" : { },
+          "ap-south-2" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ap-southeast-3" : { },
+          "ap-southeast-4" : { },
           "ca-central-1" : {
             "variants" : [ {
               "hostname" : "sms-voice-fips.ca-central-1.amazonaws.com",
@@ -16268,8 +16830,13 @@
             } ]
           },
           "eu-central-1" : { },
+          "eu-central-2" : { },
+          "eu-north-1" : { },
+          "eu-south-1" : { },
+          "eu-south-2" : { },
           "eu-west-1" : { },
           "eu-west-2" : { },
+          "eu-west-3" : { },
           "fips-ca-central-1" : {
             "credentialScope" : {
               "region" : "ca-central-1"
@@ -16284,6 +16851,20 @@
             "deprecated" : true,
             "hostname" : "sms-voice-fips.us-east-1.amazonaws.com"
           },
+          "fips-us-east-2" : {
+            "credentialScope" : {
+              "region" : "us-east-2"
+            },
+            "deprecated" : true,
+            "hostname" : "sms-voice-fips.us-east-2.amazonaws.com"
+          },
+          "fips-us-west-1" : {
+            "credentialScope" : {
+              "region" : "us-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "sms-voice-fips.us-west-1.amazonaws.com"
+          },
           "fips-us-west-2" : {
             "credentialScope" : {
               "region" : "us-west-2"
@@ -16291,9 +16872,25 @@
             "deprecated" : true,
             "hostname" : "sms-voice-fips.us-west-2.amazonaws.com"
           },
+          "il-central-1" : { },
+          "me-central-1" : { },
+          "me-south-1" : { },
+          "sa-east-1" : { },
           "us-east-1" : {
             "variants" : [ {
               "hostname" : "sms-voice-fips.us-east-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-east-2" : {
+            "variants" : [ {
+              "hostname" : "sms-voice-fips.us-east-2.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-west-1" : {
+            "variants" : [ {
+              "hostname" : "sms-voice-fips.us-west-1.amazonaws.com",
               "tags" : [ "fips" ]
             } ]
           },
@@ -16540,6 +17137,12 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "sns-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -16548,6 +17151,13 @@
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "sns-fips.ca-west-1.amazonaws.com"
+          },
           "fips-us-east-1" : {
             "credentialScope" : {
               "region" : "us-east-1"
@@ -16624,6 +17234,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -16710,6 +17321,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : {
+            "variants" : [ {
+              "hostname" : "ssm-fips.ca-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -16724,6 +17341,13 @@
             },
             "deprecated" : true,
             "hostname" : "ssm-fips.ca-central-1.amazonaws.com"
+          },
+          "fips-ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "ssm-fips.ca-west-1.amazonaws.com"
           },
           "fips-us-east-1" : {
             "credentialScope" : {
@@ -17037,6 +17661,7 @@
           "eu-west-2" : { },
           "eu-west-3" : { },
           "il-central-1" : { },
+          "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
           "us-east-1" : { },
@@ -17059,6 +17684,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -17237,6 +17863,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -17282,6 +17909,7 @@
             "hostname" : "sts.amazonaws.com"
           },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -17381,6 +18009,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -17461,6 +18090,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -17541,6 +18171,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -19157,7 +19788,10 @@
       "wisdom" : {
         "endpoints" : {
           "ap-northeast-1" : { },
+          "ap-northeast-2" : { },
+          "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-west-2" : { },
           "fips-us-east-1" : {
@@ -19167,7 +19801,10 @@
             "deprecated" : true
           },
           "ui-ap-northeast-1" : { },
+          "ui-ap-northeast-2" : { },
+          "ui-ap-southeast-1" : { },
           "ui-ap-southeast-2" : { },
+          "ui-ca-central-1" : { },
           "ui-eu-central-1" : { },
           "ui-eu-west-2" : { },
           "ui-us-east-1" : { },
@@ -19298,6 +19935,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -19837,6 +20475,24 @@
           "cn-northwest-1" : { }
         }
       },
+      "eks-auth" : {
+        "defaults" : {
+          "dnsSuffix" : "api.amazonwebservices.com.cn",
+          "variants" : [ {
+            "dnsSuffix" : "api.amazonwebservices.com.cn",
+            "hostname" : "{service}-fips.{region}.{dnsSuffix}",
+            "tags" : [ "fips" ]
+          } ]
+        },
+        "endpoints" : {
+          "cn-north-1" : {
+            "hostname" : "eks-auth.cn-north-1.api.amazonwebservices.com.cn"
+          },
+          "cn-northwest-1" : {
+            "hostname" : "eks-auth.cn-northwest-1.api.amazonwebservices.com.cn"
+          }
+        }
+      },
       "elasticache" : {
         "endpoints" : {
           "cn-north-1" : { },
@@ -20046,6 +20702,12 @@
           "cn-northwest-1" : { }
         }
       },
+      "inspector2" : {
+        "endpoints" : {
+          "cn-north-1" : { },
+          "cn-northwest-1" : { }
+        }
+      },
       "internetmonitor" : {
         "defaults" : {
           "dnsSuffix" : "api.amazonwebservices.com.cn",
@@ -20099,6 +20761,23 @@
       "iotsitewise" : {
         "endpoints" : {
           "cn-north-1" : { }
+        }
+      },
+      "iottwinmaker" : {
+        "endpoints" : {
+          "api-cn-north-1" : {
+            "credentialScope" : {
+              "region" : "cn-north-1"
+            },
+            "hostname" : "api.iottwinmaker.cn-north-1.amazonaws.com.cn"
+          },
+          "cn-north-1" : { },
+          "data-cn-north-1" : {
+            "credentialScope" : {
+              "region" : "cn-north-1"
+            },
+            "hostname" : "data.iottwinmaker.cn-north-1.amazonaws.com.cn"
+          }
         }
       },
       "kafka" : {
@@ -20329,6 +21008,11 @@
           "cn-northwest-1" : {
             "hostname" : "qbusiness.cn-northwest-1.api.amazonwebservices.com.cn"
           }
+        }
+      },
+      "quicksight" : {
+        "endpoints" : {
+          "cn-north-1" : { }
         }
       },
       "ram" : {
@@ -21442,6 +22126,11 @@
           }
         }
       },
+      "bedrock" : {
+        "endpoints" : {
+          "us-gov-west-1" : { }
+        }
+      },
       "cassandra" : {
         "endpoints" : {
           "us-gov-east-1" : {
@@ -22370,6 +23059,24 @@
           }
         }
       },
+      "eks-auth" : {
+        "defaults" : {
+          "dnsSuffix" : "api.aws",
+          "variants" : [ {
+            "dnsSuffix" : "api.aws",
+            "hostname" : "{service}-fips.{region}.{dnsSuffix}",
+            "tags" : [ "fips" ]
+          } ]
+        },
+        "endpoints" : {
+          "us-gov-east-1" : {
+            "hostname" : "eks-auth.us-gov-east-1.api.aws"
+          },
+          "us-gov-west-1" : {
+            "hostname" : "eks-auth.us-gov-west-1.api.aws"
+          }
+        }
+      },
       "elasticache" : {
         "defaults" : {
           "variants" : [ {
@@ -22567,6 +23274,12 @@
         }
       },
       "emr-containers" : {
+        "endpoints" : {
+          "us-gov-east-1" : { },
+          "us-gov-west-1" : { }
+        }
+      },
+      "emr-serverless" : {
         "endpoints" : {
           "us-gov-east-1" : { },
           "us-gov-west-1" : { }
@@ -24316,8 +25029,32 @@
       },
       "rolesanywhere" : {
         "endpoints" : {
-          "us-gov-east-1" : { },
-          "us-gov-west-1" : { }
+          "fips-us-gov-east-1" : {
+            "credentialScope" : {
+              "region" : "us-gov-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "rolesanywhere-fips.us-gov-east-1.amazonaws.com"
+          },
+          "fips-us-gov-west-1" : {
+            "credentialScope" : {
+              "region" : "us-gov-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "rolesanywhere-fips.us-gov-west-1.amazonaws.com"
+          },
+          "us-gov-east-1" : {
+            "variants" : [ {
+              "hostname" : "rolesanywhere-fips.us-gov-east-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-gov-west-1" : {
+            "variants" : [ {
+              "hostname" : "rolesanywhere-fips.us-gov-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          }
         }
       },
       "route53" : {
@@ -24844,12 +25581,25 @@
       },
       "sms-voice" : {
         "endpoints" : {
+          "fips-us-gov-east-1" : {
+            "credentialScope" : {
+              "region" : "us-gov-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "sms-voice-fips.us-gov-east-1.amazonaws.com"
+          },
           "fips-us-gov-west-1" : {
             "credentialScope" : {
               "region" : "us-gov-west-1"
             },
             "deprecated" : true,
             "hostname" : "sms-voice-fips.us-gov-west-1.amazonaws.com"
+          },
+          "us-gov-east-1" : {
+            "variants" : [ {
+              "hostname" : "sms-voice-fips.us-gov-east-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
           },
           "us-gov-west-1" : {
             "variants" : [ {
@@ -25657,12 +26407,25 @@
       },
       "datasync" : {
         "endpoints" : {
+          "fips-us-iso-east-1" : {
+            "credentialScope" : {
+              "region" : "us-iso-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "datasync-fips.us-iso-east-1.c2s.ic.gov"
+          },
           "fips-us-iso-west-1" : {
             "credentialScope" : {
               "region" : "us-iso-west-1"
             },
             "deprecated" : true,
             "hostname" : "datasync-fips.us-iso-west-1.c2s.ic.gov"
+          },
+          "us-iso-east-1" : {
+            "variants" : [ {
+              "hostname" : "datasync-fips.us-iso-east-1.c2s.ic.gov",
+              "tags" : [ "fips" ]
+            } ]
           },
           "us-iso-west-1" : {
             "variants" : [ {
@@ -25884,6 +26647,15 @@
           "us-iso-east-1" : { }
         }
       },
+      "guardduty" : {
+        "defaults" : {
+          "protocols" : [ "https" ]
+        },
+        "endpoints" : {
+          "us-iso-east-1" : { }
+        },
+        "isRegionalized" : true
+      },
       "health" : {
         "endpoints" : {
           "us-iso-east-1" : { }
@@ -25990,8 +26762,32 @@
       },
       "ram" : {
         "endpoints" : {
-          "us-iso-east-1" : { },
-          "us-iso-west-1" : { }
+          "fips-us-iso-east-1" : {
+            "credentialScope" : {
+              "region" : "us-iso-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "ram-fips.us-iso-east-1.c2s.ic.gov"
+          },
+          "fips-us-iso-west-1" : {
+            "credentialScope" : {
+              "region" : "us-iso-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "ram-fips.us-iso-west-1.c2s.ic.gov"
+          },
+          "us-iso-east-1" : {
+            "variants" : [ {
+              "hostname" : "ram-fips.us-iso-east-1.c2s.ic.gov",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-iso-west-1" : {
+            "variants" : [ {
+              "hostname" : "ram-fips.us-iso-west-1.c2s.ic.gov",
+              "tags" : [ "fips" ]
+            } ]
+          }
         }
       },
       "rbin" : {
@@ -26152,11 +26948,40 @@
           "signatureVersions" : [ "s3v4" ]
         },
         "endpoints" : {
+          "fips-us-iso-east-1" : {
+            "credentialScope" : {
+              "region" : "us-iso-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "s3-fips.us-iso-east-1.c2s.ic.gov"
+          },
+          "fips-us-iso-west-1" : {
+            "credentialScope" : {
+              "region" : "us-iso-west-1"
+            },
+            "deprecated" : true,
+            "hostname" : "s3-fips.us-iso-west-1.c2s.ic.gov"
+          },
           "us-iso-east-1" : {
             "protocols" : [ "http", "https" ],
-            "signatureVersions" : [ "s3v4" ]
+            "signatureVersions" : [ "s3v4" ],
+            "variants" : [ {
+              "hostname" : "s3-fips.dualstack.us-iso-east-1.c2s.ic.gov",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "s3-fips.us-iso-east-1.c2s.ic.gov",
+              "tags" : [ "fips" ]
+            } ]
           },
-          "us-iso-west-1" : { }
+          "us-iso-west-1" : {
+            "variants" : [ {
+              "hostname" : "s3-fips.dualstack.us-iso-west-1.c2s.ic.gov",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "s3-fips.us-iso-west-1.c2s.ic.gov",
+              "tags" : [ "fips" ]
+            } ]
+          }
         }
       },
       "secretsmanager" : {
@@ -26597,7 +27422,19 @@
       },
       "ram" : {
         "endpoints" : {
-          "us-isob-east-1" : { }
+          "fips-us-isob-east-1" : {
+            "credentialScope" : {
+              "region" : "us-isob-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "ram-fips.us-isob-east-1.sc2s.sgov.gov"
+          },
+          "us-isob-east-1" : {
+            "variants" : [ {
+              "hostname" : "ram-fips.us-isob-east-1.sc2s.sgov.gov",
+              "tags" : [ "fips" ]
+            } ]
+          }
         }
       },
       "rbin" : {
@@ -26701,7 +27538,22 @@
           "signatureVersions" : [ "s3v4" ]
         },
         "endpoints" : {
-          "us-isob-east-1" : { }
+          "fips-us-isob-east-1" : {
+            "credentialScope" : {
+              "region" : "us-isob-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "s3-fips.us-isob-east-1.sc2s.sgov.gov"
+          },
+          "us-isob-east-1" : {
+            "variants" : [ {
+              "hostname" : "s3-fips.dualstack.us-isob-east-1.sc2s.sgov.gov",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "s3-fips.us-isob-east-1.sc2s.sgov.gov",
+              "tags" : [ "fips" ]
+            } ]
+          }
         }
       },
       "secretsmanager" : {

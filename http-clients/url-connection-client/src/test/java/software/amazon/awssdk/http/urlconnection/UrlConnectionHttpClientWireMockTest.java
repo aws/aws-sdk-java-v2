@@ -100,7 +100,7 @@ public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTest
 
         stubForMockRequest(200);
 
-        SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+        SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST, true);
         req = req.toBuilder().putHeader(TRANSFER_ENCODING, CHUNKED).build();
         HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
                                                                           .request(req)

@@ -21,11 +21,10 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.21.46-SNAPSHOT</version>
+        <version>2.24.1-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>s3-transfer-manager</artifactId>
-    <version>${awsjavasdk.version}</version>
     <name>AWS Java SDK :: S3 :: Transfer Manager</name>
     <description>
         The S3 Transfer Manager allows customers to easily and optimally

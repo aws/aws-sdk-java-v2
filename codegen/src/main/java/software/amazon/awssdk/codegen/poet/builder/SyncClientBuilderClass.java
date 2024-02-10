@@ -130,7 +130,7 @@ public class SyncClientBuilderClass implements ClassSpec {
         builder.addStatement("$1T client = new $2T(clientConfiguration)",
                              clientInterfaceName, clientClassName);
         if (model.syncClientDecoratorClassName().isPresent()) {
-            builder.addStatement("return new $T().decorate(client, clientConfiguration, clientContextParams.copy().build())",
+            builder.addStatement("return new $T().decorate(client, clientConfiguration)",
                                  PoetUtils.classNameFromFqcn(model.syncClientDecoratorClassName().get()));
         } else {
             builder.addStatement("return client");

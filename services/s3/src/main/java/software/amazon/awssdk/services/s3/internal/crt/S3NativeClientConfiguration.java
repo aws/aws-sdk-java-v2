@@ -58,19 +58,19 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final URI endpointOverride;
     private final boolean checksumValidationEnabled;
     private final Long readBufferSizeInBytes;
-
     private final TlsContext tlsContext;
+    private final TlsContextOptions clientTlsContextOptions;
     private final HttpProxyOptions proxyOptions;
     private final Duration connectionTimeout;
     private final HttpMonitoringOptions httpMonitoringOptions;
-
     private final Boolean useEnvironmentVariableProxyOptionsValues;
+    private final long maxNativeMemoryLimitInBytes;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
                              builder.signingRegion;
         this.clientBootstrap = new ClientBootstrap(null, null);
-        TlsContextOptions clientTlsContextOptions =
+        clientTlsContextOptions =
             TlsContextOptions.createDefaultClient()
                              .withCipherPreference(TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT);
 
@@ -97,6 +97,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         // Using 0 so that CRT will calculate it based on targetThroughputGbps
         this.maxConcurrency = builder.maxConcurrency == null ? 0 : builder.maxConcurrency;
+        this.maxNativeMemoryLimitInBytes = builder.maxNativeMemoryLimitInBytes == null ? 0 : builder.maxNativeMemoryLimitInBytes;
 
         this.endpointOverride = builder.endpointOverride;
 
@@ -176,6 +177,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return targetThroughputInGbps;
     }
 
+    public long maxNativeMemoryLimitInBytes() {
+        return maxNativeMemoryLimitInBytes;
+    }
+
     public int maxConcurrency() {
         return maxConcurrency;
     }
@@ -199,6 +204,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     @Override
     public void close() {
         clientBootstrap.close();
+        clientTlsContextOptions.close();
         tlsContext.close();
         credentialProviderAdapter.close();
     }
@@ -216,6 +222,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private S3CrtHttpConfiguration httpConfiguration;
         private StandardRetryOptions standardRetryOptions;
         private Long thresholdInBytes;
+        private Long maxNativeMemoryLimitInBytes;
 
         private Builder() {
         }
@@ -242,6 +249,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        public Builder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes) {
+            this.maxNativeMemoryLimitInBytes = maxNativeMemoryLimitInBytes;
             return this;
         }
 
