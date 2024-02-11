@@ -17,9 +17,12 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
@@ -32,25 +35,27 @@ class TransferManagerLoggingTest {
     @Test
     void transferManager_withCrtClient_shouldNotLogWarnMessages() {
 
-        try (S3AsyncClient s3AsyncClient = S3AsyncClient.crtBuilder()
-                                                        .region(Region.US_WEST_2)
-                                                        .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
-                                                        .build();
-             LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
-             S3TransferManager tm = S3TransferManager.builder().s3Client(s3AsyncClient).build()) {
+        try (S3AsyncClient s3Crt = S3AsyncClient.crtBuilder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
+                                                .build();
+             LogCaptor logCaptor = LogCaptor.create(Level.WARN);
+             S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertThat(events).isEmpty();
         }
     }
 
     @Test
-    void transferManager_withCustomJavaClientWhenMultiPartEnabledIsNull_shouldLogDebugMessage() {
-        try (S3AsyncClient s3AsyncClient = S3AsyncClient.builder()
-                                                        .region(Region.US_WEST_2)
-                                                        .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
-                                                        .build();
+    void transferManager_withJavaClientMultiPartNotSet_shouldLogDebugMessage() {
+
+
+        try (S3AsyncClient s3Crt = S3AsyncClient.builder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
+                                                .build();
              LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
-             S3TransferManager tm = S3TransferManager.builder().s3Client(s3AsyncClient).build()) {
+             S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, Level.DEBUG, "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
                                               + " upload/download feature may not be enabled and resumable file upload may not be supported.");
@@ -58,14 +63,16 @@ class TransferManagerLoggingTest {
     }
 
     @Test
-    void transferManager_withCustomJavaClientWhenMultiPartEnabledIsFalse_shouldLogDebugMessage() {
-        try (S3AsyncClient s3AsyncClient = S3AsyncClient.builder()
-                                                        .region(Region.US_WEST_2)
-                                                        .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
-                                                        .multipartEnabled(false)
-                                                        .build();
+    void transferManager_withJavaClientMultiPartEqualsFalse_shouldLogDebugMessage() {
+
+
+        try (S3AsyncClient s3Crt = S3AsyncClient.builder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
+                                                .multipartEnabled(false)
+                                                .build();
              LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
-             S3TransferManager tm = S3TransferManager.builder().s3Client(s3AsyncClient).build()) {
+             S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, Level.DEBUG, "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
                                               + " upload/download feature may not be enabled and resumable file upload may not be supported.");
@@ -73,7 +80,9 @@ class TransferManagerLoggingTest {
     }
 
     @Test
-    void transferManager_withDefaultJavaClient_shouldNotLogDebugMessage() {
+    void transferManager_withDefaultClient_shouldNotLogDebugMessage() {
+
+
         try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
@@ -82,7 +91,8 @@ class TransferManagerLoggingTest {
     }
 
     @Test
-    void transferManager_withCustomJavaClientMultiPartEnabled_shouldNotLogDebugMessage() {
+    void transferManager_withMultiPartEnabledJavaClient_shouldNotLogDebugMessage() {
+
         try (S3AsyncClient s3Crt = S3AsyncClient.builder()
                                                 .region(Region.US_WEST_2)
                                                 .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
