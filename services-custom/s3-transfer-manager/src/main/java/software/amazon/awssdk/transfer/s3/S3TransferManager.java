@@ -157,6 +157,9 @@ import software.amazon.awssdk.utils.Validate;
  *         // Wait for the transfer to complete
  *         CompletedCopy completedCopy = copy.completionFuture().join();
  * }
+ * <b> Warns the user if a multi-part operation disabled client is provided for TransferManager to use
+ * If no client is provided, a multi-part enabled async client is instantiated and used.
+ * In the event of a multi-part disabled defaultS3AsyncClient being used, a warning is logged </b>
  */
 @SdkPublicApi
 @ThreadSafe
