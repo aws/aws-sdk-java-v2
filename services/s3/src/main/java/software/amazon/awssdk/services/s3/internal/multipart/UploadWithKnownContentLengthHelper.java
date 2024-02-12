@@ -19,6 +19,7 @@ import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutio
 import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.RESUME_TOKEN;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -54,7 +55,7 @@ import software.amazon.awssdk.utils.Pair;
 public final class UploadWithKnownContentLengthHelper {
     private static final Logger log = Logger.loggerFor(UploadWithKnownContentLengthHelper.class);
 
-    private static final ConcurrentHashMap<Integer, CompletedPart> EXISTING_PARTS = new ConcurrentHashMap<>();
+    private final Map<Integer, CompletedPart> existingParts = new ConcurrentHashMap<>();
     private final S3AsyncClient s3AsyncClient;
     private final long partSizeInBytes;
     private final GenericMultipartHelper<PutObjectRequest, PutObjectResponse> genericMultipartHelper;
@@ -105,7 +106,9 @@ public final class UploadWithKnownContentLengthHelper {
         if (resumeToken == null) {
             initiateNewUpload(putObjectRequest, contentLength, asyncRequestBody, returnFuture);
         } else {
-            resumePausedUpload(resumeToken, putObjectRequest, contentLength, asyncRequestBody, returnFuture);
+            ResumeRequestContext resumeRequestContext = new ResumeRequestContext(resumeToken, putObjectRequest, contentLength,
+                                                                                 asyncRequestBody, returnFuture);
+            resumePausedUpload(resumeRequestContext);
         }
     }
 
@@ -119,64 +122,71 @@ public final class UploadWithKnownContentLengthHelper {
                 genericMultipartHelper.handleException(returnFuture, () -> "Failed to initiate multipart upload", throwable);
             } else {
                 log.debug(() -> "Initiated a new multipart upload, uploadId: " + createMultipartUploadResponse.uploadId());
-                doUploadInParts(Pair.of(putObjectRequest, asyncRequestBody), contentLength, returnFuture,
-                                createMultipartUploadResponse.uploadId(), null, null);
+                uploadFromBeginning(Pair.of(putObjectRequest, asyncRequestBody), contentLength, returnFuture,
+                                    createMultipartUploadResponse.uploadId());
             }
         });
     }
 
-    private void resumePausedUpload(S3ResumeToken resumeToken, PutObjectRequest putObjectRequest, long contentLength,
-                                    AsyncRequestBody asyncRequestBody, CompletableFuture<PutObjectResponse> returnFuture) {
-        String uploadId = resumeToken.uploadId();
-        CompletableFuture<Void> listPartsFuture = identifyExistingPartsForResume(uploadId, putObjectRequest);
+    private void uploadFromBeginning(Pair<PutObjectRequest, AsyncRequestBody> request, long contentLength,
+                                     CompletableFuture<PutObjectResponse> returnFuture, String uploadId) {
 
-        log.debug(() -> "Resuming a paused multipart upload, uploadId: " + resumeToken.uploadId());
-        doUploadInParts(Pair.of(putObjectRequest, asyncRequestBody), contentLength, returnFuture, uploadId, listPartsFuture,
-                        resumeToken);
-    }
+        int numPartsCompleted = 0;
+        long partSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
+        int partCount = genericMultipartHelper.determinePartCount(contentLength, partSize);
 
-    private void doUploadInParts(Pair<PutObjectRequest, AsyncRequestBody> request,
-                                 long contentLength,
-                                 CompletableFuture<PutObjectResponse> returnFuture,
-                                 String uploadId,
-                                 CompletableFuture<Void> listPartsFuture,
-                                 S3ResumeToken resumeToken) {
-        long partSize;
-        int partCount;
-        long numPartsCompleted;
-
-        if (resumeToken == null) {
-            partSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
-            partCount = genericMultipartHelper.determinePartCount(contentLength, partSize);
-            numPartsCompleted = 0;
-            if (partSize > partSizeInBytes) {
-                log.debug(() -> String.format("Configured partSize is %d, but using %d to prevent reaching maximum number of "
-                                              + "parts allowed", partSizeInBytes, partSize));
-            }
-
-            log.debug(() -> String.format("Starting multipart upload with partCount: %d, optimalPartSize: %d", partCount,
-                                          partSize));
-        } else {
-            partSize = resumeToken.partSize();
-            partCount = (int) resumeToken.totalNumParts();
-            numPartsCompleted = resumeToken.numPartsCompleted();
-
-            log.debug(() -> String.format("Resuming multipart upload with completedPartCount: %d, remainingPartCount: %d, "
-                                          + "partSize: %d, ", numPartsCompleted, partCount - numPartsCompleted , partSize));
+        if (partSize > partSizeInBytes) {
+            log.debug(() -> String.format("Configured partSize is %d, but using %d to prevent reaching maximum number of "
+                                          + "parts allowed", partSizeInBytes, partSize));
         }
 
-        MpuRequestContext mpuRequestContext =
-            new MpuRequestContext(request, contentLength, partSize, uploadId, listPartsFuture, numPartsCompleted);
+        log.debug(() -> String.format("Starting multipart upload with partCount: %d, optimalPartSize: %d", partCount,
+                                      partSize));
 
+        MpuRequestContext mpuRequestContext =
+            new MpuRequestContext(request, contentLength, partSize, uploadId, existingParts, numPartsCompleted);
+
+        splitAndSubscribe(mpuRequestContext, returnFuture);
+    }
+
+    private void resumePausedUpload(ResumeRequestContext resumeContext) {
+        S3ResumeToken resumeToken = resumeContext.resumeToken;
+        String uploadId = resumeToken.uploadId();
+        PutObjectRequest putObjectRequest = resumeContext.putObjectRequest;
+        CompletableFuture<Void> listPartsFuture = identifyExistingPartsForResume(uploadId, putObjectRequest);
+
+        int remainingParts = (int) (resumeToken.totalNumParts() - resumeToken.numPartsCompleted());
+        log.debug(() -> String.format("Resuming a paused multipart upload, uploadId: %s, completedPartCount: %d, "
+                                  + "remainingPartCount: %d, partSize: %d",
+                                      uploadId, resumeToken.numPartsCompleted(), remainingParts, resumeToken.partSize()));
+
+        listPartsFuture.whenComplete((r, t) -> {
+            if (t != null) {
+                genericMultipartHelper.handleException(resumeContext.returnFuture,
+                                                       () -> "Failed to resume because listParts failed", t);
+                return;
+            }
+
+            MpuRequestContext mpuRequestContext =
+                new MpuRequestContext(Pair.of(putObjectRequest, resumeContext.asyncRequestBody),
+                                      resumeContext.contentLength,
+                                      resumeToken.partSize(), uploadId, existingParts,
+                                      resumeToken.numPartsCompleted());
+
+            splitAndSubscribe(mpuRequestContext, resumeContext.returnFuture);
+        });
+    }
+
+    private void splitAndSubscribe(MpuRequestContext mpuRequestContext, CompletableFuture<PutObjectResponse> returnFuture) {
         KnownContentLengthAsyncRequestBodySubscriber subscriber =
             new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture);
 
-        attachSubscriberToObservable(subscriber, request.left());
+        attachSubscriberToObservable(subscriber, mpuRequestContext.request.left());
 
-        request.right()
-               .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize)
-                            .bufferSizeInBytes(maxMemoryUsageInBytes))
-               .subscribe(subscriber);
+        mpuRequestContext.request.right()
+            .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize)
+                         .bufferSizeInBytes(maxMemoryUsageInBytes))
+            .subscribe(subscriber);
     }
 
     private CompletableFuture<Void> identifyExistingPartsForResume(String uploadId, PutObjectRequest putObjectRequest) {
@@ -184,7 +194,7 @@ public final class UploadWithKnownContentLengthHelper {
         ListPartsPublisher listPartsPublisher = s3AsyncClient.listPartsPaginator(request);
         SdkPublisher<Part> partsPublisher = listPartsPublisher.parts();
         return partsPublisher.subscribe(part ->
-                                            EXISTING_PARTS.put(part.partNumber(), SdkPojoConversionUtils.toCompletedPart(part)));
+                                            existingParts.put(part.partNumber(), SdkPojoConversionUtils.toCompletedPart(part)));
     }
 
     private void attachSubscriberToObservable(KnownContentLengthAsyncRequestBodySubscriber subscriber,
@@ -194,25 +204,45 @@ public final class UploadWithKnownContentLengthHelper {
                         .ifPresent(p -> p.setPausableUpload(new DefaultPausableUpload(subscriber)));
     }
 
+    private static final class ResumeRequestContext {
+        private final S3ResumeToken resumeToken;
+        private final PutObjectRequest putObjectRequest;
+        private final long contentLength;
+        private final AsyncRequestBody asyncRequestBody;
+        private final CompletableFuture<PutObjectResponse> returnFuture;
+
+        private ResumeRequestContext (S3ResumeToken resumeToken,
+                                      PutObjectRequest putObjectRequest,
+                                      long contentLength,
+                                      AsyncRequestBody asyncRequestBody,
+                                      CompletableFuture<PutObjectResponse> returnFuture) {
+            this.resumeToken = resumeToken;
+            this.putObjectRequest = putObjectRequest;
+            this.contentLength = contentLength;
+            this.asyncRequestBody = asyncRequestBody;
+            this.returnFuture = returnFuture;
+        }
+    }
+
     private static final class MpuRequestContext {
         private final Pair<PutObjectRequest, AsyncRequestBody> request;
         private final long contentLength;
         private final long partSize;
         private final long numPartsCompleted;
         private final String uploadId;
-        private final CompletableFuture<Void> listPartsFuture;
+        private final Map<Integer, CompletedPart> existingParts;
 
         private MpuRequestContext(Pair<PutObjectRequest, AsyncRequestBody> request,
                                   long contentLength,
                                   long partSize,
                                   String uploadId,
-                                  CompletableFuture<Void> listPartsFuture,
+                                  Map<Integer, CompletedPart> existingParts,
                                   long numPartsCompleted) {
             this.request = request;
             this.contentLength = contentLength;
             this.partSize = partSize;
             this.uploadId = uploadId;
-            this.listPartsFuture = listPartsFuture;
+            this.existingParts = existingParts;
             this.numPartsCompleted = numPartsCompleted;
         }
     }
@@ -247,7 +277,7 @@ public final class UploadWithKnownContentLengthHelper {
         private final Collection<CompletableFuture<CompletedPart>> futures = new ConcurrentLinkedQueue<>();
         private final PutObjectRequest putObjectRequest;
         private final CompletableFuture<PutObjectResponse> returnFuture;
-        private final CompletableFuture<Void> listPartsFuture;
+        private final Map<Integer, CompletedPart> existingParts;
         private Subscription subscription;
         private volatile boolean isDone;
         private volatile boolean isPaused;
@@ -260,7 +290,7 @@ public final class UploadWithKnownContentLengthHelper {
             this.putObjectRequest = mpuRequestContext.request.left();
             this.returnFuture = returnFuture;
             this.uploadId = mpuRequestContext.uploadId;
-            this.listPartsFuture = mpuRequestContext.listPartsFuture;
+            this.existingParts = mpuRequestContext.existingParts;
             this.numExistingParts = (int) mpuRequestContext.numPartsCompleted;
             this.completedParts = new AtomicReferenceArray<>(partCount - numExistingParts);
         }
@@ -318,11 +348,7 @@ public final class UploadWithKnownContentLengthHelper {
                 return;
             }
 
-            if (listPartsFuture != null && !listPartsFuture.isDone()) {
-                listPartsFuture.join();
-            }
-
-            if (EXISTING_PARTS.containsKey(partNumber.get())) {
+            if (existingParts.containsKey(partNumber.get())) {
                 asyncRequestBody.subscribe(new CancelledSubscriber<>());
                 subscription.request(1);
                 return;
@@ -374,7 +400,7 @@ public final class UploadWithKnownContentLengthHelper {
         private void completeMultipartUploadIfFinish(int requestsInFlight) {
             if (isDone && requestsInFlight == 0) {
                 CompletedPart[] parts;
-                if (EXISTING_PARTS.isEmpty()) {
+                if (existingParts.isEmpty()) {
                     parts = IntStream.range(0, completedParts.length())
                                      .mapToObj(completedParts::get)
                                      .toArray(CompletedPart[]::new);
@@ -382,7 +408,7 @@ public final class UploadWithKnownContentLengthHelper {
                     // List of CompletedParts needs to be in ascending order
                     parts = mergeCompletedParts();
                 } else {
-                    parts = EXISTING_PARTS.values().toArray(new CompletedPart[0]);
+                    parts = existingParts.values().toArray(new CompletedPart[0]);
                 }
                 completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts,
                                                                                   putObjectRequest);
@@ -393,8 +419,8 @@ public final class UploadWithKnownContentLengthHelper {
             CompletedPart[] merged = new CompletedPart[partCount];
             int currPart = 1;
             while (currPart < partCount + 1) {
-                if (EXISTING_PARTS.containsKey(currPart)) {
-                    merged[currPart - 1] = EXISTING_PARTS.get(currPart);
+                if (existingParts.containsKey(currPart)) {
+                    merged[currPart - 1] = existingParts.get(currPart);
                 } else {
                     merged[currPart - 1] = completedParts.get(currPart - 1 - numExistingParts);
                 }
