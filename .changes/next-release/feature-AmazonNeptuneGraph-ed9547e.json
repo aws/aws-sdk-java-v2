@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Neptune Graph",
+    "contributor": "",
+    "description": "Adding a new option \"parameters\" for data plane api ExecuteQuery to support running parameterized query via SDK."
+}
