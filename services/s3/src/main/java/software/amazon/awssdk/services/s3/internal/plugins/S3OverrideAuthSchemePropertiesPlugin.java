@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 /**
  * Plugin that allows override of signer and identity properties on the selected auth scheme options. The class offers static
  * methods to create plugins for common cases such as enable payload signing by default. For instance, if you want
- * to unconditionally disable chunk-encoding across the board you can create the S3 client, e.g.,
+ * to unconditionally enable payload signing across the board you can create the S3 client, e.g.,
  *
  * {@snippet
  * S3AsyncClient s3 = S3AsyncClient.builder()
@@ -120,7 +120,6 @@ public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
         // Safe because of Builder#putSignerProperty
         builder.putSignerProperty((SignerProperty<T>) key, (T) value);
     }
-
 
     private boolean addConfiguredProperties(AuthSchemeOption option, S3AuthSchemeParams params) {
         String schemeId = option.schemeId();
