@@ -32,6 +32,14 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 class TransferManagerLoggingTest {
 
+    private static final String EXPECTED_DEBUG_MESSAGE = "The provided S3AsyncClient is neither an instance of S3CrtAsyncClient"
+                                                         + " or MultipartS3AsyncClient, "
+                                                         + "and thus multipart upload/download feature may not be enabled and "
+                                                         + "resumable file upload may not be supported.\n"
+                                                         + "To benefit from maximum throughput, consider using S3AsyncClient"
+                                                         + ".crtBuilder().build() "
+                                                         + "or S3AsyncClient.builder().multipartEnabled(true).build() instead";
+
     @Test
     void transferManager_withCrtClient_shouldNotLogWarnMessages() {
 
@@ -57,8 +65,7 @@ class TransferManagerLoggingTest {
              LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertLogged(events, Level.DEBUG, "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
-                                              + " upload/download feature may not be enabled and resumable file upload may not be supported.");
+            assertLogged(events, Level.DEBUG, EXPECTED_DEBUG_MESSAGE);
         }
     }
 
@@ -74,8 +81,7 @@ class TransferManagerLoggingTest {
              LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertLogged(events, Level.DEBUG, "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
-                                              + " upload/download feature may not be enabled and resumable file upload may not be supported.");
+            assertLogged(events, Level.DEBUG, EXPECTED_DEBUG_MESSAGE);
         }
     }
 
@@ -97,6 +103,22 @@ class TransferManagerLoggingTest {
                                                 .region(Region.US_WEST_2)
                                                 .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
                                                 .multipartEnabled(true)
+                                                .build();
+             LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
+             S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertThat(events).isEmpty();
+        }
+    }
+
+    @Test
+    void transferManager_withMultiPartEnabledAndCrossRegionEnabledJavaClient_shouldNotLogDebugMessage() {
+
+        try (S3AsyncClient s3Crt = S3AsyncClient.builder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
+                                                .multipartEnabled(true)
+                                                .crossRegionAccessEnabled(true)
                                                 .build();
              LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
