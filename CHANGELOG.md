@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.1__ __2024-02-12__
+## __AWS AppSync__
+  - ### Features
+    - Adds support for new options on GraphqlAPIs, Resolvers and Data Sources for emitting Amazon CloudWatch metrics for enhanced monitoring of AppSync APIs.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release enables PutMetricData API request payload compression by default.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Adding a new option "parameters" for data plane api ExecuteQuery to support running parameterized query via SDK.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - This release adds bill contact support for RegisterDomain, TransferDomain, UpdateDomainContact and GetDomainDetail API.
+
 # __2.24.0__ __2024-02-09__
 ## __AWS Batch__
   - ### Features
