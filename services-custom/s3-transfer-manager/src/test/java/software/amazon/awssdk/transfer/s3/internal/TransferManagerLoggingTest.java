@@ -83,7 +83,7 @@ class TransferManagerLoggingTest {
         }
     }
 
-    /*@Test
+    @Test
     void transferManager_withDefaultClient_shouldNotLogDebugMessage() {
 
 
@@ -92,7 +92,7 @@ class TransferManagerLoggingTest {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertThat(events).isEmpty();
         }
-    }*/
+    }
 
     @Test
     void transferManager_withMultiPartEnabledJavaClient_shouldNotLogDebugMessage() {
