@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Add content-length header to the Request if the Request with Request body does not have one."
+}

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.crt.internal.request;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +23,14 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
+import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi
 public final class CrtRequestAdapter {
@@ -131,11 +134,22 @@ public final class CrtRequestAdapter {
             crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
 
-        // We assume content length was set by the caller if a stream was present, so don't set it here.
+        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent()
+            && sdkExecuteRequest.contentStreamProvider().isPresent()) {
+            String contentLength = String.valueOf(calculateContentLength(sdkExecuteRequest.contentStreamProvider().get()));
+            crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, contentLength));
+        }
 
-        // Add the rest of the Headers
         sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add));
 
         return crtHeaderList;
+    }
+
+    public static long calculateContentLength(ContentStreamProvider contentStreamProvider) {
+        try {
+            return  IoUtils.toByteArray(contentStreamProvider.newStream()).length ;
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot get the content-length of the request content.");
+        }
     }
 }
