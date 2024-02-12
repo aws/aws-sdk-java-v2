@@ -71,4 +71,9 @@ public class FlatteningSubscriber<U> extends AbstractFlatteningSubscriber<Iterab
     protected boolean onCompleteNeeded() {
         return super.onCompleteNeeded() && allItems.isEmpty();
     }
+
+    @Override
+    public void onNext(Iterable<U> item) {
+        super.onNext(item);
+    }
 }

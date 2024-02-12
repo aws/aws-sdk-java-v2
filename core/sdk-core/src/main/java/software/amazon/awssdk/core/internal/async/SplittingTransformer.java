@@ -277,6 +277,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             bodyPartPublisher.send(byteBuffer).whenComplete((r, t) -> {
                 if (t != null) {
                     handleError(t);
+                    return;
                 }
                 subscription.request(1);
             });

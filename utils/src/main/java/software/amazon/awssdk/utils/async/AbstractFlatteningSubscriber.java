@@ -79,7 +79,9 @@ public abstract class AbstractFlatteningSubscriber<T, U> extends DelegatingSubsc
     protected abstract void doWithItem(T item);
 
     /**
-     * This method is called when demand from the downstream subscriber needs to be fulfilled
+     * This method is called when demand from the downstream subscriber needs to be fulfilled. Called in a loop
+     * until {@code downstreamDemand} is no longer needed. Implementations are responsible for decrementing the {@code
+     * downstreamDemand} accordingly as demand gets fulfilled.
      */
     protected abstract void fulfillDownstreamDemand();
 
