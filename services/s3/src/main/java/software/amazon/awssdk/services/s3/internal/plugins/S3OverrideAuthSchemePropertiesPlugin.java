@@ -121,7 +121,6 @@ public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
         builder.putSignerProperty((SignerProperty<T>) key, (T) value);
     }
 
-
     private boolean addConfiguredProperties(AuthSchemeOption option, S3AuthSchemeParams params) {
         String schemeId = option.schemeId();
         // We check here that the scheme id is sigV4 or sigV4a or some other in the same family.
