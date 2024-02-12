@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
-import static software.amazon.awssdk.services.s3.internal.multipart.UploadObjectHelper.RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.File;
@@ -46,7 +46,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
-import software.amazon.awssdk.services.s3.internal.multipart.S3ResumeToken;
+import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;

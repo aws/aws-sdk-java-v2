@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.multipart;
+package software.amazon.awssdk.services.s3.multipart;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.services.s3.internal.multipart.PausableUpload;
 
-@SdkInternalApi
+@SdkProtectedApi
 public class PauseObservable {
 
     private volatile PausableUpload pausableUpload;

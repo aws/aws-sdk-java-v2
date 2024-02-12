@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.multipart;
+package software.amazon.awssdk.services.s3.multipart;
 
 import java.util.Objects;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public class S3ResumeToken {
 
     private final String uploadId;

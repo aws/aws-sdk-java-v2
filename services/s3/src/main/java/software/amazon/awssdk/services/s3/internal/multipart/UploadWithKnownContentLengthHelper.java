@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import static software.amazon.awssdk.services.s3.internal.multipart.UploadObjectHelper.PAUSE_OBSERVABLE;
-import static software.amazon.awssdk.services.s3.internal.multipart.UploadObjectHelper.RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.RESUME_TOKEN;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -42,6 +42,7 @@ import software.amazon.awssdk.services.s3.model.Part;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.services.s3.paginators.ListPartsPublisher;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
