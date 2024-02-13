@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "Fix for Issue [#4912](https://github.com/aws/aws-sdk-java-v2/issues/4912) where client region with AWS_GLOBAL calls failed for cross region access."
+}
