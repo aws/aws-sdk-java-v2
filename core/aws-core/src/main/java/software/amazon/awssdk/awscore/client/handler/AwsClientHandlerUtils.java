@@ -45,13 +45,15 @@ public final class AwsClientHandlerUtils {
         Map<String, HeaderValue> headers = new LinkedHashMap<>();
         request.forEachHeader((name, value) -> headers.put(name, HeaderValue.fromString(firstIfPresent(value))));
 
-        byte[] payload = null;
+        byte[] payload;
         if (request.contentStreamProvider().isPresent()) {
             try {
                 payload = IoUtils.toByteArray(request.contentStreamProvider().get().newStream());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+        } else {
+            payload = new byte[0];
         }
 
         return new Message(headers, payload).toByteBuffer();
