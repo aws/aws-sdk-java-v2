@@ -181,18 +181,28 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             Object val = field.getValueOrDefault(pojo);
             if (isExplicitBinaryPayload(field)) {
                 if (val != null) {
-                    request.contentStreamProvider(((SdkBytes) val)::asInputStream);
+                    SdkBytes sdkBytes = (SdkBytes) val;
+                    request.contentStreamProvider(sdkBytes::asInputStream);
+                    updateContentLengthHeader(sdkBytes.asByteArray().length);
                 }
             } else if (isExplicitStringPayload(field)) {
                 if (val != null) {
                     byte[] content = ((String) val).getBytes(StandardCharsets.UTF_8);
                     request.contentStreamProvider(() -> new ByteArrayInputStream(content));
+                    updateContentLengthHeader(content.length);
+
                 }
             } else if (isExplicitPayloadMember(field)) {
                 marshallExplicitJsonPayload(field, val);
             } else {
                 marshallField(field, val);
             }
+        }
+    }
+
+    private void updateContentLengthHeader(int contentLength) {
+        if (!request.headers().containsKey(CONTENT_LENGTH)) {
+            request.putHeader(CONTENT_LENGTH, Integer.toString(contentLength));
         }
     }
 
