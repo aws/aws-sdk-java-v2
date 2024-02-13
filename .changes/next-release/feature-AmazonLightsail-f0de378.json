@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lightsail",
+    "contributor": "",
+    "description": "This release adds support to upgrade the major version of a database."
+}
