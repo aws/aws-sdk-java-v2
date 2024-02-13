@@ -211,7 +211,7 @@ public final class UploadWithKnownContentLengthHelper {
         private final AsyncRequestBody asyncRequestBody;
         private final CompletableFuture<PutObjectResponse> returnFuture;
 
-        private ResumeRequestContext (S3ResumeToken resumeToken,
+        private ResumeRequestContext(S3ResumeToken resumeToken,
                                       PutObjectRequest putObjectRequest,
                                       long contentLength,
                                       AsyncRequestBody asyncRequestBody,
@@ -370,7 +370,7 @@ public final class UploadWithKnownContentLengthHelper {
                                                                                          putObjectRequest);
                                          }
                                      } else {
-                                         completeMultipartUploadIfFinish(asyncRequestBodyInFlight.decrementAndGet());
+                                         completeMultipartUploadIfFinished(asyncRequestBodyInFlight.decrementAndGet());
                                      }
                                  });
             subscription.request(1);
@@ -393,11 +393,11 @@ public final class UploadWithKnownContentLengthHelper {
             log.debug(() -> "Received onComplete()");
             isDone = true;
             if (!isPaused) {
-                completeMultipartUploadIfFinish(asyncRequestBodyInFlight.get());
+                completeMultipartUploadIfFinished(asyncRequestBodyInFlight.get());
             }
         }
 
-        private void completeMultipartUploadIfFinish(int requestsInFlight) {
+        private void completeMultipartUploadIfFinished(int requestsInFlight) {
             if (isDone && requestsInFlight == 0) {
                 CompletedPart[] parts;
                 if (existingParts.isEmpty()) {

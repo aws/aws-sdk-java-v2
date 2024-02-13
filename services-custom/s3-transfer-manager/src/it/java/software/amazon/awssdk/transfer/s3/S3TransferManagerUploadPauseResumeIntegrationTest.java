@@ -155,15 +155,17 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         verifyMultipartUploadIdExists(resumableFileUpload);
 
         byte[] originalBytes = Files.readAllBytes(largeFile.toPath());
-        byte[] bytes = "helloworld".getBytes(StandardCharsets.UTF_8);
-        Files.write(largeFile.toPath(), bytes);
+        try {
+            byte[] bytes = "helloworld".getBytes(StandardCharsets.UTF_8);
+            Files.write(largeFile.toPath(), bytes);
 
-        FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
-        resumedUpload.completionFuture().join();
-        verifyMultipartUploadIdNotExist(resumableFileUpload);
-        assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(bytes.length);
-
-        Files.write(largeFile.toPath(), originalBytes);
+            FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
+            resumedUpload.completionFuture().join();
+            verifyMultipartUploadIdNotExist(resumableFileUpload);
+            assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(bytes.length);
+        } finally {
+            Files.write(largeFile.toPath(), originalBytes);
+        }
     }
 
     private void verifyMultipartUploadIdExists(ResumableFileUpload resumableFileUpload) {
