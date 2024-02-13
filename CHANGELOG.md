@@ -1,4 +1,44 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.2__ __2024-02-13__
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - AWS Marketplace Catalog API now supports setting intent on requests
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Resource Explorer now uses newly supported IPv4 'amazonaws.com' endpoints by default.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add additional logical operator ('and' and 'or') methods to DynamoDB Expression
+        - Contributed by: [@akiesler](https://github.com/akiesler)
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to upgrade the major version of a database.
+
+## __Amazon S3__
+  - ### Features
+    - Automatically trim object metadata keys of whitespace for `PutObject` and `CreateMultipartUpload`.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Documentation updates for Security Lake
+
+## __URL Connection Client__
+  - ### Bugfixes
+    - Fix a bug where headers with multiple values don't have all values for that header sent on the wire. This leads to signature mismatch exceptions.
+
+      Fixes [#4746](https://github.com/aws/aws-sdk-java-v2/issues/4746).
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akiesler](https://github.com/akiesler)
 # __2.24.1__ __2024-02-12__
 ## __AWS AppSync__
   - ### Features
