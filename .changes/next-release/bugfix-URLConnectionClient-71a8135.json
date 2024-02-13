@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "URL Connection Client",
-    "contributor": "",
-    "description": "Fix a bug where headers with multiple values don't have all values for that header sent on the wire. This leads to signature mismatch exceptions.\n\nFixes [#4746](https://github.com/aws/aws-sdk-java-v2/issues/4746)."
-}
