@@ -16,16 +16,22 @@
 package software.amazon.awssdk.core.internal.progress.listener;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.internal.progress.ProgressListenerContext;
 import software.amazon.awssdk.core.internal.progress.ProgressListenerFailedContext;
 import software.amazon.awssdk.core.internal.progress.snapshot.DefaultProgressSnapshot;
+import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.core.progress.listener.SdkExchangeProgress;
 import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * ProgressUpdater exposes methods that invokes listener methods to update and store request progress state
@@ -34,23 +40,20 @@ import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 public class ProgressUpdater {
     private final DefaultSdkExchangeProgress requestBodyProgress;
     private final DefaultSdkExchangeProgress responseBodyProgress;
-    private final ProgressListenerContext context;
+    private ProgressListenerContext context;
     private final ProgressListenerInvoker listenerInvoker;
-    private final CompletableFuture<Void> endOfStreamFuture;
 
     public ProgressUpdater(SdkRequest sdkRequest,
-                           Long contentLength) {
+                           Long requestContentLength) {
         DefaultProgressSnapshot.Builder uploadProgressSnapshotBuilder = DefaultProgressSnapshot.builder();
         uploadProgressSnapshotBuilder.transferredBytes(0L);
-        Optional.ofNullable(contentLength).ifPresent(uploadProgressSnapshotBuilder::totalBytes);
+        Optional.ofNullable(requestContentLength).ifPresent(uploadProgressSnapshotBuilder::totalBytes);
 
         ProgressSnapshot uploadProgressSnapshot = uploadProgressSnapshotBuilder.build();
         requestBodyProgress = new DefaultSdkExchangeProgress(uploadProgressSnapshot);
 
         DefaultProgressSnapshot.Builder downloadProgressSnapshotBuilder = DefaultProgressSnapshot.builder();
         downloadProgressSnapshotBuilder.transferredBytes(0L);
-        Optional.ofNullable(contentLength).ifPresent(downloadProgressSnapshotBuilder::totalBytes);
-
         ProgressSnapshot downloadProgressSnapshot = downloadProgressSnapshotBuilder.build();
         responseBodyProgress = new DefaultSdkExchangeProgress(downloadProgressSnapshot);
 
@@ -60,13 +63,11 @@ public class ProgressUpdater {
                                          .downloadProgressSnapshot(downloadProgressSnapshot)
                                          .build();
 
-        listenerInvoker =
-            (!sdkRequest.overrideConfiguration().isPresent() ||
-             sdkRequest.overrideConfiguration().get().progressListeners() == null)
-                          ? new ProgressListenerInvoker((Collections.emptyList()))
-                          : new ProgressListenerInvoker(sdkRequest.overrideConfiguration().get().progressListeners());
+        listenerInvoker = new ProgressListenerInvoker(sdkRequest.overrideConfiguration().map(RequestOverrideConfiguration::progressListeners).orElse(Collections.emptyList()));
+    }
 
-        endOfStreamFuture = new CompletableFuture<>();
+    public void updateResponseContentLength(Long responseContentLength) {
+        responseBodyProgress.updateAndGet(b -> b.totalBytes(responseContentLength));
     }
 
     public SdkExchangeProgress requestBodyProgress() {
@@ -107,16 +108,6 @@ public class ProgressUpdater {
         listenerInvoker.responseBytesReceived(context.copy(b -> b.downloadProgressSnapshot(snapshot)));
     }
 
-    public void registerCompletion(CompletableFuture<? extends SdkResponse> future) {
-        future.whenComplete((r, t) -> {
-            if (t == null) {
-                attachEndOfStreamFutureCallback(r);
-            } else {
-                executionFailure(t);
-            }
-        });
-    }
-
     public void responseHeaderReceived() {
         listenerInvoker.responseHeaderReceived(context);
     }
@@ -126,7 +117,7 @@ public class ProgressUpdater {
         listenerInvoker.executionSuccess(context.copy(b -> b.response(response)));
     }
 
-    private void executionFailure(Throwable t) {
+    public void executionFailure(Throwable t) {
         listenerInvoker.executionFailure(ProgressListenerFailedContext.builder()
                                                                       .progressListenerContext(
                                                                           context.copy(
@@ -140,9 +131,9 @@ public class ProgressUpdater {
                                                                       .build());
     }
 
-    private void attemptFailure(Throwable t) {
-        listenerInvoker.executionFailure(ProgressListenerFailedContext.builder()
-                                                                      .progressListenerContext(
+    public void attemptFailure(Throwable t) {
+        listenerInvoker.attemptFailure(ProgressListenerFailedContext.builder()
+                                                                              .progressListenerContext(
                                                                           context.copy(
                                                                               b -> {
                                                                                   b.uploadProgressSnapshot(
@@ -150,17 +141,7 @@ public class ProgressUpdater {
                                                                                   b.downloadProgressSnapshot(
                                                                                       responseBodyProgress.progressSnapshot());
                                                                               }))
-                                                                      .exception(t)
-                                                                      .build());
-    }
-
-    public void attachEndOfStreamFutureCallback(SdkResponse response) {
-        endOfStreamFuture.whenComplete((r2, t2) -> {
-            if (t2 == null) {
-                executionSuccess(response);
-            } else {
-                attemptFailure(t2);
-            }
-        });
+                                                                              .exception(t)
+                                                                              .build());
     }
 }

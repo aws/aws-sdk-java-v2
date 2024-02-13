@@ -78,7 +78,7 @@ public class ProgressListenerInvoker implements ProgressListener {
     }
 
     @Override
-    public void attemptFailure(Context.AttemptFailure context) {
+    public void attemptFailure(Context.ExecutionFailure context) {
         forEach(listener -> listener.attemptFailure(context));
     }
 

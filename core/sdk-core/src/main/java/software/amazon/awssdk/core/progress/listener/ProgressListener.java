@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.internal.progress.listener.LoggingProgressListener;
 import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -59,7 +60,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  *     <li>{@link #executionSuccess(Context.ExecutionSuccess)} - The transfer has completed successfully. This method is called
  *     for every successful transfer.</li>
  * </ol>
- * For every failed attempt {@link #attemptFailure(Context.AttemptFailure)}.
+ * For every failed attempt {@link #attemptFailure(Context.ExecutionFailure)}.
  *
  * <p>
  * There are a few important rules and best practices that govern the usage of {@link ProgressListener}s:
@@ -229,13 +230,13 @@ public interface ProgressListener {
      * <p>
      * Available context attributes:
      * <ol>
-     *     <li>{@link Context.AttemptFailure#request()}</li>
-     *     <li>{@link Context.AttemptFailure#httpRequest()}</li>
-     *     <li>{@link Context.AttemptFailure#uploadProgressSnapshot()}</li>
-     *     <li>{@link Context.AttemptFailure#exception()} ()}</li>
+     *     <li>{@link Context.ExecutionFailure#request()}</li>
+     *     <li>{@link Context.ExecutionFailure#httpRequest()}</li>
+     *     <li>{@link Context.ExecutionFailure#uploadProgressSnapshot()}</li>
+     *     <li>{@link Context.ExecutionFailure#exception()} ()}</li>
      * </ol>
      */
-    default void attemptFailure(Context.AttemptFailure context) {
+    default void attemptFailure(Context.ExecutionFailure context) {
     }
 
     /**
@@ -268,7 +269,6 @@ public interface ProgressListener {
      * Failed transfer method hierarchy:
      * <ol>
      *     <li>{@link RequestPrepared}</li>
-     *     <li>{@link AttemptFailure}</li>
      *     <li>{@link ExecutionFailure}</li>
      * </ol>
      * If the request header includes an Expect: 100-Continue and the service returns a different value, the method invokation
@@ -441,28 +441,6 @@ public interface ProgressListener {
         @SdkPublicApi
         @SdkPreviewApi
         public interface AttemptFailureResponseBytesReceived extends ResponseHeaderReceived {
-            Throwable exception();
-        }
-
-        /**
-         * The request execution attempt failed.
-         * <p>
-         * Available context attributes:
-         * <ol>
-         *     <li>{@link AttemptFailure#request()}</li>
-         *     <li>{@link AttemptFailure#httpRequest()}</li>
-         *     <li>{@link AttemptFailure#uploadProgressSnapshot()}</li>
-         *     <li>{@link AttemptFailure#exception()}</li>
-         * </ol>
-         */
-        @Immutable
-        @ThreadSafe
-        @SdkPublicApi
-        @SdkPreviewApi
-        public interface AttemptFailure extends RequestPrepared {
-            /**
-             * The exception associated with the failed request.
-             */
             Throwable exception();
         }
 
