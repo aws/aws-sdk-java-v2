@@ -23,7 +23,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
