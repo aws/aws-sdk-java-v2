@@ -55,6 +55,18 @@
             "category": "AWS SDK for Java v2",
             "contributor": "",
             "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated internal core logic for signing properties with non-default values to be codegen based instead of set at runtime."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Overriding signer properties for S3 through the deprecated non-public execution attributes in S3SignerExecutionAttribute no longer works with this release. The recommended approach is to use plugins in order to change these settings."
         }
     ]
 }
