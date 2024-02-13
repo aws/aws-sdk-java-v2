@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Catalog Service",
+    "contributor": "",
+    "description": "AWS Marketplace Catalog API now supports setting intent on requests"
+}
