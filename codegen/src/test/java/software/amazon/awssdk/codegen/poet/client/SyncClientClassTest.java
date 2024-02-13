@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
@@ -73,6 +74,12 @@ public class SyncClientClassTest {
     public void syncClientCustomServiceMetaData() {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(customContentTypeModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
+    }
+
+    @Test
+    public void syncClientCustomPackageName() {
+        ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(customPackageModels());
+        assertThat(syncClientCustomServiceMetaData, generatesTo("test-custompackage-sync.java"));
     }
 
     private SyncClientClass createSyncClientClass(IntermediateModel model) {

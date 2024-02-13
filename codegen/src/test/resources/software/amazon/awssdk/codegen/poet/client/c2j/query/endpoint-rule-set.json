@@ -49,7 +49,7 @@
     {
       "conditions": [
         {
-          "fn": "partition",
+          "fn": "aws.partition",
           "argv": [
             {
               "ref": "region"
@@ -211,7 +211,7 @@
                 "properties": {
                   "authSchemes": [
                     {
-                      "name": "sigsigv4a",
+                      "name": "sigv4a",
                       "signingName": "query",
                       "signingRegionSet": ["*"]
                     }

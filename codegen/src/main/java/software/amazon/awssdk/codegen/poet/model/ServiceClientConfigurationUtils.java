@@ -22,6 +22,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -41,12 +43,14 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 
 public class ServiceClientConfigurationUtils {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final ClassName configurationClassName;
     private final ClassName configurationBuilderClassName;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final List<Field> fields;
 
     public ServiceClientConfigurationUtils(IntermediateModel model) {
@@ -56,7 +60,8 @@ public class ServiceClientConfigurationUtils {
         configurationBuilderClassName = ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
                                                       serviceId + "ServiceClientConfigurationBuilder");
         authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
-        fields = fields();
+        endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        fields = fields(model);
     }
 
     /**
@@ -81,8 +86,10 @@ public class ServiceClientConfigurationUtils {
         return Collections.unmodifiableList(fields);
     }
 
-    private List<Field> fields() {
-        return Arrays.asList(
+    private List<Field> fields(IntermediateModel model) {
+        List<Field> fields = new ArrayList<>();
+
+        fields.addAll(Arrays.asList(
             overrideConfigurationField(),
             endpointOverrideField(),
             endpointProviderField(),
@@ -90,7 +97,33 @@ public class ServiceClientConfigurationUtils {
             credentialsProviderField(),
             authSchemesField(),
             authSchemeProviderField()
-        );
+        ));
+        fields.addAll(addCustomClientParams(model));
+        return fields;
+    }
+
+    private List<Field> addCustomClientParams(IntermediateModel model) {
+        List<Field> customClientParamFields = new ArrayList<>();
+
+        if (model.getCustomizationConfig() != null && model.getCustomizationConfig().getCustomClientContextParams() != null) {
+            model.getCustomizationConfig().getCustomClientContextParams().forEach((n, m) -> {
+
+                String paramName = endpointRulesSpecUtils.paramMethodName(n);
+                String keyName = model.getNamingStrategy().getEnumValueName(n);
+                TypeName type = endpointRulesSpecUtils.toJavaType(m.getType());
+
+                customClientParamFields.add(fieldBuilder(paramName, type)
+                      .doc(m.getDocumentation())
+                      .isInherited(false)
+                      .localSetter(basicLocalSetterCode(paramName))
+                      .localGetter(basicLocalGetterCode(paramName))
+                      .configSetter(customClientConfigParamSetter(paramName, keyName))
+                      .configGetter(customClientConfigParamGetter(keyName))
+                      .build());
+            });
+        }
+
+        return customClientParamFields;
     }
 
     private Field overrideConfigurationField() {
@@ -265,6 +298,27 @@ public class ServiceClientConfigurationUtils {
                         .addStatement("return $1T.isInstanceOf($2T.class, result, \"Expected an instance of \" + $2T.class"
                                       + ".getSimpleName())",
                                       Validate.class, authSchemeSpecUtils.providerInterfaceName())
+                        .build();
+    }
+
+    private CodeBlock customClientConfigParamSetter(String parameterName, String keyName) {
+        return CodeBlock.builder()
+                        .addStatement("config.option($1T.CLIENT_CONTEXT_PARAMS, "
+                                      + "config.computeOptionIfAbsent($1T.CLIENT_CONTEXT_PARAMS, $2T::empty)"
+                                      + ".toBuilder().put($3T.$4N, $5N).build())",
+                                      SdkClientOption.class,
+                                      AttributeMap.class,
+                                      endpointRulesSpecUtils.clientContextParamsName(),
+                                      keyName, parameterName)
+                        .addStatement("return this")
+                        .build();
+    }
+
+    private CodeBlock customClientConfigParamGetter(String keyName) {
+        return CodeBlock.builder()
+                        .addStatement("return config.computeOptionIfAbsent($T.CLIENT_CONTEXT_PARAMS, $T::empty)\n"
+                                      + ".get($T.$N)", SdkClientOption.class, AttributeMap.class,
+                                      endpointRulesSpecUtils.clientContextParamsName(), keyName)
                         .build();
     }
 

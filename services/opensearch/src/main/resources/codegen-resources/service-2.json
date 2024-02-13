@@ -42,7 +42,7 @@
         {"shape":"DependencyFailureException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Adds the data source on the domain.</p>"
+      "documentation":"<p>Creates a new direct-query data source to the specified domain. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/direct-query-s3-creating.html\">Creating Amazon OpenSearch Service data source integrations with Amazon S3</a>.</p>"
     },
     "AddTags":{
       "name":"AddTags",
@@ -94,6 +94,23 @@
         {"shape":"BaseException"}
       ],
       "documentation":"<p>Provides access to an Amazon OpenSearch Service domain through the use of an interface VPC endpoint.</p>"
+    },
+    "CancelDomainConfigChange":{
+      "name":"CancelDomainConfigChange",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/config/cancel"
+      },
+      "input":{"shape":"CancelDomainConfigChangeRequest"},
+      "output":{"shape":"CancelDomainConfigChangeResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Cancels a pending configuration change on an Amazon OpenSearch Service domain.</p>"
     },
     "CancelServiceSoftwareUpdate":{
       "name":"CancelServiceSoftwareUpdate",
@@ -199,7 +216,7 @@
         {"shape":"DisabledOperationException"},
         {"shape":"DependencyFailureException"}
       ],
-      "documentation":"<p>Deletes the data source.</p>"
+      "documentation":"<p>Deletes a direct-query data source. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/direct-query-s3-delete.html\">Deleting an Amazon OpenSearch Service data source with Amazon S3</a>.</p>"
     },
     "DeleteDomain":{
       "name":"DeleteDomain",
@@ -572,7 +589,7 @@
         {"shape":"DisabledOperationException"},
         {"shape":"DependencyFailureException"}
       ],
-      "documentation":"<p>Describes the data source details.</p>"
+      "documentation":"<p>Retrieves information about a direct query data source.</p>"
     },
     "GetDomainMaintenanceStatus":{
       "name":"GetDomainMaintenanceStatus",
@@ -658,7 +675,7 @@
         {"shape":"DisabledOperationException"},
         {"shape":"DependencyFailureException"}
       ],
-      "documentation":"<p>A list of the data source details of the domain.</p>"
+      "documentation":"<p>Lists direct-query data sources for a specific domain. For more information, see For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/direct-query-s3.html\">Working with Amazon OpenSearch Service direct queries with Amazon S3</a>.</p>"
     },
     "ListDomainMaintenances":{
       "name":"ListDomainMaintenances",
@@ -949,7 +966,7 @@
         {"shape":"DisabledOperationException"},
         {"shape":"DependencyFailureException"}
       ],
-      "documentation":"<p>Updates the data source on the domain.</p>"
+      "documentation":"<p>Updates a direct-query data source. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/direct-query-s3-creating.html\">Working with Amazon OpenSearch Service data source integrations with Amazon S3</a>.</p>"
     },
     "UpdateDomainConfig":{
       "name":"UpdateDomainConfig",
@@ -1046,7 +1063,7 @@
   "shapes":{
     "ARN":{
       "type":"string",
-      "documentation":"<p>The Amazon Resource Name (ARN) of the domain. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/index.html\">Identifiers for IAM Entities </a> in <i>Using AWS Identity and Access Management</i> for more information. </p>",
+      "documentation":"<p>The Amazon Resource Name (ARN) of the domain. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/index.html\">Identifiers for IAM Entities </a> in <i>Using Amazon Web Services Identity and Access Management</i> for more information. </p>",
       "max":2048,
       "min":20,
       "pattern":".*"
@@ -1160,13 +1177,13 @@
       "members":{
         "DomainName":{
           "shape":"DomainName",
-          "documentation":"<p>The name of the domain.</p>",
+          "documentation":"<p>The name of the domain to add the data source to.</p>",
           "location":"uri",
           "locationName":"DomainName"
         },
         "Name":{
           "shape":"DataSourceName",
-          "documentation":"<p>The name of the data source.</p>"
+          "documentation":"<p>A name for the data source.</p>"
         },
         "DataSourceType":{
           "shape":"DataSourceType",
@@ -1184,7 +1201,7 @@
       "members":{
         "Message":{
           "shape":"String",
-          "documentation":"<p>A message associated with the data source.</p>"
+          "documentation":"<p>A message associated with creation of the data source.</p>"
         }
       },
       "documentation":"<p>The result of an <code>AddDataSource</code> operation.</p>"
@@ -1648,6 +1665,38 @@
       "exception":true
     },
     "Boolean":{"type":"boolean"},
+    "CancelDomainConfigChangeRequest":{
+      "type":"structure",
+      "required":["DomainName"],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "DryRun":{
+          "shape":"DryRun",
+          "documentation":"<p>When set to <code>True</code>, returns the list of change IDs and properties that will be cancelled without actually cancelling the change.</p>"
+        }
+      }
+    },
+    "CancelDomainConfigChangeResponse":{
+      "type":"structure",
+      "members":{
+        "CancelledChangeIds":{
+          "shape":"GUIDList",
+          "documentation":"<p>The unique identifiers of the changes that were cancelled.</p>"
+        },
+        "CancelledChangeProperties":{
+          "shape":"CancelledChangePropertyList",
+          "documentation":"<p>The domain change properties that were cancelled.</p>"
+        },
+        "DryRun":{
+          "shape":"DryRun",
+          "documentation":"<p>Whether or not the request was a dry run. If <code>True</code>, the changes were not actually cancelled. </p>"
+        }
+      }
+    },
     "CancelServiceSoftwareUpdateRequest":{
       "type":"structure",
       "required":["DomainName"],
@@ -1669,6 +1718,28 @@
       },
       "documentation":"<p>Container for the response to a <code>CancelServiceSoftwareUpdate</code> operation. Contains the status of the update.</p>"
     },
+    "CancelledChangeProperty":{
+      "type":"structure",
+      "members":{
+        "PropertyName":{
+          "shape":"String",
+          "documentation":"<p>The name of the property whose change was cancelled.</p>"
+        },
+        "CancelledValue":{
+          "shape":"String",
+          "documentation":"<p>The pending value of the property that was cancelled. This would have been the eventual value of the property if the chance had not been cancelled.</p>"
+        },
+        "ActiveValue":{
+          "shape":"String",
+          "documentation":"<p>The current value of the property, after the change was cancelled.</p>"
+        }
+      },
+      "documentation":"<p>A property change that was cancelled for an Amazon OpenSearch Service domain.</p>"
+    },
+    "CancelledChangePropertyList":{
+      "type":"list",
+      "member":{"shape":"CancelledChangeProperty"}
+    },
     "ChangeProgressDetails":{
       "type":"structure",
       "members":{
@@ -1679,6 +1750,22 @@
         "Message":{
           "shape":"Message",
           "documentation":"<p>A message corresponding to the status of the configuration change.</p>"
+        },
+        "ConfigChangeStatus":{
+          "shape":"ConfigChangeStatus",
+          "documentation":"<p>The current status of the configuration change.</p>"
+        },
+        "InitiatedBy":{
+          "shape":"InitiatedBy",
+          "documentation":"<p>The IAM principal who initiated the configuration change.</p>"
+        },
+        "StartTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The time that the configuration change was initiated, in Universal Coordinated Time (UTC).</p>"
+        },
+        "LastUpdatedTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The last time that the configuration change was updated.</p>"
         }
       },
       "documentation":"<p>Container for information about a configuration change happening on a domain.</p>"
@@ -1750,6 +1837,18 @@
         "ChangeProgressStages":{
           "shape":"ChangeProgressStageList",
           "documentation":"<p>The specific stages that the domain is going through to perform the configuration change.</p>"
+        },
+        "LastUpdatedTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The last time that the status of the configuration change was updated.</p>"
+        },
+        "ConfigChangeStatus":{
+          "shape":"ConfigChangeStatus",
+          "documentation":"<p>The current status of the configuration change.</p>"
+        },
+        "InitiatedBy":{
+          "shape":"InitiatedBy",
+          "documentation":"<p>The IAM principal who initiated the configuration change.</p>"
         }
       },
       "documentation":"<p>The progress details of a specific domain configuration change.</p>"
@@ -1911,6 +2010,19 @@
       },
       "documentation":"<p>A map of OpenSearch or Elasticsearch versions and the versions you can upgrade them to.</p>"
     },
+    "ConfigChangeStatus":{
+      "type":"string",
+      "enum":[
+        "Pending",
+        "Initializing",
+        "Validating",
+        "ValidationFailed",
+        "ApplyingChanges",
+        "Completed",
+        "PendingUserInput",
+        "Cancelled"
+      ]
+    },
     "ConflictException":{
       "type":"structure",
       "members":{
@@ -1980,7 +2092,7 @@
         },
         "IPAddressType":{
           "shape":"IPAddressType",
-          "documentation":"<p>The type of IP addresses supported by the endpoint for the domain.</p>"
+          "documentation":"<p>Specify either dual stack or IPv4 as your IP address type. Dual stack allows you to share domain resources across IPv4 and IPv6 address types, and is the recommended option. If you set your IP address type to dual stack, you can't change your address type later.</p>"
         },
         "SnapshotOptions":{
           "shape":"SnapshotOptions",
@@ -2211,7 +2323,7 @@
           "documentation":"<p>A description of the data source.</p>"
         }
       },
-      "documentation":"<p>Details about the data sources.</p>"
+      "documentation":"<p>Details about a direct-query data source.</p>"
     },
     "DataSourceList":{
       "type":"list",
@@ -2228,10 +2340,10 @@
       "members":{
         "S3GlueDataCatalog":{
           "shape":"S3GlueDataCatalog",
-          "documentation":"<p>The data source for the AWS S3 Glue Data Catalog.</p>"
+          "documentation":"<p>An Amazon S3 data source.</p>"
         }
       },
-      "documentation":"<p>Information about the data source.</p>",
+      "documentation":"<p>The type of data source.</p>",
       "union":true
     },
     "DeleteDataSourceRequest":{
@@ -2249,7 +2361,7 @@
         },
         "Name":{
           "shape":"DataSourceName",
-          "documentation":"<p>The name of the data source.</p>",
+          "documentation":"<p>The name of the data source to delete.</p>",
           "location":"uri",
           "locationName":"DataSourceName"
         }
@@ -2261,7 +2373,7 @@
       "members":{
         "Message":{
           "shape":"String",
-          "documentation":"<p>A message associated with the initiated request.</p>"
+          "documentation":"<p>A message associated with deletion of the data source.</p>"
         }
       },
       "documentation":"<p>The result of a <code>GetDataSource</code> operation.</p>"
@@ -3017,7 +3129,7 @@
         },
         "IPAddressType":{
           "shape":"IPAddressTypeStatus",
-          "documentation":"<p>The type of IP addresses supported by the endpoint for the domain.</p>"
+          "documentation":"<p>Choose either dual stack or IPv4 as your IP address type. Dual stack allows you to share domain resources across IPv4 and IPv6 address types, and is the recommended option. If you set your IP address type to dual stack, you can't change your address type later.</p>"
         },
         "SnapshotOptions":{
           "shape":"SnapshotOptionsStatus",
@@ -3070,6 +3182,10 @@
         "SoftwareUpdateOptions":{
           "shape":"SoftwareUpdateOptionsStatus",
           "documentation":"<p>Software update options for the domain.</p>"
+        },
+        "ModifyingProperties":{
+          "shape":"ModifyingPropertiesList",
+          "documentation":"<p>Information about the domain properties that are currently being modified.</p>"
         }
       },
       "documentation":"<p>Container for the configuration of an OpenSearch Service domain.</p>"
@@ -3083,7 +3199,7 @@
         },
         "TLSSecurityPolicy":{
           "shape":"TLSSecurityPolicy",
-          "documentation":"<p>Specify the TLS security policy to apply to the HTTPS endpoint of the domain. The policy can be one of the following values:</p> <ul> <li> <p> <b>Policy-Min-TLS-1-0-2019-07:</b> TLS security policy which supports TLS version 1.0 to TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-2019-07:</b> TLS security policy which supports only TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-0-2023-10:</b> TLS security policy which supports TLS version 1.0 to TLS version 1.3</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-2023-10:</b> TLS security policy which supports TLS version 1.2 to TLS version 1.3 with perfect forward secrecy cipher suites</p> </li> </ul>"
+          "documentation":"<p>Specify the TLS security policy to apply to the HTTPS endpoint of the domain. The policy can be one of the following values:</p> <ul> <li> <p> <b>Policy-Min-TLS-1-0-2019-07:</b> TLS security policy that supports TLS version 1.0 to TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-2019-07:</b> TLS security policy that supports only TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-PFS-2023-10:</b> TLS security policy that supports TLS version 1.2 to TLS version 1.3 with perfect forward secrecy cipher suites</p> </li> </ul>"
         },
         "CustomEndpointEnabled":{
           "shape":"Boolean",
@@ -3321,6 +3437,18 @@
         "DISSOCIATION_FAILED"
       ]
     },
+    "DomainProcessingStatusType":{
+      "type":"string",
+      "enum":[
+        "Creating",
+        "Active",
+        "Modifying",
+        "UpgradingEngineVersion",
+        "UpdatingServiceSoftware",
+        "Isolated",
+        "Deleting"
+      ]
+    },
     "DomainState":{
       "type":"string",
       "enum":[
@@ -3362,10 +3490,13 @@
           "shape":"ServiceUrl",
           "documentation":"<p>Domain-specific endpoint used to submit index, search, and data upload requests to the domain.</p>"
         },
-        "EndpointV2":{"shape":"ServiceUrl"},
+        "EndpointV2":{
+          "shape":"ServiceUrl",
+          "documentation":"<p>If <code>IPAddressType</code> to set to <code>dualstack</code>, a version 2 domain endpoint is provisioned. This endpoint functions like a normal endpoint, except that it works with both IPv4 and IPv6 IP addresses. Normal endpoints work only with IPv4 IP addresses. </p>"
+        },
         "Endpoints":{
           "shape":"EndpointsMap",
-          "documentation":"<p>The key-value pair that exists if the OpenSearch Service domain uses VPC endpoints.. Example <code>key, value</code>: <code>'vpc','vpc-endpoint-h2dsd34efgyghrtguk5gt6j2foh4.us-east-1.es.amazonaws.com'</code>.</p>"
+          "documentation":"<p>The key-value pair that exists if the OpenSearch Service domain uses VPC endpoints. Example <code>key, value</code>: <code>'vpc','vpc-endpoint-h2dsd34efgyghrtguk5gt6j2foh4.us-east-1.es.amazonaws.com'</code>.</p>"
         },
         "Processing":{
           "shape":"Boolean",
@@ -3450,6 +3581,14 @@
         "SoftwareUpdateOptions":{
           "shape":"SoftwareUpdateOptions",
           "documentation":"<p>Service software update options for the domain.</p>"
+        },
+        "DomainProcessingStatus":{
+          "shape":"DomainProcessingStatusType",
+          "documentation":"<p>The status of any changes that are currently in progress for the domain.</p>"
+        },
+        "ModifyingProperties":{
+          "shape":"ModifyingPropertiesList",
+          "documentation":"<p>Information about the domain properties that are currently being modified.</p>"
         }
       },
       "documentation":"<p>The current status of an OpenSearch Service domain.</p>"
@@ -3590,7 +3729,7 @@
           "documentation":"<p>The KMS key ID. Takes the form <code>1a2a3a4-1a2a-3a4a-5a6a-1a2a3a4a5a6a</code>.</p>"
         }
       },
-      "documentation":"<p>Specifies whether the domain should encrypt data at rest, and if so, the Key Management Service (KMS) key to use. Can be used only to create a new domain, not update an existing one.</p>"
+      "documentation":"<p>Specifies whether the domain should encrypt data at rest, and if so, the Key Management Service (KMS) key to use. Can only be used when creating a new domain or enabling encryption at rest for the first time on an existing domain. You can't modify this parameter after it's already been specified.</p>"
     },
     "EncryptionAtRestOptionsStatus":{
       "type":"structure",
@@ -3684,6 +3823,10 @@
       "min":36,
       "pattern":"\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}"
     },
+    "GUIDList":{
+      "type":"list",
+      "member":{"shape":"GUID"}
+    },
     "GetCompatibleVersionsRequest":{
       "type":"structure",
       "members":{
@@ -3721,7 +3864,7 @@
         },
         "Name":{
           "shape":"DataSourceName",
-          "documentation":"<p>The name of the data source.</p>",
+          "documentation":"<p>The name of the data source to get information about.</p>",
           "location":"uri",
           "locationName":"DataSourceName"
         }
@@ -3996,6 +4139,13 @@
       "type":"list",
       "member":{"shape":"InboundConnection"}
     },
+    "InitiatedBy":{
+      "type":"string",
+      "enum":[
+        "CUSTOMER",
+        "SERVICE"
+      ]
+    },
     "InstanceCount":{
       "type":"integer",
       "documentation":"<p>Number of instances in an OpenSearch Service cluster.</p>",
@@ -4172,7 +4322,7 @@
       "members":{
         "DataSources":{
           "shape":"DataSourceList",
-          "documentation":"<p>A list of the data sources.</p>"
+          "documentation":"<p>A list of data sources associated with specified domain.</p>"
         }
       },
       "documentation":"<p>The result of a <code>ListDataSources</code> operation.</p>"
@@ -4683,6 +4833,32 @@
     "MinimumInstanceCount":{
       "type":"integer",
       "documentation":"<p> Minimum number of instances that can be instantiated for a given instance type.</p>"
+    },
+    "ModifyingProperties":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"String",
+          "documentation":"<p>The name of the property that is currently being modified.</p>"
+        },
+        "ActiveValue":{
+          "shape":"String",
+          "documentation":"<p>The current value of the domain property that is being modified.</p>"
+        },
+        "PendingValue":{
+          "shape":"String",
+          "documentation":"<p>The value that the property that is currently being modified will eventually have.</p>"
+        },
+        "ValueType":{
+          "shape":"PropertyValueType",
+          "documentation":"<p>The type of value that is currently being modified. Properties can have two types:</p> <ul> <li> <p> <code>PLAIN_TEXT</code>: Contain direct values such as \"1\", \"True\", or \"c5.large.search\".</p> </li> <li> <p> <code>STRINGIFIED_JSON</code>: Contain content in JSON format, such as {\"Enabled\":\"True\"}\".</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Information about the domain properties that are currently being modified.</p>"
+    },
+    "ModifyingPropertiesList":{
+      "type":"list",
+      "member":{"shape":"ModifyingProperties"}
     },
     "NextToken":{
       "type":"string",
@@ -5216,6 +5392,13 @@
         "AWS_SERVICE"
       ]
     },
+    "PropertyValueType":{
+      "type":"string",
+      "enum":[
+        "PLAIN_TEXT",
+        "STRINGIFIED_JSON"
+      ]
+    },
     "PurchaseReservedInstanceOfferingRequest":{
       "type":"structure",
       "required":[
@@ -5510,10 +5693,10 @@
       "members":{
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The role ARN for the AWS S3 Glue Data Catalog.</p>"
+          "documentation":"<p>&gt;The Amazon Resource Name (ARN) for the S3 Glue Data Catalog.</p>"
         }
       },
-      "documentation":"<p>Information about the AWS S3 Glue Data Catalog.</p>"
+      "documentation":"<p>Information about the Amazon S3 Glue Data Catalog.</p>"
     },
     "S3Key":{
       "type":"string",
@@ -5968,7 +6151,8 @@
       "type":"string",
       "enum":[
         "Policy-Min-TLS-1-0-2019-07",
-        "Policy-Min-TLS-1-2-2019-07"
+        "Policy-Min-TLS-1-2-2019-07",
+        "Policy-Min-TLS-1-2-PFS-2023-10"
       ]
     },
     "Tag":{
@@ -6035,7 +6219,7 @@
         },
         "Name":{
           "shape":"DataSourceName",
-          "documentation":"<p>The name of the data source.</p>",
+          "documentation":"<p>The name of the data source to modify.</p>",
           "location":"uri",
           "locationName":"DataSourceName"
         },
@@ -6045,7 +6229,7 @@
         },
         "Description":{
           "shape":"DataSourceDescription",
-          "documentation":"<p>A description of the data source.</p>"
+          "documentation":"<p>A new description of the data source.</p>"
         }
       },
       "documentation":"<p>Container for the parameters to the <code>UpdateDataSource</code> operation.</p>"
@@ -6055,7 +6239,7 @@
       "members":{
         "Message":{
           "shape":"String",
-          "documentation":"<p>A message associated with the data source.</p>"
+          "documentation":"<p>A message associated with the updated data source.</p>"
         }
       },
       "documentation":"<p>The result of an <code>UpdateDataSource</code> operation.</p>"
@@ -6100,7 +6284,7 @@
         },
         "IPAddressType":{
           "shape":"IPAddressType",
-          "documentation":"<p>The type of IP addresses supported by the endpoint for the domain.</p>"
+          "documentation":"<p>Specify either dual stack or IPv4 as your IP address type. Dual stack allows you to share domain resources across IPv4 and IPv6 address types, and is the recommended option. If your IP address type is currently set to dual stack, you can't change it. </p>"
         },
         "LogPublishingOptions":{
           "shape":"LogPublishingOptions",

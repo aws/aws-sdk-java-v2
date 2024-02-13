@@ -38,7 +38,7 @@ public class RequestCompressionTrait {
      * return an empty code-block.
      */
     public static CodeBlock create(OperationModel operationModel, IntermediateModel model) {
-        if (operationModel.getRequestCompression() == null) {
+        if (operationModel.getRequestcompression() == null) {
             return CodeBlock.of("");
         }
 
@@ -49,7 +49,7 @@ public class RequestCompressionTrait {
             throw new IllegalStateException("Request compression for S3 is not yet supported in the AWS SDK for Java.");
         }
 
-        List<String> encodings = operationModel.getRequestCompression().getEncodings();
+        List<String> encodings = operationModel.getRequestcompression().getEncodings();
 
         return CodeBlock.of(".putExecutionAttribute($T.REQUEST_COMPRESSION, "
                             + "$T.builder().encodings($L).isStreaming($L).build())",

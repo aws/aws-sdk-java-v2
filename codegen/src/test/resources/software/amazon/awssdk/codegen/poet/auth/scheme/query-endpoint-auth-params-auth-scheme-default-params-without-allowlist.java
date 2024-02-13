@@ -19,11 +19,12 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
+import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams {
+public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams, QueryEndpointResolverAware {
     private final String operation;
 
     private final Region region;
@@ -46,6 +47,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
     private final String operationContextParam;
 
+    private final QueryEndpointProvider endpointProvider;
+
     private DefaultQueryAuthSchemeParams(Builder builder) {
         this.operation = Validate.paramNotNull(builder.operation, "operation");
         this.region = builder.region;
@@ -58,6 +61,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         this.booleanContextParam = builder.booleanContextParam;
         this.stringContextParam = builder.stringContextParam;
         this.operationContextParam = builder.operationContextParam;
+        this.endpointProvider = builder.endpointProvider;
     }
 
     public static QueryAuthSchemeParams.Builder builder() {
@@ -121,11 +125,16 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     }
 
     @Override
+    public QueryEndpointProvider endpointProvider() {
+        return endpointProvider;
+    }
+
+    @Override
     public QueryAuthSchemeParams.Builder toBuilder() {
         return new Builder(this);
     }
 
-    private static final class Builder implements QueryAuthSchemeParams.Builder {
+    private static final class Builder implements QueryAuthSchemeParams.Builder, QueryEndpointResolverAware.Builder {
         private String operation;
 
         private Region region;
@@ -148,6 +157,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
         private String operationContextParam;
 
+        private QueryEndpointProvider endpointProvider;
+
         Builder() {
         }
 
@@ -163,6 +174,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
             this.booleanContextParam = params.booleanContextParam;
             this.stringContextParam = params.stringContextParam;
             this.operationContextParam = params.operationContextParam;
+            this.endpointProvider = params.endpointProvider;
         }
 
         @Override
@@ -235,6 +247,12 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         @Override
         public Builder operationContextParam(String operationContextParam) {
             this.operationContextParam = operationContextParam;
+            return this;
+        }
+
+        @Override
+        public Builder endpointProvider(QueryEndpointProvider endpointProvider) {
+            this.endpointProvider = endpointProvider;
             return this;
         }
 

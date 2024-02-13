@@ -25,6 +25,7 @@ import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeParamsSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeProviderSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.DefaultAuthSchemeParamsSpec;
+import software.amazon.awssdk.codegen.poet.auth.scheme.EndpointAwareAuthSchemeParamsSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.EndpointBasedAuthSchemeProviderSpec;
 import software.amazon.awssdk.codegen.poet.auth.scheme.ModelBasedAuthSchemeProviderSpec;
 
@@ -47,6 +48,7 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
         tasks.add(generateAuthSchemeInterceptor());
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             tasks.add(generateEndpointBasedProvider());
+            tasks.add(generateEndpointAwareAuthSchemeParams());
         }
         return tasks;
     }
@@ -70,6 +72,11 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
     private GeneratorTask generateEndpointBasedProvider() {
         return new PoetGeneratorTask(authSchemeInternalDir(), model.getFileHeader(),
                                      new EndpointBasedAuthSchemeProviderSpec(model));
+    }
+
+    private GeneratorTask generateEndpointAwareAuthSchemeParams() {
+        return new PoetGeneratorTask(authSchemeDir(), model.getFileHeader(), new EndpointAwareAuthSchemeParamsSpec(model));
+
     }
 
     private GeneratorTask generateAuthSchemeInterceptor() {

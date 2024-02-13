@@ -1,0 +1,24 @@
+{
+    "version": "2.22.13",
+    "date": "2024-01-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Aws CodeBuild now supports new compute type BUILD_GENERAL1_XLARGE"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Amazon EC2 R7iz bare metal instances are powered by custom 4th generation Intel Xeon Scalable processors."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "This release adds support for query type configuration on firewall rules that enables customers for granular action (ALLOW, ALERT, BLOCK) by DNS query type."
+        }
+    ]
+}

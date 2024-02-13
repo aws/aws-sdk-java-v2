@@ -33,14 +33,13 @@ import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressUtils;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class EnableTrailingChecksumInterceptor implements ExecutionInterceptor {
 
     /**
-     * Enable {@link ChecksumMode} for {@link PutObjectRequest} if trailing checksum is enabled from config,
+     * Enable {@link ChecksumMode} for {@link GetObjectRequest} if trailing checksum is enabled from config,
      * {@link ChecksumMode} is disabled, and is S3Express.
      * TODO (s3express) - refactor to migrate out s3express specific code
      */

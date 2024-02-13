@@ -37,6 +37,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -182,7 +183,6 @@ class SdkPojoConversionUtilsTest {
         PutObjectRequest randomObject = randomPutObjectRequest();
         CreateMultipartUploadRequest convertedObject = SdkPojoConversionUtils.toCreateMultipartUploadRequest(randomObject);
         Set<String> fieldsToIgnore = new HashSet<>();
-        System.out.println(convertedObject);
         verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
                               PutObjectRequest.builder().sdkFields(),
                               CreateMultipartUploadRequest.builder().sdkFields());
@@ -199,6 +199,23 @@ class SdkPojoConversionUtilsTest {
                               UploadPartResponse.builder().sdkFields(),
                               CompletedPart.builder().sdkFields());
         assertThat(convertedCompletedPart.partNumber()).isEqualTo(1);
+    }
+
+    @Test
+    void toCompleteMultipartUploadRequest_putObject_shouldCopyProperties() {
+        PutObjectRequest randomObject = randomPutObjectRequest();
+        CompletedPart parts[] = new CompletedPart[1];
+        CompletedPart completedPart = CompletedPart.builder().partNumber(1).build();
+        parts[0] = completedPart;
+        CompleteMultipartUploadRequest convertedObject =
+            SdkPojoConversionUtils.toCompleteMultipartUploadRequest(randomObject, "uploadId", parts);
+
+        Set<String> fieldsToIgnore = new HashSet<>();
+        verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
+                              PutObjectRequest.builder().sdkFields(),
+                              CompleteMultipartUploadRequest.builder().sdkFields());
+        assertThat(convertedObject.uploadId()).isEqualTo("uploadId");
+        assertThat(convertedObject.multipartUpload().parts()).contains(completedPart);
     }
 
     private static void verifyFieldsAreCopied(SdkPojo requestConvertedFrom,
