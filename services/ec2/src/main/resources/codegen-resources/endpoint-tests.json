@@ -157,6 +157,32 @@
             }
         },
         {
+            "documentation": "For region ca-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://ec2.ca-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "ca-west-1",
+                "UseFIPS": false,
+                "UseDualStack": false
+            }
+        },
+        {
+            "documentation": "For region ca-west-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://ec2-fips.ca-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "ca-west-1",
+                "UseFIPS": true,
+                "UseDualStack": false
+            }
+        },
+        {
             "documentation": "For region eu-central-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
