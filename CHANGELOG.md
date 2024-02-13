@@ -1,6 +1,5 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
 # __2.24.0__ __2024-02-09__
-
 ## __AWS Batch__
   - ### Features
     - This feature allows Batch to support configuration of repository credentials for jobs running on ECS
@@ -27,10 +26,11 @@
     - Overall documentation updates.
 
 ## __Amazon S3__
+  - ### Features
+    - Overriding signer properties for S3 through the deprecated non-public execution attributes in S3SignerExecutionAttribute no longer works with this release. The recommended approach is to use plugins in order to change these settings.
+
   - ### Bugfixes
     - Fix bug where PUT fails when using SSE-C with Checksum when using S3AsyncClient with multipart enabled. Enable CRC32 for putObject when using multipart client if checksum validation is not disabled and checksum is not set by user
-  - ### Features
-    - Overriding signer properties for S3 through the deprecated non-public execution attributes in S3SignerExecutionAttribute no longer works with this release. The recommended approach is using plugins.
 
 ## __Braket__
   - ### Features
