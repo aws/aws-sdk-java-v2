@@ -149,7 +149,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
-        List<SdkPlugin> internalPlugins = internalPlugins();
+        List<SdkPlugin> internalPlugins = internalPlugins(config);
         List<SdkPlugin> externalPlugins = plugins();
         if (internalPlugins.isEmpty() && externalPlugins.isEmpty()) {
             return config;
@@ -163,7 +163,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return configuration.build();
     }
 
-    private List<SdkPlugin> internalPlugins() {
+    private List<SdkPlugin> internalPlugins(SdkClientConfiguration config) {
         return Collections.emptyList();
     }
 
