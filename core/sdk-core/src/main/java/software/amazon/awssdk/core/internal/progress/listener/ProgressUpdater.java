@@ -16,10 +16,7 @@
 package software.amazon.awssdk.core.internal.progress.listener;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -27,11 +24,8 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.internal.progress.ProgressListenerContext;
 import software.amazon.awssdk.core.internal.progress.ProgressListenerFailedContext;
 import software.amazon.awssdk.core.internal.progress.snapshot.DefaultProgressSnapshot;
-import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.core.progress.listener.SdkExchangeProgress;
 import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * ProgressUpdater exposes methods that invokes listener methods to update and store request progress state
@@ -63,7 +57,9 @@ public class ProgressUpdater {
                                          .downloadProgressSnapshot(downloadProgressSnapshot)
                                          .build();
 
-        listenerInvoker = new ProgressListenerInvoker(sdkRequest.overrideConfiguration().map(RequestOverrideConfiguration::progressListeners).orElse(Collections.emptyList()));
+        listenerInvoker = new ProgressListenerInvoker(sdkRequest.overrideConfiguration()
+                                                                .map(RequestOverrideConfiguration::progressListeners)
+                                                                .orElse(Collections.emptyList()));
     }
 
     public void updateResponseContentLength(Long responseContentLength) {
