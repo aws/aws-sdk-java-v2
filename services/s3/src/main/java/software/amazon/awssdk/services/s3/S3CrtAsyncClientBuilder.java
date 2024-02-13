@@ -17,6 +17,9 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -115,11 +118,31 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long uploadPartSize);
 
     /**
+     * The amount of native memory that CRT is allowed to use when making requests to S3.
+     * <p>
+     * If not provided, the CRT attempts to limit native memory usage in an optimal way, based on a number of parameters
+     * such as target throughput. Therefore, only configure the memory limit explicitly when needed.
+     * <p>
+     * Supported range:
+     * <ul>
+     *     <li><b>Min: </b>1 GB</li>
+     *     <li><b>Max: </b>The lowest value of the supplied value and the SIZE_MAX of the system</li>
+     * </ul>
+     *
+     * @param maxNativeMemoryLimitInBytes
+ the native memory limit in bytes
+     * @return this builder for method chaining.
+     * @see #targetThroughputInGbps(Double)
+     */
+    S3CrtAsyncClientBuilder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes
+);
+
+    /**
      * The target throughput for transfer requests. Higher value means more connections will be established with S3.
      *
      * <p>
      * Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network
-     * bandwidth of the environment and whether {@link #maxConcurrency} is configured.
+     * bandwidth of the environment, whether {@link #maxConcurrency} is configured and amount of available memory.
      *
      * <p>
      * By default, it is 10 gigabits per second. If users want to transfer as fast as possible, it's recommended to set it to the
@@ -128,10 +151,15 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * instance type in <a href="https://aws.amazon.com/ec2/instance-types/">Amazon EC2 instance type page</a>.
      * If you are running into out of file descriptors error, consider using {@link #maxConcurrency(Integer)} to limit the
      * number of connections.
+     * <p>
+     * <b>Note: </b> This setting affects the native memory usage used by CRT; a higher throughput value will result in a larger
+     * memory usage. Typically, a range of throughput values maps to a discrete memory limit value in CRT, with a maximum upper
+     * limit.
      *
      * @param targetThroughputInGbps the target throughput in Gbps
      * @return this builder for method chaining.
      * @see #maxConcurrency(Integer)
+     * @see #maxNativeMemoryLimitInBytes(Long)
      */
     S3CrtAsyncClientBuilder targetThroughputInGbps(Double targetThroughputInGbps);
 
@@ -280,6 +308,30 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * @return an instance of this builder.
      */
     S3CrtAsyncClientBuilder thresholdInBytes(Long thresholdInBytes);
+
+    /**
+     * Configure the {@link Executor} that should be used to complete the {@link CompletableFuture} that is returned by the async
+     * service client. By default, this is a dedicated, per-client {@link ThreadPoolExecutor} that is managed by the SDK.
+     * <p>
+     * The configured {@link Executor} will be invoked by the async HTTP client's I/O threads (e.g., EventLoops), which must be
+     * reserved for non-blocking behavior. Blocking an I/O thread can cause severe performance degradation, including across
+     * multiple clients, as clients are configured, by default, to share a single I/O thread pool (e.g., EventLoopGroup).
+     * <p>
+     * You should typically only want to customize the future-completion {@link Executor} for a few possible reasons:
+     * <ol>
+     *     <li>You want more fine-grained control over the {@link ThreadPoolExecutor} used, such as configuring the pool size
+     *     or sharing a single pool between multiple clients.
+     *     <li>You want to add instrumentation (i.e., metrics) around how the {@link Executor} is used.
+     *     <li>You know, for certain, that all of your {@link CompletableFuture} usage is strictly non-blocking, and you wish to
+     *     remove the minor overhead incurred by using a separate thread. In this case, you can use
+     *     {@code Runnable::run} to execute the future-completion directly from within the I/O thread.
+     * </ol>
+     *
+     * @param futureCompletionExecutor the executor
+     * @return an instance of this builder.
+     */
+    S3CrtAsyncClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor);
+
 
     @Override
     S3AsyncClient build();

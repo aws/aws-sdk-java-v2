@@ -31,7 +31,16 @@ import software.amazon.awssdk.utils.StringUtils;
  * Utility for creating easily creating XML documents, one element at a time.
  */
 @SdkInternalApi
-final class XmlWriter {
+class XmlWriter {
+
+    static final String[] ESCAPE_SEARCHES = {
+        // Ampersands should always be the first to escape
+        "&", "\"", "'", "<", ">", "\r", "\n"
+    };
+
+    static final String[] ESCAPE_REPLACEMENTS = {
+        "&amp;", "&quot;", "&apos;", "&lt;", "&gt;", "&#x0D;", "&#x0A;"
+    };
 
     /** Standard XML prolog to add to the beginning of each XML document. */
     private static final String PROLOG = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
@@ -43,15 +52,6 @@ final class XmlWriter {
 
     private static final String[] UNESCAPE_REPLACEMENTS = {
         "\"", "'", "<", ">", "\r", "\n", "&"
-    };
-
-    private static final String[] ESCAPE_SEARCHES = {
-        // Ampersands should always be the first to escape
-        "&", "\"", "'", "<", ">", "\r", "\n"
-    };
-
-    private static final String[] ESCAPE_REPLACEMENTS = {
-        "&amp;", "&quot;", "&apos;", "&lt;", "&gt;", "&#x0D;", "&#x0A;"
     };
 
     /** The writer to which the XML document created by this writer will be written. */
@@ -205,7 +205,7 @@ final class XmlWriter {
         }
     }
 
-    private String escapeXmlEntities(String s) {
+    protected String escapeXmlEntities(String s) {
         // Unescape any escaped characters.
         if (s.contains("&")) {
             s = StringUtils.replaceEach(s, UNESCAPE_SEARCHES, UNESCAPE_REPLACEMENTS);

@@ -35,6 +35,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -56,6 +58,16 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
             GetObjectRequest.builder().bucket(bucketName()).checksumMode(ChecksumMode.ENABLED).key(KEY).build();
         ResponseBytes<GetObjectResponse> response = getAPICall(getObjectRequest);
         assertThat(new String(response.asByteArray())).isEqualTo("TEST_STRING");
+    }
+
+    @Test
+    void headObjectApi_CrossRegionCall() {
+        s3.putObject(p -> p.bucket(bucketName()).checksumAlgorithm(ChecksumAlgorithm.CRC32).key(KEY), RequestBody.fromString(
+            "TEST_STRING"));
+        HeadObjectRequest headObjectRequest =
+            HeadObjectRequest.builder().bucket(bucketName()).checksumMode(ChecksumMode.ENABLED).key(KEY).build();
+        HeadObjectResponse response = headObjectAPICall(headObjectRequest);
+        assertThat(response.contentLength()).isEqualTo("TEST_STRING".length());
     }
 
     @Test
@@ -136,6 +148,7 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
     protected abstract PutObjectResponse putAPICall(PutObjectRequest putObjectRequest, String testString);
 
     protected abstract ResponseBytes<GetObjectResponse> getAPICall(GetObjectRequest getObjectRequest);
+    protected abstract HeadObjectResponse headObjectAPICall(HeadObjectRequest headObjectRequest);
 
     protected abstract String bucketName();
 

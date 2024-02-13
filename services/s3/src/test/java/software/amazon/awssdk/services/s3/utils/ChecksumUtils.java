@@ -15,17 +15,15 @@
 
 package software.amazon.awssdk.services.s3.utils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.core.checksums.Algorithm;
@@ -86,6 +84,20 @@ public final class ChecksumUtils {
             sdkChecksum.update(character);
         }
         return BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
+    }
+
+    public static String calculatedChecksum(Path path, Algorithm algorithm) {
+        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(algorithm);
+        try (InputStream is = Files.newInputStream(path)) {
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                sdkChecksum.update(buffer, 0, read);
+            }
+            return BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static String createDataOfSize(int dataSize, char contentCharacter) {

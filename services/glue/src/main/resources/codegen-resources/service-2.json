@@ -408,7 +408,7 @@
         {"shape":"ResourceNumberLimitExceededException"},
         {"shape":"GlueEncryptionException"}
       ],
-      "documentation":"<p>Creates a connection definition in the Data Catalog.</p>"
+      "documentation":"<p>Creates a connection definition in the Data Catalog.</p> <p>Connections used for creating federated resources require the IAM <code>glue:PassConnection</code> permission.</p>"
     },
     "CreateCrawler":{
       "name":"CreateCrawler",
@@ -3589,6 +3589,11 @@
       "type":"list",
       "member":{"shape":"Action"}
     },
+    "AdditionalContextMap":{
+      "type":"map",
+      "key":{"shape":"ContextKey"},
+      "value":{"shape":"ContextValue"}
+    },
     "AdditionalOptionKeys":{
       "type":"string",
       "enum":[
@@ -5069,7 +5074,8 @@
       "type":"string",
       "enum":[
         "DISABLED",
-        "SSE-KMS"
+        "SSE-KMS",
+        "SSE-KMS-WITH-SERVICE-ROLE"
       ]
     },
     "CatalogEntries":{
@@ -6268,7 +6274,7 @@
         },
         "ConnectionProperties":{
           "shape":"ConnectionProperties",
-          "documentation":"<p>These key-value pairs define parameters for the connection:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code>, <code>\"GSSAPI\"</code>, or <code>\"AWS_MSK_IAM\"</code>. These are the supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_SECRETS_ARN</code> - The Amazon Resource Name of a secret in Amazon Web Services Secrets Manager.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> </ul>"
+          "documentation":"<p>These key-value pairs define parameters for the connection:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code>, <code>\"GSSAPI\"</code>, <code>\"AWS_MSK_IAM\"</code>, or <code>\"PLAIN\"</code>. These are the supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_USERNAME</code> - A plaintext username used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_PASSWORD</code> - A plaintext password used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_PLAIN_PASSWORD</code> - The encrypted version of the Kafka SASL PLAIN password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_SECRETS_ARN</code> - The Amazon Resource Name of a secret in Amazon Web Services Secrets Manager.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> </ul>"
         },
         "PhysicalConnectionRequirements":{
           "shape":"PhysicalConnectionRequirements",
@@ -6385,6 +6391,9 @@
         "CONNECTOR_TYPE",
         "CONNECTOR_CLASS_NAME",
         "KAFKA_SASL_MECHANISM",
+        "KAFKA_SASL_PLAIN_USERNAME",
+        "KAFKA_SASL_PLAIN_PASSWORD",
+        "ENCRYPTED_KAFKA_SASL_PLAIN_PASSWORD",
         "KAFKA_SASL_SCRAM_USERNAME",
         "KAFKA_SASL_SCRAM_PASSWORD",
         "KAFKA_SASL_SCRAM_SECRETS_ARN",
@@ -6475,6 +6484,16 @@
       "type":"map",
       "key":{"shape":"GenericString"},
       "value":{"shape":"GenericString"}
+    },
+    "ContextKey":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "ContextValue":{
+      "type":"string",
+      "max":256,
+      "min":0
     },
     "ContextWords":{
       "type":"list",
@@ -10170,6 +10189,10 @@
         "SseAwsKmsKeyId":{
           "shape":"NameString",
           "documentation":"<p>The ID of the KMS key to use for encryption at rest.</p>"
+        },
+        "CatalogEncryptionServiceRole":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>The role that Glue assumes to encrypt and decrypt the Data Catalog objects on the caller's behalf.</p>"
         }
       },
       "documentation":"<p>Specifies the encryption-at-rest configuration for the Data Catalog.</p>"
@@ -10475,8 +10498,12 @@
     "FederationSourceRetryableException":{
       "type":"structure",
       "members":{
-        "Message":{"shape":"MessageString"}
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
       },
+      "documentation":"<p>A federation source failed, but the operation may be retried.</p>",
       "exception":true
     },
     "FieldName":{
@@ -11686,7 +11713,7 @@
           "documentation":"<p>A continuation token, if this is a continuation call.</p>"
         },
         "MaxResults":{
-          "shape":"PageSize",
+          "shape":"OrchestrationPageSize200",
           "documentation":"<p>The maximum size of the response.</p>"
         }
       }
@@ -12821,7 +12848,7 @@
           "documentation":"<p>The name of the job to retrieve triggers for. The trigger that can start this job is returned, and if there is no such trigger, all triggers are returned.</p>"
         },
         "MaxResults":{
-          "shape":"PageSize",
+          "shape":"OrchestrationPageSize200",
           "documentation":"<p>The maximum size of the response.</p>"
         }
       }
@@ -12849,6 +12876,10 @@
         "SupportedPermissionTypes"
       ],
       "members":{
+        "Region":{
+          "shape":"ValueString",
+          "documentation":"<p>Specified only if the base tables belong to a different Amazon Web Services Region.</p>"
+        },
         "CatalogId":{
           "shape":"CatalogIdString",
           "documentation":"<p>The catalog ID where the partition resides.</p>"
@@ -12872,6 +12903,10 @@
         "SupportedPermissionTypes":{
           "shape":"PermissionTypeList",
           "documentation":"<p>(Required) A list of supported permission types. </p>"
+        },
+        "QuerySessionContext":{
+          "shape":"QuerySessionContext",
+          "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
         }
       }
     },
@@ -12901,6 +12936,10 @@
         "SupportedPermissionTypes"
       ],
       "members":{
+        "Region":{
+          "shape":"ValueString",
+          "documentation":"<p>Specified only if the base tables belong to a different Amazon Web Services Region.</p>"
+        },
         "CatalogId":{
           "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog where the partitions in question reside. If none is provided, the AWS account ID is used by default. </p>"
@@ -12936,6 +12975,10 @@
         "MaxResults":{
           "shape":"PageSize",
           "documentation":"<p>The maximum number of partitions to return in a single response.</p>"
+        },
+        "QuerySessionContext":{
+          "shape":"QuerySessionContext",
+          "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
         }
       }
     },
@@ -12961,6 +13004,10 @@
         "SupportedPermissionTypes"
       ],
       "members":{
+        "Region":{
+          "shape":"ValueString",
+          "documentation":"<p>Specified only if the base tables belong to a different Amazon Web Services Region.</p>"
+        },
         "CatalogId":{
           "shape":"CatalogIdString",
           "documentation":"<p>The catalog ID where the table resides.</p>"
@@ -12980,6 +13027,18 @@
         "SupportedPermissionTypes":{
           "shape":"PermissionTypeList",
           "documentation":"<p>(Required) A list of supported permission types. </p>"
+        },
+        "SupportedDialect":{
+          "shape":"SupportedDialect",
+          "documentation":"<p>A structure specifying the dialect and dialect version used by the query engine.</p>"
+        },
+        "Permissions":{
+          "shape":"PermissionList",
+          "documentation":"<p>The Lake Formation data permissions of the caller on the table. Used to authorize the call when no view context is found.</p>"
+        },
+        "QuerySessionContext":{
+          "shape":"QuerySessionContext",
+          "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
         }
       }
     },
@@ -13001,6 +13060,18 @@
         "CellFilters":{
           "shape":"ColumnRowFilterList",
           "documentation":"<p>A list of column row filters.</p>"
+        },
+        "QueryAuthorizationId":{
+          "shape":"HashString",
+          "documentation":"<p>A cryptographically generated query identifier generated by Glue or Lake Formation.</p>"
+        },
+        "ResourceArn":{
+          "shape":"ArnString",
+          "documentation":"<p>The resource ARN of the parent resource extracted from the request.</p>"
+        },
+        "Permissions":{
+          "shape":"PermissionList",
+          "documentation":"<p>The Lake Formation data permissions of the caller on the table. Used to authorize the call when no view context is found.</p>"
         }
       }
     },
@@ -13485,6 +13556,10 @@
     "HudiTargetList":{
       "type":"list",
       "member":{"shape":"HudiTarget"}
+    },
+    "IAMRoleArn":{
+      "type":"string",
+      "pattern":"^arn:aws(-(cn|us-gov|iso(-[bef])?))?:iam::[0-9]{12}:role/.+"
     },
     "IcebergInput":{
       "type":"structure",
@@ -14051,7 +14126,7 @@
         },
         "Runtime":{
           "shape":"RuntimeNameString",
-          "documentation":"<p>In Ray jobs, Runtime is used to specify the versions of Ray, Python and additional libraries available in your environment. This field is not used in other job types. For supported runtime environment values, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/author-job-ray-runtimes.html\">Working with Ray jobs</a> in the Glue Developer Guide.</p>"
+          "documentation":"<p>In Ray jobs, Runtime is used to specify the versions of Ray, Python and additional libraries available in your environment. This field is not used in other job types. For supported runtime environment values, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/ray-jobs-section.html\">Supported Ray runtime environments</a> in the Glue Developer Guide.</p>"
         }
       },
       "documentation":"<p>Specifies code that runs when a job is run.</p>"
@@ -14713,7 +14788,7 @@
           "documentation":"<p>A continuation token, if this is a continuation request.</p>"
         },
         "MaxResults":{
-          "shape":"PageSize",
+          "shape":"OrchestrationPageSize25",
           "documentation":"<p>The maximum size of a list to return.</p>"
         },
         "Tags":{
@@ -15309,7 +15384,7 @@
           "documentation":"<p> The name of the job for which to retrieve triggers. The trigger that can start this job is returned. If there is no such trigger, all triggers are returned.</p>"
         },
         "MaxResults":{
-          "shape":"PageSize",
+          "shape":"OrchestrationPageSize200",
           "documentation":"<p>The maximum size of a list to return.</p>"
         },
         "Tags":{
@@ -15339,7 +15414,7 @@
           "documentation":"<p>A continuation token, if this is a continuation request.</p>"
         },
         "MaxResults":{
-          "shape":"PageSize",
+          "shape":"OrchestrationPageSize25",
           "documentation":"<p>The maximum size of a list to return.</p>"
         }
       }
@@ -16055,6 +16130,10 @@
       "type":"integer",
       "box":true
     },
+    "NullableString":{
+      "type":"string",
+      "box":true
+    },
     "OneInput":{
       "type":"list",
       "member":{"shape":"NodeId"},
@@ -16179,6 +16258,18 @@
       "max":128,
       "min":1,
       "pattern":"[\\.\\-_A-Za-z0-9]+"
+    },
+    "OrchestrationPageSize200":{
+      "type":"integer",
+      "box":true,
+      "max":200,
+      "min":1
+    },
+    "OrchestrationPageSize25":{
+      "type":"integer",
+      "box":true,
+      "max":25,
+      "min":1
     },
     "OrchestrationRoleArn":{
       "type":"string",
@@ -16929,6 +17020,32 @@
           "documentation":"<p>A continuation token for paginating the returned list of tokens, returned if the current segment of the list is not the last.</p>"
         }
       }
+    },
+    "QuerySessionContext":{
+      "type":"structure",
+      "members":{
+        "QueryId":{
+          "shape":"HashString",
+          "documentation":"<p>A unique identifier generated by the query engine for the query.</p>"
+        },
+        "QueryStartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>A timestamp provided by the query engine for when the query started.</p>"
+        },
+        "ClusterId":{
+          "shape":"NullableString",
+          "documentation":"<p>An identifier string for the consumer cluster.</p>"
+        },
+        "QueryAuthorizationId":{
+          "shape":"HashString",
+          "documentation":"<p>A cryptographically generated query identifier generated by Glue or Lake Formation.</p>"
+        },
+        "AdditionalContext":{
+          "shape":"AdditionalContextMap",
+          "documentation":"<p>An opaque string-string map passed by the query engine.</p>"
+        }
+      },
+      "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
     },
     "QuoteChar":{
       "type":"string",
@@ -19942,6 +20059,20 @@
       "type":"list",
       "member":{"shape":"GenericString"}
     },
+    "SupportedDialect":{
+      "type":"structure",
+      "members":{
+        "Dialect":{
+          "shape":"ViewDialect",
+          "documentation":"<p>The dialect of the query engine.</p>"
+        },
+        "DialectVersion":{
+          "shape":"ViewDialectVersionString",
+          "documentation":"<p>The version of the dialect of the query engine. For example, 3.0.0.</p>"
+        }
+      },
+      "documentation":"<p>A structure specifying the dialect and dialect version used by the query engine.</p>"
+    },
     "Table":{
       "type":"structure",
       "required":["Name"],
@@ -21919,6 +22050,19 @@
       "max":100000,
       "min":1,
       "pattern":"[1-9][0-9]*|[1-9][0-9]*-[1-9][0-9]*"
+    },
+    "ViewDialect":{
+      "type":"string",
+      "enum":[
+        "REDSHIFT",
+        "ATHENA",
+        "SPARK"
+      ]
+    },
+    "ViewDialectVersionString":{
+      "type":"string",
+      "max":255,
+      "min":1
     },
     "ViewTextString":{
       "type":"string",

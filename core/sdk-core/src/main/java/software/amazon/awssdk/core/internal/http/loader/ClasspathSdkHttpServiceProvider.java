@@ -15,66 +15,90 @@
 
 package software.amazon.awssdk.core.internal.http.loader;
 
-import java.util.List;
+import java.util.Comparator;
+import java.util.Map;
 import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.ServiceLoader;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.StringJoiner;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
-import software.amazon.awssdk.utils.SystemSetting;
+import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * {@link SdkHttpServiceProvider} implementation that uses {@link ServiceLoader} to find HTTP implementations on the
- * classpath. If more than one implementation is found on the classpath then an exception is thrown.
+ * classpath. If more than one implementation is found on the classpath, then the SDK will choose based on priority order.
  */
 @SdkInternalApi
 final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider<T> {
 
+    static final Map<String, Integer> SYNC_HTTP_SERVICES_PRIORITY =
+        ImmutableMap.<String, Integer>builder()
+                    .put("software.amazon.awssdk.http.apache.ApacheSdkHttpService", 1)
+                    .put("software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService", 2)
+                    .put("software.amazon.awssdk.http.crt.AwsCrtSdkHttpService", 3)
+                    .build();
+
+    static final Map<String, Integer> ASYNC_HTTP_SERVICES_PRIORITY =
+        ImmutableMap.<String, Integer>builder()
+                    .put("software.amazon.awssdk.http.nio.netty.NettySdkAsyncHttpService", 1)
+                    .put("software.amazon.awssdk.http.crt.AwsCrtSdkHttpService", 2)
+                    .build();
+
+    private static final Logger log = Logger.loggerFor(ClasspathSdkHttpServiceProvider.class);
+
+    private final Map<String, Integer> httpServicesPriority;
+
     private final SdkServiceLoader serviceLoader;
-    private final SystemSetting implSystemProperty;
     private final Class<T> serviceClass;
 
     @SdkTestInternalApi
-    ClasspathSdkHttpServiceProvider(SdkServiceLoader serviceLoader, SystemSetting implSystemProperty, Class<T> serviceClass) {
+    ClasspathSdkHttpServiceProvider(SdkServiceLoader serviceLoader,
+                                    Class<T> serviceClass,
+                                    Map<String, Integer> httpServicesPriority) {
         this.serviceLoader = serviceLoader;
-        this.implSystemProperty = implSystemProperty;
         this.serviceClass = serviceClass;
+        this.httpServicesPriority = httpServicesPriority;
     }
 
     @Override
     public Optional<T> loadService() {
+        Queue<T> impls = new PriorityQueue<>(
+            Comparator.comparingInt(o -> httpServicesPriority.getOrDefault(o.getClass().getName(),
+                                                                           Integer.MAX_VALUE)));
         Iterable<T> iterable = () -> serviceLoader.loadServices(serviceClass);
-        List<T> impls = StreamSupport
-            .stream(iterable.spliterator(), false)
-            .collect(Collectors.toList());
+        iterable.forEach(impl -> impls.add(impl));
 
         if (impls.isEmpty()) {
             return Optional.empty();
         }
 
-        if (impls.size() > 1) {
+        log.debug(() -> logServices(impls));
+        return Optional.of(impls.poll());
+    }
 
-            String implText =
-                impls.stream()
-                     .map(clazz -> clazz.getClass().getName())
-                     .collect(Collectors.joining(",", "[", "]"));
-
-            throw SdkClientException.builder().message(
-                    String.format(
-                            "Multiple HTTP implementations were found on the classpath. To avoid non-deterministic loading " +
-                            "implementations, please explicitly provide an HTTP client via the client builders, set the %s " +
-                            "system property with the FQCN of the HTTP service to use as the default, or remove all but one " +
-                            "HTTP implementation from the classpath.  The multiple implementations found were: %s",
-                            implSystemProperty.property(), implText))
-                    .build();
+    private String logServices(Queue<T> impls) {
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        int count = 0;
+        for (T clazz : impls) {
+            String name = clazz.getClass().getName();
+            joiner.add(name);
+            count++;
         }
+        String implText = joiner.toString();
+        T impl = impls.peek();
+        String message = count == 1 ? "The HTTP implementation loaded is " + impl :
+                         String.format(
+                             "Multiple HTTP implementations were found on the classpath. The SDK will use %s since it has the "
+                             + "highest priority. The multiple implementations found were: %s",
+                             impl,
+                             implText);
 
-        return impls.stream().findFirst();
+        return message;
     }
 
     /**
@@ -82,8 +106,8 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
      */
     static SdkHttpServiceProvider<SdkHttpService> syncProvider() {
         return new ClasspathSdkHttpServiceProvider<>(SdkServiceLoader.INSTANCE,
-                                                     SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL,
-                                                     SdkHttpService.class);
+                                                     SdkHttpService.class,
+                                                     SYNC_HTTP_SERVICES_PRIORITY);
     }
 
     /**
@@ -91,8 +115,7 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
      */
     static SdkHttpServiceProvider<SdkAsyncHttpService> asyncProvider() {
         return new ClasspathSdkHttpServiceProvider<>(SdkServiceLoader.INSTANCE,
-                                                     SdkSystemSetting.ASYNC_HTTP_SERVICE_IMPL,
-                                                     SdkAsyncHttpService.class);
+                                                     SdkAsyncHttpService.class,
+                                                     ASYNC_HTTP_SERVICES_PRIORITY);
     }
-
 }

@@ -172,8 +172,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 type.addMethod(isSignerOverriddenOnClientMethod());
             }
         }
-        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
-                                                          "S3".equals(model.getMetadata().getServiceName())));
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
     }
 
@@ -222,7 +221,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
                         .addModifiers(PROTECTED)
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
-                        .addStatement("this.clientConfiguration = clientConfiguration");
+                        .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
+                                      + ".option($T.SDK_CLIENT, this)"
+                                      + ".build()", SdkClientOption.class);
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -293,8 +294,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     protected static MethodSpec updateSdkClientConfigurationMethod(
-        TypeName serviceClientConfigurationBuilderClassName,
-        boolean shouldAddClientReference) {
+        TypeName serviceClientConfigurationBuilderClassName) {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
                                                .addModifiers(PRIVATE)
                                                .addParameter(SdkRequest.class, "request")
@@ -305,10 +305,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                              + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class))
                .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
-
-        if (shouldAddClientReference) {
-            builder.addStatement("configuration.option($T.SDK_CLIENT, this)", SdkClientOption.class);
-        }
 
         builder.beginControlFlow("if (plugins.isEmpty())")
                .addStatement("return configuration.build()")

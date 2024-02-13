@@ -296,9 +296,20 @@ public class CustomizationConfig {
     private boolean s3ExpressAuthSupport;
 
     /**
+     * Set to true to enable compiled endpoint rules. Currently defaults to false.
+     */
+    private boolean enableGenerateCompiledEndpointRules = false;
+
+    /**
      * Customization related to auth scheme derived from endpoints.
      */
     private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
+
+    /**
+     * Customization to change the root package name.
+     * By default, it's "software.amazon.awssdk.services.[serviceId]"
+     */
+    private String rootPackageName;
 
     private CustomizationConfig() {
     }
@@ -702,6 +713,14 @@ public class CustomizationConfig {
         this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
     }
 
+    public boolean isEnableGenerateCompiledEndpointRules() {
+        return enableGenerateCompiledEndpointRules;
+    }
+
+    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
+        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
+    }
+
     public Map<String, String> getSkipEndpointTests() {
         return skipEndpointTests;
     }
@@ -797,4 +816,16 @@ public class CustomizationConfig {
         this.endpointAuthSchemeConfig = endpointAuthSchemeConfig;
     }
 
+    public String getRootPackageName() {
+        return rootPackageName;
+    }
+
+    public void setRootPackageName(String rootPackageName) {
+        this.rootPackageName = rootPackageName;
+    }
+
+    public CustomizationConfig withRootPackageName(String packageName) {
+        this.rootPackageName = packageName;
+        return this;
+    }
 }

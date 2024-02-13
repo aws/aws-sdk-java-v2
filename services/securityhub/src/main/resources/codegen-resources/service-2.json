@@ -1315,7 +1315,9 @@
         {"shape":"LimitExceededException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceInUseException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"}
       ],
       "documentation":"<p> Updates the properties of a security control. </p>"
     },
@@ -1607,7 +1609,7 @@
     },
     "AlphaNumericNonEmptyString":{
       "type":"string",
-      "pattern":"^[-_ a-zA-Z0-9]+$"
+      "pattern":"^([^\\u0000-\\u007F]|[-_ a-zA-Z0-9])+$"
     },
     "ArnList":{
       "type":"list",
@@ -4871,6 +4873,10 @@
         "TableStatus":{
           "shape":"NonEmptyString",
           "documentation":"<p>The current status of the table. Valid values are as follows:</p> <ul> <li> <p> <code>ACTIVE</code> </p> </li> <li> <p> <code>ARCHIVED</code> </p> </li> <li> <p> <code>ARCHIVING</code> </p> </li> <li> <p> <code>CREATING</code> </p> </li> <li> <p> <code>DELETING</code> </p> </li> <li> <p> <code>INACCESSIBLE_ENCRYPTION_CREDENTIALS</code> </p> </li> <li> <p> <code>UPDATING</code> </p> </li> </ul>"
+        },
+        "DeletionProtectionEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p> Indicates whether deletion protection is to be enabled (true) or disabled (false) on the table. </p>"
         }
       },
       "documentation":"<p>Provides details about a DynamoDB table.</p>"
@@ -5124,6 +5130,200 @@
         }
       },
       "documentation":"<p>The current DynamoDB Streams configuration for the table.</p>"
+    },
+    "AwsEc2ClientVpnEndpointAuthenticationOptionsActiveDirectoryDetails":{
+      "type":"structure",
+      "members":{
+        "DirectoryId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The ID of the Active Directory used for authentication. </p>"
+        }
+      },
+      "documentation":"<p> Provides details about an Active Directory that’s used to authenticate an Client VPN endpoint. </p>"
+    },
+    "AwsEc2ClientVpnEndpointAuthenticationOptionsDetails":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The authentication type used. </p>"
+        },
+        "ActiveDirectory":{
+          "shape":"AwsEc2ClientVpnEndpointAuthenticationOptionsActiveDirectoryDetails",
+          "documentation":"<p> Information about the Active Directory, if applicable. With Active Directory authentication, clients are authenticated against existing Active Directory groups. </p>"
+        },
+        "MutualAuthentication":{
+          "shape":"AwsEc2ClientVpnEndpointAuthenticationOptionsMutualAuthenticationDetails",
+          "documentation":"<p> Information about the authentication certificates, if applicable.</p>"
+        },
+        "FederatedAuthentication":{
+          "shape":"AwsEc2ClientVpnEndpointAuthenticationOptionsFederatedAuthenticationDetails",
+          "documentation":"<p> Information about the IAM SAML identity provider, if applicable.</p>"
+        }
+      },
+      "documentation":"<p> Information about the authentication method used by the Client VPN endpoint. </p>"
+    },
+    "AwsEc2ClientVpnEndpointAuthenticationOptionsFederatedAuthenticationDetails":{
+      "type":"structure",
+      "members":{
+        "SamlProviderArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the IAM SAML identity provider. </p>"
+        },
+        "SelfServiceSamlProviderArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the IAM SAML identity provider for the self-service portal. </p>"
+        }
+      },
+      "documentation":"<p> Describes the IAM SAML identity providers used for federated authentication. </p>"
+    },
+    "AwsEc2ClientVpnEndpointAuthenticationOptionsList":{
+      "type":"list",
+      "member":{"shape":"AwsEc2ClientVpnEndpointAuthenticationOptionsDetails"}
+    },
+    "AwsEc2ClientVpnEndpointAuthenticationOptionsMutualAuthenticationDetails":{
+      "type":"structure",
+      "members":{
+        "ClientRootCertificateChain":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the client certificate. </p>"
+        }
+      },
+      "documentation":"<p> Information about the client certificate used for authentication. </p>"
+    },
+    "AwsEc2ClientVpnEndpointClientConnectOptionsDetails":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p> Indicates whether client connect options are enabled. </p>"
+        },
+        "LambdaFunctionArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lambda function used for connection authorization. </p>"
+        },
+        "Status":{
+          "shape":"AwsEc2ClientVpnEndpointClientConnectOptionsStatusDetails",
+          "documentation":"<p> The status of any updates to the client connect options. </p>"
+        }
+      },
+      "documentation":"<p> The options for managing connection authorization for new client connections. </p>"
+    },
+    "AwsEc2ClientVpnEndpointClientConnectOptionsStatusDetails":{
+      "type":"structure",
+      "members":{
+        "Code":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The status code. </p>"
+        },
+        "Message":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The status message. </p>"
+        }
+      },
+      "documentation":"<p> Describes the status of the Client VPN endpoint attribute. </p>"
+    },
+    "AwsEc2ClientVpnEndpointClientLoginBannerOptionsDetails":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p> Current state of text banner feature. </p>"
+        },
+        "BannerText":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> Customizable text that will be displayed in a banner on Amazon Web Services provided clients when a VPN session is established. </p>"
+        }
+      },
+      "documentation":"<p> Options for enabling a customizable text banner that will be displayed on Amazon Web Services provided clients when a VPN session is established. </p>"
+    },
+    "AwsEc2ClientVpnEndpointConnectionLogOptionsDetails":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p> Indicates whether client connection logging is enabled for the Client VPN endpoint. </p>"
+        },
+        "CloudwatchLogGroup":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The name of the Amazon CloudWatch Logs log group to which connection logging data is published. </p>"
+        },
+        "CloudwatchLogStream":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The name of the Amazon CloudWatch Logs log stream to which connection logging data is published. </p>"
+        }
+      },
+      "documentation":"<p> Information about the client connection logging options for the Client VPN endpoint. </p>"
+    },
+    "AwsEc2ClientVpnEndpointDetails":{
+      "type":"structure",
+      "members":{
+        "ClientVpnEndpointId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The ID of the Client VPN endpoint. </p>"
+        },
+        "Description":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> A brief description of the endpoint. </p>"
+        },
+        "ClientCidrBlock":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The IPv4 address range, in CIDR notation, from which client IP addresses are assigned. </p>"
+        },
+        "DnsServer":{
+          "shape":"StringList",
+          "documentation":"<p> Information about the DNS servers to be used for DNS resolution. </p>"
+        },
+        "SplitTunnel":{
+          "shape":"Boolean",
+          "documentation":"<p> Indicates whether split-tunnel is enabled in the Client VPN endpoint. </p>"
+        },
+        "TransportProtocol":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The transport protocol used by the Client VPN endpoint. </p>"
+        },
+        "VpnPort":{
+          "shape":"Integer",
+          "documentation":"<p> The port number for the Client VPN endpoint. </p>"
+        },
+        "ServerCertificateArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the server certificate. </p>"
+        },
+        "AuthenticationOptions":{
+          "shape":"AwsEc2ClientVpnEndpointAuthenticationOptionsList",
+          "documentation":"<p> Information about the authentication method used by the Client VPN endpoint. </p>"
+        },
+        "ConnectionLogOptions":{
+          "shape":"AwsEc2ClientVpnEndpointConnectionLogOptionsDetails",
+          "documentation":"<p> Information about the client connection logging options for the Client VPN endpoint. </p>"
+        },
+        "SecurityGroupIdSet":{
+          "shape":"StringList",
+          "documentation":"<p> The IDs of the security groups for the target network. </p>"
+        },
+        "VpcId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The ID of the VPC. </p>"
+        },
+        "SelfServicePortalUrl":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The URL of the self-service portal. </p>"
+        },
+        "ClientConnectOptions":{
+          "shape":"AwsEc2ClientVpnEndpointClientConnectOptionsDetails",
+          "documentation":"<p> The options for managing connection authorization for new client connections. </p>"
+        },
+        "SessionTimeoutHours":{
+          "shape":"Integer",
+          "documentation":"<p> The maximum VPN session duration time in hours. </p>"
+        },
+        "ClientLoginBannerOptions":{
+          "shape":"AwsEc2ClientVpnEndpointClientLoginBannerOptionsDetails",
+          "documentation":"<p> Options for enabling a customizable text banner that will be displayed on Amazon Web Services provided clients when a VPN session is established. </p>"
+        }
+      },
+      "documentation":"<p> Describes an Client VPN endpoint. A Client VPN endpoint is the resource that you create and configure to enable and manage client VPN sessions. It's the termination point for all client VPN sessions. </p>"
     },
     "AwsEc2EipDetails":{
       "type":"structure",
@@ -10411,7 +10611,7 @@
         },
         "CompatibleRuntimes":{
           "shape":"NonEmptyStringList",
-          "documentation":"<p>The layer's compatible runtimes. Maximum number of five items.</p> <p>Valid values: <code>nodejs10.x</code> | <code>nodejs12.x</code> | <code>java8</code> | <code>java11</code> | <code>python2.7</code> | <code>python3.6</code> | <code>python3.7</code> | <code>python3.8</code> | <code>dotnetcore1.0</code> | <code>dotnetcore2.1</code> | <code>go1.x</code> | <code>ruby2.5</code> | <code>provided</code> </p>"
+          "documentation":"<p>The layer's compatible <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html\">function runtimes</a>.</p> <p>The following list includes deprecated runtimes. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtime-support-policy\">Runtime deprecation policy</a> in the <i>Lambda Developer Guide</i>.</p> <p>Array Members: Maximum number of 5 items.</p> <p>Valid Values: <code>nodejs | nodejs4.3 | nodejs6.10 | nodejs8.10 | nodejs10.x | nodejs12.x | nodejs14.x | nodejs16.x | java8 | java8.al2 | java11 | python2.7 | python3.6 | python3.7 | python3.8 | python3.9 | dotnetcore1.0 | dotnetcore2.0 | dotnetcore2.1 | dotnetcore3.1 | dotnet6 | nodejs4.3-edge | go1.x | ruby2.5 | ruby2.7 | provided | provided.al2 | nodejs18.x | python3.10 | java17 | ruby3.2 | python3.11 | nodejs20.x | provided.al2023 | python3.12 | java21</code> </p>"
         },
         "CreatedDate":{
           "shape":"NonEmptyString",
@@ -10524,7 +10724,7 @@
         },
         "CurrentVersion":{
           "shape":"NonEmptyString",
-          "documentation":"<p> The current version of the MSK cluster.</p>"
+          "documentation":"<p> The current version of the cluster.</p>"
         },
         "NumberOfBrokerNodes":{
           "shape":"Integer",
@@ -10537,9 +10737,13 @@
         "ClientAuthentication":{
           "shape":"AwsMskClusterClusterInfoClientAuthenticationDetails",
           "documentation":"<p> Provides information for different modes of client authentication.</p>"
+        },
+        "EnhancedMonitoring":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> Specifies the level of monitoring for the cluster. </p>"
         }
       },
-      "documentation":"<p> Provide details about an Amazon MSK cluster.</p>"
+      "documentation":"<p> Provide details about an Amazon Managed Streaming for Apache Kafka (Amazon MSK) cluster.</p>"
     },
     "AwsMskClusterClusterInfoEncryptionInfoDetails":{
       "type":"structure",
@@ -12694,6 +12898,51 @@
       },
       "documentation":"<p> Provides details about a specified Amazon Route 53 configuration for DNS query logging.</p>"
     },
+    "AwsS3AccessPointDetails":{
+      "type":"structure",
+      "members":{
+        "AccessPointArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the access point. </p>"
+        },
+        "Alias":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The name or alias of the access point. </p>"
+        },
+        "Bucket":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The name of the S3 bucket associated with the specified access point. </p>"
+        },
+        "BucketAccountId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Web Services account ID associated with the S3 bucket associated with this access point. </p>"
+        },
+        "Name":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The name of the specified access point. </p>"
+        },
+        "NetworkOrigin":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> Indicates whether this access point allows access from the public internet. </p>"
+        },
+        "PublicAccessBlockConfiguration":{"shape":"AwsS3AccountPublicAccessBlockDetails"},
+        "VpcConfiguration":{
+          "shape":"AwsS3AccessPointVpcConfigurationDetails",
+          "documentation":"<p> Contains the virtual private cloud (VPC) configuration for the specified access point. </p>"
+        }
+      },
+      "documentation":"<p> Returns configuration information about the specified Amazon S3 access point. S3 access points are named network endpoints that are attached to buckets that you can use to perform S3 object operations. </p>"
+    },
+    "AwsS3AccessPointVpcConfigurationDetails":{
+      "type":"structure",
+      "members":{
+        "VpcId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> If this field is specified, this access point will only allow connections from the specified VPC ID. </p>"
+        }
+      },
+      "documentation":"<p> The virtual private cloud (VPC) configuration for an Amazon S3 access point. </p>"
+    },
     "AwsS3AccountPublicAccessBlockDetails":{
       "type":"structure",
       "members":{
@@ -12951,7 +13200,7 @@
         },
         "BucketLifecycleConfiguration":{
           "shape":"AwsS3BucketBucketLifecycleConfigurationDetails",
-          "documentation":"<p>The lifecycle configuration for objects in the S3 bucket.</p>"
+          "documentation":"<p>The lifecycle configuration for objects in the specified bucket.</p>"
         },
         "PublicAccessBlockConfiguration":{
           "shape":"AwsS3AccountPublicAccessBlockDetails",
@@ -12979,10 +13228,14 @@
         },
         "ObjectLockConfiguration":{
           "shape":"AwsS3BucketObjectLockConfiguration",
-          "documentation":"<p> Specifies which rule Amazon S3 applies by default to every new object placed in the specified bucket. </p>"
+          "documentation":"<p> Specifies which rule Amazon S3 applies by default to every new object placed in the bucket. </p>"
+        },
+        "Name":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The name of the bucket. </p>"
         }
       },
-      "documentation":"<p>The details of an Amazon S3 bucket.</p>"
+      "documentation":"<p>The details of an Amazon Simple Storage Service (Amazon S3) bucket.</p>"
     },
     "AwsS3BucketLoggingConfiguration":{
       "type":"structure",
@@ -15738,7 +15991,7 @@
         },
         "Name":{
           "shape":"NonEmptyString",
-          "documentation":"<p> The name of the configuration policy. </p>"
+          "documentation":"<p> The name of the configuration policy. Alphanumeric characters and the following ASCII characters are permitted: <code>-, ., !, *, /</code>. </p>"
         },
         "Description":{
           "shape":"NonEmptyString",
@@ -15915,7 +16168,7 @@
       "members":{
         "Name":{
           "shape":"NonEmptyString",
-          "documentation":"<p> The name of the configuration policy. </p>"
+          "documentation":"<p> The name of the configuration policy. Alphanumeric characters and the following ASCII characters are permitted: <code>-, ., !, *, /</code>. </p>"
         },
         "Description":{
           "shape":"NonEmptyString",
@@ -18481,7 +18734,7 @@
       "members":{
         "ValueType":{
           "shape":"ParameterValueType",
-          "documentation":"<p> Identifies whether a control parameter uses a custom user-defined value or the Security Hub default value. </p>"
+          "documentation":"<p> Identifies whether a control parameter uses a custom user-defined value or subscribes to the default Security Hub behavior.</p> <p>When <code>ValueType</code> is set equal to <code>DEFAULT</code>, the default behavior can be a specific Security Hub default value, or the default behavior can be to ignore a specific parameter. When <code>ValueType</code> is set equal to <code>DEFAULT</code>, Security Hub ignores user-provided input for the <code>Value</code> field.</p> <p>When <code>ValueType</code> is set equal to <code>CUSTOM</code>, the <code>Value</code> field can't be empty.</p>"
         },
         "Value":{
           "shape":"ParameterValue",
@@ -19348,6 +19601,14 @@
         "AwsMskCluster":{
           "shape":"AwsMskClusterDetails",
           "documentation":"<p> Provides details about an Amazon Managed Streaming for Apache Kafka (Amazon MSK) cluster.</p>"
+        },
+        "AwsS3AccessPoint":{
+          "shape":"AwsS3AccessPointDetails",
+          "documentation":"<p> Provides details about an Amazon Simple Storage Service (Amazon S3) access point. S3 access points are named network endpoints that are attached to S3 buckets that you can use to perform S3 object operations. </p>"
+        },
+        "AwsEc2ClientVpnEndpoint":{
+          "shape":"AwsEc2ClientVpnEndpointDetails",
+          "documentation":"<p> Provides details about an Client VPN endpoint. A Client VPN endpoint is the resource that you create and configure to enable and manage client VPN sessions. It's the termination point for all client VPN sessions. </p>"
         }
       },
       "documentation":"<p>Additional details about a resource related to a finding.</p> <p>To provide the details, use the object that corresponds to the resource type. For example, if the resource type is <code>AwsEc2Instance</code>, then you use the <code>AwsEc2Instance</code> object to provide the details.</p> <p>If the type-specific object does not contain all of the fields you want to populate, then you use the <code>Other</code> object to populate those additional fields.</p> <p>You also use the <code>Other</code> object to populate the details when the selected type does not have a corresponding object.</p>"
@@ -21151,7 +21412,7 @@
         },
         "Name":{
           "shape":"NonEmptyString",
-          "documentation":"<p> The name of the configuration policy. </p>"
+          "documentation":"<p> The name of the configuration policy. Alphanumeric characters and the following ASCII characters are permitted: <code>-, ., !, *, /</code>. </p>"
         },
         "Description":{
           "shape":"NonEmptyString",
@@ -21654,5 +21915,5 @@
       "documentation":"<p>Used to update information about the investigation into the finding.</p>"
     }
   },
-  "documentation":"<p>Security Hub provides you with a comprehensive view of the security state of your Amazon Web Services environment and resources. It also provides you with the readiness status of your environment based on controls from supported security standards. Security Hub collects security data from Amazon Web Services accounts, services, and integrated third-party products and helps you analyze security trends in your environment to identify the highest priority security issues. For more information about Security Hub, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html\"> <i>Security Hub User Guide</i> </a>.</p> <p>When you use operations in the Security Hub API, the requests are executed only in the Amazon Web Services Region that is currently active or in the specific Amazon Web Services Region that you specify in your request. Any configuration or settings change that results from the operation is applied only to that Region. To make the same change in other Regions, run the same command for each Region in which you want to apply the change.</p> <p>For example, if your Region is set to <code>us-west-2</code>, when you use <code>CreateMembers</code> to add a member account to Security Hub, the association of the member account with the administrator account is created only in the <code>us-west-2</code> Region. Security Hub must be enabled for the member account in the same Region that the invitation was sent from.</p> <p>The following throttling limits apply to using Security Hub API operations.</p> <ul> <li> <p> <code>BatchEnableStandards</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 1 request per second.</p> </li> <li> <p> <code>GetFindings</code> - <code>RateLimit</code> of 3 requests per second. <code>BurstLimit</code> of 6 requests per second.</p> </li> <li> <p> <code>BatchImportFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>BatchUpdateFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>UpdateStandardsControl</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p>All other operations - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> </ul>"
+  "documentation":"<p>Security Hub provides you with a comprehensive view of your security state in Amazon Web Services and helps you assess your Amazon Web Services environment against security industry standards and best practices.</p> <p>Security Hub collects security data across Amazon Web Services accounts, Amazon Web Services, and supported third-party products and helps you analyze your security trends and identify the highest priority security issues.</p> <p>To help you manage the security state of your organization, Security Hub supports multiple security standards. These include the Amazon Web Services Foundational Security Best Practices (FSBP) standard developed by Amazon Web Services, and external compliance frameworks such as the Center for Internet Security (CIS), the Payment Card Industry Data Security Standard (PCI DSS), and the National Institute of Standards and Technology (NIST). Each standard includes several security controls, each of which represents a security best practice. Security Hub runs checks against security controls and generates control findings to help you assess your compliance against security best practices.</p> <p>In addition to generating control findings, Security Hub also receives findings from other Amazon Web Services, such as Amazon GuardDuty and Amazon Inspector, and supported third-party products. This gives you a single pane of glass into a variety of security-related issues. You can also send Security Hub findings to other Amazon Web Services and supported third-party products.</p> <p>Security Hub offers automation features that help you triage and remediate security issues. For example, you can use automation rules to automatically update critical findings when a security check fails. You can also leverage the integration with Amazon EventBridge to trigger automatic responses to specific findings.</p> <p>This guide, the <i>Security Hub API Reference</i>, provides information about the Security Hub API. This includes supported resources, HTTP methods, parameters, and schemas. If you're new to Security Hub, you might find it helpful to also review the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html\"> <i>Security Hub User Guide</i> </a>. The user guide explains key concepts and provides procedures that demonstrate how to use Security Hub features. It also provides information about topics such as integrating Security Hub with other Amazon Web Services.</p> <p>In addition to interacting with Security Hub by making calls to the Security Hub API, you can use a current version of an Amazon Web Services command line tool or SDK. Amazon Web Services provides tools and SDKs that consist of libraries and sample code for various languages and platforms, such as PowerShell, Java, Go, Python, C++, and .NET. These tools and SDKs provide convenient, programmatic access to Security Hub and other Amazon Web Services . They also handle tasks such as signing requests, managing errors, and retrying requests automatically. For information about installing and using the Amazon Web Services tools and SDKs, see <a href=\"http://aws.amazon.com/developer/tools/\">Tools to Build on Amazon Web Services</a>.</p> <p>With the exception of operations that are related to central configuration, Security Hub API requests are executed only in the Amazon Web Services Region that is currently active or in the specific Amazon Web Services Region that you specify in your request. Any configuration or settings change that results from the operation is applied only to that Region. To make the same change in other Regions, call the same API operation in each Region in which you want to apply the change. When you use central configuration, API requests for enabling Security Hub, standards, and controls are executed in the home Region and all linked Regions. For a list of central configuration operations, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/central-configuration-intro.html#central-configuration-concepts\">Central configuration terms and concepts</a> section of the <i>Security Hub User Guide</i>.</p> <p>The following throttling limits apply to Security Hub API operations.</p> <ul> <li> <p> <code>BatchEnableStandards</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 1 request per second.</p> </li> <li> <p> <code>GetFindings</code> - <code>RateLimit</code> of 3 requests per second. <code>BurstLimit</code> of 6 requests per second.</p> </li> <li> <p> <code>BatchImportFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>BatchUpdateFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>UpdateStandardsControl</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p>All other operations - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> </ul>"
 }

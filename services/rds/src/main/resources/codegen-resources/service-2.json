@@ -305,6 +305,7 @@
       },
       "errors":[
         {"shape":"DBClusterAlreadyExistsFault"},
+        {"shape":"InsufficientDBInstanceCapacityFault"},
         {"shape":"InsufficientStorageClusterCapacityFault"},
         {"shape":"DBClusterQuotaExceededFault"},
         {"shape":"StorageQuotaExceededFault"},
@@ -532,6 +533,28 @@
         {"shape":"DBSecurityGroupNotSupportedFault"}
       ],
       "documentation":"<p>Creates a new DB security group. DB security groups control access to a DB instance.</p> <p>A DB security group controls access to EC2-Classic DB instances that are not in a VPC.</p> <note> <p>EC2-Classic was retired on August 15, 2022. If you haven't migrated from EC2-Classic to a VPC, we recommend that you migrate as soon as possible. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon EC2 User Guide</i>, the blog <a href=\"http://aws.amazon.com/blogs/aws/ec2-classic-is-retiring-heres-how-to-prepare/\">EC2-Classic Networking is Retiring – Here’s How to Prepare</a>, and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Non-VPC2VPC.html\">Moving a DB instance not in a VPC into a VPC</a> in the <i>Amazon RDS User Guide</i>.</p> </note>"
+    },
+    "CreateDBShardGroup":{
+      "name":"CreateDBShardGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateDBShardGroupMessage"},
+      "output":{
+        "shape":"DBShardGroup",
+        "resultWrapper":"CreateDBShardGroupResult"
+      },
+      "errors":[
+        {"shape":"DBShardGroupAlreadyExistsFault"},
+        {"shape":"DBClusterNotFoundFault"},
+        {"shape":"MaxDBShardGroupLimitReached"},
+        {"shape":"InvalidDBClusterStateFault"},
+        {"shape":"InvalidMaxAcuFault"},
+        {"shape":"UnsupportedDBEngineVersionFault"},
+        {"shape":"InvalidVPCNetworkStateFault"}
+      ],
+      "documentation":"<p>Creates a new DB shard group for Aurora Limitless Database. You must enable Aurora Limitless Database to create a DB shard group.</p> <p>Valid for: Aurora DB clusters only</p>"
     },
     "CreateDBSnapshot":{
       "name":"CreateDBSnapshot",
@@ -887,6 +910,24 @@
         {"shape":"DBSecurityGroupNotFoundFault"}
       ],
       "documentation":"<p>Deletes a DB security group.</p> <p>The specified DB security group must not be associated with any DB instances.</p> <note> <p>EC2-Classic was retired on August 15, 2022. If you haven't migrated from EC2-Classic to a VPC, we recommend that you migrate as soon as possible. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon EC2 User Guide</i>, the blog <a href=\"http://aws.amazon.com/blogs/aws/ec2-classic-is-retiring-heres-how-to-prepare/\">EC2-Classic Networking is Retiring – Here’s How to Prepare</a>, and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Non-VPC2VPC.html\">Moving a DB instance not in a VPC into a VPC</a> in the <i>Amazon RDS User Guide</i>.</p> </note>"
+    },
+    "DeleteDBShardGroup":{
+      "name":"DeleteDBShardGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteDBShardGroupMessage"},
+      "output":{
+        "shape":"DBShardGroup",
+        "resultWrapper":"DeleteDBShardGroupResult"
+      },
+      "errors":[
+        {"shape":"DBShardGroupNotFoundFault"},
+        {"shape":"InvalidDBShardGroupStateFault"},
+        {"shape":"InvalidDBClusterStateFault"}
+      ],
+      "documentation":"<p>Deletes an Aurora Limitless Database DB shard group.</p>"
     },
     "DeleteDBSnapshot":{
       "name":"DeleteDBSnapshot",
@@ -1358,6 +1399,19 @@
       ],
       "documentation":"<p>Returns information about <code>DBProxyTarget</code> objects. This API supports pagination.</p>"
     },
+    "DescribeDBRecommendations":{
+      "name":"DescribeDBRecommendations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeDBRecommendationsMessage"},
+      "output":{
+        "shape":"DBRecommendationsMessage",
+        "resultWrapper":"DescribeDBRecommendationsResult"
+      },
+      "documentation":"<p>Describes the recommendations to resolve the issues for your DB instances, DB clusters, and DB parameter groups.</p>"
+    },
     "DescribeDBSecurityGroups":{
       "name":"DescribeDBSecurityGroups",
       "http":{
@@ -1373,6 +1427,23 @@
         {"shape":"DBSecurityGroupNotFoundFault"}
       ],
       "documentation":"<p>Returns a list of <code>DBSecurityGroup</code> descriptions. If a <code>DBSecurityGroupName</code> is specified, the list will contain only the descriptions of the specified DB security group.</p> <note> <p>EC2-Classic was retired on August 15, 2022. If you haven't migrated from EC2-Classic to a VPC, we recommend that you migrate as soon as possible. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon EC2 User Guide</i>, the blog <a href=\"http://aws.amazon.com/blogs/aws/ec2-classic-is-retiring-heres-how-to-prepare/\">EC2-Classic Networking is Retiring – Here’s How to Prepare</a>, and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Non-VPC2VPC.html\">Moving a DB instance not in a VPC into a VPC</a> in the <i>Amazon RDS User Guide</i>.</p> </note>"
+    },
+    "DescribeDBShardGroups":{
+      "name":"DescribeDBShardGroups",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeDBShardGroupsMessage"},
+      "output":{
+        "shape":"DescribeDBShardGroupsResponse",
+        "resultWrapper":"DescribeDBShardGroupsResult"
+      },
+      "errors":[
+        {"shape":"DBShardGroupNotFoundFault"},
+        {"shape":"DBClusterNotFoundFault"}
+      ],
+      "documentation":"<p>Describes existing Aurora Limitless Database DB shard groups.</p>"
     },
     "DescribeDBSnapshotAttributes":{
       "name":"DescribeDBSnapshotAttributes",
@@ -1690,6 +1761,23 @@
       ],
       "documentation":"<p>You can call <code>DescribeValidDBInstanceModifications</code> to learn what modifications you can make to your DB instance. You can use this information when you call <code>ModifyDBInstance</code>.</p> <p>This command doesn't apply to RDS Custom.</p>"
     },
+    "DisableHttpEndpoint":{
+      "name":"DisableHttpEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisableHttpEndpointRequest"},
+      "output":{
+        "shape":"DisableHttpEndpointResponse",
+        "resultWrapper":"DisableHttpEndpointResult"
+      },
+      "errors":[
+        {"shape":"ResourceNotFoundFault"},
+        {"shape":"InvalidResourceStateFault"}
+      ],
+      "documentation":"<p>Disables the HTTP endpoint for the specified DB cluster. Disabling this endpoint disables RDS Data API.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This operation applies only to Aurora PostgreSQL Serverless v2 and provisioned DB clusters. To disable the HTTP endpoint for Aurora Serverless v1 DB clusters, use the <code>EnableHttpEndpoint</code> parameter of the <code>ModifyDBCluster</code> operation.</p> </note>"
+    },
     "DownloadDBLogFilePortion":{
       "name":"DownloadDBLogFilePortion",
       "http":{
@@ -1707,6 +1795,23 @@
       ],
       "documentation":"<p>Downloads all or a portion of the specified log file, up to 1 MB in size.</p> <p>This command doesn't apply to RDS Custom.</p>"
     },
+    "EnableHttpEndpoint":{
+      "name":"EnableHttpEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"EnableHttpEndpointRequest"},
+      "output":{
+        "shape":"EnableHttpEndpointResponse",
+        "resultWrapper":"EnableHttpEndpointResult"
+      },
+      "errors":[
+        {"shape":"ResourceNotFoundFault"},
+        {"shape":"InvalidResourceStateFault"}
+      ],
+      "documentation":"<p>Enables the HTTP endpoint for the DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, this endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the Aurora DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This operation applies only to Aurora PostgreSQL Serverless v2 and provisioned DB clusters. To enable the HTTP endpoint for Aurora Serverless v1 DB clusters, use the <code>EnableHttpEndpoint</code> parameter of the <code>ModifyDBCluster</code> operation.</p> </note>"
+    },
     "FailoverDBCluster":{
       "name":"FailoverDBCluster",
       "http":{
@@ -1723,7 +1828,7 @@
         {"shape":"InvalidDBClusterStateFault"},
         {"shape":"InvalidDBInstanceStateFault"}
       ],
-      "documentation":"<p>Forces a failover for a DB cluster.</p> <p>For an Aurora DB cluster, failover for a DB cluster promotes one of the Aurora Replicas (read-only instances) in the DB cluster to be the primary DB instance (the cluster writer).</p> <p>For a Multi-AZ DB cluster, failover for a DB cluster promotes one of the readable standby DB instances (read-only instances) in the DB cluster to be the primary DB instance (the cluster writer).</p> <p>An Amazon Aurora DB cluster automatically fails over to an Aurora Replica, if one exists, when the primary DB instance fails. A Multi-AZ DB cluster automatically fails over to a readable standby DB instance when the primary DB instance fails.</p> <p>To simulate a failure of a primary instance for testing, you can force a failover. Because each instance in a DB cluster has its own endpoint address, make sure to clean up and re-establish any existing connections that use those endpoint addresses when the failover is complete.</p> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ DB cluster deployments</a> in the <i>Amazon RDS User Guide</i>.</p>"
+      "documentation":"<p>Forces a failover for a DB cluster.</p> <p>For an Aurora DB cluster, failover for a DB cluster promotes one of the Aurora Replicas (read-only instances) in the DB cluster to be the primary DB instance (the cluster writer).</p> <p>For a Multi-AZ DB cluster, after RDS terminates the primary DB instance, the internal monitoring system detects that the primary DB instance is unhealthy and promotes a readable standby (read-only instances) in the DB cluster to be the primary DB instance (the cluster writer). Failover times are typically less than 35 seconds.</p> <p>An Amazon Aurora DB cluster automatically fails over to an Aurora Replica, if one exists, when the primary DB instance fails. A Multi-AZ DB cluster automatically fails over to a readable standby DB instance when the primary DB instance fails.</p> <p>To simulate a failure of a primary instance for testing, you can force a failover. Because each instance in a DB cluster has its own endpoint address, make sure to clean up and re-establish any existing connections that use those endpoint addresses when the failover is complete.</p> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ DB cluster deployments</a> in the <i>Amazon RDS User Guide</i>.</p>"
     },
     "FailoverGlobalCluster":{
       "name":"FailoverGlobalCluster",
@@ -2030,6 +2135,39 @@
       ],
       "documentation":"<p>Modifies the properties of a <code>DBProxyTargetGroup</code>.</p>"
     },
+    "ModifyDBRecommendation":{
+      "name":"ModifyDBRecommendation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyDBRecommendationMessage"},
+      "output":{
+        "shape":"DBRecommendationMessage",
+        "resultWrapper":"ModifyDBRecommendationResult"
+      },
+      "errors":[],
+      "documentation":"<p>Updates the recommendation status and recommended action status for the specified recommendation.</p>"
+    },
+    "ModifyDBShardGroup":{
+      "name":"ModifyDBShardGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyDBShardGroupMessage"},
+      "output":{
+        "shape":"DBShardGroup",
+        "resultWrapper":"ModifyDBShardGroupResult"
+      },
+      "errors":[
+        {"shape":"InvalidDBClusterStateFault"},
+        {"shape":"DBShardGroupAlreadyExistsFault"},
+        {"shape":"DBShardGroupNotFoundFault"},
+        {"shape":"InvalidMaxAcuFault"}
+      ],
+      "documentation":"<p>Modifies the settings of an Aurora Limitless Database DB shard group. You can change one or more settings by specifying these parameters and the new values in the request.</p>"
+    },
     "ModifyDBSnapshot":{
       "name":"ModifyDBSnapshot",
       "http":{
@@ -2247,6 +2385,23 @@
       ],
       "documentation":"<p>You might need to reboot your DB instance, usually for maintenance reasons. For example, if you make certain modifications, or if you change the DB parameter group associated with the DB instance, you must reboot the instance for the changes to take effect.</p> <p>Rebooting a DB instance restarts the database engine service. Rebooting a DB instance results in a momentary outage, during which the DB instance status is set to rebooting.</p> <p>For more information about rebooting, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_RebootInstance.html\">Rebooting a DB Instance</a> in the <i>Amazon RDS User Guide.</i> </p> <p>This command doesn't apply to RDS Custom.</p> <p>If your DB instance is part of a Multi-AZ DB cluster, you can reboot the DB cluster with the <code>RebootDBCluster</code> operation.</p>"
     },
+    "RebootDBShardGroup":{
+      "name":"RebootDBShardGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RebootDBShardGroupMessage"},
+      "output":{
+        "shape":"DBShardGroup",
+        "resultWrapper":"RebootDBShardGroupResult"
+      },
+      "errors":[
+        {"shape":"DBShardGroupNotFoundFault"},
+        {"shape":"InvalidDBShardGroupStateFault"}
+      ],
+      "documentation":"<p>You might need to reboot your DB shard group, usually for maintenance reasons. For example, if you make certain modifications, reboot the DB shard group for the changes to take effect.</p> <p>This operation applies only to Aurora Limitless Database DBb shard groups.</p>"
+    },
     "RegisterDBProxyTargets":{
       "name":"RegisterDBProxyTargets",
       "http":{
@@ -2450,7 +2605,8 @@
         {"shape":"KMSKeyNotAccessibleFault"},
         {"shape":"DomainNotFoundFault"},
         {"shape":"DBClusterParameterGroupNotFoundFault"},
-        {"shape":"InvalidDBInstanceStateFault"}
+        {"shape":"InvalidDBInstanceStateFault"},
+        {"shape":"InsufficientDBInstanceCapacityFault"}
       ],
       "documentation":"<p>Creates a new DB cluster from a DB snapshot or DB cluster snapshot.</p> <p>The target DB cluster is created from the source snapshot with a default configuration. If you don't specify a security group, the new DB cluster is associated with the default security group.</p> <note> <p>This operation only restores the DB cluster, not the DB instances for that DB cluster. You must invoke the <code>CreateDBInstance</code> operation to create DB instances for the restored DB cluster, specifying the identifier of the restored DB cluster in <code>DBClusterIdentifier</code>. You can create DB instances only after the <code>RestoreDBClusterFromSnapshot</code> operation has completed and the DB cluster is available.</p> </note> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ DB cluster deployments</a> in the <i>Amazon RDS User Guide.</i> </p>"
     },
@@ -2484,7 +2640,8 @@
         {"shape":"StorageQuotaExceededFault"},
         {"shape":"DomainNotFoundFault"},
         {"shape":"DBClusterParameterGroupNotFoundFault"},
-        {"shape":"DBClusterAutomatedBackupNotFoundFault"}
+        {"shape":"DBClusterAutomatedBackupNotFoundFault"},
+        {"shape":"InsufficientDBInstanceCapacityFault"}
       ],
       "documentation":"<p>Restores a DB cluster to an arbitrary point in time. Users can restore to any point in time before <code>LatestRestorableTime</code> for up to <code>BackupRetentionPeriod</code> days. The target DB cluster is created from the source DB cluster with the same configuration as the original DB cluster, except that the new DB cluster is created with the default DB security group.</p> <note> <p>For Aurora, this operation only restores the DB cluster, not the DB instances for that DB cluster. You must invoke the <code>CreateDBInstance</code> operation to create DB instances for the restored DB cluster, specifying the identifier of the restored DB cluster in <code>DBClusterIdentifier</code>. You can create DB instances only after the <code>RestoreDBClusterToPointInTime</code> operation has completed and the DB cluster is available.</p> </note> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ DB cluster deployments</a> in the <i>Amazon RDS User Guide.</i> </p>"
     },
@@ -3589,6 +3746,24 @@
       },
       "documentation":"<p>Displays the settings that control the size and behavior of the connection pool associated with a <code>DBProxyTarget</code>.</p>"
     },
+    "ContextAttribute":{
+      "type":"structure",
+      "members":{
+        "Key":{
+          "shape":"String",
+          "documentation":"<p>The key of <code>ContextAttribute</code>.</p>"
+        },
+        "Value":{
+          "shape":"String",
+          "documentation":"<p>The value of <code>ContextAttribute</code>.</p>"
+        }
+      },
+      "documentation":"<p>The additional attributes of <code>RecommendedAction</code> data type.</p>"
+    },
+    "ContextAttributeList":{
+      "type":"list",
+      "member":{"shape":"ContextAttribute"}
+    },
     "CopyDBClusterParameterGroupMessage":{
       "type":"structure",
       "required":[
@@ -3797,7 +3972,7 @@
         },
         "TargetDBInstanceClass":{
           "shape":"TargetDBInstanceClass",
-          "documentation":"<p>Specify the DB instance class for the databases in the green environment.</p>"
+          "documentation":"<p>Specify the DB instance class for the databases in the green environment.</p> <p>This parameter only applies to RDS DB instances, because DB instances within an Aurora DB cluster can have multiple different instance classes. If you're creating a blue/green deployment from an Aurora DB cluster, don't specify this parameter. After the green environment is created, you can individually modify the instance classes of the DB instances within the green DB cluster.</p>"
         },
         "UpgradeTargetStorageConfig":{
           "shape":"BooleanOptional",
@@ -4032,7 +4207,7 @@
         },
         "EnableHttpEndpoint":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether to enable the HTTP endpoint for an Aurora Serverless v1 DB cluster. By default, the HTTP endpoint is disabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API for running SQL queries on the Aurora Serverless v1 DB cluster. You can also query your database from inside the RDS console with the query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using the Data API for Aurora Serverless v1</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
+          "documentation":"<p>Specifies whether to enable the HTTP endpoint for the DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>RDS Data API is supported with the following DB clusters:</p> <ul> <li> <p>Aurora PostgreSQL Serverless v2 and provisioned</p> </li> <li> <p>Aurora PostgreSQL and Aurora MySQL Serverless v1</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
         },
         "CopyTagsToSnapshot":{
           "shape":"BooleanOptional",
@@ -4093,6 +4268,10 @@
         "PerformanceInsightsRetentionPeriod":{
           "shape":"IntegerOptional",
           "documentation":"<p>The number of days to retain Performance Insights data.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p> <p>Valid Values:</p> <ul> <li> <p> <code>7</code> </p> </li> <li> <p> <i>month</i> * 31, where <i>month</i> is a number of months from 1-23. Examples: <code>93</code> (3 months * 31), <code>341</code> (11 months * 31), <code>589</code> (19 months * 31)</p> </li> <li> <p> <code>731</code> </p> </li> </ul> <p>Default: <code>7</code> days</p> <p>If you specify a retention period that isn't valid, such as <code>94</code>, Amazon RDS issues an error.</p>"
+        },
+        "EnableLimitlessDatabase":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to enable Aurora Limitless Database. You must enable Aurora Limitless Database to create a DB shard group.</p> <p>Valid for: Aurora DB clusters only</p>"
         },
         "ServerlessV2ScalingConfiguration":{"shape":"ServerlessV2ScalingConfiguration"},
         "NetworkType":{
@@ -4203,7 +4382,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of storage in gibibytes (GiB) to allocate for the DB instance.</p> <p>This setting doesn't apply to Amazon Aurora DB instances. Aurora cluster volumes automatically grow as the amount of data in your database increases, though you are only charged for the space that you use in an Aurora cluster volume.</p> <dl> <dt>Amazon RDS Custom</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 40 to 65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 40 to 65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.</p> </li> </ul> </dd> <dt>RDS for Db2</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 64000.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 64000.</p> </li> </ul> </dd> <dt>RDS for MariaDB</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> </dd> <dt>RDS for MySQL</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> </dd> <dt>RDS for Oracle</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 10 to 3072.</p> </li> </ul> </dd> <dt>RDS for PostgreSQL</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> </dd> <dt>RDS for SQL Server</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 20 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 16384.</p> </li> </ul> </li> <li> <p>Provisioned IOPS storage (io1):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 100 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 100 to 16384.</p> </li> </ul> </li> <li> <p>Magnetic storage (standard):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 20 to 1024.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 1024.</p> </li> </ul> </li> </ul> </dd> </dl>"
+          "documentation":"<p>The amount of storage in gibibytes (GiB) to allocate for the DB instance.</p> <p>This setting doesn't apply to Amazon Aurora DB instances. Aurora cluster volumes automatically grow as the amount of data in your database increases, though you are only charged for the space that you use in an Aurora cluster volume.</p> <dl> <dt>Amazon RDS Custom</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 40 to 65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 40 to 65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.</p> </li> </ul> </dd> <dt>RDS for Db2</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp3): Must be an integer from 20 to 64000.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 64000.</p> </li> </ul> </dd> <dt>RDS for MariaDB</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> </dd> <dt>RDS for MySQL</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> </dd> <dt>RDS for Oracle</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 10 to 3072.</p> </li> </ul> </dd> <dt>RDS for PostgreSQL</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> </dd> <dt>RDS for SQL Server</dt> <dd> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 20 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 16384.</p> </li> </ul> </li> <li> <p>Provisioned IOPS storage (io1):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 100 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 100 to 16384.</p> </li> </ul> </li> <li> <p>Magnetic storage (standard):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 20 to 1024.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 1024.</p> </li> </ul> </li> </ul> </dd> </dl>"
         },
         "DBInstanceClass":{
           "shape":"String",
@@ -4797,6 +4976,36 @@
         "DBSecurityGroup":{"shape":"DBSecurityGroup"}
       }
     },
+    "CreateDBShardGroupMessage":{
+      "type":"structure",
+      "required":[
+        "DBShardGroupIdentifier",
+        "DBClusterIdentifier",
+        "MaxACU"
+      ],
+      "members":{
+        "DBShardGroupIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The name of the DB shard group.</p>"
+        },
+        "DBClusterIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The name of the primary DB cluster for the DB shard group.</p>"
+        },
+        "ComputeRedundancy":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies whether to create standby instances for the DB shard group. Valid values are the following:</p> <ul> <li> <p>0 - Creates a single, primary DB instance for each physical shard. This is the default value, and the only one supported for the preview.</p> </li> <li> <p>1 - Creates a primary DB instance and a standby instance in a different Availability Zone (AZ) for each physical shard.</p> </li> <li> <p>2 - Creates a primary DB instance and two standby instances in different AZs for each physical shard.</p> </li> </ul>"
+        },
+        "MaxACU":{
+          "shape":"DoubleOptional",
+          "documentation":"<p>The maximum capacity of the DB shard group in Aurora capacity units (ACUs).</p>"
+        },
+        "PubliclyAccessible":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether the DB shard group is publicly accessible.</p> <p>When the DB shard group is publicly accessible, its Domain Name System (DNS) endpoint resolves to the private IP address from within the DB shard group's virtual private cloud (VPC). It resolves to the public IP address from outside of the DB shard group's VPC. Access to the DB shard group is ultimately controlled by the security group it uses. That public access is not permitted if the security group assigned to the DB shard group doesn't permit it.</p> <p>When the DB shard group isn't publicly accessible, it is an internal DB shard group with a DNS name that resolves to a private IP address.</p> <p>Default: The default behavior varies depending on whether <code>DBSubnetGroupName</code> is specified.</p> <p>If <code>DBSubnetGroupName</code> isn't specified, and <code>PubliclyAccessible</code> isn't specified, the following applies:</p> <ul> <li> <p>If the default VPC in the target Region doesn’t have an internet gateway attached to it, the DB shard group is private.</p> </li> <li> <p>If the default VPC in the target Region has an internet gateway attached to it, the DB shard group is public.</p> </li> </ul> <p>If <code>DBSubnetGroupName</code> is specified, and <code>PubliclyAccessible</code> isn't specified, the following applies:</p> <ul> <li> <p>If the subnets are part of a VPC that doesn’t have an internet gateway attached to it, the DB shard group is private.</p> </li> <li> <p>If the subnets are part of a VPC that has an internet gateway attached to it, the DB shard group is public.</p> </li> </ul>"
+        }
+      }
+    },
     "CreateDBSnapshotMessage":{
       "type":"structure",
       "required":[
@@ -4868,7 +5077,7 @@
         },
         "SnsTopicArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the SNS topic created for event notification. The ARN is created by Amazon SNS when you create a topic and subscribe to it.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the SNS topic created for event notification. SNS automatically creates the ARN when you create a topic and subscribe to it.</p> <note> <p>RDS doesn't support FIFO (first in, first out) topics. For more information, see <a href=\"https://docs.aws.amazon.com/sns/latest/dg/sns-fifo-topics.html\">Message ordering and deduplication (FIFO topics)</a> in the <i>Amazon Simple Notification Service Developer Guide</i>.</p> </note>"
         },
         "SourceType":{
           "shape":"String",
@@ -5324,7 +5533,7 @@
         },
         "HttpEndpointEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Indicates whether the HTTP endpoint for an Aurora Serverless v1 DB cluster is enabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API for running SQL queries on the Aurora Serverless v1 DB cluster. You can also query your database from inside the RDS console with the query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using the Data API for Aurora Serverless v1</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+          "documentation":"<p>Indicates whether the HTTP endpoint is enabled for an Aurora DB cluster.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         },
         "ActivityStreamMode":{
           "shape":"ActivityStreamMode",
@@ -5431,6 +5640,10 @@
         "AwsBackupRecoveryPointArn":{
           "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the recovery point in Amazon Web Services Backup.</p>"
+        },
+        "LimitlessDatabase":{
+          "shape":"LimitlessDatabase",
+          "documentation":"<p>The details for Aurora Limitless Database.</p>"
         }
       },
       "documentation":"<p>Contains the details of an Amazon Aurora DB cluster or Multi-AZ DB cluster.</p> <p>For an Amazon Aurora DB cluster, this data type is used as a response element in the operations <code>CreateDBCluster</code>, <code>DeleteDBCluster</code>, <code>DescribeDBClusters</code>, <code>FailoverDBCluster</code>, <code>ModifyDBCluster</code>, <code>PromoteReadReplicaDBCluster</code>, <code>RestoreDBClusterFromS3</code>, <code>RestoreDBClusterFromSnapshot</code>, <code>RestoreDBClusterToPointInTime</code>, <code>StartDBCluster</code>, and <code>StopDBCluster</code>.</p> <p>For a Multi-AZ DB cluster, this data type is used as a response element in the operations <code>CreateDBCluster</code>, <code>DeleteDBCluster</code>, <code>DescribeDBClusters</code>, <code>FailoverDBCluster</code>, <code>ModifyDBCluster</code>, <code>RebootDBCluster</code>, <code>RestoreDBClusterFromSnapshot</code>, and <code>RestoreDBClusterToPointInTime</code>.</p> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ deployments with two readable standby DB instances</a> in the <i>Amazon RDS User Guide.</i> </p>",
@@ -7556,6 +7769,115 @@
       },
       "exception":true
     },
+    "DBRecommendation":{
+      "type":"structure",
+      "members":{
+        "RecommendationId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the recommendation.</p>"
+        },
+        "TypeId":{
+          "shape":"String",
+          "documentation":"<p>A value that indicates the type of recommendation. This value determines how the description is rendered.</p>"
+        },
+        "Severity":{
+          "shape":"String",
+          "documentation":"<p>The severity level of the recommendation. The severity level can help you decide the urgency with which to address the recommendation.</p> <p>Valid values:</p> <ul> <li> <p> <code>high</code> </p> </li> <li> <p> <code>medium</code> </p> </li> <li> <p> <code>low</code> </p> </li> <li> <p> <code>informational</code> </p> </li> </ul>"
+        },
+        "ResourceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the RDS resource associated with the recommendation.</p>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The current status of the recommendation.</p> <p>Valid values:</p> <ul> <li> <p> <code>active</code> - The recommendations which are ready for you to apply.</p> </li> <li> <p> <code>pending</code> - The applied or scheduled recommendations which are in progress.</p> </li> <li> <p> <code>resolved</code> - The recommendations which are completed.</p> </li> <li> <p> <code>dismissed</code> - The recommendations that you dismissed.</p> </li> </ul>"
+        },
+        "CreatedTime":{
+          "shape":"TStamp",
+          "documentation":"<p>The time when the recommendation was created. For example, <code>2023-09-28T01:13:53.931000+00:00</code>.</p>"
+        },
+        "UpdatedTime":{
+          "shape":"TStamp",
+          "documentation":"<p>The time when the recommendation was last updated.</p>"
+        },
+        "Detection":{
+          "shape":"String",
+          "documentation":"<p>A short description of the issue identified for this recommendation. The description might contain markdown.</p>"
+        },
+        "Recommendation":{
+          "shape":"String",
+          "documentation":"<p>A short description of the recommendation to resolve an issue. The description might contain markdown.</p>"
+        },
+        "Description":{
+          "shape":"String",
+          "documentation":"<p>A detailed description of the recommendation. The description might contain markdown.</p>"
+        },
+        "Reason":{
+          "shape":"String",
+          "documentation":"<p>The reason why this recommendation was created. The information might contain markdown.</p>"
+        },
+        "RecommendedActions":{
+          "shape":"RecommendedActionList",
+          "documentation":"<p>A list of recommended actions.</p>"
+        },
+        "Category":{
+          "shape":"String",
+          "documentation":"<p>The category of the recommendation.</p> <p>Valid values:</p> <ul> <li> <p> <code>performance efficiency</code> </p> </li> <li> <p> <code>security</code> </p> </li> <li> <p> <code>reliability</code> </p> </li> <li> <p> <code>cost optimization</code> </p> </li> <li> <p> <code>operational excellence</code> </p> </li> <li> <p> <code>sustainability</code> </p> </li> </ul>"
+        },
+        "Source":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services service that generated the recommendations.</p>"
+        },
+        "TypeDetection":{
+          "shape":"String",
+          "documentation":"<p>A short description of the recommendation type. The description might contain markdown.</p>"
+        },
+        "TypeRecommendation":{
+          "shape":"String",
+          "documentation":"<p>A short description that summarizes the recommendation to fix all the issues of the recommendation type. The description might contain markdown.</p>"
+        },
+        "Impact":{
+          "shape":"String",
+          "documentation":"<p>A short description that explains the possible impact of an issue.</p>"
+        },
+        "AdditionalInfo":{
+          "shape":"String",
+          "documentation":"<p>Additional information about the recommendation. The information might contain markdown.</p>"
+        },
+        "Links":{
+          "shape":"DocLinkList",
+          "documentation":"<p>A link to documentation that provides additional information about the recommendation.</p>"
+        },
+        "IssueDetails":{
+          "shape":"IssueDetails",
+          "documentation":"<p>Details of the issue that caused the recommendation.</p>"
+        }
+      },
+      "documentation":"<p>The recommendation for your DB instances, DB clusters, and DB parameter groups.</p>"
+    },
+    "DBRecommendationList":{
+      "type":"list",
+      "member":{"shape":"DBRecommendation"}
+    },
+    "DBRecommendationMessage":{
+      "type":"structure",
+      "members":{
+        "DBRecommendation":{"shape":"DBRecommendation"}
+      }
+    },
+    "DBRecommendationsMessage":{
+      "type":"structure",
+      "members":{
+        "DBRecommendations":{
+          "shape":"DBRecommendationList",
+          "documentation":"<p>A list of recommendations which is returned from <code>DescribeDBRecommendations</code> API request.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>An optional pagination token provided by a previous <code>DBRecommendationsMessage</code> request. This token can be used later in a <code>DescribeDBRecomendations</code> request. </p>"
+        }
+      }
+    },
     "DBSecurityGroup":{
       "type":"structure",
       "members":{
@@ -7686,6 +8008,74 @@
       "member":{
         "shape":"DBSecurityGroup",
         "locationName":"DBSecurityGroup"
+      }
+    },
+    "DBShardGroup":{
+      "type":"structure",
+      "members":{
+        "DBShardGroupResourceId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services Region-unique, immutable identifier for the DB shard group.</p>"
+        },
+        "DBShardGroupIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The name of the DB shard group.</p>"
+        },
+        "DBClusterIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The name of the primary DB cluster for the DB shard group.</p>"
+        },
+        "MaxACU":{
+          "shape":"DoubleOptional",
+          "documentation":"<p>The maximum capacity of the DB shard group in Aurora capacity units (ACUs).</p>"
+        },
+        "ComputeRedundancy":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies whether to create standby instances for the DB shard group. Valid values are the following:</p> <ul> <li> <p>0 - Creates a single, primary DB instance for each physical shard. This is the default value, and the only one supported for the preview.</p> </li> <li> <p>1 - Creates a primary DB instance and a standby instance in a different Availability Zone (AZ) for each physical shard.</p> </li> <li> <p>2 - Creates a primary DB instance and two standby instances in different AZs for each physical shard.</p> </li> </ul>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The status of the DB shard group.</p>"
+        },
+        "PubliclyAccessible":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Indicates whether the DB shard group is publicly accessible.</p> <p>When the DB shard group is publicly accessible, its Domain Name System (DNS) endpoint resolves to the private IP address from within the DB shard group's virtual private cloud (VPC). It resolves to the public IP address from outside of the DB shard group's VPC. Access to the DB shard group is ultimately controlled by the security group it uses. That public access isn't permitted if the security group assigned to the DB shard group doesn't permit it.</p> <p>When the DB shard group isn't publicly accessible, it is an internal DB shard group with a DNS name that resolves to a private IP address.</p> <p>For more information, see <a>CreateDBShardGroup</a>.</p> <p>This setting is only for Aurora Limitless Database.</p>"
+        },
+        "Endpoint":{
+          "shape":"String",
+          "documentation":"<p>The connection endpoint for the DB shard group.</p>"
+        }
+      }
+    },
+    "DBShardGroupAlreadyExistsFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The specified DB shard group name must be unique in your Amazon Web Services account in the specified Amazon Web Services Region.</p>",
+      "error":{
+        "code":"DBShardGroupAlreadyExists",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "DBShardGroupNotFoundFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The specified DB shard group name wasn't found.</p>",
+      "error":{
+        "code":"DBShardGroupNotFound",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "DBShardGroupsList":{
+      "type":"list",
+      "member":{
+        "shape":"DBShardGroup",
+        "locationName":"DBShardGroup"
       }
     },
     "DBSnapshot":{
@@ -8381,6 +8771,16 @@
       },
       "documentation":"<p/>"
     },
+    "DeleteDBShardGroupMessage":{
+      "type":"structure",
+      "required":["DBShardGroupIdentifier"],
+      "members":{
+        "DBShardGroupIdentifier":{
+          "shape":"String",
+          "documentation":"<p>Teh name of the DB shard group to delete.</p>"
+        }
+      }
+    },
     "DeleteDBSnapshotMessage":{
       "type":"structure",
       "required":["DBSnapshotIdentifier"],
@@ -8781,7 +9181,7 @@
         },
         "MaxRecords":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The maximum number of records to include in the response. If more records exist than the specified <code>MaxRecords</code> value, a pagination token called a marker is included in the response so you can retrieve the remaining results.</p> <p>Default: 100</p> <p>Constraints: Minimum 20, maximum 100.</p>"
+          "documentation":"<p>The maximum number of records to include in the response. If more records exist than the specified <code>MaxRecords</code> value, a pagination token called a marker is included in the response so you can retrieve the remaining results.</p> <p>Default: 100</p> <p>Constraints: Minimum 20, maximum 100</p>"
         },
         "Marker":{
           "shape":"String",
@@ -9163,6 +9563,35 @@
         }
       }
     },
+    "DescribeDBRecommendationsMessage":{
+      "type":"structure",
+      "members":{
+        "LastUpdatedAfter":{
+          "shape":"TStamp",
+          "documentation":"<p>A filter to include only the recommendations that were updated after this specified time.</p>"
+        },
+        "LastUpdatedBefore":{
+          "shape":"TStamp",
+          "documentation":"<p>A filter to include only the recommendations that were updated before this specified time.</p>"
+        },
+        "Locale":{
+          "shape":"String",
+          "documentation":"<p>The language that you choose to return the list of recommendations.</p> <p>Valid values:</p> <ul> <li> <p> <code>en</code> </p> </li> <li> <p> <code>en_UK</code> </p> </li> <li> <p> <code>de</code> </p> </li> <li> <p> <code>es</code> </p> </li> <li> <p> <code>fr</code> </p> </li> <li> <p> <code>id</code> </p> </li> <li> <p> <code>it</code> </p> </li> <li> <p> <code>ja</code> </p> </li> <li> <p> <code>ko</code> </p> </li> <li> <p> <code>pt_BR</code> </p> </li> <li> <p> <code>zh_TW</code> </p> </li> <li> <p> <code>zh_CN</code> </p> </li> </ul>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>A filter that specifies one or more recommendations to describe.</p> <p>Supported Filters:</p> <ul> <li> <p> <code>recommendation-id</code> - Accepts a list of recommendation identifiers. The results list only includes the recommendations whose identifier is one of the specified filter values.</p> </li> <li> <p> <code>status</code> - Accepts a list of recommendation statuses.</p> <p>Valid values:</p> <ul> <li> <p> <code>active</code> - The recommendations which are ready for you to apply.</p> </li> <li> <p> <code>pending</code> - The applied or scheduled recommendations which are in progress.</p> </li> <li> <p> <code>resolved</code> - The recommendations which are completed.</p> </li> <li> <p> <code>dismissed</code> - The recommendations that you dismissed.</p> </li> </ul> <p>The results list only includes the recommendations whose status is one of the specified filter values.</p> </li> <li> <p> <code>severity</code> - Accepts a list of recommendation severities. The results list only includes the recommendations whose severity is one of the specified filter values.</p> <p>Valid values:</p> <ul> <li> <p> <code>high</code> </p> </li> <li> <p> <code>medium</code> </p> </li> <li> <p> <code>low</code> </p> </li> <li> <p> <code>informational</code> </p> </li> </ul> </li> <li> <p> <code>type-id</code> - Accepts a list of recommendation type identifiers. The results list only includes the recommendations whose type is one of the specified filter values.</p> </li> <li> <p> <code>dbi-resource-id</code> - Accepts a list of database resource identifiers. The results list only includes the recommendations that generated for the specified databases.</p> </li> <li> <p> <code>cluster-resource-id</code> - Accepts a list of cluster resource identifiers. The results list only includes the recommendations that generated for the specified clusters.</p> </li> <li> <p> <code>pg-arn</code> - Accepts a list of parameter group ARNs. The results list only includes the recommendations that generated for the specified parameter groups.</p> </li> <li> <p> <code>cluster-pg-arn</code> - Accepts a list of cluster parameter group ARNs. The results list only includes the recommendations that generated for the specified cluster parameter groups.</p> </li> </ul>"
+        },
+        "MaxRecords":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The maximum number of recommendations to include in the response. If more records exist than the specified <code>MaxRecords</code> value, a pagination token called a marker is included in the response so that you can retrieve the remaining results.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>An optional pagination token provided by a previous <code>DescribeDBRecommendations</code> request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>. </p>"
+        }
+      }
+    },
     "DescribeDBSecurityGroupsMessage":{
       "type":"structure",
       "members":{
@@ -9184,6 +9613,40 @@
         }
       },
       "documentation":"<p/>"
+    },
+    "DescribeDBShardGroupsMessage":{
+      "type":"structure",
+      "members":{
+        "DBShardGroupIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The user-supplied DB shard group identifier or the Amazon Resource Name (ARN) of the DB shard group. If this parameter is specified, information for only the specific DB shard group is returned. This parameter isn't case-sensitive.</p> <p>Constraints:</p> <ul> <li> <p>If supplied, must match an existing DB shard group identifier.</p> </li> </ul>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>A filter that specifies one or more DB shard groups to describe.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>An optional pagination token provided by a previous <code>DescribeDBShardGroups</code> request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>.</p>"
+        },
+        "MaxRecords":{
+          "shape":"MaxRecords",
+          "documentation":"<p>The maximum number of records to include in the response. If more records exist than the specified <code>MaxRecords</code> value, a pagination token called a marker is included in the response so you can retrieve the remaining results.</p> <p>Default: 100</p> <p>Constraints: Minimum 20, maximum 100</p>"
+        }
+      }
+    },
+    "DescribeDBShardGroupsResponse":{
+      "type":"structure",
+      "members":{
+        "DBShardGroups":{
+          "shape":"DBShardGroupsList",
+          "documentation":"<p>Contains a list of DB shard groups for the user.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>A pagination token that can be used in a later <code>DescribeDBClusters</code> request.</p>"
+        }
+      }
     },
     "DescribeDBSnapshotAttributesMessage":{
       "type":"structure",
@@ -9803,6 +10266,47 @@
       "min":1,
       "pattern":".*"
     },
+    "DisableHttpEndpointRequest":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the DB cluster.</p>"
+        }
+      }
+    },
+    "DisableHttpEndpointResponse":{
+      "type":"structure",
+      "members":{
+        "ResourceArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the DB cluster.</p>"
+        },
+        "HttpEndpointEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the HTTP endpoint is enabled or disabled for the DB cluster.</p>"
+        }
+      }
+    },
+    "DocLink":{
+      "type":"structure",
+      "members":{
+        "Text":{
+          "shape":"String",
+          "documentation":"<p>The text with the link to documentation for the recommendation.</p>"
+        },
+        "Url":{
+          "shape":"String",
+          "documentation":"<p>The URL for the documentation for the recommendation.</p>"
+        }
+      },
+      "documentation":"<p>A link to documentation that provides additional information for a recommendation.</p>"
+    },
+    "DocLinkList":{
+      "type":"list",
+      "member":{"shape":"DocLink"}
+    },
     "DomainMembership":{
       "type":"structure",
       "members":{
@@ -9963,6 +10467,29 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "EnableHttpEndpointRequest":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the DB cluster.</p>"
+        }
+      }
+    },
+    "EnableHttpEndpointResponse":{
+      "type":"structure",
+      "members":{
+        "ResourceArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the DB cluster.</p>"
+        },
+        "HttpEndpointEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the HTTP endpoint is enabled or disabled for the DB cluster.</p>"
+        }
+      }
     },
     "EncryptionContextMap":{
       "type":"map",
@@ -10412,7 +10939,7 @@
           "documentation":"<p>One or more filter values. Filter values are case-sensitive.</p>"
         }
       },
-      "documentation":"<p>A filter name and value pair that is used to return a more specific list of results from a describe operation. Filters can be used to match a set of resources by specific criteria, such as IDs. The filters supported by a describe operation are documented with the describe operation.</p> <note> <p>Currently, wildcards are not supported in filters.</p> </note> <p>The following actions can be filtered:</p> <ul> <li> <p> <code>DescribeDBClusterBacktracks</code> </p> </li> <li> <p> <code>DescribeDBClusterEndpoints</code> </p> </li> <li> <p> <code>DescribeDBClusters</code> </p> </li> <li> <p> <code>DescribeDBInstances</code> </p> </li> <li> <p> <code>DescribePendingMaintenanceActions</code> </p> </li> </ul>"
+      "documentation":"<p>A filter name and value pair that is used to return a more specific list of results from a describe operation. Filters can be used to match a set of resources by specific criteria, such as IDs. The filters supported by a describe operation are documented with the describe operation.</p> <note> <p>Currently, wildcards are not supported in filters.</p> </note> <p>The following actions can be filtered:</p> <ul> <li> <p> <code>DescribeDBClusterBacktracks</code> </p> </li> <li> <p> <code>DescribeDBClusterEndpoints</code> </p> </li> <li> <p> <code>DescribeDBClusters</code> </p> </li> <li> <p> <code>DescribeDBInstances</code> </p> </li> <li> <p> <code>DescribeDBRecommendations</code> </p> </li> <li> <p> <code>DescribePendingMaintenanceActions</code> </p> </li> </ul>"
     },
     "FilterList":{
       "type":"list",
@@ -11003,6 +11530,18 @@
       },
       "exception":true
     },
+    "InvalidDBShardGroupStateFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The DB shard group must be in the available state.</p>",
+      "error":{
+        "code":"InvalidDBShardGroupState",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "InvalidDBSnapshotStateFault":{
       "type":"structure",
       "members":{
@@ -11123,6 +11662,18 @@
       },
       "exception":true
     },
+    "InvalidMaxAcuFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The maximum capacity of the DB shard group must be 48-7168 Aurora capacity units (ACUs).</p>",
+      "error":{
+        "code":"InvalidMaxAcu",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "InvalidOptionGroupStateFault":{
       "type":"structure",
       "members":{
@@ -11130,6 +11681,18 @@
       "documentation":"<p>The option group isn't in the <i>available</i> state.</p>",
       "error":{
         "code":"InvalidOptionGroupStateFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "InvalidResourceStateFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The operation can't be performed because another operation is in progress.</p>",
+      "error":{
+        "code":"InvalidResourceStateFault",
         "httpStatusCode":400,
         "senderFault":true
       },
@@ -11183,6 +11746,16 @@
       },
       "exception":true
     },
+    "IssueDetails":{
+      "type":"structure",
+      "members":{
+        "PerformanceIssueDetails":{
+          "shape":"PerformanceIssueDetails",
+          "documentation":"<p>A detailed description of the issue when the recommendation category is <code>performance</code>.</p>"
+        }
+      },
+      "documentation":"<p>The details of an issue with your DB instances, DB clusters, and DB parameter groups.</p>"
+    },
     "KMSKeyNotAccessibleFault":{
       "type":"structure",
       "members":{
@@ -11204,6 +11777,33 @@
       "max":2048,
       "min":1,
       "pattern":"[a-zA-Z0-9_:\\-\\/]+"
+    },
+    "LimitlessDatabase":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"LimitlessDatabaseStatus",
+          "documentation":"<p>The status of Aurora Limitless Database.</p>"
+        },
+        "MinRequiredACU":{
+          "shape":"DoubleOptional",
+          "documentation":"<p>The minimum required capacity for Aurora Limitless Database in Aurora capacity units (ACUs).</p>"
+        }
+      },
+      "documentation":"<p>Contains details for Aurora Limitless Database.</p>"
+    },
+    "LimitlessDatabaseStatus":{
+      "type":"string",
+      "enum":[
+        "active",
+        "not-in-use",
+        "enabled",
+        "disabled",
+        "enabling",
+        "disabling",
+        "modifying-max-capacity",
+        "error"
+      ]
     },
     "ListTagsForResourceMessage":{
       "type":"structure",
@@ -11259,10 +11859,76 @@
       },
       "documentation":"<p>Contains the secret managed by RDS in Amazon Web Services Secrets Manager for the master user password.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon Aurora User Guide.</i> </p>"
     },
+    "MaxDBShardGroupLimitReached":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The maximum number of DB shard groups for your Amazon Web Services account in the specified Amazon Web Services Region has been reached.</p>",
+      "error":{
+        "code":"MaxDBShardGroupLimitReached",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "MaxRecords":{
       "type":"integer",
       "max":100,
       "min":20
+    },
+    "Metric":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"String",
+          "documentation":"<p>The name of a metric.</p>"
+        },
+        "References":{
+          "shape":"MetricReferenceList",
+          "documentation":"<p>A list of metric references (thresholds).</p>"
+        },
+        "StatisticsDetails":{
+          "shape":"String",
+          "documentation":"<p>The details of different statistics for a metric. The description might contain markdown.</p>"
+        },
+        "MetricQuery":{
+          "shape":"MetricQuery",
+          "documentation":"<p>The query to retrieve metric data points.</p>"
+        }
+      },
+      "documentation":"<p>The representation of a metric.</p>"
+    },
+    "MetricList":{
+      "type":"list",
+      "member":{"shape":"Metric"}
+    },
+    "MetricQuery":{
+      "type":"structure",
+      "members":{
+        "PerformanceInsightsMetricQuery":{
+          "shape":"PerformanceInsightsMetricQuery",
+          "documentation":"<p>The Performance Insights query that you can use to retrieve Performance Insights metric data points.</p>"
+        }
+      },
+      "documentation":"<p>The query to retrieve metric data points.</p>"
+    },
+    "MetricReference":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"String",
+          "documentation":"<p>The name of the metric reference.</p>"
+        },
+        "ReferenceDetails":{
+          "shape":"ReferenceDetails",
+          "documentation":"<p>The details of a performance issue.</p>"
+        }
+      },
+      "documentation":"<p>The reference (threshold) for a metric.</p>"
+    },
+    "MetricReferenceList":{
+      "type":"list",
+      "member":{"shape":"MetricReference"}
     },
     "MinimumEngineVersionPerAllowedValue":{
       "type":"structure",
@@ -11505,7 +12171,7 @@
         },
         "EnableHttpEndpoint":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether to enable the HTTP endpoint for an Aurora Serverless v1 DB cluster. By default, the HTTP endpoint is disabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API for running SQL queries on the Aurora Serverless v1 DB cluster. You can also query your database from inside the RDS console with the query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using the Data API for Aurora Serverless v1</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
+          "documentation":"<p>Specifies whether to enable the HTTP endpoint for an Aurora Serverless v1 DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the Aurora Serverless v1 DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This parameter applies only to Aurora Serverless v1 DB clusters. To enable or disable the HTTP endpoint for an Aurora PostgreSQL Serverless v2 or provisioned DB cluster, use the <code>EnableHttpEndpoint</code> and <code>DisableHttpEndpoint</code> operations.</p> </note> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
         },
         "CopyTagsToSnapshot":{
           "shape":"BooleanOptional",
@@ -11587,6 +12253,10 @@
         "AwsBackupRecoveryPointArn":{
           "shape":"AwsBackupRecoveryPointArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the recovery point in Amazon Web Services Backup.</p>"
+        },
+        "EnableLimitlessDatabase":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether to enable Aurora Limitless Database. You must enable Aurora Limitless Database to create a DB shard group.</p> <p>Valid for: Aurora DB clusters only</p>"
         }
       },
       "documentation":"<p/>"
@@ -12023,6 +12693,42 @@
         "DBProxyTargetGroup":{
           "shape":"DBProxyTargetGroup",
           "documentation":"<p>The settings of the modified <code>DBProxyTarget</code>.</p>"
+        }
+      }
+    },
+    "ModifyDBRecommendationMessage":{
+      "type":"structure",
+      "required":["RecommendationId"],
+      "members":{
+        "RecommendationId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the recommendation to update.</p>"
+        },
+        "Locale":{
+          "shape":"String",
+          "documentation":"<p>The language of the modified recommendation.</p>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The recommendation status to update.</p> <p>Valid values:</p> <ul> <li> <p>active</p> </li> <li> <p>dismissed</p> </li> </ul>"
+        },
+        "RecommendedActionUpdates":{
+          "shape":"RecommendedActionUpdateList",
+          "documentation":"<p>The list of recommended action status to update. You can update multiple recommended actions at one time.</p>"
+        }
+      }
+    },
+    "ModifyDBShardGroupMessage":{
+      "type":"structure",
+      "required":["DBShardGroupIdentifier"],
+      "members":{
+        "DBShardGroupIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The name of the DB shard group to modify.</p>"
+        },
+        "MaxACU":{
+          "shape":"DoubleOptional",
+          "documentation":"<p>The maximum capacity of the DB shard group in Aurora capacity units (ACUs).</p>"
         }
       }
     },
@@ -13097,6 +13803,60 @@
       },
       "documentation":"<p>This data type is used as a response element in the <code>ModifyDBInstance</code> operation and contains changes that will be applied during the next maintenance window.</p>"
     },
+    "PerformanceInsightsMetricDimensionGroup":{
+      "type":"structure",
+      "members":{
+        "Dimensions":{
+          "shape":"StringList",
+          "documentation":"<p>A list of specific dimensions from a dimension group. If this list isn't included, then all of the dimensions in the group were requested, or are present in the response.</p>"
+        },
+        "Group":{
+          "shape":"String",
+          "documentation":"<p>The available dimension groups for Performance Insights metric type.</p>"
+        },
+        "Limit":{
+          "shape":"Integer",
+          "documentation":"<p>The maximum number of items to fetch for this dimension group.</p>"
+        }
+      },
+      "documentation":"<p>A logical grouping of Performance Insights metrics for a related subject area. For example, the <code>db.sql</code> dimension group consists of the following dimensions: </p> <ul> <li> <p> <code>db.sql.id</code> - The hash of a running SQL statement, generated by Performance Insights.</p> </li> <li> <p> <code>db.sql.db_id</code> - Either the SQL ID generated by the database engine, or a value generated by Performance Insights that begins with <code>pi-</code>.</p> </li> <li> <p> <code>db.sql.statement</code> - The full text of the SQL statement that is running, for example, <code>SELECT * FROM employees</code>.</p> </li> <li> <p> <code>db.sql_tokenized.id</code> - The hash of the SQL digest generated by Performance Insights.</p> </li> </ul> <note> <p>Each response element returns a maximum of 500 bytes. For larger elements, such as SQL statements, only the first 500 bytes are returned.</p> </note>"
+    },
+    "PerformanceInsightsMetricQuery":{
+      "type":"structure",
+      "members":{
+        "GroupBy":{
+          "shape":"PerformanceInsightsMetricDimensionGroup",
+          "documentation":"<p>A specification for how to aggregate the data points from a query result. You must specify a valid dimension group. Performance Insights will return all of the dimensions within that group, unless you provide the names of specific dimensions within that group. You can also request that Performance Insights return a limited number of values for a dimension.</p>"
+        },
+        "Metric":{
+          "shape":"String",
+          "documentation":"<p>The name of a Performance Insights metric to be measured.</p> <p>Valid Values:</p> <ul> <li> <p> <code>db.load.avg</code> - A scaled representation of the number of active sessions for the database engine.</p> </li> <li> <p> <code>db.sampledload.avg</code> - The raw number of active sessions for the database engine.</p> </li> <li> <p>The counter metrics listed in <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_PerfInsights_Counters.html#USER_PerfInsights_Counters.OS\">Performance Insights operating system counters</a> in the <i>Amazon Aurora User Guide</i>.</p> </li> </ul> <p>If the number of active sessions is less than an internal Performance Insights threshold, <code>db.load.avg</code> and <code>db.sampledload.avg</code> are the same value. If the number of active sessions is greater than the internal threshold, Performance Insights samples the active sessions, with <code>db.load.avg</code> showing the scaled values, <code>db.sampledload.avg</code> showing the raw values, and <code>db.sampledload.avg</code> less than <code>db.load.avg</code>. For most use cases, you can query <code>db.load.avg</code> only.</p>"
+        }
+      },
+      "documentation":"<p>A single Performance Insights metric query to process. You must provide the metric to the query. If other parameters aren't specified, Performance Insights returns all data points for the specified metric. Optionally, you can request the data points to be aggregated by dimension group (<code>GroupBy</code>) and return only those data points that match your criteria (<code>Filter</code>).</p> <p>Constraints:</p> <ul> <li> <p>Must be a valid Performance Insights query.</p> </li> </ul>"
+    },
+    "PerformanceIssueDetails":{
+      "type":"structure",
+      "members":{
+        "StartTime":{
+          "shape":"TStamp",
+          "documentation":"<p>The time when the performance issue started.</p>"
+        },
+        "EndTime":{
+          "shape":"TStamp",
+          "documentation":"<p>The time when the performance issue stopped.</p>"
+        },
+        "Metrics":{
+          "shape":"MetricList",
+          "documentation":"<p>The metrics that are relevant to the performance issue.</p>"
+        },
+        "Analysis":{
+          "shape":"String",
+          "documentation":"<p>The analysis of the performance issue. The information might contain markdown.</p>"
+        }
+      },
+      "documentation":"<p>Details of the performance issue.</p>"
+    },
     "PointInTimeRestoreNotEnabledFault":{
       "type":"structure",
       "members":{
@@ -13315,6 +14075,102 @@
         "DBInstance":{"shape":"DBInstance"}
       }
     },
+    "RebootDBShardGroupMessage":{
+      "type":"structure",
+      "required":["DBShardGroupIdentifier"],
+      "members":{
+        "DBShardGroupIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The name of the DB shard group to reboot.</p>"
+        }
+      }
+    },
+    "RecommendedAction":{
+      "type":"structure",
+      "members":{
+        "ActionId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the recommended action.</p>"
+        },
+        "Title":{
+          "shape":"String",
+          "documentation":"<p>A short description to summarize the action. The description might contain markdown.</p>"
+        },
+        "Description":{
+          "shape":"String",
+          "documentation":"<p>A detailed description of the action. The description might contain markdown.</p>"
+        },
+        "Operation":{
+          "shape":"String",
+          "documentation":"<p>An API operation for the action.</p>"
+        },
+        "Parameters":{
+          "shape":"RecommendedActionParameterList",
+          "documentation":"<p>The parameters for the API operation.</p>"
+        },
+        "ApplyModes":{
+          "shape":"StringList",
+          "documentation":"<p>The methods to apply the recommended action.</p> <p>Valid values:</p> <ul> <li> <p> <code>manual</code> - The action requires you to resolve the recommendation manually.</p> </li> <li> <p> <code>immediately</code> - The action is applied immediately.</p> </li> <li> <p> <code>next-maintainance-window</code> - The action is applied during the next scheduled maintainance.</p> </li> </ul>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The status of the action.</p> <ul> <li> <p> <code>ready</code> </p> </li> <li> <p> <code>applied</code> </p> </li> <li> <p> <code>scheduled</code> </p> </li> <li> <p> <code>resolved</code> </p> </li> </ul>"
+        },
+        "IssueDetails":{
+          "shape":"IssueDetails",
+          "documentation":"<p>The details of the issue.</p>"
+        },
+        "ContextAttributes":{
+          "shape":"ContextAttributeList",
+          "documentation":"<p>The supporting attributes to explain the recommended action.</p>"
+        }
+      },
+      "documentation":"<p>The recommended actions to apply to resolve the issues associated with your DB instances, DB clusters, and DB parameter groups.</p>"
+    },
+    "RecommendedActionList":{
+      "type":"list",
+      "member":{"shape":"RecommendedAction"}
+    },
+    "RecommendedActionParameter":{
+      "type":"structure",
+      "members":{
+        "Key":{
+          "shape":"String",
+          "documentation":"<p>The key of the parameter to use with the <code>RecommendedAction</code> API operation.</p>"
+        },
+        "Value":{
+          "shape":"String",
+          "documentation":"<p>The value of the parameter to use with the <code>RecommendedAction</code> API operation.</p>"
+        }
+      },
+      "documentation":"<p>A single parameter to use with the <code>RecommendedAction</code> API operation to apply the action.</p>"
+    },
+    "RecommendedActionParameterList":{
+      "type":"list",
+      "member":{"shape":"RecommendedActionParameter"}
+    },
+    "RecommendedActionUpdate":{
+      "type":"structure",
+      "required":[
+        "ActionId",
+        "Status"
+      ],
+      "members":{
+        "ActionId":{
+          "shape":"String",
+          "documentation":"<p>A unique identifier of the updated recommendation action.</p>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The status of the updated recommendation action.</p> <ul> <li> <p> <code>applied</code> </p> </li> <li> <p> <code>scheduled</code> </p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The recommended status to update for the specified recommendation action ID.</p>"
+    },
+    "RecommendedActionUpdateList":{
+      "type":"list",
+      "member":{"shape":"RecommendedActionUpdate"}
+    },
     "RecurringCharge":{
       "type":"structure",
       "members":{
@@ -13336,6 +14192,16 @@
         "shape":"RecurringCharge",
         "locationName":"RecurringCharge"
       }
+    },
+    "ReferenceDetails":{
+      "type":"structure",
+      "members":{
+        "ScalarReferenceDetails":{
+          "shape":"ScalarReferenceDetails",
+          "documentation":"<p>The metric reference details when the reference is a scalar.</p>"
+        }
+      },
+      "documentation":"<p>The reference details of a metric.</p>"
     },
     "RegisterDBProxyTargetsRequest":{
       "type":"structure",
@@ -14818,6 +15684,16 @@
       },
       "exception":true
     },
+    "ScalarReferenceDetails":{
+      "type":"structure",
+      "members":{
+        "Value":{
+          "shape":"Double",
+          "documentation":"<p>The value of a scalar reference.</p>"
+        }
+      },
+      "documentation":"<p>The metric reference details when the reference is a scalar.</p>"
+    },
     "ScalingConfiguration":{
       "type":"structure",
       "members":{
@@ -15762,6 +16638,18 @@
         }
       },
       "documentation":"<p>A time zone associated with a <code>DBInstance</code> or a <code>DBSnapshot</code>. This data type is an element in the response to the <code>DescribeDBInstances</code>, the <code>DescribeDBSnapshots</code>, and the <code>DescribeDBEngineVersions</code> actions.</p>"
+    },
+    "UnsupportedDBEngineVersionFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The specified DB engine version isn't supported for Aurora Limitless Database.</p>",
+      "error":{
+        "code":"UnsupportedDBEngineVersion",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
     },
     "UpgradeTarget":{
       "type":"structure",

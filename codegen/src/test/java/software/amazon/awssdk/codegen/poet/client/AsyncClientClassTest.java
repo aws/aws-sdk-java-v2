@@ -19,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
@@ -28,6 +29,7 @@ import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 import org.junit.Test;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.poet.ClassSpec;
 
 public class AsyncClientClassTest {
     @Test
@@ -82,6 +84,12 @@ public class AsyncClientClassTest {
     public void asyncClientCustomServiceMetaData() {
         AsyncClientClass asyncClientCustomServiceMetaData = createAsyncClientClass(customContentTypeModels());
         assertThat(asyncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-async.java"));
+    }
+
+    @Test
+    public void asyncClientCustomPackageName() {
+        ClassSpec syncClientCustomServiceMetaData = createAsyncClientClass(customPackageModels());
+        assertThat(syncClientCustomServiceMetaData, generatesTo("test-custompackage-async.java"));
     }
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
