@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.3__ __2024-02-14__
+## __AWS Control Tower__
+  - ### Features
+    - Adds support for new Baseline and EnabledBaseline APIs for automating multi-account governance.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Switching half of the AWS service clients onto the new SRA (Smithy Reference Architecture) identity and auth logic that was released in v2.21.0. For a list of individual services affected, please check the committed files.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where NPE would be thrown if there was an empty event in the input for an event streaming operation.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This feature allows customers to see pointwise model diagnostics results for their models.
+
+## __Amazon Simple Storage Service__
+  - ### Bugfixes
+    - Fix for Issue [#4912](https://github.com/aws/aws-sdk-java-v2/issues/4912) where client region with AWS_GLOBAL calls failed for cross region access.
+
+## __QBusiness__
+  - ### Features
+    - This release adds the metadata-boosting feature, which allows customers to easily fine-tune the underlying ranking of retrieved RAG passages in order to optimize Q&A answer relevance. It also adds new feedback reasons for the PutFeedback API.
+
 # __2.24.2__ __2024-02-13__
 ## __AWS Marketplace Catalog Service__
   - ### Features
