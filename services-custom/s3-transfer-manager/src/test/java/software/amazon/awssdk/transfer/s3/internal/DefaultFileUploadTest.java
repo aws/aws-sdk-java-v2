@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import software.amazon.awssdk.services.s3.internal.multipart.KnownContentLengthAsyncRequestBodySubscriber;
 import software.amazon.awssdk.services.s3.internal.multipart.PausableUpload;
 import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
@@ -52,7 +53,7 @@ class DefaultFileUploadTest {
     private static final int NUM_OF_PARTS_COMPLETED = 5;
     private static final long PART_SIZE_IN_BYTES = 8 * MB;
     private static final String MULTIPART_UPLOAD_ID = "someId";
-    private UploadWithKnownContentLengthHelper.KnownContentLengthAsyncRequestBodySubscriber uploadPartSubscriber;
+    private KnownContentLengthAsyncRequestBodySubscriber uploadPartSubscriber;
     private static FileSystem fileSystem;
     private static File file;
     private static S3ResumeToken token;
@@ -78,7 +79,7 @@ class DefaultFileUploadTest {
     @BeforeEach
     void setUpBeforeEachTest() {
         uploadPartSubscriber =
-            Mockito.mock(UploadWithKnownContentLengthHelper.KnownContentLengthAsyncRequestBodySubscriber.class);
+            Mockito.mock(KnownContentLengthAsyncRequestBodySubscriber.class);
     }
 
     @Test
