@@ -42,7 +42,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .maximumBufferSize(1024 * 1024 * 32)
+                                .maximumBufferSizeInBytes(1024 * 1024 * 32L)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new CancelAfterNTestSubscriber(
@@ -59,7 +59,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .maximumBufferSize(1024 * 1024 * 32)
+                                .maximumBufferSizeInBytes(1024 * 1024 * 32L)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new FailAfterNTestSubscriber(2));
@@ -68,7 +68,7 @@ class SplittingTransformerTest {
 
     @Test
     void whenDataExceedsBufferSize_UpstreamShouldReceiveAllData() {
-        int evenBufferSize = 16 * 1024;
+        Long evenBufferSize = 16 * 1024L;
 
         // We send 9 split body of 7kb with a buffer size of 16kb. This is to test when uneven body size is used compared to
         // the buffer size, this test use a body size which does not evenly divides with the buffer size.
@@ -79,7 +79,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .maximumBufferSize(evenBufferSize)
+                                .maximumBufferSizeInBytes(evenBufferSize)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new CancelAfterNTestSubscriber(
@@ -106,7 +106,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .maximumBufferSize(1024 * 1024 * 32)
+                                .maximumBufferSizeInBytes(1024 * 1024 * 32L)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new RequestingTestSubscriber(4));

@@ -125,7 +125,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer = SplittingTransformer
             .<ResponseT, ResultT>builder()
             .upstreamResponseTransformer(this)
-            .maximumBufferSize(bufferSize)
+            .maximumBufferSizeInBytes(bufferSize)
             .returnFuture(future)
             .build();
         return SplitAsyncResponseTransformer.<ResponseT, ResultT>builder()

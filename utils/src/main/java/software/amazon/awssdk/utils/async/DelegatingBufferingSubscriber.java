@@ -24,13 +24,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
-public class DelegatingBufferingSubscriber extends AbstractFlatteningSubscriber<ByteBuffer, ByteBuffer> {
+public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuffer, ByteBuffer> {
     /**
      * The maximum amount of bytes allowed to be stored in the StoringSubscriber
      */
-    private final long maximumBuffer;
+    private final long maximumBufferInBytes;
 
     /**
      * Current amount of bytes buffered in the StoringSubscriber
@@ -43,17 +44,16 @@ public class DelegatingBufferingSubscriber extends AbstractFlatteningSubscriber<
      */
     private final StoringSubscriber<ByteBuffer> storage = new StoringSubscriber<>(Integer.MAX_VALUE);
 
-    public DelegatingBufferingSubscriber(long maximumBuffer, Subscriber<? super ByteBuffer> subscriber) {
-        super(subscriber);
-        this.maximumBuffer = maximumBuffer;
+    protected DelegatingBufferingSubscriber(Long maximumBufferInBytes, Subscriber<? super ByteBuffer> delegate) {
+        super(Validate.notNull(delegate, "delegate must not be null"));
+        this.maximumBufferInBytes = Validate.notNull(maximumBufferInBytes, "maximumBufferInBytes msut not be null");
     }
 
     @Override
     public void onNext(ByteBuffer item) {
-        if (currentlyBuffered.get() + item.remaining() > maximumBuffer) {
+        if (currentlyBuffered.get() > 0) {
             flushStorageToDelegate();
         }
-        // calling super.onNext will eventually fulfill any remaining demand
         super.onNext(item);
     }
 
@@ -64,8 +64,8 @@ public class DelegatingBufferingSubscriber extends AbstractFlatteningSubscriber<
     }
 
     @Override
-    protected void doWithItem(ByteBuffer buffer) {
-        if (currentlyBuffered.get() + buffer.remaining() > maximumBuffer) {
+    void doWithItem(ByteBuffer buffer) {
+        if (currentlyBuffered.get() > 0) {
             flushStorageToDelegate();
         }
         storage.onNext(buffer.duplicate());
@@ -81,26 +81,24 @@ public class DelegatingBufferingSubscriber extends AbstractFlatteningSubscriber<
      * Returns true if we need to call onNext downstream.
      */
     @Override
-    protected boolean onNextNeeded() {
-        return super.onNextNeeded() && storage.peek().isPresent() && storage.peek().get().type() == ON_NEXT;
+    boolean additionalOnNextNeededCheck() {
+        return storage.peek().map(event -> event.type() == ON_NEXT).orElse(false);
     }
 
     /**
      * Returns true if we need to call onComplete downstream.
      */
     @Override
-    protected boolean onCompleteNeeded() {
-        boolean emptyStorage = !storage.peek().isPresent();
-        boolean storageReceivedOnComplete = storage.peek().isPresent() && storage.peek().get().type() == ON_COMPLETE;
-        return super.onCompleteNeeded() && (emptyStorage || storageReceivedOnComplete);
+    boolean additionalOnCompleteNeededCheck() {
+        return storage.peek().map(event -> event.type() == ON_COMPLETE).orElse(true);
     }
 
     /**
      * Returns true if we need to increase our upstream demand.
      */
     @Override
-    protected boolean upstreamDemandNeeded() {
-        return super.upstreamDemandNeeded() && currentlyBuffered.get() < maximumBuffer;
+    boolean additionalUpstreamDemandNeededCheck() {
+        return currentlyBuffered.get() < maximumBufferInBytes;
     }
 
     private void flushStorageToDelegate() {
@@ -118,4 +116,26 @@ public class DelegatingBufferingSubscriber extends AbstractFlatteningSubscriber<
         }
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private Long maximumBufferInBytes;
+        private Subscriber<? super ByteBuffer> delegate;
+
+        public Builder maximumBufferInBytes(Long maximumBufferInBytes) {
+            this.maximumBufferInBytes = maximumBufferInBytes;
+            return this;
+        }
+
+        public Builder delegate(Subscriber<? super ByteBuffer> delegate) {
+            this.delegate = delegate;
+            return this;
+        }
+
+        public DelegatingBufferingSubscriber build() {
+            return new DelegatingBufferingSubscriber(maximumBufferInBytes, delegate);
+        }
+    }
 }

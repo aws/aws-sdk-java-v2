@@ -32,7 +32,7 @@ public class DelegatingBufferingSubscriberTckTest extends SubscriberWhiteboxVeri
     @Override
     public Subscriber<ByteBuffer> createSubscriber(WhiteboxSubscriberProbe<ByteBuffer> probe) {
         Subscriber<ByteBuffer> delegate = new NoOpSubscriber();
-        return new DelegatingBufferingSubscriber(1024, delegate) {
+        return new DelegatingBufferingSubscriber(1024L, delegate) {
             @Override
             public void onSubscribe(Subscription s) {
                 super.onSubscribe(s);

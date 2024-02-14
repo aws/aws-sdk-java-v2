@@ -27,86 +27,115 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.Logger;
 
-// [WIP]
-// Still work in progress, currently only used to help manual testing, please ignore
+/**
+ * A subscriber implementation that will download all individual parts for a multipart get-object request. It receives the
+ * individual {@link AsyncResponseTransformer} which will be used to perform the individual part requests.
+ * This is a 'one-shot' class, it should <em>NOT</em> be reused for more than one multipart download
+ */
 @SdkInternalApi
 public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
     private static final Logger log = Logger.loggerFor(MultipartDownloaderSubscriber.class);
 
+    /**
+     * The s3 client used to make the individual part requests
+     */
     private final S3AsyncClient s3;
+
+    /**
+     * The GetObjectRequest that was provided when calling s3.getObject(...). It is copied for each individual request, and the
+     * copy has the partNumber field updated as more parts are downloaded.
+     */
     private final GetObjectRequest getObjectRequest;
 
-    private AtomicBoolean totalPartKnown = new AtomicBoolean(false);
-    private AtomicInteger totalParts = new AtomicInteger();
-    private AtomicInteger completed = new AtomicInteger(0);
-    private AtomicInteger currentPart = new AtomicInteger(0);
+    /**
+     * Set to true when we know the total part number of the object to get.
+     */
+    private final AtomicBoolean totalPartKnown = new AtomicBoolean(false);
 
+    /**
+     * Once total part is know, this value indicates the total number of parts of the object to get.
+     */
+    private final AtomicInteger totalParts = new AtomicInteger();
+
+    /**
+     * The total number of completed parts. A part is considered complete once the completable future associated with its request
+     * completes successfully.
+     */
+    private final AtomicInteger completedParts = new AtomicInteger(0);
+
+    /**
+     * The subscription received from the publisher this subscriber subscribes to.
+     */
     private Subscription subscription;
 
-    private CompletableFuture<GetObjectResponse> responseFuture;
-    private GetObjectResponse returnResponse;
+    /**
+     * This future will be completed once this subscriber reaches a terminal state, failed or successfully, and will be
+     * completed accordingly.
+     */
+    private CompletableFuture<Void> future = new CompletableFuture<>();
 
     public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
-        this.responseFuture = new CompletableFuture<>();
     }
 
     @Override
     public void onSubscribe(Subscription s) {
-        if (this.subscription == null) {
-            this.subscription = s;
+        if (this.subscription != null) {
+            s.cancel();
+            return;
         }
-        s.request(1);
+        this.subscription = s;
+        this.subscription.request(1);
     }
 
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        int part = currentPart.incrementAndGet();
-        if (totalPartKnown.get()) {
-            log.info(() -> String.format("total part: %s, current part: %s", totalParts.get(), part));
-        } else {
-            log.info(() -> String.format("part %s", part));
+        if (asyncResponseTransformer == null) {
+            throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
-        if (totalPartKnown.get() && part > totalParts.get()) {
-            log.info(() -> "no more parts available, stopping");
+
+        int nextPartToGet = completedParts.get() + 1;
+        if (totalPartKnown.get() && nextPartToGet > totalParts.get()) {
             subscription.cancel();
             return;
         }
-        GetObjectRequest actualRequest = this.getObjectRequest.copy(req -> req.partNumber(part));
+
+        GetObjectRequest actualRequest = getObjectRequest.copy(req -> req.partNumber(nextPartToGet));
         CompletableFuture<GetObjectResponse> future = s3.getObject(actualRequest, asyncResponseTransformer);
-        future.whenComplete((response, e) -> {
-            if (e != null) {
-                responseFuture.completeExceptionally(e);
+        future.whenComplete((response, error) -> {
+            if (error != null) {
+                onError(error);
                 return;
             }
-            completed.incrementAndGet();
-            returnResponse = response;
-            log.info(() -> String.format("received '%s'", response.contentRange()));
+            int totalComplete = completedParts.incrementAndGet();
+            log.info(() -> String.format("completed part: %s", totalComplete));
+
             Integer partCount = response.partsCount();
-            if (totalPartKnown.compareAndSet(false, true)) {
+            if (partCount != null && totalPartKnown.compareAndSet(false, true)) {
+                log.info(() -> String.format("total parts: %s", partCount));
                 totalParts.set(partCount);
                 totalPartKnown.set(true);
             }
-            log.info(() -> String.format("total parts: %s", partCount));
-            if (totalParts.get() > 1) {
+            if (partCount != null && requiresMultipart()) {
                 subscription.request(1);
+            } else {
+                subscription.cancel();
             }
         });
     }
 
+    private boolean requiresMultipart() {
+        return totalParts.get() > 1;
+    }
+
     @Override
     public void onError(Throwable t) {
-        responseFuture.completeExceptionally(t);
+        future.completeExceptionally(t);
     }
 
     @Override
     public void onComplete() {
-        responseFuture.complete(returnResponse);
+        future.complete(null);
     }
-
-    public CompletableFuture<GetObjectResponse> future() {
-        return responseFuture;
-    }
-
 }

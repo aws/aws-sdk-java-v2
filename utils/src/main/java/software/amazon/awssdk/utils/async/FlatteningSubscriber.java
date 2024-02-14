@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
-public class FlatteningSubscriber<U> extends AbstractFlatteningSubscriber<Iterable<U>, U> {
+public class FlatteningSubscriber<U> extends BaseSubscriberAdapter<Iterable<U>, U> {
 
     /**
      * Items given to us by the upstream subscriber that we will use to fulfill demand of the downstream subscriber.
@@ -33,7 +33,7 @@ public class FlatteningSubscriber<U> extends AbstractFlatteningSubscriber<Iterab
     }
 
     @Override
-    protected void doWithItem(Iterable<U> nextItems) {
+    void doWithItem(Iterable<U> nextItems) {
         nextItems.forEach(item -> {
             Validate.notNull(nextItems, "Collections flattened by the flattening subscriber must not contain null.");
             allItems.add(item);
@@ -51,16 +51,16 @@ public class FlatteningSubscriber<U> extends AbstractFlatteningSubscriber<Iterab
      * result is subject to change.
      */
     @Override
-    protected boolean onNextNeeded() {
-        return super.onNextNeeded() && !allItems.isEmpty();
+    boolean additionalOnNextNeededCheck() {
+        return !allItems.isEmpty();
     }
 
     /**
      * Returns true if we need to increase our upstream demand.
      */
     @Override
-    protected boolean upstreamDemandNeeded() {
-        return super.upstreamDemandNeeded() && allItems.isEmpty();
+    boolean additionalUpstreamDemandNeededCheck() {
+        return allItems.isEmpty();
     }
 
     /**
@@ -68,8 +68,8 @@ public class FlatteningSubscriber<U> extends AbstractFlatteningSubscriber<Iterab
      * result is subject to change.
      */
     @Override
-    protected boolean onCompleteNeeded() {
-        return super.onCompleteNeeded() && allItems.isEmpty();
+    boolean additionalOnCompleteNeededCheck() {
+        return allItems.isEmpty();
     }
 
     @Override

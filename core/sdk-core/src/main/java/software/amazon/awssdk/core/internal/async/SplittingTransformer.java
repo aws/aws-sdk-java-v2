@@ -81,7 +81,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     /**
      * The buffer size used to buffer the content received from the downstream subscriber
      */
-    private final long maximumBufferSize;
+    private final long maximumBufferInBytes;
 
     /**
      * This publisher is used to send the bytes received from the downstream subscriber's transformers to a
@@ -107,11 +107,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicBoolean emitting = new AtomicBoolean(false);
 
     private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
-                                 Long bufferSize,
+                                 Long maximumBufferInBytes,
                                  CompletableFuture<ResultT> returnFuture) {
         this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
         this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
-        this.maximumBufferSize = Validate.notNull(bufferSize, "bufferSize");
+        this.maximumBufferInBytes = Validate.notNull(maximumBufferInBytes, "bufferSize");
     }
 
     /**
@@ -226,10 +226,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
             if (onStreamCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onStream on the upstream transformer");
-                upstreamResponseTransformer.onStream(
-                    upstreamSubscriber ->
-                        publisherToUpstream.subscribe(new DelegatingBufferingSubscriber(maximumBufferSize, upstreamSubscriber))
-                );
+                upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(
+                    DelegatingBufferingSubscriber.builder()
+                                                 .maximumBufferInBytes(maximumBufferInBytes)
+                                                 .delegate(upstreamSubscriber)
+                                                 .build()));
             }
             publisher.subscribe(new IndividualPartSubscriber<>(this.individualFuture, response, publisherToUpstream));
         }
@@ -248,14 +249,14 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         private final CompletableFuture<T> future;
         private final T response;
-        private final SimplePublisher<ByteBuffer> bodyPartPublisher;
+        private final SimplePublisher<ByteBuffer> publisherToUpstream;
         private Subscription subscription;
 
         IndividualPartSubscriber(CompletableFuture<T> future, T response,
                                  SimplePublisher<ByteBuffer> bodyPartPublisher) {
             this.future = future;
             this.response = response;
-            this.bodyPartPublisher = bodyPartPublisher;
+            this.publisherToUpstream = bodyPartPublisher;
         }
 
         @Override
@@ -274,7 +275,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             if (byteBuffer == null) {
                 throw new NullPointerException("onNext must not be called with null byteBuffer");
             }
-            bodyPartPublisher.send(byteBuffer).whenComplete((r, t) -> {
+            publisherToUpstream.send(byteBuffer).whenComplete((r, t) -> {
                 if (t != null) {
                     handleError(t);
                     return;
@@ -285,7 +286,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onError(Throwable t) {
-            bodyPartPublisher.error(t);
             handleError(t);
         }
 
@@ -295,10 +295,10 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         }
 
         private void handleError(Throwable t) {
+            publisherToUpstream.error(t);
             future.completeExceptionally(t);
         }
     }
-
 
     public static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
         return new Builder<>();
@@ -306,7 +306,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
     public static final class Builder<ResponseT, ResultT> {
 
-        private long maximumBufferSize;
+        private Long maximumBufferSize;
         private CompletableFuture<ResultT> returnFuture;
         private AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
 
@@ -336,7 +336,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
          * @param maximumBufferSize the amount of data buffered and the size of the chunk of data
          * @return an instance of this builder
          */
-        public Builder<ResponseT, ResultT> maximumBufferSize(long maximumBufferSize) {
+        public Builder<ResponseT, ResultT> maximumBufferSizeInBytes(Long maximumBufferSize) {
             this.maximumBufferSize = maximumBufferSize;
             return this;
         }
