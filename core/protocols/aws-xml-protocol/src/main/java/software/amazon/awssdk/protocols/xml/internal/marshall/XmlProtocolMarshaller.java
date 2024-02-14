@@ -91,8 +91,11 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             Object val = field.getValueOrDefault(pojo);
 
             if (isBinary(field, val)) {
-                request.contentStreamProvider(((SdkBytes) val)::asInputStream);
+                SdkBytes sdkBytes = (SdkBytes) val;
+                request.contentStreamProvider(sdkBytes::asInputStream);
                 setContentTypeHeaderIfNeeded("binary/octet-stream");
+                request.putHeader(CONTENT_LENGTH, Integer.toString(sdkBytes.asByteArray().length));
+
 
             } else if (isExplicitPayloadMember(field) && val instanceof String) {
                 byte[] content = ((String) val).getBytes(StandardCharsets.UTF_8);

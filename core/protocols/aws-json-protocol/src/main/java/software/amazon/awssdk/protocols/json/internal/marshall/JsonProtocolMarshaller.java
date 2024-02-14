@@ -201,7 +201,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private void updateContentLengthHeader(int contentLength) {
-        if (!request.headers().containsKey(CONTENT_LENGTH)) {
+        if (!request.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
             request.putHeader(CONTENT_LENGTH, Integer.toString(contentLength));
         }
     }
