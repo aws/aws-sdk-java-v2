@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Control Tower",
+    "contributor": "",
+    "description": "Adds support for new Baseline and EnabledBaseline APIs for automating multi-account governance."
+}
