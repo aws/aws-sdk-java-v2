@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.multipart;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.services.s3.internal.multipart.PausableUpload;
 
 @SdkProtectedApi
@@ -33,5 +34,10 @@ public class PauseObservable {
             return null;
         }
         return pausableUpload.pause();
+    }
+
+    @SdkTestInternalApi
+    public boolean pausableUploadSet() {
+        return pausableUpload != null;
     }
 }

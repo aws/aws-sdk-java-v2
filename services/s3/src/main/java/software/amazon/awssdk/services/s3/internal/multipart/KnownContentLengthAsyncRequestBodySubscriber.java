@@ -18,15 +18,15 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -48,7 +48,6 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final AtomicInteger asyncRequestBodyInFlight = new AtomicInteger(0);
     private final AtomicBoolean failureActionInitiated = new AtomicBoolean(false);
     private final AtomicInteger partNumber = new AtomicInteger(1);
-    private final AtomicReferenceArray<CompletedPart> completedParts;
     private final MultipartUploadHelper multipartUploadHelper;
     private final long partSize;
     private final int partCount;
@@ -57,6 +56,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final Collection<CompletableFuture<CompletedPart>> futures = new ConcurrentLinkedQueue<>();
     private final PutObjectRequest putObjectRequest;
     private final CompletableFuture<PutObjectResponse> returnFuture;
+    private final Map<Integer, CompletedPart> completedParts;
     private final Map<Integer, CompletedPart> existingParts;
     private Subscription subscription;
     private volatile boolean isDone;
@@ -73,7 +73,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.uploadId = mpuRequestContext.uploadId();
         this.existingParts = mpuRequestContext.existingParts();
         this.numExistingParts = (int) mpuRequestContext.numPartsCompleted();
-        this.completedParts = new AtomicReferenceArray<>(partCount - numExistingParts);
+        this.completedParts = new ConcurrentHashMap<>();
         this.multipartUploadHelper = multipartUploadHelper;
     }
 
@@ -135,6 +135,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         }
 
         if (existingParts.containsKey(partNumber.get())) {
+            partNumber.getAndIncrement();
             asyncRequestBody.subscribe(new CancelledSubscriber<>());
             subscription.request(1);
             return;
@@ -146,7 +147,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                                                                                      uploadId);
 
         Consumer<CompletedPart> completedPartConsumer =
-            completedPart -> completedParts.set(completedPart.partNumber() - 1 - numExistingParts, completedPart);
+            completedPart -> completedParts.put(completedPart.partNumber(), completedPart);
         multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedPartConsumer, futures,
                                                               Pair.of(uploadRequest, asyncRequestBody))
                              .whenComplete((r, t) -> {
@@ -187,10 +188,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         if (isDone && requestsInFlight == 0) {
             CompletedPart[] parts;
             if (existingParts.isEmpty()) {
-                parts = IntStream.range(0, completedParts.length())
-                                 .mapToObj(completedParts::get)
-                                 .toArray(CompletedPart[]::new);
-            } else if (completedParts.length() != 0) {
+                parts = completedParts.values().toArray(new CompletedPart[0]);
+            } else if (!completedParts.isEmpty()) {
                 // List of CompletedParts needs to be in ascending order
                 parts = mergeCompletedParts();
             } else {
@@ -205,13 +204,17 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         CompletedPart[] merged = new CompletedPart[partCount];
         int currPart = 1;
         while (currPart < partCount + 1) {
-            if (existingParts.containsKey(currPart)) {
-                merged[currPart - 1] = existingParts.get(currPart);
-            } else {
-                merged[currPart - 1] = completedParts.get(currPart - 1 - numExistingParts);
-            }
+            CompletedPart completedPart = existingParts.containsKey(currPart) ? existingParts.get(currPart) :
+                                          completedParts.get(currPart);
+            merged[currPart - 1] = completedPart;
             currPart++;
         }
         return merged;
     }
+
+    @SdkTestInternalApi
+    public void setCompleteMpuFuture(CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture) {
+        this.completeMpuFuture = completeMpuFuture;
+    }
+
 }

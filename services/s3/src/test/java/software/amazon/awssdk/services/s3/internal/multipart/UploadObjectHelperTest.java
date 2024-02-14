@@ -19,11 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils.s3ResumeToken;
 import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils.stubSuccessfulCompleteMultipartCall;
+import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils.stubSuccessfulCreateMultipartCall;
+import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils.stubSuccessfulUploadPartCalls;
+import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.RESUME_TOKEN;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -32,13 +38,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -50,19 +57,26 @@ import org.mockito.stubbing.OngoingStubbing;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.Part;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
+import software.amazon.awssdk.services.s3.multipart.PauseObservable;
+import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
+import software.amazon.awssdk.services.s3.paginators.ListPartsPublisher;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -140,8 +154,8 @@ public class UploadObjectHelperTest {
     void uploadObject_contentLengthExceedThresholdAndPartSize_shouldUseMPU(AsyncRequestBody asyncRequestBody) {
         PutObjectRequest putObjectRequest = putObjectRequest(null);
 
-        MpuTestUtils.stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
-        stubSuccessfulUploadPartCalls();
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulUploadPartCalls(s3AsyncClient);
         stubSuccessfulCompleteMultipartCall(BUCKET, KEY, s3AsyncClient);
 
         uploadHelper.uploadObject(putObjectRequest, asyncRequestBody).join();
@@ -178,7 +192,7 @@ public class UploadObjectHelperTest {
     void mpu_onePartFailed_shouldFailOtherPartsAndAbort(AsyncRequestBody asyncRequestBody) {
         PutObjectRequest putObjectRequest = putObjectRequest(MPU_CONTENT_SIZE);
 
-        MpuTestUtils.stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
         CompletableFuture<UploadPartResponse> ongoingRequest = new CompletableFuture<>();
 
         SdkClientException exception = SdkClientException.create("request failed");
@@ -239,7 +253,7 @@ public class UploadObjectHelperTest {
 
         CompletableFuture<CreateMultipartUploadResponse> createMultipartFuture = new CompletableFuture<>();
 
-        MpuTestUtils.stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
 
         CompletableFuture<UploadPartResponse> ongoingRequest = new CompletableFuture<>();
 
@@ -267,7 +281,7 @@ public class UploadObjectHelperTest {
     void uploadObject_createMultipartUploadFailed_shouldFail(AsyncRequestBody asyncRequestBody) {
         PutObjectRequest putObjectRequest = putObjectRequest(null);
 
-        SdkClientException exception = SdkClientException.create("CompleteMultipartUpload failed");
+        SdkClientException exception = SdkClientException.create("CreateMultipartUpload failed");
 
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
             CompletableFutureUtils.failedFuture(exception);
@@ -286,8 +300,8 @@ public class UploadObjectHelperTest {
     void uploadObject_completeMultipartFailed_shouldFailAndAbort(AsyncRequestBody asyncRequestBody) {
         PutObjectRequest putObjectRequest = putObjectRequest(null);
 
-        MpuTestUtils.stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
-        stubSuccessfulUploadPartCalls();
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulUploadPartCalls(s3AsyncClient);
 
         SdkClientException exception = SdkClientException.create("CompleteMultipartUpload failed");
 
@@ -315,8 +329,8 @@ public class UploadObjectHelperTest {
         Long contentLength = contentLengthKnown ? MPU_CONTENT_SIZE : null;
         ErroneousAsyncRequestBody erroneousAsyncRequestBody =
             new ErroneousAsyncRequestBody(contentLength, exception);
-        MpuTestUtils.stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
-        stubSuccessfulUploadPartCalls();
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulUploadPartCalls(s3AsyncClient);
 
         when(s3AsyncClient.abortMultipartUpload(any(AbortMultipartUploadRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(AbortMultipartUploadResponse.builder().build()));
@@ -327,6 +341,42 @@ public class UploadObjectHelperTest {
                                         .hasRootCause(exception);
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2, 3, 4})
+    void uploadObject_withResumeToken_shouldInvokeListPartsAndSkipExistingParts(int numExistingParts) {
+        S3ResumeToken resumeToken = s3ResumeToken(numExistingParts, PART_SIZE, MPU_CONTENT_SIZE, "uploadId");
+        PutObjectRequest putObjectRequest = putObjectRequestWithResumeToken(MPU_CONTENT_SIZE, resumeToken);
+        ListPartsRequest request = SdkPojoConversionUtils.toListPartsRequest("uploadId", putObjectRequest);
+        ListPartsPublisher mockPublisher = mock(ListPartsPublisher.class);
+        when(s3AsyncClient.listPartsPaginator(request)).thenReturn(mockPublisher);
+        when(mockPublisher.parts()).thenReturn(new TestPartPublisher(numExistingParts));
+
+        stubSuccessfulUploadPartCalls(s3AsyncClient);
+        stubSuccessfulCompleteMultipartCall(BUCKET, KEY, s3AsyncClient);
+
+        uploadHelper.uploadObject(putObjectRequest, AsyncRequestBody.fromFile(testFile)).join();
+
+        ArgumentCaptor<ListPartsRequest> listPartsRequestArgumentCaptor = ArgumentCaptor.forClass(ListPartsRequest.class);
+        verify(s3AsyncClient).listPartsPaginator(listPartsRequestArgumentCaptor.capture());
+        assertThat(putObjectRequest.overrideConfiguration().get().executionAttributes().getAttribute(PAUSE_OBSERVABLE).pausableUploadSet()).isTrue();
+
+        ArgumentCaptor<UploadPartRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadPartRequest.class);
+        ArgumentCaptor<AsyncRequestBody> requestBodyArgumentCaptor = ArgumentCaptor.forClass(AsyncRequestBody.class);
+        int numTotalParts = 4;
+        int numPartsToSend = numTotalParts - numExistingParts;
+        verify(s3AsyncClient, times(numPartsToSend)).uploadPart(requestArgumentCaptor.capture(), requestBodyArgumentCaptor.capture());
+
+        ArgumentCaptor<CompleteMultipartUploadRequest> completeMpuArgumentCaptor = ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
+        verify(s3AsyncClient).completeMultipartUpload(completeMpuArgumentCaptor.capture());
+
+        CompleteMultipartUploadRequest actualRequest = completeMpuArgumentCaptor.getValue();
+        assertThat(actualRequest.multipartUpload().parts()).isEqualTo(completedParts(numTotalParts));
+    }
+
+    private List<CompletedPart> completedParts(int totalNumParts) {
+        return IntStream.range(1, totalNumParts + 1).mapToObj(i -> CompletedPart.builder().partNumber(i).build()).collect(Collectors.toList());
+    }
+
     private static PutObjectRequest putObjectRequest(Long contentLength) {
         return PutObjectRequest.builder()
                                .bucket(BUCKET)
@@ -335,23 +385,13 @@ public class UploadObjectHelperTest {
                                .build();
     }
 
-    private void stubSuccessfulUploadPartCalls() {
-        when(s3AsyncClient.uploadPart(any(UploadPartRequest.class), any(AsyncRequestBody.class)))
-            .thenAnswer(new Answer<CompletableFuture<UploadPartResponse>>() {
-                int numberOfCalls = 0;
+    private static PutObjectRequest putObjectRequestWithResumeToken(Long contentLength, S3ResumeToken resumeToken) {
+        return putObjectRequest(contentLength).toBuilder()
+                                              .overrideConfiguration(
+                                                  o -> o.putExecutionAttribute(RESUME_TOKEN, resumeToken)
+                                                        .putExecutionAttribute(PAUSE_OBSERVABLE, new PauseObservable()))
+                                              .build();
 
-                @Override
-                public CompletableFuture<UploadPartResponse> answer(InvocationOnMock invocationOnMock) {
-                    AsyncRequestBody AsyncRequestBody = invocationOnMock.getArgument(1);
-                    // Draining the request body
-                    AsyncRequestBody.subscribe(b -> {});
-
-                    numberOfCalls++;
-                    return CompletableFuture.completedFuture(UploadPartResponse.builder()
-                                                                               .checksumCRC32("crc" + numberOfCalls)
-                                                                               .build());
-                }
-            });
     }
 
     private OngoingStubbing<CompletableFuture<UploadPartResponse>> stubFailedUploadPartCalls(OngoingStubbing<CompletableFuture<UploadPartResponse>> stubbing, Exception exception) {
@@ -425,4 +465,38 @@ public class UploadObjectHelperTest {
 
         }
     }
+
+    private static class TestPartPublisher implements SdkPublisher<Part> {
+        private int existingParts;
+        private int currentPart = 1;
+        TestPartPublisher(int existingParts) {
+            this.existingParts = existingParts;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super Part> subscriber) {
+            subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long n) {
+                    if (n <= 0) {
+                        subscriber.onError(new IllegalArgumentException("Demand must be positive"));
+                        return;
+                    }
+
+                    if (existingParts == 0) {
+                        subscriber.onComplete();
+                    }
+
+                    while(existingParts > 0) {
+                        existingParts--;
+                        subscriber.onNext(Part.builder().partNumber(currentPart++).build());
+                    }
+                }
+
+                @Override
+                public void cancel() {}
+            });
+        }
+    }
+
 }

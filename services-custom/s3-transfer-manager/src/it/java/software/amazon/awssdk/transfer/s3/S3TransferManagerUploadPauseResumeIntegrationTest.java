@@ -50,7 +50,8 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     private static final String BUCKET = temporaryBucketName(S3TransferManagerUploadPauseResumeIntegrationTest.class);
     private static final String KEY = "key";
     // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
-    private static final long OBJ_SIZE = 24 * MB;
+    private static final long LARGE_OBJ_SIZE = 24 * MB;
+    private static final long SMALL_OBJ_SIZE = 2 * MB;
     private static File largeFile;
     private static File smallFile;
     private static ScheduledExecutorService executorService;
@@ -58,8 +59,8 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     @BeforeAll
     public static void setup() throws Exception {
         createBucket(BUCKET);
-        largeFile = new RandomTempFile(OBJ_SIZE);
-        smallFile = new RandomTempFile(2 * MB);
+        largeFile = new RandomTempFile(LARGE_OBJ_SIZE);
+        smallFile = new RandomTempFile(SMALL_OBJ_SIZE);
         executorService = Executors.newScheduledThreadPool(3);
     }
 
@@ -95,11 +96,12 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
         FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
+        assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(SMALL_OBJ_SIZE);
     }
 
     @ParameterizedTest
     @MethodSource("transferManagers")
-    void pause_fileNotChanged_shouldResume(S3TransferManager uploadTm, S3TransferManager resumeTm) {
+    void pause_fileNotChanged_shouldResume(S3TransferManager uploadTm, S3TransferManager resumeTm) throws Exception {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                      .addTransferListener(LoggingTransferListener.create())
@@ -118,6 +120,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
         FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
+        assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(LARGE_OBJ_SIZE);
     }
 
     @ParameterizedTest
@@ -135,6 +138,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
         FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
+        assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(LARGE_OBJ_SIZE);
     }
 
     @ParameterizedTest

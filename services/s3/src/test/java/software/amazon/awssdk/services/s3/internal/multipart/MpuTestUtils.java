@@ -19,6 +19,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CompletableFuture;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -26,6 +29,9 @@ import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
+import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 
 public final class MpuTestUtils {
 
@@ -61,5 +67,34 @@ public final class MpuTestUtils {
 
         when(s3AsyncClient.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
             .thenReturn(completeMultipartUploadFuture);
+    }
+
+    public static void stubSuccessfulUploadPartCalls(S3AsyncClient s3AsyncClient) {
+        when(s3AsyncClient.uploadPart(any(UploadPartRequest.class), any(AsyncRequestBody.class)))
+            .thenAnswer(new Answer<CompletableFuture<UploadPartResponse>>() {
+
+                @Override
+                public CompletableFuture<UploadPartResponse> answer(InvocationOnMock invocationOnMock) {
+                    AsyncRequestBody AsyncRequestBody = invocationOnMock.getArgument(1);
+                    // Draining the request body
+                    AsyncRequestBody.subscribe(b -> {});
+
+                    return CompletableFuture.completedFuture(UploadPartResponse.builder()
+                                                                               .build());
+                }
+            });
+    }
+
+    public static S3ResumeToken s3ResumeToken(long numPartsCompleted, long partSize, long contentLength, String uploadId) {
+        return S3ResumeToken.builder()
+                            .uploadId(uploadId)
+                            .partSize(partSize)
+                            .numPartsCompleted(numPartsCompleted)
+                            .totalNumParts(determinePartCount(contentLength, partSize))
+                            .build();
+    }
+
+    public static int determinePartCount(long contentLength, long partSize) {
+        return (int) Math.ceil(contentLength / (double) partSize);
     }
 }

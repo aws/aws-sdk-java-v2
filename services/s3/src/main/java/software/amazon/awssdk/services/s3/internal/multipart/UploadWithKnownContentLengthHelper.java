@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.services.s3.paginators.ListPartsPublisher;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
@@ -148,6 +149,8 @@ public final class UploadWithKnownContentLengthHelper {
         log.debug(() -> String.format("Resuming a paused multipart upload, uploadId: %s, completedPartCount: %d, "
                                   + "remainingPartCount: %d, partSize: %d",
                                       uploadId, resumeToken.numPartsCompleted(), remainingParts, resumeToken.partSize()));
+
+        CompletableFutureUtils.forwardExceptionTo(resumeContext.returnFuture, listPartsFuture);
 
         listPartsFuture.whenComplete((r, t) -> {
             if (t != null) {
