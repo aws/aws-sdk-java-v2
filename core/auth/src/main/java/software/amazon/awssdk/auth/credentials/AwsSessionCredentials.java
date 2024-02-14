@@ -36,7 +36,6 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
-
     private final String accountId;
     private final Instant expirationTime;
 
