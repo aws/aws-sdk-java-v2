@@ -194,15 +194,15 @@ public interface ProgressListener {
     * <p>
     * Available context attributes:
     * <ol>
-    *     <li>{@link Context.AttemptFailureResponseBytesReceived#request()}</li>
-    *     <li>{@link Context.AttemptFailureResponseBytesReceived#httpRequest()}</li>
-    *     <li>{@link Context.AttemptFailureResponseBytesReceived#uploadProgressSnapshot()}</li>
-    *     <li>{@link Context.AttemptFailureResponseBytesReceived#httpResponse()}</li>
-    *     <li>{@link Context.AttemptFailureResponseBytesReceived#downloadProgressSnapshot()}</li>
-    *     <li>{@link Context.AttemptFailureResponseBytesReceived#exception()}</li>
+     *     <li>{@link Context.ExecutionFailure#request()}</li>
+     *     <li>{@link Context.ExecutionFailure#httpRequest()}</li>
+     *     <li>{@link Context.ExecutionFailure#uploadProgressSnapshot()}</li>
+     *     <li>{@link Context.ExecutionFailure#httpResponse()} ()}</li>
+     *     <li>{@link Context.ExecutionFailure#downloadProgressSnapshot()}</li>
+     *     <li>{@link Context.ExecutionFailure#exception()}</li>
     * </ol>
     */
-    default void attemptFailureResponseBytesReceived(Context.AttemptFailureResponseBytesReceived context) {
+    default void attemptFailureResponseBytesReceived(Context.ExecutionFailure context) {
     }
 
     /**
@@ -233,7 +233,9 @@ public interface ProgressListener {
      *     <li>{@link Context.ExecutionFailure#request()}</li>
      *     <li>{@link Context.ExecutionFailure#httpRequest()}</li>
      *     <li>{@link Context.ExecutionFailure#uploadProgressSnapshot()}</li>
-     *     <li>{@link Context.ExecutionFailure#exception()} ()}</li>
+     *     <li>{@link Context.ExecutionFailure#httpResponse()} ()}</li>
+     *     <li>{@link Context.ExecutionFailure#downloadProgressSnapshot()}</li>
+     *     <li>{@link Context.ExecutionFailure#exception()}</li>
      * </ol>
      */
     default void attemptFailure(Context.ExecutionFailure context) {
@@ -248,7 +250,9 @@ public interface ProgressListener {
      *     <li>{@link Context.ExecutionFailure#request()}</li>
      *     <li>{@link Context.ExecutionFailure#httpRequest()}</li>
      *     <li>{@link Context.ExecutionFailure#uploadProgressSnapshot()}</li>
-     *     <li>{@link Context.ExecutionFailure#exception()} ()}</li>
+     *     <li>{@link Context.ExecutionFailure#httpResponse()} ()}</li>
+     *     <li>{@link Context.ExecutionFailure#downloadProgressSnapshot()}</li>
+     *     <li>{@link Context.ExecutionFailure#exception()}</li>
      * </ol>
      */
     default void executionFailure(Context.ExecutionFailure context) {
@@ -278,7 +282,6 @@ public interface ProgressListener {
      *     <li>{@link RequestHeaderSent}</li>
      *     <li>{@link RequestBytesSent}</li>
      *     <li>{@link ResponseHeaderReceived}</li>
-     *     <li>{@link AttemptFailureResponseBytesReceived}</li>
      *     <li>{@link ExecutionFailure}</li>
      * </ol>
      *
@@ -424,27 +427,6 @@ public interface ProgressListener {
         }
 
         /**
-         * This facilitates capturing and handling an error response returned by service
-         * <p>
-         * Available context attributes:
-         * <ol>
-         *     <li>{@link AttemptFailureResponseBytesReceived#request()}</li>
-         *     <li>{@link AttemptFailureResponseBytesReceived#httpRequest()}</li>
-         *     <li>{@link AttemptFailureResponseBytesReceived#uploadProgressSnapshot()}</li>
-         *     <li>{@link AttemptFailureResponseBytesReceived#httpResponse()} ()}</li>
-         *     <li>{@link AttemptFailureResponseBytesReceived#downloadProgressSnapshot()}</li>
-         *     <li>{@link AttemptFailureResponseBytesReceived#exception()}</li>
-         * </ol>
-         */
-        @Immutable
-        @ThreadSafe
-        @SdkPublicApi
-        @SdkPreviewApi
-        public interface AttemptFailureResponseBytesReceived extends ResponseHeaderReceived {
-            Throwable exception();
-        }
-
-        /**
          * The request execution failed.
          * <p>
          * Available context attributes:
@@ -452,6 +434,8 @@ public interface ProgressListener {
          *     <li>{@link ExecutionFailure#request()}</li>
          *     <li>{@link ExecutionFailure#httpRequest()}</li>
          *     <li>{@link ExecutionFailure#uploadProgressSnapshot()}</li>
+         *     <li>{@link ExecutionFailure#httpResponse()} ()}</li>
+         *     <li>{@link ExecutionFailure#downloadProgressSnapshot()}</li>
          *     <li>{@link ExecutionFailure#exception()}</li>
          * </ol>
          */
@@ -459,7 +443,7 @@ public interface ProgressListener {
         @ThreadSafe
         @SdkPublicApi
         @SdkPreviewApi
-        public interface ExecutionFailure extends RequestPrepared {
+        public interface ExecutionFailure extends ResponseBytesReceived {
             /**
              * The exception associated with the failed request.
              */

@@ -101,5 +101,17 @@ public class CaptureProgressListener implements ProgressListener {
         exceptionCaught = context.exception();
         completionFuture.completeExceptionally(exceptionCaught);
     }
+
+    @Override
+    public void attemptFailure(Context.ExecutionFailure context) {
+        exceptionCaught = context.exception();
+        completionFuture.completeExceptionally(exceptionCaught);
+    }
+
+    @Override
+    public void attemptFailureResponseBytesReceived(Context.ExecutionFailure context) {
+        exceptionCaught = context.exception();
+        completionFuture.completeExceptionally(exceptionCaught);
+    }
 }
 

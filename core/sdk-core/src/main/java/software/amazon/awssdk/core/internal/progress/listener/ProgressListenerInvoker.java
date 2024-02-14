@@ -83,7 +83,7 @@ public class ProgressListenerInvoker implements ProgressListener {
     }
 
     @Override
-    public void attemptFailureResponseBytesReceived(Context.AttemptFailureResponseBytesReceived context) {
+    public void attemptFailureResponseBytesReceived(Context.ExecutionFailure context) {
         forEach(listener -> listener.attemptFailureResponseBytesReceived(context));
     }
 

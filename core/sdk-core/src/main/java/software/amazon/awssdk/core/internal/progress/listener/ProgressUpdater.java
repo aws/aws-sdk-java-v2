@@ -140,4 +140,18 @@ public class ProgressUpdater {
                                                                               .exception(t)
                                                                               .build());
     }
+
+    public void attemptFailureResponseBytesReceived(Throwable t) {
+        listenerInvoker.attemptFailureResponseBytesReceived(ProgressListenerFailedContext.builder()
+                                                                    .progressListenerContext(
+                                                                        context.copy(
+                                                                            b -> {
+                                                                                b.uploadProgressSnapshot(
+                                                                                    requestBodyProgress.progressSnapshot());
+                                                                                b.downloadProgressSnapshot(
+                                                                                    responseBodyProgress.progressSnapshot());
+                                                                            }))
+                                                                    .exception(t)
+                                                                    .build());
+    }
 }

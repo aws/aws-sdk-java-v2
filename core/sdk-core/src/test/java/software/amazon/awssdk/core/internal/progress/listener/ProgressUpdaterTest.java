@@ -23,6 +23,7 @@ import static org.mockito.Mockito.times;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,22 +33,24 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 
 public class ProgressUpdaterTest {
     private CaptureProgressListener captureProgressListener;
-
     private static final long BYTES_TRANSFERRED = 5L;
+    private static final Throwable attemptFailure = new Throwable("AttemptFailureException");
+    private static final Throwable executionFailure = new Throwable("ExecutionFailureException");
+    private static final Throwable attemptFailureResponseBytesReceived
+        = new Throwable("AttemptFailureResponseBytesReceivedException");
 
     @BeforeEach
     void initiate() {
         captureProgressListener = new CaptureProgressListener();
     }
 
-        private static Stream<Arguments> contentLength() {
+    private static Stream<Arguments> contentLength() {
         return Stream.of(
             Arguments.of(100L),
             Arguments.of(200L),
@@ -79,7 +82,7 @@ public class ProgressUpdaterTest {
         assertFalse(captureProgressListener.responseHeaderReceived());
         Mockito.verify(mockListener, never()).executionFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, never()).attemptFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
-        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.AttemptFailureResponseBytesReceived.class));
+        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, times(1)).requestPrepared(ArgumentMatchers.any(ProgressListener.Context.RequestPrepared.class));
 
 
@@ -108,7 +111,7 @@ public class ProgressUpdaterTest {
         assertFalse(captureProgressListener.responseHeaderReceived());
         Mockito.verify(mockListener, never()).executionFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, never()).attemptFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
-        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.AttemptFailureResponseBytesReceived.class));
+        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, times(1)).requestHeaderSent(ArgumentMatchers.any(ProgressListener.Context.RequestHeaderSent.class));
 
     }
@@ -132,12 +135,59 @@ public class ProgressUpdaterTest {
         assertEquals(BYTES_TRANSFERRED, progressUpdater.requestBodyProgress().progressSnapshot().transferredBytes(), 0.0);
 
         progressUpdater.incrementBytesSent(BYTES_TRANSFERRED);
-        assertEquals(BYTES_TRANSFERRED + BYTES_TRANSFERRED, progressUpdater.requestBodyProgress().progressSnapshot().transferredBytes(), 0.0);
+        assertEquals(BYTES_TRANSFERRED + BYTES_TRANSFERRED,
+                     progressUpdater.requestBodyProgress().progressSnapshot().transferredBytes(), 0.0);
 
         Mockito.verify(mockListener, never()).executionFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, never()).attemptFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
-        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.AttemptFailureResponseBytesReceived.class));
+        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, times(2)).requestBytesSent(ArgumentMatchers.any(ProgressListener.Context.RequestBytesSent.class));
+
+    }
+
+    @Test
+    public void validate_resetBytesSent() {
+
+        CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+        builder.progressListeners(Arrays.asList(mockListener, captureProgressListener));
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+
+        SdkRequest sdkRequest = NoopTestRequest.builder()
+                                               .overrideConfiguration(overrideConfig)
+                                               .build();
+
+        ProgressUpdater progressUpdater = new ProgressUpdater(sdkRequest, null);
+        progressUpdater.incrementBytesSent(BYTES_TRANSFERRED);
+        assertEquals(BYTES_TRANSFERRED, progressUpdater.requestBodyProgress().progressSnapshot().transferredBytes(), 0.0);
+
+        progressUpdater.resetBytesSent();
+        assertEquals(0, progressUpdater.requestBodyProgress().progressSnapshot().transferredBytes(), 0.0);
+
+    }
+
+    @Test
+    public void validate_resetBytesReceived() {
+
+        CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+        builder.progressListeners(Arrays.asList(mockListener, captureProgressListener));
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+
+        SdkRequest sdkRequest = NoopTestRequest.builder()
+                                               .overrideConfiguration(overrideConfig)
+                                               .build();
+
+        ProgressUpdater progressUpdater = new ProgressUpdater(sdkRequest, null);
+        progressUpdater.incrementBytesReceived(BYTES_TRANSFERRED);
+        assertEquals(BYTES_TRANSFERRED, progressUpdater.responseBodyProgress().progressSnapshot().transferredBytes(), 0.0);
+
+        progressUpdater.resetBytesReceived();
+        assertEquals(0, progressUpdater.responseBodyProgress().progressSnapshot().transferredBytes(), 0.0);
 
     }
 
@@ -158,7 +208,8 @@ public class ProgressUpdaterTest {
 
         ProgressUpdater progressUpdater = new ProgressUpdater(sdkRequest, contentLength);
         progressUpdater.incrementBytesSent(BYTES_TRANSFERRED);
-        assertEquals((double) BYTES_TRANSFERRED / contentLength, progressUpdater.requestBodyProgress().progressSnapshot().ratioTransferred().getAsDouble(), 0.0);
+        assertEquals((double) BYTES_TRANSFERRED / contentLength,
+                     progressUpdater.requestBodyProgress().progressSnapshot().ratioTransferred().getAsDouble(), 0.0);
 
     }
 
@@ -185,7 +236,7 @@ public class ProgressUpdaterTest {
         assertTrue(captureProgressListener.responseHeaderReceived());
         Mockito.verify(mockListener, never()).executionFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, never()).attemptFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
-        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.AttemptFailureResponseBytesReceived.class));
+        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, times(1)).responseHeaderReceived(ArgumentMatchers.any(ProgressListener.Context.ResponseHeaderReceived.class));
 
     }
@@ -209,20 +260,20 @@ public class ProgressUpdaterTest {
         assertEquals(BYTES_TRANSFERRED, progressUpdater.responseBodyProgress().progressSnapshot().transferredBytes(), 0.0);
 
         progressUpdater.incrementBytesReceived(BYTES_TRANSFERRED);
-        assertEquals(BYTES_TRANSFERRED + BYTES_TRANSFERRED, progressUpdater.responseBodyProgress().progressSnapshot().transferredBytes(), 0.0);
+        assertEquals(BYTES_TRANSFERRED + BYTES_TRANSFERRED,
+                     progressUpdater.responseBodyProgress().progressSnapshot().transferredBytes(), 0.0);
 
         progressUpdater.executionSuccess(VoidSdkResponse.builder().sdkHttpResponse(null).build());
         Mockito.verify(mockListener, never()).executionFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, never()).attemptFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
-        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.AttemptFailureResponseBytesReceived.class));
+        Mockito.verify(mockListener, never()).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, times(2)).responseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ResponseBytesReceived.class));
         Mockito.verify(mockListener, times(1)).executionSuccess(ArgumentMatchers.any(ProgressListener.Context.ExecutionSuccess.class));
     }
 
     @Test
-    public void executionFailure() {
+    public void attemptFailureResponseBytesReceived() {
 
-        String EXCEPTION_MESSAGE = "TEST_EXCEPTION";
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
         SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
@@ -235,10 +286,75 @@ public class ProgressUpdaterTest {
                                                .build();
 
         ProgressUpdater progressUpdater = new ProgressUpdater(sdkRequest, null);
-        progressUpdater.attemptFailure(new Throwable(EXCEPTION_MESSAGE));
-        progressUpdater.executionFailure(new Throwable(EXCEPTION_MESSAGE));
+        progressUpdater.requestPrepared();
+        progressUpdater.responseHeaderReceived();
+        progressUpdater.attemptFailureResponseBytesReceived(attemptFailureResponseBytesReceived);
 
+        Mockito.verify(mockListener, times(1)).requestPrepared(ArgumentMatchers.any(ProgressListener.Context.RequestPrepared.class));
+        Mockito.verify(mockListener, times(1)).responseHeaderReceived(ArgumentMatchers.any(ProgressListener.Context.ResponseHeaderReceived.class));
+        Mockito.verify(mockListener, times(1)).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
+        Mockito.verify(mockListener, times(0)).responseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ResponseBytesReceived.class));
+        Mockito.verify(mockListener, times(0)).executionSuccess(ArgumentMatchers.any(ProgressListener.Context.ExecutionSuccess.class));
+
+        Assertions.assertEquals(captureProgressListener.exceptionCaught().getMessage(), attemptFailureResponseBytesReceived.getMessage());
+    }
+
+    @Test
+    public void attemptFailure() {
+
+        CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+        builder.progressListeners(Arrays.asList(mockListener, captureProgressListener));
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+
+        SdkRequest sdkRequest = NoopTestRequest.builder()
+                                               .overrideConfiguration(overrideConfig)
+                                               .build();
+
+        ProgressUpdater progressUpdater = new ProgressUpdater(sdkRequest, null);
+        progressUpdater.requestPrepared();
+        progressUpdater.attemptFailure(attemptFailure);
+
+        Mockito.verify(mockListener, times(1)).requestPrepared(ArgumentMatchers.any(ProgressListener.Context.RequestPrepared.class));
+        Mockito.verify(mockListener, times(0)).responseHeaderReceived(ArgumentMatchers.any(ProgressListener.Context.ResponseHeaderReceived.class));
+        Mockito.verify(mockListener, times(0)).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
+        Mockito.verify(mockListener, times(0)).responseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ResponseBytesReceived.class));
+        Mockito.verify(mockListener, times(0)).executionSuccess(ArgumentMatchers.any(ProgressListener.Context.ExecutionSuccess.class));
         Mockito.verify(mockListener, times(1)).attemptFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
+        Mockito.verify(mockListener, times(0)).executionFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
+
+        Assertions.assertEquals(captureProgressListener.exceptionCaught().getMessage(), attemptFailure.getMessage());
+    }
+
+    @Test
+    public void executionFailure() {
+
+        CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+        builder.progressListeners(Arrays.asList(mockListener, captureProgressListener));
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+
+        SdkRequest sdkRequest = NoopTestRequest.builder()
+                                               .overrideConfiguration(overrideConfig)
+                                               .build();
+
+        ProgressUpdater progressUpdater = new ProgressUpdater(sdkRequest, null);
+        progressUpdater.requestPrepared();
+        progressUpdater.executionFailure(executionFailure);
+
+
+        Mockito.verify(mockListener, times(1)).requestPrepared(ArgumentMatchers.any(ProgressListener.Context.RequestPrepared.class));
+        Mockito.verify(mockListener, times(0)).responseHeaderReceived(ArgumentMatchers.any(ProgressListener.Context.ResponseHeaderReceived.class));
+        Mockito.verify(mockListener, times(0)).attemptFailureResponseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
+        Mockito.verify(mockListener, times(0)).responseBytesReceived(ArgumentMatchers.any(ProgressListener.Context.ResponseBytesReceived.class));
+        Mockito.verify(mockListener, times(0)).executionSuccess(ArgumentMatchers.any(ProgressListener.Context.ExecutionSuccess.class));
+        Mockito.verify(mockListener, times(0)).attemptFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
         Mockito.verify(mockListener, times(1)).executionFailure(ArgumentMatchers.any(ProgressListener.Context.ExecutionFailure.class));
+
+        Assertions.assertEquals(captureProgressListener.exceptionCaught().getMessage(), executionFailure.getMessage());
     }
 }

@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -89,6 +90,16 @@ public class ProgressListenerFailedContext
                        .add("progressListenerContext", progressListenerContext)
                        .add("exception", exception)
                        .build();
+    }
+
+    @Override
+    public SdkHttpResponse httpResponse() {
+        return progressListenerContext.httpResponse();
+    }
+
+    @Override
+    public ProgressSnapshot downloadProgressSnapshot() {
+        return progressListenerContext.downloadProgressSnapshot();
     }
 
     public static final class Builder implements CopyableBuilder<Builder, ProgressListenerFailedContext> {
