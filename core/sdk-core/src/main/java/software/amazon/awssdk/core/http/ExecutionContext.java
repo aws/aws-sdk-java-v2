@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.core.http;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -36,6 +38,7 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
     private final ExecutionInterceptorChain interceptorChain;
     private final ExecutionAttributes executionAttributes;
     private final MetricCollector metricCollector;
+    private final ProgressUpdater progressUpdater;
 
     private ExecutionContext(final Builder builder) {
         this.signer = builder.signer;
@@ -43,6 +46,7 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
         this.interceptorChain = builder.interceptorChain;
         this.executionAttributes = builder.executionAttributes;
         this.metricCollector = builder.metricCollector;
+        this.progressUpdater = builder.progressUpdater;
     }
 
     public static ExecutionContext.Builder builder() {
@@ -76,6 +80,10 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
         return metricCollector;
     }
 
+    public Optional<ProgressUpdater> progressUpdater() {
+        return progressUpdater != null ? Optional.of(progressUpdater) : Optional.empty();
+    }
+
     @Override
     public Builder toBuilder() {
         return new Builder(this);
@@ -87,6 +95,7 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
         private ExecutionAttributes executionAttributes;
         private Signer signer;
         private MetricCollector metricCollector;
+        private ProgressUpdater progressUpdater;
 
         private Builder() {
         }
@@ -97,6 +106,7 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
             this.interceptorChain = executionContext.interceptorChain;
             this.executionAttributes = executionContext.executionAttributes;
             this.metricCollector = executionContext.metricCollector;
+            this.progressUpdater = executionContext.progressUpdater;
         }
 
         public Builder interceptorContext(InterceptorContext interceptorContext) {
@@ -121,6 +131,11 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
 
         public Builder metricCollector(MetricCollector metricCollector) {
             this.metricCollector = metricCollector;
+            return this;
+        }
+
+        public Builder progressUpdater(ProgressUpdater progressUpdater) {
+            this.progressUpdater = progressUpdater;
             return this;
         }
 

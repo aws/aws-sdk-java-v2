@@ -32,6 +32,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -328,6 +329,34 @@ public class RequestOverrideConfigurationTest {
         assertThat(request1Override).isEqualTo(request1Override);
         assertThat(request1Override).isEqualTo(request2Override);
         assertThat(request1Override).isNotEqualTo(null);
+    }
+
+    @Test
+    public void addProgressListenersList() {
+        ProgressListener listener1 = mock(ProgressListener.class);
+        ProgressListener listener2 = mock(ProgressListener.class);
+        List<ProgressListener> listProgressListener = Arrays.asList(listener1, listener2);
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+        builder.progressListeners(listProgressListener);
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+
+        assertThat(overrideConfig.progressListeners()).isEqualTo(listProgressListener);
+    }
+
+    @Test
+    public void addProgressListeners() {
+        ProgressListener listener1 = mock(ProgressListener.class);
+        ProgressListener listener2 = mock(ProgressListener.class);
+
+        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
+        builder.addProgressListener(listener1);
+        builder.addProgressListener(listener2);
+
+        SdkRequestOverrideConfiguration overrideConfig = builder.build();
+
+        assertThat(overrideConfig.progressListeners()).isEqualTo(Arrays.asList(listener1, listener2));
     }
 
     private static class NoOpSigner implements Signer {

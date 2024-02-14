@@ -23,10 +23,11 @@ import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 @Immutable
 @ThreadSafe
 @SdkPublicApi
-public interface SdkRequestProgress {
+public interface SdkExchangeProgress {
 
     /**
-    * Takes a snapshot of the request execution progress
+    * SdkExchange Progress class stores the Progress Snapshot
+    * and is used to track request or response progress
     * represented by an immutable {@link ProgressSnapshot}.
     */
     ProgressSnapshot progressSnapshot();

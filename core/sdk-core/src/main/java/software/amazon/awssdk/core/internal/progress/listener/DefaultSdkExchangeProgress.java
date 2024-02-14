@@ -21,24 +21,24 @@ import software.amazon.awssdk.annotations.Mutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.internal.progress.snapshot.DefaultProgressSnapshot;
-import software.amazon.awssdk.core.progress.listener.SdkRequestProgress;
+import software.amazon.awssdk.core.progress.listener.SdkExchangeProgress;
 import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
 
 /**
- * An SDK-internal implementation of {@link SdkRequestProgress}. This implementation acts as a thin wrapper around {@link
+ * An SDK-internal implementation of {@link SdkExchangeProgress}. This implementation acts as a thin wrapper around {@link
  * AtomicReference}, where calls to get the latest {@link #progressSnapshot()} simply return the latest reference, while {@link
  * ProgressUpdater} is responsible for continuously updating the latest reference.
  *
- * @see SdkRequestProgress
+ * @see SdkExchangeProgress
  */
 @Mutable
 @ThreadSafe
 @SdkInternalApi
-public class DefaultSdkRequestProgress implements SdkRequestProgress {
+public class DefaultSdkExchangeProgress implements SdkExchangeProgress {
 
     private final AtomicReference<ProgressSnapshot> snapshot;
 
-    public DefaultSdkRequestProgress(ProgressSnapshot snapshot) {
+    public DefaultSdkExchangeProgress(ProgressSnapshot snapshot) {
         this.snapshot = new AtomicReference<>(snapshot);
     }
 

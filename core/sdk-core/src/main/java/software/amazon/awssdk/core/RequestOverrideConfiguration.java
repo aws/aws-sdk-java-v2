@@ -70,7 +70,7 @@ public abstract class RequestOverrideConfiguration {
         this.endpointProvider = builder.endpointProvider();
         this.compressionConfiguration = builder.compressionConfiguration();
         this.plugins = Collections.unmodifiableList(new ArrayList<>(builder.plugins()));
-        this.progressListeners = Collections.unmodifiableList(new ArrayList<>());
+        this.progressListeners = Collections.unmodifiableList(new ArrayList<>(builder.progressListeners()));
     }
 
     /**
