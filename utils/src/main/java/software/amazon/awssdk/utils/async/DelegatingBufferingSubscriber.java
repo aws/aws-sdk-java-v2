@@ -65,9 +65,6 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
 
     @Override
     void doWithItem(ByteBuffer buffer) {
-        if (currentlyBuffered.get() > 0) {
-            flushStorageToDelegate();
-        }
         storage.onNext(buffer.duplicate());
         currentlyBuffered.addAndGet(buffer.remaining());
     }
@@ -104,7 +101,7 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
     private void flushStorageToDelegate() {
         long totalBufferRemaining = currentlyBuffered.get();
         Optional<StoringSubscriber.Event<ByteBuffer>> next = storage.poll();
-        while (totalBufferRemaining > 0) {
+        while (totalBufferRemaining > 0 && downstreamDemand.get() > 0) {
             if (!next.isPresent() || next.get().type() != ON_NEXT) {
                 break;
             }
@@ -113,6 +110,7 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
             currentlyBuffered.addAndGet(-byteBufferEvent.value().remaining());
             subscriber.onNext(byteBufferEvent.value());
             next = storage.poll();
+            downstreamDemand.decrementAndGet();
         }
     }
 
