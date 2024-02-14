@@ -11582,9 +11582,12 @@
         "endpoints" : {
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
+          "ap-northeast-3" : { },
           "ap-south-1" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
+          "ap-southeast-4" : { },
+          "ca-central-1" : { },
           "eu-central-1" : { },
           "eu-north-1" : { },
           "eu-west-1" : { },
@@ -13299,6 +13302,13 @@
             },
             "hostname" : "portal.sso.us-west-2.amazonaws.com"
           }
+        }
+      },
+      "private-networks" : {
+        "endpoints" : {
+          "us-east-1" : { },
+          "us-east-2" : { },
+          "us-west-2" : { }
         }
       },
       "profile" : {
@@ -26249,6 +26259,16 @@
           }
         }
       },
+      "api.pricing" : {
+        "defaults" : {
+          "credentialScope" : {
+            "service" : "pricing"
+          }
+        },
+        "endpoints" : {
+          "us-iso-east-1" : { }
+        }
+      },
       "api.sagemaker" : {
         "endpoints" : {
           "us-iso-east-1" : { }
@@ -26278,6 +26298,11 @@
         "endpoints" : {
           "us-iso-east-1" : { },
           "us-iso-west-1" : { }
+        }
+      },
+      "arc-zonal-shift" : {
+        "endpoints" : {
+          "us-iso-east-1" : { }
         }
       },
       "athena" : {
@@ -27059,6 +27084,16 @@
           }
         }
       },
+      "api.pricing" : {
+        "defaults" : {
+          "credentialScope" : {
+            "service" : "pricing"
+          }
+        },
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
       "api.sagemaker" : {
         "endpoints" : {
           "us-isob-east-1" : { }
@@ -27078,6 +27113,11 @@
         "defaults" : {
           "protocols" : [ "http", "https" ]
         },
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
+      "arc-zonal-shift" : {
         "endpoints" : {
           "us-isob-east-1" : { }
         }
