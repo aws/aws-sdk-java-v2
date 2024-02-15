@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "contributor": "",
+    "description": "Marked fields IpAddressV4, PrivateIpAddress, Email as Sensitive."
+}
