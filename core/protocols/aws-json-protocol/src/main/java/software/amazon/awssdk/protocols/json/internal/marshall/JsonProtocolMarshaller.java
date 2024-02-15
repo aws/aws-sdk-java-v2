@@ -183,7 +183,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 if (val != null) {
                     SdkBytes sdkBytes = (SdkBytes) val;
                     request.contentStreamProvider(sdkBytes::asInputStream);
-                    updateContentLengthHeader(sdkBytes.asByteArray().length);
+                    updateContentLengthHeader(sdkBytes.asByteArrayUnsafe().length);
                 }
             } else if (isExplicitStringPayload(field)) {
                 if (val != null) {
@@ -201,9 +201,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private void updateContentLengthHeader(int contentLength) {
-        if (!request.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
-            request.putHeader(CONTENT_LENGTH, Integer.toString(contentLength));
-        }
+        request.putHeader(CONTENT_LENGTH, Integer.toString(contentLength));
     }
 
     private boolean isExplicitBinaryPayload(SdkField<?> field) {

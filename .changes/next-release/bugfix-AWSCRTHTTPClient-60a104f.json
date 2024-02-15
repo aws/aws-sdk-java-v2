@@ -1,6 +1,6 @@
 {
     "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
+    "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Add content-length header to the Request if the Request with Request body does not have one."
+    "description": "Add content-length header in Json and  Xml Protocol Marshaller for String and Binary explicit Payloads. "
 }
