@@ -113,9 +113,14 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
                                                                     Map<Integer, CompletedPart> existingParts,
                                                                     CompletableFuture<PutObjectResponse> returnFuture) {
 
-        MpuRequestContext mpuRequestContext = new MpuRequestContext(Pair.of(putObjectRequest, asyncRequestBody),
-                                                                    MPU_CONTENT_SIZE, PART_SIZE, UPLOAD_ID,
-                                                                    existingParts, existingParts.size());
+        MpuRequestContext mpuRequestContext = MpuRequestContext.builder()
+                                                               .request(Pair.of(putObjectRequest, asyncRequestBody))
+                                                               .contentLength(MPU_CONTENT_SIZE)
+                                                               .partSize(PART_SIZE)
+                                                               .uploadId(UPLOAD_ID)
+                                                               .existingParts(existingParts)
+                                                               .numPartsCompleted((long) existingParts.size())
+                                                               .build();
 
         return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper);
     }

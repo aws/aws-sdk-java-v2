@@ -49,8 +49,8 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 class DefaultFileUploadTest {
-    private static final int TOTAL_PARTS = 10;
-    private static final int NUM_OF_PARTS_COMPLETED = 5;
+    private static final long TOTAL_PARTS = 10;
+    private static final long NUM_OF_PARTS_COMPLETED = 5;
     private static final long PART_SIZE_IN_BYTES = 8 * MB;
     private static final String MULTIPART_UPLOAD_ID = "someId";
     private KnownContentLengthAsyncRequestBodySubscriber uploadPartSubscriber;

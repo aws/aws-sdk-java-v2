@@ -120,7 +120,7 @@ public final class UploadWithKnownContentLengthHelper {
     private void uploadFromBeginning(Pair<PutObjectRequest, AsyncRequestBody> request, long contentLength,
                                      CompletableFuture<PutObjectResponse> returnFuture, String uploadId) {
 
-        int numPartsCompleted = 0;
+        long numPartsCompleted = 0;
         long partSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
         int partCount = genericMultipartHelper.determinePartCount(contentLength, partSize);
 
@@ -132,8 +132,14 @@ public final class UploadWithKnownContentLengthHelper {
         log.debug(() -> String.format("Starting multipart upload with partCount: %d, optimalPartSize: %d", partCount,
                                       partSize));
 
-        MpuRequestContext mpuRequestContext =
-            new MpuRequestContext(request, contentLength, partSize, uploadId, new ConcurrentHashMap<>(), numPartsCompleted);
+        MpuRequestContext mpuRequestContext = MpuRequestContext.builder()
+                                                               .request(request)
+                                                               .contentLength(contentLength)
+                                                               .partSize(partSize)
+                                                               .uploadId(uploadId)
+                                                               .existingParts(new ConcurrentHashMap<>())
+                                                               .numPartsCompleted(numPartsCompleted)
+                                                               .build();
 
         splitAndSubscribe(mpuRequestContext, returnFuture);
     }
@@ -159,11 +165,14 @@ public final class UploadWithKnownContentLengthHelper {
                 return;
             }
 
-            MpuRequestContext mpuRequestContext =
-                new MpuRequestContext(Pair.of(putObjectRequest, resumeContext.asyncRequestBody),
-                                      resumeContext.contentLength,
-                                      resumeToken.partSize(), uploadId, existingParts,
-                                      resumeToken.numPartsCompleted());
+            MpuRequestContext mpuRequestContext = MpuRequestContext.builder()
+                                                                   .request(Pair.of(putObjectRequest, resumeContext.asyncRequestBody))
+                                                                   .contentLength(resumeContext.contentLength)
+                                                                   .partSize(resumeToken.partSize())
+                                                                   .uploadId(uploadId)
+                                                                   .existingParts(existingParts)
+                                                                   .numPartsCompleted(resumeToken.numPartsCompleted())
+                                                                   .build();
 
             splitAndSubscribe(mpuRequestContext, resumeContext.returnFuture);
         });

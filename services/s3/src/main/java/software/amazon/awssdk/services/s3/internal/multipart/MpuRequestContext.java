@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -25,40 +26,66 @@ import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
 public class MpuRequestContext {
+
     private final Pair<PutObjectRequest, AsyncRequestBody> request;
-    private final long contentLength;
-    private final long partSize;
-    private final long numPartsCompleted;
+    private final Long contentLength;
+    private final Long partSize;
+    private final Long numPartsCompleted;
     private final String uploadId;
     private final Map<Integer, CompletedPart> existingParts;
 
-    protected MpuRequestContext(Pair<PutObjectRequest, AsyncRequestBody> request,
-                              long contentLength,
-                              long partSize,
-                              String uploadId,
-                              Map<Integer, CompletedPart> existingParts,
-                              long numPartsCompleted) {
-        this.request = request;
-        this.contentLength = contentLength;
-        this.partSize = partSize;
-        this.uploadId = uploadId;
-        this.existingParts = existingParts;
-        this.numPartsCompleted = numPartsCompleted;
+    protected MpuRequestContext(Builder builder) {
+        this.request = builder.request;
+        this.contentLength = builder.contentLength;
+        this.partSize = builder.partSize;
+        this.uploadId = builder.uploadId;
+        this.existingParts = builder.existingParts;
+        this.numPartsCompleted = builder.numPartsCompleted;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MpuRequestContext that = (MpuRequestContext) o;
+
+        return Objects.equals(request, that.request) && Objects.equals(contentLength, that.contentLength)
+               && Objects.equals(partSize, that.partSize) && Objects.equals(numPartsCompleted, that.numPartsCompleted)
+               && Objects.equals(uploadId, that.uploadId) && Objects.equals(existingParts, that.existingParts);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = request != null ? request.hashCode() : 0;
+        result = 31 * result + (uploadId != null ? uploadId.hashCode() : 0);
+        result = 31 * result + (existingParts != null ? existingParts.hashCode() : 0);
+        result = 31 * result + (contentLength != null ? contentLength.hashCode() : 0);
+        result = 31 * result + (partSize != null ? partSize.hashCode() : 0);
+        result = 31 * result + (numPartsCompleted != null ? numPartsCompleted.hashCode() : 0);
+        return result;
     }
 
     public Pair<PutObjectRequest, AsyncRequestBody> request() {
         return request;
     }
 
-    public long contentLength() {
+    public Long contentLength() {
         return contentLength;
     }
 
-    public long partSize() {
+    public Long partSize() {
         return partSize;
     }
 
-    public long numPartsCompleted() {
+    public Long numPartsCompleted() {
         return numPartsCompleted;
     }
 
@@ -67,6 +94,52 @@ public class MpuRequestContext {
     }
 
     public Map<Integer, CompletedPart> existingParts() {
-        return Collections.unmodifiableMap(existingParts);
+        return existingParts != null ? Collections.unmodifiableMap(existingParts) : null;
+    }
+
+    public static final class Builder {
+        private Pair<PutObjectRequest, AsyncRequestBody> request;
+        private Long contentLength;
+        private Long partSize;
+        private Long numPartsCompleted;
+        private String uploadId;
+        private Map<Integer, CompletedPart> existingParts;
+
+        private Builder() {
+        }
+
+        public Builder request(Pair<PutObjectRequest, AsyncRequestBody> request) {
+            this.request = request;
+            return this;
+        }
+
+        public Builder contentLength(Long contentLength) {
+            this.contentLength = contentLength;
+            return this;
+        }
+
+        public Builder partSize(Long partSize) {
+            this.partSize = partSize;
+            return this;
+        }
+
+        public Builder numPartsCompleted(Long numPartsCompleted) {
+            this.numPartsCompleted = numPartsCompleted;
+            return this;
+        }
+
+        public Builder uploadId(String uploadId) {
+            this.uploadId = uploadId;
+            return this;
+        }
+
+        public Builder existingParts(Map<Integer, CompletedPart> existingParts) {
+            this.existingParts = existingParts;
+            return this;
+        }
+
+        public MpuRequestContext build() {
+            return new MpuRequestContext(this);
+        }
     }
 }

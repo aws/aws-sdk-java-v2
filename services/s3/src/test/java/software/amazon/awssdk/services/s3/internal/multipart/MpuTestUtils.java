@@ -94,7 +94,7 @@ public final class MpuTestUtils {
                             .build();
     }
 
-    public static int determinePartCount(long contentLength, long partSize) {
-        return (int) Math.ceil(contentLength / (double) partSize);
+    public static long determinePartCount(long contentLength, long partSize) {
+        return (long) Math.ceil(contentLength / (double) partSize);
     }
 }

@@ -22,9 +22,9 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public class S3ResumeToken {
 
     private final String uploadId;
-    private final long partSize;
-    private final long totalNumParts;
-    private final long numPartsCompleted;
+    private final Long partSize;
+    private final Long totalNumParts;
+    private final Long numPartsCompleted;
 
     public S3ResumeToken(Builder builder) {
         this.uploadId = builder.uploadId;
@@ -60,23 +60,23 @@ public class S3ResumeToken {
         return uploadId;
     }
 
-    public long partSize() {
+    public Long partSize() {
         return partSize;
     }
 
-    public long totalNumParts() {
+    public Long totalNumParts() {
         return totalNumParts;
     }
 
-    public long numPartsCompleted() {
+    public Long numPartsCompleted() {
         return numPartsCompleted;
     }
 
     public static final class Builder {
         private String uploadId;
-        private long partSize;
-        private long totalNumParts;
-        private long numPartsCompleted;
+        private Long partSize;
+        private Long totalNumParts;
+        private Long numPartsCompleted;
 
         private Builder() {
         }
@@ -86,17 +86,17 @@ public class S3ResumeToken {
             return this;
         }
 
-        public Builder partSize(long partSize) {
+        public Builder partSize(Long partSize) {
             this.partSize = partSize;
             return this;
         }
 
-        public Builder totalNumParts(long totalNumParts) {
+        public Builder totalNumParts(Long totalNumParts) {
             this.totalNumParts = totalNumParts;
             return this;
         }
 
-        public Builder numPartsCompleted(long numPartsCompleted) {
+        public Builder numPartsCompleted(Long numPartsCompleted) {
             this.numPartsCompleted = numPartsCompleted;
             return this;
         }

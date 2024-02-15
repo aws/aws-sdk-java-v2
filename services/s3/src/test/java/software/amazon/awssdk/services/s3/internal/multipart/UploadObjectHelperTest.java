@@ -469,6 +469,7 @@ public class UploadObjectHelperTest {
     private static class TestPartPublisher implements SdkPublisher<Part> {
         private int existingParts;
         private int currentPart = 1;
+
         TestPartPublisher(int existingParts) {
             this.existingParts = existingParts;
         }

@@ -50,8 +50,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final AtomicInteger partNumber = new AtomicInteger(1);
     private final MultipartUploadHelper multipartUploadHelper;
     private final long partSize;
-    private final int partCount;
-    private final int numExistingParts;
+    private final long partCount;
+    private final long numExistingParts;
     private final String uploadId;
     private final Collection<CompletableFuture<CompletedPart>> futures = new ConcurrentLinkedQueue<>();
     private final PutObjectRequest putObjectRequest;
@@ -72,13 +72,13 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.returnFuture = returnFuture;
         this.uploadId = mpuRequestContext.uploadId();
         this.existingParts = mpuRequestContext.existingParts();
-        this.numExistingParts = (int) mpuRequestContext.numPartsCompleted();
+        this.numExistingParts = mpuRequestContext.numPartsCompleted();
         this.completedParts = new ConcurrentHashMap<>();
         this.multipartUploadHelper = multipartUploadHelper;
     }
 
-    private int determinePartCount(long contentLength, long partSize) {
-        return (int) Math.ceil(contentLength / (double) partSize);
+    private long determinePartCount(long contentLength, long partSize) {
+        return (long) Math.ceil(contentLength / (double) partSize);
     }
 
     public S3ResumeToken pause() {
@@ -201,7 +201,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     }
 
     private CompletedPart[] mergeCompletedParts() {
-        CompletedPart[] merged = new CompletedPart[partCount];
+        CompletedPart[] merged = new CompletedPart[(int) partCount];
         int currPart = 1;
         while (currPart < partCount + 1) {
             CompletedPart completedPart = existingParts.containsKey(currPart) ? existingParts.get(currPart) :

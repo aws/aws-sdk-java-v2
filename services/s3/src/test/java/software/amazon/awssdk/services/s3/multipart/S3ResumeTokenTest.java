@@ -47,9 +47,9 @@ public class S3ResumeTokenTest {
         S3ResumeToken token = S3ResumeToken.builder().build();
 
         assertThat(token.uploadId()).isNull();
-        assertThat(token.partSize()).isZero();
-        assertThat(token.totalNumParts()).isZero();
-        assertThat(token.numPartsCompleted()).isZero();
+        assertThat(token.partSize()).isNull();
+        assertThat(token.totalNumParts()).isNull();
+        assertThat(token.numPartsCompleted()).isNull();
     }
 
     @Test
