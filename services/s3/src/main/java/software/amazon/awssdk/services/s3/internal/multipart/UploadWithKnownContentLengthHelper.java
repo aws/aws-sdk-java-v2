@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -165,8 +164,9 @@ public final class UploadWithKnownContentLengthHelper {
                 return;
             }
 
+            Pair<PutObjectRequest, AsyncRequestBody> request = Pair.of(putObjectRequest, resumeContext.asyncRequestBody);
             MpuRequestContext mpuRequestContext = MpuRequestContext.builder()
-                                                                   .request(Pair.of(putObjectRequest, resumeContext.asyncRequestBody))
+                                                                   .request(request)
                                                                    .contentLength(resumeContext.contentLength)
                                                                    .partSize(resumeToken.partSize())
                                                                    .uploadId(uploadId)
@@ -238,10 +238,5 @@ public final class UploadWithKnownContentLengthHelper {
         public S3ResumeToken pause() {
             return subscriber.pause();
         }
-    }
-
-    @SdkTestInternalApi
-    public static DefaultPausableUpload defaultPausableUpload(KnownContentLengthAsyncRequestBodySubscriber subscriber) {
-        return new DefaultPausableUpload(subscriber);
     }
 }

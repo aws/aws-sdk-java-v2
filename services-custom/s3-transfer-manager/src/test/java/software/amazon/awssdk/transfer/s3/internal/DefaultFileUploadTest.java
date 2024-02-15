@@ -16,6 +16,8 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
@@ -32,14 +34,11 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.services.s3.internal.multipart.KnownContentLengthAsyncRequestBodySubscriber;
 import software.amazon.awssdk.services.s3.internal.multipart.PausableUpload;
 import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
-import software.amazon.awssdk.services.s3.internal.multipart.UploadWithKnownContentLengthHelper;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -53,7 +52,6 @@ class DefaultFileUploadTest {
     private static final long NUM_OF_PARTS_COMPLETED = 5;
     private static final long PART_SIZE_IN_BYTES = 8 * MB;
     private static final String MULTIPART_UPLOAD_ID = "someId";
-    private KnownContentLengthAsyncRequestBodySubscriber uploadPartSubscriber;
     private static FileSystem fileSystem;
     private static File file;
     private static S3ResumeToken token;
@@ -76,12 +74,6 @@ class DefaultFileUploadTest {
         file.delete();
     }
 
-    @BeforeEach
-    void setUpBeforeEachTest() {
-        uploadPartSubscriber =
-            Mockito.mock(KnownContentLengthAsyncRequestBodySubscriber.class);
-    }
-
     @Test
     void equals_hashcode() {
         EqualsVerifier.forClass(DefaultFileUpload.class)
@@ -90,22 +82,31 @@ class DefaultFileUploadTest {
                       .verify();
     }
 
-@Test
+    private S3ResumeToken s3ResumeToken(CompletableFuture<CompletedFileUpload> future) {
+        if (future.isDone()) {
+            return null;
+        }
+        return token;
+    }
+
+    @Test
     void pause_futureCompleted_shouldReturnNormally() {
         CompletableFuture<CompletedFileUpload> future =
             CompletableFuture.completedFuture(CompletedFileUpload.builder()
                                                                  .response(PutObjectResponse.builder().build())
                                                                  .build());
-        TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
+        TransferProgress transferProgress = mock(TransferProgress.class);
         PauseObservable observable = new PauseObservable();
-        PausableUpload pausableUpload = UploadWithKnownContentLengthHelper.defaultPausableUpload(uploadPartSubscriber);
+        PausableUpload pausableUpload = mock(PausableUpload.class);
         observable.setPausableUpload(pausableUpload);
+        when(pausableUpload.pause()).thenReturn(s3ResumeToken(future));
+
         UploadFileRequest request = uploadFileRequest();
         DefaultFileUpload fileUpload = new DefaultFileUpload(future, transferProgress, observable, request);
 
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
 
-        Mockito.verify(uploadPartSubscriber, Mockito.never()).pause();
+        verify(pausableUpload, Mockito.never()).pause();
         assertThat(resumableFileUpload.totalParts()).isEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
@@ -118,41 +119,42 @@ class DefaultFileUploadTest {
     @Test
     void pauseTwice_shouldReturnTheSame() {
         CompletableFuture<CompletedFileUpload> future = new CompletableFuture<>();
-        TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
+        TransferProgress transferProgress = mock(TransferProgress.class);
         PauseObservable observable = new PauseObservable();
-        PausableUpload pausableUpload = UploadWithKnownContentLengthHelper.defaultPausableUpload(uploadPartSubscriber);
+        PausableUpload pausableUpload = mock(PausableUpload.class);
         observable.setPausableUpload(pausableUpload);
+        when(pausableUpload.pause()).thenReturn(s3ResumeToken(future));
+
         UploadFileRequest request = uploadFileRequest();
         DefaultFileUpload fileUpload = new DefaultFileUpload(future, transferProgress, observable, request);
-        when(uploadPartSubscriber.pause()).thenReturn(token);
 
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         ResumableFileUpload resumableFileUpload2 = fileUpload.pause();
 
+        verify(pausableUpload).pause();
         assertThat(resumableFileUpload).isEqualTo(resumableFileUpload2);
     }
 
     @Test
     void pause_futureNotComplete_shouldPause() {
-        CompletableFuture<CompletedFileUpload> future =
-            new CompletableFuture<>();
-        TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
+        CompletableFuture<CompletedFileUpload> future = new CompletableFuture<>();
+        TransferProgress transferProgress = mock(TransferProgress.class);
         when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
                                                                                     .transferredBytes(0L)
                                                                                     .build());
 
 
         PauseObservable observable = new PauseObservable();
-        PausableUpload pausableUpload = UploadWithKnownContentLengthHelper.defaultPausableUpload(uploadPartSubscriber);
+        PausableUpload pausableUpload = mock(PausableUpload.class);
         observable.setPausableUpload(pausableUpload);
+        when(pausableUpload.pause()).thenReturn(s3ResumeToken(future));
 
         UploadFileRequest request = uploadFileRequest();
         DefaultFileUpload fileUpload = new DefaultFileUpload(future, transferProgress, observable, request);
 
-        when(uploadPartSubscriber.pause()).thenReturn(token);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
 
-        Mockito.verify(uploadPartSubscriber).pause();
+        verify(pausableUpload).pause();
         assertThat(resumableFileUpload.totalParts()).hasValue(TOTAL_PARTS);
         assertThat(resumableFileUpload.partSizeInBytes()).hasValue(PART_SIZE_IN_BYTES);
         assertThat(resumableFileUpload.multipartUploadId()).hasValue(MULTIPART_UPLOAD_ID);
@@ -163,22 +165,17 @@ class DefaultFileUploadTest {
     }
 
     @Test
-    void pause_singlePart_shouldPause() {
-        CompletableFuture<CompletedFileUpload> future =
-            new CompletableFuture<>();
-        TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
+    void pause_singlePart_shouldReturnNullResumeToken() {
+        CompletableFuture<CompletedFileUpload> future = new CompletableFuture<>();
+        TransferProgress transferProgress = mock(TransferProgress.class);
 
         PauseObservable observable = new PauseObservable();
-        PausableUpload pausableUpload = UploadWithKnownContentLengthHelper.defaultPausableUpload(uploadPartSubscriber);
-        observable.setPausableUpload(pausableUpload);
+        observable.setPausableUpload(null);
 
         UploadFileRequest request = uploadFileRequest();
         DefaultFileUpload fileUpload = new DefaultFileUpload(future, transferProgress, observable, request);
 
-        when(uploadPartSubscriber.pause()).thenReturn(null);
-
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        Mockito.verify(uploadPartSubscriber).pause();
         assertThat(resumableFileUpload.totalParts()).isEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();

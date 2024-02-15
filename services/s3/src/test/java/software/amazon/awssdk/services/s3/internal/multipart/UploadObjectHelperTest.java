@@ -358,7 +358,7 @@ public class UploadObjectHelperTest {
 
         ArgumentCaptor<ListPartsRequest> listPartsRequestArgumentCaptor = ArgumentCaptor.forClass(ListPartsRequest.class);
         verify(s3AsyncClient).listPartsPaginator(listPartsRequestArgumentCaptor.capture());
-        assertThat(putObjectRequest.overrideConfiguration().get().executionAttributes().getAttribute(PAUSE_OBSERVABLE).pausableUploadSet()).isTrue();
+        assertThat(putObjectRequest.overrideConfiguration().get().executionAttributes().getAttribute(PAUSE_OBSERVABLE).pausableUpload()).isNotNull();
 
         ArgumentCaptor<UploadPartRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadPartRequest.class);
         ArgumentCaptor<AsyncRequestBody> requestBodyArgumentCaptor = ArgumentCaptor.forClass(AsyncRequestBody.class);

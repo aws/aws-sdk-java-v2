@@ -16,7 +16,9 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Map;
@@ -31,20 +33,16 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Pair;
 
 public class KnownContentLengthAsyncRequestBodySubscriberTest {
 
-    private static final long PART_SIZE = 8 * 1024;
-
     // Should contain four parts: [8KB, 8KB, 8KB, 1KB]
     private static final long MPU_CONTENT_SIZE = 25 * 1024;
+    private static final long PART_SIZE = 8 * 1024;
     private static final int TOTAL_NUM_PARTS = 4;
-    private static final long THRESHOLD = 10 * 1024;
-    private static final long MAX_MEMORY_USAGE = PART_SIZE * 2;
     private static final String UPLOAD_ID = "1234";
     private static RandomTempFile testFile;
     private AsyncRequestBody asyncRequestBody;
@@ -65,7 +63,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     @BeforeEach
     public void beforeEach() {
         s3AsyncClient = mock(S3AsyncClient.class);
-        multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, PART_SIZE, THRESHOLD, MAX_MEMORY_USAGE);
+        multipartUploadHelper = mock(MultipartUploadHelper.class);
         asyncRequestBody = AsyncRequestBody.fromFile(testFile);
         putObjectRequest = PutObjectRequest.builder().bucket("bucket").key("key").build();
     }
@@ -102,16 +100,17 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     private S3ResumeToken configureSubscriberAndPause(int numExistingParts,
                                                       CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture) {
         Map<Integer, CompletedPart> existingParts = existingParts(numExistingParts);
-        KnownContentLengthAsyncRequestBodySubscriber subscriber =
-            subscriber(putObjectRequest, asyncRequestBody, existingParts, new CompletableFuture<>());
-        subscriber.setCompleteMpuFuture(completeMpuFuture);
+        KnownContentLengthAsyncRequestBodySubscriber subscriber = subscriber(putObjectRequest, asyncRequestBody, existingParts);
+
+        when(multipartUploadHelper.completeMultipartUpload(any(CompletableFuture.class), any(String.class),
+             any(CompletedPart[].class), any(PutObjectRequest.class))).thenReturn(completeMpuFuture);
+        subscriber.onComplete();
         return subscriber.pause();
     }
 
     private KnownContentLengthAsyncRequestBodySubscriber subscriber(PutObjectRequest putObjectRequest,
                                                                     AsyncRequestBody asyncRequestBody,
-                                                                    Map<Integer, CompletedPart> existingParts,
-                                                                    CompletableFuture<PutObjectResponse> returnFuture) {
+                                                                    Map<Integer, CompletedPart> existingParts) {
 
         MpuRequestContext mpuRequestContext = MpuRequestContext.builder()
                                                                .request(Pair.of(putObjectRequest, asyncRequestBody))
@@ -122,7 +121,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
                                                                .numPartsCompleted((long) existingParts.size())
                                                                .build();
 
-        return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper);
+        return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, new CompletableFuture<>(), multipartUploadHelper);
     }
 
     private Map<Integer, CompletedPart> existingParts(int numExistingParts) {

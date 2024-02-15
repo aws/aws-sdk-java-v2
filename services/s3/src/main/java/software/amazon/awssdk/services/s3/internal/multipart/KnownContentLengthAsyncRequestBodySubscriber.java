@@ -26,7 +26,6 @@ import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -211,10 +210,4 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         }
         return merged;
     }
-
-    @SdkTestInternalApi
-    public void setCompleteMpuFuture(CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture) {
-        this.completeMpuFuture = completeMpuFuture;
-    }
-
 }
