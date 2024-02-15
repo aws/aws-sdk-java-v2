@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
@@ -49,8 +50,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final AtomicInteger partNumber = new AtomicInteger(1);
     private final MultipartUploadHelper multipartUploadHelper;
     private final long partSize;
-    private final long partCount;
-    private final long numExistingParts;
+    private final int partCount;
+    private final int numExistingParts;
     private final String uploadId;
     private final Collection<CompletableFuture<CompletedPart>> futures = new ConcurrentLinkedQueue<>();
     private final PutObjectRequest putObjectRequest;
@@ -71,13 +72,13 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.returnFuture = returnFuture;
         this.uploadId = mpuRequestContext.uploadId();
         this.existingParts = mpuRequestContext.existingParts();
-        this.numExistingParts = mpuRequestContext.numPartsCompleted();
+        this.numExistingParts = NumericUtils.saturatedCast(mpuRequestContext.numPartsCompleted());
         this.completedParts = new ConcurrentHashMap<>();
         this.multipartUploadHelper = multipartUploadHelper;
     }
 
-    private long determinePartCount(long contentLength, long partSize) {
-        return (long) Math.ceil(contentLength / (double) partSize);
+    private int determinePartCount(long contentLength, long partSize) {
+        return (int) Math.ceil(contentLength / (double) partSize);
     }
 
     public S3ResumeToken pause() {
@@ -103,7 +104,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         return S3ResumeToken.builder()
                             .uploadId(uploadId)
                             .partSize(partSize)
-                            .totalNumParts(partCount)
+                            .totalNumParts((long) partCount)
                             .numPartsCompleted(numPartsCompleted + numExistingParts)
                             .build();
     }
@@ -200,7 +201,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     }
 
     private CompletedPart[] mergeCompletedParts() {
-        CompletedPart[] merged = new CompletedPart[(int) partCount];
+        CompletedPart[] merged = new CompletedPart[partCount];
         int currPart = 1;
         while (currPart < partCount + 1) {
             CompletedPart completedPart = existingParts.containsKey(currPart) ? existingParts.get(currPart) :
