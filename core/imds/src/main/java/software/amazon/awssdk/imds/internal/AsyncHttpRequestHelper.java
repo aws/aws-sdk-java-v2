@@ -61,7 +61,8 @@ final class AsyncHttpRequestHelper {
                                                       SdkHttpFullRequest request,
                                                       HttpResponseHandler<T> handler,
                                                       CompletableFuture<?> parentFuture) {
-        SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(request);
+        SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(request,
+                                                                                         Optional.empty());
         TransformingAsyncResponseHandler<T> responseHandler =
             new AsyncResponseHandler<>(handler, Function.identity(), new ExecutionAttributes());
         CompletableFuture<T> responseHandlerFuture = responseHandler.prepare();

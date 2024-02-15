@@ -42,6 +42,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
@@ -142,6 +143,7 @@ public class PresignRequestHandlerTest {
 
         final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
         assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
+
     }
 
     @Test

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,7 +36,7 @@ public class BytesReadTrackingPublisherTest {
         long nElements = 1024;
         int elementSize = 4;
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0));
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0), Optional.empty());
         readFully(trackingPublisher);
 
         assertThat(trackingPublisher.bytesRead()).isEqualTo(nElements * elementSize);
@@ -50,7 +51,7 @@ public class BytesReadTrackingPublisherTest {
         AtomicLong bytesRead = new AtomicLong(baseBytesRead);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead);
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, Optional.empty());
         readFully(trackingPublisher);
 
         long expectedRead = baseBytesRead + nElements * elementSize;

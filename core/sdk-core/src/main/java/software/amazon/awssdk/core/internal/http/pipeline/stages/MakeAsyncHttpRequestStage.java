@@ -21,6 +21,8 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -31,6 +33,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -47,17 +50,22 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
+import software.amazon.awssdk.core.internal.metrics.BytesSentTrackingSubscriber;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -129,9 +137,19 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         CompletableFuture<Response<OutputT>> responseHandlerFuture = responseHandler.prepare();
 
+        if(progressListenerAttached(context.originalRequest())) {
+            Long requestContentLength = context.requestProvider().contentLength().isPresent() ?
+                                        context.requestProvider().contentLength().get() : null;
+            ProgressUpdater progressUpdater = new ProgressUpdater(context.originalRequest(), requestContentLength);
+            progressUpdater.requestPrepared();
+            context.executionContext().toBuilder().progressUpdater(progressUpdater);
+        }
+
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
-                                                  ? new SimpleHttpContentPublisher(request)
-                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider());
+                                                  ? new SimpleHttpContentPublisher(request,
+                                                                                   context.executionContext().progressUpdater())
+                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider(),
+                                                                                       context.executionContext().progressUpdater());
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -263,10 +281,14 @@ public final class MakeAsyncHttpRequestStage<OutputT>
      */
     private static final class SdkHttpContentPublisherAdapter implements SdkHttpContentPublisher {
 
+        private ProgressUpdater progressUpdater;
         private final AsyncRequestBody asyncRequestBody;
 
-        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody) {
+        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody, Optional<ProgressUpdater> progressUpdater) {
             this.asyncRequestBody = asyncRequestBody;
+            progressUpdater.ifPresent(value -> {
+                this.progressUpdater = value;
+            });
         }
 
         @Override
@@ -276,6 +298,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
+            s = progressUpdater == null ? s : new BytesSentTrackingSubscriber(s, Optional.of(progressUpdater));
             asyncRequestBody.subscribe(s);
         }
     }
@@ -303,14 +326,34 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             long d = now - startTime;
             context.attemptMetricCollector().reportMetric(CoreMetric.TIME_TO_FIRST_BYTE, Duration.ofNanos(d));
             super.onHeaders(headers);
+
+            context.executionContext().progressUpdater().ifPresent(progressUpdater -> {
+                progressUpdater.responseHeaderReceived();
+                headers.firstMatchingHeader(CONTENT_LENGTH).ifPresent(value -> {
+                    if (!StringUtils.isNotBlank(value)) {
+                        progressUpdater.updateResponseContentLength(Long.parseLong(value));
+                    }
+                });
+            });
         }
 
         @Override
         public void onStream(Publisher<ByteBuffer> stream) {
+            BytesReadTrackingPublisher bytesReadTrackingPublisher;
             AtomicLong bytesReadCounter = context.executionAttributes()
                                                  .getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
-            BytesReadTrackingPublisher bytesReadTrackingPublisher = new BytesReadTrackingPublisher(stream, bytesReadCounter);
+
+            bytesReadTrackingPublisher = new BytesReadTrackingPublisher(stream, bytesReadCounter, context.executionContext().progressUpdater());
+
             super.onStream(bytesReadTrackingPublisher);
         }
+    }
+    public boolean progressListenerAttached(SdkRequest request) {
+        if (request.overrideConfiguration().isPresent() &&
+            !request.overrideConfiguration().get().progressListeners().isEmpty()) {
+            return true;
+        }
+
+        return false;
     }
 }

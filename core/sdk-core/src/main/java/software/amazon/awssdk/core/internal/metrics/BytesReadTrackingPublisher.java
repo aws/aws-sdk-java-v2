@@ -16,11 +16,13 @@
 package software.amazon.awssdk.core.internal.metrics;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 
 /**
  * Publisher that tracks how many bytes are published from the wrapped publisher to the downstream subscriber.
@@ -29,15 +31,19 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
     private final Publisher<ByteBuffer> upstream;
     private final AtomicLong bytesRead;
+    private ProgressUpdater progressUpdater;
 
-    public BytesReadTrackingPublisher(Publisher<ByteBuffer> upstream, AtomicLong bytesRead) {
+    public BytesReadTrackingPublisher(Publisher<ByteBuffer> upstream, AtomicLong bytesRead, Optional<ProgressUpdater> progressUpdater) {
         this.upstream = upstream;
         this.bytesRead = bytesRead;
+        progressUpdater.ifPresent(value -> {
+            this.progressUpdater = value;
+        });
     }
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-        upstream.subscribe(new BytesReadTracker(subscriber, bytesRead));
+        upstream.subscribe(new BytesReadTracker(subscriber, bytesRead, progressUpdater));
     }
 
     public long bytesRead() {
@@ -47,10 +53,12 @@ public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
     private static final class BytesReadTracker implements Subscriber<ByteBuffer> {
         private final Subscriber<? super ByteBuffer> downstream;
         private final AtomicLong bytesRead;
+        private final ProgressUpdater progressUpdater;
 
-        private BytesReadTracker(Subscriber<? super ByteBuffer> downstream, AtomicLong bytesRead) {
+        private BytesReadTracker(Subscriber<? super ByteBuffer> downstream, AtomicLong bytesRead, ProgressUpdater progressUpdater) {
             this.downstream = downstream;
             this.bytesRead = bytesRead;
+            this.progressUpdater = progressUpdater;
         }
 
         @Override
@@ -62,6 +70,10 @@ public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
         public void onNext(ByteBuffer byteBuffer) {
             bytesRead.addAndGet(byteBuffer.remaining());
             downstream.onNext(byteBuffer);
+
+            if(progressUpdater != null) {
+                progressUpdater.incrementBytesReceived(bytesRead.get());
+            }
         }
 
         @Override

@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.async;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
@@ -36,7 +37,7 @@ public class SimpleRequestProviderTckTest extends PublisherVerification<ByteBuff
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new SimpleHttpContentPublisher(makeFullRequest());
+        return new SimpleHttpContentPublisher(makeFullRequest(), Optional.empty());
     }
 
     @Override
