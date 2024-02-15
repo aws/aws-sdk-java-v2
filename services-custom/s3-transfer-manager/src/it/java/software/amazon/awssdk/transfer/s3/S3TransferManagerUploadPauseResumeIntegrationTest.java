@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
 import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchUploadException;
@@ -56,12 +57,19 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     private static File smallFile;
     private static ScheduledExecutorService executorService;
 
+    // TODO - switch to tmJava from TestBase once TransferListener fixed for MultipartClient
+    protected static S3TransferManager tmJavaMpu;
+
     @BeforeAll
     public static void setup() throws Exception {
         createBucket(BUCKET);
         largeFile = new RandomTempFile(LARGE_OBJ_SIZE);
         smallFile = new RandomTempFile(SMALL_OBJ_SIZE);
         executorService = Executors.newScheduledThreadPool(3);
+
+        // TODO - switch to tmJava from TestBase once TransferListener fixed for MultipartClient
+        S3AsyncClient s3AsyncMpu = s3AsyncClientBuilder().multipartEnabled(true).build();
+        tmJavaMpu = S3TransferManager.builder().s3Client(s3AsyncMpu).build();
     }
 
     @AfterAll
@@ -74,10 +82,10 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
     private static Stream<Arguments> transferManagers() {
         return Stream.of(
-            Arguments.of(tmJava, tmJava),
+            Arguments.of(tmJavaMpu, tmJavaMpu),
             Arguments.of(tmCrt, tmCrt),
-            Arguments.of(tmCrt, tmJava),
-            Arguments.of(tmJava, tmCrt)
+            Arguments.of(tmCrt, tmJavaMpu),
+            Arguments.of(tmJavaMpu, tmCrt)
         );
     }
 
