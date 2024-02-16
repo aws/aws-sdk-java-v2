@@ -27,8 +27,9 @@ import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.async.InputStreamSubscriber;
 
 /**
- * Wrapper of {@link InputStreamSubscriber} that also implements {@link Abortable}. By default, it will invoke {@link #close()}
- * when {@link #abort()} is invoked. This behavior can be customized via {@link Builder#doAfterAbort(Runnable)}.
+ * Wrapper of {@link InputStreamSubscriber} that also implements {@link Abortable}. It will invoke {@link #close()}
+ * when {@link #abort()} is invoked. Upon closing, the underlying {@link InputStreamSubscriber} will be closed, and additional
+ * action can be added via {@link Builder#doAfterClose(Runnable)}.
  *
  */
 @SdkProtectedApi
@@ -36,7 +37,6 @@ public final class AbortableInputStreamSubscriber extends InputStream implements
     private final InputStreamSubscriber delegate;
 
     private final Runnable doAfterClose;
-    private final Runnable doAfterAbort;
 
     private AbortableInputStreamSubscriber(Builder builder) {
         this(builder, new InputStreamSubscriber());
@@ -46,7 +46,6 @@ public final class AbortableInputStreamSubscriber extends InputStream implements
     AbortableInputStreamSubscriber(Builder builder, InputStreamSubscriber delegate) {
         this.delegate = delegate;
         this.doAfterClose = builder.doAfterClose == null ? FunctionalUtils.noOpRunnable() : builder.doAfterClose;
-        this.doAfterAbort = builder.doAfterAbort == null ? this::close : builder.doAfterAbort;
     }
 
     public static Builder builder() {
@@ -55,7 +54,7 @@ public final class AbortableInputStreamSubscriber extends InputStream implements
 
     @Override
     public void abort() {
-        FunctionalUtils.invokeSafely(() -> doAfterAbort.run());
+        close();
     }
 
     @Override
@@ -101,16 +100,12 @@ public final class AbortableInputStreamSubscriber extends InputStream implements
     
     public static final class Builder {
         private Runnable doAfterClose;
-        private Runnable doAfterAbort;
 
-
+        /**
+         * Additional action to run when {@link #close()} is invoked
+         */
         public Builder doAfterClose(Runnable doAfterClose) {
             this.doAfterClose = doAfterClose;
-            return this;
-        }
-
-        public Builder doAfterAbort(Runnable doAfterAbort) {
-            this.doAfterAbort = doAfterAbort;
             return this;
         }
 

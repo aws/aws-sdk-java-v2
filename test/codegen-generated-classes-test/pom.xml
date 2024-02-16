@@ -311,6 +311,17 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+            <!-- Disable dependency check for this test module to speed up the build. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <configuration>
+                    <failOnWarning>false</failOnWarning>
+                    <ignoreNonCompile>false</ignoreNonCompile>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 

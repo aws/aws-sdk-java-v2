@@ -33,16 +33,12 @@ public class AbortableInputStreamSubscriberTest {
     private Runnable onClose;
 
     @Mock
-    private Runnable onAbort;
-
-    @Mock
     private InputStreamSubscriber inputStreamSubscriber;
 
     @BeforeEach
     void setUp() {
         abortableInputStreamSubscriber = new AbortableInputStreamSubscriber(AbortableInputStreamSubscriber.builder()
-                                                                                                          .doAfterClose(onClose)
-                                                                                                          .doAfterAbort(onAbort),
+                                                                                                          .doAfterClose(onClose),
                                                                             inputStreamSubscriber);
 
 
@@ -56,13 +52,7 @@ public class AbortableInputStreamSubscriberTest {
     }
 
     @Test
-    void abort_abortConfigured_shouldInvokeDoAfterAbort() {
-        abortableInputStreamSubscriber.abort();
-        verify(onAbort).run();
-    }
-
-    @Test
-    void abort_abortNotConfigured_shouldInvokeOnClose() {
+    void abort_shouldInvokeOnClose() {
         abortableInputStreamSubscriber = new AbortableInputStreamSubscriber(AbortableInputStreamSubscriber.builder()
                                                                                                           .doAfterClose(onClose),
                                                                             inputStreamSubscriber);
