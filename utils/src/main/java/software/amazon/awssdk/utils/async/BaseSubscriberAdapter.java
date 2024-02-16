@@ -24,8 +24,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Base of subscribers that can adapt one type to another. Thess subscriber will receive onNext signal with the {@code U} type,
- * but will need to {@link BaseSubscriberAdapter#fulfillDownstreamDemand() fulfill the dpwnstream demand} of the delegate
+ * Base of subscribers that can adapt one type to another. This subscriber will receive onNext signal with the {@code U} type,
+ * but will need to {@link BaseSubscriberAdapter#fulfillDownstreamDemand() fulfill the downstream demand} of the delegate
  * subscriber with instance of the {@code T} type.
  *
  * @param <T> the type that the delegate subscriber demands.
@@ -161,7 +161,7 @@ public abstract class BaseSubscriberAdapter<T, U> extends DelegatingSubscriber<T
     /**
      * This is invoked after each downstream request or upstream onNext, onError or onComplete.
      */
-    private void handleStateUpdate() {
+    protected void handleStateUpdate() {
         do {
             // Anything that happens after this if statement and before we set handlingStateUpdate to false is guaranteed to only
             // happen on one thread. For that reason, we should only invoke onNext, onComplete or onError within that block.
@@ -194,7 +194,11 @@ public abstract class BaseSubscriberAdapter<T, U> extends DelegatingSubscriber<T
             // It's possible we had an important state change between when we decided to release the state update flag, and we
             // actually released it. If that seems to have happened, try to handle that state change on this thread, because
             // another thread is not guaranteed to come around and do so.
-        } while (onNextNeeded() || upstreamDemandNeeded() || onCompleteNeeded() || onErrorNeeded());
+        } while (onNextNeeded() || upstreamDemandNeeded() || onCompleteNeeded() || onErrorNeeded() || additionalStateCheck());
+    }
+
+    boolean additionalStateCheck() {
+        return false;
     }
 
     /**

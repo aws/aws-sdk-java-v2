@@ -111,7 +111,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                                  CompletableFuture<ResultT> returnFuture) {
         this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
         this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
-        this.maximumBufferInBytes = Validate.notNull(maximumBufferInBytes, "bufferSize");
+        this.maximumBufferInBytes = Validate.notNull(maximumBufferInBytes, "maximumBufferInBytes");
     }
 
     /**
@@ -154,8 +154,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void cancel() {
             if (isCancelled.compareAndSet(false, true)) {
                 log.trace(() -> "Cancelling splitting transformer");
-                publisherToUpstream.complete();
-                downstreamSubscriber = null;
+                handleCancelState();
             }
         }
     }
@@ -190,6 +189,14 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         return false;
     }
 
+    private synchronized void handleCancelState() {
+        if (downstreamSubscriber == null) {
+            return;
+        }
+        publisherToUpstream.complete();
+        downstreamSubscriber = null;
+    }
+
     /**
      * The AsyncResponseTransformer for each of the individual requests that is sent back to the downstreamSubscriber when
      * requested. A future is created per request that is completed when onComplete is called on the subscriber for that request
@@ -209,6 +216,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 CompletableFutureUtils.forwardExceptionTo(returnFuture, upstreamFuture);
                 CompletableFutureUtils.forwardResultTo(upstreamFuture, returnFuture);
             }
+            individualFuture.whenComplete((r, e) -> {
+                if (isCancelled.get()) {
+                    handleCancelState();
+                }
+            });
             return this.individualFuture;
         }
 
@@ -266,8 +278,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 return;
             }
             this.subscription = s;
-            // request everything, data will be buffered by the DelegatingBufferingSubscriber
-            s.request(Long.MAX_VALUE);
+            s.request(1);
         }
 
         @Override

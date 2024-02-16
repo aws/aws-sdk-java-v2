@@ -19,7 +19,6 @@ import static software.amazon.awssdk.utils.async.StoringSubscriber.EventType.ON_
 import static software.amazon.awssdk.utils.async.StoringSubscriber.EventType.ON_NEXT;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -51,9 +50,7 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
 
     @Override
     public void onNext(ByteBuffer item) {
-        if (currentlyBuffered.get() > 0) {
-            flushStorageToDelegate();
-        }
+        handleStateUpdate();
         super.onNext(item);
     }
 
@@ -71,7 +68,13 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
 
     @Override
     protected void fulfillDownstreamDemand() {
-        flushStorageToDelegate();
+        storage.poll()
+               .filter(event -> event.type() == ON_NEXT)
+               .ifPresent(byteBufferEvent -> {
+                   currentlyBuffered.addAndGet(-byteBufferEvent.value().remaining());
+                   downstreamDemand.decrementAndGet();
+                   subscriber.onNext(byteBufferEvent.value());
+               });
     }
 
     /**
@@ -95,23 +98,12 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
      */
     @Override
     boolean additionalUpstreamDemandNeededCheck() {
-        return currentlyBuffered.get() < maximumBufferInBytes;
+        return currentlyBuffered.get() <= maximumBufferInBytes;
     }
 
-    private void flushStorageToDelegate() {
-        long totalBufferRemaining = currentlyBuffered.get();
-        Optional<StoringSubscriber.Event<ByteBuffer>> next = storage.poll();
-        while (totalBufferRemaining > 0 && downstreamDemand.get() > 0) {
-            if (!next.isPresent() || next.get().type() != ON_NEXT) {
-                break;
-            }
-            StoringSubscriber.Event<ByteBuffer> byteBufferEvent = next.get();
-            totalBufferRemaining -= byteBufferEvent.value().remaining();
-            currentlyBuffered.addAndGet(-byteBufferEvent.value().remaining());
-            subscriber.onNext(byteBufferEvent.value());
-            next = storage.poll();
-            downstreamDemand.decrementAndGet();
-        }
+    @Override
+    boolean additionalStateCheck() {
+        return downstreamDemand.get() == 0 && currentlyBuffered.get() >= maximumBufferInBytes;
     }
 
     public static Builder builder() {
