@@ -45,6 +45,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3ResponseMetadata;
@@ -204,7 +205,7 @@ class SdkPojoConversionUtilsTest {
     @Test
     void toCompleteMultipartUploadRequest_putObject_shouldCopyProperties() {
         PutObjectRequest randomObject = randomPutObjectRequest();
-        CompletedPart parts[] = new CompletedPart[1];
+        CompletedPart[] parts = new CompletedPart[1];
         CompletedPart completedPart = CompletedPart.builder().partNumber(1).build();
         parts[0] = completedPart;
         CompleteMultipartUploadRequest convertedObject =
@@ -216,6 +217,18 @@ class SdkPojoConversionUtilsTest {
                               CompleteMultipartUploadRequest.builder().sdkFields());
         assertThat(convertedObject.uploadId()).isEqualTo("uploadId");
         assertThat(convertedObject.multipartUpload().parts()).contains(completedPart);
+    }
+
+    @Test
+    void toListPartsRequest_putObject_shouldCopyProperties() {
+        PutObjectRequest randomObject = randomPutObjectRequest();
+        ListPartsRequest convertedObject = SdkPojoConversionUtils.toListPartsRequest("uploadId", randomObject);
+        Set<String> fieldsToIgnore = new HashSet<>();
+
+        verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
+                              PutObjectRequest.builder().sdkFields(),
+                              ListPartsRequest.builder().sdkFields());
+        assertThat(convertedObject.uploadId()).isEqualTo("uploadId");
     }
 
     private static void verifyFieldsAreCopied(SdkPojo requestConvertedFrom,
