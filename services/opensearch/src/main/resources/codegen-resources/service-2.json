@@ -95,6 +95,23 @@
       ],
       "documentation":"<p>Provides access to an Amazon OpenSearch Service domain through the use of an interface VPC endpoint.</p>"
     },
+    "CancelDomainConfigChange":{
+      "name":"CancelDomainConfigChange",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/config/cancel"
+      },
+      "input":{"shape":"CancelDomainConfigChangeRequest"},
+      "output":{"shape":"CancelDomainConfigChangeResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Cancels a pending configuration change on an Amazon OpenSearch Service domain.</p>"
+    },
     "CancelServiceSoftwareUpdate":{
       "name":"CancelServiceSoftwareUpdate",
       "http":{
@@ -1648,6 +1665,38 @@
       "exception":true
     },
     "Boolean":{"type":"boolean"},
+    "CancelDomainConfigChangeRequest":{
+      "type":"structure",
+      "required":["DomainName"],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "DryRun":{
+          "shape":"DryRun",
+          "documentation":"<p>When set to <code>True</code>, returns the list of change IDs and properties that will be cancelled without actually cancelling the change.</p>"
+        }
+      }
+    },
+    "CancelDomainConfigChangeResponse":{
+      "type":"structure",
+      "members":{
+        "CancelledChangeIds":{
+          "shape":"GUIDList",
+          "documentation":"<p>The unique identifiers of the changes that were cancelled.</p>"
+        },
+        "CancelledChangeProperties":{
+          "shape":"CancelledChangePropertyList",
+          "documentation":"<p>The domain change properties that were cancelled.</p>"
+        },
+        "DryRun":{
+          "shape":"DryRun",
+          "documentation":"<p>Whether or not the request was a dry run. If <code>True</code>, the changes were not actually cancelled. </p>"
+        }
+      }
+    },
     "CancelServiceSoftwareUpdateRequest":{
       "type":"structure",
       "required":["DomainName"],
@@ -1669,6 +1718,28 @@
       },
       "documentation":"<p>Container for the response to a <code>CancelServiceSoftwareUpdate</code> operation. Contains the status of the update.</p>"
     },
+    "CancelledChangeProperty":{
+      "type":"structure",
+      "members":{
+        "PropertyName":{
+          "shape":"String",
+          "documentation":"<p>The name of the property whose change was cancelled.</p>"
+        },
+        "CancelledValue":{
+          "shape":"String",
+          "documentation":"<p>The pending value of the property that was cancelled. This would have been the eventual value of the property if the chance had not been cancelled.</p>"
+        },
+        "ActiveValue":{
+          "shape":"String",
+          "documentation":"<p>The current value of the property, after the change was cancelled.</p>"
+        }
+      },
+      "documentation":"<p>A property change that was cancelled for an Amazon OpenSearch Service domain.</p>"
+    },
+    "CancelledChangePropertyList":{
+      "type":"list",
+      "member":{"shape":"CancelledChangeProperty"}
+    },
     "ChangeProgressDetails":{
       "type":"structure",
       "members":{
@@ -1679,6 +1750,22 @@
         "Message":{
           "shape":"Message",
           "documentation":"<p>A message corresponding to the status of the configuration change.</p>"
+        },
+        "ConfigChangeStatus":{
+          "shape":"ConfigChangeStatus",
+          "documentation":"<p>The current status of the configuration change.</p>"
+        },
+        "InitiatedBy":{
+          "shape":"InitiatedBy",
+          "documentation":"<p>The IAM principal who initiated the configuration change.</p>"
+        },
+        "StartTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The time that the configuration change was initiated, in Universal Coordinated Time (UTC).</p>"
+        },
+        "LastUpdatedTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The last time that the configuration change was updated.</p>"
         }
       },
       "documentation":"<p>Container for information about a configuration change happening on a domain.</p>"
@@ -1750,6 +1837,18 @@
         "ChangeProgressStages":{
           "shape":"ChangeProgressStageList",
           "documentation":"<p>The specific stages that the domain is going through to perform the configuration change.</p>"
+        },
+        "LastUpdatedTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The last time that the status of the configuration change was updated.</p>"
+        },
+        "ConfigChangeStatus":{
+          "shape":"ConfigChangeStatus",
+          "documentation":"<p>The current status of the configuration change.</p>"
+        },
+        "InitiatedBy":{
+          "shape":"InitiatedBy",
+          "documentation":"<p>The IAM principal who initiated the configuration change.</p>"
         }
       },
       "documentation":"<p>The progress details of a specific domain configuration change.</p>"
@@ -1884,7 +1983,7 @@
       "members":{
         "Enabled":{
           "shape":"Boolean",
-          "documentation":"<p>Whether to enable or disable cold storage on the domain.</p>"
+          "documentation":"<p>Whether to enable or disable cold storage on the domain. You must enable UltraWarm storage to enable cold storage.</p>"
         }
       },
       "documentation":"<p>Container for the parameters required to enable cold storage for an OpenSearch Service domain. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cold-storage.html\">Cold storage for Amazon OpenSearch Service</a>.</p>"
@@ -1910,6 +2009,19 @@
         }
       },
       "documentation":"<p>A map of OpenSearch or Elasticsearch versions and the versions you can upgrade them to.</p>"
+    },
+    "ConfigChangeStatus":{
+      "type":"string",
+      "enum":[
+        "Pending",
+        "Initializing",
+        "Validating",
+        "ValidationFailed",
+        "ApplyingChanges",
+        "Completed",
+        "PendingUserInput",
+        "Cancelled"
+      ]
     },
     "ConflictException":{
       "type":"structure",
@@ -2434,7 +2546,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>The result of a <code>DescribeDomainAutoTunes</code> request.</p>"
@@ -2700,7 +2812,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>Contains a list of connections matching the filter criteria.</p>"
@@ -2770,7 +2882,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>Contains a list of connections matching the filter criteria.</p>"
@@ -2840,7 +2952,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>Container for the response returned by the <code>DescribePackages</code> operation.</p>"
@@ -2874,7 +2986,7 @@
       "members":{
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         },
         "ReservedInstanceOfferings":{
           "shape":"ReservedInstanceOfferingList",
@@ -2912,7 +3024,7 @@
       "members":{
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         },
         "ReservedInstances":{
           "shape":"ReservedInstanceList",
@@ -3070,6 +3182,10 @@
         "SoftwareUpdateOptions":{
           "shape":"SoftwareUpdateOptionsStatus",
           "documentation":"<p>Software update options for the domain.</p>"
+        },
+        "ModifyingProperties":{
+          "shape":"ModifyingPropertiesList",
+          "documentation":"<p>Information about the domain properties that are currently being modified.</p>"
         }
       },
       "documentation":"<p>Container for the configuration of an OpenSearch Service domain.</p>"
@@ -3321,6 +3437,18 @@
         "DISSOCIATION_FAILED"
       ]
     },
+    "DomainProcessingStatusType":{
+      "type":"string",
+      "enum":[
+        "Creating",
+        "Active",
+        "Modifying",
+        "UpgradingEngineVersion",
+        "UpdatingServiceSoftware",
+        "Isolated",
+        "Deleting"
+      ]
+    },
     "DomainState":{
       "type":"string",
       "enum":[
@@ -3453,6 +3581,14 @@
         "SoftwareUpdateOptions":{
           "shape":"SoftwareUpdateOptions",
           "documentation":"<p>Service software update options for the domain.</p>"
+        },
+        "DomainProcessingStatus":{
+          "shape":"DomainProcessingStatusType",
+          "documentation":"<p>The status of any changes that are currently in progress for the domain.</p>"
+        },
+        "ModifyingProperties":{
+          "shape":"ModifyingPropertiesList",
+          "documentation":"<p>Information about the domain properties that are currently being modified.</p>"
         }
       },
       "documentation":"<p>The current status of an OpenSearch Service domain.</p>"
@@ -3593,7 +3729,7 @@
           "documentation":"<p>The KMS key ID. Takes the form <code>1a2a3a4-1a2a-3a4a-5a6a-1a2a3a4a5a6a</code>.</p>"
         }
       },
-      "documentation":"<p>Specifies whether the domain should encrypt data at rest, and if so, the Key Management Service (KMS) key to use. Can be used only to create a new domain, not update an existing one.</p>"
+      "documentation":"<p>Specifies whether the domain should encrypt data at rest, and if so, the Key Management Service (KMS) key to use. Can only be used when creating a new domain or enabling encryption at rest for the first time on an existing domain. You can't modify this parameter after it's already been specified.</p>"
     },
     "EncryptionAtRestOptionsStatus":{
       "type":"structure",
@@ -3686,6 +3822,10 @@
       "max":36,
       "min":36,
       "pattern":"\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}"
+    },
+    "GUIDList":{
+      "type":"list",
+      "member":{"shape":"GUID"}
     },
     "GetCompatibleVersionsRequest":{
       "type":"structure",
@@ -3839,7 +3979,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>Container for response returned by <code>GetPackageVersionHistory</code> operation.</p>"
@@ -3878,7 +4018,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>Container for the response returned by the <code>GetUpgradeHistory</code> operation.</p>"
@@ -3998,6 +4138,13 @@
     "InboundConnections":{
       "type":"list",
       "member":{"shape":"InboundConnection"}
+    },
+    "InitiatedBy":{
+      "type":"string",
+      "enum":[
+        "CUSTOMER",
+        "SERVICE"
+      ]
     },
     "InstanceCount":{
       "type":"integer",
@@ -4226,7 +4373,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>The result of a <code>ListDomainMaintenances</code> request that contains information about the requested actions. </p>"
@@ -4287,7 +4434,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>Container for the response parameters to the <code>ListDomainsForPackage</code> operation.</p>"
@@ -4343,7 +4490,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       }
     },
@@ -4381,7 +4528,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>Container for the response parameters to the <code>ListPackagesForDomain</code> operation.</p>"
@@ -4419,7 +4566,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       }
     },
@@ -4473,7 +4620,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       },
       "documentation":"<p>Container for the parameters for response received from the <code>ListVersions</code> operation.</p>"
@@ -4509,7 +4656,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       }
     },
@@ -4544,7 +4691,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       }
     },
@@ -4572,7 +4719,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
         }
       }
     },
@@ -4687,9 +4834,35 @@
       "type":"integer",
       "documentation":"<p> Minimum number of instances that can be instantiated for a given instance type.</p>"
     },
+    "ModifyingProperties":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"String",
+          "documentation":"<p>The name of the property that is currently being modified.</p>"
+        },
+        "ActiveValue":{
+          "shape":"String",
+          "documentation":"<p>The current value of the domain property that is being modified.</p>"
+        },
+        "PendingValue":{
+          "shape":"String",
+          "documentation":"<p>The value that the property that is currently being modified will eventually have.</p>"
+        },
+        "ValueType":{
+          "shape":"PropertyValueType",
+          "documentation":"<p>The type of value that is currently being modified. Properties can have two types:</p> <ul> <li> <p> <code>PLAIN_TEXT</code>: Contain direct values such as \"1\", \"True\", or \"c5.large.search\".</p> </li> <li> <p> <code>STRINGIFIED_JSON</code>: Contain content in JSON format, such as {\"Enabled\":\"True\"}\".</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Information about the domain properties that are currently being modified.</p>"
+    },
+    "ModifyingPropertiesList":{
+      "type":"list",
+      "member":{"shape":"ModifyingProperties"}
+    },
     "NextToken":{
       "type":"string",
-      "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+      "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
     },
     "NodeId":{
       "type":"string",
@@ -4833,6 +5006,14 @@
         "t3.large.search",
         "t3.xlarge.search",
         "t3.2xlarge.search",
+        "or1.medium.search",
+        "or1.large.search",
+        "or1.xlarge.search",
+        "or1.2xlarge.search",
+        "or1.4xlarge.search",
+        "or1.8xlarge.search",
+        "or1.12xlarge.search",
+        "or1.16xlarge.search",
         "ultrawarm1.medium.search",
         "ultrawarm1.large.search",
         "ultrawarm1.xlarge.search",
@@ -5217,6 +5398,13 @@
       "enum":[
         "AWS_ACCOUNT",
         "AWS_SERVICE"
+      ]
+    },
+    "PropertyValueType":{
+      "type":"string",
+      "enum":[
+        "PLAIN_TEXT",
+        "STRINGIFIED_JSON"
       ]
     },
     "PurchaseReservedInstanceOfferingRequest":{
@@ -6686,5 +6874,5 @@
       ]
     }
   },
-  "documentation":"<p>Use the Amazon OpenSearch Service configuration API to create, configure, and manage OpenSearch Service domains.</p> <p>For sample code that uses the configuration API, see the <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/opensearch-configuration-samples.html\"> <i>Amazon OpenSearch Service Developer Guide</i> </a>. The guide also contains <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/request-signing.html\">sample code</a> for sending signed HTTP requests to the OpenSearch APIs. The endpoint for configuration service requests is Region specific: es.<i>region</i>.amazonaws.com. For example, es.us-east-1.amazonaws.com. For a current list of supported Regions and endpoints, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#service-regions\">Amazon Web Services service endpoints</a>.</p>"
+  "documentation":"<p>Use the Amazon OpenSearch Service configuration API to create, configure, and manage OpenSearch Service domains. The endpoint for configuration service requests is Region specific: es.<i>region</i>.amazonaws.com. For example, es.us-east-1.amazonaws.com. For a current list of supported Regions and endpoints, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#service-regions\">Amazon Web Services service endpoints</a>.</p>"
 }
