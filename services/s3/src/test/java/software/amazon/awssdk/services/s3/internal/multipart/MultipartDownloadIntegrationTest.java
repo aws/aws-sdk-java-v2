@@ -30,6 +30,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.SplitTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
@@ -49,6 +50,9 @@ class MultipartDownloadIntegrationTest {
     static final String key = String.format("debug-test-%smb", fileTestSize);
 
     private S3AsyncClient s3;
+    private final SplitTransformerConfiguration splitConfig = SplitTransformerConfiguration.builder()
+                                                                                           .bufferSize(1024 * 1024 * 32L)
+                                                                                           .build();
 
     @BeforeEach
     void init() {
@@ -67,7 +71,7 @@ class MultipartDownloadIntegrationTest {
             s3, GetObjectRequest.builder().bucket(bucket).key(key).build());
 
         SplitAsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> split =
-            transformer.split(1024 * 1024 * 32);
+            transformer.split(splitConfig);
         split.publisher().subscribe(downloaderSubscriber);
         ResponseBytes<GetObjectResponse> res = split.preparedFuture().join();
         log.info(() -> "complete");
@@ -85,7 +89,7 @@ class MultipartDownloadIntegrationTest {
         MultipartDownloaderSubscriber downloaderSubscriber = new MultipartDownloaderSubscriber(
             s3, GetObjectRequest.builder().bucket(bucket).key(key).build());
 
-        SplitAsyncResponseTransformer<GetObjectResponse, GetObjectResponse> split = transformer.split(1024 * 1024 * 32);
+        SplitAsyncResponseTransformer<GetObjectResponse, GetObjectResponse> split = transformer.split(splitConfig);
         split.publisher().subscribe(downloaderSubscriber);
         GetObjectResponse res = split.preparedFuture().join();
         log.info(() -> "complete");
@@ -101,7 +105,7 @@ class MultipartDownloadIntegrationTest {
         MultipartDownloaderSubscriber downloaderSubscriber = new MultipartDownloaderSubscriber(
             s3, GetObjectRequest.builder().bucket(bucket).key(key).build());
         SplitAsyncResponseTransformer<GetObjectResponse, ResponsePublisher<GetObjectResponse>> split =
-            transformer.split(1024 * 1024 * 32);
+            transformer.split(splitConfig);
         split.publisher().subscribe(downloaderSubscriber);
         split.preparedFuture().whenComplete((res, e) -> {
             log.info(() -> "complete");
@@ -143,7 +147,7 @@ class MultipartDownloadIntegrationTest {
             s3, GetObjectRequest.builder().bucket(bucket).key(key).build());
 
         SplitAsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> split =
-            transformer.split(1024 * 1024 * 32);
+            transformer.split(splitConfig);
         split.publisher().subscribe(downloaderSubscriber);
         ResponseInputStream<GetObjectResponse> res = split.preparedFuture().join();
         log.info(() -> "complete");

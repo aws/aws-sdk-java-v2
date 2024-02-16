@@ -17,15 +17,16 @@ package software.amazon.awssdk.core.async;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SplitTransformerConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * Helper class containing the result of
- * {@link AsyncResponseTransformer#split(long) splitting} an AsyncResponseTransformer. This class holds both the publisher of
- * the individual {@code AsyncResponseTransformer<ResponseT, ResponseT>} and the {@code CompletableFuture<ResulT>} which will
- * complete when the {@code AsyncResponseTransformer} that was split itself would complete.
+ * {@link AsyncResponseTransformer#split(SplitTransformerConfiguration) splitting} an AsyncResponseTransformer. This class holds
+ * both the publisher of the individual {@code AsyncResponseTransformer<ResponseT, ResponseT>} and the {@code CompletableFuture
+ * <ResulT>} which will complete when the {@code AsyncResponseTransformer} that was split itself would complete.
  *
- * @see AsyncResponseTransformer#split(long)
+ * @see AsyncResponseTransformer#split(SplitTransformerConfiguration)
  * @param <ResponseT> ResponseT of the original AsyncResponseTransformer that was split.
  * @param <ResultT> ResultT of the original AsyncResponseTransformer that was split.
  *

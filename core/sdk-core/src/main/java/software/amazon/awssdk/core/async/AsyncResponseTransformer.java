@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SplitTransformerConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
@@ -115,17 +116,20 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     void exceptionOccurred(Throwable error);
 
     /**
-     * todo - javadoc
-     * todo - use configuration class as input instead of bufferSize
+     * Creates an {@link SplitAsyncResponseTransformer} which contains an {@link SplittingTransformer} that splits the
+     * {@link AsyncResponseTransformer} into multiple ones, publishing them as a {@link SdkPublisher}.
      *
-     * @return
+     * @param splitConfig configuration for the split transformer
+     * @return SplitAsyncResponseTransformer instance.
+     * @see SplittingTransformer
+     * @see SplitAsyncResponseTransformer
      */
-    default SplitAsyncResponseTransformer<ResponseT, ResultT> split(long bufferSize) {
+    default SplitAsyncResponseTransformer<ResponseT, ResultT> split(SplitTransformerConfiguration splitConfig) {
         CompletableFuture<ResultT> future = new CompletableFuture<>();
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer = SplittingTransformer
             .<ResponseT, ResultT>builder()
             .upstreamResponseTransformer(this)
-            .maximumBufferSize(bufferSize)
+            .maximumBufferSize(splitConfig.bufferSize())
             .returnFuture(future)
             .build();
         return SplitAsyncResponseTransformer.<ResponseT, ResultT>builder()
