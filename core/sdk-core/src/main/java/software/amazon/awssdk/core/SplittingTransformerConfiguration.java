@@ -24,23 +24,23 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Configuration options for {@link AsyncResponseTransformer#split(SplitTransformerConfiguration)} to configure how the SDK
+ * Configuration options for {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration)} to configure how the SDK
  * should split the {@link AsyncResponseTransformer}.
  *
  * @see #builder()
  */
 @SdkPublicApi
-public final class SplitTransformerConfiguration implements ToCopyableBuilder<SplitTransformerConfiguration.Builder,
-    SplitTransformerConfiguration> {
+public final class SplittingTransformerConfiguration implements ToCopyableBuilder<SplittingTransformerConfiguration.Builder,
+    SplittingTransformerConfiguration> {
 
     private final Long bufferSize;
 
-    private SplitTransformerConfiguration(DefaultBuilder builder) {
+    private SplittingTransformerConfiguration(DefaultBuilder builder) {
         this.bufferSize = Validate.paramNotNull(builder.bufferSize, "bufferSize");
     }
 
     /**
-     * Create a {@link Builder}, used to create a {@link SplitTransformerConfiguration}.
+     * Create a {@link Builder}, used to create a {@link SplittingTransformerConfiguration}.
      */
     public static Builder builder() {
         return new DefaultBuilder();
@@ -62,7 +62,7 @@ public final class SplitTransformerConfiguration implements ToCopyableBuilder<Sp
             return false;
         }
 
-        SplitTransformerConfiguration that = (SplitTransformerConfiguration) o;
+        SplittingTransformerConfiguration that = (SplittingTransformerConfiguration) o;
 
         return Objects.equals(bufferSize, that.bufferSize);
     }
@@ -77,7 +77,7 @@ public final class SplitTransformerConfiguration implements ToCopyableBuilder<Sp
         return new DefaultBuilder(this);
     }
 
-    public interface Builder extends CopyableBuilder<Builder, SplitTransformerConfiguration> {
+    public interface Builder extends CopyableBuilder<Builder, SplittingTransformerConfiguration> {
 
         /**
          * Configures the buffer size of the {@link SplittingTransformer}.
@@ -91,7 +91,7 @@ public final class SplitTransformerConfiguration implements ToCopyableBuilder<Sp
     private static final class DefaultBuilder implements Builder {
         private Long bufferSize;
 
-        private DefaultBuilder(SplitTransformerConfiguration configuration) {
+        private DefaultBuilder(SplittingTransformerConfiguration configuration) {
             this.bufferSize = configuration.bufferSize;
         }
 
@@ -105,8 +105,8 @@ public final class SplitTransformerConfiguration implements ToCopyableBuilder<Sp
         }
 
         @Override
-        public SplitTransformerConfiguration build() {
-            return new SplitTransformerConfiguration(this);
+        public SplittingTransformerConfiguration build() {
+            return new SplittingTransformerConfiguration(this);
         }
     }
 }

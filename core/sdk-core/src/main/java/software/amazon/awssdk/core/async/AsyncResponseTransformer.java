@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.SplitTransformerConfiguration;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
@@ -124,7 +124,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @see SplittingTransformer
      * @see SplitAsyncResponseTransformer
      */
-    default SplitAsyncResponseTransformer<ResponseT, ResultT> split(SplitTransformerConfiguration splitConfig) {
+    default SplitAsyncResponseTransformer<ResponseT, ResultT> split(SplittingTransformerConfiguration splitConfig) {
         CompletableFuture<ResultT> future = new CompletableFuture<>();
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer = SplittingTransformer
             .<ResponseT, ResultT>builder()

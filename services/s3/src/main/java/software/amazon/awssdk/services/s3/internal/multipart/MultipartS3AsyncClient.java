@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.SplitTransformerConfiguration;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
@@ -78,7 +78,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
         SplitAsyncResponseTransformer<GetObjectResponse, ReturnT> split =
-            asyncResponseTransformer.split(SplitTransformerConfiguration.builder().bufferSize(apiCallBufferSize).build());
+            asyncResponseTransformer.split(SplittingTransformerConfiguration.builder().bufferSize(apiCallBufferSize).build());
         split.publisher().subscribe(new MultipartDownloaderSubscriber((S3AsyncClient) delegate(), getObjectRequest));
         return split.preparedFuture();
     }

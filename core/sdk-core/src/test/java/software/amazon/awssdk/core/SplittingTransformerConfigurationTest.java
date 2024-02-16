@@ -20,11 +20,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-public class SplitTransformerConfigurationTest {
+public class SplittingTransformerConfigurationTest {
 
     @Test
     void equalsHashcode() {
-        EqualsVerifier.forClass(SplitTransformerConfiguration.class)
+        EqualsVerifier.forClass(SplittingTransformerConfiguration.class)
                       .withNonnullFields("bufferSize")
                       .verify();
 
@@ -32,12 +32,12 @@ public class SplitTransformerConfigurationTest {
 
     @Test
     void toBuilder() {
-        SplitTransformerConfiguration configuration =
-            SplitTransformerConfiguration.builder()
-                                         .bufferSize(4444L)
-                                         .build();
+        SplittingTransformerConfiguration configuration =
+            SplittingTransformerConfiguration.builder()
+                                             .bufferSize(4444L)
+                                             .build();
 
-        SplitTransformerConfiguration another = configuration.toBuilder().build();
+        SplittingTransformerConfiguration another = configuration.toBuilder().build();
         assertThat(configuration).isEqualTo(another);
     }
 }
