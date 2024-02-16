@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.5__ __2024-02-16__
+## __AWS Lambda__
+  - ### Features
+    - Documentation-only updates for Lambda to clarify a number of existing actions and properties.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Doc only update to GetTranscript API reference guide to inform users about presence of events in the chat transcript.
+
+## __Amazon EMR__
+  - ### Features
+    - adds fine grained control over Unhealthy Node Replacement to Amazon ElasticMapReduce
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release adds support for Data Message Extraction for decompressed CloudWatch logs, and to use a custom file extension or time zone for S3 destinations.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Doc only update for a valid option in DB parameter group
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release marks phone numbers as sensitive inputs.
+
 # __2.24.4__ __2024-02-15__
 ## __AWS Artifact__
   - ### Features
