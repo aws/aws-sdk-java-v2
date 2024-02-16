@@ -40,7 +40,7 @@ public final class SplitTransformerConfiguration implements ToCopyableBuilder<Sp
     }
 
     /**
-     * Create a {@link FileRequestBodyConfiguration.Builder}, used to create a {@link SplitTransformerConfiguration}.
+     * Create a {@link Builder}, used to create a {@link SplitTransformerConfiguration}.
      */
     public static Builder builder() {
         return new DefaultBuilder();
