@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EMR",
+    "contributor": "",
+    "description": "adds fine grained control over Unhealthy Node Replacement to Amazon ElasticMapReduce"
+}
