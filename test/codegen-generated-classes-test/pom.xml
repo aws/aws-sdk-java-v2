@@ -236,6 +236,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.reactivex.rxjava2</groupId>
             <artifactId>rxjava</artifactId>
             <scope>test</scope>
@@ -305,6 +311,17 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+            <!-- Disable dependency check for this test module to speed up the build. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <configuration>
+                    <failOnWarning>false</failOnWarning>
+                    <ignoreNonCompile>false</ignoreNonCompile>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 

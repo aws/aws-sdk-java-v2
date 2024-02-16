@@ -13,30 +13,43 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt.internal.response;
+package software.amazon.awssdk.http.async;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Abortable;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.async.InputStreamSubscriber;
 
 /**
- * Wrapper of {@link InputStreamSubscriber} that also implements {@link Abortable} and closes the underlying connections when
- * {@link #close()} or {@link #abort()} is invoked.
+ * Wrapper of {@link InputStreamSubscriber} that also implements {@link Abortable}. It will invoke {@link #close()}
+ * when {@link #abort()} is invoked. Upon closing, the underlying {@link InputStreamSubscriber} will be closed, and additional
+ * action can be added via {@link Builder#doAfterClose(Runnable)}.
+ *
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class AbortableInputStreamSubscriber extends InputStream implements Subscriber<ByteBuffer>, Abortable {
-
     private final InputStreamSubscriber delegate;
-    private final Runnable closeConnection;
 
-    public AbortableInputStreamSubscriber(Runnable onClose, InputStreamSubscriber inputStreamSubscriber) {
-        this.delegate = inputStreamSubscriber;
-        this.closeConnection = onClose;
+    private final Runnable doAfterClose;
+
+    private AbortableInputStreamSubscriber(Builder builder) {
+        this(builder, new InputStreamSubscriber());
+    }
+
+    @SdkTestInternalApi
+    AbortableInputStreamSubscriber(Builder builder, InputStreamSubscriber delegate) {
+        this.delegate = delegate;
+        this.doAfterClose = builder.doAfterClose == null ? FunctionalUtils.noOpRunnable() : builder.doAfterClose;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -81,7 +94,23 @@ public final class AbortableInputStreamSubscriber extends InputStream implements
 
     @Override
     public void close() {
-        closeConnection.run();
         delegate.close();
+        FunctionalUtils.invokeSafely(() -> doAfterClose.run());
+    }
+    
+    public static final class Builder {
+        private Runnable doAfterClose;
+
+        /**
+         * Additional action to run when {@link #close()} is invoked
+         */
+        public Builder doAfterClose(Runnable doAfterClose) {
+            this.doAfterClose = doAfterClose;
+            return this;
+        }
+
+        public AbortableInputStreamSubscriber build() {
+            return new AbortableInputStreamSubscriber(this);
+        }
     }
 }

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt.internal;
+package software.amazon.awssdk.http.async;
 
 import static org.mockito.Mockito.verify;
 
@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.http.crt.internal.response.AbortableInputStreamSubscriber;
 import software.amazon.awssdk.utils.async.InputStreamSubscriber;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,20 +32,39 @@ public class AbortableInputStreamSubscriberTest {
     @Mock
     private Runnable onClose;
 
+    @Mock
+    private InputStreamSubscriber inputStreamSubscriber;
+
     @BeforeEach
     void setUp() {
-        abortableInputStreamSubscriber = new AbortableInputStreamSubscriber(onClose, new InputStreamSubscriber());
+        abortableInputStreamSubscriber = new AbortableInputStreamSubscriber(AbortableInputStreamSubscriber.builder()
+                                                                                                          .doAfterClose(onClose),
+                                                                            inputStreamSubscriber);
+
+
     }
 
     @Test
-    void close_shouldInvokeOnClose() {
+    void close_closeConfigured_shouldInvokeOnClose() {
         abortableInputStreamSubscriber.close();
+        verify(inputStreamSubscriber).close();
         verify(onClose).run();
     }
 
     @Test
     void abort_shouldInvokeOnClose() {
+        abortableInputStreamSubscriber = new AbortableInputStreamSubscriber(AbortableInputStreamSubscriber.builder()
+                                                                                                          .doAfterClose(onClose),
+                                                                            inputStreamSubscriber);
         abortableInputStreamSubscriber.abort();
         verify(onClose).run();
+    }
+
+    @Test
+    void close_closeNotConfigured_shouldCloseDelegate() {
+        abortableInputStreamSubscriber = new AbortableInputStreamSubscriber(AbortableInputStreamSubscriber.builder(),
+                                                                            inputStreamSubscriber);
+        abortableInputStreamSubscriber.close();
+        verify(inputStreamSubscriber).close();
     }
 }
