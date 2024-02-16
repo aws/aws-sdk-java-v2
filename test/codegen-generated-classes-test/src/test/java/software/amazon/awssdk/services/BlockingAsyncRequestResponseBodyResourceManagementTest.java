@@ -46,7 +46,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -122,7 +124,6 @@ public class BlockingAsyncRequestResponseBodyResourceManagementTest {
         ResponseInputStream<StreamingOutputOperationResponse> responseStream = responseFuture.join();
 
 
-        responseStream.read();
         consumer.accept(responseStream);
 
         try {
@@ -137,17 +138,16 @@ public class BlockingAsyncRequestResponseBodyResourceManagementTest {
 
     private static class Server extends ChannelInitializer<Channel> {
         private static final byte[] CONTENT = ("{  "
-                                               + "\"foo\": " + RandomStringUtils.randomAscii(1024 * 1024)
+                                               + "\"foo\": " + RandomStringUtils.randomAscii(1024)
                                                + "}").getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;
         private ServerSocketChannel serverSock;
-        private List<Channel> channels = new ArrayList<>();
+        private Set<Channel> channels = ConcurrentHashMap.newKeySet();
         private final NioEventLoopGroup group = new NioEventLoopGroup(3);
 
         public void init() throws Exception {
             bootstrap = new ServerBootstrap()
                 .channel(NioServerSocketChannel.class)
-                .handler(new LoggingHandler(LogLevel.INFO))
                 .group(group)
                 .childHandler(this);
 
@@ -169,8 +169,8 @@ public class BlockingAsyncRequestResponseBodyResourceManagementTest {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new BehaviorTestChannelHandler());
+            pipeline.addLast(new LoggingHandler(LogLevel.INFO));
         }
-
 
         private class BehaviorTestChannelHandler extends ChannelDuplexHandler {
 
