@@ -170,8 +170,6 @@ class PresignRequestHandlerTest {
                 .clientConsumer(c -> c.startDBInstanceAutomatedBackupsReplication(r -> r.kmsKeyId(TEST_KMS_KEY_ID)))
                 .shouldContainPreSignedUrl(false)
                 .build()
-
-
         );
     }
 
