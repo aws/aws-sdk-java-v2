@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fixed an issue where NPE would be thrown if there was an empty event in the input for an event streaming operation."
-}

@@ -1,4 +1,99 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.5__ __2024-02-16__
+## __AWS Lambda__
+  - ### Features
+    - Documentation-only updates for Lambda to clarify a number of existing actions and properties.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Doc only update to GetTranscript API reference guide to inform users about presence of events in the chat transcript.
+
+## __Amazon EMR__
+  - ### Features
+    - adds fine grained control over Unhealthy Node Replacement to Amazon ElasticMapReduce
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release adds support for Data Message Extraction for decompressed CloudWatch logs, and to use a custom file extension or time zone for S3 destinations.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Doc only update for a valid option in DB parameter group
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release marks phone numbers as sensitive inputs.
+
+# __2.24.4__ __2024-02-15__
+## __AWS Artifact__
+  - ### Features
+    - This is the initial SDK release for AWS Artifact. AWS Artifact provides on-demand access to compliance and third-party compliance reports. This release includes access to List and Get reports, along with their metadata. This release also includes access to AWS Artifact notifications settings.
+
+## __AWS CodePipeline__
+  - ### Features
+    - Add ability to override timeout on action level.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager
+
+## __Amazon Detective__
+  - ### Features
+    - Doc only updates for content enhancement
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Marked fields IpAddressV4, PrivateIpAddress, Email as Sensitive.
+
+## __Amazon HealthLake__
+  - ### Features
+    - This release adds a new response parameter, JobProgressReport, to the DescribeFHIRImportJob and ListFHIRImportJobs API operation. JobProgressReport provides details on the progress of the import job on the server.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adds additional supported instance types.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds 1 new voice - Burcu (tr-TR)
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds a new API UpdateClusterSoftware for SageMaker HyperPod. This API allows users to patch HyperPod clusters with latest platform softwares.
+
+# __2.24.3__ __2024-02-14__
+## __AWS Control Tower__
+  - ### Features
+    - Adds support for new Baseline and EnabledBaseline APIs for automating multi-account governance.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Switching half of the AWS service clients onto the new SRA (Smithy Reference Architecture) identity and auth logic that was released in v2.21.0. For a list of individual services affected, please check the committed files.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where NPE would be thrown if there was an empty event in the input for an event streaming operation.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This feature allows customers to see pointwise model diagnostics results for their models.
+
+## __Amazon Simple Storage Service__
+  - ### Bugfixes
+    - Fix for Issue [#4912](https://github.com/aws/aws-sdk-java-v2/issues/4912) where client region with AWS_GLOBAL calls failed for cross region access.
+
+## __QBusiness__
+  - ### Features
+    - This release adds the metadata-boosting feature, which allows customers to easily fine-tune the underlying ranking of retrieved RAG passages in order to optimize Q&A answer relevance. It also adds new feedback reasons for the PutFeedback API.
+
 # __2.24.2__ __2024-02-13__
 ## __AWS Marketplace Catalog Service__
   - ### Features

@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Add support for pause/resume upload for TransferManager with Java-based S3Client that has multipart enabled"
+}
