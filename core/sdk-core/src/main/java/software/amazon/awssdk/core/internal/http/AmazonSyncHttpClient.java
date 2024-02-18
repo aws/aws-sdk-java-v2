@@ -46,6 +46,8 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmu
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.PostExecutionProgressUpdateStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.PreExecuteProgressUpdateStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.QueryParametersToBodyStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
@@ -206,6 +208,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .then(RequestPipelineBuilder
                                          .first(SigningStage::new)
                                          .then(BeforeTransmissionExecutionInterceptorsStage::new)
+                                         .then(PreExecuteProgressUpdateStage::new)
                                          .then(MakeHttpRequestStage::new)
                                          .then(AfterTransmissionExecutionInterceptorsStage::new)
                                          .then(BeforeUnmarshallingExecutionInterceptorsStage::new)
@@ -218,6 +221,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
                                .wrappedWith((deps, wrapped) -> new ApiCallMetricCollectionStage<>(wrapped))
                     .then(() -> new UnwrapResponseContainer<>())
+                    .then(() -> new PostExecutionProgressUpdateStage<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
                     .wrappedWith(ExecutionFailureExceptionReportingStage::new)
                     .build(httpClientDependencies)
