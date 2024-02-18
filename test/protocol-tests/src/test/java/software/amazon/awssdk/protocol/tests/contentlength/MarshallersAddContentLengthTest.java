@@ -25,11 +25,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -42,40 +42,36 @@ import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 import software.amazon.awssdk.services.protocolrestxml.model.OperationWithExplicitPayloadStringResponse;
 
+@WireMockTest
 public class MarshallersAddContentLengthTest {
     public static final String STRING_PAYLOAD = "TEST_STRING_PAYLOAD";
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
 
     @Test
-    public void jsonMarshallers_AddContentLength_for_explicitBinaryPayload() {
+    public void jsonMarshallers_AddContentLength_for_explicitBinaryPayload(WireMockRuntimeInfo wireMock) {
         stubSuccessfulResponse();
         CaptureRequestInterceptor captureRequestInterceptor = new CaptureRequestInterceptor();
         ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
                                                               .httpClient(AwsCrtHttpClient.builder().build())
                                                               .overrideConfiguration(o -> o.addExecutionInterceptor(captureRequestInterceptor))
-                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
                                                               .build();
-
         client.operationWithExplicitPayloadBlob(p -> p.payloadMember(SdkBytes.fromString(STRING_PAYLOAD,
                                                                                          StandardCharsets.UTF_8)));
         verify(postRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo(String.valueOf(STRING_PAYLOAD.length()))));
         assertThat(captureRequestInterceptor.requestAfterMarshalling().firstMatchingHeader(CONTENT_LENGTH))
             .contains(String.valueOf(STRING_PAYLOAD.length()));
-
     }
 
     @Test
-    public void jsonMarshallers_AddContentLength_for_explicitStringPayload() {
+    public void jsonMarshallers_AddContentLength_for_explicitStringPayload(WireMockRuntimeInfo wireMock) {
         stubSuccessfulResponse();
         String expectedPayload = String.format("{\"StringMember\":\"%s\"}", STRING_PAYLOAD);
         CaptureRequestInterceptor captureRequestInterceptor = new CaptureRequestInterceptor();
         ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
                                                               .httpClient(AwsCrtHttpClient.builder().build())
                                                               .overrideConfiguration(o -> o.addExecutionInterceptor(captureRequestInterceptor))
-                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                              .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
                                                               .build();
-
         OperationWithExplicitPayloadStructureResponse response =
             client.operationWithExplicitPayloadStructure(p -> p.payloadMember(SimpleStruct.builder().stringMember(STRING_PAYLOAD).build()));
         verify(postRequestedFor(anyUrl())
@@ -83,21 +79,19 @@ public class MarshallersAddContentLengthTest {
                    .withHeader(CONTENT_LENGTH, equalTo(String.valueOf(expectedPayload.length()))));
         assertThat(captureRequestInterceptor.requestAfterMarshalling().firstMatchingHeader(CONTENT_LENGTH))
             .contains(String.valueOf(expectedPayload.length()));
-
     }
 
     @Test
-    public void xmlMarshallers_AddContentLength_for_explicitBinaryPayload() {
+    public void xmlMarshallers_AddContentLength_for_explicitBinaryPayload(WireMockRuntimeInfo wireMock) {
         stubSuccessfulResponse();
         CaptureRequestInterceptor captureRequestInterceptor = new CaptureRequestInterceptor();
         ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
                                                             .httpClient(AwsCrtHttpClient.builder().build())
                                                             .overrideConfiguration(o -> o.addExecutionInterceptor(captureRequestInterceptor))
-                                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                            .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
                                                             .build();
         client.operationWithExplicitPayloadBlob(r -> r.payloadMember(SdkBytes.fromString(STRING_PAYLOAD,
                                                                                          StandardCharsets.UTF_8)));
-
         verify(postRequestedFor(anyUrl())
                    .withRequestBody(equalTo(STRING_PAYLOAD))
 
@@ -107,14 +101,14 @@ public class MarshallersAddContentLengthTest {
     }
 
     @Test
-    public void xmlMarshallers_AddContentLength_for_explicitStringPayload() {
+    public void xmlMarshallers_AddContentLength_for_explicitStringPayload(WireMockRuntimeInfo wireMock) {
         stubSuccessfulResponse();
         String expectedPayload = STRING_PAYLOAD;
         CaptureRequestInterceptor captureRequestInterceptor = new CaptureRequestInterceptor();
         ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
                                                             .httpClient(AwsCrtHttpClient.builder().build())
                                                             .overrideConfiguration(o -> o.addExecutionInterceptor(captureRequestInterceptor))
-                                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                            .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
                                                             .build();
         OperationWithExplicitPayloadStringResponse stringResponse =
             client.operationWithExplicitPayloadString(p -> p.payloadMember(STRING_PAYLOAD));
@@ -123,7 +117,6 @@ public class MarshallersAddContentLengthTest {
                    .withHeader(CONTENT_LENGTH, equalTo(String.valueOf(expectedPayload.length()))));
         assertThat(captureRequestInterceptor.requestAfterMarshalling().firstMatchingHeader(CONTENT_LENGTH))
             .contains(String.valueOf(expectedPayload.length()));
-
     }
 
     private void stubSuccessfulResponse() {
@@ -141,6 +134,5 @@ public class MarshallersAddContentLengthTest {
         public void afterMarshalling(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
             this.requestAfterMarshilling = context.httpRequest();
         }
-
     }
 }
