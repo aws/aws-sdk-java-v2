@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Amplify",
-    "contributor": "",
-    "description": "This release contains API changes that enable users to configure their Amplify domains with their own custom SSL/TLS certificate."
-}

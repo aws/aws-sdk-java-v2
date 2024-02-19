@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service",
-    "contributor": "",
-    "description": "Changed description for latencyMode in Create/UpdateChannel and Channel/ChannelSummary."
-}
