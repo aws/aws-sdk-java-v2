@@ -49,12 +49,6 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
     }
 
     @Override
-    public void onNext(ByteBuffer item) {
-        handleStateUpdate();
-        super.onNext(item);
-    }
-
-    @Override
     public void onSubscribe(Subscription subscription) {
         storage.onSubscribe(new DemandIgnoringSubscription(subscription));
         super.onSubscribe(subscription);
@@ -98,12 +92,7 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
      */
     @Override
     boolean additionalUpstreamDemandNeededCheck() {
-        return currentlyBuffered.get() <= maximumBufferInBytes;
-    }
-
-    @Override
-    boolean additionalStateCheck() {
-        return downstreamDemand.get() == 0 && currentlyBuffered.get() >= maximumBufferInBytes;
+        return true;
     }
 
     public static Builder builder() {

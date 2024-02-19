@@ -194,11 +194,7 @@ public abstract class BaseSubscriberAdapter<T, U> extends DelegatingSubscriber<T
             // It's possible we had an important state change between when we decided to release the state update flag, and we
             // actually released it. If that seems to have happened, try to handle that state change on this thread, because
             // another thread is not guaranteed to come around and do so.
-        } while (onNextNeeded() || upstreamDemandNeeded() || onCompleteNeeded() || onErrorNeeded() || additionalStateCheck());
-    }
-
-    boolean additionalStateCheck() {
-        return false;
+        } while (onNextNeeded() || upstreamDemandNeeded() || onCompleteNeeded() || onErrorNeeded());
     }
 
     /**

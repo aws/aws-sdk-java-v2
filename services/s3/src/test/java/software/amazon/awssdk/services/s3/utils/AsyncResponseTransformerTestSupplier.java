@@ -15,11 +15,25 @@
 
 package software.amazon.awssdk.services.s3.utils;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Contains the {@link AsyncResponseTransformer} to be used in a test as well as logic on how to
@@ -27,6 +41,141 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
  * @param <T> the type returned of the future associated with the {@link AsyncResponseTransformer}
  */
 public interface AsyncResponseTransformerTestSupplier<T> {
+
+    class ByteTestArtSupplier implements AsyncResponseTransformerTestSupplier<ResponseBytes<GetObjectResponse>> {
+
+        @Override
+        public byte[] body(ResponseBytes<GetObjectResponse> response) {
+            return response.asByteArray();
+        }
+
+        @Override
+        public AsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> transformer(Path elem) {
+            return AsyncResponseTransformer.toBytes();
+        }
+
+        @Override
+        public String toString() {
+            return "AsyncResponseTransformer.toBytes";
+        }
+    }
+
+    class InputStreamArtSupplier implements AsyncResponseTransformerTestSupplier<ResponseInputStream<GetObjectResponse>> {
+
+        @Override
+        public byte[] body(ResponseInputStream<GetObjectResponse> response) {
+            try {
+                return IoUtils.toByteArray(response);
+            } catch (IOException ioe) {
+                fail("unexpected IOE during test", ioe);
+                return null;
+            }
+        }
+
+        @Override
+        public AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer(Path elem) {
+            return AsyncResponseTransformer.toBlockingInputStream();
+        }
+
+        @Override
+        public String toString() {
+            return "AsyncResponseTransformer.toBlockingInputStream";
+        }
+    }
+
+    class FileArtSupplier implements AsyncResponseTransformerTestSupplier<GetObjectResponse> {
+
+        private Path path;
+
+        @Override
+        public byte[] body(GetObjectResponse response) {
+            try {
+                return Files.readAllBytes(path);
+            } catch (IOException ioe) {
+                fail("unexpected IOE during test", ioe);
+                return new byte[0];
+            }
+        }
+
+        @Override
+        public AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer(Path path) {
+            this.path = path;
+            return AsyncResponseTransformer.toFile(path);
+        }
+
+        @Override
+        public String toString() {
+            return "AsyncResponseTransformer.toFile";
+        }
+
+        @Override
+        public boolean requiresJimfs() {
+            return true;
+        }
+    }
+
+    class PublisherArtSupplier implements AsyncResponseTransformerTestSupplier<ResponsePublisher<GetObjectResponse>> {
+
+        @Override
+        public byte[] body(ResponsePublisher<GetObjectResponse> response) {
+            List<Byte> buffer = new ArrayList<>();
+            CountDownLatch latch = new CountDownLatch(1);
+            response.subscribe(new Subscriber<ByteBuffer>() {
+                Subscription s;
+
+                @Override
+                public void onSubscribe(Subscription s) {
+                    this.s = s;
+                    s.request(1);
+                }
+
+                @Override
+                public void onNext(ByteBuffer byteBuffer) {
+                    while (byteBuffer.remaining() > 0) {
+                        buffer.add(byteBuffer.get());
+                    }
+                    s.request(1);
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    latch.countDown();
+                    fail("Unexpected onError during test", t);
+                }
+
+                @Override
+                public void onComplete() {
+                    latch.countDown();
+                }
+            });
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                fail("Unexpected thread interruption during test", e);
+            }
+            return unbox(buffer.toArray(new Byte[0]));
+        }
+
+        private byte[] unbox(Byte[] arr) {
+            byte[] bb = new byte[arr.length];
+            int i = 0;
+            for (Byte b : arr) {
+                bb[i] = b;
+                i++;
+            }
+            return bb;
+        }
+
+        @Override
+        public AsyncResponseTransformer<GetObjectResponse, ResponsePublisher<GetObjectResponse>> transformer(Path elem) {
+            return AsyncResponseTransformer.toPublisher();
+        }
+
+        @Override
+        public String toString() {
+            return "AsyncResponseTransformer.toPublisher";
+        }
+    }
 
     /**
      * Call this method to retrieve the AsyncResponseTransformer required to perform the test
@@ -51,5 +200,4 @@ public interface AsyncResponseTransformerTestSupplier<T> {
     default boolean requiresJimfs() {
         return false;
     }
-
 }
