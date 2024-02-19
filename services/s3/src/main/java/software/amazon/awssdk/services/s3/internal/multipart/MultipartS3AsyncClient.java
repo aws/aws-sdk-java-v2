@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
@@ -49,6 +50,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
+    private final long apiCallBufferSize;
 
     private MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration) {
         super(delegate);
@@ -57,6 +59,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(validConfiguration);
         long minPartSizeInBytes = resolver.minimalPartSizeInBytes();
         long threshold = resolver.thresholdInBytes();
+        apiCallBufferSize = resolver.apiCallBufferSize();
         mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
     }
@@ -75,7 +78,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
         SplitAsyncResponseTransformer<GetObjectResponse, ReturnT> split =
-            asyncResponseTransformer.split(1024L * 1024L * 32L); // todo take from config
+            asyncResponseTransformer.split(SplittingTransformerConfiguration.builder().bufferSize(apiCallBufferSize).build());
         split.publisher().subscribe(new MultipartDownloaderSubscriber((S3AsyncClient) delegate(), getObjectRequest));
         return split.preparedFuture();
     }

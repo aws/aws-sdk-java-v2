@@ -39,6 +39,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
@@ -58,6 +59,9 @@ class MultipartDownloadIntegrationTest {
     static final String key = String.format("debug-test-%smb", fileTestSize);
 
     private S3AsyncClient s3;
+    private final SplittingTransformerConfiguration splitConfig = SplittingTransformerConfiguration.builder()
+                                                                                                   .bufferSize(1024 * 1024 * 32L)
+                                                                                                   .build();
 
     @BeforeEach
     void init() {
@@ -147,6 +151,7 @@ class MultipartDownloadIntegrationTest {
             r -> r.bucket(bucket).key(key),
             AsyncResponseTransformer.toBlockingInputStream());
         ResponseInputStream<GetObjectResponse> res = future.join();
+
         log.info(() -> "complete");
         int total = 0;
         try {

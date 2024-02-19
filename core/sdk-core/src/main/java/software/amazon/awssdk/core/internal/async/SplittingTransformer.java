@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -32,8 +33,8 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
  * Split a {@link AsyncResponseTransformer} into multiple ones, publishing them as a {@link SdkPublisher}. Created using the
- * {@link AsyncResponseTransformer#split(long) split} method. The upstream {@link AsyncResponseTransformer} that is split will
- * receive data from the individual transformers.
+ * {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration) split} method. The upstream
+ * {@link AsyncResponseTransformer} that is split will receive data from the individual transformers.
  * <p>
  * This publisher also buffers an amount of data before sending it to the upstream transformer, as specified by the
  * maximumBufferSize. ByteBuffers will be published once the buffer has been reached, or when the subscription to this publisher
@@ -48,7 +49,8 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private static final Logger log = Logger.loggerFor(SplittingTransformer.class);
 
     /**
-     * The AsyncResponseTransformer on which the {@link AsyncResponseTransformer#split(long) split} method was called.
+     * The AsyncResponseTransformer on which the {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration) split}
+     * method was called.
      */
     private final AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
 
