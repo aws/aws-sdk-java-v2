@@ -23,10 +23,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
 public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuffer, ByteBuffer> {
+    private static final Logger log = Logger.loggerFor(DelegatingBufferingSubscriber.class);
+
     /**
      * The maximum amount of bytes allowed to be stored in the StoringSubscriber
      */
@@ -45,7 +48,7 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
 
     protected DelegatingBufferingSubscriber(Long maximumBufferInBytes, Subscriber<? super ByteBuffer> delegate) {
         super(Validate.notNull(delegate, "delegate must not be null"));
-        this.maximumBufferInBytes = Validate.notNull(maximumBufferInBytes, "maximumBufferInBytes msut not be null");
+        this.maximumBufferInBytes = Validate.notNull(maximumBufferInBytes, "maximumBufferInBytes must not be null");
     }
 
     @Override
@@ -67,6 +70,7 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
                .ifPresent(byteBufferEvent -> {
                    currentlyBuffered.addAndGet(-byteBufferEvent.value().remaining());
                    downstreamDemand.decrementAndGet();
+                   log.trace(() -> "demand: " + downstreamDemand.get());
                    subscriber.onNext(byteBufferEvent.value());
                });
     }
