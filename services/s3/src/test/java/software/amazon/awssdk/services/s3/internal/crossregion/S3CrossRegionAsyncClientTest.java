@@ -429,7 +429,7 @@ class S3CrossRegionAsyncClientTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"us-east-1", "us-east-2", "us-west-1", "aws-global"})
+    @ValueSource(strings = {"us-east-1", "us-east-2", "us-west-1"})
     void given_AnyRegion_Client_Updates_the_useGlobalEndpointFlag_asFalse(String region) {
         mockAsyncHttpClient.stubResponses(successHttpResponse());
         S3EndpointProvider mockEndpointProvider = Mockito.mock(S3EndpointProvider.class);
@@ -446,6 +446,28 @@ class S3CrossRegionAsyncClientTest {
         verify(mockEndpointProvider, atLeastOnce()).resolveEndpoint(collectionCaptor.capture());
         collectionCaptor.getAllValues().forEach(resolvedParams -> {
             assertThat(resolvedParams.region()).isEqualTo(Region.of(region));
+            assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
+        });
+    }
+
+    @Test
+    void given_globalRegion_Client_Updates_region_to_useast1_and_useGlobalEndpointFlag_as_False() {
+        String region = Region.AWS_GLOBAL.id();
+        mockAsyncHttpClient.stubResponses(successHttpResponse());
+        S3EndpointProvider mockEndpointProvider = Mockito.mock(S3EndpointProvider.class);
+
+        when(mockEndpointProvider.resolveEndpoint(ArgumentMatchers.any(S3EndpointParams.class)))
+            .thenReturn(CompletableFuture.completedFuture(Endpoint.builder().url(URI.create("https://bucket.s3.amazonaws.com")).build()));
+
+        S3AsyncClient s3Client = clientBuilder().crossRegionAccessEnabled(true)
+                                                .region(Region.of(region))
+                                                .endpointProvider(mockEndpointProvider).build();
+        s3Client.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
+        ArgumentCaptor<S3EndpointParams> collectionCaptor = ArgumentCaptor.forClass(S3EndpointParams.class);
+        verify(mockEndpointProvider, atLeastOnce()).resolveEndpoint(collectionCaptor.capture());
+        collectionCaptor.getAllValues().forEach(resolvedParams -> {
+            assertThat(resolvedParams.region()).isEqualTo(Region.US_EAST_1);
             assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
         });
     }

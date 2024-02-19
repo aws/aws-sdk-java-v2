@@ -15,14 +15,18 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -30,6 +34,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
@@ -39,6 +44,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.multipart.PauseObservable;
+import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultCopy;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryDownload;
@@ -65,6 +72,7 @@ import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
@@ -80,6 +88,7 @@ import software.amazon.awssdk.utils.Validate;
 class GenericS3TransferManager implements S3TransferManager {
     protected static final int DEFAULT_FILE_UPLOAD_CHUNK_SIZE = (int) (16 * MB);
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
     private final UploadDirectoryHelper uploadDirectoryHelper;
     private final DownloadDirectoryHelper downloadDirectoryHelper;
@@ -157,6 +166,15 @@ class GenericS3TransferManager implements S3TransferManager {
                                 .build();
 
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
+        PauseObservable pauseObservable;
+        if (isS3ClientMultipartEnabled()) {
+            pauseObservable = new PauseObservable();
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachPauseObservable =
+                b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable);
+            putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachPauseObservable);
+        } else {
+            pauseObservable = null;
+        }
 
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
 
@@ -182,8 +200,72 @@ class GenericS3TransferManager implements S3TransferManager {
         } catch (Throwable throwable) {
             returnFuture.completeExceptionally(throwable);
         }
+        return new DefaultFileUpload(returnFuture, progressUpdater.progress(), pauseObservable, uploadFileRequest);
+    }
 
-        return new DefaultFileUpload(returnFuture, progressUpdater.progress(), uploadFileRequest);
+    @Override
+    public FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
+        Validate.paramNotNull(resumableFileUpload, "resumableFileUpload");
+
+        boolean fileModified = PAUSE_RESUME_HELPER.fileModified(resumableFileUpload, s3AsyncClient);
+        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
+
+        if (fileModified || noResumeToken) {
+            return uploadFile(resumableFileUpload.uploadFileRequest());
+        }
+
+        return doResumeUpload(resumableFileUpload);
+    }
+
+    private boolean isS3ClientMultipartEnabled() {
+        // TODO use configuration getter when available
+        return s3AsyncClient instanceof MultipartS3AsyncClient;
+    }
+
+    private FileUpload doResumeUpload(ResumableFileUpload resumableFileUpload) {
+        UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
+        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
+        S3ResumeToken s3ResumeToken = s3ResumeToken(resumableFileUpload);
+
+        Consumer<AwsRequestOverrideConfiguration.Builder> attachResumeToken =
+            b -> b.putExecutionAttribute(RESUME_TOKEN, s3ResumeToken);
+
+        PutObjectRequest modifiedPutObjectRequest = attachSdkAttribute(putObjectRequest, attachResumeToken);
+
+        return uploadFile(uploadFileRequest.toBuilder()
+                                           .putObjectRequest(modifiedPutObjectRequest)
+                                           .build());
+    }
+
+    private static S3ResumeToken s3ResumeToken(ResumableFileUpload resumableFileUpload) {
+        S3ResumeToken.Builder builder = S3ResumeToken.builder();
+
+        builder.uploadId(resumableFileUpload.multipartUploadId().orElse(null));
+        if (resumableFileUpload.partSizeInBytes().isPresent()) {
+            builder.partSize(resumableFileUpload.partSizeInBytes().getAsLong());
+        }
+        if (resumableFileUpload.totalParts().isPresent()) {
+            builder.totalNumParts(resumableFileUpload.totalParts().getAsLong());
+        }
+        if (resumableFileUpload.transferredParts().isPresent()) {
+            builder.numPartsCompleted(resumableFileUpload.transferredParts().getAsLong());
+        }
+
+        return builder.build();
+    }
+
+    private PutObjectRequest attachSdkAttribute(PutObjectRequest putObjectRequest,
+                                                Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+        AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
+            putObjectRequest.overrideConfiguration()
+                            .map(o -> o.toBuilder().applyMutation(builderMutation).build())
+                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                            .applyMutation(builderMutation)
+                                                                            .build());
+
+        return putObjectRequest.toBuilder()
+                               .overrideConfiguration(modifiedRequestOverrideConfig)
+                               .build();
     }
 
     @Override
