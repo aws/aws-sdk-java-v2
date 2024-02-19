@@ -328,8 +328,8 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         /**
          * The {@link AsyncResponseTransformer} that will receive the data from each of the individually published
-         * {@link IndividualTransformer}, usually intended to be the one on which the {@link AsyncResponseTransformer#split(long)}
-         * method was called.
+         * {@link IndividualTransformer}, usually intended to be the one on which the
+         * {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration)} )} method was called.
          *
          * @param upstreamResponseTransformer the {@code AsyncResponseTransformer} that was split.
          * @return an instance of this builder

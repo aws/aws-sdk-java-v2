@@ -43,6 +43,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
 import software.amazon.awssdk.regions.Region;
@@ -99,7 +100,10 @@ class MultipartDownloaderSubscriberWiremockTest {
             transformer = supplier.transformer(null);
         }
 
-        SplitAsyncResponseTransformer<GetObjectResponse, T> split = transformer.split(1024 * 1024 * 64);
+        SplitAsyncResponseTransformer<GetObjectResponse, T> split = transformer.split(
+            SplittingTransformerConfiguration.builder()
+                                             .bufferSize(1024 * 1024 * 64L)
+                                             .build());
         Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
             s3AsyncClient,
             GetObjectRequest.builder()
