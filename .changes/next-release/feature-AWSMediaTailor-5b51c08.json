@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "contributor": "",
+    "description": "MediaTailor: marking #AdBreak.OffsetMillis as required."
+}
