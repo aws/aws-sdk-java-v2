@@ -140,7 +140,11 @@ public final class BenchmarkRunner {
                     benchmark = new JavaS3ClientCopyBenchmark(config);
                     break;
                 }
-                throw new UnsupportedOperationException("Java based s3 client benchmark only support upload and copy");
+                if (operation == TransferManagerOperation.DOWNLOAD) {
+                    benchmark = new JavaS3ClientDownloadBenchmark(config);
+                    break;
+                }
+                throw new UnsupportedOperationException();
             default:
                 throw new UnsupportedOperationException();
         }
