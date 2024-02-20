@@ -46,7 +46,7 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      *     or sharing a single pool between multiple clients.
      *     <li>You want to add instrumentation (i.e., metrics) around how the {@link Executor} is used.
      * </ol>
-     * <b>Note</b>
+     * <b>WARNING</b>
      * <p>
      * We strongly recommend <strong>against</strong> using {@code Runnable::run}, which executes the future-completion directly from
      * within the I/O thread because it may block the IO thread and cause deadlock, especially if you are sending
