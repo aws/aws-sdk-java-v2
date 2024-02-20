@@ -47,7 +47,7 @@ public class MarshallersAddContentLengthTest {
     public static final String STRING_PAYLOAD = "TEST_STRING_PAYLOAD";
 
     @Test
-    public void jsonMarshallers_AddContentLength_for_explicitBinaryPayload(WireMockRuntimeInfo wireMock) {
+    void jsonMarshallers_AddContentLength_for_explicitBinaryPayload(WireMockRuntimeInfo wireMock) {
         stubSuccessfulResponse();
         CaptureRequestInterceptor captureRequestInterceptor = new CaptureRequestInterceptor();
         ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
@@ -63,7 +63,7 @@ public class MarshallersAddContentLengthTest {
     }
 
     @Test
-    public void jsonMarshallers_AddContentLength_for_explicitStringPayload(WireMockRuntimeInfo wireMock) {
+    void jsonMarshallers_AddContentLength_for_explicitStringPayload(WireMockRuntimeInfo wireMock) {
         stubSuccessfulResponse();
         String expectedPayload = String.format("{\"StringMember\":\"%s\"}", STRING_PAYLOAD);
         CaptureRequestInterceptor captureRequestInterceptor = new CaptureRequestInterceptor();
@@ -82,7 +82,7 @@ public class MarshallersAddContentLengthTest {
     }
 
     @Test
-    public void xmlMarshallers_AddContentLength_for_explicitBinaryPayload(WireMockRuntimeInfo wireMock) {
+    void xmlMarshallers_AddContentLength_for_explicitBinaryPayload(WireMockRuntimeInfo wireMock) {
         stubSuccessfulResponse();
         CaptureRequestInterceptor captureRequestInterceptor = new CaptureRequestInterceptor();
         ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
@@ -99,7 +99,7 @@ public class MarshallersAddContentLengthTest {
     }
 
     @Test
-    public void xmlMarshallers_AddContentLength_for_explicitStringPayload(WireMockRuntimeInfo wireMock) {
+    void xmlMarshallers_AddContentLength_for_explicitStringPayload(WireMockRuntimeInfo wireMock) {
         stubSuccessfulResponse();
         String expectedPayload = STRING_PAYLOAD;
         CaptureRequestInterceptor captureRequestInterceptor = new CaptureRequestInterceptor();
