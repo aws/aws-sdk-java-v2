@@ -92,10 +92,8 @@ public class MarshallersAddContentLengthTest {
                                                             .build();
         client.operationWithExplicitPayloadBlob(r -> r.payloadMember(SdkBytes.fromString(STRING_PAYLOAD,
                                                                                          StandardCharsets.UTF_8)));
-        verify(postRequestedFor(anyUrl())
-                   .withRequestBody(equalTo(STRING_PAYLOAD))
-
-                   .withHeader(CONTENT_LENGTH, equalTo(String.valueOf(STRING_PAYLOAD.length()))));
+        verify(postRequestedFor(anyUrl()).withRequestBody(equalTo(STRING_PAYLOAD))
+                                         .withHeader(CONTENT_LENGTH, equalTo(String.valueOf(STRING_PAYLOAD.length()))));
         assertThat(captureRequestInterceptor.requestAfterMarshalling().firstMatchingHeader(CONTENT_LENGTH))
             .contains(String.valueOf(STRING_PAYLOAD.length()));
     }
