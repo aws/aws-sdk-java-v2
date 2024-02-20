@@ -48,8 +48,8 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      * </ol>
      * <b>WARNING</b>
      * <p>
-     * We strongly recommend <strong>against</strong> using {@code Runnable::run}, which executes the future-completion directly from
-     * within the I/O thread because it may block the IO thread and cause deadlock, especially if you are sending
+     * We strongly <strong>discourage</strong> using {@code Runnable::run}, which executes the future-completion directly from
+     * within the I/O thread because it may block the I/O thread and cause deadlock, especially if you are sending
      * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
      */
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
