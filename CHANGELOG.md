@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.7__ __2024-02-20__
+## __AWS Lambda__
+  - ### Features
+    - Add .NET 8 (dotnet8) Runtime support to AWS Lambda.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Publishing quick fix for doc only update.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release updates a few Firehose related APIs.
+
 # __2.24.6__ __2024-02-19__
 ## __AWS Amplify__
   - ### Features
