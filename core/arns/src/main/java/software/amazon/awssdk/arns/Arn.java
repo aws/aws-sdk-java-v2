@@ -198,9 +198,9 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
                + ":"
                + this.service
                + ":"
-               + region
+               + (region == null ? "" : region)
                + ":"
-               + this.accountId
+               + (this.accountId == null ? "" : this.accountId)
                + ":"
                + this.resource;
     }
