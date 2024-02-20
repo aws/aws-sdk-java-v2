@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.recipe;
+package software.amazon.awssdk.migration.recipe;
 
 import static org.openrewrite.maven.Assertions.pomXml;
 
