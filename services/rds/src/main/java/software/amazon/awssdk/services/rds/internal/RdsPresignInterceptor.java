@@ -146,6 +146,7 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
         if (request.firstMatchingRawQueryParameter(PARAM_PRESIGNED_URL).isPresent()) {
             return null;
         }
+
         PresignableRequest presignableRequest = adaptRequest(requestClassToPreSign.cast(originalRequest));
         String sourceRegion = presignableRequest.getSourceRegion();
         if (sourceRegion == null) {
