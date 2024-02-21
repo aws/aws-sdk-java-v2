@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.utils;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
@@ -24,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -36,8 +38,9 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
- * Contains the {@link AsyncResponseTransformer} to be used in a test as well as logic on how to
- * retrieve the body content of the request for that specific transformer.
+ * Contains the {@link AsyncResponseTransformer} to be used in a test as well as logic on how to retrieve the body content of the
+ * request for that specific transformer.
+ *
  * @param <T> the type returned of the future associated with the {@link AsyncResponseTransformer}
  */
 public interface AsyncResponseTransformerTestSupplier<T> {
@@ -50,7 +53,7 @@ public interface AsyncResponseTransformerTestSupplier<T> {
         }
 
         @Override
-        public AsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> transformer(Path elem) {
+        public AsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> transformer() {
             return AsyncResponseTransformer.toBytes();
         }
 
@@ -73,7 +76,7 @@ public interface AsyncResponseTransformerTestSupplier<T> {
         }
 
         @Override
-        public AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer(Path elem) {
+        public AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer() {
             return AsyncResponseTransformer.toBlockingInputStream();
         }
 
@@ -98,9 +101,11 @@ public interface AsyncResponseTransformerTestSupplier<T> {
         }
 
         @Override
-        public AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer(Path path) {
-            this.path = path;
-            return AsyncResponseTransformer.toFile(path);
+        public AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer() {
+            FileSystem jimfs = Jimfs.newFileSystem();
+            String filePath = "/tmp-file-" + UUID.randomUUID();
+            this.path = jimfs.getPath(filePath);
+            return AsyncResponseTransformer.toFile(this.path);
         }
 
         @Override
@@ -167,7 +172,7 @@ public interface AsyncResponseTransformerTestSupplier<T> {
         }
 
         @Override
-        public AsyncResponseTransformer<GetObjectResponse, ResponsePublisher<GetObjectResponse>> transformer(Path elem) {
+        public AsyncResponseTransformer<GetObjectResponse, ResponsePublisher<GetObjectResponse>> transformer() {
             return AsyncResponseTransformer.toPublisher();
         }
 
@@ -179,14 +184,15 @@ public interface AsyncResponseTransformerTestSupplier<T> {
 
     /**
      * Call this method to retrieve the AsyncResponseTransformer required to perform the test
-     * @param path
+     *
      * @return
      */
-    AsyncResponseTransformer<GetObjectResponse, T> transformer(Path path);
+    AsyncResponseTransformer<GetObjectResponse, T> transformer();
 
     /**
-     * Implementation of this method whould retreive the whole body of the request made using the AsyncResponseTransformer
-     * as a byte array.
+     * Implementation of this method whould retreive the whole body of the request made using the AsyncResponseTransformer as a
+     * byte array.
+     *
      * @param response the response the {@link AsyncResponseTransformerTestSupplier#transformer}
      * @return
      */
@@ -195,6 +201,7 @@ public interface AsyncResponseTransformerTestSupplier<T> {
     /**
      * Sonce {@link FileAsyncResponseTransformer} works with file, some test might need to initialize an in-memory
      * {@link FileSystem} with jimfs.
+     *
      * @return true if the test using this class requires setup with jimfs
      */
     default boolean requiresJimfs() {

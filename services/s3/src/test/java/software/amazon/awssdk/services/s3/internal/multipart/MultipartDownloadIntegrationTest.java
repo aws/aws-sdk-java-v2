@@ -59,21 +59,19 @@ class MultipartDownloadIntegrationTest {
     static final String key = String.format("debug-test-%smb", fileTestSize);
 
     private S3AsyncClient s3;
-    private final SplittingTransformerConfiguration splitConfig = SplittingTransformerConfiguration.builder()
-                                                                                                   .bufferSize(1024 * 1024 * 32L)
-                                                                                                   .build();
 
     @BeforeEach
     void init() {
         this.s3 = S3AsyncClient.builder()
                                .region(Region.US_WEST_2)
                                .multipartEnabled(true)
+                               .multipartConfiguration(c -> c.apiCallBufferSizeInBytes(1024L * 32))
                                .credentialsProvider(ProfileCredentialsProvider.create())
                                .httpClient(NettyNioAsyncHttpClient.create())
                                .build();
     }
 
-    // @Test
+    @Test
     void testByteAsyncResponseTransformer() {
         CompletableFuture<ResponseBytes<GetObjectResponse>> response = s3.getObject(
             r -> r.bucket(bucket).key(key),
@@ -85,7 +83,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(bytes).hasSize(fileTestSize * 1024 * 1024);
     }
 
-    // @Test
+    @Test
     void testFileAsyncResponseTransformer() {
         Path path = Paths.get("/Users/olapplin/Develop/tmp",
                               LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE) + '-' + key);
@@ -98,7 +96,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(path.toFile()).hasSize(fileTestSize * 1024 * 1024);
     }
 
-    // @Test
+    @Test
     void testPublisherAsyncResponseTransformer() {
         CompletableFuture<ResponsePublisher<GetObjectResponse>> future = s3.getObject(
             r -> r.bucket(bucket).key(key),
@@ -145,7 +143,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(total).hasValue(fileTestSize * 1024 * 1024);
     }
 
-    // @Test
+    @Test
     void testBlockingInputStreamResponseTransformer() {
         CompletableFuture<ResponseInputStream<GetObjectResponse>> future = s3.getObject(
             r -> r.bucket(bucket).key(key),
