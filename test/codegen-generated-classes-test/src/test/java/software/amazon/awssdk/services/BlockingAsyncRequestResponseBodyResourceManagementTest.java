@@ -27,6 +27,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.ServerSocketChannel;
@@ -59,6 +60,7 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
@@ -88,6 +90,7 @@ public class BlockingAsyncRequestResponseBodyResourceManagementTest {
                                             .credentialsProvider(AnonymousCredentialsProvider.create())
                                             .endpointOverride(URI.create("http://localhost:" + server.port()))
                                             .overrideConfiguration(o -> o.retryPolicy(RetryPolicy.none()))
+                                            .httpClientBuilder(NettyNioAsyncHttpClient.builder().putChannelOption(ChannelOption.SO_RCVBUF, 8))
                                             .build();
     }
 
@@ -138,7 +141,7 @@ public class BlockingAsyncRequestResponseBodyResourceManagementTest {
 
     private static class Server extends ChannelInitializer<Channel> {
         private static final byte[] CONTENT = ("{  "
-                                               + "\"foo\": " + RandomStringUtils.randomAscii(1024)
+                                               + "\"foo\": " + RandomStringUtils.randomAscii(1024 * 1024 * 10)
                                                + "}").getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;
         private ServerSocketChannel serverSock;

@@ -1,4 +1,46 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.7__ __2024-02-20__
+## __AWS Lambda__
+  - ### Features
+    - Add .NET 8 (dotnet8) Runtime support to AWS Lambda.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Publishing quick fix for doc only update.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release updates a few Firehose related APIs.
+
+# __2.24.6__ __2024-02-19__
+## __AWS Amplify__
+  - ### Features
+    - This release contains API changes that enable users to configure their Amplify domains with their own custom SSL/TLS certificate.
+
+## __AWS Config__
+  - ### Features
+    - Documentation updates for the AWS Config CLI
+
+## __AWS MediaTailor__
+  - ### Features
+    - MediaTailor: marking #AdBreak.OffsetMillis as required.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Changed description for latencyMode in Create/UpdateChannel and Channel/ChannelSummary.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Documentation updates for Amazon Keyspaces
+
+## __Amazon S3__
+  - ### Features
+    - Add support for pause/resume upload for TransferManager with Java-based S3Client that has multipart enabled
+
+## __chatbot__
+  - ### Features
+    - This release adds support for AWS Chatbot. You can now monitor, operate, and troubleshoot your AWS resources with interactive ChatOps using the AWS SDK.
+
 # __2.24.5__ __2024-02-16__
 ## __AWS Lambda__
   - ### Features
