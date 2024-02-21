@@ -66,9 +66,11 @@ public final class S3BucketUtils {
      * @return an s3 bucket name
      */
     public static String temporaryBucketName(String prefix) {
-        String shortenedUserName = shortenIfNeeded(USER_NAME.getStringValue().orElse("unknown"), 7);
-        String bucketName =
-            lowerCase(prefix) + "-" + lowerCase(shortenedUserName) + "-" + RANDOM.nextInt(10000);
+        String currentTimeMillis = Long.toString(System.currentTimeMillis());
+        int suffixLength = 12;
+        
+        String suffix = currentTimeMillis.substring(currentTimeMillis.length() - suffixLength);
+        String bucketName = lowerCase(prefix) + "-" + suffix;
         if (bucketName.length() > 63) {
             logger.error(() -> "S3 buckets can only be 63 chars in length, try a shorter prefix");
             throw new RuntimeException("S3 buckets can only be 63 chars in length, try a shorter prefix");
@@ -78,9 +80,5 @@ public final class S3BucketUtils {
 
     private static String shortenClassName(String clzName) {
         return clzName.length() <= 45 ? clzName : clzName.substring(0, 45);
-    }
-
-    private static String shortenIfNeeded(String str, int length) {
-        return str.length() <= length ? str : str.substring(0, length);
     }
 }
