@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Events",
-    "contributor": "",
-    "description": "Increase the maximum length of descriptions for Inputs, Detector Models, and Alarm Models"
-}

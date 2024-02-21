@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Add content-length header in Json and  Xml Protocol Marshaller for String and Binary explicit Payloads."
-}
