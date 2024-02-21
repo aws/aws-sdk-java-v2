@@ -119,6 +119,15 @@ public final class ProfileProperty {
     public static final String DEFAULTS_MODE = "defaults_mode";
 
     /**
+     * The "account id endpoint mode" to be used for clients created using the currently-configured profile.
+     * This setting can only be used by services that route user requests to account specific endpoints, and determines
+     * how endpoints should be resolved depending on the availability of an accountId for a request.
+     *
+     * See the {@code AccountIdEndpointMode} class javadoc for more information.
+     */
+    public static final String ACCOUNT_ID_ENDPOINT_MODE = "account_id_endpoint_mode";
+
+    /**
      * Aws region where the SSO directory for the given 'sso_start_url' is hosted. This is independent of the general 'region'.
      */
     public static final String SSO_REGION = "sso_region";

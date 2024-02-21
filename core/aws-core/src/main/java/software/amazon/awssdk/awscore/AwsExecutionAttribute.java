@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -63,6 +64,12 @@ public final class  AwsExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<String> AWS_AUTH_ACCOUNT_ID =
         new ExecutionAttribute<>("AwsAuthAccountId");
+
+    /**
+     * The AWS account ID associated with the identity resolved for this request.
+     */
+    public static final ExecutionAttribute<AccountIdEndpointMode> AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE =
+        new ExecutionAttribute<>("AwsAuthAccountIdEndpointMode");
 
     private AwsExecutionAttribute() {
     }
