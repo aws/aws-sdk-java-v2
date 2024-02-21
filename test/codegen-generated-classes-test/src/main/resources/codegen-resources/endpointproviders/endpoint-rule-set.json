@@ -32,6 +32,11 @@
             "builtIn": "AWS::Auth::AccountId",
             "required": false
         },
+        "awsAccountEndpointMode": {
+            "type": "String",
+            "builtIn": "AWS::Auth::AccountIdEndpointMode",
+            "required": false
+        },
         "StaticStringParam": {
             "type": "String",
             "required": false
