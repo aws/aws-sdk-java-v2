@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "AWS SDK for Java v2",
+    "category": "S3 Transfer Manager",
     "contributor": "",
-    "description": "Make Transfer Manager work by default with MultipartS3AsyncClient."
+    "description": "Make Transfer Manager work by default with S3AsyncClient when multipart configuration is enabled."
 }
