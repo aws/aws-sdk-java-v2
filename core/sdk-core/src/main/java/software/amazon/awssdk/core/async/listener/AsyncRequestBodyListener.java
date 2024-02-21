@@ -44,6 +44,10 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
         return new NotifyingAsyncRequestBody(delegate, listener);
     }
 
+    default void updateProgress(long numBytes) {
+        throw new UnsupportedOperationException();
+    }
+
     @SdkInternalApi
     final class NotifyingAsyncRequestBody implements AsyncRequestBody {
         private static final Logger log = Logger.loggerFor(NotifyingAsyncRequestBody.class);
@@ -54,6 +58,10 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
         NotifyingAsyncRequestBody(AsyncRequestBody delegate, AsyncRequestBodyListener listener) {
             this.delegate = Validate.notNull(delegate, "delegate");
             this.listener = Validate.notNull(listener, "listener");
+        }
+
+        public AsyncRequestBodyListener listener() {
+            return listener;
         }
 
         @Override

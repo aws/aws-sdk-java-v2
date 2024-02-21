@@ -85,7 +85,12 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    incrementBytesTransferred(byteBuffer.limit());
+                    updateProgress(byteBuffer.limit());
+                }
+
+                @Override
+                public void updateProgress(long numBytes) {
+                    incrementBytesTransferred(numBytes);
                     progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
                         if (Double.compare(ratioTransferred, 1.0) == 0) {
                             endOfStreamFutureCompleted();

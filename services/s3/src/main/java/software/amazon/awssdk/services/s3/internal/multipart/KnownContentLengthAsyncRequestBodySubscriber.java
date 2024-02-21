@@ -27,6 +27,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -58,6 +59,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final CompletableFuture<PutObjectResponse> returnFuture;
     private final Map<Integer, CompletedPart> completedParts;
     private final Map<Integer, CompletedPart> existingParts;
+    private final AsyncRequestBodyListener listener;
     private Subscription subscription;
     private volatile boolean isDone;
     private volatile boolean isPaused;
@@ -75,6 +77,14 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.numExistingParts = NumericUtils.saturatedCast(mpuRequestContext.numPartsCompleted());
         this.completedParts = new ConcurrentHashMap<>();
         this.multipartUploadHelper = multipartUploadHelper;
+        this.listener = listener(mpuRequestContext.request().right());
+    }
+
+    private AsyncRequestBodyListener listener(AsyncRequestBody asyncRequestBody) {
+        if (asyncRequestBody instanceof AsyncRequestBodyListener.NotifyingAsyncRequestBody) {
+            return ((AsyncRequestBodyListener.NotifyingAsyncRequestBody) asyncRequestBody).listener();
+        }
+        return null;
     }
 
     private int determinePartCount(long contentLength, long partSize) {
@@ -138,6 +148,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             partNumber.getAndIncrement();
             asyncRequestBody.subscribe(new CancelledSubscriber<>());
             subscription.request(1);
+            updateProgress(asyncRequestBody.contentLength().orElse(0L));
             return;
         }
 
@@ -157,10 +168,17 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                                                                                      putObjectRequest);
                                      }
                                  } else {
+                                     updateProgress(asyncRequestBody.contentLength().orElse(0L));
                                      completeMultipartUploadIfFinished(asyncRequestBodyInFlight.decrementAndGet());
                                  }
                              });
         subscription.request(1);
+    }
+
+    private void updateProgress(long contentLength) {
+        if (listener != null && contentLength > 0) {
+            listener.updateProgress(contentLength);
+        }
     }
 
     private boolean shouldFailRequest() {

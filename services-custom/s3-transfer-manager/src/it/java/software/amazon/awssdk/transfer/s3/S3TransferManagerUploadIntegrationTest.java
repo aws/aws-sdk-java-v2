@@ -97,15 +97,15 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         assertThat(obj.response().responseMetadata().requestId()).isNotNull();
         assertThat(obj.response().metadata()).containsEntry("foobar", "FOO BAR");
         assertThat(fileUpload.progress().snapshot().sdkResponse()).isPresent();
-       assertListenerForSuccessfulTransferComplete(transferListener);
+        assertListenerForSuccessfulTransferComplete(transferListener);
    }
 
     private static void assertListenerForSuccessfulTransferComplete(CaptureTransferListener transferListener) {
         assertThat(transferListener.isTransferInitiated()).isTrue();
         assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.getRatioTransferredList()).isNotEmpty();
-        assertThat(transferListener.getRatioTransferredList().contains(0.0));
-        assertThat(transferListener.getRatioTransferredList().contains(100.0));
+        assertThat(transferListener.getRatioTransferredList()).contains(0.0);
+        assertThat(transferListener.getRatioTransferredList()).contains(1.0);
         assertThat(transferListener.getExceptionCaught()).isNull();
     }
 
