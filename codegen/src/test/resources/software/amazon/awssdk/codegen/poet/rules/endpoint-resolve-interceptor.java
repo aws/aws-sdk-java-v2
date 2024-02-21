@@ -26,6 +26,7 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -96,7 +98,10 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
         builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
         builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
-        builder.awsAccountId(AwsEndpointProviderUtils.accountIdBuiltIn(executionAttributes));
+        builder.awsAccountId(accountIdFromIdentity(executionAttributes
+                                                       .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)));
+        builder.awsAccountIdEndpointMode(executionAttributes
+                                             .getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE).name());
         setClientContextParams(builder, executionAttributes);
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
@@ -187,5 +192,14 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             default:
                 return Optional.empty();
         }
+    }
+
+    private static <T extends Identity> String accountIdFromIdentity(SelectedAuthScheme<T> selectedAuthScheme) {
+        T identity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
+        String accountId = null;
+        if (identity instanceof AwsCredentialsIdentity) {
+            accountId = ((AwsCredentialsIdentity) identity).accountId().orElse(null);
+        }
+        return accountId;
     }
 }

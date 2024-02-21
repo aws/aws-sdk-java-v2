@@ -51,6 +51,7 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
 
     String awsAccountId();
 
+    String awsAccountIdEndpointMode();
     String endpointId();
 
     /**
@@ -94,6 +95,7 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
 
         Builder awsAccountId(String awsAccountId);
 
+        Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode);
         Builder endpointId(String endpointId);
 
         /**

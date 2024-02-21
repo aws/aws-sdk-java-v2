@@ -37,10 +37,6 @@ public final class AwsEndpointProviderUtils {
         return executionAttributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED);
     }
 
-    public static String accountIdBuiltIn(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID);
-    }
-
     /**
      * Returns the endpoint set on the client. Note that this strips off the query part of the URI because the endpoint
      * rules library, e.g. {@code ParseURL} will return an exception if the URI it parses has query parameters.
@@ -54,10 +50,6 @@ public final class AwsEndpointProviderUtils {
             });
         }
         return null;
-    }
-
-    public static Boolean useGlobalEndpointBuiltIn(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT);
     }
 
     /**

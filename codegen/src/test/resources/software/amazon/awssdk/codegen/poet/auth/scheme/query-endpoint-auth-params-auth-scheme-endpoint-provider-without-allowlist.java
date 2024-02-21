@@ -43,7 +43,8 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
     public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams params) {
         QueryEndpointParams endpointParameters = QueryEndpointParams.builder().region(params.region())
                                                                     .useDualStackEndpoint(params.useDualStackEndpoint()).useFipsEndpoint(params.useFipsEndpoint())
-                                                                    .awsAccountId(params.awsAccountId()).endpointId(params.endpointId()).defaultTrueParam(params.defaultTrueParam())
+                                                                    .awsAccountId(params.awsAccountId()).awsAccountIdEndpointMode(params.awsAccountIdEndpointMode())
+                                                                    .endpointId(params.endpointId()).defaultTrueParam(params.defaultTrueParam())
                                                                     .defaultStringParam(params.defaultStringParam()).deprecatedParam(params.deprecatedParam())
                                                                     .booleanContextParam(params.booleanContextParam()).stringContextParam(params.stringContextParam())
                                                                     .operationContextParam(params.operationContextParam()).build();
