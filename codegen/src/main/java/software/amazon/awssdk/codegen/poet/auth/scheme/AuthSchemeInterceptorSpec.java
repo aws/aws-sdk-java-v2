@@ -280,10 +280,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         builder.beginControlFlow("try");
         {
             builder.addStatement("signer = authScheme.signer()");
-            builder.endControlFlow();
-        }
-        builder.beginControlFlow("catch (RuntimeException e)");
-        {
+            builder.nextControlFlow("catch (RuntimeException e)");
             builder.addStatement("discardedReasons.add(() -> String.format($S, authOption.schemeId(), e.getMessage()))",
                                  "'%s' signer could not be retrieved: %s")
                    .addStatement("return null")
