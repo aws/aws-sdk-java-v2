@@ -53,4 +53,8 @@
     <!-- Allow private field declaration before public, to have correct initialization order -->
     <suppress checks="DeclarationOrder"
               files=".*SdkAdvancedClientOption\.java$"/>
+
+    <!-- Ignore usage of S3MetaRequest in S3MetaRequestWrapper. !-->
+    <suppress checks="Regexp"
+              files="software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestWrapper.java"/>
 </suppressions>
