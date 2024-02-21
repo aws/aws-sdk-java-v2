@@ -510,7 +510,7 @@ class GenericS3TransferManager implements S3TransferManager {
         return !s3EndpointResource.region().isPresent();
     }
 
-    // todo remove once MultipartS3AsyncClient is complete
+    // TODO remove once MultipartS3AsyncClient is complete
     private <ResultT> CompletableFuture<ResultT> doGetObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ResultT> asyncResponseTransformer) {
         S3AsyncClient clientToUse = s3AsyncClient;
