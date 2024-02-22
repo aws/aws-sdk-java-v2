@@ -24,6 +24,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -144,6 +145,10 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     @Override
     public void onComplete() {
         future.complete(null);
+    }
+
+    public CompletableFuture<Void> future() {
+        return this.future;
     }
 
     private GetObjectRequest nextRequest(int nextPartToGet) {

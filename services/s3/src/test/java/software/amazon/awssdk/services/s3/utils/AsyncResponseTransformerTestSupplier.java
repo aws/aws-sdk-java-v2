@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -70,8 +72,7 @@ public interface AsyncResponseTransformerTestSupplier<T> {
             try {
                 return IoUtils.toByteArray(response);
             } catch (IOException ioe) {
-                fail("unexpected IOE during test", ioe);
-                return null;
+                throw new UncheckedIOException(ioe);
             }
         }
 
@@ -125,6 +126,7 @@ public interface AsyncResponseTransformerTestSupplier<T> {
         public byte[] body(ResponsePublisher<GetObjectResponse> response) {
             List<Byte> buffer = new ArrayList<>();
             CountDownLatch latch = new CountDownLatch(1);
+            AtomicReference<Throwable> error = new AtomicReference<>();
             response.subscribe(new Subscriber<ByteBuffer>() {
                 Subscription s;
 
@@ -144,8 +146,8 @@ public interface AsyncResponseTransformerTestSupplier<T> {
 
                 @Override
                 public void onError(Throwable t) {
+                    error.set(t);
                     latch.countDown();
-                    fail("Unexpected onError during test", t);
                 }
 
                 @Override
@@ -157,6 +159,9 @@ public interface AsyncResponseTransformerTestSupplier<T> {
                 latch.await();
             } catch (InterruptedException e) {
                 fail("Unexpected thread interruption during test", e);
+            }
+            if (error.get() != null) {
+                throw new RuntimeException(error.get());
             }
             return unbox(buffer.toArray(new Byte[0]));
         }

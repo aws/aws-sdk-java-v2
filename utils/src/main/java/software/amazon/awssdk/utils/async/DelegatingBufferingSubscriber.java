@@ -96,7 +96,7 @@ public class DelegatingBufferingSubscriber extends BaseSubscriberAdapter<ByteBuf
      */
     @Override
     boolean additionalUpstreamDemandNeededCheck() {
-        return true;
+        return currentlyBuffered.get() < maximumBufferInBytes;
     }
 
     public static Builder builder() {
