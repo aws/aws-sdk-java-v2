@@ -57,4 +57,11 @@
     <!-- Ignore usage of S3MetaRequest in S3MetaRequestWrapper. !-->
     <suppress checks="Regexp"
               files="software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestWrapper.java"/>
+
+    <!-- Ignore usage of S3MetaRequest in CrtS3ClientDownloadBenchmark. !-->
+    <suppress checks="Regexp"
+              files="software.amazon.awssdk.s3benchmarks.CrtS3ClientDownloadBenchmark.java"/>
+    <!-- Ignore usage of S3MetaRequest in CrtS3ClientUploadBenchmark. !-->
+    <suppress checks="Regexp"
+              files="software.amazon.awssdk.s3benchmarks.CrtS3ClientUploadBenchmark.java"/>
 </suppressions>

@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import org.assertj.core.util.Files;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,6 +85,10 @@ public class S3CrtClientGetObjectResourceManagementTest {
     @AfterEach
     public void tearDown() {
         s3AsyncClient.close();
+    }
+
+    @AfterAll
+    public static void verifyCrtResource() {
         CrtResource.waitForNoResources();
     }
 

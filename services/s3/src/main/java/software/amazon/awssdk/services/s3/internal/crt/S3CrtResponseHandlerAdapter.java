@@ -108,13 +108,14 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                 return;
             }
 
-            if (s3MetaRequest() == null) {
+            S3MetaRequestWrapper metaRequest = s3MetaRequest();
+            if (metaRequest == null) {
                 // should not happen
                 failResponseHandlerAndFuture(SdkClientException.create("Unexpected exception occurred: s3metaRequest is not "
                                                                        + "initialized yet"));
                 return;
             }
-            s3MetaRequest().incrementReadWindow(bytesReceived);
+            metaRequest.incrementReadWindow(bytesReceived);
         });
 
         // Returning 0 to disable flow control because we manually increase read window above
