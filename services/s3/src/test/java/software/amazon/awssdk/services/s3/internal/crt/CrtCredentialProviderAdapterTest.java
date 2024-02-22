@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.HttpCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -36,6 +38,10 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class CrtCredentialProviderAdapterTest {
 
+    @AfterAll
+    public static void verifyCrtResource() {
+        CrtResource.waitForNoResources();
+    }
     @Test
     void crtCredentials_withSession_shouldConvert() {
         IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = StaticCredentialsProvider

@@ -53,7 +53,7 @@ public class S3CrtResponseHandlerAdapterTest {
     private S3FinishedResponseContext context;
 
     @Mock
-    private S3MetaRequest s3MetaRequest;
+    private S3MetaRequestWrapper s3MetaRequest;
     private CompletableFuture<Void> future;
 
     @Before
@@ -62,8 +62,8 @@ public class S3CrtResponseHandlerAdapterTest {
         sdkResponseHandler = spy(new TestResponseHandler());
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
                                                                  sdkResponseHandler,
-                                                                 null);
-        responseHandlerAdapter.metaRequest(s3MetaRequest);
+                                                                 null,
+                                                                 CompletableFuture.completedFuture(s3MetaRequest));
     }
 
     @Test
