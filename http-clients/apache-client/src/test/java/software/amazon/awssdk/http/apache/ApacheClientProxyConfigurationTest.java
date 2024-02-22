@@ -19,10 +19,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.http.conn.HttpHostConnectException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTest;
+import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTestSuite;
 import java.net.ConnectException;
 
-public class ApacheClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTest {
+public class ApacheClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTestSuite {
 
     @Override
     protected Class<? extends Exception> getProxyFailedExceptionType() {
@@ -49,17 +49,5 @@ public class ApacheClientProxyConfigurationTest extends HttpClientDefaultPoxyCon
     protected SdkHttpClient createSyncHttpClientWithDefaultProxy() {
         return ApacheHttpClient.builder().build();
     }
-
-    /**
-     * Wrire code which inputs an integer args and returns one number between 0 to 65535 excluding number args
-     */
-    private int getRandomPort(int currentPort) {
-        int randomPort;
-        do {
-            randomPort = ThreadLocalRandom.current().nextInt(65535);
-        } while (randomPort == currentPort);
-        return randomPort;
-    }
-
 
 }

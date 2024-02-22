@@ -18,9 +18,9 @@ import java.util.concurrent.ExecutionException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
-import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTest;
+import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTestSuite;
 
-public class NettyClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTest {
+public class NettyClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTestSuite {
     @Override
     protected boolean isSyncClient() {
         return false;

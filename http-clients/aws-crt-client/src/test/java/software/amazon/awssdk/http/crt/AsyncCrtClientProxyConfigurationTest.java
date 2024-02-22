@@ -19,10 +19,9 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTest;
+import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTestSuite;
 
-public class AsyncCrtClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTest {
-
+public class AsyncCrtClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTestSuite {
     @Override
     protected Class<? extends Exception> getProxyFailedExceptionType() {
         return ExecutionException.class;

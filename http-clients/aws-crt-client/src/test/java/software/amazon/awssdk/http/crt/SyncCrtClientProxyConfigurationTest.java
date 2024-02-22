@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.http.crt;
 
-
 import java.io.IOException;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTest;
+import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTestSuite;
 
-public class SyncCrtClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTest {
+public class SyncCrtClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTestSuite {
 
     @Override
     protected Class<? extends Exception> getProxyFailedExceptionType() {

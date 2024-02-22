@@ -26,13 +26,12 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -60,17 +59,13 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 
-public abstract class HttpClientDefaultPoxyConfigTest {
-
-    static Random random = new Random();
-
+public abstract class HttpClientDefaultPoxyConfigTestSuite {
+    SecureRandom random = new SecureRandom();
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
-
     protected WireMockServer mockProxy = new WireMockServer(new WireMockConfiguration()
                                                                 .dynamicPort()
                                                                 .dynamicHttpsPort()
                                                                 .enableBrowserProxying(true));
-
     protected WireMockServer mockServer = new WireMockServer(new WireMockConfiguration()
                                                                  .dynamicPort()
                                                                  .dynamicHttpsPort());
@@ -84,7 +79,6 @@ public abstract class HttpClientDefaultPoxyConfigTest {
     protected abstract Class<? extends Exception> getProxyFailedExceptionType();
 
     protected abstract Class<? extends Exception> getProxyFailedCauseExceptionType();
-
 
     @BeforeEach
     public void setup() {
@@ -113,7 +107,6 @@ public abstract class HttpClientDefaultPoxyConfigTest {
                     Pair.of("http_proxy",
                             "http://" + "localhost" + ":" + "%s" + "/")),
                 "Provided system and environment variable when configured uses proxy config"),
-
             Arguments.of(Collections.singletonList(
                              Pair.of("http.none", "localhost")),
                          Arrays.asList(
@@ -135,7 +128,6 @@ public abstract class HttpClientDefaultPoxyConfigTest {
                                                        List<Pair<String, String>> envSystemSetting,
                                                        String testCaseName) throws Throwable {
         systemSettingsPair.forEach(settingsPair -> System.setProperty(settingsPair.left(),
-
                                                                       String.format(settingsPair.right(),
                                                                                     getRandomPort(mockProxy.port()))));
 
@@ -156,13 +148,9 @@ public abstract class HttpClientDefaultPoxyConfigTest {
     @Test
     public void ensureProxySucceedsWhenIncorrectPortUsed() throws Throwable {
         if (isSyncClient()) {
-            defaultProxyConfigurationSyncHttp(createSyncHttpClientWithDefaultProxy(),
-                                              null,
-                                              null);
+            defaultProxyConfigurationSyncHttp(createSyncHttpClientWithDefaultProxy(), null, null);
         } else {
-            defaultProxyConfigurationForAsyncHttp(createHttpClientWithDefaultProxy(),
-                                                  null,
-                                                  null);
+            defaultProxyConfigurationForAsyncHttp(createHttpClientWithDefaultProxy(), null, null);
         }
     }
 
@@ -181,7 +169,6 @@ public abstract class HttpClientDefaultPoxyConfigTest {
                                                                      .responseHandler(handler)
                                                                      .requestContentPublisher(new EmptyPublisher())
                                                                      .build());
-
         if (proxyFailedExceptionType != null && proxyFailedCauseExceptionType != null) {
             assertThatExceptionOfType(proxyFailedExceptionType).isThrownBy(() -> future.get(60, TimeUnit.SECONDS))
                                                                .withCauseInstanceOf(proxyFailedCauseExceptionType);
@@ -191,8 +178,6 @@ public abstract class HttpClientDefaultPoxyConfigTest {
             assertThat(streamReceived.get(60, TimeUnit.SECONDS)).isTrue();
             assertThat(response.get().statusCode()).isEqualTo(200);
         }
-
-
     }
 
 
@@ -214,7 +199,6 @@ public abstract class HttpClientDefaultPoxyConfigTest {
                 assertThatExceptionOfType(exceptionType).isThrownBy(() -> executableHttpRequest.call())
                                                         .withCauseInstanceOf(proxyFailedCauseExceptionType);
             } else {
-
                 assertThatExceptionOfType(exceptionType).isThrownBy(() -> executableHttpRequest.call());
             }
         } else {
@@ -222,8 +206,6 @@ public abstract class HttpClientDefaultPoxyConfigTest {
             assertThat(error.get()).isNull();
             assertThat(executeResponse.httpResponse().statusCode()).isEqualTo(200);
         }
-
-
     }
 
     static Subscriber<ByteBuffer> createDummySubscriber() {
@@ -296,5 +278,4 @@ public abstract class HttpClientDefaultPoxyConfigTest {
         } while (randomPort == currentPort);
         return randomPort;
     }
-
 }
