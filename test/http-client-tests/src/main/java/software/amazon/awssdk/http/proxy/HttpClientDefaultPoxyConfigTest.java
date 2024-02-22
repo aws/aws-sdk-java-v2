@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +61,8 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 
 public abstract class HttpClientDefaultPoxyConfigTest {
+
+    static Random random = new Random();
 
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
@@ -206,9 +209,14 @@ public abstract class HttpClientDefaultPoxyConfigTest {
                                                                                               .request(request)
                                                                                               .build());
 
-        if (exceptionType != null && proxyFailedCauseExceptionType != null) {
-            assertThatExceptionOfType(exceptionType).isThrownBy(() -> executableHttpRequest.call())
-                                                    .withCauseInstanceOf(proxyFailedCauseExceptionType);
+        if (exceptionType != null) {
+            if (proxyFailedCauseExceptionType != null) {
+                assertThatExceptionOfType(exceptionType).isThrownBy(() -> executableHttpRequest.call())
+                                                        .withCauseInstanceOf(proxyFailedCauseExceptionType);
+            } else {
+
+                assertThatExceptionOfType(exceptionType).isThrownBy(() -> executableHttpRequest.call());
+            }
         } else {
             HttpExecuteResponse executeResponse = executableHttpRequest.call();
             assertThat(error.get()).isNull();
@@ -284,7 +292,7 @@ public abstract class HttpClientDefaultPoxyConfigTest {
     private int getRandomPort(int currentPort) {
         int randomPort;
         do {
-            randomPort = ThreadLocalRandom.current().nextInt(65535);
+            randomPort = random.nextInt(65535);
         } while (randomPort == currentPort);
         return randomPort;
     }
