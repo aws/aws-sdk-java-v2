@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.Validate;
 public class AwsCrtClientBuilderBase<BuilderT> {
     private final AttributeMap.Builder standardOptions = AttributeMap.builder();
     private Long readBufferSize;
-    private ProxyConfiguration proxyConfiguration;
+    private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
     private ConnectionHealthConfiguration connectionHealthConfiguration;
     private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
     private Boolean postQuantumTlsEnabled;

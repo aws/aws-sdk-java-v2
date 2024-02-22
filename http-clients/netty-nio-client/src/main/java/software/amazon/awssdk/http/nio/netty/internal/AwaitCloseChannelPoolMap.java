@@ -186,13 +186,13 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
 
     private boolean shouldUseProxyForHost(URI remoteAddr) {
-        if (proxyConfiguration == null) {
+        if (proxyConfiguration == null || proxyConfiguration.host() == null) {
             return false;
         }
 
 
         return shouldProxyForHostCache.computeIfAbsent(remoteAddr, (uri) ->
-           proxyConfiguration.nonProxyHosts().stream().noneMatch(h -> uri.getHost().matches(h))
+            proxyConfiguration.nonProxyHosts().stream().noneMatch(h -> uri.getHost().matches(h))
         );
     }
 
