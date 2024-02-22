@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.8__ __2024-02-21__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports the ability to restart pipelines in a running channel.
+
+## __AWS IoT Events__
+  - ### Features
+    - Increase the maximum length of descriptions for Inputs, Detector Models, and Alarm Models
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add content-length header in Json and  Xml Protocol Marshaller for String and Binary explicit Payloads.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release adds a field exposing model quality to read APIs for models. It also adds a model quality field to the API response when creating an inference scheduler.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds support for sharing Systems Manager parameters with other AWS accounts.
+
+# __2.24.7__ __2024-02-20__
+## __AWS Lambda__
+  - ### Features
+    - Add .NET 8 (dotnet8) Runtime support to AWS Lambda.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Publishing quick fix for doc only update.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release updates a few Firehose related APIs.
+
 # __2.24.6__ __2024-02-19__
 ## __AWS Amplify__
   - ### Features
