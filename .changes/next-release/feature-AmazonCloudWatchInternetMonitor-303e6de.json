@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Internet Monitor",
+    "contributor": "",
+    "description": "This release adds IPv4 prefixes to health events"
+}
