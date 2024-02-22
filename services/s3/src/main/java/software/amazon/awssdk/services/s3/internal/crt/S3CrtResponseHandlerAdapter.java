@@ -78,8 +78,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             return null;
         }
 
-        S3MetaRequestWrapper s3MetaRequest = metaRequestFuture.join();
-        return s3MetaRequest;
+        return metaRequestFuture.join();
     }
 
     @Override

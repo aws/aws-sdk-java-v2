@@ -63,7 +63,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
-    private static final Logger log = Logger.loggerFor(S3CrtAsyncHttpClient.class);
 
     private final S3Client crtS3Client;
 
