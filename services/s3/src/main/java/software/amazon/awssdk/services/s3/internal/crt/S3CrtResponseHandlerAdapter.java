@@ -63,7 +63,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                 return;
             }
 
-            if (executeFuture.isCancelled()) {
+            if (t != null) {
                 s3MetaRequest.cancel();
             }
             s3MetaRequest.close();
@@ -106,6 +106,13 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
                 failResponseHandlerAndFuture(failure);
+                return;
+            }
+
+            if (s3MetaRequest() == null) {
+                // should not happen
+                failResponseHandlerAndFuture(SdkClientException.create("Unexpected exception occurred: s3metaRequest is not "
+                                                                       + "initialized yet"));
                 return;
             }
             s3MetaRequest().incrementReadWindow(bytesReceived);
