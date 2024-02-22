@@ -64,10 +64,12 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.Protocol;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @WireMockTest(httpsEnabled = true)
 public class S3ExpressCreateSessionTest extends BaseRuleSetClientTest {
+    private static final Logger log = Logger.loggerFor(S3ExpressCreateSessionTest.class);
 
     private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT = wm -> URI.create(wm.getHttpBaseUrl());
     private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT = wm -> URI.create(wm.getHttpsBaseUrl());
@@ -329,9 +331,8 @@ public class S3ExpressCreateSessionTest extends BaseRuleSetClientTest {
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             this.headers = sdkHttpRequest.headers();
-            System.out.printf("%s %s%n", sdkHttpRequest.method(), sdkHttpRequest.encodedPath());
-            headers.forEach((k, strings) -> System.out.printf("%s, %s%n", k, strings));
-            System.out.println();
+            log.debug(() -> String.format("%s %s%n", sdkHttpRequest.method(), sdkHttpRequest.encodedPath()));
+            headers.forEach((k, strings) -> log.debug(() -> String.format("%s, %s%n", k, strings)));
         }
     }
 }
