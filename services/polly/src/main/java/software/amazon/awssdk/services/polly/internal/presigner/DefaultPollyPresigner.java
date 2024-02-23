@@ -31,6 +31,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -136,7 +137,8 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         IoUtils.closeIfCloseable(credentialsProvider, null);
     }
 
-    // For testing
+    // Builder for testing that allows you to set the signing clock.
+    @SdkTestInternalApi
     static PollyPresigner.Builder builder(Clock signingClock) {
         return new BuilderImpl()
             .signingClock(signingClock);
@@ -322,7 +324,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         }
         return Validate.isInstanceOf(Presigner.class, signer,
                                      "Signer of type %s given in request override is not a Presigner",
-                                     signer.getClass().getSimpleName());
+                                     signer.getClass().getName());
     }
 
     private void applyOverrideHeadersAndQueryParams(SdkHttpFullRequest.Builder httpRequestBuilder, PollyRequest request) {
@@ -334,7 +336,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     private void applyEndpoint(SdkHttpFullRequest.Builder httpRequestBuilder) {
         URI uri = resolveEndpoint();
-        httpRequestBuilder.protocol(uri.getScheme())
+        httpRequestBuilder.protocol(uri.getSgitcheme())
                           .host(uri.getHost())
                           .port(uri.getPort());
     }
