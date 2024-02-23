@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Make Transfer Manager work by default with S3AsyncClient when multipart configuration is enabled."
+}
