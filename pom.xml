@@ -658,7 +658,7 @@
                             <includeModule>iam-policy-builder</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
-                            <!-- disable auth temporarily , flags renaming of S3PauseResumeExecutionAttribute -->
+                            <!-- disable s3 temporarily , flags renaming of S3PauseResumeExecutionAttribute -->
                             <!-- <includeModule>s3</includeModule> -->
                             <includeModule>s3-control</includeModule>
                             <includeModule>sqs</includeModule>

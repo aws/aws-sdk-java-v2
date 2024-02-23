@@ -18,7 +18,9 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
@@ -49,7 +51,7 @@ import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 @WireMockTest
-public class S3JavaTransferProgressListenerTest {
+public class S3JavaMultipartTransferProgressListenerTest {
 
     public static final String ERROR_CODE = "NoSuchBucket";
     public static final String ERROR_MESSAGE = "We encountered an internal error. Please try again.";
@@ -61,27 +63,23 @@ public class S3JavaTransferProgressListenerTest {
     private static final String EXAMPLE_BUCKET = "Example-Bucket";
     private static final String TEST_KEY = "16mib_file.dat";
     private static final int OBJ_SIZE = 16 * 1024 * 1024;
+    private static S3AsyncClient mpuClient;
     private RandomTempFile testFile;
-    private static URI wmEndpoint;
 
     @BeforeAll
     public static void init(WireMockRuntimeInfo wm) {
-        wmEndpoint = URI.create(wm.getHttpBaseUrl());
+        mpuClient = S3AsyncClient.builder()
+                                 .multipartEnabled(true)
+                                 .region(Region.US_EAST_1)
+                                 .endpointOverride(URI.create(wm.getHttpBaseUrl()))
+                                 .credentialsProvider(
+                                     StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+                                 .build();
     }
 
     @BeforeEach
     public void setUp() throws IOException {
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
-    }
-
-    private static S3AsyncClient javaMultipartClient() {
-        return S3AsyncClient.builder()
-                            .multipartEnabled(true)
-                            .region(Region.US_EAST_1)
-                            .endpointOverride(wmEndpoint)
-                            .credentialsProvider(
-                                StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
-                            .build();
     }
 
     private static void assertMockOnFailure(TransferListener transferListenerMock) {
@@ -94,12 +92,12 @@ public class S3JavaTransferProgressListenerTest {
     void listeners_reports_ErrorsWithValidPayload() throws InterruptedException {
         TransferListener transferListenerMock = mock(TransferListener.class);
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(404).withBody(ERROR_BODY)));
-        S3TransferManager tm = new GenericS3TransferManager(javaMultipartClient(), mock(UploadDirectoryHelper.class),
+        S3TransferManager tm = new GenericS3TransferManager(mpuClient, mock(UploadDirectoryHelper.class),
                                                             mock(TransferManagerConfiguration.class),
                                                             mock(DownloadDirectoryHelper.class));
         CaptureTransferListener transferListener = new CaptureTransferListener();
         FileUpload fileUpload =
-            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key("KEY"))
+            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
                                 .source(testFile)
                                 .addTransferListener(LoggingTransferListener.create())
                                 .addTransferListener(transferListener)
@@ -120,12 +118,12 @@ public class S3JavaTransferProgressListenerTest {
         TransferListener transferListenerMock = mock(TransferListener.class);
 
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(404).withBody("?")));
-        S3TransferManager tm = new GenericS3TransferManager(javaMultipartClient(), mock(UploadDirectoryHelper.class),
+        S3TransferManager tm = new GenericS3TransferManager(mpuClient, mock(UploadDirectoryHelper.class),
                                                             mock(TransferManagerConfiguration.class),
                                                             mock(DownloadDirectoryHelper.class));
         CaptureTransferListener transferListener = new CaptureTransferListener();
         FileUpload fileUpload =
-            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key("KEY"))
+            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
                                 .source(testFile)
                                 .addTransferListener(LoggingTransferListener.create())
                                 .addTransferListener(transferListener)
@@ -148,12 +146,12 @@ public class S3JavaTransferProgressListenerTest {
         TransferListener transferListenerMock = mock(TransferListener.class);
 
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody("{}")));
-        S3TransferManager tm = new GenericS3TransferManager(javaMultipartClient(), mock(UploadDirectoryHelper.class),
+        S3TransferManager tm = new GenericS3TransferManager(mpuClient, mock(UploadDirectoryHelper.class),
                                                             mock(TransferManagerConfiguration.class),
                                                             mock(DownloadDirectoryHelper.class));
         CaptureTransferListener transferListener = new CaptureTransferListener();
 
-        tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key("KEY"))
+        tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
                             .source(testFile)
                             .addTransferListener(LoggingTransferListener.create())
                             .addTransferListener(transferListener)
@@ -172,15 +170,17 @@ public class S3JavaTransferProgressListenerTest {
     @Test
     void listeners_reports_ProgressWhenSuccess() throws InterruptedException {
         TransferListener transferListenerMock = mock(TransferListener.class);
-        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody("<CreateMultipartUploadResult><UploadId>1234"
-                                                                              + "</UploadId></CreateMultipartUploadResult>")));
-        S3TransferManager tm = new GenericS3TransferManager(javaMultipartClient(), mock(UploadDirectoryHelper.class),
+        String createMpuUrl = "/" + EXAMPLE_BUCKET + "/" + TEST_KEY + "?uploads";
+        String createMpuResponse = "<CreateMultipartUploadResult><UploadId>1234</UploadId></CreateMultipartUploadResult>";
+        stubFor(post(urlEqualTo(createMpuUrl)).willReturn(aResponse().withStatus(200).withBody(createMpuResponse)));
+        stubFor(any(anyUrl()).atPriority(6).willReturn(aResponse().withStatus(200).withBody("<body/>")));
+        S3TransferManager tm = new GenericS3TransferManager(mpuClient, mock(UploadDirectoryHelper.class),
                                                             mock(TransferManagerConfiguration.class),
                                                             mock(DownloadDirectoryHelper.class));
 
         CaptureTransferListener transferListener = new CaptureTransferListener();
 
-        tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key("KEY"))
+        tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
                             .source(testFile)
                             .addTransferListener(LoggingTransferListener.create())
                             .addTransferListener(transferListener)
