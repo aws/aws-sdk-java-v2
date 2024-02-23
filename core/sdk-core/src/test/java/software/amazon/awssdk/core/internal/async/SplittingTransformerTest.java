@@ -42,7 +42,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .maximumBufferSize(1024 * 1024 * 32)
+                                .maximumBufferSizeInBytes(1024 * 1024 * 32)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new CancelAfterNTestSubscriber(
@@ -59,7 +59,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .maximumBufferSize(1024 * 1024 * 32)
+                                .maximumBufferSizeInBytes(1024 * 1024 * 32)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new FailAfterNTestSubscriber(2));
@@ -79,7 +79,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .maximumBufferSize(evenBufferSize)
+                                .maximumBufferSizeInBytes(evenBufferSize)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new CancelAfterNTestSubscriber(
@@ -106,7 +106,7 @@ class SplittingTransformerTest {
         SplittingTransformer<TestResultObject, Object> split =
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
-                                .maximumBufferSize(1024 * 1024 * 32)
+                                .maximumBufferSizeInBytes(1024 * 1024 * 32)
                                 .returnFuture(future)
                                 .build();
         split.subscribe(new RequestingTestSubscriber(4));
@@ -115,6 +115,40 @@ class SplittingTransformerTest {
         String expected = "This is the body of 1.This is the body of 2.This is the body of 3.This is the body of 4.";
         assertThat(upstreamTestTransformer.contentAsString()).isEqualTo(expected);
     }
+
+    @Test
+    void negativeBufferSize_shouldThrowIllegalArgument() {
+            assertThatThrownBy(() -> SplittingTransformer.<TestResultObject, Object>builder()
+                                .maximumBufferSizeInBytes(-1L)
+                                .upstreamResponseTransformer(new UpstreamTestTransformer())
+                                .returnFuture(new CompletableFuture<>())
+                                .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("maximumBufferSizeInBytes");
+    }
+
+    @Test
+    void nullUpstreamTransformer_shouldThrowNullPointerException() {
+        assertThatThrownBy(() -> SplittingTransformer.<TestResultObject, Object>builder()
+                                                     .maximumBufferSizeInBytes(1024)
+                                                     .upstreamResponseTransformer(null)
+                                                     .returnFuture(new CompletableFuture<>())
+                                                     .build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("upstreamResponseTransformer");
+    }
+
+    @Test
+    void nullFuture_shouldThrowNullPointerException() {
+        assertThatThrownBy(() -> SplittingTransformer.<TestResultObject, Object>builder()
+                                                     .maximumBufferSizeInBytes(-1024)
+                                                     .upstreamResponseTransformer(new UpstreamTestTransformer())
+                                                     .returnFuture(null)
+                                                     .build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("returnFuture");
+    }
+
 
     private static class CancelAfterNTestSubscriber
         implements Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>> {

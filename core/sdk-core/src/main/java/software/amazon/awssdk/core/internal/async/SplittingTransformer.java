@@ -109,11 +109,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicBoolean emitting = new AtomicBoolean(false);
 
     private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
-                                 Long bufferSize,
+                                 Long maximumBufferSizeInBytes,
                                  CompletableFuture<ResultT> returnFuture) {
         this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
         this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
-        this.maximumBufferSize = Validate.notNull(bufferSize, "bufferSize");
+        this.maximumBufferSize = Validate.isPositive(maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
     }
 
     /**
@@ -338,7 +338,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
          * @param maximumBufferSize the amount of data buffered and the size of the chunk of data
          * @return an instance of this builder
          */
-        public Builder<ResponseT, ResultT> maximumBufferSize(long maximumBufferSize) {
+        public Builder<ResponseT, ResultT> maximumBufferSizeInBytes(long maximumBufferSize) {
             this.maximumBufferSize = maximumBufferSize;
             return this;
         }

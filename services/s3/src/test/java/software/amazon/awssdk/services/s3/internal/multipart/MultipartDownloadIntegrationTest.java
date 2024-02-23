@@ -51,7 +51,7 @@ class MultipartDownloadIntegrationTest {
 
     private S3AsyncClient s3;
     private final SplittingTransformerConfiguration splitConfig = SplittingTransformerConfiguration.builder()
-                                                                                                   .bufferSize(1024 * 1024 * 32L)
+                                                                                                   .bufferSizeInBytes(1024 * 1024 * 32L)
                                                                                                    .build();
 
     @BeforeEach

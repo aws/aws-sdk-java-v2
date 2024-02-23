@@ -77,8 +77,12 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
+        if (getObjectRequest.range() != null || getObjectRequest.partNumber() != null) {
+            return ((S3AsyncClient) delegate()).getObject(getObjectRequest, asyncResponseTransformer);
+        }
+
         SplitAsyncResponseTransformer<GetObjectResponse, ReturnT> split =
-            asyncResponseTransformer.split(SplittingTransformerConfiguration.builder().bufferSize(apiCallBufferSize).build());
+            asyncResponseTransformer.split(SplittingTransformerConfiguration.builder().bufferSizeInBytes(apiCallBufferSize).build());
         split.publisher().subscribe(new MultipartDownloaderSubscriber((S3AsyncClient) delegate(), getObjectRequest));
         return split.preparedFuture();
     }

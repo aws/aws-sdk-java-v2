@@ -34,7 +34,7 @@ public class SplittingTransformerConfigurationTest {
     void toBuilder() {
         SplittingTransformerConfiguration configuration =
             SplittingTransformerConfiguration.builder()
-                                             .bufferSize(4444L)
+                                             .bufferSizeInBytes(4444L)
                                              .build();
 
         SplittingTransformerConfiguration another = configuration.toBuilder().build();

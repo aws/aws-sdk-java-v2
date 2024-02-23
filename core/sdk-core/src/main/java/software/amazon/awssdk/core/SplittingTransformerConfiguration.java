@@ -33,10 +33,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class SplittingTransformerConfiguration implements ToCopyableBuilder<SplittingTransformerConfiguration.Builder,
     SplittingTransformerConfiguration> {
 
-    private final Long bufferSize;
+    private final Long bufferSizeInBytes;
 
     private SplittingTransformerConfiguration(DefaultBuilder builder) {
-        this.bufferSize = Validate.paramNotNull(builder.bufferSize, "bufferSize");
+        this.bufferSizeInBytes = Validate.paramNotNull(builder.bufferSize, "bufferSize");
     }
 
     /**
@@ -49,8 +49,8 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
     /**
      * @return the buffer size
      */
-    public Long bufferSize() {
-        return bufferSize;
+    public Long bufferSizeInBytes() {
+        return bufferSizeInBytes;
     }
 
     @Override
@@ -64,12 +64,12 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
 
         SplittingTransformerConfiguration that = (SplittingTransformerConfiguration) o;
 
-        return Objects.equals(bufferSize, that.bufferSize);
+        return Objects.equals(bufferSizeInBytes, that.bufferSizeInBytes);
     }
 
     @Override
     public int hashCode() {
-        return bufferSize != null ? bufferSize.hashCode() : 0;
+        return bufferSizeInBytes != null ? bufferSizeInBytes.hashCode() : 0;
     }
 
     @Override
@@ -80,26 +80,26 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
     public interface Builder extends CopyableBuilder<Builder, SplittingTransformerConfiguration> {
 
         /**
-         * Configures the buffer size of the {@link SplittingTransformer}.
+         * Configures the maximum amount of memory in bytes buffered by the {@link SplittingTransformer}.
          *
-         * @param bufferSize the buffer size
+         * @param bufferSize the buffer size in bytes
          * @return This object for method chaining.
          */
-        Builder bufferSize(Long bufferSize);
+        Builder bufferSizeInBytes(Long bufferSize);
     }
 
     private static final class DefaultBuilder implements Builder {
         private Long bufferSize;
 
         private DefaultBuilder(SplittingTransformerConfiguration configuration) {
-            this.bufferSize = configuration.bufferSize;
+            this.bufferSize = configuration.bufferSizeInBytes;
         }
 
         private DefaultBuilder() {
         }
 
         @Override
-        public Builder bufferSize(Long bufferSize) {
+        public Builder bufferSizeInBytes(Long bufferSize) {
             this.bufferSize = bufferSize;
             return this;
         }
