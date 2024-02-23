@@ -78,7 +78,7 @@ public class OperationModel extends DocumentationModel {
 
     private HttpChecksum httpChecksum;
 
-    private RequestCompression requestCompression;
+    private RequestCompression requestcompression;
 
     @JsonIgnore
     private Map<String, StaticContextParam> staticContextParams;
@@ -342,12 +342,12 @@ public class OperationModel extends DocumentationModel {
         this.httpChecksum = httpChecksum;
     }
 
-    public RequestCompression getRequestCompression() {
-        return requestCompression;
+    public RequestCompression getRequestcompression() {
+        return requestcompression;
     }
 
-    public void setRequestCompression(RequestCompression requestCompression) {
-        this.requestCompression = requestCompression;
+    public void setRequestcompression(RequestCompression requestcompression) {
+        this.requestcompression = requestcompression;
     }
 
     public Map<String, StaticContextParam> getStaticContextParams() {

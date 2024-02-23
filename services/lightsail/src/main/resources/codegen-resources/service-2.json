@@ -3832,6 +3832,10 @@
         "supportedAppCategories":{
           "shape":"AppCategoryList",
           "documentation":"<p>Virtual computer blueprints that are supported by a Lightsail for Research bundle.</p> <important> <p>This parameter only applies to Lightsail for Research resources.</p> </important>"
+        },
+        "publicIpv4AddressCount":{
+          "shape":"integer",
+          "documentation":"<p>An integer that indicates the public ipv4 address count included in the bundle, the value is either 0 or 1.</p>"
         }
       },
       "documentation":"<p>Describes a bundle, which is a set of specs describing your virtual private server (or <i>instance</i>).</p>"
@@ -8849,6 +8853,10 @@
           "shape":"IpAddress",
           "documentation":"<p>The public IP address of the Amazon Lightsail instance.</p>"
         },
+        "ipv6Addresses":{
+          "shape":"Ipv6AddressList",
+          "documentation":"<p>The IPv6 address of the Amazon Lightsail instance.</p>"
+        },
         "password":{
           "shape":"string",
           "documentation":"<p>For RDP access, the password for your Amazon Lightsail instance. Password will be an empty string if the password for your new instance is not ready yet. When you create an instance, it can take up to 15 minutes for the instance to be ready.</p> <note> <p>If you create an instance using any key pair other than the default (<code>LightsailDefaultKeyPair</code>), <code>password</code> will always be an empty string.</p> <p>If you change the Administrator password on the instance, Lightsail will continue to return the original password value. When accessing the instance using RDP, you need to manually enter the Administrator password after changing it from the default.</p> </note>"
@@ -12348,6 +12356,10 @@
         "caCertificateIdentifier":{
           "shape":"string",
           "documentation":"<p>Indicates the certificate that needs to be associated with the database.</p>"
+        },
+        "relationalDatabaseBlueprintId":{
+          "shape":"string",
+          "documentation":"<p>This parameter is used to update the major version of the database. Enter the <code>blueprintId</code> for the major version that you want to update to.</p> <p>Use the <a href=\"https://docs.aws.amazon.com/lightsail/2016-11-28/api-reference/API_GetRelationalDatabaseBlueprints.html\">GetRelationalDatabaseBlueprints</a> action to get a list of available blueprint IDs.</p>"
         }
       }
     },

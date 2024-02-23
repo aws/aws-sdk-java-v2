@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.internal.crossregion.utils;
 
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
@@ -25,7 +24,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.regions.Region;
@@ -41,7 +39,6 @@ public final class CrossRegionUtils {
     public static final String AMZ_BUCKET_REGION_HEADER = "x-amz-bucket-region";
     private static final List<Integer> REDIRECT_STATUS_CODES =
         Arrays.asList(REDIRECT_STATUS_CODE, TEMPORARY_REDIRECT_STATUS_CODE);
-    private static final List<String> REDIRECT_ERROR_CODES = Collections.singletonList("AuthorizationHeaderMalformed");
     private static final ApiName API_NAME = ApiName.builder().version("cross-region").name("hll").build();
     private static final Consumer<AwsRequestOverrideConfiguration.Builder> USER_AGENT_APPLIER = b -> b.addApiName(API_NAME);
 
@@ -65,12 +62,7 @@ public final class CrossRegionUtils {
         if (REDIRECT_STATUS_CODES.stream().anyMatch(status -> status.equals(exceptionToBeChecked.statusCode()))) {
             return true;
         }
-        if (getBucketRegionFromException(exceptionToBeChecked).isPresent()) {
-            return true;
-        }
-        AwsErrorDetails awsErrorDetails = exceptionToBeChecked.awsErrorDetails();
-        return awsErrorDetails != null
-               && REDIRECT_ERROR_CODES.stream().anyMatch(code -> code.equals(awsErrorDetails.errorCode()));
+        return getBucketRegionFromException(exceptionToBeChecked).isPresent();
     }
 
     @SuppressWarnings("unchecked")

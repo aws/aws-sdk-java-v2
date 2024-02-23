@@ -43,8 +43,20 @@ public class BucketEndpointProvider implements S3EndpointProvider {
     @Override
     public CompletableFuture<Endpoint> resolveEndpoint(S3EndpointParams endpointParams) {
         Region crossRegion = regionSupplier.get();
-        return delegateEndPointProvider.resolveEndpoint(
-            crossRegion != null ? endpointParams.copy(c -> c.region(crossRegion)) : endpointParams);
+        S3EndpointParams.Builder endpointParamsBuilder = endpointParams.toBuilder();
+        // Check if cross-region resolution has already occurred.
+        if (crossRegion != null) {
+            endpointParamsBuilder.region(crossRegion);
+        } else {
+            // For global regions, set the region to "us-east-1" to use regional endpoints.
+            if (Region.AWS_GLOBAL.equals(endpointParams.region())) {
+                endpointParamsBuilder.region(Region.US_EAST_1);
+            }
+            // Disable the global endpoint as S3 can properly redirect regions in the 'x-amz-bucket-region' header
+            // only for regional endpoints.
+            endpointParamsBuilder.useGlobalEndpoint(false);
+        }
+        return delegateEndPointProvider.resolveEndpoint(endpointParamsBuilder.build());
     }
 }
 

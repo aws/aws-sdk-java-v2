@@ -49,8 +49,10 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -185,6 +187,17 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                  AwsExecutionAttribute.class);
             builder.addStatement("builder.region(region)");
         }
+        ClassName paramsBuilderClass = authSchemeSpecUtils.parametersEndpointAwareDefaultImplName().nestedClass("Builder");
+        builder.beginControlFlow("if (builder instanceof $T)",
+                                 paramsBuilderClass);
+        ClassName endpointProviderClass = endpointRulesSpecUtils.providerInterfaceName();
+        builder.addStatement("$T endpointProvider = executionAttributes.getAttribute($T.ENDPOINT_PROVIDER)",
+                             EndpointProvider.class,
+                             SdkInternalExecutionAttribute.class);
+        builder.beginControlFlow("if (endpointProvider instanceof $T)", endpointProviderClass);
+        builder.addStatement("(($T)builder).endpointProvider(($T)endpointProvider)", paramsBuilderClass, endpointProviderClass);
+        builder.endControlFlow();
+        builder.endControlFlow();
         builder.addStatement("return builder.build()");
         return builder.build();
     }
@@ -262,6 +275,19 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                    .endControlFlow();
         }
 
+        builder.addStatement("$T signer",
+                             ParameterizedTypeName.get(ClassName.get(HttpSigner.class), TypeVariableName.get("T")));
+        builder.beginControlFlow("try");
+        {
+            builder.addStatement("signer = authScheme.signer()");
+            builder.nextControlFlow("catch (RuntimeException e)");
+            builder.addStatement("discardedReasons.add(() -> String.format($S, authOption.schemeId(), e.getMessage()))",
+                                 "'%s' signer could not be retrieved: %s")
+                   .addStatement("return null")
+                   .endControlFlow();
+        }
+
+
         builder.addStatement("$T.Builder identityRequestBuilder = $T.builder()",
                              ResolveIdentityRequest.class,
                              ResolveIdentityRequest.class);
@@ -282,7 +308,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                              MetricUtils.class)
                .endControlFlow();
 
-        builder.addStatement("return new $T<>(identity, authScheme.signer(), authOption)", SelectedAuthScheme.class);
+        builder.addStatement("return new $T<>(identity, signer, authOption)", SelectedAuthScheme.class);
         return builder.build();
     }
 

@@ -101,7 +101,8 @@
         "test-utils": { "skipImport": true },
         "tests-coverage-reporting": { "skipImport": true },
         "third-party": { "skipImport": true },
-        "third-party-slf4j-api": { "skipImport": true }
+        "third-party-slf4j-api": { "skipImport": true },
+        "crt-unavailable-tests": { "skipImport": true }
     },
 
     "dependencies": {

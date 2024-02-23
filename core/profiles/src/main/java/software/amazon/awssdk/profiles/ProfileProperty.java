@@ -148,6 +148,8 @@ public final class ProfileProperty {
 
     public static final String EC2_METADATA_SERVICE_ENDPOINT = "ec2_metadata_service_endpoint";
 
+    public static final String EC2_METADATA_V1_DISABLED = "ec2_metadata_v1_disabled";
+
     /**
      * Whether request compression is disabled for operations marked with the RequestCompression trait. The default value is
      * false, i.e., request compression is enabled.
