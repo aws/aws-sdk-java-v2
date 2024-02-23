@@ -192,7 +192,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
 
         return shouldProxyForHostCache.computeIfAbsent(remoteAddr, (uri) ->
-            proxyConfiguration.nonProxyHosts().stream().noneMatch(h -> uri.getHost().matches(h))
+           proxyConfiguration.nonProxyHosts().stream().noneMatch(h -> uri.getHost().matches(h))
         );
     }
 

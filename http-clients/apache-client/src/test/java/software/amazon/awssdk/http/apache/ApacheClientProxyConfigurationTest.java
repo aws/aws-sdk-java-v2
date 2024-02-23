@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.http.apache;
 
-import java.util.concurrent.ThreadLocalRandom;
 import org.apache.http.conn.HttpHostConnectException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTestSuite;
+import software.amazon.awssdk.http.proxy.HttpClientDefaultProxyConfigTestSuite;
 import java.net.ConnectException;
 
-public class ApacheClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTestSuite {
+public class ApacheClientProxyConfigurationTest extends HttpClientDefaultProxyConfigTestSuite {
 
     @Override
     protected Class<? extends Exception> getProxyFailedExceptionType() {
@@ -42,12 +41,12 @@ public class ApacheClientProxyConfigurationTest extends HttpClientDefaultPoxyCon
 
     @Override
     protected SdkAsyncHttpClient createHttpClientWithDefaultProxy() {
-        throw new IllegalArgumentException("Async client is not supported");
+        throw new IllegalArgumentException("Async client  is not supported for this test.");
     }
 
     @Override
     protected SdkHttpClient createSyncHttpClientWithDefaultProxy() {
-        return ApacheHttpClient.builder().build();
+        return ApacheHttpClient.create();
     }
 
 }

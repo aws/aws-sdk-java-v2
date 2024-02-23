@@ -19,9 +19,9 @@ import java.io.IOException;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTestSuite;
+import software.amazon.awssdk.http.proxy.HttpClientDefaultProxyConfigTestSuite;
 
-public class SyncCrtClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTestSuite {
+public class SyncCrtClientProxyConfigurationTest extends HttpClientDefaultProxyConfigTestSuite {
 
     @Override
     protected Class<? extends Exception> getProxyFailedExceptionType() {
@@ -40,7 +40,7 @@ public class SyncCrtClientProxyConfigurationTest extends HttpClientDefaultPoxyCo
 
     @Override
     protected SdkAsyncHttpClient createHttpClientWithDefaultProxy() {
-        throw new UnsupportedOperationException("Async client does not support proxy");
+        throw new UnsupportedOperationException("Async client is not supported for this test.");
     }
 
     @Override

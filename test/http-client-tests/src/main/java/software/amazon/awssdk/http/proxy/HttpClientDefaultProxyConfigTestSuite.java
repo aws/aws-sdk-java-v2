@@ -27,8 +27,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -59,13 +58,14 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 
-public abstract class HttpClientDefaultPoxyConfigTestSuite {
+public abstract class HttpClientDefaultProxyConfigTestSuite {
     SecureRandom random = new SecureRandom();
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
     protected WireMockServer mockProxy = new WireMockServer(new WireMockConfiguration()
                                                                 .dynamicPort()
                                                                 .dynamicHttpsPort()
                                                                 .enableBrowserProxying(true));
+
     protected WireMockServer mockServer = new WireMockServer(new WireMockConfiguration()
                                                                  .dynamicPort()
                                                                  .dynamicHttpsPort());
@@ -95,45 +95,35 @@ public abstract class HttpClientDefaultPoxyConfigTestSuite {
         ENVIRONMENT_VARIABLE_HELPER.reset();
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
+        System.clearProperty("https.proxyHost");
+        System.clearProperty("https.proxyPort");
     }
 
-    public static Stream<Arguments> proxyConfigurationSettingWithConnectionFails() {
+    public static Stream<Arguments> proxyConfigurationSettingsForEnvironmentAndSystemProperty() {
         return Stream.of(
-            Arguments.of(
-                Arrays.asList(
-                    Pair.of("http.proxyHost", "localhost"),
-                    Pair.of("http.proxyPort", "%s")),
-                Arrays.asList(
-                    Pair.of("http_proxy",
-                            "http://" + "localhost" + ":" + "%s" + "/")),
-                "Provided system and environment variable when configured uses proxy config"),
-            Arguments.of(Collections.singletonList(
-                             Pair.of("http.none", "localhost")),
-                         Arrays.asList(
-                             Pair.of("http_proxy",
-                                     "http://" + "localhost" + ":" + "%s" + "/")),
-                         "Provided environment  and No system variables uses proxy config"),
-            Arguments.of(
-                Arrays.asList(
-                    Pair.of("http.proxyHost", "localhost"),
-                    Pair.of("http.proxyPort", "%s")),
-                Arrays.asList(Pair.of("none", "none")),
-                "Provided system  and No environment variables uses proxy config")
+            Arguments.of(new TestData()
+                             .addSystemProperKeyValue("http.proxyHost", "localhost")
+                             .addSystemProperKeyValue("http.proxyPort", "%s")
+                             .addEnvironmentPropertyProperKeyValue("https_proxy", "http://" + "localhost" + ":" + "%s" + "/")
+                , "Provided system and environment variable when configured uses proxy config"),
+
+            Arguments.of(new TestData()
+                             .addSystemProperKeyValue("http.proxyHost", "localhost")
+                             .addSystemProperKeyValue("http.proxyPort", "%s")
+                             .addEnvironmentPropertyProperKeyValue("none", "none")
+                , "Provided system  and No environment variables uses proxy config"),
+
+            Arguments.of(new TestData()
+                             .addSystemProperKeyValue("none", "none")
+                             .addEnvironmentPropertyProperKeyValue("http_proxy", "http://" + "localhost" + ":" + "%s" + "/")
+                , "Provided Environment Variables  and No system variables uses proxy config")
         );
     }
 
-    @ParameterizedTest(name = "{index} - {2}.")
-    @MethodSource("proxyConfigurationSettingWithConnectionFails")
-    public void ensureProxyErrorsWhenIncorrectPortUsed(List<Pair<String, String>> systemSettingsPair,
-                                                       List<Pair<String, String>> envSystemSetting,
-                                                       String testCaseName) throws Throwable {
-        systemSettingsPair.forEach(settingsPair -> System.setProperty(settingsPair.left(),
-                                                                      String.format(settingsPair.right(),
-                                                                                    getRandomPort(mockProxy.port()))));
-
-        envSystemSetting.forEach(settingsPair -> ENVIRONMENT_VARIABLE_HELPER.set(
-            settingsPair.left(),
-            String.format(settingsPair.right(), getRandomPort(mockProxy.port()))));
+    @ParameterizedTest(name = "{index} - {1}.")
+    @MethodSource("proxyConfigurationSettingsForEnvironmentAndSystemProperty")
+    public void ensureProxyErrorsWhenIncorrectPortUsed(TestData testData, String testCaseName) throws Throwable {
+        setSystemPropertyAndEnvironmentVariables(testData, getRandomPort(mockProxy.port()));
         if (isSyncClient()) {
             defaultProxyConfigurationSyncHttp(createSyncHttpClientWithDefaultProxy(),
                                               getProxyFailedExceptionType(),
@@ -145,8 +135,42 @@ public abstract class HttpClientDefaultPoxyConfigTestSuite {
         }
     }
 
+
+    private void setSystemPropertyAndEnvironmentVariablesToDivertToHttpsProxy(TestData testData, int port) {
+        testData.systemPropertyPair.stream()
+                                   .map(r -> isSyncClient() ? r : Pair.of(r.left().replace("http", "https"),
+                                                                          r.right().replace("http", "https")))
+                                   .forEach(settingsPair -> System.setProperty(settingsPair.left(), String.format(settingsPair.right(), port)));
+
+        testData.envSystemSetting.stream()
+                                 .map(r -> isSyncClient() ? r : Pair.of(r.left().replace("http", "https"),
+                                                                        r.right().replace("http", "https")))
+                                 .forEach(settingsPair -> ENVIRONMENT_VARIABLE_HELPER.set(settingsPair.left(),
+                                                                                          String.format(settingsPair.right(), port)));
+    }
+
+    private void setSystemPropertyAndEnvironmentVariables(TestData testData, int port) {
+        testData.systemPropertyPair
+            .forEach(settingsPair -> System.setProperty(settingsPair.left(),
+                                                        String.format(settingsPair.right(), port)));
+        testData.envSystemSetting
+            .forEach(settingsPair -> ENVIRONMENT_VARIABLE_HELPER.set(settingsPair.left(),
+                                                                     String.format(settingsPair.right(), port)));
+    }
+
+    @ParameterizedTest(name = "{index} - {1}.")
+    @MethodSource("proxyConfigurationSettingsForEnvironmentAndSystemProperty")
+    public void ensureHttpCallsPassesWhenProxyWithCorrectPortIsUsed(TestData testData, String testCaseName) throws Throwable {
+        setSystemPropertyAndEnvironmentVariablesToDivertToHttpsProxy(testData, mockProxy.port());
+        if (isSyncClient()) {
+            defaultProxyConfigurationSyncHttp(createSyncHttpClientWithDefaultProxy(), null, null);
+        } else {
+            defaultProxyConfigurationForAsyncHttp(createHttpClientWithDefaultProxy(), null, null);
+        }
+    }
+
     @Test
-    public void ensureProxySucceedsWhenIncorrectPortUsed() throws Throwable {
+    public void ensureHttpCallsPassesWhenProxyIsNotUsed() throws Throwable {
         if (isSyncClient()) {
             defaultProxyConfigurationSyncHttp(createSyncHttpClientWithDefaultProxy(), null, null);
         } else {
@@ -277,5 +301,20 @@ public abstract class HttpClientDefaultPoxyConfigTestSuite {
             randomPort = random.nextInt(65535);
         } while (randomPort == currentPort);
         return randomPort;
+    }
+
+    private static class TestData {
+        private List<Pair<String, String>> envSystemSetting = new ArrayList<>();
+        private List<Pair<String, String>> systemPropertyPair = new ArrayList<>();
+
+        public TestData addSystemProperKeyValue(String key, String value) {
+            systemPropertyPair.add(Pair.of(key, value));
+            return this;
+        }
+
+        public TestData addEnvironmentPropertyProperKeyValue(String key, String value) {
+            envSystemSetting.add(Pair.of(key, value));
+            return this;
+        }
     }
 }

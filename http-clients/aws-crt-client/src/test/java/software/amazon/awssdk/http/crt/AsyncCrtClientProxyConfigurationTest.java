@@ -19,9 +19,9 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTestSuite;
+import software.amazon.awssdk.http.proxy.HttpClientDefaultProxyConfigTestSuite;
 
-public class AsyncCrtClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTestSuite {
+public class AsyncCrtClientProxyConfigurationTest extends HttpClientDefaultProxyConfigTestSuite {
     @Override
     protected Class<? extends Exception> getProxyFailedExceptionType() {
         return ExecutionException.class;
@@ -39,11 +39,11 @@ public class AsyncCrtClientProxyConfigurationTest extends HttpClientDefaultPoxyC
 
     @Override
     protected SdkAsyncHttpClient createHttpClientWithDefaultProxy() {
-        return AwsCrtAsyncHttpClient.builder().build();
+        return AwsCrtAsyncHttpClient.create();
     }
 
     @Override
     protected SdkHttpClient createSyncHttpClientWithDefaultProxy() {
-        throw new IllegalArgumentException("Sync client is not supported");
+        throw new IllegalArgumentException("Sync client is not supported for this test.");
     }
 }

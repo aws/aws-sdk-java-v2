@@ -18,9 +18,9 @@ package software.amazon.awssdk.http.urlconnection;
 import java.io.IOException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.proxy.HttpClientDefaultPoxyConfigTestSuite;
+import software.amazon.awssdk.http.proxy.HttpClientDefaultProxyConfigTestSuite;
 
-public class UrlClientProxyConfigurationTest extends HttpClientDefaultPoxyConfigTestSuite {
+public class UrlClientProxyConfigurationTest extends HttpClientDefaultProxyConfigTestSuite {
     @Override
     protected boolean isSyncClient() {
         return true;
@@ -28,7 +28,7 @@ public class UrlClientProxyConfigurationTest extends HttpClientDefaultPoxyConfig
 
     @Override
     protected SdkAsyncHttpClient createHttpClientWithDefaultProxy() {
-        throw new UnsupportedOperationException("Async client not supported");
+        throw new UnsupportedOperationException("Async client is not supported for this test.");
     }
 
     @Override
