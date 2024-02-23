@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT-based S3 client",
-    "contributor": "",
-    "description": "Fixed memory leak issue when a request was cancelled in the AWS CRT-based S3 client."
-}
