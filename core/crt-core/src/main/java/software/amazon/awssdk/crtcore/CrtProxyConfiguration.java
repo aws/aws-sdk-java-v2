@@ -39,7 +39,7 @@ public abstract class CrtProxyConfiguration {
     private final String password;
     private final Boolean useSystemPropertyValues;
     private final Boolean useEnvironmentVariableValues;
-    private final   Set<String> nonProxyHosts;
+    private final Set<String> nonProxyHosts;
 
     protected CrtProxyConfiguration(DefaultBuilder<?> builder) {
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
