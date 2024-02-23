@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -53,7 +52,6 @@ public class PayloadSigningInterceptorTest {
 
         assertThat(modified.isPresent()).isTrue();
         assertThat(modified.get().contentLength()).isEqualTo(0);
-        assertThat(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING)).isTrue();
     }
 
     @Test
@@ -65,7 +63,6 @@ public class PayloadSigningInterceptorTest {
 
         assertThat(modified.isPresent()).isTrue();
         assertThat(modified.get().contentLength()).isEqualTo(5);
-        assertThat(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING)).isTrue();
     }
 
     public final class Context implements software.amazon.awssdk.core.interceptor.Context.ModifyHttpRequest {

@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Enable multipart configuration by default when creating a new S3TranferManager instance using the .create() method"
+}
