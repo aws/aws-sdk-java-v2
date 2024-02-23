@@ -145,7 +145,7 @@ class GenericS3TransferManager implements S3TransferManager {
             assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
 
             CompletableFuture<PutObjectResponse> future =
-                s3AsyncClient.putObject(uploadRequest.putObjectRequest(), requestBody);
+                s3AsyncClient.putObject(putObjectRequest, requestBody);
 
             // Forward upload cancellation to future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
