@@ -336,7 +336,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     private void applyEndpoint(SdkHttpFullRequest.Builder httpRequestBuilder) {
         URI uri = resolveEndpoint();
-        httpRequestBuilder.protocol(uri.getSgitcheme())
+        httpRequestBuilder.protocol(uri.getScheme())
                           .host(uri.getHost())
                           .port(uri.getPort());
     }
