@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
+import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
@@ -111,11 +112,11 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @SdkTestInternalApi
-    GenericS3TransferManager(S3AsyncClient s3CrtAsyncClient,
+    GenericS3TransferManager(S3AsyncClient s3AsyncClient,
                              UploadDirectoryHelper uploadDirectoryHelper,
                              TransferManagerConfiguration configuration,
                              DownloadDirectoryHelper downloadDirectoryHelper) {
-        this.s3AsyncClient = s3CrtAsyncClient;
+        this.s3AsyncClient = s3AsyncClient;
         this.isDefaultS3AsyncClient = false;
         this.transferConfiguration = configuration;
         this.uploadDirectoryHelper = uploadDirectoryHelper;
@@ -143,13 +144,13 @@ class GenericS3TransferManager implements S3TransferManager {
         try {
             assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
 
-            CompletableFuture<PutObjectResponse> crtFuture =
-                s3AsyncClient.putObject(putObjectRequest, requestBody);
+            CompletableFuture<PutObjectResponse> future =
+                s3AsyncClient.putObject(uploadRequest.putObjectRequest(), requestBody);
 
-            // Forward upload cancellation to CRT future
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
+            // Forward upload cancellation to future
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
 
-            CompletableFutureUtils.forwardTransformedResultTo(crtFuture, returnFuture,
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
                                                               r -> CompletedUpload.builder()
                                                                                   .response(r)
                                                                                   .build());
@@ -305,13 +306,12 @@ class GenericS3TransferManager implements S3TransferManager {
         try {
             assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
 
-            CompletableFuture<ResultT> crtFuture =
-                s3AsyncClient.getObject(downloadRequest.getObjectRequest(), responseTransformer);
+            CompletableFuture<ResultT> future = doGetObject(downloadRequest.getObjectRequest(), responseTransformer);
 
-            // Forward download cancellation to CRT future
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
+            // Forward download cancellation to future
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
 
-            CompletableFutureUtils.forwardTransformedResultTo(crtFuture, returnFuture,
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
                                                               r -> CompletedDownload.builder()
                                                                                     .result(r)
                                                                                     .build());
@@ -348,14 +348,12 @@ class GenericS3TransferManager implements S3TransferManager {
 
             assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
 
-            CompletableFuture<GetObjectResponse> crtFuture =
-                s3AsyncClient.getObject(downloadRequest.getObjectRequest(),
-                                        responseTransformer);
+            CompletableFuture<GetObjectResponse> future = doGetObject(downloadRequest.getObjectRequest(), responseTransformer);
 
-            // Forward download cancellation to CRT future
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
+            // Forward download cancellation to future
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
 
-            CompletableFutureUtils.forwardTransformedResultTo(crtFuture, returnFuture,
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
                                                               res -> CompletedFileDownload.builder()
                                                                                           .response(res)
                                                                                           .build());
@@ -457,13 +455,13 @@ class GenericS3TransferManager implements S3TransferManager {
             assertNotUnsupportedArn(copyRequest.copyObjectRequest().sourceBucket(), "copy sourceBucket");
             assertNotUnsupportedArn(copyRequest.copyObjectRequest().destinationBucket(), "copy destinationBucket");
 
-            CompletableFuture<CopyObjectResponse> crtFuture =
+            CompletableFuture<CopyObjectResponse> future =
                 s3AsyncClient.copyObject(copyRequest.copyObjectRequest());
 
-            // Forward transfer cancellation to CRT future
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, crtFuture);
+            // Forward transfer cancellation to future
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
 
-            CompletableFutureUtils.forwardTransformedResultTo(crtFuture, returnFuture,
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
                                                               r -> CompletedCopy.builder()
                                                                                 .response(r)
                                                                                 .build());
@@ -517,5 +515,15 @@ class GenericS3TransferManager implements S3TransferManager {
                                   + "appear to be a valid S3 access point ARN.");
 
         return !s3EndpointResource.region().isPresent();
+    }
+
+    // TODO remove once MultipartS3AsyncClient is complete
+    private <ResultT> CompletableFuture<ResultT> doGetObject(
+        GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ResultT> asyncResponseTransformer) {
+        S3AsyncClient clientToUse = s3AsyncClient;
+        if (s3AsyncClient instanceof MultipartS3AsyncClient) {
+            clientToUse = (S3AsyncClient) ((DelegatingS3AsyncClient) s3AsyncClient).delegate();
+        }
+        return clientToUse.getObject(getObjectRequest, asyncResponseTransformer);
     }
 }

@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.9__ __2024-02-22__
+## __AWS CRT-based S3 client__
+  - ### Bugfixes
+    - Fixed memory leak issue when a request was cancelled in the AWS CRT-based S3 client.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds IPv4 prefixes to health events
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Increasing NextToken parameter length restriction for List APIs from 512 to 1024.
+
+# __2.24.8__ __2024-02-21__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports the ability to restart pipelines in a running channel.
+
+## __AWS IoT Events__
+  - ### Features
+    - Increase the maximum length of descriptions for Inputs, Detector Models, and Alarm Models
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add content-length header in Json and  Xml Protocol Marshaller for String and Binary explicit Payloads.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release adds a field exposing model quality to read APIs for models. It also adds a model quality field to the API response when creating an inference scheduler.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds support for sharing Systems Manager parameters with other AWS accounts.
+
 # __2.24.7__ __2024-02-20__
 ## __AWS Lambda__
   - ### Features
