@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QLDB",
-    "contributor": "",
-    "description": "Clarify possible values for KmsKeyArn and EncryptionDescription."
-}
