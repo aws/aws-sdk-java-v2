@@ -8018,7 +8018,7 @@
           "documentation":"<p>The Amazon Web Services Region-unique, immutable identifier for the DB shard group.</p>"
         },
         "DBShardGroupIdentifier":{
-          "shape":"String",
+          "shape":"DBShardGroupIdentifier",
           "documentation":"<p>The name of the DB shard group.</p>"
         },
         "DBClusterIdentifier":{
@@ -8058,6 +8058,12 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "DBShardGroupIdentifier":{
+      "type":"string",
+      "max":63,
+      "min":1,
+      "pattern":"[a-zA-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"
     },
     "DBShardGroupNotFoundFault":{
       "type":"structure",
@@ -8776,7 +8782,7 @@
       "required":["DBShardGroupIdentifier"],
       "members":{
         "DBShardGroupIdentifier":{
-          "shape":"String",
+          "shape":"DBShardGroupIdentifier",
           "documentation":"<p>Teh name of the DB shard group to delete.</p>"
         }
       }
@@ -9618,7 +9624,7 @@
       "type":"structure",
       "members":{
         "DBShardGroupIdentifier":{
-          "shape":"String",
+          "shape":"DBShardGroupIdentifier",
           "documentation":"<p>The user-supplied DB shard group identifier or the Amazon Resource Name (ARN) of the DB shard group. If this parameter is specified, information for only the specific DB shard group is returned. This parameter isn't case-sensitive.</p> <p>Constraints:</p> <ul> <li> <p>If supplied, must match an existing DB shard group identifier.</p> </li> </ul>"
         },
         "Filters":{
@@ -12723,7 +12729,7 @@
       "required":["DBShardGroupIdentifier"],
       "members":{
         "DBShardGroupIdentifier":{
-          "shape":"String",
+          "shape":"DBShardGroupIdentifier",
           "documentation":"<p>The name of the DB shard group to modify.</p>"
         },
         "MaxACU":{
@@ -14080,7 +14086,7 @@
       "required":["DBShardGroupIdentifier"],
       "members":{
         "DBShardGroupIdentifier":{
-          "shape":"String",
+          "shape":"DBShardGroupIdentifier",
           "documentation":"<p>The name of the DB shard group to reboot.</p>"
         }
       }
