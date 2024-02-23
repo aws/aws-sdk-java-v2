@@ -21,18 +21,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -53,7 +49,6 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     private PutObjectRequest putObjectRequest;
     private S3AsyncClient s3AsyncClient;
     private MultipartUploadHelper multipartUploadHelper;
-    private TestListener listener;
 
     @BeforeAll
     public static void beforeAll() throws IOException {
@@ -69,8 +64,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     public void beforeEach() {
         s3AsyncClient = mock(S3AsyncClient.class);
         multipartUploadHelper = mock(MultipartUploadHelper.class);
-        listener = new TestListener();
-        asyncRequestBody = AsyncRequestBodyListener.wrap(AsyncRequestBody.fromFile(testFile), listener);
+        asyncRequestBody = AsyncRequestBody.fromFile(testFile);
         putObjectRequest = PutObjectRequest.builder().bucket("bucket").key("key").build();
     }
 
@@ -103,47 +97,15 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         verifyResumeToken(resumeToken, numExistingParts);
     }
 
-    @Test
-    void onNext_withCompletedUploadPartFuture_shouldUpdateListener() {
-        Map<Integer, CompletedPart> existingParts = existingParts(0);
-        KnownContentLengthAsyncRequestBodySubscriber subscriber = subscriber(putObjectRequest, asyncRequestBody, existingParts);
-
-        when(multipartUploadHelper.sendIndividualUploadPartRequest(any(String.class), any(Consumer.class),
-                                                                   any(Collection.class), any(Pair.class)))
-            .thenReturn(CompletableFuture.completedFuture(CompletedPart.builder().build()));
-
-        subscriber.onSubscribe(new DoNothingSubscription());
-        int contentLength = 44;
-        subscriber.onNext(AsyncRequestBody.fromBytes(new byte[contentLength]));
-        subscriber.onNext(AsyncRequestBody.fromBytes(new byte[contentLength]));
-
-        assertThat(listener.bytesTransferred).isEqualTo(contentLength * 2);
-    }
-
-    @Test
-    void onNext_withOngoingUploadPartFuture_shouldNotUpdateListener() {
-        Map<Integer, CompletedPart> existingParts = existingParts(0);
-        KnownContentLengthAsyncRequestBodySubscriber subscriber = subscriber(putObjectRequest, asyncRequestBody, existingParts);
-
-        when(multipartUploadHelper.sendIndividualUploadPartRequest(any(String.class), any(Consumer.class),
-                                                                   any(Collection.class), any(Pair.class)))
-            .thenReturn(new CompletableFuture<>());
-
-        subscriber.onSubscribe(new DoNothingSubscription());
-        int contentLength = 44;
-        subscriber.onNext(AsyncRequestBody.fromBytes(new byte[contentLength]));
-        subscriber.onNext(AsyncRequestBody.fromBytes(new byte[contentLength]));
-
-        assertThat(listener.bytesTransferred).isZero();
-    }
-
     private S3ResumeToken configureSubscriberAndPause(int numExistingParts,
                                                       CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture) {
         Map<Integer, CompletedPart> existingParts = existingParts(numExistingParts);
         KnownContentLengthAsyncRequestBodySubscriber subscriber = subscriber(putObjectRequest, asyncRequestBody, existingParts);
 
         when(multipartUploadHelper.completeMultipartUpload(any(CompletableFuture.class), any(String.class),
-             any(CompletedPart[].class), any(PutObjectRequest.class))).thenReturn(completeMpuFuture);
+                                                           any(CompletedPart[].class), any(PutObjectRequest.class),
+                                                           any()))
+            .thenReturn(completeMpuFuture);
         subscriber.onComplete();
         return subscriber.pause();
     }
@@ -178,25 +140,5 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         assertThat(s3ResumeToken.partSize()).isEqualTo(PART_SIZE);
         assertThat(s3ResumeToken.totalNumParts()).isEqualTo(TOTAL_NUM_PARTS);
         assertThat(s3ResumeToken.numPartsCompleted()).isEqualTo(numExistingParts);
-    }
-
-    private static class TestListener implements AsyncRequestBodyListener {
-        long bytesTransferred = 0;
-
-        @Override
-        public void updateProgress(long numBytes) {
-            bytesTransferred += numBytes;
-        }
-    }
-
-    private static class DoNothingSubscription implements Subscription {
-
-        @Override
-        public void request(long l) {
-        }
-
-        @Override
-        public void cancel() {
-        }
     }
 }

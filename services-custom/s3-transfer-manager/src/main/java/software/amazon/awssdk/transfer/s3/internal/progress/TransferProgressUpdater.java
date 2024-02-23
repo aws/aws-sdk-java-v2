@@ -85,12 +85,7 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    updateProgress(byteBuffer.limit());
-                }
-
-                @Override
-                public void updateProgress(long numBytes) {
-                    incrementBytesTransferred(numBytes);
+                    incrementBytesTransferred(byteBuffer.limit());
                     progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
                         if (Double.compare(ratioTransferred, 1.0) == 0) {
                             endOfStreamFutureCompleted();
@@ -114,6 +109,31 @@ public class TransferProgressUpdater {
                     }
                 }
             });
+    }
+
+    public PublisherListener<Long> javaProgressListener() {
+
+        return new PublisherListener<Long>() {
+            @Override
+            public void publisherSubscribe(Subscriber<? super Long> subscriber) {
+                resetBytesTransferred();
+            }
+
+            @Override
+            public void subscriberOnNext(Long contentLength) {
+                incrementBytesTransferred(contentLength);
+            }
+
+            @Override
+            public void subscriberOnError(Throwable t) {
+                transferFailed(t);
+            }
+
+            @Override
+            public void subscriberOnComplete() {
+                endOfStreamFuture.complete(null);
+            }
+        };
     }
 
     public PublisherListener<S3MetaRequestProgress> crtProgressListener() {

@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -112,7 +112,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     @ParameterizedTest
     @MethodSource("transferManagers")
     void upload_asyncRequestBodyFromString_SentCorrectly(S3TransferManager transferManager) throws IOException {
-        String content = UUID.randomUUID().toString();
+        String content = RandomStringUtils.randomAscii(OBJ_SIZE);
         CaptureTransferListener transferListener = new CaptureTransferListener();
 
         Upload upload =

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -27,7 +29,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -59,7 +61,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final CompletableFuture<PutObjectResponse> returnFuture;
     private final Map<Integer, CompletedPart> completedParts;
     private final Map<Integer, CompletedPart> existingParts;
-    private final AsyncRequestBodyListener listener;
+    private final PublisherListener<Long> progressListener;
     private Subscription subscription;
     private volatile boolean isDone;
     private volatile boolean isPaused;
@@ -77,14 +79,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.numExistingParts = NumericUtils.saturatedCast(mpuRequestContext.numPartsCompleted());
         this.completedParts = new ConcurrentHashMap<>();
         this.multipartUploadHelper = multipartUploadHelper;
-        this.listener = listener(mpuRequestContext.request().right());
-    }
-
-    private AsyncRequestBodyListener listener(AsyncRequestBody asyncRequestBody) {
-        if (asyncRequestBody instanceof AsyncRequestBodyListener.NotifyingAsyncRequestBody) {
-            return ((AsyncRequestBodyListener.NotifyingAsyncRequestBody) asyncRequestBody).listener();
-        }
-        return null;
+        this.progressListener = putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes()
+                                                           .getAttribute(JAVA_PROGRESS_LISTENER)).orElse(null);
     }
 
     private int determinePartCount(long contentLength, long partSize) {
@@ -160,7 +156,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         Consumer<CompletedPart> completedPartConsumer =
             completedPart -> completedParts.put(completedPart.partNumber(), completedPart);
         multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedPartConsumer, futures,
-                                                              Pair.of(uploadRequest, asyncRequestBody))
+                                                              Pair.of(uploadRequest, asyncRequestBody), progressListener)
                              .whenComplete((r, t) -> {
                                  if (t != null) {
                                      if (shouldFailRequest()) {
@@ -168,7 +164,6 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                                                                                      putObjectRequest);
                                      }
                                  } else {
-                                     updateProgress(asyncRequestBody.contentLength().orElse(0L));
                                      completeMultipartUploadIfFinished(asyncRequestBodyInFlight.decrementAndGet());
                                  }
                              });
@@ -176,8 +171,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     }
 
     private void updateProgress(long contentLength) {
-        if (listener != null && contentLength > 0) {
-            listener.updateProgress(contentLength);
+        if (progressListener != null && contentLength > 0) {
+            progressListener.subscriberOnNext(contentLength);
         }
     }
 
@@ -214,7 +209,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                 parts = existingParts.values().toArray(new CompletedPart[0]);
             }
             completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts,
-                                                                              putObjectRequest);
+                                                                              putObjectRequest, progressListener);
         }
     }
 

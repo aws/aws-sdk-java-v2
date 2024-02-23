@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -78,9 +79,19 @@ public final class MultipartUploadHelper {
     CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(CompletableFuture<PutObjectResponse> returnFuture,
                                  String uploadId,
                                  CompletedPart[] completedParts,
-                                 PutObjectRequest putObjectRequest) {
+                                 PutObjectRequest putObjectRequest,
+                                 PublisherListener<Long> progressListener) {
         CompletableFuture<CompleteMultipartUploadResponse> future =
-            genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts);
+            genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts)
+                                  .whenComplete((r, t) -> {
+                                      if (t != null) {
+                                          // leave exception handling to the subscriber which checks failureActionInitiated flag
+                                      } else {
+                                          if (progressListener != null) {
+                                              progressListener.subscriberOnComplete();
+                                          }
+                                      }
+                                  });
 
         future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId))
               .exceptionally(throwable -> {
@@ -94,18 +105,29 @@ public final class MultipartUploadHelper {
     CompletableFuture<CompletedPart> sendIndividualUploadPartRequest(String uploadId,
                                                                      Consumer<CompletedPart> completedPartsConsumer,
                                                                      Collection<CompletableFuture<CompletedPart>> futures,
-                                                                     Pair<UploadPartRequest, AsyncRequestBody> requestPair) {
+                                                                     Pair<UploadPartRequest, AsyncRequestBody> requestPair,
+                                                                     PublisherListener<Long> progressListener) {
         UploadPartRequest uploadPartRequest = requestPair.left();
         Integer partNumber = uploadPartRequest.partNumber();
+        long contentLength = requestPair.right().contentLength().orElse(0L);
         log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
-                        + "contentLength " + requestPair.right().contentLength());
+                        + "contentLength " + contentLength);
 
         CompletableFuture<UploadPartResponse> uploadPartFuture = s3AsyncClient.uploadPart(uploadPartRequest,
                                                                                           requestPair.right());
 
         CompletableFuture<CompletedPart> convertFuture =
             uploadPartFuture.thenApply(uploadPartResponse -> convertUploadPartResponse(completedPartsConsumer, partNumber,
-                                                                                       uploadPartResponse));
+                                                                                       uploadPartResponse))
+                            .whenComplete((r, t) -> {
+                                if (t != null) {
+                                    // leave exception handling to the subscriber which checks failureActionInitiated flag
+                                } else {
+                                    if (progressListener != null && contentLength > 0) {
+                                        progressListener.subscriberOnNext(contentLength);
+                                    }
+                                }
+                            });
         futures.add(convertFuture);
         CompletableFutureUtils.forwardExceptionTo(convertFuture, uploadPartFuture);
         return convertFuture;
