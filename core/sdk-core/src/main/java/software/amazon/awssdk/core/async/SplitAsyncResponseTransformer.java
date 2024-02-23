@@ -18,8 +18,7 @@ package software.amazon.awssdk.core.async;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
-import software.amazon.awssdk.core.internal.async.DeafultSplitAsyncResponseTransformer;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.core.internal.async.DefaultSplitAsyncResponseTransformer;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -35,7 +34,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 public interface SplitAsyncResponseTransformer<ResponseT, ResultT>
-    extends ToCopyableBuilder<SplitAsyncResponseTransformer.Builder<ResponseT, ResultT>, SplitAsyncResponseTransformer<ResponseT, ResultT>> {
+    extends ToCopyableBuilder<SplitAsyncResponseTransformer.Builder<ResponseT, ResultT>,
+    SplitAsyncResponseTransformer<ResponseT, ResultT>> {
 
     /**
      * The individual {@link AsyncResponseTransformer} will be available through the publisher returned by this method.
@@ -54,7 +54,7 @@ public interface SplitAsyncResponseTransformer<ResponseT, ResultT>
 
 
     static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
-        return new DeafultSplitAsyncResponseTransformer.DefaultBuilder<>();
+        return DefaultSplitAsyncResponseTransformer.builder();
     }
 
     interface Builder<ResponseT, ResultT>

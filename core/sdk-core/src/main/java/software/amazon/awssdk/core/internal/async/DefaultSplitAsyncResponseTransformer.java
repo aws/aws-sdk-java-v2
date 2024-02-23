@@ -17,19 +17,19 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public class DeafultSplitAsyncResponseTransformer<ResponseT, ResultT>
+public class DefaultSplitAsyncResponseTransformer<ResponseT, ResultT>
     implements SplitAsyncResponseTransformer<ResponseT, ResultT> {
 
     private final SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
     private final CompletableFuture<ResultT> future;
 
-    private DeafultSplitAsyncResponseTransformer(Builder<ResponseT, ResultT> builder) {
+    private DefaultSplitAsyncResponseTransformer(Builder<ResponseT, ResultT> builder) {
         this.publisher = Validate.paramNotNull(
             builder.publisher(), "asyncResponseTransformerPublisher");
         this.future = Validate.paramNotNull(
@@ -55,12 +55,24 @@ public class DeafultSplitAsyncResponseTransformer<ResponseT, ResultT>
 
     @Override
     public SplitAsyncResponseTransformer.Builder<ResponseT, ResultT> toBuilder() {
-        return new DefaultBuilder<ResponseT, ResultT>().publisher(this.publisher).preparedFuture(this.future);
+        return new DefaultBuilder<>(this);
+    }
+
+    public static <ResponseT, ResultT> DefaultBuilder<ResponseT, ResultT> builder() {
+        return new DefaultBuilder<>();
     }
 
     public static class DefaultBuilder<ResponseT, ResultT> implements SplitAsyncResponseTransformer.Builder<ResponseT, ResultT> {
         private SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
         private CompletableFuture<ResultT> future;
+
+        DefaultBuilder() {
+        }
+
+        DefaultBuilder(DefaultSplitAsyncResponseTransformer<ResponseT, ResultT> split) {
+            this.publisher = split.publisher;
+            this.future = split.future;
+        }
 
         @Override
         public SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher() {
@@ -87,7 +99,7 @@ public class DeafultSplitAsyncResponseTransformer<ResponseT, ResultT>
 
         @Override
         public SplitAsyncResponseTransformer<ResponseT, ResultT> build() {
-            return new DeafultSplitAsyncResponseTransformer<>(this);
+            return new DefaultSplitAsyncResponseTransformer<>(this);
         }
     }
 }

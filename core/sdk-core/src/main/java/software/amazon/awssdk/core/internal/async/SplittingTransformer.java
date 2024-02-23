@@ -111,9 +111,12 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
                                  Long maximumBufferSizeInBytes,
                                  CompletableFuture<ResultT> returnFuture) {
-        this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
-        this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
-        this.maximumBufferSize = Validate.isPositive(maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
+        this.upstreamResponseTransformer = Validate.paramNotNull(
+            upstreamResponseTransformer, "upstreamResponseTransformer");
+        this.returnFuture = Validate.paramNotNull(
+            returnFuture, "returnFuture");
+        this.maximumBufferSize = Validate.isPositive(
+            maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
     }
 
     /**
