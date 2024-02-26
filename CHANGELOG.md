@@ -1,4 +1,39 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.10__ __2024-02-23__
+## __AWS AppSync__
+  - ### Features
+    - Documentation only updates for AppSync
+
+## __Amazon QLDB__
+  - ### Features
+    - Clarify possible values for KmsKeyArn and EncryptionDescription.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add pattern and length based validations for DBShardGroupIdentifier
+
+## __CloudWatch RUM__
+  - ### Features
+    - Doc-only update for new RUM metrics that were added
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Enable multipart configuration by default when creating a new S3TranferManager instance using the .create() method
+    - Make Transfer Manager work by default with S3AsyncClient when multipart configuration is enabled.
+
+# __2.24.9__ __2024-02-22__
+## __AWS CRT-based S3 client__
+  - ### Bugfixes
+    - Fixed memory leak issue when a request was cancelled in the AWS CRT-based S3 client.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds IPv4 prefixes to health events
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Increasing NextToken parameter length restriction for List APIs from 512 to 1024.
+
 # __2.24.8__ __2024-02-21__
 ## __AWS Elemental MediaLive__
   - ### Features

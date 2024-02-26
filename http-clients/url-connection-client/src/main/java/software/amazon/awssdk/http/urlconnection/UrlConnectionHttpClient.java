@@ -152,7 +152,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {
         SdkHttpRequest sdkHttpRequest = request.httpRequest();
         HttpURLConnection connection = connectionFactory.createConnection(sdkHttpRequest.getUri());
-        setHeaders(connection, sdkHttpRequest);
+        sdkHttpRequest.forEachHeader((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
 
         // connection.setRequestProperty("Transfer-Encoding", "chunked") does not work, i.e., property does not get set
         if (sdkHttpRequest.matchingHeaders("Transfer-Encoding").contains("chunked")) {
@@ -178,13 +178,6 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                       .ifPresent(connection::setFixedLengthStreamingMode);
 
         return connection;
-    }
-
-    private void setHeaders(HttpURLConnection connection, SdkHttpRequest request) {
-        request.forEachHeader((name, values) -> {
-            String commaSeparated = String.join(",", values);
-            connection.addRequestProperty(name, commaSeparated);
-        });
     }
 
     private HttpURLConnection createDefaultConnection(URI uri, SSLSocketFactory socketFactory) {

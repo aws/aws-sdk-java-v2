@@ -52,10 +52,27 @@ public final class DefaultAwsV4aAuthScheme implements AwsV4aAuthScheme {
      */
     @Override
     public AwsV4aHttpSigner signer() {
+        if (SignerSingletonHolder.ERROR != null) {
+            throw SignerSingletonHolder.ERROR;
+        }
         return SignerSingletonHolder.INSTANCE;
     }
 
     private static class SignerSingletonHolder {
-        private static final AwsV4aHttpSigner INSTANCE = AwsV4aHttpSigner.create();
+        private static final AwsV4aHttpSigner INSTANCE;
+        private static final RuntimeException ERROR;
+
+        // Attempt to load the Sigv4a signer and cache the error if CRT is not available on the classpath.
+        static {
+            AwsV4aHttpSigner instance = null;
+            RuntimeException error = null;
+            try {
+                instance = AwsV4aHttpSigner.create();
+            } catch (RuntimeException e) {
+                error = e;
+            }
+            INSTANCE = instance;
+            ERROR = error;
+        }
     }
 }
