@@ -82,18 +82,10 @@ public final class MultipartUploadHelper {
                                  PutObjectRequest putObjectRequest,
                                  PublisherListener<Long> progressListener) {
         CompletableFuture<CompleteMultipartUploadResponse> future =
-            genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts)
-                                  .whenComplete((r, t) -> {
-                                      if (t != null) {
-                                          // leave exception handling to the subscriber which checks failureActionInitiated flag
-                                      } else {
-                                          if (progressListener != null) {
-                                              progressListener.subscriberOnComplete();
-                                          }
-                                      }
-                                  });
+            genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts);
 
-        future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId))
+        future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId,
+                                                                       progressListener))
               .exceptionally(throwable -> {
                   genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred", throwable);
                   return null;
@@ -117,20 +109,19 @@ public final class MultipartUploadHelper {
                                                                                           requestPair.right());
 
         CompletableFuture<CompletedPart> convertFuture =
-            uploadPartFuture.thenApply(uploadPartResponse -> convertUploadPartResponse(completedPartsConsumer, partNumber,
-                                                                                       uploadPartResponse))
-                            .whenComplete((r, t) -> {
-                                if (t != null) {
-                                    // leave exception handling to the subscriber which checks failureActionInitiated flag
-                                } else {
-                                    if (progressListener != null && contentLength > 0) {
-                                        progressListener.subscriberOnNext(contentLength);
-                                    }
-                                }
-                            });
+            uploadPartFuture.thenApply(uploadPartResponse -> {
+                updateProgress(progressListener, contentLength);
+                return convertUploadPartResponse(completedPartsConsumer, partNumber, uploadPartResponse);
+            });
         futures.add(convertFuture);
         CompletableFutureUtils.forwardExceptionTo(convertFuture, uploadPartFuture);
         return convertFuture;
+    }
+
+    private void updateProgress(PublisherListener<Long> progressListener, long contentLength) {
+        if (contentLength > 0) {
+            progressListener.subscriberOnNext(contentLength);
+        }
     }
 
     void failRequestsElegantly(Collection<CompletableFuture<CompletedPart>> futures,

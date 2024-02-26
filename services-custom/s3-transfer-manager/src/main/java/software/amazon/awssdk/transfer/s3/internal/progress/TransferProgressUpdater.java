@@ -111,7 +111,10 @@ public class TransferProgressUpdater {
             });
     }
 
-    public PublisherListener<Long> javaProgressListener() {
+    /**
+     * Progress listener for Java-based S3Client with multipart enabled.
+     */
+    public PublisherListener<Long> multipartClientProgressListener() {
 
         return new PublisherListener<Long>() {
             @Override

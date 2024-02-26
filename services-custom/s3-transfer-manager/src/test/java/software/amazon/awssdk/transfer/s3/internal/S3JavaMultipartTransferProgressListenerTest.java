@@ -33,8 +33,8 @@ import java.net.URI;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -63,23 +63,23 @@ public class S3JavaMultipartTransferProgressListenerTest {
     private static final String EXAMPLE_BUCKET = "Example-Bucket";
     private static final String TEST_KEY = "16mib_file.dat";
     private static final int OBJ_SIZE = 16 * 1024 * 1024;
-    private static S3AsyncClient mpuClient;
-    private RandomTempFile testFile;
+    private static RandomTempFile testFile;
+    private static URI testEndpoint;
 
     @BeforeAll
-    public static void init(WireMockRuntimeInfo wm) {
-        mpuClient = S3AsyncClient.builder()
-                                 .multipartEnabled(true)
-                                 .region(Region.US_EAST_1)
-                                 .endpointOverride(URI.create(wm.getHttpBaseUrl()))
-                                 .credentialsProvider(
-                                     StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
-                                 .build();
+    public static void init(WireMockRuntimeInfo wm) throws IOException {
+        testEndpoint = URI.create(wm.getHttpBaseUrl());
+        testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
     }
 
-    @BeforeEach
-    public void setUp() throws IOException {
-        testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
+    private static S3AsyncClient s3AsyncClient(boolean multipartEnabled) {
+        return S3AsyncClient.builder()
+                            .multipartEnabled(multipartEnabled)
+                            .region(Region.US_EAST_1)
+                            .endpointOverride(testEndpoint)
+                            .credentialsProvider(
+                                StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+                            .build();
     }
 
     private static void assertMockOnFailure(TransferListener transferListenerMock) {
@@ -88,14 +88,18 @@ public class S3JavaMultipartTransferProgressListenerTest {
         Mockito.verify(transferListenerMock, times(0)).transferComplete(ArgumentMatchers.any());
     }
 
-    @Test
-    void listeners_reports_ErrorsWithValidPayload() throws InterruptedException {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void listeners_reports_ErrorsWithValidPayload(boolean multipartEnabled) throws InterruptedException {
+        S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
+
         TransferListener transferListenerMock = mock(TransferListener.class);
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(404).withBody(ERROR_BODY)));
-        S3TransferManager tm = new GenericS3TransferManager(mpuClient, mock(UploadDirectoryHelper.class),
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
                                                             mock(TransferManagerConfiguration.class),
                                                             mock(DownloadDirectoryHelper.class));
         CaptureTransferListener transferListener = new CaptureTransferListener();
+
         FileUpload fileUpload =
             tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
                                 .source(testFile)
@@ -113,15 +117,18 @@ public class S3JavaMultipartTransferProgressListenerTest {
         assertMockOnFailure(transferListenerMock);
     }
 
-    @Test
-    void listeners_reports_ErrorsWithValidInValidPayload() throws InterruptedException {
-        TransferListener transferListenerMock = mock(TransferListener.class);
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void listeners_reports_ErrorsWithValidInValidPayload(boolean multipartEnabled) throws InterruptedException {
+        S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
+        TransferListener transferListenerMock = mock(TransferListener.class);
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(404).withBody("?")));
-        S3TransferManager tm = new GenericS3TransferManager(mpuClient, mock(UploadDirectoryHelper.class),
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
                                                             mock(TransferManagerConfiguration.class),
                                                             mock(DownloadDirectoryHelper.class));
         CaptureTransferListener transferListener = new CaptureTransferListener();
+
         FileUpload fileUpload =
             tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
                                 .source(testFile)
@@ -141,12 +148,14 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
 
-    @Test
-    void listeners_reports_ErrorsWhenCancelled() throws InterruptedException {
-        TransferListener transferListenerMock = mock(TransferListener.class);
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void listeners_reports_ErrorsWhenCancelled(boolean multipartEnabled) throws InterruptedException {
+        S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
+        TransferListener transferListenerMock = mock(TransferListener.class);
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody("{}")));
-        S3TransferManager tm = new GenericS3TransferManager(mpuClient, mock(UploadDirectoryHelper.class),
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
                                                             mock(TransferManagerConfiguration.class),
                                                             mock(DownloadDirectoryHelper.class));
         CaptureTransferListener transferListener = new CaptureTransferListener();
@@ -167,17 +176,19 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     }
 
-    @Test
-    void listeners_reports_ProgressWhenSuccess() throws InterruptedException {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void listeners_reports_ProgressWhenSuccess(boolean multipartEnabled) throws InterruptedException {
+        S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
+
         TransferListener transferListenerMock = mock(TransferListener.class);
         String createMpuUrl = "/" + EXAMPLE_BUCKET + "/" + TEST_KEY + "?uploads";
         String createMpuResponse = "<CreateMultipartUploadResult><UploadId>1234</UploadId></CreateMultipartUploadResult>";
         stubFor(post(urlEqualTo(createMpuUrl)).willReturn(aResponse().withStatus(200).withBody(createMpuResponse)));
         stubFor(any(anyUrl()).atPriority(6).willReturn(aResponse().withStatus(200).withBody("<body/>")));
-        S3TransferManager tm = new GenericS3TransferManager(mpuClient, mock(UploadDirectoryHelper.class),
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
                                                             mock(TransferManagerConfiguration.class),
                                                             mock(DownloadDirectoryHelper.class));
-
         CaptureTransferListener transferListener = new CaptureTransferListener();
 
         tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
@@ -191,9 +202,11 @@ public class S3JavaMultipartTransferProgressListenerTest {
         assertThat(transferListener.getExceptionCaught()).isNull();
         assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.isTransferInitiated()).isTrue();
-        Mockito.verify(transferListenerMock, times(2)).bytesTransferred(ArgumentMatchers.any());
         Mockito.verify(transferListenerMock, times(0)).transferFailed(ArgumentMatchers.any());
         Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
         Mockito.verify(transferListenerMock, times(1)).transferComplete(ArgumentMatchers.any());
+
+        int numTimesBytesTransferred = multipartEnabled ? 2 : 1;
+        Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
     }
 }

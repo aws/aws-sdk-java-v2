@@ -23,6 +23,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -93,7 +94,8 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     public BiFunction<CompleteMultipartUploadResponse, Throwable, Void> handleExceptionOrResponse(
         RequestT request,
         CompletableFuture<ResponseT> returnFuture,
-        String uploadId) {
+        String uploadId,
+        PublisherListener<Long> progressListener) {
 
         return (completeMultipartUploadResponse, throwable) -> {
             if (throwable != null) {
@@ -103,6 +105,7 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
             } else {
                 returnFuture.complete(responseConverter.apply(
                     completeMultipartUploadResponse));
+                progressListener.subscriberOnComplete();
             }
 
             return null;

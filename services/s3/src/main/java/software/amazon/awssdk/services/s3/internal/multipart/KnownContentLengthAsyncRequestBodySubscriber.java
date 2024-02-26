@@ -80,7 +80,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.completedParts = new ConcurrentHashMap<>();
         this.multipartUploadHelper = multipartUploadHelper;
         this.progressListener = putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes()
-                                                           .getAttribute(JAVA_PROGRESS_LISTENER)).orElse(null);
+                                                                                   .getAttribute(JAVA_PROGRESS_LISTENER))
+                                                .orElseGet(NoOpPublisherListener::new);
     }
 
     private int determinePartCount(long contentLength, long partSize) {
@@ -171,7 +172,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     }
 
     private void updateProgress(long contentLength) {
-        if (progressListener != null && contentLength > 0) {
+        if (contentLength > 0) {
             progressListener.subscriberOnNext(contentLength);
         }
     }
@@ -223,5 +224,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             currPart++;
         }
         return merged;
+    }
+
+    private static class NoOpPublisherListener implements PublisherListener<Long> {
     }
 }

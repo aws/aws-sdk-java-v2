@@ -137,9 +137,12 @@ class GenericS3TransferManager implements S3TransferManager {
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
 
-        Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
-            b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.javaProgressListener());
-        PutObjectRequest putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressListener);
+        PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
+        if (isS3ClientMultipartEnabled()) {
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
+                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
+            putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressListener);
+        }
 
         try {
             assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
@@ -185,7 +188,7 @@ class GenericS3TransferManager implements S3TransferManager {
             pauseObservable = new PauseObservable();
             Consumer<AwsRequestOverrideConfiguration.Builder> attachObservableAndListener =
                 b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable)
-                      .putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.javaProgressListener());
+                      .putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
             putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservableAndListener);
         } else {
             pauseObservable = null;
