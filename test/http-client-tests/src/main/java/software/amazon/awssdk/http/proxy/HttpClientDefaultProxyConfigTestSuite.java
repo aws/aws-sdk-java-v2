@@ -59,16 +59,18 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 
 public abstract class HttpClientDefaultProxyConfigTestSuite {
-    SecureRandom random = new SecureRandom();
-    private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
-    protected WireMockServer mockProxy = new WireMockServer(new WireMockConfiguration()
-                                                                .dynamicPort()
-                                                                .dynamicHttpsPort()
-                                                                .enableBrowserProxying(true));
 
-    protected WireMockServer mockServer = new WireMockServer(new WireMockConfiguration()
-                                                                 .dynamicPort()
-                                                                 .dynamicHttpsPort());
+    private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
+
+    SecureRandom random = new SecureRandom();
+    WireMockServer mockProxy = new WireMockServer(new WireMockConfiguration()
+                                                      .dynamicPort()
+                                                      .dynamicHttpsPort()
+                                                      .enableBrowserProxying(true));
+
+    WireMockServer mockServer = new WireMockServer(new WireMockConfiguration()
+                                                       .dynamicPort()
+                                                       .dynamicHttpsPort());
 
     protected abstract boolean isSyncClient();
 
@@ -104,19 +106,19 @@ public abstract class HttpClientDefaultProxyConfigTestSuite {
             Arguments.of(new TestData()
                              .addSystemProperKeyValue("http.proxyHost", "localhost")
                              .addSystemProperKeyValue("http.proxyPort", "%s")
-                             .addEnvironmentPropertyProperKeyValue("https_proxy", "http://" + "localhost" + ":" + "%s" + "/")
-                , "Provided system and environment variable when configured uses proxy config"),
+                             .addEnvironmentPropertyProperKeyValue("https_proxy", "http://" + "localhost" + ":" + "%s" + "/"),
+                         "Provided system and environment variable when configured uses proxy config"),
 
             Arguments.of(new TestData()
                              .addSystemProperKeyValue("http.proxyHost", "localhost")
                              .addSystemProperKeyValue("http.proxyPort", "%s")
-                             .addEnvironmentPropertyProperKeyValue("none", "none")
-                , "Provided system  and No environment variables uses proxy config"),
+                             .addEnvironmentPropertyProperKeyValue("none", "none"),
+                         "Provided system  and No environment variables uses proxy config"),
 
             Arguments.of(new TestData()
                              .addSystemProperKeyValue("none", "none")
-                             .addEnvironmentPropertyProperKeyValue("http_proxy", "http://" + "localhost" + ":" + "%s" + "/")
-                , "Provided Environment Variables  and No system variables uses proxy config")
+                             .addEnvironmentPropertyProperKeyValue("http_proxy", "http://" + "localhost" + ":" + "%s" + "/"),
+                         "Provided Environment Variables  and No system variables uses proxy config")
         );
     }
 
@@ -140,13 +142,15 @@ public abstract class HttpClientDefaultProxyConfigTestSuite {
         testData.systemPropertyPair.stream()
                                    .map(r -> isSyncClient() ? r : Pair.of(r.left().replace("http", "https"),
                                                                           r.right().replace("http", "https")))
-                                   .forEach(settingsPair -> System.setProperty(settingsPair.left(), String.format(settingsPair.right(), port)));
+                                   .forEach(settingsPair -> System.setProperty(settingsPair.left(),
+                                                                               String.format(settingsPair.right(), port)));
 
         testData.envSystemSetting.stream()
                                  .map(r -> isSyncClient() ? r : Pair.of(r.left().replace("http", "https"),
                                                                         r.right().replace("http", "https")))
                                  .forEach(settingsPair -> ENVIRONMENT_VARIABLE_HELPER.set(settingsPair.left(),
-                                                                                          String.format(settingsPair.right(), port)));
+                                                                                          String.format(settingsPair.right(),
+                                                                                                        port)));
     }
 
     private void setSystemPropertyAndEnvironmentVariables(TestData testData, int port) {
