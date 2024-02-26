@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.utils.async.InputStreamSubscriber;
+import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
 
 /**
  * A {@link AsyncResponseTransformer} that allows performing blocking reads on the response data.
@@ -50,7 +50,7 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        InputStreamSubscriber inputStreamSubscriber = new InputStreamSubscriber();
+        AbortableInputStreamSubscriber inputStreamSubscriber = AbortableInputStreamSubscriber.builder().build();
         publisher.subscribe(inputStreamSubscriber);
         future.complete(new ResponseInputStream<>(response, inputStreamSubscriber));
     }

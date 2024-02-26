@@ -148,7 +148,7 @@ public final class CrtFileUpload implements FileUpload {
 
     @Override
     public String toString() {
-        return ToString.builder("DefaultFileUpload")
+        return ToString.builder("CrtFileUpload")
                        .add("completionFuture", completionFuture)
                        .add("progress", progress)
                        .add("request", request)

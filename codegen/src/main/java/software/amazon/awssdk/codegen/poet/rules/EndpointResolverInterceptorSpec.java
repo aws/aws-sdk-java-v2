@@ -58,6 +58,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.ModelAuthSchemeClassesKnowledgeIndex;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -96,7 +97,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         // We need to know whether the service has a dependency on the http-auth-aws module. Because we can't check that
         // directly, assume that if they're using AwsV4AuthScheme or AwsV4aAuthScheme that it's available.
-        Set<Class<?>> supportedAuthSchemes = new AuthSchemeSpecUtils(model).allServiceConcreteAuthSchemeClasses();
+        Set<Class<?>> supportedAuthSchemes =
+            ModelAuthSchemeClassesKnowledgeIndex.of(model).serviceConcreteAuthSchemeClasses();
         this.dependsOnHttpAuthAws = supportedAuthSchemes.contains(AwsV4AuthScheme.class) ||
                                     supportedAuthSchemes.contains(AwsV4aAuthScheme.class);
 

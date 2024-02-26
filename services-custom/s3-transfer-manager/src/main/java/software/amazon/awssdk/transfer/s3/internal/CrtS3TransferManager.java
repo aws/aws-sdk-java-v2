@@ -20,7 +20,6 @@ import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttrib
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.internal.GenericS3TransferManager.assertNotUnsupportedArn;
-import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -31,7 +30,6 @@ import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
-import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -51,6 +49,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 class CrtS3TransferManager extends DelegatingS3TransferManager {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
 
     CrtS3TransferManager(TransferManagerConfiguration transferConfiguration, S3AsyncClient s3AsyncClient,
@@ -99,67 +98,15 @@ class CrtS3TransferManager extends DelegatingS3TransferManager {
         return new CrtFileUpload(returnFuture, progressUpdater.progress(), observable, uploadFileRequest);
     }
 
-    private FileUpload uploadFromBeginning(ResumableFileUpload resumableFileUpload, boolean fileModified,
-                                           boolean noResumeToken) {
-        UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
-        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
-        if (fileModified) {
-            log.debug(() -> String.format("The file (%s) has been modified since "
-                                          + "the last pause. " +
-                                          "The SDK will upload the requested object in bucket"
-                                          + " (%s) with key (%s) from "
-                                          + "the "
-                                          + "beginning.",
-                                          uploadFileRequest.source(),
-                                          putObjectRequest.bucket(),
-                                          putObjectRequest.key()));
-            resumableFileUpload.multipartUploadId()
-                               .ifPresent(id -> {
-                                   log.debug(() -> "Aborting previous upload with multipartUploadId: " + id);
-                                   s3AsyncClient.abortMultipartUpload(
-                                                    AbortMultipartUploadRequest.builder()
-                                                                               .bucket(putObjectRequest.bucket())
-                                                                               .key(putObjectRequest.key())
-                                                                               .uploadId(id)
-                                                                               .build())
-                                                .exceptionally(t -> {
-                                                    log.warn(() -> String.format("Failed to abort previous multipart upload "
-                                                                                 + "(id: %s)"
-                                                                                 + ". You may need to call "
-                                                                                 + "S3AsyncClient#abortMultiPartUpload to "
-                                                                                 + "free all storage consumed by"
-                                                                                 + " all parts. ",
-                                                                                 id), t);
-                                                    return null;
-                                                });
-                               });
-        }
-
-        if (noResumeToken) {
-            log.debug(() -> String.format("No resume token is found. " +
-                                          "The SDK will upload the requested object in bucket"
-                                          + " (%s) with key (%s) from "
-                                          + "the beginning.",
-                                          putObjectRequest.bucket(),
-                                          putObjectRequest.key()));
-        }
-
-
-        return uploadFile(uploadFileRequest);
-    }
-
     @Override
     public FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
         Validate.paramNotNull(resumableFileUpload, "resumableFileUpload");
 
-        boolean fileModified = !fileNotModified(resumableFileUpload.fileLength(),
-                                                resumableFileUpload.fileLastModified(),
-                                                resumableFileUpload.uploadFileRequest().source());
-
-        boolean noResumeToken = !hasResumeToken(resumableFileUpload);
+        boolean fileModified = PAUSE_RESUME_HELPER.fileModified(resumableFileUpload, s3AsyncClient);
+        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
 
         if (fileModified || noResumeToken) {
-            return uploadFromBeginning(resumableFileUpload, fileModified, noResumeToken);
+            return uploadFile(resumableFileUpload.uploadFileRequest());
         }
 
         return doResumeUpload(resumableFileUpload);
@@ -186,10 +133,6 @@ class CrtS3TransferManager extends DelegatingS3TransferManager {
                                    .withTotalNumParts(resumableFileUpload.totalParts().orElse(0L))
                                    .withPartSize(resumableFileUpload.partSizeInBytes().getAsLong())
                                    .withUploadId(resumableFileUpload.multipartUploadId().orElse(null)));
-    }
-
-    private boolean hasResumeToken(ResumableFileUpload resumableFileUpload) {
-        return resumableFileUpload.totalParts().isPresent() && resumableFileUpload.partSizeInBytes().isPresent();
     }
 
     private PutObjectRequest attachSdkAttribute(PutObjectRequest putObjectRequest,

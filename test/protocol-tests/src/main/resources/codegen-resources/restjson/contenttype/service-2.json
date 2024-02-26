@@ -223,6 +223,9 @@
         "HeadersOnlyEvent": {
           "shape": "HeadersOnlyEvent"
         },
+        "EndEvent": {
+          "shape": "EndEvent"
+        },
         "ImplicitPayloadAndHeadersEvent": {
           "shape": "ImplicitPayloadAndHeadersEvent"
         }
@@ -279,6 +282,12 @@
         }
       },
       "event": true
+    },
+    "EndEvent":{
+      "type":"structure",
+      "members":{
+      },
+      "event":true
     },
     "BlobPayloadMember":{"type":"blob"},
     "EventStream": {
