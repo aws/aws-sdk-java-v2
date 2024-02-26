@@ -134,7 +134,7 @@ public final class UploadWithUnknownContentLengthHelper {
             this.returnFuture = returnFuture;
             this.progressListener = putObjectRequest.overrideConfiguration()
                                                     .map(c -> c.executionAttributes().getAttribute(JAVA_PROGRESS_LISTENER))
-                                                    .orElseGet(NoOpPublisherListener::new);
+                                                    .orElseGet(PublisherListener::noOp);
         }
 
         @Override
@@ -249,11 +249,8 @@ public final class UploadWithUnknownContentLengthHelper {
                 CompletedPart[] parts = completedParts.stream()
                                                       .sorted(Comparator.comparingInt(CompletedPart::partNumber))
                                                       .toArray(CompletedPart[]::new);
-                multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest, progressListener);
+                multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest);
             }
         }
-    }
-
-    private static class NoOpPublisherListener implements PublisherListener<Long> {
     }
 }

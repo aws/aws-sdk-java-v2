@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.UploadPartCopyRequestIterable;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
@@ -147,8 +146,7 @@ public final class CopyObjectHelper {
                                                                                     optimalPartSize);
         CompletableFutureUtils.allOfExceptionForwarded(futures.toArray(new CompletableFuture[0]))
                               .thenCompose(ignore -> completeMultipartUpload(copyObjectRequest, uploadId, completedParts))
-                              .handle(genericMultipartHelper.handleExceptionOrResponse(copyObjectRequest, returnFuture,
-                                                                                       uploadId, new NoOpPublisherListener()))
+                              .handle(genericMultipartHelper.handleExceptionOrResponse(copyObjectRequest, returnFuture, uploadId))
                               .exceptionally(throwable -> {
                                   genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred",
                                                                          throwable);
@@ -235,8 +233,5 @@ public final class CopyObjectHelper {
             s3AsyncClient.copyObject(copyObjectRequest);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, copyObjectFuture);
         CompletableFutureUtils.forwardResultTo(copyObjectFuture, returnFuture);
-    }
-
-    private static class NoOpPublisherListener implements PublisherListener<Long> {
     }
 }

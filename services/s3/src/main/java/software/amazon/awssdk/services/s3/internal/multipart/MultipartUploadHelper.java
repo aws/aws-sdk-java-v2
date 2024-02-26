@@ -19,6 +19,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils.toAbortMultipartUploadRequest;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -79,13 +80,11 @@ public final class MultipartUploadHelper {
     CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(CompletableFuture<PutObjectResponse> returnFuture,
                                  String uploadId,
                                  CompletedPart[] completedParts,
-                                 PutObjectRequest putObjectRequest,
-                                 PublisherListener<Long> progressListener) {
+                                 PutObjectRequest putObjectRequest) {
         CompletableFuture<CompleteMultipartUploadResponse> future =
             genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts);
 
-        future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId,
-                                                                       progressListener))
+        future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId))
               .exceptionally(throwable -> {
                   genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred", throwable);
                   return null;
@@ -101,7 +100,7 @@ public final class MultipartUploadHelper {
                                                                      PublisherListener<Long> progressListener) {
         UploadPartRequest uploadPartRequest = requestPair.left();
         Integer partNumber = uploadPartRequest.partNumber();
-        long contentLength = requestPair.right().contentLength().orElse(0L);
+        Optional<Long> contentLength = requestPair.right().contentLength();
         log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
                         + "contentLength " + contentLength);
 
@@ -110,18 +109,12 @@ public final class MultipartUploadHelper {
 
         CompletableFuture<CompletedPart> convertFuture =
             uploadPartFuture.thenApply(uploadPartResponse -> {
-                updateProgress(progressListener, contentLength);
+                contentLength.ifPresent(progressListener::subscriberOnNext);
                 return convertUploadPartResponse(completedPartsConsumer, partNumber, uploadPartResponse);
             });
         futures.add(convertFuture);
         CompletableFutureUtils.forwardExceptionTo(convertFuture, uploadPartFuture);
         return convertFuture;
-    }
-
-    private void updateProgress(PublisherListener<Long> progressListener, long contentLength) {
-        if (contentLength > 0) {
-            progressListener.subscriberOnNext(contentLength);
-        }
     }
 
     void failRequestsElegantly(Collection<CompletableFuture<CompletedPart>> futures,

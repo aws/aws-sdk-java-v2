@@ -81,7 +81,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.multipartUploadHelper = multipartUploadHelper;
         this.progressListener = putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes()
                                                                                    .getAttribute(JAVA_PROGRESS_LISTENER))
-                                                .orElseGet(NoOpPublisherListener::new);
+                                                .orElseGet(PublisherListener::noOp);
     }
 
     private int determinePartCount(long contentLength, long partSize) {
@@ -145,7 +145,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             partNumber.getAndIncrement();
             asyncRequestBody.subscribe(new CancelledSubscriber<>());
             subscription.request(1);
-            updateProgress(asyncRequestBody.contentLength().orElse(0L));
+            asyncRequestBody.contentLength().ifPresent(progressListener::subscriberOnNext);
             return;
         }
 
@@ -169,12 +169,6 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                                  }
                              });
         subscription.request(1);
-    }
-
-    private void updateProgress(long contentLength) {
-        if (contentLength > 0) {
-            progressListener.subscriberOnNext(contentLength);
-        }
     }
 
     private boolean shouldFailRequest() {
@@ -209,8 +203,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             } else {
                 parts = existingParts.values().toArray(new CompletedPart[0]);
             }
-            completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts,
-                                                                              putObjectRequest, progressListener);
+            completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest);
         }
     }
 
@@ -224,8 +217,5 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             currPart++;
         }
         return merged;
-    }
-
-    private static class NoOpPublisherListener implements PublisherListener<Long> {
     }
 }
