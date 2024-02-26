@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.s3express;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
@@ -42,9 +42,13 @@ public final class S3ExpressAuthSchemeProvider implements S3AuthSchemeProvider {
     @Override
     public List<AuthSchemeOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams) {
         List<AuthSchemeOption> options = delegate.resolveAuthScheme(authSchemeParams);
-        return options.stream()
-                      .map(option -> option.toBuilder().putIdentityProperty(BUCKET, authSchemeParams.bucket()).build())
-                      .collect(Collectors.toList());
+        List<AuthSchemeOption> result = new ArrayList<>(options.size());
+        for (AuthSchemeOption option : options) {
+            result.add(option.toBuilder()
+                             .putIdentityProperty(BUCKET, authSchemeParams.bucket())
+                             .build());
+        }
+        return result;
     }
 
     public S3AuthSchemeProvider delegate() {
