@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Disaster Recovery Service",
-    "contributor": "",
-    "description": "Added volume status to DescribeSourceServer replicated volumes."
-}
