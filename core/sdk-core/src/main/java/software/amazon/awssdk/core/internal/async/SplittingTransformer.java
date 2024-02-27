@@ -222,7 +222,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void onResponse(ResponseT response) {
             if (onResponseCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onResponse on the upstream transformer");
-                // todo: should we send back the first response to the upstreamResponseTransformer as-is?
                 upstreamResponseTransformer.onResponse(response);
             }
             this.response = response;
