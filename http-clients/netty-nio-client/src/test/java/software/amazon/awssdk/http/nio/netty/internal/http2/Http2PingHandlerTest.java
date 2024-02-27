@@ -158,10 +158,11 @@ public class Http2PingHandlerTest {
     }
 
     @Test
-    public void nonAckPingsResultInOneChannelException() {
+    public void nonAckPingsDoesNotResultInOneChannelException() {
         PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
         EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher);
 
+        // As long as there is data coming into the channel the ping will not time out.
         channel.eventLoop().scheduleAtFixedRate(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, false)),
                                                 0, FAST_CHECKER_DURATION_MILLIS, TimeUnit.MILLISECONDS);
 
@@ -170,8 +171,7 @@ public class Http2PingHandlerTest {
             channel.runPendingTasks();
         }
 
-        assertThat(catcher.caughtExceptions).hasSize(1);
-        assertThat(catcher.caughtExceptions.get(0)).isInstanceOf(IOException.class);
+        assertThat(catcher.caughtExceptions).hasSize(0);
     }
 
     @Test

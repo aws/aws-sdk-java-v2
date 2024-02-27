@@ -99,23 +99,37 @@ public class PingTimeoutTest {
         netty = null;
     }
 
+    /**
+     * Default ping timeout value is 5000ms, so when the channel has no activity including
+     * no data packets received or ping acks received for the timeout value, the connection
+     * will be closed. During connection setup for testing, there will be Setting frame and
+     * the SettingsAck frame exchanged which counts as activity on the channel, so the channel
+     * should timeout during the second interval which is 10 seconds.
+     */
     @Test
-    public void pingHealthCheck_null_shouldThrowExceptionAfter5Sec() {
+    public void pingHealthCheck_null_shouldThrowExceptionAfter10Sec() {
         Instant a = Instant.now();
         assertThatThrownBy(() -> makeRequest(null).join())
             .hasMessageContaining("An error occurred on the connection")
             .hasCauseInstanceOf(IOException.class)
             .hasRootCauseInstanceOf(PingFailedException.class);
-        assertThat(Duration.between(a, Instant.now())).isBetween(Duration.ofSeconds(5), Duration.ofSeconds(7));
+        assertThat(Duration.between(a, Instant.now())).isBetween(Duration.ofSeconds(10), Duration.ofSeconds(12));
     }
 
+    /**
+     * Test when ping timeout value is 10,000ms. When the channel has no activity including
+     * no data packets received or ping acks received for the timeout value, the connection
+     * will be closed. During connection setup for testing, there will be Setting frame and
+     * the SettingsAck frame exchanged which counts as activity on the channel, so the channel
+     * should timeout during the second interval which is 10 seconds.
+     */
     @Test
     public void pingHealthCheck_10sec_shouldThrowExceptionAfter10Secs() {
         Instant a = Instant.now();
         assertThatThrownBy(() -> makeRequest(Duration.ofSeconds(10)).join()).hasCauseInstanceOf(IOException.class)
                                                                             .hasMessageContaining("An error occurred on the connection")
                                                                             .hasRootCauseInstanceOf(PingFailedException.class);
-        assertThat(Duration.between(a, Instant.now())).isBetween(Duration.ofSeconds(10), Duration.ofSeconds(12));
+        assertThat(Duration.between(a, Instant.now())).isBetween(Duration.ofSeconds(20), Duration.ofSeconds(22));
     }
 
     @Test
