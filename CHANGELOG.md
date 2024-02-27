@@ -4,10 +4,6 @@
   - ### Features
     - We have added the ability to tag resources after they are created
 
-## __AWS CRT HTTP Client__
-  - ### Features
-    - Support Non proxy host settings in the ProxyConfiguration for Crt http client.
-
 ## __AWS SDK for Java v2__
   - ### Bugfixes
     - upgrade netty version to 4.1.107.Final
