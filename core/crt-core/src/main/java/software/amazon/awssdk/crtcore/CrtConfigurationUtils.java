@@ -15,11 +15,7 @@
 
 package software.amazon.awssdk.crtcore;
 
-import static software.amazon.awssdk.utils.StringUtils.lowerCase;
-
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
@@ -37,9 +33,7 @@ public final class CrtConfigurationUtils {
         if (proxyConfiguration == null) {
             return Optional.empty();
         }
-        if (doesTargetMatchNonProxyHosts(proxyConfiguration.host(), proxyConfiguration.nonProxyHosts())) {
-            return Optional.empty();
-        }
+
         HttpProxyOptions clientProxyOptions = new HttpProxyOptions();
 
         clientProxyOptions.setHost(proxyConfiguration.host());
@@ -60,19 +54,11 @@ public final class CrtConfigurationUtils {
         return Optional.of(clientProxyOptions);
     }
 
-    private static boolean doesTargetMatchNonProxyHosts(String target, Set<String> hostPatterns) {
-        return Optional.ofNullable(hostPatterns)
-                       .map(patterns ->
-                                patterns.stream()
-                                        .filter(Objects::nonNull)
-                                        .anyMatch(pattern -> target != null && lowerCase(target).matches(pattern)))
-                       .orElse(false);
-    }
-
     public static Optional<HttpMonitoringOptions> resolveHttpMonitoringOptions(CrtConnectionHealthConfiguration config) {
         if (config == null) {
             return Optional.empty();
         }
+
         HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
         httpMonitoringOptions.setMinThroughputBytesPerSecond(config.minimumThroughputInBps());
         int seconds = NumericUtils.saturatedCast(config.minimumThroughputTimeout().getSeconds());

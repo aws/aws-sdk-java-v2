@@ -16,12 +16,6 @@
         },
         {
             "type": "feature",
-            "category": "AWS CRT HTTP Client",
-            "contributor": "",
-            "description": "Support Non proxy host settings in the ProxyConfiguration for Crt http client."
-        },
-        {
-            "type": "feature",
             "category": "Amazon S3",
             "contributor": "",
             "description": "Enable TransferListener when uploading with TransferManager with Java-based S3Client with multipart enabled"
