@@ -1,4 +1,26 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.12__ __2024-02-27__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - We have added the ability to tag resources after they are created
+
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Support Non proxy host settings in the ProxyConfiguration for Crt http client.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - upgrade netty version to 4.1.107.Final
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __Amazon S3__
+  - ### Features
+    - Enable TransferListener when uploading with TransferManager with Java-based S3Client with multipart enabled
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sullis](https://github.com/sullis)
 # __2.24.11__ __2024-02-26__
 ## __Amazon API Gateway__
   - ### Features

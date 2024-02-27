@@ -1,0 +1,30 @@
+{
+    "version": "2.24.12",
+    "date": "2024-02-27",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "sullis",
+            "description": "upgrade netty version to 4.1.107.Final"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Amplify UI Builder",
+            "contributor": "",
+            "description": "We have added the ability to tag resources after they are created"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Support Non proxy host settings in the ProxyConfiguration for Crt http client."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Enable TransferListener when uploading with TransferManager with Java-based S3Client with multipart enabled"
+        }
+    ]
+}
