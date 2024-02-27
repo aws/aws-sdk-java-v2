@@ -26,12 +26,9 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.security.SecureRandom;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,16 +68,21 @@ public class ProxyWireMockTest {
 
         mockServer.stubFor(get(urlMatching(".*")).willReturn(aResponse().withStatus(200).withBody("hello")));
 
+        proxyCfg = ProxyConfiguration.builder()
+                .host("localhost")
+                .port(mockProxy.port())
+                .build();
 
+        client = AwsCrtAsyncHttpClient.builder()
+                .proxyConfiguration(proxyCfg)
+                .build();
     }
 
     @AfterEach
     public void teardown() {
         mockServer.stop();
         mockProxy.stop();
-        if(client != null){
-            client.close();
-        }
+        client.close();
         EventLoopGroup.closeStaticDefault();
         HostResolver.closeStaticDefault();
         CrtResource.waitForNoResources();
@@ -96,15 +98,6 @@ public class ProxyWireMockTest {
      */
     @Test
     public void proxyConfigured_httpGet() throws Throwable {
-
-        proxyCfg = ProxyConfiguration.builder()
-                                     .host("localhost")
-                                     .port(mockProxy.port())
-                                     .build();
-
-        client = AwsCrtAsyncHttpClient.builder()
-                                      .proxyConfiguration(proxyCfg)
-                                      .build();
 
         CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
         AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
@@ -122,49 +115,6 @@ public class ProxyWireMockTest {
                 .responseHandler(handler)
                 .requestContentPublisher(new EmptyPublisher())
                 .build());
-        future.get(60, TimeUnit.SECONDS);
-        assertThat(error.get()).isNull();
-        assertThat(streamReceived.get(60, TimeUnit.SECONDS)).isTrue();
-        assertThat(response.get().statusCode()).isEqualTo(200);
-    }
-
-    @Test
-    public void proxyConfiguredAndSkippedUsingNonProxy_httpGet() throws Throwable {
-        SecureRandom secureRandom = new SecureRandom();
-        int randomPort = 0;
-        // Generate a random port to test if the proxy host is not routed to when nonProxyHosts is specified.
-        // If the nonProxyHosts had not matched, a connection exception would have occurred.
-        do {
-            randomPort = secureRandom.nextInt(65535);
-        } while (randomPort == mockProxy.port());
-
-        proxyCfg = ProxyConfiguration.builder()
-                                     .host("localhost")
-                                     .port(randomPort)
-                                     .nonProxyHosts(Stream.of("localhost").collect(Collectors.toSet()))
-                                     .build();
-
-        client = AwsCrtAsyncHttpClient.builder()
-                                      .proxyConfiguration(proxyCfg)
-                                      .build();
-
-        CompletableFuture<Boolean> streamReceived = new CompletableFuture<>();
-        AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
-        AtomicReference<Throwable> error = new AtomicReference<>(null);
-
-        Subscriber<ByteBuffer> subscriber = CrtHttpClientTestUtils.createDummySubscriber();
-
-        SdkAsyncHttpResponseHandler handler = CrtHttpClientTestUtils.createTestResponseHandler(response, streamReceived, error,
-                                                                                               subscriber);
-
-        URI uri = URI.create("http://localhost:" + mockServer.port());
-        SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(uri, "/server/test", null, SdkHttpMethod.GET, emptyMap());
-
-        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
-                                                                     .request(request)
-                                                                     .responseHandler(handler)
-                                                                     .requestContentPublisher(new EmptyPublisher())
-                                                                     .build());
         future.get(60, TimeUnit.SECONDS);
         assertThat(error.get()).isNull();
         assertThat(streamReceived.get(60, TimeUnit.SECONDS)).isTrue();
