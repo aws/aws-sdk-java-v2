@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify UI Builder",
+    "contributor": "",
+    "description": "We have added the ability to tag resources after they are created"
+}
