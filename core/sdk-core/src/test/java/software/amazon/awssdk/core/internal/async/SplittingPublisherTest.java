@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.core.internal.async.SplittingPublisherTestUtils.verifyIndividualAsyncRequestBody;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -146,6 +147,20 @@ public class SplittingPublisherTest {
 
     }
 
+    @Test
+    void downStreamFailed_shouldPropagateCancellation() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        TestAsyncRequestBody asyncRequestBody = new TestAsyncRequestBody();
+        SplittingPublisher splittingPublisher = new SplittingPublisher(asyncRequestBody, AsyncRequestBodySplitConfiguration.builder()
+                                                                                                                           .chunkSizeInBytes((long) CHUNK_SIZE)
+                                                                                                                           .bufferSizeInBytes(10L)
+                                                                                                                           .build());
+
+        assertThatThrownBy(() -> splittingPublisher.subscribe(requestBody -> {
+            throw new RuntimeException("foobar");
+        }).get(5, TimeUnit.SECONDS)).hasMessageContaining("foobar");
+        assertThat(asyncRequestBody.cancelled).isTrue();
+    }
 
     private static void verifySplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
         SplittingPublisher splittingPublisher = new SplittingPublisher(asyncRequestBody,

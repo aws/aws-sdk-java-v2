@@ -17,10 +17,7 @@ package software.amazon.awssdk.crtcore;
 
 import static software.amazon.awssdk.utils.ProxyConfigProvider.fromSystemEnvironmentSettings;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxySystemSetting;
@@ -39,7 +36,6 @@ public abstract class CrtProxyConfiguration {
     private final String password;
     private final Boolean useSystemPropertyValues;
     private final Boolean useEnvironmentVariableValues;
-    private final Set<String> nonProxyHosts;
 
     protected CrtProxyConfiguration(DefaultBuilder<?> builder) {
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
@@ -53,7 +49,6 @@ public abstract class CrtProxyConfiguration {
         this.port = resolvePort(builder, proxyConfigProvider);
         this.username = resolveUsername(builder, proxyConfigProvider);
         this.password = resolvePassword(builder, proxyConfigProvider);
-        this.nonProxyHosts = resolveNonProxyHosts(builder, proxyConfigProvider);
     }
 
     private static String resolvePassword(DefaultBuilder<?> builder, ProxyConfigProvider proxyConfigProvider) {
@@ -86,13 +81,6 @@ public abstract class CrtProxyConfiguration {
         } else {
             return proxyConfigProvider.host();
         }
-    }
-
-    private Set<String> resolveNonProxyHosts(DefaultBuilder<?> builder, ProxyConfigProvider proxyConfigProvider) {
-        if (builder.nonProxyHosts != null || proxyConfigProvider == null) {
-            return builder.nonProxyHosts;
-        }
-        return proxyConfigProvider.nonProxyHosts();
     }
 
     /**
@@ -144,16 +132,6 @@ public abstract class CrtProxyConfiguration {
         return useEnvironmentVariableValues;
     }
 
-    /**
-     * Retrieves the hosts that the client is allowed to access without going through the proxy.
-     * If the value is not set on the object, the value represented by the environment variable or system property is returned.
-     *
-     * @see Builder#nonProxyHosts(Set)
-     */
-    public Set<String> nonProxyHosts() {
-        return Collections.unmodifiableSet(nonProxyHosts != null ? nonProxyHosts : Collections.emptySet());
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -184,10 +162,7 @@ public abstract class CrtProxyConfiguration {
         if (!Objects.equals(useSystemPropertyValues, that.useSystemPropertyValues)) {
             return false;
         }
-        if (!Objects.equals(useEnvironmentVariableValues, that.useEnvironmentVariableValues)) {
-            return false;
-        }
-        return Objects.equals(nonProxyHosts, that.nonProxyHosts);
+        return Objects.equals(useEnvironmentVariableValues, that.useEnvironmentVariableValues);
     }
 
     @Override
@@ -200,7 +175,6 @@ public abstract class CrtProxyConfiguration {
         result = 31 * result + (useSystemPropertyValues != null ? useSystemPropertyValues.hashCode() : 0);
         result = 31 * result + (useEnvironmentVariableValues != null ? useEnvironmentVariableValues.hashCode() : 0);
         result = 31 * result + (scheme != null ? scheme.hashCode() : 0);
-        result = 31 * result + (nonProxyHosts != null ? nonProxyHosts.hashCode() : 0);
         return result;
     }
 
@@ -279,17 +253,6 @@ public abstract class CrtProxyConfiguration {
          */
         Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues);
 
-        /**
-         * Configure the hosts that the client is allowed to access without going through the proxy.
-         */
-        Builder nonProxyHosts(Set<String> nonProxyHosts);
-
-
-        /**
-         * Add a host that the client is allowed to access without going through the proxy.
-         */
-        Builder addNonProxyHost(String nonProxyHost);
-
 
         CrtProxyConfiguration build();
     }
@@ -303,8 +266,6 @@ public abstract class CrtProxyConfiguration {
         private String password;
         private Boolean useSystemPropertyValues = Boolean.TRUE;
         private Boolean useEnvironmentVariableValues = Boolean.TRUE;
-        private Set<String> nonProxyHosts;
-
 
         protected DefaultBuilder() {
         }
@@ -317,7 +278,6 @@ public abstract class CrtProxyConfiguration {
             this.port = proxyConfiguration.port;
             this.username = proxyConfiguration.username;
             this.password = proxyConfiguration.password;
-            this.nonProxyHosts = proxyConfiguration.nonProxyHosts;
         }
 
         @Override
@@ -359,21 +319,6 @@ public abstract class CrtProxyConfiguration {
         @Override
         public B useEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
             this.useEnvironmentVariableValues = useEnvironmentVariableValues;
-            return (B) this;
-        }
-
-        @Override
-        public B nonProxyHosts(Set<String> nonProxyHosts) {
-            this.nonProxyHosts = nonProxyHosts != null ? new HashSet<>(nonProxyHosts) : null;
-            return (B) this;
-        }
-
-        @Override
-        public B addNonProxyHost(String nonProxyHost) {
-            if (this.nonProxyHosts == null) {
-                this.nonProxyHosts = new HashSet<>();
-            }
-            this.nonProxyHosts.add(nonProxyHost);
             return (B) this;
         }
 
