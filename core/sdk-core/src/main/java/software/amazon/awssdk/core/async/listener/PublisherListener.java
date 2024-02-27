@@ -78,7 +78,7 @@ public interface PublisherListener<T> extends SubscriberListener<T> {
     }
 
     @SdkInternalApi
-    final static class NoOpPublisherListener implements PublisherListener<Long> {
+    final class NoOpPublisherListener implements PublisherListener<Long> {
 
         private static final NoOpPublisherListener NO_OP_PUBLISHER_LISTENER = new NoOpPublisherListener();
 
