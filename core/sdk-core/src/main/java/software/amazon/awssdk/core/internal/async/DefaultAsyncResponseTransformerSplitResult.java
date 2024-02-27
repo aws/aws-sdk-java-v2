@@ -19,21 +19,20 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public class DefaultSplitAsyncResponseTransformer<ResponseT, ResultT>
-    implements SplitAsyncResponseTransformer<ResponseT, ResultT> {
+public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT>
+    implements AsyncResponseTransformer.SplitResult<ResponseT, ResultT> {
 
     private final SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
     private final CompletableFuture<ResultT> future;
 
-    private DefaultSplitAsyncResponseTransformer(Builder<ResponseT, ResultT> builder) {
+    private DefaultAsyncResponseTransformerSplitResult(Builder<ResponseT, ResultT> builder) {
         this.publisher = Validate.paramNotNull(
             builder.publisher(), "asyncResponseTransformerPublisher");
         this.future = Validate.paramNotNull(
-            builder.preparedFuture(), "future");
+            builder.resultFuture(), "future");
     }
 
     /**
@@ -49,12 +48,12 @@ public class DefaultSplitAsyncResponseTransformer<ResponseT, ResultT>
      * {@link AsyncResponseTransformer#prepare()} method on the AsyncResponseTransformer which was split completes.
      * @return The future
      */
-    public CompletableFuture<ResultT> preparedFuture() {
+    public CompletableFuture<ResultT> resultFuture() {
         return this.future;
     }
 
     @Override
-    public SplitAsyncResponseTransformer.Builder<ResponseT, ResultT> toBuilder() {
+    public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> toBuilder() {
         return new DefaultBuilder<>(this);
     }
 
@@ -62,14 +61,15 @@ public class DefaultSplitAsyncResponseTransformer<ResponseT, ResultT>
         return new DefaultBuilder<>();
     }
 
-    public static class DefaultBuilder<ResponseT, ResultT> implements SplitAsyncResponseTransformer.Builder<ResponseT, ResultT> {
+    public static class DefaultBuilder<ResponseT, ResultT>
+        implements AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> {
         private SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
         private CompletableFuture<ResultT> future;
 
         DefaultBuilder() {
         }
 
-        DefaultBuilder(DefaultSplitAsyncResponseTransformer<ResponseT, ResultT> split) {
+        DefaultBuilder(DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT> split) {
             this.publisher = split.publisher;
             this.future = split.future;
         }
@@ -80,26 +80,26 @@ public class DefaultSplitAsyncResponseTransformer<ResponseT, ResultT>
         }
 
         @Override
-        public SplitAsyncResponseTransformer.Builder<ResponseT, ResultT> publisher(
+        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> publisher(
             SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher) {
             this.publisher = publisher;
             return this;
         }
 
         @Override
-        public CompletableFuture<ResultT> preparedFuture() {
+        public CompletableFuture<ResultT> resultFuture() {
             return this.future;
         }
 
         @Override
-        public SplitAsyncResponseTransformer.Builder<ResponseT, ResultT> preparedFuture(CompletableFuture<ResultT> future) {
+        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future) {
             this.future = future;
             return this;
         }
 
         @Override
-        public SplitAsyncResponseTransformer<ResponseT, ResultT> build() {
-            return new DefaultSplitAsyncResponseTransformer<>(this);
+        public AsyncResponseTransformer.SplitResult<ResponseT, ResultT> build() {
+            return new DefaultAsyncResponseTransformerSplitResult<>(this);
         }
     }
 }

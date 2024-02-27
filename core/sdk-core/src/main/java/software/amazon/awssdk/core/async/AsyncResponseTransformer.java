@@ -28,11 +28,14 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.DefaultAsyncResponseTransformerSplitResult;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
 import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.SplittingTransformer;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -116,25 +119,26 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     void exceptionOccurred(Throwable error);
 
     /**
-     * Creates an {@link SplitAsyncResponseTransformer} which contains an {@link SplittingTransformer} that splits the
+     * Creates an {@link SplitResult} which contains an {@link SplittingTransformer} that splits the
      * {@link AsyncResponseTransformer} into multiple ones, publishing them as a {@link SdkPublisher}.
      *
      * @param splitConfig configuration for the split transformer
      * @return SplitAsyncResponseTransformer instance.
      * @see SplittingTransformer
-     * @see SplitAsyncResponseTransformer
+     * @see SplitResult
      */
-    default SplitAsyncResponseTransformer<ResponseT, ResultT> split(SplittingTransformerConfiguration splitConfig) {
+    default SplitResult<ResponseT, ResultT> split(SplittingTransformerConfiguration splitConfig) {
+        Validate.notNull(splitConfig, "splitConfig must not be null");
         CompletableFuture<ResultT> future = new CompletableFuture<>();
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer = SplittingTransformer
             .<ResponseT, ResultT>builder()
             .upstreamResponseTransformer(this)
             .maximumBufferSizeInBytes(splitConfig.bufferSizeInBytes())
-            .returnFuture(future)
+            .resultFuture(future)
             .build();
-        return SplitAsyncResponseTransformer.<ResponseT, ResultT>builder()
+        return AsyncResponseTransformer.SplitResult.<ResponseT, ResultT>builder()
                                             .publisher(transformer)
-                                            .preparedFuture(future)
+                                            .resultFuture(future)
                                             .build();
     }
 
@@ -284,5 +288,69 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     static <ResponseT extends SdkResponse>
         AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
         return new InputStreamResponseTransformer<>();
+    }
+
+    /**
+     * Helper interface containing the result of {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration)
+     * splitting} an AsyncResponseTransformer. This class holds both the publisher of the individual
+     * {@code AsyncResponseTransformer<ResponseT, ResponseT>} and the {@code CompletableFuture <ResultT>} which will
+     * complete when the {@code AsyncResponseTransformer} that was split itself would complete.
+     *
+     * @param <ResponseT> ResponseT of the original AsyncResponseTransformer that was split.
+     * @param <ResultT>   ResultT of the original AsyncResponseTransformer that was split.
+     * @see AsyncResponseTransformer#split(SplittingTransformerConfiguration)
+     */
+    interface SplitResult<ResponseT, ResultT>
+        extends ToCopyableBuilder<AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT>,
+        AsyncResponseTransformer.SplitResult<ResponseT, ResultT>> {
+
+        /**
+         * The individual {@link AsyncResponseTransformer} will be available through the publisher returned by this method.
+         *
+         * @return the publisher which publishes the individual {@link AsyncResponseTransformer}
+         */
+        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher();
+
+        /**
+         * The future returned by this method will be completed when the future returned by calling the
+         * {@link AsyncResponseTransformer#prepare()} method on the AsyncResponseTransformer which was split completes.
+         *
+         * @return The future
+         */
+        CompletableFuture<ResultT> resultFuture();
+
+        static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
+            return DefaultAsyncResponseTransformerSplitResult.builder();
+        }
+
+        interface Builder<ResponseT, ResultT>
+            extends CopyableBuilder<AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT>,
+            AsyncResponseTransformer.SplitResult<ResponseT, ResultT>> {
+
+            /**
+             * @return the publisher which was configured on this Builder instance.
+             */
+            SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher();
+
+            /**
+             * Sets the publisher publishing the individual {@link AsyncResponseTransformer}
+             * @param publisher the publisher
+             * @return an instance of this Builder
+             */
+            Builder<ResponseT, ResultT> publisher(SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher);
+
+            /**
+             * @return The future which was configured an this Builder instance.
+             */
+            CompletableFuture<ResultT> resultFuture();
+
+            /**
+             * Sets the future that will be completed when the future returned by calling the
+             * {@link AsyncResponseTransformer#prepare()} method on the AsyncResponseTransformer which was split completes.
+             * @param future the future
+             * @return an instance of this Builder
+             */
+            Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future);
+        }
     }
 }

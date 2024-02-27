@@ -20,10 +20,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
@@ -50,7 +48,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
 
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
-    private final long apiCallBufferSize;
+    private final DownloadObjectHelper downloadObjectHelper;
 
     private MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration) {
         super(delegate);
@@ -59,9 +57,10 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(validConfiguration);
         long minPartSizeInBytes = resolver.minimalPartSizeInBytes();
         long threshold = resolver.thresholdInBytes();
-        apiCallBufferSize = resolver.apiCallBufferSize();
+        long apiCallBufferSize = resolver.apiCallBufferSize();
         mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
+        downloadObjectHelper = new DownloadObjectHelper(delegate, apiCallBufferSize);
     }
 
     @Override
@@ -77,16 +76,7 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        if (getObjectRequest.range() != null || getObjectRequest.partNumber() != null) {
-            return ((S3AsyncClient) delegate()).getObject(getObjectRequest, asyncResponseTransformer);
-        }
-
-        SplitAsyncResponseTransformer<GetObjectResponse, ReturnT> split =
-            asyncResponseTransformer.split(SplittingTransformerConfiguration.builder()
-                                                                            .bufferSizeInBytes(apiCallBufferSize)
-                                                                            .build());
-        split.publisher().subscribe(new MultipartDownloaderSubscriber((S3AsyncClient) delegate(), getObjectRequest));
-        return split.preparedFuture();
+        return downloadObjectHelper.downloadObject(getObjectRequest, asyncResponseTransformer);
     }
 
     @Override
