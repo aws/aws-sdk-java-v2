@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Support Non proxy host settings in the ProxyConfiguration for Crt http client."
-}

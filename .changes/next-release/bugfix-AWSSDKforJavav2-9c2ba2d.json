@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "sullis", 
-    "type": "bugfix", 
-    "description": "upgrade netty version to 4.1.107.Final"
-}
