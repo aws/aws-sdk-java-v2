@@ -36,6 +36,10 @@ public enum AuthType {
         this.value = value;
     }
 
+    public String value() {
+        return value;
+    }
+
     public static AuthType fromValue(String value) {
         String normalizedValue = StringUtils.lowerCase(value);
         return Arrays.stream(values())
