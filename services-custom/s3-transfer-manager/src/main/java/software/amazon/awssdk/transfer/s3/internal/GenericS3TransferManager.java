@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.PAUSE_OBSERVABLE;
-import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
@@ -136,11 +137,18 @@ class GenericS3TransferManager implements S3TransferManager {
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
 
+        PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
+        if (isS3ClientMultipartEnabled()) {
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
+                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
+            putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressListener);
+        }
+
         try {
             assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
 
             CompletableFuture<PutObjectResponse> future =
-                s3AsyncClient.putObject(uploadRequest.putObjectRequest(), requestBody);
+                s3AsyncClient.putObject(putObjectRequest, requestBody);
 
             // Forward upload cancellation to future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
@@ -166,17 +174,6 @@ class GenericS3TransferManager implements S3TransferManager {
                                 .chunkSizeInBytes(DEFAULT_FILE_UPLOAD_CHUNK_SIZE)
                                 .build();
 
-        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
-        PauseObservable pauseObservable;
-        if (isS3ClientMultipartEnabled()) {
-            pauseObservable = new PauseObservable();
-            Consumer<AwsRequestOverrideConfiguration.Builder> attachPauseObservable =
-                b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable);
-            putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachPauseObservable);
-        } else {
-            pauseObservable = null;
-        }
-
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest,
@@ -184,6 +181,19 @@ class GenericS3TransferManager implements S3TransferManager {
         progressUpdater.transferInitiated();
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
+
+        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
+        PauseObservable pauseObservable;
+        if (isS3ClientMultipartEnabled()) {
+            pauseObservable = new PauseObservable();
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachObservableAndListener =
+                b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable)
+                      .putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
+            putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservableAndListener);
+        } else {
+            pauseObservable = null;
+        }
+
 
         try {
             assertNotUnsupportedArn(putObjectRequest.bucket(), "upload");

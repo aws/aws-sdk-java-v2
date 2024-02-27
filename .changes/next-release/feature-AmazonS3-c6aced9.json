@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Enable TransferListener when uploading with TransferManager with Java-based S3Client with multipart enabled"
+}
