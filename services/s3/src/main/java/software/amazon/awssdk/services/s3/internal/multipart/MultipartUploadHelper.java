@@ -19,10 +19,12 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils.toAbortMultipartUploadRequest;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -94,18 +96,22 @@ public final class MultipartUploadHelper {
     CompletableFuture<CompletedPart> sendIndividualUploadPartRequest(String uploadId,
                                                                      Consumer<CompletedPart> completedPartsConsumer,
                                                                      Collection<CompletableFuture<CompletedPart>> futures,
-                                                                     Pair<UploadPartRequest, AsyncRequestBody> requestPair) {
+                                                                     Pair<UploadPartRequest, AsyncRequestBody> requestPair,
+                                                                     PublisherListener<Long> progressListener) {
         UploadPartRequest uploadPartRequest = requestPair.left();
         Integer partNumber = uploadPartRequest.partNumber();
+        Optional<Long> contentLength = requestPair.right().contentLength();
         log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
-                        + "contentLength " + requestPair.right().contentLength());
+                        + "contentLength " + contentLength);
 
         CompletableFuture<UploadPartResponse> uploadPartFuture = s3AsyncClient.uploadPart(uploadPartRequest,
                                                                                           requestPair.right());
 
         CompletableFuture<CompletedPart> convertFuture =
-            uploadPartFuture.thenApply(uploadPartResponse -> convertUploadPartResponse(completedPartsConsumer, partNumber,
-                                                                                       uploadPartResponse));
+            uploadPartFuture.thenApply(uploadPartResponse -> {
+                contentLength.ifPresent(progressListener::subscriberOnNext);
+                return convertUploadPartResponse(completedPartsConsumer, partNumber, uploadPartResponse);
+            });
         futures.add(convertFuture);
         CompletableFutureUtils.forwardExceptionTo(convertFuture, uploadPartFuture);
         return convertFuture;

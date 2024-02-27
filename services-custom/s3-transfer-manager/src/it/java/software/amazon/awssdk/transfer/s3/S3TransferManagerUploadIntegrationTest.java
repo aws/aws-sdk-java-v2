@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -97,22 +97,22 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         assertThat(obj.response().responseMetadata().requestId()).isNotNull();
         assertThat(obj.response().metadata()).containsEntry("foobar", "FOO BAR");
         assertThat(fileUpload.progress().snapshot().sdkResponse()).isPresent();
-       assertListenerForSuccessfulTransferComplete(transferListener);
+        assertListenerForSuccessfulTransferComplete(transferListener);
    }
 
     private static void assertListenerForSuccessfulTransferComplete(CaptureTransferListener transferListener) {
         assertThat(transferListener.isTransferInitiated()).isTrue();
         assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.getRatioTransferredList()).isNotEmpty();
-        assertThat(transferListener.getRatioTransferredList().contains(0.0));
-        assertThat(transferListener.getRatioTransferredList().contains(100.0));
+        assertThat(transferListener.getRatioTransferredList()).contains(0.0);
+        assertThat(transferListener.getRatioTransferredList()).contains(1.0);
         assertThat(transferListener.getExceptionCaught()).isNull();
     }
 
     @ParameterizedTest
     @MethodSource("transferManagers")
     void upload_asyncRequestBodyFromString_SentCorrectly(S3TransferManager transferManager) throws IOException {
-        String content = UUID.randomUUID().toString();
+        String content = RandomStringUtils.randomAscii(OBJ_SIZE);
         CaptureTransferListener transferListener = new CaptureTransferListener();
 
         Upload upload =
