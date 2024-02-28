@@ -199,7 +199,7 @@ public final class ProxyConfigCommonTestData {
                 environmentSettingsWithNoPassword(),
                 new TestProxySetting(), null, null,
                 new TestProxySetting().host(SYSTEM_PROPERTY_HOST).port(Integer.parseInt(SYSTEM_PROPERTY_PORT_NUMBER))
-                                      .password(SYSTEM_PROPERTY_PASSWORD)),
+                                      .password(SYSTEM_PROPERTY_PASSWORD).nonProxyHost(ENVIRONMENT_VARIABLE_NON_PROXY)),
 
             Arguments.of(
                 "Given password in System property when Password present in system property "
@@ -209,7 +209,7 @@ public final class ProxyConfigCommonTestData {
                 new TestProxySetting().password("passwordFromBuilder"), null, null,
                 getSystemPropertyProxySettings().password("passwordFromBuilder")
                                                 .userName(null)
-                                                .nonProxyHost(null)),
+                                                .nonProxyHost(ENVIRONMENT_VARIABLE_NON_PROXY)),
 
             Arguments.of(
                 "Given partial System Property and partial Environment variables when Builder method with Host "
@@ -222,7 +222,7 @@ public final class ProxyConfigCommonTestData {
                 getSystemPropertyProxySettings().host(USER_HOST_ON_BUILDER)
                                                 .port(USER_PORT_NUMBER_ON_BUILDER)
                                                 .userName(null)
-                                                .nonProxyHost(null)),
+                                                .nonProxyHost(ENVIRONMENT_VARIABLE_NON_PROXY)),
 
             Arguments.of(
                 "Given System Property and Environment variables when valid empty Proxy config on Builder then "
@@ -236,7 +236,7 @@ public final class ProxyConfigCommonTestData {
                 + "set useEnvironmentVariable to true and default System property then default system property gets used.",
                 getSystemPropertiesWithNoUserName(),
                 environmentSettingsWithNoPassword(),
-                new TestProxySetting(), null, true, getSystemPropertyProxySettings().nonProxyHost(null)
+                new TestProxySetting(), null, true, getSystemPropertyProxySettings().nonProxyHost(ENVIRONMENT_VARIABLE_NON_PROXY)
                                                                                     .userName(null)),
 
             Arguments.of(
@@ -245,7 +245,21 @@ public final class ProxyConfigCommonTestData {
                 + "resolved",
                 getSystemPropertiesWithNoUserName(),
                 environmentSettingsWithNoPassword(),
-                new TestProxySetting(), false, true, getEnvironmentVariableProxySettings().password(null))
+                new TestProxySetting(), false, true, getEnvironmentVariableProxySettings().password(null)),
+
+            Arguments.of(
+                "Given",
+                systemPropertySettingsWithNoNonProxyHosts(),
+                environmentSettings(),
+                new TestProxySetting(), true, true,
+                getSystemPropertyProxySettings().nonProxyHost(ENVIRONMENT_VARIABLE_NON_PROXY)),
+
+            Arguments.of(
+                "Given",
+                systemPropertySettingsWithNoNonProxyHosts(),
+                environmentSettingsWithNoNonProxy(),
+                new TestProxySetting(), true, true,
+                getSystemPropertyProxySettings().nonProxyHost(null))
         );
     }
 
@@ -262,6 +276,13 @@ public final class ProxyConfigCommonTestData {
                                      .userName(USER_USERNAME_ON_BUILDER)
                                      .password(USER_PASSWORD_ON_BUILDER)
                                      .nonProxyHost(USER_NONPROXY_ON_BUILDER);
+    }
+
+        private static TestProxySetting getTestProxySettingsWithNoProxy() {
+            return new TestProxySetting().host(USER_HOST_ON_BUILDER)
+                                         .port(USER_PORT_NUMBER_ON_BUILDER)
+                                         .userName(USER_USERNAME_ON_BUILDER)
+                                         .password(USER_PASSWORD_ON_BUILDER);
     }
 
 
@@ -292,6 +313,15 @@ public final class ProxyConfigCommonTestData {
         );
     }
 
+
+    private static List<Pair<String, String>> environmentSettingsWithNoNonProxy() {
+        return Arrays.asList(
+            Pair.of("%s_proxy",
+                    "http://" + ENV_VARIABLE_USER + ":" + ENV_VARIABLE_PASSWORD + "@" + ENVIRONMENT_HOST
+                    + ":" + ENVIRONMENT_VARIABLE_PORT_NUMBER + "/")
+        );
+    }
+
     private static List<Pair<String, String>> environmentSettingsWithNoPassword() {
         return Arrays.asList(
             Pair.of("%s_proxy",
@@ -305,6 +335,15 @@ public final class ProxyConfigCommonTestData {
             Pair.of("%s.proxyHost", SYSTEM_PROPERTY_HOST),
             Pair.of("%s.proxyPort", SYSTEM_PROPERTY_PORT_NUMBER),
             Pair.of("http.nonProxyHosts", SYSTEM_PROPERTY_NON_PROXY),
+            Pair.of("%s.proxyUser", SYSTEM_PROPERTY_USER),
+            Pair.of("%s.proxyPassword", SYSTEM_PROPERTY_PASSWORD));
+    }
+
+
+    private static List<Pair<String, String>> systemPropertySettingsWithNoNonProxyHosts() {
+        return Arrays.asList(
+            Pair.of("%s.proxyHost", SYSTEM_PROPERTY_HOST),
+            Pair.of("%s.proxyPort", SYSTEM_PROPERTY_PORT_NUMBER),
             Pair.of("%s.proxyUser", SYSTEM_PROPERTY_USER),
             Pair.of("%s.proxyPassword", SYSTEM_PROPERTY_PASSWORD));
     }

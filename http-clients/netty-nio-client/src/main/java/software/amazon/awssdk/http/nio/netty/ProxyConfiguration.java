@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.NonProxyHostConfigProvider;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
@@ -52,14 +53,18 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             ProxyConfigProvider.fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
                                                               builder.useEnvironmentVariablesValues,
                                                               builder.scheme);
+
+        NonProxyHostConfigProvider nonProxyHostConfigProvider =
+            NonProxyHostConfigProvider.fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
+                                                              builder.useEnvironmentVariablesValues);
         this.host = resolveHost(builder, proxyConfigProvider);
         this.port = resolvePort(builder, proxyConfigProvider);
         this.username = resolveUserName(builder, proxyConfigProvider);
         this.password = resolvePassword(builder, proxyConfigProvider);
-        this.nonProxyHosts = resolveNonProxyHosts(builder, proxyConfigProvider);
+        this.nonProxyHosts = resolveNonProxyHosts(builder, nonProxyHostConfigProvider);
     }
 
-    private static Set<String> resolveNonProxyHosts(BuilderImpl builder, ProxyConfigProvider proxyConfigProvider) {
+    private static Set<String> resolveNonProxyHosts(BuilderImpl builder, NonProxyHostConfigProvider proxyConfigProvider) {
         if (builder.nonProxyHosts != null || proxyConfigProvider == null) {
             return builder.nonProxyHosts;
         } else {

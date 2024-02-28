@@ -63,10 +63,10 @@ public class ApacheHttpProxyTest extends HttpProxyTestSuite {
             builder.useEnvironmentVariableValues(useEnvironmentVariable);
         }
         ProxyConfiguration proxyConfiguration = builder.build();
-        assertThat(proxyConfiguration.host()).isEqualTo(expectedProxySettings.getHost());
-        assertThat(proxyConfiguration.port()).isEqualTo(expectedProxySettings.getPort());
-        assertThat(proxyConfiguration.username()).isEqualTo(expectedProxySettings.getUserName());
-        assertThat(proxyConfiguration.password()).isEqualTo(expectedProxySettings.getPassword());
-        assertThat(proxyConfiguration.nonProxyHosts()).isEqualTo(expectedProxySettings.getNonProxyHosts());
+        assertThat(expectedProxySettings.getHost()).isEqualTo(proxyConfiguration.host());
+        assertThat(expectedProxySettings.getPort()).isEqualTo(proxyConfiguration.port());
+        assertThat(expectedProxySettings.getUserName()).isEqualTo(proxyConfiguration.username());
+        assertThat(expectedProxySettings.getPassword()).isEqualTo(proxyConfiguration.password());
+        assertThat(expectedProxySettings.getNonProxyHosts()).isEqualTo(proxyConfiguration.nonProxyHosts());
     }
 }

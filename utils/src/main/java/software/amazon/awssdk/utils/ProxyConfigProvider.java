@@ -78,8 +78,7 @@ public interface ProxyConfigProvider {
         boolean isProxyConfigurationNotSet = resultProxyConfig != null && resultProxyConfig.host() == null
                                              && resultProxyConfig.port() == 0
                                              && !resultProxyConfig.password().isPresent()
-                                             && !resultProxyConfig.userName().isPresent()
-                                             && CollectionUtils.isNullOrEmpty(resultProxyConfig.nonProxyHosts());
+                                             && !resultProxyConfig.userName().isPresent();
 
         if (isProxyConfigurationNotSet && Boolean.TRUE.equals(useEnvironmentVariableValues)) {
             return fromEnvironmentSettings(scheme);
