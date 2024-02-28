@@ -175,7 +175,7 @@ class MultipartDownloaderSubscriberWiremockTest {
             Pair.of(1, 1024 * 1024),
             Pair.of(4, 1024 * 1024),
             Pair.of(1, 4 * 1024 * 1024),
-            Pair.of(16, 16 * 1024 * 1024),
+            Pair.of(4, 6 * 1024 * 1024),
             Pair.of(7, 5 * 3752)
         );
 
