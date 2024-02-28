@@ -1,4 +1,61 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.12__ __2024-02-27__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - We have added the ability to tag resources after they are created
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - upgrade netty version to 4.1.107.Final
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __Amazon S3__
+  - ### Features
+    - Enable TransferListener when uploading with TransferManager with Java-based S3Client with multipart enabled
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sullis](https://github.com/sullis)
+# __2.24.11__ __2024-02-26__
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for gp3 data volumes for Multi-AZ DB Clusters.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Added volume status to DescribeSourceServer replicated volumes.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Adds support for tagging, with new TagResource, UntagResource and ListTagsForResource APIs to manage tags and updates to existing APIs to allow tag on create. This release also adds support for the new DeleteWorkerConfiguration API.
+
+# __2.24.10__ __2024-02-23__
+## __AWS AppSync__
+  - ### Features
+    - Documentation only updates for AppSync
+
+## __Amazon QLDB__
+  - ### Features
+    - Clarify possible values for KmsKeyArn and EncryptionDescription.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add pattern and length based validations for DBShardGroupIdentifier
+
+## __CloudWatch RUM__
+  - ### Features
+    - Doc-only update for new RUM metrics that were added
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Enable multipart configuration by default when creating a new S3TranferManager instance using the .create() method
+    - Make Transfer Manager work by default with S3AsyncClient when multipart configuration is enabled.
+
 # __2.24.9__ __2024-02-22__
 ## __AWS CRT-based S3 client__
   - ### Bugfixes
