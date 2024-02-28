@@ -39,6 +39,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.Logger;
 
+// TODO(multipart download): remove before release
 // WIP - please ignore for now, only used in manually testing
 class MultipartDownloadIntegrationTest {
     private static final Logger log = Logger.loggerFor(MultipartDownloadIntegrationTest.class);
