@@ -368,47 +368,6 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                 .addParameter(
                                         Parameter.builder().name("operationContextParam").type(ParameterType.fromValue("string"))
                                                 .required(false).build()).build()).addRule(endpointRule_0()).build();
-            .builder()
-            .version("1.2")
-            .serviceId("query")
-            .parameters(
-                Parameters
-                    .builder()
-                    .addParameter(
-                        Parameter.builder().name("region").type(ParameterType.fromValue("string")).required(true)
-                                 .builtIn("AWS::Region").documentation("The region to send requests to").build())
-                    .addParameter(
-                        Parameter.builder().name("useDualStackEndpoint").type(ParameterType.fromValue("boolean"))
-                                 .required(false).builtIn("AWS::UseDualStack").build())
-                    .addParameter(
-                        Parameter.builder().name("useFIPSEndpoint").type(ParameterType.fromValue("boolean"))
-                                 .required(false).builtIn("AWS::UseFIPS").build())
-                    .addParameter(
-                        Parameter.builder().name("awsAccountId").type(ParameterType.fromValue("String"))
-                                 .required(false).builtIn("AWS::Auth::AccountId").build())
-                    .addParameter(
-                        Parameter.builder().name("endpointId").type(ParameterType.fromValue("string"))
-                                 .required(false).build())
-                    .addParameter(
-                        Parameter.builder().name("defaultTrueParam").type(ParameterType.fromValue("boolean"))
-                                 .required(false).documentation("A param that defauls to true")
-                                 .defaultValue(Value.fromBool(true)).build())
-                    .addParameter(
-                        Parameter.builder().name("defaultStringParam").type(ParameterType.fromValue("string"))
-                                 .required(false).defaultValue(Value.fromStr("hello endpoints")).build())
-                    .addParameter(
-                        Parameter.builder().name("deprecatedParam").type(ParameterType.fromValue("string"))
-                                 .required(false).deprecated(new Parameter.Deprecated("Don't use!", "2021-01-01"))
-                                 .build())
-                    .addParameter(
-                        Parameter.builder().name("booleanContextParam").type(ParameterType.fromValue("boolean"))
-                                 .required(false).build())
-                    .addParameter(
-                        Parameter.builder().name("stringContextParam").type(ParameterType.fromValue("string"))
-                                 .required(false).build())
-                    .addParameter(
-                        Parameter.builder().name("operationContextParam").type(ParameterType.fromValue("string"))
-                                 .required(false).build()).build()).addRule(endpointRule_0()).build();
     }
 
     @Override
