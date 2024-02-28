@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This release increases the range of MaxResults for GetNetworkInsightsAccessScopeAnalysisFindings to 1,000."
+}
