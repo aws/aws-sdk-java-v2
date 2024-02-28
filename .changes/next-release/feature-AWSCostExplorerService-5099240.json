@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Cost Explorer Service",
-    "contributor": "",
-    "description": "This release introduces the new API 'GetApproximateUsageRecords', which retrieves estimated usage records for hourly granularity or resource-level data at daily granularity."
-}

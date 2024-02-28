@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.24.13__ __2024-02-28__
+## __AWS Batch__
+  - ### Features
+    - This release adds Batch support for configuration of multicontainer jobs in ECS, Fargate, and EKS. This support is available for all types of jobs, including both array jobs and multi-node parallel jobs.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces the new API 'GetApproximateUsageRecords', which retrieves estimated usage records for hourly granularity or resource-level data at daily granularity.
+
+## __AWS IoT__
+  - ### Features
+    - This release reduces the maximum results returned per query invocation from 500 to 100 for the SearchIndex API. This change has no implications as long as the API is invoked until the nextToken is NULL.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Switching remaining AWS service clients onto the new SRA (Smithy Reference Architecture) identity and auth logic that was released in v2.21.0. For a list of individual services affected, please check the committed files.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF now supports configurable time windows for request aggregation with rate-based rules. Customers can now select time windows of 1 minute, 2 minutes or 10 minutes, in addition to the previously supported 5 minutes.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support to override search strategy performed by the Retrieve and RetrieveAndGenerate APIs for Amazon Bedrock Agents
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release increases the range of MaxResults for GetNetworkInsightsAccessScopeAnalysisFindings to 1,000.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue in S3 multipart client that could cause `BlockingInputStreamAsyncRequestBody#writeInputStream` to get stuck if any of the multipart request fails. See [#4801](https://github.com/aws/aws-sdk-java-v2/issues/4801)
+
 # __2.24.12__ __2024-02-27__
 ## __AWS Amplify UI Builder__
   - ### Features
