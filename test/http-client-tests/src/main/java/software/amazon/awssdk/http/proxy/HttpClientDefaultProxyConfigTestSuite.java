@@ -84,6 +84,13 @@ public abstract class HttpClientDefaultProxyConfigTestSuite {
 
     @BeforeEach
     public void setup() {
+        System.clearProperty("http.proxyHost");
+        System.clearProperty("http.proxyPort");
+        System.clearProperty("https.proxyHost");
+        System.clearProperty("https.proxyPort");
+        System.clearProperty("http.nonProxyHosts");
+        System.clearProperty("https.nonProxyHosts");
+        System.clearProperty("https.proxyPort");
         mockProxy.start();
         mockServer.start();
         mockServer.stubFor(get(WireMock.urlMatching(".*"))
@@ -95,10 +102,6 @@ public abstract class HttpClientDefaultProxyConfigTestSuite {
         mockServer.stop();
         mockProxy.stop();
         ENVIRONMENT_VARIABLE_HELPER.reset();
-        System.clearProperty("http.proxyHost");
-        System.clearProperty("http.proxyPort");
-        System.clearProperty("https.proxyHost");
-        System.clearProperty("https.proxyPort");
     }
 
     public static Stream<Arguments> proxyConfigurationSettingsForEnvironmentAndSystemProperty() {
@@ -117,7 +120,7 @@ public abstract class HttpClientDefaultProxyConfigTestSuite {
 
             Arguments.of(new TestData()
                              .addSystemProperKeyValue("none", "none")
-                             .addEnvironmentPropertyProperKeyValue("http_proxy", "http://" + "localhost" + ":" + "%s" + "/"),
+                             .addEnvironmentPropertyProperKeyValue("http_proxy", "http://" + "localhost" + ":" + "%s"),
                          "Provided Environment Variables  and No system variables uses proxy config")
         );
     }
