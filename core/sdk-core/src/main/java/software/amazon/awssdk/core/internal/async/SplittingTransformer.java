@@ -25,7 +25,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -268,7 +267,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      * the Subscriber for each of the individual request's ByteBuffer publisher
      */
     static class IndividualPartSubscriber<T> implements Subscriber<ByteBuffer> {
-        private static final Logger partLogger = Logger.loggerFor(IndividualPartSubscriber.class);
+        private static final Logger PART_LOGGER = Logger.loggerFor(IndividualPartSubscriber.class);
 
         private final CompletableFuture<T> future;
         private final T response;
@@ -284,7 +283,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onSubscribe(Subscription s) {
-            partLogger.info(() -> "onSubscribe");
+            PART_LOGGER.info(() -> "onSubscribe");
             if (this.subscription != null) {
                 s.cancel();
                 return;
@@ -309,13 +308,13 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onError(Throwable t) {
-            partLogger.info(() -> "onError");
+            PART_LOGGER.info(() -> "onError");
             handleError(t);
         }
 
         @Override
         public void onComplete() {
-            partLogger.info(() -> "onComplete");
+            PART_LOGGER.info(() -> "onComplete");
             future.complete(response);
         }
 
