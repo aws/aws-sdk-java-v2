@@ -441,7 +441,7 @@ public final class SdkHttpUtils {
                          .map(s -> StringUtils.replace(s, "*", ".*?"))
                          .collect(Collectors.toSet());
         }
-        return null;
+        return Collections.emptySet();
     }
 
     public static Set<String> parseNonProxyHostsEnvironmentVariable() {

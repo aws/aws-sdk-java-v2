@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.NonProxyHostConfigProvider;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.ToString;
@@ -59,16 +58,11 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         ProxyConfigProvider proxyConfiguration = fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
                                                                                builder.useEnvironmentVariableValues,
                                                                                resolvedScheme);
-
-        NonProxyHostConfigProvider nonProxyHostConfiguration = NonProxyHostConfigProvider.
-            fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
-                                          builder.useEnvironmentVariableValues);
-
         this.username = resolveUsername(builder, proxyConfiguration);
         this.password = resolvePassword(builder, proxyConfiguration);
         this.ntlmDomain = builder.ntlmDomain;
         this.ntlmWorkstation = builder.ntlmWorkstation;
-        this.nonProxyHosts = resolveNonProxyHosts(builder, nonProxyHostConfiguration);
+        this.nonProxyHosts = resolveNonProxyHosts(builder, proxyConfiguration);
         this.preemptiveBasicAuthenticationEnabled = builder.preemptiveBasicAuthenticationEnabled == null ? Boolean.FALSE :
                                                     builder.preemptiveBasicAuthenticationEnabled;
         this.useSystemPropertyValues = builder.useSystemPropertyValues;
@@ -97,7 +91,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
 
     private static Set<String> resolveNonProxyHosts(DefaultClientProxyConfigurationBuilder builder,
-                                                    NonProxyHostConfigProvider proxyConfiguration) {
+                                                    ProxyConfigProvider proxyConfiguration) {
         if (builder.nonProxyHosts != null || proxyConfiguration == null) {
             return builder.nonProxyHosts;
         }

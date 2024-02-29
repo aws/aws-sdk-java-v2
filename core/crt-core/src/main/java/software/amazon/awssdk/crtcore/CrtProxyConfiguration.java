@@ -19,7 +19,6 @@ import static software.amazon.awssdk.utils.ProxyConfigProvider.fromSystemEnviron
 
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.NonProxyHostConfigProvider;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
@@ -46,9 +45,7 @@ public abstract class CrtProxyConfiguration {
         ProxyConfigProvider proxyConfigProvider = fromSystemEnvironmentSettings(builder.useSystemPropertyValues,
                                                                                 builder.useEnvironmentVariableValues ,
                                                                                 builder.scheme);
-
         this.host = resolveHost(builder, proxyConfigProvider);
-
         this.port = resolvePort(builder, proxyConfigProvider);
         this.username = resolveUsername(builder, proxyConfigProvider);
         this.password = resolvePassword(builder, proxyConfigProvider);
