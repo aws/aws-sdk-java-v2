@@ -36,8 +36,8 @@ public class SplittingTransformerTckTest extends PublisherVerification<AsyncResp
         SplittingTransformer<Object, ResponseBytes<Object>> transformer =
             SplittingTransformer.<Object, ResponseBytes<Object>>builder()
                                 .upstreamResponseTransformer(upstreamTransformer)
-                                .maximumBufferSize(64 * 1024)
-                                .returnFuture(future)
+                                .maximumBufferSizeInBytes(64 * 1024L)
+                                .resultFuture(future)
                                 .build();
         return SdkPublisher.adapt(transformer).limit(Math.toIntExact(l));
     }
