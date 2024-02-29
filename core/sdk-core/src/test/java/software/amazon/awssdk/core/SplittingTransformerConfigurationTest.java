@@ -25,7 +25,7 @@ public class SplittingTransformerConfigurationTest {
     @Test
     void equalsHashcode() {
         EqualsVerifier.forClass(SplittingTransformerConfiguration.class)
-                      .withNonnullFields("bufferSize")
+                      .withNonnullFields("bufferSizeInBytes")
                       .verify();
 
     }
@@ -34,7 +34,7 @@ public class SplittingTransformerConfigurationTest {
     void toBuilder() {
         SplittingTransformerConfiguration configuration =
             SplittingTransformerConfiguration.builder()
-                                             .bufferSize(4444L)
+                                             .bufferSizeInBytes(4444L)
                                              .build();
 
         SplittingTransformerConfiguration another = configuration.toBuilder().build();

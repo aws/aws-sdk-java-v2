@@ -43,7 +43,7 @@ class SplittingTransformerTest {
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
                                 .maximumBufferSizeInBytes(1024 * 1024 * 32L)
-                                .returnFuture(future)
+                                .resultFuture(future)
                                 .build();
         split.subscribe(new CancelAfterNTestSubscriber(
             4, n -> AsyncRequestBody.fromString(String.format("This is the body of %d.", n))));
@@ -60,7 +60,7 @@ class SplittingTransformerTest {
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
                                 .maximumBufferSizeInBytes(1024 * 1024 * 32L)
-                                .returnFuture(future)
+                                .resultFuture(future)
                                 .build();
         split.subscribe(new FailAfterNTestSubscriber(2));
         assertThatThrownBy(future::join).hasMessageContaining("TEST ERROR 2");
@@ -80,7 +80,7 @@ class SplittingTransformerTest {
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
                                 .maximumBufferSizeInBytes(evenBufferSize)
-                                .returnFuture(future)
+                                .resultFuture(future)
                                 .build();
         split.subscribe(new CancelAfterNTestSubscriber(
             splitAmount,
@@ -107,7 +107,7 @@ class SplittingTransformerTest {
             SplittingTransformer.<TestResultObject, Object>builder()
                                 .upstreamResponseTransformer(upstreamTestTransformer)
                                 .maximumBufferSizeInBytes(1024 * 1024 * 32L)
-                                .returnFuture(future)
+                                .resultFuture(future)
                                 .build();
         split.subscribe(new RequestingTestSubscriber(4));
 
@@ -115,6 +115,51 @@ class SplittingTransformerTest {
         String expected = "This is the body of 1.This is the body of 2.This is the body of 3.This is the body of 4.";
         assertThat(upstreamTestTransformer.contentAsString()).isEqualTo(expected);
     }
+
+    @Test
+    void negativeBufferSize_shouldThrowIllegalArgument() {
+            assertThatThrownBy(() -> SplittingTransformer.<TestResultObject, Object>builder()
+                                .maximumBufferSizeInBytes(-1L)
+                                .upstreamResponseTransformer(new UpstreamTestTransformer())
+                                .resultFuture(new CompletableFuture<>())
+                                .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("maximumBufferSizeInBytes");
+    }
+
+    @Test
+    void nullBufferSize_shouldThrowNullPointerException() {
+        assertThatThrownBy(() -> SplittingTransformer.<TestResultObject, Object>builder()
+                                                     .maximumBufferSizeInBytes(null)
+                                                     .upstreamResponseTransformer(new UpstreamTestTransformer())
+                                                     .resultFuture(new CompletableFuture<>())
+                                                     .build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("maximumBufferSizeInBytes");
+    }
+
+    @Test
+    void nullUpstreamTransformer_shouldThrowNullPointerException() {
+        assertThatThrownBy(() -> SplittingTransformer.<TestResultObject, Object>builder()
+                                                     .maximumBufferSizeInBytes(1024L)
+                                                     .upstreamResponseTransformer(null)
+                                                     .resultFuture(new CompletableFuture<>())
+                                                     .build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("upstreamResponseTransformer");
+    }
+
+    @Test
+    void nullFuture_shouldThrowNullPointerException() {
+        assertThatThrownBy(() -> SplittingTransformer.<TestResultObject, Object>builder()
+                                                     .maximumBufferSizeInBytes(1024L)
+                                                     .upstreamResponseTransformer(new UpstreamTestTransformer())
+                                                     .resultFuture(null)
+                                                     .build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("resultFuture");
+    }
+
 
     private static class CancelAfterNTestSubscriber
         implements Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>> {

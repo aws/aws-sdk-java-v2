@@ -54,6 +54,9 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      */
     private final AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
 
+    /**
+     * Set to true once {@code .prepare()} is called on the upstreamResponseTransformer
+     */
     private final AtomicBoolean preparedCalled = new AtomicBoolean(false);
 
     /**
@@ -75,7 +78,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      * Future to track the status of the upstreamResponseTransformer. Will be completed when the future returned by calling
      * {@code prepare()} on the upstreamResponseTransformer itself completes.
      */
-    private final CompletableFuture<ResultT> returnFuture;
+    private final CompletableFuture<ResultT> resultFuture;
 
     /**
      * The buffer size used to buffer the content received from the downstream subscriber
@@ -106,11 +109,15 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicBoolean emitting = new AtomicBoolean(false);
 
     private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
-                                 Long maximumBufferInBytes,
-                                 CompletableFuture<ResultT> returnFuture) {
-        this.upstreamResponseTransformer = Validate.paramNotNull(upstreamResponseTransformer, "asyncRequestBody");
-        this.returnFuture = Validate.paramNotNull(returnFuture, "returnFuture");
-        this.maximumBufferInBytes = Validate.notNull(maximumBufferInBytes, "maximumBufferInBytes");
+                                 Long maximumBufferSizeInBytes,
+                                 CompletableFuture<ResultT> resultFuture) {
+        this.upstreamResponseTransformer = Validate.paramNotNull(
+            upstreamResponseTransformer, "upstreamResponseTransformer");
+        this.resultFuture = Validate.paramNotNull(
+            resultFuture, "resultFuture");
+        Validate.notNull(maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
+        this.maximumBufferInBytes = Validate.isPositive(
+            maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
     }
 
     /**
@@ -216,8 +223,8 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             this.individualFuture = new CompletableFuture<>();
             if (preparedCalled.compareAndSet(false, true)) {
                 CompletableFuture<ResultT> upstreamFuture = upstreamResponseTransformer.prepare();
-                if (!returnFuture.isDone()) {
-                    CompletableFutureUtils.forwardResultTo(upstreamFuture, returnFuture);
+                if (!resultFuture.isDone()) {
+                    CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
                 }
             }
             individualFuture.whenComplete((r, e) -> {
@@ -233,7 +240,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             trLog.info(() -> "onResponse");
             if (onResponseCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onResponse on the upstream transformer");
-                // todo: should we send back the first response to the upstreamResponseTransformer as-is?
                 upstreamResponseTransformer.onResponse(response);
             }
             this.response = response;
@@ -340,7 +346,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         /**
          * The {@link AsyncResponseTransformer} that will receive the data from each of the individually published
          * {@link IndividualTransformer}, usually intended to be the one on which the
-         * {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration)} )} method was called.
+         * {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration)})} method was called.
          *
          * @param upstreamResponseTransformer the {@code AsyncResponseTransformer} that was split.
          * @return an instance of this builder
@@ -372,7 +378,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
          * @param returnFuture the future to complete.
          * @return an instance of this builder
          */
-        public Builder<ResponseT, ResultT> returnFuture(CompletableFuture<ResultT> returnFuture) {
+        public Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> returnFuture) {
             this.returnFuture = returnFuture;
             return this;
         }

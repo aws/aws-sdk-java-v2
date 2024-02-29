@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomUtils;
 import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
@@ -42,7 +41,6 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
-import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -50,6 +48,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.Logger;
 
+// TODO(multipart download): remove before release
 // WIP - please ignore for now, only used in manually testing
 class MultipartDownloadIntegrationTest {
     private static final Logger log = Logger.loggerFor(MultipartDownloadIntegrationTest.class);
@@ -59,6 +58,9 @@ class MultipartDownloadIntegrationTest {
     static final String key = String.format("debug-test-%smb", fileTestSize);
 
     private S3AsyncClient s3;
+    private final SplittingTransformerConfiguration splitConfig = SplittingTransformerConfiguration.builder()
+                                                                                                   .bufferSizeInBytes(1024 * 1024 * 32L)
+                                                                                                   .build();
 
     @BeforeEach
     void init() {
@@ -71,7 +73,7 @@ class MultipartDownloadIntegrationTest {
                                .build();
     }
 
-    @Test
+    // @Test
     void testByteAsyncResponseTransformer() {
         CompletableFuture<ResponseBytes<GetObjectResponse>> response = s3.getObject(
             r -> r.bucket(bucket).key(key),
@@ -83,7 +85,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(bytes).hasSize(fileTestSize * 1024 * 1024);
     }
 
-    @Test
+    // @Test
     void testFileAsyncResponseTransformer() {
         Path path = Paths.get("/Users/olapplin/Develop/tmp",
                               LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE) + '-' + key);
@@ -96,7 +98,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(path.toFile()).hasSize(fileTestSize * 1024 * 1024);
     }
 
-    @Test
+    // @Test
     void testPublisherAsyncResponseTransformer() {
         CompletableFuture<ResponsePublisher<GetObjectResponse>> future = s3.getObject(
             r -> r.bucket(bucket).key(key),
@@ -143,7 +145,7 @@ class MultipartDownloadIntegrationTest {
         assertThat(total).hasValue(fileTestSize * 1024 * 1024);
     }
 
-    @Test
+    // @Test
     void testBlockingInputStreamResponseTransformer() {
         CompletableFuture<ResponseInputStream<GetObjectResponse>> future = s3.getObject(
             r -> r.bucket(bucket).key(key),
