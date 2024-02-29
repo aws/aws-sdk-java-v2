@@ -203,6 +203,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
         private void sendCurrentBody(AsyncRequestBody body) {
             downstreamPublisher.send(body).exceptionally(t -> {
                 downstreamPublisher.error(t);
+                upstreamSubscription.cancel();
                 return null;
             });
         }
