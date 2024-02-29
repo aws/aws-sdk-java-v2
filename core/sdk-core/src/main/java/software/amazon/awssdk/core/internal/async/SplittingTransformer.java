@@ -200,10 +200,22 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             if (downstreamSubscriber == null) {
                 return;
             }
+            if (!onStreamCalled.get()) {
+                // we never subscribe publisherToUpstream to the upstream, it would not complete
+                downstreamSubscriber = null;
+                return;
+            }
             publisherToUpstream.complete().whenComplete((v, t) -> {
-                downstreamSubscriber.onComplete();
+                if (downstreamSubscriber == null) {
+                    return;
+                }
+                if (t != null) {
+                    downstreamSubscriber.onError(t);
+                } else {
+                    downstreamSubscriber.onComplete();
+                }
+                downstreamSubscriber = null;
             });
-            downstreamSubscriber = null;
         }
     }
 
@@ -213,13 +225,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      * body publisher.
      */
     private class IndividualTransformer implements AsyncResponseTransformer<ResponseT, ResponseT> {
-        private final Logger trLog = Logger.loggerFor(IndividualTransformer.class);
         private ResponseT response;
         private CompletableFuture<ResponseT> individualFuture;
 
         @Override
         public CompletableFuture<ResponseT> prepare() {
-            trLog.trace(() -> "prepare");
             this.individualFuture = new CompletableFuture<>();
             if (preparedCalled.compareAndSet(false, true)) {
                 CompletableFuture<ResultT> upstreamFuture = upstreamResponseTransformer.prepare();
@@ -237,7 +247,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onResponse(ResponseT response) {
-            trLog.trace(() -> "onResponse");
             if (onResponseCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onResponse on the upstream transformer");
                 upstreamResponseTransformer.onResponse(response);
@@ -247,7 +256,9 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            trLog.trace(() -> "onStream");
+            if (downstreamSubscriber == null) {
+                return;
+            }
             if (onStreamCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onStream on the upstream transformer");
                 upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(
@@ -257,13 +268,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                                                  .build()
                 ));
             }
-            publisher.subscribe(new IndividualPartSubscriber<>(this.individualFuture, response, publisherToUpstream));
+            publisher.subscribe(new IndividualPartSubscriber<>(this.individualFuture, response));
         }
 
         @Override
         public void exceptionOccurred(Throwable error) {
-            trLog.trace(() -> "exceptionOccurred: " + error.toString());
-
             publisherToUpstream.error(error);
             upstreamResponseTransformer.exceptionOccurred(error);
         }
@@ -272,24 +281,19 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     /**
      * the Subscriber for each of the individual request's ByteBuffer publisher
      */
-    static class IndividualPartSubscriber<T> implements Subscriber<ByteBuffer> {
-        private static final Logger PART_LOGGER = Logger.loggerFor(IndividualPartSubscriber.class);
+    class IndividualPartSubscriber<T> implements Subscriber<ByteBuffer> {
 
         private final CompletableFuture<T> future;
         private final T response;
-        private final SimplePublisher<ByteBuffer> publisherToUpstream;
         private Subscription subscription;
 
-        IndividualPartSubscriber(CompletableFuture<T> future, T response,
-                                 SimplePublisher<ByteBuffer> bodyPartPublisher) {
+        IndividualPartSubscriber(CompletableFuture<T> future, T response) {
             this.future = future;
             this.response = response;
-            this.publisherToUpstream = bodyPartPublisher;
         }
 
         @Override
         public void onSubscribe(Subscription s) {
-            PART_LOGGER.trace(() -> "onSubscribe");
             if (this.subscription != null) {
                 s.cancel();
                 return;
@@ -300,7 +304,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            PART_LOGGER.trace(() -> "onNext");
             if (byteBuffer == null) {
                 throw new NullPointerException("onNext must not be called with null byteBuffer");
             }
@@ -309,19 +312,21 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                     handleError(t);
                     return;
                 }
+                if (isCancelled.get()) {
+                    handleCancelState();
+                    return;
+                }
                 subscription.request(1);
             });
         }
 
         @Override
         public void onError(Throwable t) {
-            PART_LOGGER.trace(() -> "onError");
             handleError(t);
         }
 
         @Override
         public void onComplete() {
-            PART_LOGGER.info(() -> "onComplete");
             future.complete(response);
         }
 

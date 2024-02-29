@@ -23,6 +23,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class IndividualPartSubscriberTckTest extends SubscriberWhiteboxVerification<ByteBuffer> {
@@ -35,9 +37,15 @@ public class IndividualPartSubscriberTckTest extends SubscriberWhiteboxVerificat
 
     @Override
     public Subscriber<ByteBuffer> createSubscriber(WhiteboxSubscriberProbe<ByteBuffer> probe) {
-        CompletableFuture<Integer> future = new CompletableFuture<>();
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
-        return new SplittingTransformer.IndividualPartSubscriber<Integer>(future, 0, publisher) {
+        SplittingTransformer<Object, ResponseBytes<Object>> transformer =
+            SplittingTransformer.<Object, ResponseBytes<Object>>builder()
+                                .upstreamResponseTransformer(AsyncResponseTransformer.toBytes())
+                                .maximumBufferSizeInBytes(32L)
+                                .resultFuture(new CompletableFuture<>())
+                                .build();
+        return transformer.new IndividualPartSubscriber<ByteBuffer>(future, ByteBuffer.wrap(new byte[0])) {
             @Override
             public void onSubscribe(Subscription s) {
                 super.onSubscribe(s);
