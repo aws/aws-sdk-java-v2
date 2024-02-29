@@ -130,13 +130,17 @@ public abstract class HttpClientDefaultProxyConfigTestSuite {
     public void ensureProxyErrorsWhenIncorrectPortUsed(TestData testData, String testCaseName) throws Throwable {
         setSystemPropertyAndEnvironmentVariables(testData, getRandomPort(mockProxy.port()));
         if (isSyncClient()) {
-            defaultProxyConfigurationSyncHttp(createSyncHttpClientWithDefaultProxy(),
+            SdkHttpClient syncHttpClientWithDefaultProxy = createSyncHttpClientWithDefaultProxy();
+            defaultProxyConfigurationSyncHttp(syncHttpClientWithDefaultProxy,
                                               getProxyFailedExceptionType(),
                                               getProxyFailedCauseExceptionType());
+            syncHttpClientWithDefaultProxy.close();
         } else {
-            defaultProxyConfigurationForAsyncHttp(createHttpClientWithDefaultProxy(),
+            SdkAsyncHttpClient httpClientWithDefaultProxy = createHttpClientWithDefaultProxy();
+            defaultProxyConfigurationForAsyncHttp(httpClientWithDefaultProxy,
                                                   getProxyFailedExceptionType(),
                                                   getProxyFailedCauseExceptionType());
+            httpClientWithDefaultProxy.close();
         }
     }
 
@@ -170,18 +174,27 @@ public abstract class HttpClientDefaultProxyConfigTestSuite {
     public void ensureHttpCallsPassesWhenProxyWithCorrectPortIsUsed(TestData testData, String testCaseName) throws Throwable {
         setSystemPropertyAndEnvironmentVariablesToDivertToHttpsProxy(testData, mockProxy.port());
         if (isSyncClient()) {
-            defaultProxyConfigurationSyncHttp(createSyncHttpClientWithDefaultProxy(), null, null);
+            SdkHttpClient syncHttpClientWithDefaultProxy = createSyncHttpClientWithDefaultProxy();
+            defaultProxyConfigurationSyncHttp(syncHttpClientWithDefaultProxy, null, null);
+            syncHttpClientWithDefaultProxy.close();
+
         } else {
-            defaultProxyConfigurationForAsyncHttp(createHttpClientWithDefaultProxy(), null, null);
+            SdkAsyncHttpClient asyncHttpClient = createHttpClientWithDefaultProxy();
+            defaultProxyConfigurationForAsyncHttp(asyncHttpClient, null, null);
+            asyncHttpClient.close();
         }
     }
 
     @Test
     public void ensureHttpCallsPassesWhenProxyIsNotUsed() throws Throwable {
         if (isSyncClient()) {
-            defaultProxyConfigurationSyncHttp(createSyncHttpClientWithDefaultProxy(), null, null);
+            SdkHttpClient sdkHttpClient = createSyncHttpClientWithDefaultProxy();
+            defaultProxyConfigurationSyncHttp(sdkHttpClient, null, null);
+            sdkHttpClient.close();
         } else {
-            defaultProxyConfigurationForAsyncHttp(createHttpClientWithDefaultProxy(), null, null);
+            SdkAsyncHttpClient asyncHttpClient = createHttpClientWithDefaultProxy();
+            defaultProxyConfigurationForAsyncHttp(asyncHttpClient, null, null);
+            asyncHttpClient.close();
         }
     }
 
