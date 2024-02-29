@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Migration Hub Orchestrator",
+    "contributor": "",
+    "description": "Adds new CreateTemplate, UpdateTemplate and DeleteTemplate APIs."
+}
