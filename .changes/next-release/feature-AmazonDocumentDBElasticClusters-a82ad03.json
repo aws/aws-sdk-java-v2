@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DocumentDB Elastic Clusters",
+    "contributor": "",
+    "description": "Launched Elastic Clusters Readable Secondaries, Start/Stop, Configurable Shard Instance count, Automatic Backups and Snapshot Copying"
+}
