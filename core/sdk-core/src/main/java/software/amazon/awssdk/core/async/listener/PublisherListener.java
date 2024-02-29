@@ -45,6 +45,10 @@ public interface PublisherListener<T> extends SubscriberListener<T> {
         return new NotifyingPublisher<>(delegate, listener);
     }
 
+    static NoOpPublisherListener noOp() {
+        return NoOpPublisherListener.getInstance();
+    }
+
     @SdkInternalApi
     final class NotifyingPublisher<T> implements SdkPublisher<T> {
         private static final Logger log = Logger.loggerFor(NotifyingPublisher.class);
@@ -70,6 +74,19 @@ public interface PublisherListener<T> extends SubscriberListener<T> {
             } catch (Exception e) {
                 log.error(() -> callbackName + " callback failed. This exception will be dropped.", e);
             }
+        }
+    }
+
+    @SdkInternalApi
+    final class NoOpPublisherListener implements PublisherListener<Long> {
+
+        private static final NoOpPublisherListener NO_OP_PUBLISHER_LISTENER = new NoOpPublisherListener();
+
+        private NoOpPublisherListener() {
+        }
+
+        static NoOpPublisherListener getInstance() {
+            return NO_OP_PUBLISHER_LISTENER;
         }
     }
 }

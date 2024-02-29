@@ -269,15 +269,10 @@ public final class ProfileCredentialsUtils {
             case ECS_CONTAINER:
                 return ContainerCredentialsProvider.builder().build();
             case EC2_INSTANCE_METADATA:
-                // The IMDS credentials provider should source the endpoint config properties from the currently active profile
-                Ec2MetadataConfigProvider configProvider = Ec2MetadataConfigProvider.builder()
-                        .profileFile(() -> profileFile)
-                        .profileName(name)
-                        .build();
-
                 return InstanceProfileCredentialsProvider.builder()
-                        .endpoint(configProvider.getEndpoint())
-                        .build();
+                                                         .profileFile(profileFile)
+                                                         .profileName(name)
+                                                         .build();
             case ENVIRONMENT:
                 return AwsCredentialsProviderChain.builder()
                     .addCredentialsProvider(SystemPropertyCredentialsProvider.create())

@@ -49,19 +49,6 @@ public class S3CrossRegionSyncClientRedirectTest extends S3CrossRegionRedirectTe
         when(mockDelegateClient.headBucket(any(HeadBucketRequest.class)))
             .thenThrow(redirectException(500, null, "InternalError", null));
     }
-    @Override
-    protected void stubHeadBucketRedirectWithAuthorizationHeaderMalformed() {
-        when(mockDelegateClient.headBucket(any(HeadBucketRequest.class)))
-            .thenThrow(redirectException(400, CROSS_REGION.id(), "AuthorizationHeaderMalformed", null))
-            .thenReturn(HeadBucketResponse.builder().build());
-    }
-
-    @Override
-    protected void stubApiWithAuthorizationHeaderMalformedError() {
-        when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(400, null, "AuthorizationHeaderMalformed", null))
-            .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
-    }
 
     @Override
     protected void verifyNoBucketCall() {

@@ -111,6 +111,34 @@ public class TransferProgressUpdater {
             });
     }
 
+    /**
+     * Progress listener for Java-based S3Client with multipart enabled.
+     */
+    public PublisherListener<Long> multipartClientProgressListener() {
+
+        return new PublisherListener<Long>() {
+            @Override
+            public void publisherSubscribe(Subscriber<? super Long> subscriber) {
+                resetBytesTransferred();
+            }
+
+            @Override
+            public void subscriberOnNext(Long contentLength) {
+                incrementBytesTransferred(contentLength);
+            }
+
+            @Override
+            public void subscriberOnError(Throwable t) {
+                transferFailed(t);
+            }
+
+            @Override
+            public void subscriberOnComplete() {
+                endOfStreamFuture.complete(null);
+            }
+        };
+    }
+
     public PublisherListener<S3MetaRequestProgress> crtProgressListener() {
 
         return new PublisherListener<S3MetaRequestProgress>() {

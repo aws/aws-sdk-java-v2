@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
-import static software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata.SignerPropertyValueProvider;
-import static software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata.fromAuthType;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -27,20 +24,20 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 
 public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final AuthSchemeCodegenKnowledgeIndex knowledgeIndex;
 
     public ModelBasedAuthSchemeProviderSpec(IntermediateModel intermediateModel) {
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
+        this.knowledgeIndex = AuthSchemeCodegenKnowledgeIndex.of(intermediateModel);
     }
 
     @Override
@@ -93,54 +90,43 @@ public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.addStatement("$T options = new $T<>()", ParameterizedTypeName.get(List.class, AuthSchemeOption.class),
                           TypeName.get(ArrayList.class));
 
-        Map<List<String>, List<AuthType>> operationsToAuthType = authSchemeSpecUtils.operationsToAuthType();
-
-        // All the operations share the same set of auth schemes, no need to create a switch statement.
-        if (operationsToAuthType.size() == 1) {
-            List<AuthType> types = operationsToAuthType.get(Collections.emptyList());
-            for (AuthType authType : types) {
+        if (knowledgeIndex.hasPerOperationAuthSchemesOverrides()) {
+            // We create a switch to return the auth schemes overrides per
+            // operation.
+            spec.beginControlFlow("switch(params.operation())");
+            knowledgeIndex.forEachOperationsOverridesGroup((ops, schemes) -> addCasesForOperations(spec, ops, schemes));
+            addCasesForOperations(spec, Collections.emptyList(), knowledgeIndex.serviceDefaultAuthSchemes());
+            spec.endControlFlow();
+        } else {
+            // All the operations share the same set of auth schemes, no need to create a switch statement.
+            List<AuthSchemeCodegenMetadata> types = knowledgeIndex.serviceDefaultAuthSchemes();
+            for (AuthSchemeCodegenMetadata authType : types) {
                 addAuthTypeProperties(spec, authType);
             }
-            return spec.addStatement("return $T.unmodifiableList(options)", Collections.class)
-                       .build();
         }
-        spec.beginControlFlow("switch(params.operation())");
-        operationsToAuthType.forEach((ops, schemes) -> {
-            if (!ops.isEmpty()) {
-                addCasesForOperations(spec, ops, schemes);
-            }
-        });
-        addCasesForOperations(spec, Collections.emptyList(), operationsToAuthType.get(Collections.emptyList()));
-        spec.endControlFlow();
-
         return spec.addStatement("return $T.unmodifiableList(options)", Collections.class)
                    .build();
     }
 
-    private void addCasesForOperations(MethodSpec.Builder spec, List<String> operations, List<AuthType> schemes) {
+    private void addCasesForOperations(MethodSpec.Builder spec, List<String> operations,
+                                       List<AuthSchemeCodegenMetadata> schemes) {
         if (operations.isEmpty()) {
-            spec.addCode("default:");
+            spec.addCode("default:\n");
         } else {
             for (String name : operations) {
-                spec.addCode("case $S:", name);
+                spec.addCode("case $S\n:", name);
             }
         }
-        for (AuthType authType : schemes) {
-            addAuthTypeProperties(spec, authType);
+        for (AuthSchemeCodegenMetadata metadata : schemes) {
+            addAuthTypeProperties(spec, metadata);
         }
         spec.addStatement("break");
     }
 
-    public void addAuthTypeProperties(MethodSpec.Builder spec, AuthType authType) {
-        AuthSchemeCodegenMetadata metadata = fromAuthType(authType);
-        spec.addCode("options.add($T.builder().schemeId($S)",
-                     AuthSchemeOption.class, metadata.schemeId());
-        for (SignerPropertyValueProvider property : metadata.properties()) {
-            spec.addCode(".putSignerProperty($T.$N, ", property.containingClass(), property.fieldName());
-            property.emitValue(spec, authSchemeSpecUtils);
-            spec.addCode(")");
-
-        }
-        spec.addCode(".build());\n");
+    private void addAuthTypeProperties(MethodSpec.Builder spec, AuthSchemeCodegenMetadata metadata) {
+        spec.addCode("options.add(");
+        spec.addCode(AuthSchemeCodegenMetadataExt.codegenNewAuthOption(metadata, authSchemeSpecUtils));
+        spec.addCode(".build()");
+        spec.addCode(");\n");
     }
 }

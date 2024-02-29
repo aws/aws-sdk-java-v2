@@ -44,7 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -62,6 +61,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
@@ -226,7 +226,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
         S3Client s3Client = S3Client.builder()
                                     .region(TEST_REGION)
                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                    .overrideConfiguration(o -> o.putExecutionAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true))
+                                    .addPlugin(S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin())
                                     .build();
 
         PutObjectRequest request = PutObjectRequest.builder()

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 
+import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -27,5 +28,5 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @FunctionalInterface
 @SdkInternalApi
 public interface ChunkHeaderProvider extends Resettable {
-    byte[] get(byte[] chunk);
+    byte[] get(ByteBuffer chunk);
 }

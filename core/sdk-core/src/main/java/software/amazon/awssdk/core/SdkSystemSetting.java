@@ -76,6 +76,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_EC2_METADATA_DISABLED("aws.disableEc2Metadata", "false"),
 
     /**
+     * Whether to disable fallback to insecure EC2 Metadata instance service v1 on errors or timeouts.
+     */
+    AWS_EC2_METADATA_V1_DISABLED("aws.disableEc2MetadataV1", null),
+
+    /**
      * The EC2 instance metadata service endpoint.
      *
      * This allows a service running in EC2 to automatically load its credentials and region without needing to configure them

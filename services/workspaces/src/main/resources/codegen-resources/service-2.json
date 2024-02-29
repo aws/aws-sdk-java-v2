@@ -980,7 +980,7 @@
       "errors":[
         {"shape":"OperationNotSupportedException"}
       ],
-      "documentation":"<p>Reboots the specified WorkSpaces.</p> <p>You cannot reboot a WorkSpace unless its state is <code>AVAILABLE</code>, <code>UNHEALTHY</code>, or <code>REBOOTING</code>. Reboot a WorkSpace in the <code>REBOOTING</code> state only if your WorkSpace has been stuck in the <code>REBOOTING</code> state for over 20 minutes.</p> <p>This operation is asynchronous and returns before the WorkSpaces have rebooted.</p>"
+      "documentation":"<p>Reboots the specified WorkSpaces.</p> <p>You cannot reboot a WorkSpace unless its state is <code>AVAILABLE</code> or <code>UNHEALTHY</code>.</p> <p>This operation is asynchronous and returns before the WorkSpaces have rebooted.</p>"
     },
     "RebuildWorkspaces":{
       "name":"RebuildWorkspaces",
@@ -3074,6 +3074,10 @@
         "NextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>If you received a <code>NextToken</code> from a previous call that was paginated, provide this token to receive the next set of results.</p>"
+        },
+        "WorkspaceName":{
+          "shape":"WorkspaceName",
+          "documentation":"<p>The name of the user-decoupled WorkSpace.</p>"
         }
       }
     },
@@ -4955,6 +4959,10 @@
           "shape":"BooleanObject",
           "documentation":"<p>Indicates whether the data stored on the root volume is encrypted.</p>"
         },
+        "WorkspaceName":{
+          "shape":"WorkspaceName",
+          "documentation":"<p>The name of the user-decoupled WorkSpace.</p>"
+        },
         "WorkspaceProperties":{
           "shape":"WorkspaceProperties",
           "documentation":"<p>The properties of the WorkSpace.</p>"
@@ -5395,6 +5403,10 @@
       "type":"list",
       "member":{"shape":"Workspace"}
     },
+    "WorkspaceName":{
+      "type":"string",
+      "pattern":"^[a-zA-Z0-9_()][a-zA-Z0-9_.()-]{1,63}$"
+    },
     "WorkspaceProperties":{
       "type":"structure",
       "members":{
@@ -5443,7 +5455,7 @@
         },
         "UserName":{
           "shape":"UserName",
-          "documentation":"<p>The user name of the user for the WorkSpace. This user name must exist in the Directory Service directory for the WorkSpace.</p>"
+          "documentation":"<p>The user name of the user for the WorkSpace. This user name must exist in the Directory Service directory for the WorkSpace.</p> <p>The reserved keyword, <code>[UNDEFINED]</code>, is used when creating user-decoupled WorkSpaces.</p>"
         },
         "BundleId":{
           "shape":"BundleId",
@@ -5468,6 +5480,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>The tags for the WorkSpace.</p>"
+        },
+        "WorkspaceName":{
+          "shape":"WorkspaceName",
+          "documentation":"<p>The name of the user-decoupled WorkSpace.</p>"
         }
       },
       "documentation":"<p>Describes the information used to create a WorkSpace.</p>"
