@@ -93,7 +93,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        log.info(() -> "onNext " + completedParts.get());
+        log.trace(() -> "onNext " + completedParts.get());
         if (asyncResponseTransformer == null) {
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }

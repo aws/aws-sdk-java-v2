@@ -219,7 +219,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public CompletableFuture<ResponseT> prepare() {
-            trLog.info(() -> "prepare");
+            trLog.trace(() -> "prepare");
             this.individualFuture = new CompletableFuture<>();
             if (preparedCalled.compareAndSet(false, true)) {
                 CompletableFuture<ResultT> upstreamFuture = upstreamResponseTransformer.prepare();
@@ -237,7 +237,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onResponse(ResponseT response) {
-            trLog.info(() -> "onResponse");
+            trLog.trace(() -> "onResponse");
             if (onResponseCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onResponse on the upstream transformer");
                 upstreamResponseTransformer.onResponse(response);
@@ -247,7 +247,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            trLog.info(() -> "onStream");
+            trLog.trace(() -> "onStream");
             if (onStreamCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onStream on the upstream transformer");
                 upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(
@@ -262,7 +262,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void exceptionOccurred(Throwable error) {
-            trLog.info(() -> "exceptionOccurred: " + error.toString());
+            trLog.trace(() -> "exceptionOccurred: " + error.toString());
 
             publisherToUpstream.error(error);
             upstreamResponseTransformer.exceptionOccurred(error);
@@ -289,7 +289,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onSubscribe(Subscription s) {
-            PART_LOGGER.info(() -> "onSubscribe");
+            PART_LOGGER.trace(() -> "onSubscribe");
             if (this.subscription != null) {
                 s.cancel();
                 return;
@@ -300,6 +300,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
+            PART_LOGGER.trace(() -> "onNext");
             if (byteBuffer == null) {
                 throw new NullPointerException("onNext must not be called with null byteBuffer");
             }
@@ -314,7 +315,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onError(Throwable t) {
-            PART_LOGGER.info(() -> "onError");
+            PART_LOGGER.trace(() -> "onError");
             handleError(t);
         }
 

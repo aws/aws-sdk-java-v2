@@ -17,11 +17,8 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,7 +30,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +41,6 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.SplitAsyncResponseTransformer;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -84,9 +79,9 @@ class MultipartDownloaderSubscriberWiremockTest {
                                                               int partSize) {
         byte[] expectedBody = util.stubAllParts(testBucket, testKey, amountOfPartToTest, partSize);
         AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        SplitAsyncResponseTransformer<GetObjectResponse, T> split = transformer.split(
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
             SplittingTransformerConfiguration.builder()
-                                             .bufferSize(1024 * 32L)
+                                             .bufferSizeInBytes(1024 * 32L)
                                              .build());
         Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
             s3AsyncClient,
@@ -96,7 +91,7 @@ class MultipartDownloaderSubscriberWiremockTest {
                             .build());
 
         split.publisher().subscribe(subscriber);
-        T response = split.preparedFuture().join();
+        T response = split.resultFuture().join();
 
         byte[] body = supplier.body(response);
         assertArrayEquals(expectedBody, body);
@@ -113,9 +108,9 @@ class MultipartDownloaderSubscriberWiremockTest {
                 .withStatus(400)
                 .withBody("<Error><Code>400</Code><Message>test error message</Message></Error>")));
         AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        SplitAsyncResponseTransformer<GetObjectResponse, T> split = transformer.split(
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
             SplittingTransformerConfiguration.builder()
-                                             .bufferSize(1024 * 32L)
+                                             .bufferSizeInBytes(1024 * 32L)
                                              .build());
         Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
             s3AsyncClient,
@@ -125,7 +120,7 @@ class MultipartDownloaderSubscriberWiremockTest {
                             .build());
 
         split.publisher().subscribe(subscriber);
-        assertThatThrownBy(() -> split.preparedFuture().join())
+        assertThatThrownBy(() -> split.resultFuture().join())
             .hasMessageContaining("test error message");
     }
 
@@ -142,9 +137,9 @@ class MultipartDownloaderSubscriberWiremockTest {
                 .withStatus(400)
                 .withBody("<Error><Code>400</Code><Message>test error message</Message></Error>")));
         AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        SplitAsyncResponseTransformer<GetObjectResponse, T> split = transformer.split(
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
             SplittingTransformerConfiguration.builder()
-                                             .bufferSize(1024 * 32L)
+                                             .bufferSizeInBytes(1024 * 32L)
                                              .build());
         Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
             s3AsyncClient,
@@ -156,11 +151,11 @@ class MultipartDownloaderSubscriberWiremockTest {
         if (partSize > 1) {
             split.publisher().subscribe(subscriber);
             assertThatThrownBy(() -> {
-                T res = split.preparedFuture().join();
+                T res = split.resultFuture().join();
                 supplier.body(res);
             }).hasMessageContaining("test error message");
         } else {
-            T res = split.preparedFuture().join();
+            T res = split.resultFuture().join();
             assertNotNull(supplier.body(res));
         }
     }
