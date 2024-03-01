@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -33,6 +34,8 @@ import software.amazon.awssdk.services.s3.model.CopyObjectResult;
 import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.Part;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
@@ -56,10 +59,15 @@ public final class SdkPojoConversionUtils {
     public static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest, int partNumber, String uploadId) {
 
         UploadPartRequest.Builder builder = UploadPartRequest.builder();
-
         setSdkFields(builder, putObjectRequest, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE);
-
         return builder.uploadId(uploadId).partNumber(partNumber).build();
+    }
+
+    public static CompleteMultipartUploadRequest toCompleteMultipartUploadRequest(PutObjectRequest putObjectRequest,
+                                                                                  String uploadId, CompletedPart[] parts) {
+        CompleteMultipartUploadRequest.Builder builder = CompleteMultipartUploadRequest.builder();
+        setSdkFields(builder, putObjectRequest);
+        return builder.uploadId(uploadId).multipartUpload(c -> c.parts(parts)).build();
     }
 
     public static CreateMultipartUploadRequest toCreateMultipartUploadRequest(PutObjectRequest putObjectRequest) {
@@ -99,6 +107,18 @@ public final class SdkPojoConversionUtils {
         CompletedPart.Builder builder = CompletedPart.builder();
         setSdkFields(builder, partResponse);
         return builder.partNumber(partNumber).build();
+    }
+
+    public static CompletedPart toCompletedPart(Part part) {
+        CompletedPart.Builder builder = CompletedPart.builder();
+        setSdkFields(builder, part);
+        return builder.build();
+    }
+
+    public static ListPartsRequest toListPartsRequest(String uploadId, PutObjectRequest putObjectRequest) {
+        ListPartsRequest.Builder builder = ListPartsRequest.builder();
+        setSdkFields(builder, putObjectRequest);
+        return builder.uploadId(uploadId).build();
     }
 
     private static void setSdkFields(SdkPojo targetBuilder, SdkPojo sourceObject) {

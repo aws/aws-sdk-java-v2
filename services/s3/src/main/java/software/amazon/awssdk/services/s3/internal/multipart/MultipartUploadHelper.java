@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -74,20 +75,20 @@ public final class MultipartUploadHelper {
         return createMultipartUploadFuture;
     }
 
-    void completeMultipartUpload(CompletableFuture<PutObjectResponse> returnFuture,
+    CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(CompletableFuture<PutObjectResponse> returnFuture,
                                  String uploadId,
                                  CompletedPart[] completedParts,
                                  PutObjectRequest putObjectRequest) {
-        genericMultipartHelper.completeMultipartUpload(putObjectRequest,
-                                                       uploadId,
-                                                       completedParts)
-                              .handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture,
-                                                                                       uploadId))
-                              .exceptionally(throwable -> {
-                                  genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred",
-                                                                         throwable);
-                                  return null;
-                              });
+        CompletableFuture<CompleteMultipartUploadResponse> future =
+            genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts);
+
+        future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId))
+              .exceptionally(throwable -> {
+                  genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred", throwable);
+                  return null;
+              });
+
+        return future;
     }
 
     CompletableFuture<CompletedPart> sendIndividualUploadPartRequest(String uploadId,
