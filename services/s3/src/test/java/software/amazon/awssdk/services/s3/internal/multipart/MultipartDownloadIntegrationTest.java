@@ -58,9 +58,6 @@ class MultipartDownloadIntegrationTest {
     static final String key = String.format("debug-test-%smb", fileTestSize);
 
     private S3AsyncClient s3;
-    private final SplittingTransformerConfiguration splitConfig = SplittingTransformerConfiguration.builder()
-                                                                                                   .bufferSizeInBytes(1024 * 1024 * 32L)
-                                                                                                   .build();
 
     @BeforeEach
     void init() {
@@ -103,8 +100,6 @@ class MultipartDownloadIntegrationTest {
         CompletableFuture<ResponsePublisher<GetObjectResponse>> future = s3.getObject(
             r -> r.bucket(bucket).key(key),
             AsyncResponseTransformer.toPublisher());
-        AsyncResponseTransformer<GetObjectResponse, ResponsePublisher<GetObjectResponse>> transformer =
-            AsyncResponseTransformer.toPublisher();
 
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger total = new AtomicInteger(0);
@@ -133,6 +128,7 @@ class MultipartDownloadIntegrationTest {
 
                 @Override
                 public void onComplete() {
+                    log.info(() -> "complete subscriber");
                     latch.countDown();
                 }
             });

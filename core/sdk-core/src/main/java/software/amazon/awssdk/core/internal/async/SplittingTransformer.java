@@ -312,10 +312,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                     handleError(t);
                     return;
                 }
-                if (isCancelled.get()) {
-                    handleCancelState();
-                    return;
-                }
                 subscription.request(1);
             });
         }
