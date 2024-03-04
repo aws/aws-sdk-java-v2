@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "contributor": "",
+    "description": "Add DetailedStatus field to DescribeStackEvents and DescribeStacks APIs"
+}
