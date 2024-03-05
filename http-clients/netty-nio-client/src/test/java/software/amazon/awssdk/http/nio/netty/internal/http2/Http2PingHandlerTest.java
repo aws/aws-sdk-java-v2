@@ -330,7 +330,6 @@ public class Http2PingHandlerTest {
     }
 
     private static final class PingResponder extends ChannelOutboundHandlerAdapter {
-
         private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         private Runnable respondCallback;
         private long callbackDelayMillis;
@@ -339,6 +338,7 @@ public class Http2PingHandlerTest {
             this.respondCallback = respondCallback;
             this.callbackDelayMillis = delay;
         }
+
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
             if (msg instanceof Http2PingFrame) {
@@ -350,11 +350,12 @@ public class Http2PingHandlerTest {
     }
 
     private static final class DelayingWriter extends ChannelOutboundHandlerAdapter {
-
         private final long sleepMillis;
+
         DelayingWriter(long sleepMillis) {
             this.sleepMillis = sleepMillis;
         }
+
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
             log.debug(ctx.channel(), () -> " Writing " + msg + " delayed by " + sleepMillis);

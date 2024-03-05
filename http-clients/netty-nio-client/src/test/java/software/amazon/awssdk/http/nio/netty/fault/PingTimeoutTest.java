@@ -117,19 +117,19 @@ public class PingTimeoutTest {
     }
 
     /**
-     * Test when ping timeout value is 10,000ms. When the channel has no activity including
+     * Test when ping timeout value is 3000ms. When the channel has no activity including
      * no data packets received or ping acks received for the timeout value, the connection
-     * will be closed. During connection setup for testing, there will be Setting frame and
+     * will be closed. During connection setup for testing, there will be Settings frame and
      * the SettingsAck frame exchanged which counts as activity on the channel, so the channel
-     * should timeout during the second interval which is 10 seconds.
+     * should timeout during the second interval which is 6 seconds.
      */
     @Test
-    public void pingHealthCheck_10sec_shouldThrowExceptionAfter10Secs() {
+    public void pingHealthCheck_3sec_shouldThrowExceptionAfter6Secs() {
         Instant a = Instant.now();
-        assertThatThrownBy(() -> makeRequest(Duration.ofSeconds(10)).join()).hasCauseInstanceOf(IOException.class)
+        assertThatThrownBy(() -> makeRequest(Duration.ofSeconds(3)).join()).hasCauseInstanceOf(IOException.class)
                                                                             .hasMessageContaining("An error occurred on the connection")
                                                                             .hasRootCauseInstanceOf(PingFailedException.class);
-        assertThat(Duration.between(a, Instant.now())).isBetween(Duration.ofSeconds(20), Duration.ofSeconds(22));
+        assertThat(Duration.between(a, Instant.now())).isBetween(Duration.ofSeconds(6), Duration.ofSeconds(8));
     }
 
     @Test
