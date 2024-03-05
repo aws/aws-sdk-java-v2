@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "contributor": "",
+    "description": "Adds support for providing custom headers within SendEmail and SendBulkEmail for SESv2."
+}
