@@ -31,6 +31,7 @@
         <module>dynamodb-enhanced</module>
         <module>s3-transfer-manager</module>
         <module>iam-policy-builder</module>
+        <modele>s3-event-notifications</modele>
     </modules>
 
     <dependencyManagement>
