@@ -344,5 +344,4 @@ class S3EventNotificationWriterTest {
             + "\"responseElements\":null,"
             + "\"s3\":null}]}");
     }
-
 }

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.eventnotifications.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRec
 import software.amazon.awssdk.eventnotifications.s3.model.S3Object;
 import software.amazon.awssdk.eventnotifications.s3.model.TransitionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.UserIdentity;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 
 class S3EventNotificationReaderTest {
 
@@ -227,7 +229,6 @@ class S3EventNotificationReaderTest {
                            + "}\n";
 
         S3EventNotification event = S3EventNotification.fromJson(eventJson);
-        System.out.println(event);
 
         assertThat(event.getRecords()).hasSize(1);
 
@@ -371,4 +372,17 @@ class S3EventNotificationReaderTest {
         assertThat(rec.getResponseElements()).isNull();
     }
 
+    @Test
+    void extraFields_areIgnored() {
+        String json = "{\"Records\":[], \"toto\":123}";
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        assertThat(event).isNotNull();
+        assertThat(event.getRecords()).isEmpty();
+    }
+
+    @Test
+    void malformedJson_throwsException() {
+        String json = "{\"Records\":[], \"toto\"}";
+        assertThatThrownBy(() -> S3EventNotification.fromJson(json)).hasCauseInstanceOf(JsonParseException.class);
+    }
 }
