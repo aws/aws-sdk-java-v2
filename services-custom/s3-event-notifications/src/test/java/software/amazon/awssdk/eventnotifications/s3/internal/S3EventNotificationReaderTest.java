@@ -227,6 +227,7 @@ class S3EventNotificationReaderTest {
                            + "}\n";
 
         S3EventNotification event = S3EventNotification.fromJson(eventJson);
+        System.out.println(event);
 
         assertThat(event.getRecords()).hasSize(1);
 
@@ -289,7 +290,85 @@ class S3EventNotificationReaderTest {
 
         IntelligentTieringEventData tieringEventData = rec.getIntelligentTieringEventData();
         assertThat(tieringEventData).isNotNull();
+        assertThat(tieringEventData.getDestinationAccessTier()).isEqualTo("destinationAccessTierTest");
+
+        ReplicationEventData replication = rec.getReplicationEventData();
+        assertThat(replication).isNotNull();
+        assertThat(replication.getReplicationRuleId()).isEqualTo("replicationRuleIdTest");
+        assertThat(replication.getReplicationTime()).isEqualTo("replicationTimeTest");
+        assertThat(replication.getDestinationBucket()).isEqualTo("destinationBucketTest");
+        assertThat(replication.getRequestTime()).isEqualTo("requestTimeTest");
+        assertThat(replication.getFailureReason()).isEqualTo("failureReasonTest");
+        assertThat(replication.getThreshold()).isEqualTo("thresholdTest");
+        assertThat(replication.getS3Operation()).isEqualTo("s3OperationTest");
     }
 
+    @Test
+    void emptyJson_shouldContainsNullRecords() {
+        String json = "{}";
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        assertThat(event).isNotNull();
+        assertThat(event.getRecords()).isNull();
+    }
+
+    @Test
+    void nullRecords_shouldContainNullRecords() {
+        String json = "{\"Records\":null}";
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        assertThat(event).isNotNull();
+        assertThat(event.getRecords()).isNull();
+    }
+
+    @Test
+    void emptyRecordList_shouldContainEmptyRecordList() {
+        String json = "{\"Records\":[]}";
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        assertThat(event).isNotNull();
+        assertThat(event.getRecords()).isEmpty();
+    }
+
+    @Test
+    void missingField_shouldBeNull() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"eventVersion\" : \"2.1\",\n"
+                      + "    \"eventSource\" : \"aws:s3\",\n"
+                      + "    \"awsRegion\" : \"us-west-2\",\n"
+                      + "    \"eventTime\" : \"1970-01-01T01:01:01.001Z\",\n"
+                      // missing eventName
+                      + "    \"userIdentity\" : {\n"
+                      + "      \"principalId\" : \"AIDAJDPLRKLG7UEXAMUID\"\n"
+                      + "    },\n"
+                      + "    \"requestParameters\" : {\n"
+                      + "      \"sourceIPAddress\" : \"127.1.2.3\"\n"
+                      + "    },\n"
+                      // missing response element
+                      + "    \"s3\" : {\n"
+                      + "      \"s3SchemaVersion\" : \"1.0\",\n"
+                      + "      \"configurationId\" : \"testConfigRule\",\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket-test\",\n"
+                      + "        \"ownerIdentity\" : {\n"
+                      + "          \"principalId\" : \"A3NL1KOZZKExample\"\n"
+                      + "        },\n"
+                      + "        \"arn\" : \"arn:aws:s3:::mybucket\"\n"
+                      + "      },\n"
+                      + "      \"object\" : {\n"
+                      + "        \"key\" : \"HappyFace-test.jpg\",\n"
+                      + "        \"size\" : 2048,\n"
+                      + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8etag\",\n"
+                      + "        \"versionId\" : \"096fKKXTRTtl3on89fVO.nfljtsv6vid\",\n"
+                      + "        \"sequencer\" : \"0055AED6DCD9028SEQ\"\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        S3EventNotificationRecord rec = event.getRecords().get(0);
+        assertThat(rec).isNotNull();
+        assertThat(rec.getEventName()).isNull();
+        assertThat(rec.getResponseElements()).isNull();
+    }
 
 }

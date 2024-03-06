@@ -16,9 +16,7 @@
 package software.amazon.awssdk.eventnotifications.s3.model;
 
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;

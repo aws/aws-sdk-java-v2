@@ -16,7 +16,6 @@
 package software.amazon.awssdk.eventnotifications.s3.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;

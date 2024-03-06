@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.eventnotifications.s3.internal;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -41,7 +42,7 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
 
 @SdkInternalApi
 public final class DefaultS3EventNotificationWriter implements S3EventNotificationWriter {
-    private static final S3EventNotificationWriter INSTANCE = S3EventNotificationWriter.create();
+    private static final S3EventNotificationWriter INSTANCE = S3EventNotificationWriter.builder().build();
 
     private final Boolean prettyPrint;
     private final JsonGeneratorFactory jsonGeneratorFactory;
@@ -75,18 +76,28 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
     }
 
     private void writeRecords(JsonWriter writer, List<S3EventNotificationRecord> records) {
-        writer.writeFieldName("Record");
+        writer.writeFieldName("Records");
+        if (records == null) {
+            writer.writeNull();
+            return;
+        }
         writer.writeStartArray();
         records.forEach(rec -> writeRecord(writer, rec));
         writer.writeEndArray();
     }
 
     private void writeRecord(JsonWriter writer, S3EventNotificationRecord rec) {
+        if (rec == null) {
+            writer.writeNull();
+            return;
+        }
         writer.writeStartObject();
         writeStringField(writer, "eventVersion", rec.getEventVersion());
         writeStringField(writer, "eventSource", rec.getEventSource());
         writeStringField(writer, "awsRegion", rec.getAwsRegion());
-        String eventTime = DateTimeFormatter.ISO_INSTANT.format(rec.getEventTime());
+        String eventTime = rec.getEventTime() != null
+                           ? DateTimeFormatter.ISO_INSTANT.format(rec.getEventTime())
+                           : null;
         writeStringField(writer, "eventTime", eventTime);
         writeStringField(writer, "eventName", rec.getEventName());
         writeUserIdentity(writer, rec.getUserIdentity());
@@ -154,7 +165,9 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
             writer.writeFieldName("restoreEventData");
             writer.writeStartObject();
             Instant lifecycleRestorationExpiryTime = restoreEventData.getLifecycleRestorationExpiryTime();
-            String expiryTime = DateTimeFormatter.ISO_INSTANT.format(lifecycleRestorationExpiryTime);
+            String expiryTime = lifecycleRestorationExpiryTime == null
+                ? null
+                : DateTimeFormatter.ISO_INSTANT.format(lifecycleRestorationExpiryTime);
             writeStringField(writer, "lifecycleRestorationExpiryTime", expiryTime);
             writeStringField(writer, "lifecycleRestoreStorageClass", restoreEventData.getLifecycleRestoreStorageClass());
         }
@@ -164,6 +177,10 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
 
     private void writeS3(JsonWriter writer, S3 s3) {
         writer.writeFieldName("s3");
+        if (s3 == null) {
+            writer.writeNull();
+            return;
+        }
         writer.writeStartObject();
         writeStringField(writer, "s3SchemaVersion", s3.getS3SchemaVersion());
         writeStringField(writer, "configurationId", s3.getConfigurationId());
@@ -174,28 +191,45 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
 
     private void writeS3Object(JsonWriter writer, S3Object s3Object) {
         writer.writeFieldName("object");
+        if (s3Object == null) {
+            writer.writeNull();
+            return;
+        }
         writer.writeStartObject();
         writeStringField(writer, "key", s3Object.getKey());
-        writeStringField(writer, "size", s3Object.getKey());
+        writeNumericField(writer, "size", s3Object.getSizeAsLong());
         writeStringField(writer, "eTag", s3Object.getETag());
         writeStringField(writer, "versionId", s3Object.getVersionId());
         writeStringField(writer, "sequencer", s3Object.getSequencer());
+        writer.writeEndObject();
     }
 
     private void writeS3Bucket(JsonWriter writer, S3Bucket bucket) {
         writer.writeFieldName("bucket");
+        if (bucket == null) {
+            writer.writeNull();
+            return;
+        }
         writer.writeStartObject();
         writeStringField(writer, "name", bucket.getName());
-        writeStringField(writer, "arn", bucket.getArn());
         writer.writeFieldName("ownerIdentity");
-        writer.writeStartObject();
-        writeStringField(writer, "principalId", bucket.getOwnerIdentity().getPrincipalId());
-        writer.writeEndObject();
+        if (bucket.getOwnerIdentity().getPrincipalId() == null) {
+            writer.writeNull();
+        } else {
+            writer.writeStartObject();
+            writeStringField(writer, "principalId", bucket.getOwnerIdentity().getPrincipalId());
+            writer.writeEndObject();
+        }
+        writeStringField(writer, "arn", bucket.getArn());
         writer.writeEndObject();
     }
 
     private void writeResponseElements(JsonWriter writer, ResponseElements responseElements) {
         writer.writeFieldName("responseElements");
+        if (responseElements == null) {
+            writer.writeNull();
+            return;
+        }
         writer.writeStartObject();
         writeStringField(writer, "x-amz-request-id", responseElements.getXAmzRequestId());
         writeStringField(writer, "x-amz-id-2", responseElements.getXAmzId2());
@@ -204,6 +238,10 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
 
     private void writeRequestParam(JsonWriter writer, RequestParameters requestParameters) {
         writer.writeFieldName("requestParameters");
+        if (requestParameters == null) {
+            writer.writeNull();
+            return;
+        }
         writer.writeStartObject();
         writeStringField(writer, "sourceIPAddress", requestParameters.getSourceIpAddress());
         writer.writeEndObject();
@@ -211,6 +249,10 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
 
     private void writeUserIdentity(JsonWriter writer, UserIdentity userIdentity) {
         writer.writeFieldName("userIdentity");
+        if (userIdentity == null) {
+            writer.writeNull();
+            return;
+        }
         writer.writeStartObject();
         writeStringField(writer, "principalId", userIdentity.getPrincipalId());
         writer.writeEndObject();
@@ -223,6 +265,11 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
     private void writeStringField(JsonWriter writer, String field, String value) {
         writer.writeFieldName(field);
         writer.writeValue(value);
+    }
+
+    private void writeNumericField(JsonWriter writer, String field, Long value) {
+        writer.writeFieldName(field);
+        writer.writeNumber(value.toString());
     }
 
     @Override

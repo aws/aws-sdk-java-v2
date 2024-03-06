@@ -24,10 +24,8 @@
         <version>2.25.2-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-
     <artifactId>s3-event-notifications</artifactId>
     <name>AWS Java SDK :: S3 :: Event Notification</name>
-    <packaging>pom</packaging>
     <description>
         The AWS SDK for Java - S3 Even Notification contains POJO classes and utils method to help serialize and
         deserialize Amazon S3 Event Notifications.
@@ -37,6 +35,18 @@
         <jre.version>1.8</jre.version>
         <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom-internal</artifactId>
+                <version>${awsjavasdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -88,7 +98,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.eventnotifications</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.eventnotifications.s3</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

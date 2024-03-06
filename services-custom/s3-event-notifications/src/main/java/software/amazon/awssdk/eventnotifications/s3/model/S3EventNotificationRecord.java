@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
-import software.amazon.awssdk.utils.Validate;
 
 @SdkPublicApi
 public class S3EventNotificationRecord {

@@ -17,7 +17,6 @@ package software.amazon.awssdk.eventnotifications.s3.internal;
 
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 
 @SdkInternalApi
