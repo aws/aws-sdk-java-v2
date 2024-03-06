@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.3__ __2024-03-05__
+## __AWS Chatbot__
+  - ### Features
+    - Minor update to documentation.
+
+## __AWS Organizations__
+  - ### Features
+    - This release contains an endpoint addition
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Adds support for providing custom headers within SendEmail and SendBulkEmail for SESv2.
+
 # __2.25.2__ __2024-03-04__
 ## __AWS CloudFormation__
   - ### Features

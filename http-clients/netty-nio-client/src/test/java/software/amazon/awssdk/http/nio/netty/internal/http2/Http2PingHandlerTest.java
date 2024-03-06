@@ -18,6 +18,10 @@ package software.amazon.awssdk.http.nio.netty.internal.http2;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -25,22 +29,33 @@ import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.http2.DefaultHttp2DataFrame;
 import io.netty.handler.codec.http2.DefaultHttp2PingFrame;
+import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2PingFrame;
+import io.netty.buffer.EmptyByteBuf;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 public class Http2PingHandlerTest {
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2PingHandler.class);
+
     private static final int FAST_CHECKER_DURATION_MILLIS = 100;
 
     private Http2PingHandler fastChecker;
@@ -109,15 +124,21 @@ public class Http2PingHandlerTest {
     }
 
     @Test
-    public void ignoredPingsResultInOneChannelException() throws InterruptedException {
+    public void schedulingDelayDoesNotCausePingTimeout() throws InterruptedException {
         PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
-        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher);
-        
-        Thread.sleep(FAST_CHECKER_DURATION_MILLIS);
+        PingResponder pingResponder = new PingResponder();
+        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, pingResponder);
+
+        pingResponder.setCallback(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, true)),
+                                  (long)(FAST_CHECKER_DURATION_MILLIS / 10) /* send ack 10ms after getting ping */);
+
         channel.runPendingTasks();
 
-        assertThat(catcher.caughtExceptions).hasSize(1);
-        assertThat(catcher.caughtExceptions.get(0)).isInstanceOf(IOException.class);
+        // cause a scheduling delay for the timer to run
+        Thread.sleep(FAST_CHECKER_DURATION_MILLIS * 2);
+        channel.runPendingTasks();
+
+        assertThat(catcher.caughtExceptions).hasSize(0);
     }
 
     @Test
@@ -137,10 +158,11 @@ public class Http2PingHandlerTest {
     }
 
     @Test
-    public void nonAckPingsResultInOneChannelException() {
+    public void nonAckPingsDoesNotResultInOneChannelException() {
         PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
         EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher);
 
+        // As long as there is data coming into the channel the ping will not time out.
         channel.eventLoop().scheduleAtFixedRate(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, false)),
                                                 0, FAST_CHECKER_DURATION_MILLIS, TimeUnit.MILLISECONDS);
 
@@ -149,8 +171,7 @@ public class Http2PingHandlerTest {
             channel.runPendingTasks();
         }
 
-        assertThat(catcher.caughtExceptions).hasSize(1);
-        assertThat(catcher.caughtExceptions.get(0)).isInstanceOf(IOException.class);
+        assertThat(catcher.caughtExceptions).hasSize(0);
     }
 
     @Test
@@ -214,6 +235,74 @@ public class Http2PingHandlerTest {
         assertThat(channel.runScheduledPendingTasks()).isEqualTo(-1L);
     }
 
+    @Test
+    public void delayedPingFlushDoesntTerminateConnectionPrematurely() {
+        Logger.getLogger("").setLevel(Level.ALL);
+
+        PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
+        PingResponder pingResponder = new PingResponder();
+        DelayingWriter delayingWriter = new DelayingWriter((long)(FAST_CHECKER_DURATION_MILLIS * 1.5));
+
+        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, pingResponder, delayingWriter);
+
+        pingResponder.setCallback(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, true)),
+                                  FAST_CHECKER_DURATION_MILLIS / 10 /* send ack in 10 ms after getting ping*/);
+
+        Instant runEnd = Instant.now().plus(1, SECONDS);
+        while (Instant.now().isBefore(runEnd)) {
+            channel.runPendingTasks();
+            assertThat(catcher.caughtExceptions).isEmpty();
+        }
+    }
+
+    @Test
+    public void delayedPingAckTerminatesConnection() {
+        Logger.getLogger("").setLevel(Level.ALL);
+
+        PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
+        PingResponder pingResponder = new PingResponder();
+        DelayingWriter delayingWriter = new DelayingWriter((long)(FAST_CHECKER_DURATION_MILLIS * 1.5));
+
+        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, pingResponder, delayingWriter);
+
+        pingResponder.setCallback(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, true)),
+                                  (long)(FAST_CHECKER_DURATION_MILLIS * 1.5) /* send a late ack to trigger timeout */);
+
+        Instant runEnd = Instant.now().plus(1, SECONDS);
+        while (Instant.now().isBefore(runEnd)) {
+            channel.runPendingTasks();
+            if (!catcher.caughtExceptions.isEmpty()) {
+                break;
+            }
+        }
+
+        assertThat(catcher.caughtExceptions).hasSize(1);
+        assertThat(catcher.caughtExceptions.get(0)).isInstanceOf(PingFailedException.class);
+    }
+
+    @Test
+    public void delayedPingAckOnActiveConnectionDoesntTerminateConnection() {
+        Logger.getLogger("").setLevel(Level.ALL);
+
+        PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
+        PingResponder pingResponder = new PingResponder();
+
+        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, pingResponder);
+
+        pingResponder.setCallback(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, true)),
+                                  (long)(FAST_CHECKER_DURATION_MILLIS * 1.5) /* send a late ack after timeout */);
+        // send data at a constant rate
+        channel.eventLoop().scheduleAtFixedRate(() -> channel.writeInbound(new DefaultHttp2DataFrame(Unpooled.buffer())),
+                                                FAST_CHECKER_DURATION_MILLIS / 10,
+                                                FAST_CHECKER_DURATION_MILLIS / 10, TimeUnit.MILLISECONDS);
+
+        Instant runEnd = Instant.now().plus(1, SECONDS);
+        while (Instant.now().isBefore(runEnd)) {
+            channel.runPendingTasks();
+            assertThat(catcher.caughtExceptions).hasSize(0);
+        }
+    }
+
     private static final class PingReadCatcher extends SimpleChannelInboundHandler<Http2PingFrame> {
         private final List<Http2PingFrame> caughtPings = Collections.synchronizedList(new ArrayList<>());
 
@@ -237,6 +326,47 @@ public class Http2PingHandlerTest {
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
             promise.setFailure(new IOException("Failed!"));
+        }
+    }
+
+    private static final class PingResponder extends ChannelOutboundHandlerAdapter {
+        private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        private Runnable respondCallback;
+        private long callbackDelayMillis;
+
+        void setCallback(Runnable respondCallback, long delay) {
+            this.respondCallback = respondCallback;
+            this.callbackDelayMillis = delay;
+        }
+
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+            if (msg instanceof Http2PingFrame) {
+                log.debug(ctx.channel(), () -> "OutgoingPingCatcher Received ping " + msg);
+                scheduler.schedule(respondCallback, callbackDelayMillis, TimeUnit.MILLISECONDS);
+            }
+            ctx.write(msg, promise);
+        }
+    }
+
+    private static final class DelayingWriter extends ChannelOutboundHandlerAdapter {
+        private final long sleepMillis;
+
+        DelayingWriter(long sleepMillis) {
+            this.sleepMillis = sleepMillis;
+        }
+
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+            log.debug(ctx.channel(), () -> " Writing " + msg + " delayed by " + sleepMillis);
+            try {
+                Thread.sleep(sleepMillis);
+            } catch (InterruptedException e) {
+
+            }
+            log.debug(ctx.channel(), () -> " Continuing write of " + msg);
+
+            ctx.write(msg, promise);
         }
     }
 }
