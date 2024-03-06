@@ -657,6 +657,7 @@
                             <includeModule>dynamodb-enhanced</includeModule>
                             <includeModule>s3-transfer-manager</includeModule>
                             <includeModule>iam-policy-builder</includeModule>
+                            <includeModule>s3-event-notifications</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
                             <includeModule>s3</includeModule>
