@@ -54,7 +54,6 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,9 +114,8 @@ public class ServerNotRespondingTest {
         // First request should succeed
         firstRequest.join();
 
-        // Wait for Ping to close the connection, it takes 2 * healthCheckPingPeriod (200ms)
-        // to identify a silent connection to be closed.
-        Thread.sleep(400);
+        // Wait for Ping to close the connection
+        Thread.sleep(200);
         server.notRespondOnFirstChannel = false;
         sendGetRequest().join();
         assertThat(server.h2ConnectionCount.get()).isEqualTo(2);
