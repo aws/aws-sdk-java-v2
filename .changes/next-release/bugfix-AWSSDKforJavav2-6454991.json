@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "akidambisrinivasan",
-    "description": "Improve HTTP2/PING timeout logic. Improvements are to reset the ack timers on incoming data packets because it supports liveness of the connection. Also avoiding premature timeouts due to delays in flushing or scheduling."
-}
