@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.4__ __2024-03-06__
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc only updates for DynamoDB documentation
+
+## __Amazon Redshift__
+  - ### Features
+    - Update for documentation only. Covers port ranges, definition updates for data sharing, and definition updates to cluster-snapshot documentation.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updated the input of CreateDBCluster and ModifyDBCluster to support setting CA certificates. Updated the output of DescribeDBCluster to show current CA certificate setting value.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Deprecating details in favor of configuration for GetIdentitySource and ListIdentitySources APIs.
+
+## __AmazonMWAA__
+  - ### Features
+    - Amazon MWAA adds support for Apache Airflow v2.8.1.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Add PENDING status to Lifecycle Execution resource status. Add StartTime and EndTime to ListLifecycleExecutionResource API response.
+
 # __2.25.3__ __2024-03-05__
 ## __AWS Chatbot__
   - ### Features

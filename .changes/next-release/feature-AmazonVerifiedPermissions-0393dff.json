@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Verified Permissions",
-    "contributor": "",
-    "description": "Deprecating details in favor of configuration for GetIdentitySource and ListIdentitySources APIs."
-}

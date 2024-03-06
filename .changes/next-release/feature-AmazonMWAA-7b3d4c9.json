@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMWAA",
-    "contributor": "",
-    "description": "Amazon MWAA adds support for Apache Airflow v2.8.1."
-}
