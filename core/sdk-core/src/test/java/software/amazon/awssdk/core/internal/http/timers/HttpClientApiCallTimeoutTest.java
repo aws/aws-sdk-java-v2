@@ -56,6 +56,8 @@ public class HttpClientApiCallTimeoutTest {
 
     private AmazonSyncHttpClient httpClient;
 
+    private final static int EPSILON_MILLIS = 10;
+
     @Before
     public void setup() {
         httpClient = testClientBuilder()
@@ -70,7 +72,7 @@ public class HttpClientApiCallTimeoutTest {
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
         assertThatThrownBy(() -> requestBuilder().execute(combinedSyncResponseHandler(
-            superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()), null)))
+            superSlowResponseHandler(API_CALL_TIMEOUT.toMillis() + EPSILON_MILLIS), null)))
             .isInstanceOf(ApiCallTimeoutException.class);
     }
 
