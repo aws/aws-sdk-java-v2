@@ -1,194 +1,92 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.24.5__ __2024-02-16__
-## __AWS Lambda__
+# __2.25.3__ __2024-03-05__
+## __AWS Chatbot__
   - ### Features
-    - Documentation-only updates for Lambda to clarify a number of existing actions and properties.
+    - Minor update to documentation.
+
+## __AWS Organizations__
+  - ### Features
+    - This release contains an endpoint addition
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Adds support for providing custom headers within SendEmail and SendBulkEmail for SESv2.
+
+# __2.25.2__ __2024-03-04__
+## __AWS CloudFormation__
+  - ### Features
+    - Add DetailedStatus field to DescribeStackEvents and DescribeStacks APIs
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation update for AWS Organizations
+
+## __Amazon FSx__
+  - ### Features
+    - Added support for creating FSx for NetApp ONTAP file systems with up to 12 HA pairs, delivering up to 72 GB/s of read throughput and 12 GB/s of write throughput.
+
+# __2.25.1__ __2024-03-01__
+## __Access Analyzer__
+  - ### Features
+    - Fixed a typo in description field.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - With this release, Amazon EC2 Auto Scaling groups, EC2 Fleet, and Spot Fleet improve the default price protection behavior of attribute-based instance type selection of Spot Instances, to consistently select from a wide range of instance types.
+
+## __Auto Scaling__
+  - ### Features
+    - With this release, Amazon EC2 Auto Scaling groups, EC2 Fleet, and Spot Fleet improve the default price protection behavior of attribute-based instance type selection of Spot Instances, to consistently select from a wide range of instance types.
+
+# __2.25.0__ __2024-02-29__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Support Non proxy host settings in the ProxyConfiguration for Crt http client.
+
+  - ### Bugfixes
+    - Addressing Issue [#4745](https://github.com/aws/aws-sdk-java-v2/issues/4745) , Netty and CRT clients' default proxy settings have been made consistent with the Apache client, now using environment and system property settings by default.\n To disable the use of environment variables and system properties by default, set useSystemPropertyValue(false) and useEnvironmentVariablesValues(false) in ProxyConfigurations.
+
+## __AWS Migration Hub Orchestrator__
+  - ### Features
+    - Adds new CreateTemplate, UpdateTemplate and DeleteTemplate APIs.
 
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
 
-## __Amazon Connect Participant Service__
-  - ### Features
-    - Doc only update to GetTranscript API reference guide to inform users about presence of events in the chat transcript.
+  - ### Bugfixes
+    - Addressing Issue [#4745](https://github.com/aws/aws-sdk-java-v2/issues/4745) , Netty and CRT clients' default proxy settings have been made consistent with the Apache client, now using environment and system property settings by default.
+       To disable the use of environment variables and system properties by default, set useSystemPropertyValue(false) and useEnvironmentVariablesValues(false) in ProxyConfigurations.
 
-## __Amazon EMR__
+## __Amazon DocumentDB Elastic Clusters__
   - ### Features
-    - adds fine grained control over Unhealthy Node Replacement to Amazon ElasticMapReduce
+    - Launched Elastic Clusters Readable Secondaries, Start/Stop, Configurable Shard Instance count, Automatic Backups and Snapshot Copying
 
-## __Amazon Kinesis Firehose__
+## __Amazon Elastic Kubernetes Service__
   - ### Features
-    - This release adds support for Data Message Extraction for decompressed CloudWatch logs, and to use a custom file extension or time zone for S3 destinations.
+    - Added support for new AL2023 AMIs to the supported AMITypes.
 
-## __Amazon Relational Database Service__
+## __Amazon Lex Model Building V2__
   - ### Features
-    - Doc only update for a valid option in DB parameter group
+    - This release makes AMAZON.QnAIntent generally available in Amazon Lex. This generative AI feature leverages large language models available through Amazon Bedrock to automate frequently asked questions (FAQ) experience for end-users.
 
-## __Amazon Simple Notification Service__
+## __Amazon QuickSight__
   - ### Features
-    - This release marks phone numbers as sensitive inputs.
-
-# __2.24.4__ __2024-02-15__
-## __AWS Artifact__
-  - ### Features
-    - This is the initial SDK release for AWS Artifact. AWS Artifact provides on-demand access to compliance and third-party compliance reports. This release includes access to List and Get reports, along with their metadata. This release also includes access to AWS Artifact notifications settings.
-
-## __AWS CodePipeline__
-  - ### Features
-    - Add ability to override timeout on action level.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __AWS Secrets Manager__
-  - ### Features
-    - Doc only update for Secrets Manager
-
-## __Amazon Detective__
-  - ### Features
-    - Doc only updates for content enhancement
-
-## __Amazon GuardDuty__
-  - ### Features
-    - Marked fields IpAddressV4, PrivateIpAddress, Email as Sensitive.
-
-## __Amazon HealthLake__
-  - ### Features
-    - This release adds a new response parameter, JobProgressReport, to the DescribeFHIRImportJob and ListFHIRImportJobs API operation. JobProgressReport provides details on the progress of the import job on the server.
-
-## __Amazon OpenSearch Service__
-  - ### Features
-    - Adds additional supported instance types.
-
-## __Amazon Polly__
-  - ### Features
-    - Amazon Polly adds 1 new voice - Burcu (tr-TR)
+    - TooltipTarget for Combo chart visuals; ColumnConfiguration limit increase to 2000; Documentation Update
 
 ## __Amazon SageMaker Service__
   - ### Features
-    - This release adds a new API UpdateClusterSoftware for SageMaker HyperPod. This API allows users to patch HyperPod clusters with latest platform softwares.
-
-# __2.24.3__ __2024-02-14__
-## __AWS Control Tower__
-  - ### Features
-    - Adds support for new Baseline and EnabledBaseline APIs for automating multi-account governance.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Switching half of the AWS service clients onto the new SRA (Smithy Reference Architecture) identity and auth logic that was released in v2.21.0. For a list of individual services affected, please check the committed files.
-    - Updated endpoint and partition metadata.
-
-  - ### Bugfixes
-    - Fixed an issue where NPE would be thrown if there was an empty event in the input for an event streaming operation.
-
-## __Amazon Lookout for Equipment__
-  - ### Features
-    - This feature allows customers to see pointwise model diagnostics results for their models.
-
-## __Amazon Simple Storage Service__
-  - ### Bugfixes
-    - Fix for Issue [#4912](https://github.com/aws/aws-sdk-java-v2/issues/4912) where client region with AWS_GLOBAL calls failed for cross region access.
-
-## __QBusiness__
-  - ### Features
-    - This release adds the metadata-boosting feature, which allows customers to easily fine-tune the underlying ranking of retrieved RAG passages in order to optimize Q&A answer relevance. It also adds new feedback reasons for the PutFeedback API.
-
-# __2.24.2__ __2024-02-13__
-## __AWS Marketplace Catalog Service__
-  - ### Features
-    - AWS Marketplace Catalog API now supports setting intent on requests
-
-## __AWS Resource Explorer__
-  - ### Features
-    - Resource Explorer now uses newly supported IPv4 'amazonaws.com' endpoints by default.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __Amazon DynamoDB__
-  - ### Features
-    - Add additional logical operator ('and' and 'or') methods to DynamoDB Expression
-        - Contributed by: [@akiesler](https://github.com/akiesler)
-
-## __Amazon Lightsail__
-  - ### Features
-    - This release adds support to upgrade the major version of a database.
-
-## __Amazon S3__
-  - ### Features
-    - Automatically trim object metadata keys of whitespace for `PutObject` and `CreateMultipartUpload`.
+    - Adds support for ModelDataSource in Model Packages to support unzipped models. Adds support to specify SourceUri for models which allows registration of models without mandating a container for hosting. Using SourceUri, customers can decouple the model from hosting information during registration.
 
 ## __Amazon Security Lake__
   - ### Features
-    - Documentation updates for Security Lake
+    - Add capability to update the Data Lake's MetaStoreManager Role in order to perform required data lake updates to use Iceberg table format in their data lake or update the role for any other reason.
 
-## __URL Connection Client__
+## __Netty NIO Async HTTP Client__
   - ### Bugfixes
-    - Fix a bug where headers with multiple values don't have all values for that header sent on the wire. This leads to signature mismatch exceptions.
-
-      Fixes [#4746](https://github.com/aws/aws-sdk-java-v2/issues/4746).
-
-## __Contributors__
-Special thanks to the following contributors to this release: 
-
-[@akiesler](https://github.com/akiesler)
-# __2.24.1__ __2024-02-12__
-## __AWS AppSync__
-  - ### Features
-    - Adds support for new options on GraphqlAPIs, Resolvers and Data Sources for emitting Amazon CloudWatch metrics for enhanced monitoring of AppSync APIs.
-
-## __Amazon CloudWatch__
-  - ### Features
-    - This release enables PutMetricData API request payload compression by default.
-
-## __Amazon Neptune Graph__
-  - ### Features
-    - Adding a new option "parameters" for data plane api ExecuteQuery to support running parameterized query via SDK.
-
-## __Amazon Route 53 Domains__
-  - ### Features
-    - This release adds bill contact support for RegisterDomain, TransferDomain, UpdateDomainContact and GetDomainDetail API.
-
-# __2.24.0__ __2024-02-09__
-## __AWS Batch__
-  - ### Features
-    - This feature allows Batch to support configuration of repository credentials for jobs running on ECS
-
-## __AWS IoT__
-  - ### Features
-    - This release allows AWS IoT Core users to enable Online Certificate Status Protocol (OCSP) Stapling for TLS X.509 Server Certificates when creating and updating AWS IoT Domain Configurations with Custom Domain.
-
-## __AWS Price List Service__
-  - ### Features
-    - Add Throttling Exception to all APIs.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-    - Updated internal core logic for signing properties with non-default values to be codegen based instead of set at runtime.
-
-## __Amazon EC2 Container Service__
-  - ### Features
-    - Documentation only update for Amazon ECS.
-
-## __Amazon Prometheus Service__
-  - ### Features
-    - Overall documentation updates.
-
-## __Amazon S3__
-  - ### Features
-    - Overriding signer properties for S3 through the deprecated non-public execution attributes in S3SignerExecutionAttribute no longer works with this release. The recommended approach is to use plugins in order to change these settings.
-
-  - ### Bugfixes
-    - Fix bug where PUT fails when using SSE-C with Checksum when using S3AsyncClient with multipart enabled. Enable CRC32 for putObject when using multipart client if checksum validation is not disabled and checksum is not set by user
-
-## __Braket__
-  - ### Features
-    - Creating a job will result in DeviceOfflineException when using an offline device, and DeviceRetiredException when using a retired device.
-
-## __Cost Optimization Hub__
-  - ### Features
-    - Adding includeMemberAccounts field to the response of ListEnrollmentStatuses API.
+    - Addressing Issue [#4745](https://github.com/aws/aws-sdk-java-v2/issues/4745) , Netty and CRT clients' default proxy settings have been made consistent with the Apache client, now using environment and system property settings by default.\n To disable the use of environment variables and system properties by default, set useSystemPropertyValue(false) and useEnvironmentVariablesValues(false) in ProxyConfigurations
 
