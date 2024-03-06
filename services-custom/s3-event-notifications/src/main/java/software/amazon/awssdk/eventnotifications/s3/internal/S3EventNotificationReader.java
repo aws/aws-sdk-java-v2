@@ -13,21 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.eventnotifications.model;
+package software.amazon.awssdk.eventnotifications.s3.internal;
 
+import java.io.InputStream;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 
-public class RequestParametersEntity {
+@SdkInternalApi
+public interface S3EventNotificationReader {
 
-    private final String sourceIPAddress;
-
-    // @JsonCreator
-    public RequestParametersEntity(
-        // @JsonProperty("sourceIPAddress")
-        String sourceIPAddress) {
-        this.sourceIPAddress = sourceIPAddress;
+    static S3EventNotificationReader create() {
+        return new DefaultS3EventNotificationReader();
     }
 
-    public String getSourceIPAddress() {
-        return sourceIPAddress;
-    }
+    S3EventNotification read(String event);
+
+    S3EventNotification read(InputStream event);
+
+    S3EventNotification read(byte[] event);
 }

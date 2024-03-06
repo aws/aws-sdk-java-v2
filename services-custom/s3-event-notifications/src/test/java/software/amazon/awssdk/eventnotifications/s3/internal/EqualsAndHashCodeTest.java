@@ -13,22 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.eventnotifications.model;
+package software.amazon.awssdk.eventnotifications.s3.internal;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.jupiter.api.Test;
 
-public class IntelligentTieringEventDataEntity {
-
-    private final String destinationAccessTier;
-
-    // @JsonCreator
-    public IntelligentTieringEventDataEntity(
-        // @JsonProperty("destinationAccessTier")
-        String destinationAccessTier) {
-        this.destinationAccessTier = destinationAccessTier;
-    }
-
-    // @JsonProperty("destinationAccessTier")
-    public String getDestinationAccessTier() {
-        return destinationAccessTier;
+class EqualsAndHashCodeTest {
+    @Test
+    void allClasses_equalsHashCode_isCorrect() {
+        EqualsVerifier
+            .forPackage("software.amazon.awssdk.eventnotifications.s3.model", true)
+            .usingGetClass()
+            .verify();
     }
 }
