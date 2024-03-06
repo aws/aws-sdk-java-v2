@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.eventnotifications.s3.internal;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
