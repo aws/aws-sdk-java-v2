@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Managed Grafana",
-    "contributor": "",
-    "description": "Adds support for the new GrafanaToken as part of the Amazon Managed Grafana Enterprise plugins upgrade to associate your AWS account with a Grafana Labs account."
-}

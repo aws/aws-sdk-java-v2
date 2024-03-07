@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "This release adds an optional parameter to RegisterImage and CopyImage APIs to support tagging AMIs at the time of creation."
-}
