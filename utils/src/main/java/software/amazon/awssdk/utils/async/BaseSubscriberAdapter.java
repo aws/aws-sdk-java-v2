@@ -20,12 +20,20 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
 
-@SdkInternalApi
-public abstract class AbstractFlatteningSubscriber<T, U> extends DelegatingSubscriber<T, U> {
-    private static final Logger log = Logger.loggerFor(AbstractFlatteningSubscriber.class);
+/**
+ * Base of subscribers that can adapt one type to another. This subscriber will receive onNext signal with the {@code U} type,
+ * but will need to {@link BaseSubscriberAdapter#fulfillDownstreamDemand() fulfill the downstream demand} of the delegate
+ * subscriber with instance of the {@code T} type.
+ *
+ * @param <T> the type that the delegate subscriber demands.
+ * @param <U> the type sent by the publisher this subscriber is subscribed to.
+ */
+@SdkProtectedApi
+public abstract class BaseSubscriberAdapter<T, U> extends DelegatingSubscriber<T, U> {
+    private static final Logger log = Logger.loggerFor(BaseSubscriberAdapter.class);
 
     /**
      * The amount of unfulfilled demand open against the upstream subscriber.
@@ -66,7 +74,7 @@ public abstract class AbstractFlatteningSubscriber<T, U> extends DelegatingSubsc
      */
     protected Subscription upstreamSubscription;
 
-    protected AbstractFlatteningSubscriber(Subscriber<? super U> subscriber) {
+    protected BaseSubscriberAdapter(Subscriber<? super U> subscriber) {
         super(subscriber);
     }
 
@@ -76,7 +84,7 @@ public abstract class AbstractFlatteningSubscriber<T, U> extends DelegatingSubsc
      *
      * @param item the value with which onNext was called.
      */
-    protected abstract void doWithItem(T item);
+    abstract void doWithItem(T item);
 
     /**
      * This method is called when demand from the downstream subscriber needs to be fulfilled. Called in a loop
@@ -153,7 +161,7 @@ public abstract class AbstractFlatteningSubscriber<T, U> extends DelegatingSubsc
     /**
      * This is invoked after each downstream request or upstream onNext, onError or onComplete.
      */
-    private void handleStateUpdate() {
+    protected void handleStateUpdate() {
         do {
             // Anything that happens after this if statement and before we set handlingStateUpdate to false is guaranteed to only
             // happen on one thread. For that reason, we should only invoke onNext, onComplete or onError within that block.
@@ -202,8 +210,16 @@ public abstract class AbstractFlatteningSubscriber<T, U> extends DelegatingSubsc
      * Returns true if we need to call onNext downstream. If this is executed outside the handling-state-update condition, the
      * result is subject to change.
      */
-    protected boolean onNextNeeded() {
-        return downstreamDemand.get() > 0;
+    private boolean onNextNeeded() {
+        return downstreamDemand.get() > 0 && additionalOnNextNeededCheck();
+    }
+
+
+    /**
+     * Can be overridden by subclasses to provide additional checks before calling onNext on downstream.
+     */
+    boolean additionalOnNextNeededCheck() {
+        return true;
     }
 
     /**
@@ -218,8 +234,15 @@ public abstract class AbstractFlatteningSubscriber<T, U> extends DelegatingSubsc
     /**
      * Returns true if we need to increase our upstream demand.
      */
-    protected boolean upstreamDemandNeeded() {
-        return upstreamDemand.get() <= 0 && downstreamDemand.get() > 0;
+    private boolean upstreamDemandNeeded() {
+        return upstreamDemand.get() <= 0 && downstreamDemand.get() > 0 && additionalUpstreamDemandNeededCheck();
+    }
+
+    /**
+     * Can be overridden by subclasses to provide additional checks to see if we need to increase our upstream demand.
+     */
+    boolean additionalUpstreamDemandNeededCheck() {
+        return true;
     }
 
     /**
@@ -236,8 +259,15 @@ public abstract class AbstractFlatteningSubscriber<T, U> extends DelegatingSubsc
      * Returns true if we need to call onComplete downstream. If this is executed outside the handling-state-update condition, the
      * result is subject to change.
      */
-    protected boolean onCompleteNeeded() {
-        return onCompleteCalledByUpstream && !terminalCallMadeDownstream;
+    private boolean onCompleteNeeded() {
+        return onCompleteCalledByUpstream && !terminalCallMadeDownstream && additionalOnCompleteNeededCheck();
+    }
+
+    /**
+     * Can be overridden by subclasses to provide additional checks before calling onComplete on downstream
+     */
+    boolean additionalOnCompleteNeededCheck() {
+        return true;
     }
 
     /**

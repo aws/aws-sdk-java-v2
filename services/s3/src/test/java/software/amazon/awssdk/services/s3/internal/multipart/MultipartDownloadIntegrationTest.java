@@ -23,6 +23,15 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.lang3.RandomUtils;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -49,14 +58,13 @@ class MultipartDownloadIntegrationTest {
     static final String key = String.format("debug-test-%smb", fileTestSize);
 
     private S3AsyncClient s3;
-    private final SplittingTransformerConfiguration splitConfig = SplittingTransformerConfiguration.builder()
-                                                                                                   .bufferSizeInBytes(1024 * 1024 * 32L)
-                                                                                                   .build();
 
     @BeforeEach
     void init() {
         this.s3 = S3AsyncClient.builder()
                                .region(Region.US_WEST_2)
+                               .multipartEnabled(true)
+                               .multipartConfiguration(c -> c.apiCallBufferSizeInBytes(1024L * 32))
                                .credentialsProvider(ProfileCredentialsProvider.create())
                                .httpClient(NettyNioAsyncHttpClient.create())
                                .build();
@@ -64,49 +72,38 @@ class MultipartDownloadIntegrationTest {
 
     // @Test
     void testByteAsyncResponseTransformer() {
-        AsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> transformer =
-            AsyncResponseTransformer.toBytes();
-        MultipartDownloaderSubscriber downloaderSubscriber = new MultipartDownloaderSubscriber(
-            s3, GetObjectRequest.builder().bucket(bucket).key(key).build());
-
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, ResponseBytes<GetObjectResponse>> split =
-            transformer.split(splitConfig);
-        split.publisher().subscribe(downloaderSubscriber);
-        ResponseBytes<GetObjectResponse> res = split.resultFuture().join();
+        CompletableFuture<ResponseBytes<GetObjectResponse>> response = s3.getObject(
+            r -> r.bucket(bucket).key(key),
+            AsyncResponseTransformer.toBytes());
+        ResponseBytes<GetObjectResponse> res = response.join();
         log.info(() -> "complete");
         byte[] bytes = res.asByteArray();
         log.info(() -> String.format("Byte len: %s", bytes.length));
-        assertThat(bytes.length).isEqualTo(fileTestSize * 1024 * 1024);
+        assertThat(bytes).hasSize(fileTestSize * 1024 * 1024);
     }
 
     // @Test
     void testFileAsyncResponseTransformer() {
-        Path path = Paths.get("/Users/olapplin/Develop/tmp/" + key);
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
-            AsyncResponseTransformer.toFile(path);
-
-        MultipartDownloaderSubscriber downloaderSubscriber = new MultipartDownloaderSubscriber(
-            s3, GetObjectRequest.builder().bucket(bucket).key(key).build());
-
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, GetObjectResponse> split = transformer.split(splitConfig);
-        split.publisher().subscribe(downloaderSubscriber);
-        GetObjectResponse res = split.resultFuture().join();
+        Path path = Paths.get("/Users/olapplin/Develop/tmp",
+                              LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE) + '-' + key);
+        CompletableFuture<GetObjectResponse> future = s3.getObject(
+            r -> r.bucket(bucket).key(key),
+            AsyncResponseTransformer.toFile(path));
+        GetObjectResponse res = future.join();
         log.info(() -> "complete");
         assertTrue(path.toFile().exists());
-        assertThat(path.toFile().length()).isEqualTo(fileTestSize * 1024 * 1024);
+        assertThat(path.toFile()).hasSize(fileTestSize * 1024 * 1024);
     }
 
     // @Test
     void testPublisherAsyncResponseTransformer() {
-        AsyncResponseTransformer<GetObjectResponse, ResponsePublisher<GetObjectResponse>> transformer =
-            AsyncResponseTransformer.toPublisher();
+        CompletableFuture<ResponsePublisher<GetObjectResponse>> future = s3.getObject(
+            r -> r.bucket(bucket).key(key),
+            AsyncResponseTransformer.toPublisher());
 
-        MultipartDownloaderSubscriber downloaderSubscriber = new MultipartDownloaderSubscriber(
-            s3, GetObjectRequest.builder().bucket(bucket).key(key).build());
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, ResponsePublisher<GetObjectResponse>> split =
-            transformer.split(splitConfig);
-        split.publisher().subscribe(downloaderSubscriber);
-        split.resultFuture().whenComplete((res, e) -> {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicInteger total = new AtomicInteger(0);
+        future.whenComplete((res, e) -> {
             log.info(() -> "complete");
             res.subscribe(new Subscriber<ByteBuffer>() {
                 Subscription subscription;
@@ -114,41 +111,43 @@ class MultipartDownloadIntegrationTest {
                 @Override
                 public void onSubscribe(Subscription s) {
                     this.subscription = s;
-                    s.request(Long.MAX_VALUE);
+                    s.request(1);
                 }
 
                 @Override
                 public void onNext(ByteBuffer byteBuffer) {
-                    log.info(() -> "received " + byteBuffer.remaining());
-                    subscription.request(Long.MAX_VALUE);
+                    total.addAndGet(byteBuffer.remaining());
+                    subscription.request(1);
                 }
 
                 @Override
                 public void onError(Throwable t) {
-
+                    fail("unexpected error in test", t);
+                    latch.countDown();
                 }
 
                 @Override
                 public void onComplete() {
-
+                    log.info(() -> "complete subscriber");
+                    latch.countDown();
                 }
             });
         });
-        split.resultFuture().join();
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assertThat(total).hasValue(fileTestSize * 1024 * 1024);
     }
 
     // @Test
     void testBlockingInputStreamResponseTransformer() {
-        AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> transformer =
-            AsyncResponseTransformer.toBlockingInputStream();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = s3.getObject(
+            r -> r.bucket(bucket).key(key),
+            AsyncResponseTransformer.toBlockingInputStream());
+        ResponseInputStream<GetObjectResponse> res = future.join();
 
-        MultipartDownloaderSubscriber downloaderSubscriber = new MultipartDownloaderSubscriber(
-            s3, GetObjectRequest.builder().bucket(bucket).key(key).build());
-
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, ResponseInputStream<GetObjectResponse>> split =
-            transformer.split(splitConfig);
-        split.publisher().subscribe(downloaderSubscriber);
-        ResponseInputStream<GetObjectResponse> res = split.resultFuture().join();
         log.info(() -> "complete");
         int total = 0;
         try {
