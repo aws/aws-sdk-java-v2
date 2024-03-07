@@ -66,7 +66,7 @@ public final class  AwsExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("AwsAuthAccountId");
 
     /**
-     * The AWS account ID associated with the identity resolved for this request.
+     * The mode for an AWS account ID that's resolved for this request. See {@link AccountIdEndpointMode} for values.
      */
     public static final ExecutionAttribute<AccountIdEndpointMode> AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE =
         new ExecutionAttribute<>("AwsAuthAccountIdEndpointMode");

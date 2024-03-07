@@ -15,16 +15,18 @@
 
 package software.amazon.awssdk.codegen.model.internal;
 
+import com.squareup.javapoet.CodeBlock;
+
 /**
- * Represents a generic parameter that can be code generated, but isn't tied to a specific model type
+ * Represents a generic parameter that can be code generated, but isn't tied to a model shape
  */
 public class LocalParameter {
 
     private final String name;
     private final Class<?> type;
-    private final String documentation;
+    private final CodeBlock documentation;
 
-    public LocalParameter(String name, Class<?> type, String documentation) {
+    public LocalParameter(String name, Class<?> type, CodeBlock documentation) {
         this.name = name;
         this.type = type;
         this.documentation = documentation;
@@ -38,7 +40,7 @@ public class LocalParameter {
         return type;
     }
 
-    public String documentation() {
+    public CodeBlock documentation() {
         return documentation;
     }
 }

@@ -19,6 +19,7 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -58,8 +59,8 @@ public final class EndpointParamsKnowledgeIndex {
             BuiltInParameter.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE,
             new LocalParameter("accountIdEndpointMode",
                                AccountIdEndpointMode.class,
-                                     "Sets the behavior when account ID based endpoints are created. "
-                                     + "See {@link AccountIdEndpointMode} for values"));
+                               CodeBlock.of("Sets the behavior when account ID based endpoints are created. "
+                                             + "See {@link $T} for values", AccountIdEndpointMode.class)));
     }
 
     private EndpointParamsKnowledgeIndex(IntermediateModel intermediateModel) {
@@ -118,9 +119,8 @@ public final class EndpointParamsKnowledgeIndex {
         MethodSpec.Builder b = MethodSpec.methodBuilder(setterName)
                                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                          .addParameter(type, setterName)
+                                         .addJavadoc(param.documentation())
                                          .returns(TypeVariableName.get("B"));
-
-        PoetUtils.addJavadoc(b::addJavadoc, param.documentation());
 
         return b.build();
     }

@@ -23,8 +23,21 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public enum AccountIdEndpointMode {
 
+    /**
+     * Default value that indicates account ID values will be used in endpoint rules if available.
+     */
     PREFERRED,
+
+    /**
+     * When mode is disabled, any resolved account ID will not be used in endpoint construction and rules that
+     * reference them will be bypassed.
+     */
     DISABLED,
+
+    /**
+     * Required mode would be used in scenarios where endpoint resolution should return an error if no account ID is
+     * available.
+     */
     REQUIRED;
 
     /**
