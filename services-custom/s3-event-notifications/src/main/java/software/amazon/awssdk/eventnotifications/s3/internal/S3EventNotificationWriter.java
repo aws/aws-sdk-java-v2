@@ -20,10 +20,19 @@ import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
+/**
+ * Converts a {@link S3EventNotification} to json.
+ */
 @SdkInternalApi
 public interface S3EventNotificationWriter
     extends ToCopyableBuilder<S3EventNotificationWriter.Builder, S3EventNotificationWriter> {
 
+    /**
+     * Write an event to json string. Null field will be included as null.
+     *
+     * @param event to event to convert to json.
+     * @return the json representation of the event.
+     */
     String writeToString(S3EventNotification event);
 
     static S3EventNotificationWriter create() {

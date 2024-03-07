@@ -31,4 +31,6 @@ String json = event.toJson();
 String jsonPretty = event.toJsonPretty();
 ```
 
-Any null fields of the object will be serialized in json as `null`.
+`GlacierEventData`, `ReplicationEventData`, `IntelligentTieringEventData` and `LifecycleEventData`
+will be excluded from the json if null. Any other null fields of the object will be 
+serialized in the json as `null`.
