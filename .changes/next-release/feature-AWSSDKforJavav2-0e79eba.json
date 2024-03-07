@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Allow users to configure `subscribeTimeout` for BlockingOutputStreamAsyncRequestBody. See [#4893](https://github.com/aws/aws-sdk-java-v2/issues/4893)"
+}
