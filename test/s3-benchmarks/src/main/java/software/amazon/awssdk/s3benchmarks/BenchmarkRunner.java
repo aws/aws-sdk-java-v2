@@ -223,6 +223,7 @@ public final class BenchmarkRunner {
                                              .connectionAcquisitionTimeoutInSec(connAcqTimeoutInSec)
                                              .forceCrtHttpClient(forceCrtHttpClient)
                                              .maxConcurrency(maxConcurrency)
+                                             .s3Client(s3Client)
                                              .build();
     }
 

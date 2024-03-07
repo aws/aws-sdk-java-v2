@@ -41,7 +41,6 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
     protected final String bucket;
     protected final String key;
     protected final Duration timeout;
-    private final ChecksumAlgorithm checksumAlgorithm;
     private final int iteration;
 
     protected BaseJavaS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
@@ -49,7 +48,6 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
         this.key = Validate.paramNotNull(config.key(), "key");
         this.timeout = Validate.getOrDefault(config.timeout(), () -> DEFAULT_TIMEOUT);
         this.iteration = Validate.getOrDefault(config.iteration(), () -> BENCHMARK_ITERATIONS);
-        this.checksumAlgorithm = config.checksumAlgorithm();
 
         this.s3Client = S3Client.create();
 
