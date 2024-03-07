@@ -136,7 +136,6 @@ public final class UploadWithKnownContentLengthHelper {
                                                                .contentLength(contentLength)
                                                                .partSize(partSize)
                                                                .uploadId(uploadId)
-                                                               .existingParts(new ConcurrentHashMap<>())
                                                                .numPartsCompleted(numPartsCompleted)
                                                                .build();
 
