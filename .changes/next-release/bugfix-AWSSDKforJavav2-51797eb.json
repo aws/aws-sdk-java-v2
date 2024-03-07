@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "Madrigal",
+    "description": "Modify ARN toString to print a valid ARN when there's no region or acountId"
+}

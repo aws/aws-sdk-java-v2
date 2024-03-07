@@ -166,8 +166,9 @@ public class UploadObjectHelperTest {
 
         List<UploadPartRequest> actualRequests = requestArgumentCaptor.getAllValues();
         List<AsyncRequestBody> actualRequestBodies = requestBodyArgumentCaptor.getAllValues();
-        assertThat(actualRequestBodies).hasSize(4);
-        assertThat(actualRequests).hasSize(4);
+        int numTotalParts = 4;
+        assertThat(actualRequestBodies).hasSize(numTotalParts);
+        assertThat(actualRequests).hasSize(numTotalParts);
 
         for (int i = 0; i < actualRequests.size(); i++) {
             UploadPartRequest request = actualRequests.get(i);
@@ -182,6 +183,12 @@ public class UploadObjectHelperTest {
                 assertThat(requestBody.contentLength()).hasValue(PART_SIZE);
             }
         }
+
+        ArgumentCaptor<CompleteMultipartUploadRequest> completeMpuArgumentCaptor = ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
+        verify(s3AsyncClient).completeMultipartUpload(completeMpuArgumentCaptor.capture());
+
+        CompleteMultipartUploadRequest actualRequest = completeMpuArgumentCaptor.getValue();
+        assertThat(actualRequest.multipartUpload().parts()).isEqualTo(completedParts(numTotalParts));
     }
 
     /**
@@ -365,6 +372,40 @@ public class UploadObjectHelperTest {
         int numTotalParts = 4;
         int numPartsToSend = numTotalParts - numExistingParts;
         verify(s3AsyncClient, times(numPartsToSend)).uploadPart(requestArgumentCaptor.capture(), requestBodyArgumentCaptor.capture());
+
+        ArgumentCaptor<CompleteMultipartUploadRequest> completeMpuArgumentCaptor = ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
+        verify(s3AsyncClient).completeMultipartUpload(completeMpuArgumentCaptor.capture());
+
+        CompleteMultipartUploadRequest actualRequest = completeMpuArgumentCaptor.getValue();
+        assertThat(actualRequest.multipartUpload().parts()).isEqualTo(completedParts(numTotalParts));
+    }
+
+    @Test
+    void uploadObject_partsFinishedOutOfOrder_shouldSortThemInCompleteMultipart() {
+        int numTotalParts = 4;
+        PutObjectRequest putObjectRequest = putObjectRequest(MPU_CONTENT_SIZE);
+
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulCompleteMultipartCall(BUCKET, KEY, s3AsyncClient);
+
+        CompletableFuture<UploadPartResponse> part1Future = new CompletableFuture<>();
+        CompletableFuture<UploadPartResponse> part2Future = new CompletableFuture<>();
+        CompletableFuture<UploadPartResponse> part3Future = new CompletableFuture<>();
+        CompletableFuture<UploadPartResponse> part4Future = new CompletableFuture<>();
+
+        when(s3AsyncClient.uploadPart(any(UploadPartRequest.class), any(AsyncRequestBody.class))).thenReturn(part1Future)
+                                                                                                 .thenReturn(part2Future)
+                                                                                                 .thenReturn(part3Future)
+                                                                                                 .thenReturn(part4Future);
+        CompletableFuture<PutObjectResponse> returnFuture = uploadHelper.uploadObject(putObjectRequest,
+                                                                                      AsyncRequestBody.fromBytes(RandomStringUtils.randomAscii((int) MPU_CONTENT_SIZE).getBytes(StandardCharsets.UTF_8)));
+
+        part4Future.complete(UploadPartResponse.builder().build());
+        part2Future.complete(UploadPartResponse.builder().build());
+        part3Future.complete(UploadPartResponse.builder().build());
+        part1Future.complete(UploadPartResponse.builder().build());
+
+        returnFuture.join();
 
         ArgumentCaptor<CompleteMultipartUploadRequest> completeMpuArgumentCaptor = ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
         verify(s3AsyncClient).completeMultipartUpload(completeMpuArgumentCaptor.capture());

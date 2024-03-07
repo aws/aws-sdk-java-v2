@@ -58,6 +58,22 @@ public class ArnTest {
     }
 
     @Test
+    public void arnWithMinimalResources_ParsesBackToString() {
+        String arnString = "arn:aws:s3:::bucket";
+        Arn arn = Arn.fromString(arnString);
+        assertThat(arn.toString()).isEqualTo(arnString);
+        assertThat(arn.resourceAsString()).isEqualTo("bucket");
+    }
+
+    @Test
+    public void arnWithoutRegion_ParsesBackToString() {
+        String arnString = "arn:aws:iam::123456789012:root";
+        Arn arn = Arn.fromString(arnString);
+        assertThat(arn.toString()).isEqualTo(arnString);
+        assertThat(arn.resourceAsString()).isEqualTo("root");
+    }
+
+    @Test
     public void arnWithResourceTypeAndResource_ParsesCorrectly() {
         String arnString = "arn:aws:s3:us-east-1:12345678910:bucket:foobar";
         Arn arn = Arn.fromString(arnString);

@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS S3",
+    "contributor": "",
+    "description": "Fixed the issue in S3 multipart client where the list of parts could be out of order in CompleteMultipartRequest, causing `The list of parts was not in ascending order` error to be thrown."
+}
