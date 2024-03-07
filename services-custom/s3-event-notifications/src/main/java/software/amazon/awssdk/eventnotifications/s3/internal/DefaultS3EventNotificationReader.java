@@ -256,8 +256,6 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
     }
 
 
-    // =========================== UTILS ==================================
-
     private String expectStringOrNull(JsonNode node, String name) {
         if (node == null) {
             return null;
