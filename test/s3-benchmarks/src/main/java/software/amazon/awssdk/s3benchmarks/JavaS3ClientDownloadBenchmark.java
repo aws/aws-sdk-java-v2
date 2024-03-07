@@ -16,7 +16,10 @@
 package software.amazon.awssdk.s3benchmarks;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.utils.Logger;
 
@@ -35,12 +38,19 @@ public class JavaS3ClientDownloadBenchmark extends BaseJavaS3ClientBenchmark {
         if (filePath == null) {
             log.info(() -> "Starting download to memory");
             latency = runWithTime(s3AsyncClient.getObject(
-                req -> req.key(key).bucket(bucket), AsyncResponseTransformer.toBytes()
+                req -> req.key(key).bucket(bucket), new NoOpResponseTransformer<>()
             )::join).latency();
         } else {
             log.info(() -> "Starting download to file");
+            Path path = Paths.get(filePath);
+            FileTransformerConfiguration conf = FileTransformerConfiguration
+                .builder()
+                .failureBehavior(FileTransformerConfiguration.FailureBehavior.LEAVE)
+                .fileWriteOption(FileTransformerConfiguration.FileWriteOption.CREATE_OR_REPLACE_EXISTING)
+                .build();
+
             latency = runWithTime(s3AsyncClient.getObject(
-                req -> req.key(key).bucket(bucket), new File(filePath).toPath()
+                req -> req.key(key).bucket(bucket), AsyncResponseTransformer.toFile(path, conf)
             )::join).latency();
         }
         latencies.add(latency);

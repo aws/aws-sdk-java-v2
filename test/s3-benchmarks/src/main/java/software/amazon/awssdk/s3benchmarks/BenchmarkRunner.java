@@ -24,6 +24,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 
 public final class BenchmarkRunner {
@@ -41,6 +44,8 @@ public final class BenchmarkRunner {
     private static final String READ_BUFFER_IN_MB = "readBufferInMB";
 
     private static final String VERSION = "version";
+    private static final String S3_CLIENT = "s3Client";
+
     private static final String PREFIX = "prefix";
 
     private static final String TIMEOUT = "timeoutInMin";
@@ -90,6 +95,10 @@ public final class BenchmarkRunner {
         options.addOption(null, READ_BUFFER_IN_MB, true, "Read buffer size in MB");
         options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: "
                                                + "v1 | v2 | crt | java, default: v2");
+        options.addOption(null, S3_CLIENT, true, "For v2 transfer manager benchmarks, which base s3 client "
+                                                 + "should be used: "
+                                                 + "crt | java, default: crt");
+
         options.addOption(null, PREFIX, true, "S3 Prefix used in downloadDirectory and uploadDirectory");
 
         options.addOption(null, CONTENT_LENGTH, true, "Content length to upload from memory. Used only in the "
@@ -155,6 +164,11 @@ public final class BenchmarkRunner {
         TransferManagerOperation operation = TransferManagerOperation.valueOf(cmd.getOptionValue(OPERATION)
                                                                                  .toUpperCase(Locale.ENGLISH));
 
+        TransferManagerBaseS3Client s3Client = cmd.getOptionValue(S3_CLIENT) == null
+                                               ? TransferManagerBaseS3Client.CRT
+                                               : TransferManagerBaseS3Client.valueOf(cmd.getOptionValue(S3_CLIENT)
+                                                                                        .toUpperCase(Locale.ENGLISH));
+
         String filePath = cmd.getOptionValue(FILE);
         String bucket = cmd.getOptionValue(BUCKET);
         String key = cmd.getOptionValue(KEY);
@@ -218,6 +232,11 @@ public final class BenchmarkRunner {
         COPY,
         DOWNLOAD_DIRECTORY,
         UPLOAD_DIRECTORY
+    }
+
+    public enum TransferManagerBaseS3Client {
+        CRT,
+        JAVA
     }
 
     private enum SdkVersion {
