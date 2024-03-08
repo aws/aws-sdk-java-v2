@@ -18,6 +18,7 @@ package software.amazon.awssdk.eventnotifications.s3.internal;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -84,35 +85,51 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (recordNode == null) {
             return null;
         }
+
+        S3EventNotificationRecord eventNotificationRecord = new S3EventNotificationRecord();
+
         String eventVersion = expectStringOrNull(recordNode, "eventVersion");
+        eventNotificationRecord.setEventVersion(eventVersion);
+
         String awsRegion = expectStringOrNull(recordNode, "awsRegion");
+        eventNotificationRecord.setAwsRegion(awsRegion);
+
         String eventName = expectStringOrNull(recordNode, "eventName");
+        eventNotificationRecord.setEventName(eventName);
+
         String eventSource = expectStringOrNull(recordNode, "eventSource");
+        eventNotificationRecord.setEventSource(eventSource);
+
         String eventTime = expectStringOrNull(recordNode, "eventTime");
+        eventNotificationRecord.setEventTime(eventName != null ? Instant.parse(eventTime) : null);
+
         RequestParameters requestParameters = readRequestParameters(recordNode.get("requestParameters"));
+        eventNotificationRecord.setRequestParameters(requestParameters);
+
         ResponseElements responseElements = readResponseElements(recordNode.get("responseElements"));
+        eventNotificationRecord.setResponseElements(responseElements);
+
         S3 s3 = readS3(recordNode.get("s3"));
+        eventNotificationRecord.setS3(s3);
+
         UserIdentity userIdentity = readUserIdentity(recordNode.get("userIdentity"));
+        eventNotificationRecord.setUserIdentity(userIdentity);
+
         GlacierEventData glacierEventData = readGlacierEventData(recordNode.get("glacierEventData"));
+        eventNotificationRecord.setGlacierEventData(glacierEventData);
+
+
         LifecycleEventData lifecycleEventData = readLifecycleEventData(recordNode.get("lifecycleEventData"));
+        eventNotificationRecord.setLifecycleEventData(lifecycleEventData);
+
         IntelligentTieringEventData intelligentTieringEventData =
             readIntelligentTieringEventData(recordNode.get("intelligentTieringEventData"));
+        eventNotificationRecord.setIntelligentTieringEventData(intelligentTieringEventData);
+
         ReplicationEventData replicationEventData = readReplicationEventData(recordNode.get("replicationEventData"));
-        return new S3EventNotificationRecord(
-            awsRegion,
-            eventName,
-            eventSource,
-            eventTime,
-            eventVersion,
-            requestParameters,
-            responseElements,
-            s3,
-            userIdentity,
-            glacierEventData,
-            lifecycleEventData,
-            intelligentTieringEventData,
-            replicationEventData
-        );
+        eventNotificationRecord.setReplicationEventData(replicationEventData);
+
+        return eventNotificationRecord;
     }
 
     private ReplicationEventData readReplicationEventData(JsonNode jsonNode) {

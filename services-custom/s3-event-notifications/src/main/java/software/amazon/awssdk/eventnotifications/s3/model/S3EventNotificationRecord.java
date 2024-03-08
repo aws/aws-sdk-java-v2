@@ -18,26 +18,57 @@ package software.amazon.awssdk.eventnotifications.s3.model;
 import java.time.Instant;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkPublicApi
 public class S3EventNotificationRecord {
 
-    private final String awsRegion;
-    private final String eventName;
-    private final String eventSource;
-    private final String eventVersion;
-    private final RequestParameters requestParameters;
-    private final ResponseElements responseElements;
-    private final S3 s3;
-    private final UserIdentity userIdentity;
-    private final GlacierEventData glacierEventData;
-    private final LifecycleEventData lifecycleEventData;
-    private final IntelligentTieringEventData intelligentTieringEventData;
-    private final ReplicationEventData replicationEventData;
-    private final Instant eventTime;
+    private String awsRegion;
+    private String eventName;
+    private String eventSource;
+    private String eventVersion;
+    private RequestParameters requestParameters;
+    private ResponseElements responseElements;
+    private S3 s3;
+    private UserIdentity userIdentity;
+    private GlacierEventData glacierEventData;
+    private LifecycleEventData lifecycleEventData;
+    private IntelligentTieringEventData intelligentTieringEventData;
+    private ReplicationEventData replicationEventData;
+    private Instant eventTime;
 
-    public S3EventNotificationRecord(
+    public S3EventNotificationRecord() {
+    }
+
+    @SdkTestInternalApi
+    protected S3EventNotificationRecord(
+        String awsRegion,
+        String eventName,
+        String eventSource,
+        String eventTime,
+        String eventVersion,
+        RequestParameters requestParameters,
+        ResponseElements responseElements,
+        S3 s3,
+        UserIdentity userIdentity) {
+        this(awsRegion,
+             eventName,
+             eventSource,
+             eventTime,
+             eventVersion,
+             requestParameters,
+             responseElements,
+             s3,
+             userIdentity,
+             null,
+             null,
+             null,
+             null);
+    }
+
+    @SdkTestInternalApi
+    protected S3EventNotificationRecord(
         String awsRegion,
         String eventName,
         String eventSource,
@@ -65,32 +96,6 @@ public class S3EventNotificationRecord {
         this.intelligentTieringEventData = intelligentTieringEventData;
         this.replicationEventData = replicationEventData;
     }
-
-    public S3EventNotificationRecord(
-        String awsRegion,
-        String eventName,
-        String eventSource,
-        String eventTime,
-        String eventVersion,
-        RequestParameters requestParameters,
-        ResponseElements responseElements,
-        S3 s3,
-        UserIdentity userIdentity) {
-        this(awsRegion,
-             eventName,
-             eventSource,
-             eventTime,
-             eventVersion,
-             requestParameters,
-             responseElements,
-             s3,
-             userIdentity,
-             null,
-             null,
-             null,
-             null);
-    }
-
 
     public String getAwsRegion() {
         return awsRegion;
@@ -142,6 +147,58 @@ public class S3EventNotificationRecord {
 
     public ReplicationEventData getReplicationEventData() {
         return replicationEventData;
+    }
+
+    public void setAwsRegion(String awsRegion) {
+        this.awsRegion = awsRegion;
+    }
+
+    public void setEventName(String eventName) {
+        this.eventName = eventName;
+    }
+
+    public void setEventSource(String eventSource) {
+        this.eventSource = eventSource;
+    }
+
+    public void setEventVersion(String eventVersion) {
+        this.eventVersion = eventVersion;
+    }
+
+    public void setRequestParameters(RequestParameters requestParameters) {
+        this.requestParameters = requestParameters;
+    }
+
+    public void setResponseElements(ResponseElements responseElements) {
+        this.responseElements = responseElements;
+    }
+
+    public void setS3(S3 s3) {
+        this.s3 = s3;
+    }
+
+    public void setUserIdentity(UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
+    }
+
+    public void setGlacierEventData(GlacierEventData glacierEventData) {
+        this.glacierEventData = glacierEventData;
+    }
+
+    public void setLifecycleEventData(LifecycleEventData lifecycleEventData) {
+        this.lifecycleEventData = lifecycleEventData;
+    }
+
+    public void setIntelligentTieringEventData(IntelligentTieringEventData intelligentTieringEventData) {
+        this.intelligentTieringEventData = intelligentTieringEventData;
+    }
+
+    public void setReplicationEventData(ReplicationEventData replicationEventData) {
+        this.replicationEventData = replicationEventData;
+    }
+
+    public void setEventTime(Instant eventTime) {
+        this.eventTime = eventTime;
     }
 
     @Override
