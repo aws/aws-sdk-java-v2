@@ -20,6 +20,9 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * The ReplicationEventData is only visible for replication events.
+ */
 @SdkPublicApi
 public class ReplicationEventData {
 

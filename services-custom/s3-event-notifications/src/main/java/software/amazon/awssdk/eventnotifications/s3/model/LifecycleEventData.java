@@ -20,6 +20,9 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * The LifecycleEventData is only visible for S3 Lifecycle transition events.
+ */
 @SdkPublicApi
 public class LifecycleEventData {
 

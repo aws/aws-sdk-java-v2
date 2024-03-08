@@ -84,11 +84,11 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (recordNode == null) {
             return null;
         }
-        String eventVersion = expectStringOrNull(recordNode.get("eventVersion"), "eventVersion");
-        String awsRegion = expectStringOrNull(recordNode.get("awsRegion"), "awsRegion");
-        String eventName = expectStringOrNull(recordNode.get("eventName"), "eventName");
-        String eventSource = expectStringOrNull(recordNode.get("eventSource"), "eventSource");
-        String eventTime = expectStringOrNull(recordNode.get("eventTime"), "eventTime");
+        String eventVersion = expectStringOrNull(recordNode, "eventVersion");
+        String awsRegion = expectStringOrNull(recordNode, "awsRegion");
+        String eventName = expectStringOrNull(recordNode, "eventName");
+        String eventSource = expectStringOrNull(recordNode, "eventSource");
+        String eventTime = expectStringOrNull(recordNode, "eventTime");
         RequestParameters requestParameters = readRequestParameters(recordNode.get("requestParameters"));
         ResponseElements responseElements = readResponseElements(recordNode.get("responseElements"));
         S3 s3 = readS3(recordNode.get("s3"));
@@ -121,13 +121,13 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
             return null;
         }
 
-        String replicationRuleId = expectStringOrNull(replicationDataNode.get("replicationRuleId"), "replicationRuleId");
-        String destinationBucket = expectStringOrNull(replicationDataNode.get("destinationBucket"), "destinationBucket");
-        String s3Operation = expectStringOrNull(replicationDataNode.get("s3Operation"), "s3Operation");
-        String requestTime = expectStringOrNull(replicationDataNode.get("requestTime"), "requestTime");
-        String failureReason = expectStringOrNull(replicationDataNode.get("failureReason"), "failureReason");
-        String threshold = expectStringOrNull(replicationDataNode.get("threshold"), "threshold");
-        String replicationTime = expectStringOrNull(replicationDataNode.get("replicationTime"), "replicationTime");
+        String replicationRuleId = expectStringOrNull(replicationDataNode, "replicationRuleId");
+        String destinationBucket = expectStringOrNull(replicationDataNode, "destinationBucket");
+        String s3Operation = expectStringOrNull(replicationDataNode, "s3Operation");
+        String requestTime = expectStringOrNull(replicationDataNode, "requestTime");
+        String failureReason = expectStringOrNull(replicationDataNode, "failureReason");
+        String threshold = expectStringOrNull(replicationDataNode, "threshold");
+        String replicationTime = expectStringOrNull(replicationDataNode, "replicationTime");
 
         return new ReplicationEventData(replicationRuleId,
                                         destinationBucket,
@@ -143,8 +143,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (lifeCycleEventDataNode == null) {
             return null;
         }
-        String destinationAccessTier = expectStringOrNull(
-            lifeCycleEventDataNode.get("destinationAccessTier"), "destinationAccessTier");
+        String destinationAccessTier = expectStringOrNull(lifeCycleEventDataNode, "destinationAccessTier");
         return new IntelligentTieringEventData(destinationAccessTier);
     }
 
@@ -159,7 +158,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
             return new LifecycleEventData(null);
         }
         String destinationStorageClass =
-            expectStringOrNull(transitionEventDataNode.get("destinationStorageClass"), "destinationStorageClass");
+            expectStringOrNull(transitionEventDataNode, "destinationStorageClass");
         return new LifecycleEventData(new TransitionEventData(destinationStorageClass));
     }
 
@@ -173,10 +172,8 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (restoreEventDataNode == null) {
             return new GlacierEventData(null);
         }
-        String lifecycleRestorationExpiryTime = expectStringOrNull(
-            restoreEventDataNode.get("lifecycleRestorationExpiryTime"), "lifecycleRestorationExpiryTime");
-        String lifecycleRestoreStorageClass = expectStringOrNull(
-            restoreEventDataNode.get("lifecycleRestoreStorageClass"), "lifecycleRestoreStorageClass");
+        String lifecycleRestorationExpiryTime = expectStringOrNull(restoreEventDataNode, "lifecycleRestorationExpiryTime");
+        String lifecycleRestoreStorageClass = expectStringOrNull(restoreEventDataNode, "lifecycleRestoreStorageClass");
         return new GlacierEventData(new RestoreEventData(lifecycleRestorationExpiryTime,
                                                          lifecycleRestoreStorageClass));
     }
@@ -186,7 +183,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (userIdentityNode == null) {
             return null;
         }
-        String principalId = expectStringOrNull(userIdentityNode.get("principalId"), "principalId");
+        String principalId = expectStringOrNull(userIdentityNode, "principalId");
         return new UserIdentity(principalId);
     }
 
@@ -195,10 +192,10 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (s3 == null) {
             return null;
         }
-        String configurationId = expectStringOrNull(s3.get("configurationId"), "configurationId");
+        String configurationId = expectStringOrNull(s3, "configurationId");
         S3Bucket bucket = readBucket(s3.get("bucket"));
         S3Object object = readObject(s3.get("object"));
-        String s3SchemaVersion = expectStringOrNull(s3.get("s3SchemaVersion"), "s3SchemaVersion");
+        String s3SchemaVersion = expectStringOrNull(s3, "s3SchemaVersion");
         return new S3(configurationId, bucket, object, s3SchemaVersion);
     }
 
@@ -207,11 +204,11 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (objectNode == null) {
             return null;
         }
-        String key = expectStringOrNull(objectNode.get("key"), "key");
+        String key = expectStringOrNull(objectNode, "key");
         Long size = expectLong(objectNode.get("size"), "size");
-        String eTag = expectStringOrNull(objectNode.get("eTag"), "eTag");
-        String versionId = expectStringOrNull(objectNode.get("versionId"), "versionId");
-        String sequencer = expectStringOrNull(objectNode.get("sequencer"), "sequencer");
+        String eTag = expectStringOrNull(objectNode, "eTag");
+        String versionId = expectStringOrNull(objectNode, "versionId");
+        String sequencer = expectStringOrNull(objectNode, "sequencer");
         return new S3Object(key, size, eTag, versionId, sequencer);
     }
 
@@ -220,9 +217,9 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (bucketNode == null) {
             return null;
         }
-        String name = expectStringOrNull(bucketNode.get("name"), "name");
+        String name = expectStringOrNull(bucketNode, "name");
         UserIdentity ownerIdentity = readOwnerIdentity(bucketNode.get("ownerIdentity"));
-        String arn = expectStringOrNull(bucketNode.get("arn"), "arn");
+        String arn = expectStringOrNull(bucketNode, "arn");
         return new S3Bucket(name, ownerIdentity, arn);
     }
 
@@ -231,7 +228,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (ownerIdentityNode == null) {
             return null;
         }
-        String principalId = expectStringOrNull(ownerIdentityNode.get("principalId"), "principalId");
+        String principalId = expectStringOrNull(ownerIdentityNode, "principalId");
         return new UserIdentity(principalId);
     }
 
@@ -240,8 +237,8 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (responseElementNode == null) {
             return null;
         }
-        String requestId = expectStringOrNull(responseElementNode.get("x-amz-request-id"), "x-amz-request-id");
-        String id2 = expectStringOrNull(responseElementNode.get("x-amz-id-2"), "x-amz-id-2");
+        String requestId = expectStringOrNull(responseElementNode, "x-amz-request-id");
+        String id2 = expectStringOrNull(responseElementNode, "x-amz-id-2");
         return new ResponseElements(id2, requestId);
     }
 
@@ -250,11 +247,14 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         if (requestParametersNode == null) {
             return null;
         }
-        JsonNode sourceIpAddress = requestParametersNode.get("sourceIPAddress");
-        String sourceIpAddressString = expectStringOrNull(sourceIpAddress, "sourceIPAddress");
+        String sourceIpAddressString = expectStringOrNull(requestParametersNode, "sourceIPAddress");
         return new RequestParameters(sourceIpAddressString);
     }
 
+
+    private String expectStringOrNull(Map<String, JsonNode> node, String name) {
+        return expectStringOrNull(node.get(name), name);
+    }
 
     private String expectStringOrNull(JsonNode node, String name) {
         if (node == null) {

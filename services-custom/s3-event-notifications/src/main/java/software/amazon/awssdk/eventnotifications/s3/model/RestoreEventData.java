@@ -20,6 +20,9 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * The RestoreEventData contains attributes that are related to the restore request.
+ */
 @SdkPublicApi
 public class RestoreEventData {
 
@@ -32,10 +35,16 @@ public class RestoreEventData {
         this.lifecycleRestoreStorageClass = lifecycleRestoreStorageClass;
     }
 
+    /**
+     * @return The time, in ISO-8601 format, for example, 1970-01-01T00:00:00.000Z, of Restore Expiry.
+     */
     public Instant getLifecycleRestorationExpiryTime() {
         return lifecycleRestorationExpiryTime;
     }
 
+    /**
+     * @return The source storage class for restore.
+     */
     public String getLifecycleRestoreStorageClass() {
         return lifecycleRestoreStorageClass;
     }

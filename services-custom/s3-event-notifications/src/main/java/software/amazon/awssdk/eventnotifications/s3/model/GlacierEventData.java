@@ -19,6 +19,11 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * The GlacierEventData is only visible for s3:ObjectRestore:Completed events.
+ * Contains information related to restoring an archived object. For more information about archive and storage classes, see
+ * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/restoring-objects.html">Restoring an archived object</a>
+ */
 @SdkPublicApi
 public class GlacierEventData {
 
