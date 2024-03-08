@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.builder;
 
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.bearerAuthServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.composedClientJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.builder.BuilderClassTestUtils.validateGeneration;
 
@@ -35,6 +36,11 @@ public class BaseClientBuilderInterfaceTest {
     @Test
     public void baseClientBuilderInterfaceWithBearerAuth() {
         validateBaseClientBuilderInterfaceGeneration(bearerAuthServiceModels(), "test-bearer-auth-client-builder-interface.java");
+    }
+
+    @Test
+    public void baseClientBuilderInterfaceWithEndpointParams() {
+        validateBaseClientBuilderInterfaceGeneration(queryServiceModels(), "test-endpointparams-client-builder-interface.java");
     }
 
     @Test

@@ -45,6 +45,7 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.EndpointAuthSchemeConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -82,10 +83,12 @@ import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final IntermediateModel model;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+    private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
     private final PoetExtension poetExtension;
     private final boolean dependsOnHttpAuthAws;
     private final boolean useSraAuth;
@@ -93,6 +96,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
     public EndpointResolverInterceptorSpec(IntermediateModel model) {
         this.model = model;
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        this.endpointParamsKnowledgeIndex = EndpointParamsKnowledgeIndex.of(model);
         this.poetExtension = new PoetExtension(model);
 
         // We need to know whether the service has a dependency on the http-auth-aws module. Because we can't check that
@@ -139,6 +143,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addMethod(signerProviderMethod());
         }
 
+        endpointParamsKnowledgeIndex.accountIdFromIdentityMethod().ifPresent(b::addMethod);
         return b.build();
     }
 
@@ -271,44 +276,47 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             if (m.getBuiltInEnum() == null) {
                 return;
             }
-
-            String setterName = endpointRulesSpecUtils.paramMethodName(n);
-            String builtInFn;
+            String setter = Utils.unCapitalize(CodegenNamingUtils.pascalCase(n));
             switch (m.getBuiltInEnum()) {
                 case AWS_REGION:
-                    builtInFn = "regionBuiltIn";
+                    b.addStatement(endpointProviderUtilsSetter("regionBuiltIn", setter));
                     break;
                 case AWS_USE_DUAL_STACK:
-                    builtInFn = "dualStackEnabledBuiltIn";
+                    b.addStatement(endpointProviderUtilsSetter("dualStackEnabledBuiltIn", setter));
                     break;
                 case AWS_USE_FIPS:
-                    builtInFn = "fipsEnabledBuiltIn";
+                    b.addStatement(endpointProviderUtilsSetter("fipsEnabledBuiltIn", setter));
                     break;
                 case SDK_ENDPOINT:
-                    builtInFn = "endpointBuiltIn";
+                    b.addStatement(endpointProviderUtilsSetter("endpointBuiltIn", setter));
                     break;
                 case AWS_AUTH_ACCOUNT_ID:
-                    builtInFn = "accountIdBuiltIn";
+                    b.addStatement("builder.$N(accountIdFromIdentity(executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)))",
+                                   setter, SdkInternalExecutionAttribute.class);
+                    break;
+                case AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE:
+                    b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N).name())",
+                                   setter, AwsExecutionAttribute.class,
+                                   model.getNamingStrategy().getEnumValueName(m.getBuiltInEnum().name()));
                     break;
                 case AWS_S3_USE_GLOBAL_ENDPOINT:
-                    builtInFn = "useGlobalEndpointBuiltIn";
+                    b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N))",
+                                   setter, AwsExecutionAttribute.class, model.getNamingStrategy().getEnumValueName(n));
                     break;
-                // The S3 specific built-ins are set through the existing S3Configuration which is handled above
+                // The S3 specific built-ins are set through the existing S3Configuration and set through client context params
                 case AWS_S3_ACCELERATE:
                 case AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS:
                 case AWS_S3_FORCE_PATH_STYLE:
                 case AWS_S3_USE_ARN_REGION:
                 case AWS_S3_CONTROL_USE_ARN_REGION:
-                    // end of S3 specific builtins
+                // end of S3 specific builtins
+
+                // V2 doesn't support this, only regional endpoints
                 case AWS_STS_USE_GLOBAL_ENDPOINT:
-                    // V2 doesn't support this, only regional endpoints
                     return;
                 default:
                     throw new RuntimeException("Don't know how to set built-in " + m.getBuiltInEnum());
             }
-
-            b.addStatement("builder.$N($T.$N(executionAttributes))", setterName,
-                           endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"), builtInFn);
         });
 
         if (hasClientContextParams()) {
@@ -321,6 +329,11 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         b.addStatement("return builder.build()");
         return b.build();
+    }
+
+    private CodeBlock endpointProviderUtilsSetter(String builtInFn, String setterName) {
+        return CodeBlock.of("builder.$N($T.$N(executionAttributes))", setterName,
+                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"), builtInFn);
     }
 
     private ClassName paramsBuilderClass() {

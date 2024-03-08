@@ -20,6 +20,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -90,6 +91,12 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      * Option used by the rest of the SDK to read the {@link DefaultsMode}. This will never be {@link DefaultsMode#AUTO}.
      */
     public static final AwsClientOption<DefaultsMode> DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
+
+    /**
+     * Option used by the rest of the SDK to read the {@link DefaultsMode}. This will never be {@link DefaultsMode#AUTO}.
+     */
+    public static final AwsClientOption<AccountIdEndpointMode> ACCOUNT_ID_ENDPOINT_MODE =
+        new AwsClientOption<>(AccountIdEndpointMode.class);
 
     /**
      * Option to specify whether global endpoint should be used.

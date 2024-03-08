@@ -33,8 +33,10 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
     private final Boolean useFIPSEndpoint;
 
-
     private final String awsAccountId;
+
+
+    private final String awsAccountIdEndpointMode;
 
     private final String endpointId;
 
@@ -58,6 +60,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
         this.awsAccountId = builder.awsAccountId;
+        this.awsAccountIdEndpointMode = builder.awsAccountIdEndpointMode;
         this.endpointId = builder.endpointId;
         this.defaultTrueParam = Validate.paramNotNull(builder.defaultTrueParam, "defaultTrueParam");
         this.defaultStringParam = Validate.paramNotNull(builder.defaultStringParam, "defaultStringParam");
@@ -95,6 +98,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     @Override
     public String awsAccountId() {
         return awsAccountId;
+    }
+
+    @Override
+    public String awsAccountIdEndpointMode() {
+        return awsAccountIdEndpointMode;
     }
 
     @Override
@@ -154,6 +162,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
         private String awsAccountId;
 
+        private String awsAccountIdEndpointMode;
+
         private String endpointId;
 
         private Boolean defaultTrueParam = true;
@@ -179,6 +189,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
             this.useDualStackEndpoint = params.useDualStackEndpoint;
             this.useFIPSEndpoint = params.useFIPSEndpoint;
             this.awsAccountId = params.awsAccountId;
+            this.awsAccountIdEndpointMode = params.awsAccountIdEndpointMode;
             this.endpointId = params.endpointId;
             this.defaultTrueParam = params.defaultTrueParam;
             this.defaultStringParam = params.defaultStringParam;
@@ -216,6 +227,12 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         @Override
         public Builder awsAccountId(String awsAccountId) {
             this.awsAccountId = awsAccountId;
+            return this;
+        }
+
+        @Override
+        public Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode) {
+            this.awsAccountIdEndpointMode = awsAccountIdEndpointMode;
             return this;
         }
 

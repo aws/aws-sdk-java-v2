@@ -193,6 +193,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_DEFAULTS_MODE("aws.defaultsMode", null),
 
     /**
+     * Which {@code AccountIdEndpointMode} to use, case insensitive
+     */
+    AWS_ACCOUNT_ID_ENDPOINT_MODE("aws.accountIdEndpointMode", null),
+
+    /**
      * Defines whether dualstack endpoints should be resolved during default endpoint resolution instead of non-dualstack
      * endpoints.
      */
