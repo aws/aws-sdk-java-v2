@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -94,7 +93,7 @@ public class MpuRequestContext {
     }
 
     public Map<Integer, CompletedPart> existingParts() {
-        return existingParts != null ? Collections.unmodifiableMap(existingParts) : null;
+        return existingParts;
     }
 
     public static final class Builder {
