@@ -1,4 +1,54 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.5__ __2024-03-07__
+## __AWS Lambda__
+  - ### Features
+    - Documentation updates for AWS Lambda
+
+## __AWS S3__
+  - ### Bugfixes
+    - Fixed the issue in S3 multipart client where the list of parts could be out of order in CompleteMultipartRequest, causing `The list of parts was not in ascending order` error to be thrown.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Modify ARN toString to print a valid ARN when there's no region or acountId
+        - Contributed by: [@Madrigal](https://github.com/Madrigal)
+
+## __AWS WAFV2__
+  - ### Features
+    - You can increase the max request body inspection size for some regional resources. The size setting is in the web ACL association config. Also, the AWSManagedRulesBotControlRuleSet EnableMachineLearning setting now takes a Boolean instead of a primitive boolean type, for languages like Java.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig now supports dynamic parameters, which enhance the functionality of AppConfig Extensions by allowing you to provide parameter values to your Extensions at the time you deploy your configuration.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds an optional parameter to RegisterImage and CopyImage APIs to support tagging AMIs at the time of creation.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Doc-only update for change to EKS-Anywhere ordering.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Adds support for the new GrafanaToken as part of the Amazon Managed Grafana Enterprise plugins upgrade to associate your AWS account with a Grafana Labs account.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for io2 storage for Multi-AZ DB clusters
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added note for user decoupling
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - AWS Payment Cryptography EMV Decrypt Feature Release
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Madrigal](https://github.com/Madrigal)
 # __2.25.4__ __2024-03-06__
 ## __Amazon DynamoDB__
   - ### Features
