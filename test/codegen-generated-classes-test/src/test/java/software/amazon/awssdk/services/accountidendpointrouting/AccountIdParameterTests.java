@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.endpointproviders;
+package software.amazon.awssdk.services.accountidendpointrouting;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -24,15 +24,14 @@ import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -40,13 +39,13 @@ import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpoin
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.RestJsonEndpointProvidersEndpointParams;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.RestJsonEndpointProvidersEndpointProvider;
 
-public class AccountIdParameterTests {
+class AccountIdParameterTests {
 
-    private static RestJsonEndpointProvidersEndpointProvider mockEndpointProvider;
-    private static SdkHttpClient mockHttpClient;
+    private RestJsonEndpointProvidersEndpointProvider mockEndpointProvider;
+    private SdkHttpClient mockHttpClient;
 
-    @BeforeAll
-    public static void setup() {
+    @BeforeEach
+    void setup() {
         mockEndpointProvider = mock(RestJsonEndpointProvidersEndpointProvider.class);
         mockHttpClient = mock(SdkHttpClient.class);
         when(mockHttpClient.clientName()).thenReturn("MockHttpClient");
@@ -58,28 +57,47 @@ public class AccountIdParameterTests {
     }
 
     @Test
-    public void accountId_isResolvedToValue_whenEndpointResolverIsCalled_NOTWORKING() {
-        CapturingInterceptor executionAttributeCaptor = new CapturingInterceptor();
+    void accountId_isResolvedToValue_whenEndpointResolverIsCalled_NOTWORKING() {
         RestJsonEndpointProvidersClient client =
             RestJsonEndpointProvidersClient.builder()
                                            .endpointProvider(mockEndpointProvider)
                                            .httpClient(mockHttpClient)
                                            .region(Region.US_WEST_2)
                                            .credentialsProvider(credentialsWithAccountId())
-                                           .overrideConfiguration(c -> c.addExecutionInterceptor(executionAttributeCaptor))
                                            .build();
 
         assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {})).hasMessageContaining("boom");
 
-
-        ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor = ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
+        ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
+            ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
         verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
 
-        assertThat(executionAttributeCaptor.accountIdBeforeMarshalling()).isNotNull();
+        RestJsonEndpointProvidersEndpointParams resolvedEndpointParams = paramsCaptor.getValue();
+        assertThat(resolvedEndpointParams.awsAccountId()).isNotNull().isEqualTo("accountId");
+        assertThat(resolvedEndpointParams.awsAccountEndpointMode()).isNotNull().isEqualTo(AccountIdEndpointMode.PREFERRED.name());
+    }
+
+    @ParameterizedTest
+    @EnumSource(AccountIdEndpointMode.class)
+    void accountId_isResolvedToValue_whenEndpointResolverIsCalled(AccountIdEndpointMode accountIdEndpointMode) {
+        RestJsonEndpointProvidersClient client =
+            RestJsonEndpointProvidersClient.builder()
+                                           .endpointProvider(mockEndpointProvider)
+                                           .httpClient(mockHttpClient)
+                                           .region(Region.US_WEST_2)
+                                           .credentialsProvider(credentialsWithAccountId())
+                                           .accountIdEndpointMode(accountIdEndpointMode)
+                                           .build();
+
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {})).hasMessageContaining("boom");
+
+        ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
+            ArgumentCaptor.forClass(RestJsonEndpointProvidersEndpointParams.class);
+        verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
 
         RestJsonEndpointProvidersEndpointParams resolvedEndpointParams = paramsCaptor.getValue();
-        // TODO: this assertion should test for a non-null value after core logic is re-ordered
-        assertThat(resolvedEndpointParams.awsAccountId()).isNull();
+        assertThat(resolvedEndpointParams.awsAccountId()).isNotNull().isEqualTo("accountId");
+        assertThat(resolvedEndpointParams.awsAccountEndpointMode()).isNotNull().isEqualTo(accountIdEndpointMode.name());
     }
 
     private static AwsCredentialsProvider credentialsWithAccountId() {
@@ -90,18 +108,4 @@ public class AccountIdParameterTests {
                                           .accountId("accountId")
                                           .build();
     }
-
-    private static class CapturingInterceptor implements ExecutionInterceptor {
-        String accountId;
-
-        public String accountIdBeforeMarshalling() {
-            return accountId;
-        }
-
-        @Override
-        public void beforeMarshalling(Context.BeforeMarshalling context, ExecutionAttributes executionAttributes) {
-            this.accountId = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID);
-        }
-    };
-
 }

@@ -20,6 +20,10 @@
       "type": "String",
       "builtIn": "AWS::Auth::AccountId"
     },
+    "awsAccountIdEndpointMode": {
+      "type": "String",
+      "builtIn": "AWS::Auth::AccountIdEndpointMode"
+    },
     "endpointId": {
       "type": "string"
     },

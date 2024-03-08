@@ -57,6 +57,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (params.awsAccountId() != null) {
             paramsMap.put(Identifier.of("awsAccountId"), Value.fromStr(params.awsAccountId()));
         }
+        if (params.awsAccountIdEndpointMode() != null) {
+            paramsMap.put(Identifier.of("awsAccountIdEndpointMode"), Value.fromStr(params.awsAccountIdEndpointMode()));
+        }
         if (params.endpointId() != null) {
             paramsMap.put(Identifier.of("endpointId"), Value.fromStr(params.endpointId()));
         }
@@ -345,6 +348,10 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                 .addParameter(
                                     Parameter.builder().name("awsAccountId").type(ParameterType.fromValue("String"))
                                              .required(false).builtIn("AWS::Auth::AccountId").build())
+                                .addParameter(
+                                    Parameter.builder().name("awsAccountIdEndpointMode")
+                                             .type(ParameterType.fromValue("String")).required(false)
+                                             .builtIn("AWS::Auth::AccountIdEndpointMode").build())
                                 .addParameter(
                                         Parameter.builder().name("endpointId").type(ParameterType.fromValue("string"))
                                                 .required(false).build())

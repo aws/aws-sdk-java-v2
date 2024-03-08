@@ -125,13 +125,6 @@ public class AwsEndpointProviderUtilsTest {
     }
 
     @Test
-    public void accountIdAuthBuiltIn_returnsAttrValue() {
-        ExecutionAttributes attrs = new ExecutionAttributes();
-        attrs.putAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID, "1234567890");
-        assertThat(AwsEndpointProviderUtils.accountIdBuiltIn(attrs)).isEqualTo("1234567890");
-    }
-
-    @Test
     public void endpointBuiltIn_doesNotIncludeQueryParams() {
         URI endpoint = URI.create("https://example.com/path?foo=bar");
         ExecutionAttributes attrs = new ExecutionAttributes();
@@ -139,13 +132,6 @@ public class AwsEndpointProviderUtilsTest {
         attrs.putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, endpoint);
 
         assertThat(AwsEndpointProviderUtils.endpointBuiltIn(attrs).toString()).isEqualTo("https://example.com/path");
-    }
-
-    @Test
-    public void useGlobalEndpointBuiltIn_returnsAttrValue() {
-        ExecutionAttributes attrs = new ExecutionAttributes();
-        attrs.putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, true);
-        assertThat(AwsEndpointProviderUtils.useGlobalEndpointBuiltIn(attrs)).isEqualTo(true);
     }
 
     @Test

@@ -20,6 +20,9 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     private final String awsAccountId;
 
+
+    private final String awsAccountIdEndpointMode;
+
     private final String endpointId;
 
     private final Boolean defaultTrueParam;
@@ -39,6 +42,7 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
         this.awsAccountId = builder.awsAccountId;
+        this.awsAccountIdEndpointMode = builder.awsAccountIdEndpointMode;
         this.endpointId = builder.endpointId;
         this.defaultTrueParam = builder.defaultTrueParam;
         this.defaultStringParam = builder.defaultStringParam;
@@ -66,6 +70,10 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     public String awsAccountId() {
         return awsAccountId;
+    }
+
+    public String awsAccountIdEndpointMode() {
+        return awsAccountIdEndpointMode;
     }
 
     public String endpointId() {
@@ -110,6 +118,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         Builder awsAccountId(String awsAccountId);
 
+        Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode);
+
         Builder endpointId(String endpointId);
 
         Builder defaultTrueParam(Boolean defaultTrueParam);
@@ -137,6 +147,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         private String awsAccountId;
 
+        private String awsAccountIdEndpointMode;
+
         private String endpointId;
 
         private Boolean defaultTrueParam = true;
@@ -159,6 +171,7 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.useDualStackEndpoint = builder.useDualStackEndpoint;
             this.useFIPSEndpoint = builder.useFIPSEndpoint;
             this.awsAccountId = builder.awsAccountId;
+            this.awsAccountIdEndpointMode = builder.awsAccountIdEndpointMode;
             this.endpointId = builder.endpointId;
             this.defaultTrueParam = builder.defaultTrueParam;
             this.defaultStringParam = builder.defaultStringParam;
@@ -189,6 +202,12 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         @Override
         public Builder awsAccountId(String awsAccountId) {
             this.awsAccountId = awsAccountId;
+            return this;
+        }
+
+        @Override
+        public Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode) {
+            this.awsAccountIdEndpointMode = awsAccountIdEndpointMode;
             return this;
         }
 
