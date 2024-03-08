@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudTrail",
+    "contributor": "",
+    "description": "Added exceptions to CreateTrail, DescribeTrails, and ListImportFailures APIs."
+}
