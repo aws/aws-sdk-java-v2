@@ -19,7 +19,6 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
-import static software.amazon.awssdk.transfer.s3.internal.GenericS3TransferManager.assertNotUnsupportedArn;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -40,7 +39,6 @@ import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -48,7 +46,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 class CrtS3TransferManager extends GenericS3TransferManager {
-    private static final Logger log = Logger.loggerFor(S3TransferManager.class);
     private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
 
@@ -99,20 +96,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
     }
 
     @Override
-    public FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
-        Validate.paramNotNull(resumableFileUpload, "resumableFileUpload");
-
-        boolean fileModified = PAUSE_RESUME_HELPER.fileModified(resumableFileUpload, s3AsyncClient);
-        boolean noResumeToken = !PAUSE_RESUME_HELPER.hasResumeToken(resumableFileUpload);
-
-        if (fileModified || noResumeToken) {
-            return uploadFile(resumableFileUpload.uploadFileRequest());
-        }
-
-        return doResumeUpload(resumableFileUpload);
-    }
-
-    private FileUpload doResumeUpload(ResumableFileUpload resumableFileUpload) {
+    FileUpload doResumeUpload(ResumableFileUpload resumableFileUpload) {
         UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
         ResumeToken resumeToken = crtResumeToken(resumableFileUpload);
