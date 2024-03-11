@@ -42,7 +42,7 @@ public class S3EventNotificationRecord {
     }
 
     @SdkTestInternalApi
-    protected S3EventNotificationRecord(
+    S3EventNotificationRecord(
         String awsRegion,
         String eventName,
         String eventSource,
@@ -68,7 +68,7 @@ public class S3EventNotificationRecord {
     }
 
     @SdkTestInternalApi
-    protected S3EventNotificationRecord(
+    S3EventNotificationRecord(
         String awsRegion,
         String eventName,
         String eventSource,
