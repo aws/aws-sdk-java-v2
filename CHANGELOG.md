@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.7__ __2024-03-11__
+## __AWS CodeStar connections__
+  - ### Features
+    - Added a sync configuration enum to disable publishing of deployment status to source providers (PublishDeploymentStatus). Added a sync configuration enum (TriggerStackUpdateOn) to only trigger changes.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release enables customers to safely update their MediaPackage v2 channel groups, channels and origin endpoints using entity tags.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Revisions to API text that are now to be carried over to SDK text, changing usages of "SFO" in code examples to "us-west-1", and some other typos.
+
 # __2.25.6__ __2024-03-08__
 ## __AWS Batch__
   - ### Features
