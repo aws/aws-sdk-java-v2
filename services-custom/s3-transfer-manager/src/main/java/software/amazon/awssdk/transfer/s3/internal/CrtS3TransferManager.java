@@ -47,14 +47,14 @@ import software.amazon.awssdk.utils.Validate;
  * An implementation of {@link S3TransferManager} that uses CRT-based S3 client under the hood.
  */
 @SdkInternalApi
-class CrtS3TransferManager extends DelegatingS3TransferManager {
+class CrtS3TransferManager extends GenericS3TransferManager {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
     private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
 
     CrtS3TransferManager(TransferManagerConfiguration transferConfiguration, S3AsyncClient s3AsyncClient,
                          boolean isDefaultS3AsyncClient) {
-        super(new GenericS3TransferManager(transferConfiguration, s3AsyncClient, isDefaultS3AsyncClient));
+        super(transferConfiguration, s3AsyncClient, isDefaultS3AsyncClient);
         this.s3AsyncClient = s3AsyncClient;
     }
 
