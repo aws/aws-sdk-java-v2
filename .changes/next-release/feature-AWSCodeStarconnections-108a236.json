@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeStar connections",
-    "contributor": "",
-    "description": "Added a sync configuration enum to disable publishing of deployment status to source providers (PublishDeploymentStatus). Added a sync configuration enum (TriggerStackUpdateOn) to only trigger changes."
-}
