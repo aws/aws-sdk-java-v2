@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "AWS SDK for Java v2",
+    "contributor": "syall",
+    "description": "Remove unused `auth` trait code paths."
+}

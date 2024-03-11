@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.ExceptionModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
@@ -234,14 +233,11 @@ final class AddOperations {
     }
 
     /**
-     * Returns the list of authTypes defined for an operation. If the new auth member is defined we use it, otherwise we retrofit
-     * the list with the value of the authType member if present or return an empty list if not.
+     * Returns the list of authTypes defined for an operation. The list includes the value of the authType member
+     * if present, or is an empty list if not.
      */
     private List<AuthType> getAuthFromOperation(Operation op) {
-        List<String> opAuth = op.getAuth();
-        if (opAuth != null) {
-            return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
-        }
+        // TODO(multi-auth): read from Operation::getAuth()
         AuthType legacyAuthType = op.getAuthtype();
         if (legacyAuthType != null) {
             return Collections.singletonList(legacyAuthType);
