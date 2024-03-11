@@ -16,15 +16,15 @@
 package software.amazon.awssdk.identity.spi.internal;
 
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Interface to represent the provider that is the source of this identity.
  */
-@SdkInternalApi
 @ThreadSafe
-public interface ProviderSource {
+@SdkPublicApi
+public interface ProviderNameAware {
 
     /**
      * The source that resolved this identity, normally an identity provider.

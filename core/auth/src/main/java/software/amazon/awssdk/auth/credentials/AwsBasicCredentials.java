@@ -52,8 +52,8 @@ public final class AwsBasicCredentials implements AwsCredentials,
 
     private final String accessKeyId;
     private final String secretAccessKey;
-    private boolean validateCredentials;
-    private String provider;
+    private final boolean validateCredentials;
+    private final String provider;
 
     private AwsBasicCredentials(Builder builder) {
         this.accessKeyId = trimToNull(builder.accessKeyId);
@@ -76,6 +76,8 @@ public final class AwsBasicCredentials implements AwsCredentials,
     protected AwsBasicCredentials(String accessKeyId, String secretAccessKey) {
         this.accessKeyId = trimToNull(accessKeyId);
         this.secretAccessKey = trimToNull(secretAccessKey);
+        this.validateCredentials = false;
+        this.provider = null;
     }
 
     public static Builder builder() {

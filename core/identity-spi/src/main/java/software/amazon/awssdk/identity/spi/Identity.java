@@ -19,7 +19,7 @@ import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.identity.spi.internal.ProviderSource;
+import software.amazon.awssdk.identity.spi.internal.ProviderNameAware;
 
 /**
  * Interface to represent <b>who</b> is using the SDK, i.e., the identity of the caller, used for authentication.
@@ -30,7 +30,7 @@ import software.amazon.awssdk.identity.spi.internal.ProviderSource;
  */
 @SdkPublicApi
 @ThreadSafe
-public interface Identity extends ProviderSource {
+public interface Identity extends ProviderNameAware {
     /**
      * The time after which this identity will no longer be valid. If this is empty,
      * an expiration time is not known (but the identity may still expire at some
