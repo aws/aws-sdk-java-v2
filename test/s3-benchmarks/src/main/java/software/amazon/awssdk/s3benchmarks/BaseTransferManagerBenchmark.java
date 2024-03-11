@@ -60,19 +60,8 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
 
     BaseTransferManagerBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
-        Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
-        Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
-        S3CrtAsyncClientBuilder builder = S3CrtAsyncClient.builder()
-                                                          .targetThroughputInGbps(config.targetThroughput())
-                                                          .minimumPartSizeInBytes(partSizeInMb)
-                                                          .initialReadBufferSizeInBytes(readBufferSizeInMb)
-                                                          .targetThroughputInGbps(config.targetThroughput() == null ?
-                                                                                  Double.valueOf(100.0) :
-                                                                                  config.targetThroughput());
-        if (config.maxConcurrency() != null) {
-            builder.maxConcurrency(config.maxConcurrency());
-        }
-        s3 = builder.build();
+
+        s3 = createS3AsyncClient(config);
         s3Sync = S3Client.builder().build();
         transferManager = S3TransferManager.builder()
                                            .s3Client(s3)
@@ -169,6 +158,38 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         }
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join();
+    }
+
+    private S3AsyncClient createS3AsyncClient(TransferManagerBenchmarkConfig config) {
+        Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
+        Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
+        switch (config.s3Client()) {
+            case CRT: {
+                logger.info(() -> "Using CRT S3 Async client");
+                S3CrtAsyncClientBuilder builder = S3CrtAsyncClient.builder()
+                                                                  .targetThroughputInGbps(config.targetThroughput())
+                                                                  .minimumPartSizeInBytes(partSizeInMb)
+                                                                  .initialReadBufferSizeInBytes(readBufferSizeInMb)
+                                                                  .targetThroughputInGbps(config.targetThroughput() == null ?
+                                                                                          Double.valueOf(100.0) :
+                                                                                          config.targetThroughput());
+                if (config.maxConcurrency() != null) {
+                    builder.maxConcurrency(config.maxConcurrency());
+                }
+                return builder.build();
+            }
+            case JAVA: {
+                logger.info(() -> "Using Java-based S3 Async client");
+                return S3AsyncClient.builder()
+                                    .multipartEnabled(true)
+                                    .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb)
+                                                                  .apiCallBufferSizeInBytes(readBufferSizeInMb))
+                                    .httpClientBuilder(TransferManagerBenchmark.httpClient(config))
+                                    .build();
+            }
+            default:
+                throw new IllegalArgumentException("base s3 client must be crt or java");
+        }
     }
 
     private void warmUpUploadBatch() {

@@ -23,12 +23,8 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -41,7 +37,6 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
     protected final String bucket;
     protected final String key;
     protected final Duration timeout;
-    private final ChecksumAlgorithm checksumAlgorithm;
     private final int iteration;
 
     protected BaseJavaS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
@@ -49,7 +44,6 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
         this.key = Validate.paramNotNull(config.key(), "key");
         this.timeout = Validate.getOrDefault(config.timeout(), () -> DEFAULT_TIMEOUT);
         this.iteration = Validate.getOrDefault(config.iteration(), () -> BENCHMARK_ITERATIONS);
-        this.checksumAlgorithm = config.checksumAlgorithm();
 
         this.s3Client = S3Client.create();
 
@@ -62,31 +56,8 @@ public abstract class BaseJavaS3ClientBenchmark implements TransferManagerBenchm
                                           .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
                                                                         .thresholdInBytes(partSizeInMb * 2 * MB)
                                                                         .apiCallBufferSizeInBytes(readBufferInMb * MB))
-                                          .httpClientBuilder(httpClient(config))
+                                          .httpClientBuilder(TransferManagerBenchmark.httpClient(config))
                                           .build();
-    }
-
-    private SdkAsyncHttpClient.Builder httpClient(TransferManagerBenchmarkConfig config) {
-        if (config.forceCrtHttpClient()) {
-            logger.info(() -> "Using CRT HTTP client");
-            AwsCrtAsyncHttpClient.Builder builder = AwsCrtAsyncHttpClient.builder();
-            if (config.readBufferSizeInMb() != null) {
-                builder.readBufferSizeInBytes(config.readBufferSizeInMb() * MB);
-            }
-            if (config.maxConcurrency() != null) {
-                builder.maxConcurrency(config.maxConcurrency());
-            }
-            return builder;
-        }
-        NettyNioAsyncHttpClient.Builder builder = NettyNioAsyncHttpClient.builder();
-        if (config.connectionAcquisitionTimeoutInSec() != null) {
-            Duration connAcqTimeout = Duration.ofSeconds(config.connectionAcquisitionTimeoutInSec());
-            builder.connectionAcquisitionTimeout(connAcqTimeout);
-        }
-        if (config.maxConcurrency() != null) {
-            builder.maxConcurrency(config.maxConcurrency());
-        }
-        return builder;
     }
 
     protected abstract void sendOneRequest(List<Double> latencies) throws Exception;
