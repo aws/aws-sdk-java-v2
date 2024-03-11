@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.6__ __2024-03-08__
+## __AWS Batch__
+  - ### Features
+    - This release adds JobStateTimeLimitActions setting to the Job Queue API. It allows you to configure an action Batch can take for a blocking job in front of the queue after the defined period of time. The new parameter applies for ECS, EKS, and FARGATE Job Queues.
+
+## __AWS CloudTrail__
+  - ### Features
+    - Added exceptions to CreateTrail, DescribeTrails, and ListImportFailures APIs.
+
+## __AWS CodeBuild__
+  - ### Features
+    - This release adds support for a new webhook event: PULL_REQUEST_CLOSED.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Added DES_EDE3_CBC to the list of supported encryption algorithms for messages sent with an AS2 connector.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Documentation update for Bedrock Runtime Agent
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add ConcurrentModificationException to SetUserPoolMfaConfig
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add RDS Provisioned and Serverless Usage types
+
 # __2.25.5__ __2024-03-07__
 ## __AWS Lambda__
   - ### Features
