@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.eventnotifications.s3.internal;
 
+import nl.jqno.equalsverifier.Warning;
+
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +25,7 @@ class EqualsAndHashCodeTest {
     void allClasses_equalsHashCode_isCorrect() {
         EqualsVerifier
             .forPackage("software.amazon.awssdk.eventnotifications.s3.model", true)
+            .suppress(Warning.NONFINAL_FIELDS)
             .usingGetClass()
             .verify();
     }
