@@ -182,9 +182,8 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
                 logger.info(() -> "Using Java-based S3 Async client");
                 return S3AsyncClient.builder()
                                     .multipartEnabled(true)
-                                    .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb * MB)
-                                                                  .thresholdInBytes(partSizeInMb * 2 * MB)
-                                                                  .apiCallBufferSizeInBytes(readBufferSizeInMb * MB))
+                                    .multipartConfiguration(c -> c.minimumPartSizeInBytes(partSizeInMb)
+                                                                  .apiCallBufferSizeInBytes(readBufferSizeInMb))
                                     .httpClientBuilder(TransferManagerBenchmark.httpClient(config))
                                     .build();
             }
@@ -192,7 +191,6 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
                 throw new IllegalArgumentException("base s3 client must be crt or java");
         }
     }
-
 
     private void warmUpUploadBatch() {
         List<CompletableFuture<?>> futures = new ArrayList<>();
