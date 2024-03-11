@@ -147,7 +147,11 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
 
     @Override
     public Builder toBuilder() {
-        return new Builder(this);
+        return builder().accessKeyId(accessKeyId)
+                        .secretAccessKey(secretAccessKey)
+                        .sessionToken(sessionToken)
+                        .expirationTime(expirationTime)
+                        .provider(provider);
     }
 
     @Override
@@ -165,17 +169,6 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         private String sessionToken;
         private Instant expirationTime;
         private String provider;
-
-        Builder() {
-        }
-
-        private Builder(AwsSessionCredentials sessionCredentials) {
-            this.accessKeyId = sessionCredentials.accessKeyId;
-            this.secretAccessKey = sessionCredentials.secretAccessKey;
-            this.sessionToken = sessionCredentials.sessionToken;
-            this.expirationTime = sessionCredentials.expirationTime;
-            this.provider = sessionCredentials.provider;
-        }
 
         /**
          * The AWS access key, used to identify the user interacting with services. Required.
