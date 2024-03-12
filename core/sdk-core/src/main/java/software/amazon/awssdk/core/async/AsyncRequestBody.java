@@ -418,6 +418,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * <p>The caller is responsible for calling {@link OutputStream#close()} on the
      * {@link BlockingOutputStreamAsyncRequestBody#outputStream()} when writing is complete.
      *
+     * <p>By default, it will time out if streaming hasn't started within 10 seconds, and you can configure the timeout
+     * via {@link BlockingOutputStreamAsyncRequestBody#builder()}
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
@@ -440,9 +442,12 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     // Wait for the service to respond.
      *     PutObjectResponse response = responseFuture.join();
      * }
+     * @see BlockingOutputStreamAsyncRequestBody
      */
     static BlockingOutputStreamAsyncRequestBody forBlockingOutputStream(Long contentLength) {
-        return new BlockingOutputStreamAsyncRequestBody(contentLength);
+        return BlockingOutputStreamAsyncRequestBody.builder()
+                                                   .contentLength(contentLength)
+                                                   .build();
     }
 
     /**
