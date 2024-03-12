@@ -13,30 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.identity.spi;
+package software.amazon.awssdk.identity.spi.internal;
 
-import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.identity.spi.internal.ProviderNameAware;
 
 /**
- * Interface to represent <b>who</b> is using the SDK, i.e., the identity of the caller, used for authentication.
- *
- * <p>Examples include {@link AwsCredentialsIdentity} and {@link TokenIdentity}.</p>
- *
- * @see IdentityProvider
+ * Interface to represent the provider that is the source of this identity.
  */
-@SdkPublicApi
 @ThreadSafe
-public interface Identity extends ProviderNameAware {
+@SdkPublicApi
+public interface ProviderNameAware {
+
     /**
-     * The time after which this identity will no longer be valid. If this is empty,
-     * an expiration time is not known (but the identity may still expire at some
-     * time in the future).
+     * The source that resolved this identity, normally an identity provider.
      */
-    default Optional<Instant> expirationTime() {
+    default Optional<String> provider() {
         return Optional.empty();
     }
 }
