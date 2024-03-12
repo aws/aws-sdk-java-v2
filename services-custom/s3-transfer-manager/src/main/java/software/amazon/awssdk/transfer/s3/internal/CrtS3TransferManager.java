@@ -46,7 +46,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 class CrtS3TransferManager extends GenericS3TransferManager {
-    private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
 
     CrtS3TransferManager(TransferManagerConfiguration transferConfiguration, S3AsyncClient s3AsyncClient,
@@ -67,7 +66,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             b -> b.put(METAREQUEST_PAUSE_OBSERVABLE, observable)
                   .put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener());
 
-        PutObjectRequest putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservable);
+        PutObjectRequest putObjectRequest = attachCrtSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservable);
 
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
 
@@ -104,7 +103,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         Consumer<SdkHttpExecutionAttributes.Builder> attachResumeToken =
             b -> b.put(CRT_PAUSE_RESUME_TOKEN, resumeToken);
 
-        PutObjectRequest modifiedPutObjectRequest = attachSdkAttribute(putObjectRequest, attachResumeToken);
+        PutObjectRequest modifiedPutObjectRequest = attachCrtSdkAttribute(putObjectRequest, attachResumeToken);
 
         return uploadFile(uploadFileRequest.toBuilder()
                                            .putObjectRequest(modifiedPutObjectRequest)
@@ -119,8 +118,8 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                    .withUploadId(resumableFileUpload.multipartUploadId().orElse(null)));
     }
 
-    private PutObjectRequest attachSdkAttribute(PutObjectRequest putObjectRequest,
-                                                Consumer<SdkHttpExecutionAttributes.Builder> builderMutation) {
+    private PutObjectRequest attachCrtSdkAttribute(PutObjectRequest putObjectRequest,
+                                                   Consumer<SdkHttpExecutionAttributes.Builder> builderMutation) {
         SdkHttpExecutionAttributes modifiedAttributes =
             putObjectRequest.overrideConfiguration().map(o -> o.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES))
                             .map(b -> b.toBuilder().applyMutation(builderMutation).build())
