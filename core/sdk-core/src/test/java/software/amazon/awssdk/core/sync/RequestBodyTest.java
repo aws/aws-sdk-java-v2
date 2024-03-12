@@ -16,7 +16,10 @@
 package software.amazon.awssdk.core.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
@@ -33,6 +36,7 @@ import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -139,5 +143,20 @@ public class RequestBodyTest {
 
         byte[] requestBodyBytes = IoUtils.toByteArray(requestBody.contentStreamProvider().newStream());
         assertThat(ByteBuffer.wrap(requestBodyBytes)).isEqualTo(bb);
+    }
+
+    @Test
+    public void fromInputStream_markNotSupported_throwsNonRetryableExceptionOnSuccessiveNewStreams() {
+        byte[] content = "hello".getBytes(StandardCharsets.UTF_8);
+        InputStream is = spy(new ByteArrayInputStream(content));
+        when(is.markSupported()).thenReturn(false);
+
+        RequestBody requestBody = RequestBody.fromInputStream(is, content.length);
+
+        assertThatNoException().isThrownBy(requestBody.contentStreamProvider()::newStream);
+
+        assertThatThrownBy(requestBody.contentStreamProvider()::newStream)
+            .isInstanceOf(NonRetryableException.class)
+            .hasMessageContaining("cannot be reset");
     }
 }
