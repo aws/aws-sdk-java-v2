@@ -74,9 +74,9 @@ public final class DefaultCredentialsProvider
     }
 
     /**
-     * Returns the singleton instance of the {@link DefaultCredentialsProvider} using the default configuration. Configuration can be
-     * specified by creating an instance using the {@link #builder()}. If you want to create a new instance, 
-     * use {@link #builder()} instead.
+     * Returns the singleton instance of the {@link DefaultCredentialsProvider} using the default configuration. 
+     * Configuration can be specified by creating an instance using the {@link #builder()}. If you want to 
+     * create a new instance, use {@link #builder()} instead.
      */
     public static DefaultCredentialsProvider create() {
         return DEFAULT_CREDENTIALS_PROVIDER;
