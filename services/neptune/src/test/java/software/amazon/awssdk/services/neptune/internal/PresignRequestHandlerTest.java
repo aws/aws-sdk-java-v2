@@ -15,173 +15,349 @@
 
 package software.amazon.awssdk.services.neptune.internal;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
-import software.amazon.awssdk.core.Protocol;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.neptune.NeptuneClient;
+import software.amazon.awssdk.services.neptune.NeptuneClientBuilder;
+import software.amazon.awssdk.services.neptune.NeptuneServiceClientConfiguration;
+import software.amazon.awssdk.services.neptune.auth.scheme.NeptuneAuthSchemeProvider;
 import software.amazon.awssdk.services.neptune.model.CopyDbClusterSnapshotRequest;
-import software.amazon.awssdk.services.neptune.model.NeptuneRequest;
-import software.amazon.awssdk.services.neptune.transform.CopyDbClusterSnapshotRequestMarshaller;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Validate;
+
+/**
+ * Unit Tests for {@link software.amazon.awssdk.services.neptune.internal.RdsPresignInterceptor}
+ */
 
 /**
  * Unit Tests for {@link RdsPresignInterceptor}
  */
-public class PresignRequestHandlerTest {
-    private static final AwsBasicCredentials CREDENTIALS = AwsBasicCredentials.create("foo", "bar");
-    private static final Region DESTINATION_REGION = Region.of("us-west-2");
+class PresignRequestHandlerTest {
+    private static String TEST_KMS_KEY_ID = "arn:aws:kms:us-west-2:123456789012:key/"
+                                            + "11111111-2222-3333-4444-555555555555";
 
-    private static final RdsPresignInterceptor<CopyDbClusterSnapshotRequest> presignInterceptor = new CopyDbClusterSnapshotPresignInterceptor();
-    private final CopyDbClusterSnapshotRequestMarshaller marshaller =
-            new CopyDbClusterSnapshotRequestMarshaller(RdsPresignInterceptor.PROTOCOL_FACTORY);
+    @ParameterizedTest
+    @MethodSource("testCases")
+    public void testExpectations(TestCase testCase) {
+        // Arrange
+        CapturingInterceptor interceptor = new CapturingInterceptor();
+        NeptuneClientBuilder clientBuilder = client(interceptor, testCase.signingClockOverride);
+        testCase.clientConfigure.accept(clientBuilder);
+        NeptuneClient client = clientBuilder.build();
 
-    @Test
-    public void testSetsPresignedUrl() {
-        CopyDbClusterSnapshotRequest request = makeTestRequest();
-        SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
+        // Act
+        assertThatThrownBy(() -> testCase.clientConsumer.accept(client))
+            .hasMessageContaining("boom!");
 
-        assertNotNull(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
+        // Assert
+        SdkHttpFullRequest request = (SdkHttpFullRequest) interceptor.httpRequest();
+        Map<String, List<String>> rawQueryParameters = rawQueryParameters(request);
+
+        // The following params should not be included in the outgoing request
+        assertFalse(rawQueryParameters.containsKey("SourceRegion"));
+        assertFalse(rawQueryParameters.containsKey("DestinationRegion"));
+
+        if (testCase.shouldContainPreSignedUrl) {
+            List<String> rawPresignedUrlValue = rawQueryParameters.get("PreSignedUrl");
+            assertNotNull(rawPresignedUrlValue);
+            assertTrue(rawPresignedUrlValue.size() == 1);
+            String presignedUrl = rawPresignedUrlValue.get(0);
+            assertNotNull(presignedUrl);
+            // Validate that the URL can be parsed back
+            URI presignedUrlAsUri = URI.create(presignedUrl);
+            assertNotNull(presignedUrlAsUri);
+            if (testCase.expectedDestinationRegion != null) {
+                assertTrue(presignedUrl.contains("DestinationRegion=" + testCase.expectedDestinationRegion));
+            }
+            if (testCase.expectedUri != null) {
+                assertEquals(normalize(URI.create(testCase.expectedUri)), normalize(presignedUrlAsUri));
+            }
+        } else {
+            assertFalse(rawQueryParameters.containsKey("PreSignedUrl"));
+        }
     }
 
-    @Test
-    public void testComputesPresignedUrlCorrectlyForCopyDbClusterSnapshotRequest() {
-        // Note: test data was baselined by performing actual calls, with real
-        // credentials to RDS and checking that they succeeded. Then the
-        // request was recreated with all the same parameters but with test
-        // credentials.
-        final CopyDbClusterSnapshotRequest request = CopyDbClusterSnapshotRequest.builder()
-                .sourceDBClusterSnapshotIdentifier("arn:aws:rds:us-east-1:123456789012:snapshot:rds:test-instance-ss-2016-12-20-23-19")
-                .targetDBClusterSnapshotIdentifier("test-instance-ss-copy-2")
-                .sourceRegion("us-east-1")
-                .kmsKeyId("arn:aws:kms:us-west-2:123456789012:key/11111111-2222-3333-4444-555555555555")
-                .build();
+    public static List<TestCase> testCases() {
+        return Arrays.asList(
+            builder("CopyDbClusterSnapshot - Sets pre-signed URL when sourceRegion is set")
+                .clientConsumer(c -> c.copyDBClusterSnapshot(makeTestRequestBuilder()
+                                                                 .sourceRegion("us-east-1")
+                                                                 .build()))
+                .shouldContainPreSignedUrl(true)
+                .expectedDestinationRegion("us-east-1")
+                .build(),
+            builder("CopyDbClusterSnapshot - Doesn't set pre-signed URL when sourceRegion is NOT set")
+                .clientConsumer(c -> c.copyDBClusterSnapshot(makeTestRequestBuilder().build()))
+                .shouldContainPreSignedUrl(false)
+                .build(),
+            builder("CopyDbClusterSnapshot - Does not override pre-signed URL")
+                .clientConsumer(c -> c.copyDBClusterSnapshot(
+                    makeTestRequestBuilder()
+                        .sourceRegion("us-west-2")
+                        .preSignedUrl("http://localhost?foo=bar")
+                        .build()))
+                .shouldContainPreSignedUrl(true)
+                .expectedUri("http://localhost?foo=bar")
+                .build(),
+            builder("CopyDbClusterSnapshot - Fixed time")
+                .clientConfigure(c -> c.region(Region.US_WEST_2))
+                .clientConsumer(c -> c.copyDBClusterSnapshot(
+                    makeTestRequestBuilder()
+                        .sourceRegion("us-east-1")
+                        .build()))
+                .shouldContainPreSignedUrl(true)
+                .signingClockOverride(Clock.fixed(Instant.parse("2016-12-21T18:07:35.000Z"), ZoneId.of("UTC")))
+                .expectedUri(fixedTimePresignedUrl())
+                .build(),
 
-        Calendar c = new GregorianCalendar();
-        c.setTimeZone(TimeZone.getTimeZone("UTC"));
-        // 20161221T180735Z
-        // Note: month is 0-based
-        c.set(2016, Calendar.DECEMBER, 21, 18, 7, 35);
-
-        Clock signingDateOverride = Mockito.mock(Clock.class);
-        when(signingDateOverride.millis()).thenReturn(c.getTimeInMillis());
-
-        RdsPresignInterceptor<CopyDbClusterSnapshotRequest> interceptor = new CopyDbClusterSnapshotPresignInterceptor(signingDateOverride);
-
-        SdkHttpRequest presignedRequest = modifyHttpRequest(interceptor, request, marshallRequest(request));
-
-        final String expectedPreSignedUrl = "https://rds.us-east-1.amazonaws.com?" +
-                "Action=CopyDBClusterSnapshot" +
-                "&Version=2014-10-31" +
-                "&SourceDBClusterSnapshotIdentifier=arn%3Aaws%3Ards%3Aus-east-1%3A123456789012%3Asnapshot%3Ards%3Atest-instance-ss-2016-12-20-23-19" +
-                "&TargetDBClusterSnapshotIdentifier=test-instance-ss-copy-2" +
-                "&KmsKeyId=arn%3Aaws%3Akms%3Aus-west-2%3A123456789012%3Akey%2F11111111-2222-3333-4444-555555555555" +
-                "&DestinationRegion=us-west-2" +
-                "&X-Amz-Algorithm=AWS4-HMAC-SHA256" +
-                "&X-Amz-Date=20161221T180735Z" +
-                "&X-Amz-SignedHeaders=host" +
-                "&X-Amz-Expires=604800" +
-                "&X-Amz-Credential=foo%2F20161221%2Fus-east-1%2Frds%2Faws4_request" +
-                "&X-Amz-Signature=00822ebbba95e2e6ac09112aa85621fbef060a596e3e1480f9f4ac61493e9821";
-        assertEquals(expectedPreSignedUrl, presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
+            builder("createDBCluster With SourceRegion Sends Presigned Url")
+                .clientConsumer(c -> c.createDBCluster(r -> r.kmsKeyId(TEST_KMS_KEY_ID)
+                                                             .sourceRegion("us-west-2")))
+                .shouldContainPreSignedUrl(true)
+                .expectedDestinationRegion("us-east-1")
+                .build(),
+            builder("createDBCluster Without SourceRegion Does NOT Send PresignedUrl")
+                .clientConsumer(c -> c.createDBCluster(r -> r.kmsKeyId(TEST_KMS_KEY_ID)))
+                .shouldContainPreSignedUrl(false)
+                .build()
+        );
     }
 
-    @Test
-    public void testSkipsPresigningIfUrlSet() {
-        CopyDbClusterSnapshotRequest request = CopyDbClusterSnapshotRequest.builder()
-                .sourceRegion("us-west-2")
-                .preSignedUrl("PRESIGNED")
-                .build();
-
-
-        SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
-
-        assertEquals("PRESIGNED", presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
+    private static CopyDbClusterSnapshotRequest.Builder makeTestRequestBuilder() {
+        return CopyDbClusterSnapshotRequest
+            .builder()
+            .sourceDBClusterSnapshotIdentifier("arn:aws:rds:us-east-1:123456789012:snapshot:rds"
+                                               + ":test-instance-ss-2016-12-20-23-19")
+            .targetDBClusterSnapshotIdentifier("test-instance-ss-copy-2")
+            .kmsKeyId(TEST_KMS_KEY_ID);
     }
 
-    @Test
-    public void testSkipsPresigningIfSourceRegionNotSet() {
-        CopyDbClusterSnapshotRequest request = CopyDbClusterSnapshotRequest.builder().build();
+    private static NeptuneClientBuilder client(CapturingInterceptor interceptor, Clock signingClockOverride) {
+        NeptuneClientBuilder builder = NeptuneClient
+            .builder()
+            .credentialsProvider(
+                StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create("foo", "bar")))
+            .region(Region.US_EAST_1)
+            .addPlugin(c -> {
+                // Adds the capturing interceptor.
+                NeptuneServiceClientConfiguration.Builder config =
+                    Validate.isInstanceOf(NeptuneServiceClientConfiguration.Builder.class, c,
+                                          "\uD83E\uDD14");
+                config.overrideConfiguration(oc -> oc.addExecutionInterceptor(interceptor));
+            });
 
-        SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
-
-        assertNull(presignedRequest.rawQueryParameters().get("PreSignedUrl"));
+        if (signingClockOverride != null) {
+            // Adds a auth scheme wrapper that handles the clock override
+            builder.addPlugin(c -> {
+                NeptuneServiceClientConfiguration.Builder config =
+                    Validate.isInstanceOf(NeptuneServiceClientConfiguration.Builder.class, c, "\uD83E\uDD14");
+                config.authSchemeProvider(clockOverridingAuthScheme(config.authSchemeProvider(), signingClockOverride));
+            });
+        }
+        return builder;
     }
 
-    @Test
-    public void testParsesDestinationRegionfromRequestEndpoint() throws URISyntaxException {
-        CopyDbClusterSnapshotRequest request = CopyDbClusterSnapshotRequest.builder()
-                .sourceRegion("us-east-1")
-                .build();
-        Region destination = Region.of("us-west-2");
-        SdkHttpFullRequest marshalled = marshallRequest(request);
-
-        final SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
-
-        final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
-        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
+    private static NeptuneAuthSchemeProvider clockOverridingAuthScheme(NeptuneAuthSchemeProvider source,
+                                                                       Clock signingClockOverride) {
+        return authSchemeParams -> {
+            List<AuthSchemeOption> authSchemeOptions = source.resolveAuthScheme(authSchemeParams);
+            List<AuthSchemeOption> result = new ArrayList<>(authSchemeOptions.size());
+            for (AuthSchemeOption option : authSchemeOptions) {
+                if (option.schemeId().equals(AwsV4AuthScheme.SCHEME_ID)) {
+                    option = option.toBuilder()
+                                   .putSignerProperty(AwsV4FamilyHttpSigner.SIGNING_CLOCK, signingClockOverride)
+                                   .build();
+                }
+                result.add(option);
+            }
+            return result;
+        };
     }
 
-    @Test
-    public void testSourceRegionRemovedFromOriginalRequest() {
-        CopyDbClusterSnapshotRequest request = makeTestRequest();
-        SdkHttpFullRequest marshalled = marshallRequest(request);
-        SdkHttpRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
-
-        assertFalse(actual.rawQueryParameters().containsKey("SourceRegion"));
+    static String fixedTimePresignedUrl() {
+        return
+            "https://rds.us-east-1.amazonaws.com?" +
+            "Action=CopyDBClusterSnapshot" +
+            "&Version=2014-10-31" +
+            "&SourceDBClusterSnapshotIdentifier=arn%3Aaws%3Ards%3Aus-east-1%3A123456789012"
+            + "%3Asnapshot%3Ards%3Atest-instance-ss-2016-12-20-23-19" +
+            "&TargetDBClusterSnapshotIdentifier=test-instance-ss-copy-2" +
+            "&KmsKeyId=arn%3Aaws%3Akms%3Aus-west-2%3A123456789012%3Akey%2F11111111-2222-3333"
+            + "-4444-555555555555" +
+            "&DestinationRegion=us-west-2" +
+            "&X-Amz-Algorithm=AWS4-HMAC-SHA256" +
+            "&X-Amz-Date=20161221T180735Z" +
+            "&X-Amz-SignedHeaders=host" +
+            "&X-Amz-Credential=foo%2F20161221%2Fus-east-1%2Frds%2Faws4_request" +
+            "&X-Amz-Expires=604800" +
+            "&X-Amz-Signature=00822ebbba95e2e6ac09112aa85621fbef060a596e3e1480f9f4ac61493e9821";
     }
 
-    private SdkHttpFullRequest marshallRequest(CopyDbClusterSnapshotRequest request) {
-        SdkHttpFullRequest.Builder marshalled = marshaller.marshall(request).toBuilder();
-
-        URI endpoint = new DefaultServiceEndpointBuilder("rds", Protocol.HTTPS.toString())
-                .withRegion(DESTINATION_REGION)
-                .getServiceEndpoint();
-        return marshalled.uri(endpoint).build();
+    private Map<String, List<String>> rawQueryParameters(SdkHttpFullRequest request) {
+        // Retrieve back from the query parameters from the body, this is best-effort only.
+        try {
+            String decodedQueryParams = IoUtils.toUtf8String(request.contentStreamProvider().get().newStream());
+            String[] keyValuePairs = decodedQueryParams.split("&");
+            Map<String, List<String>> result = new LinkedHashMap<>();
+            for (String keyValuePair : keyValuePairs) {
+                String[] kvpParts = keyValuePair.split("=", 2);
+                String value = URLDecoder.decode(kvpParts.length > 1 ? kvpParts[1] : "", StandardCharsets.UTF_8.name());
+                result.computeIfAbsent(kvpParts[0], x -> new ArrayList<>()).add(value);
+            }
+            return result;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
-    private ExecutionAttributes executionAttributes() {
-        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION)
-                                        .putAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER,
-                                                      ProfileFile::defaultProfileFile)
-                                        .putAttribute(SdkExecutionAttribute.PROFILE_NAME, "default");
+    static TestCaseBuilder builder(String name) {
+        return new TestCaseBuilder()
+            .clientConfigure(c -> {
+            })
+            .name(name);
     }
 
-    private CopyDbClusterSnapshotRequest makeTestRequest() {
-        return CopyDbClusterSnapshotRequest.builder()
-                .sourceDBClusterSnapshotIdentifier("arn:aws:rds:us-east-1:123456789012:snapshot:rds:test-instance-ss-2016-12-20-23-19")
-                .targetDBClusterSnapshotIdentifier("test-instance-ss-copy-2")
-                .sourceRegion("us-east-1")
-                .kmsKeyId("arn:aws:kms:us-west-2:123456789012:key/11111111-2222-3333-4444-555555555555")
-                .build();
+    private static String normalize(URI uri) {
+        String uriAsString = uri.toString();
+        int queryStart = uriAsString.indexOf('?');
+        if (queryStart == -1) {
+            return uriAsString;
+        }
+        String uriQueryPrefix = uriAsString.substring(0, queryStart);
+        String query = uri.getQuery();
+        if (query == null) {
+            return uriAsString;
+        }
+        if (!query.isEmpty()) {
+            String[] queryParts = query.split("&");
+            query = Arrays.stream(queryParts)
+                          .sorted()
+                          .collect(Collectors.joining("&"));
+
+        }
+        return uriQueryPrefix + "?" + query;
     }
 
-    private SdkHttpRequest modifyHttpRequest(ExecutionInterceptor interceptor,
-                                             NeptuneRequest request,
-                                             SdkHttpFullRequest httpRequest) {
-        InterceptorContext context = InterceptorContext.builder().request(request).httpRequest(httpRequest).build();
-        return interceptor.modifyHttpRequest(context, executionAttributes());
+    static class TestCase {
+        private final String name;
+        private final Consumer<NeptuneClientBuilder> clientConfigure;
+        private final Consumer<NeptuneClient> clientConsumer;
+        private final Boolean shouldContainPreSignedUrl;
+        private final String expectedDestinationRegion;
+        private final Clock signingClockOverride;
+        private final String expectedUri;
+
+        TestCase(TestCaseBuilder builder) {
+            this.name = Validate.notNull(builder.name, "name");
+            this.clientConsumer = Validate.notNull(builder.clientConsumer, "clientConsumer");
+            this.clientConfigure = Validate.notNull(builder.clientConfigure, "clientConfigure");
+            this.shouldContainPreSignedUrl = builder.shouldContainPreSignedUrl;
+            this.expectedDestinationRegion = builder.expectedDestinationRegion;
+            this.signingClockOverride = builder.signingClockOverride;
+            this.expectedUri = builder.expectedUri;
+        }
+    }
+
+    static class TestCaseBuilder {
+        private String name;
+        private Consumer<NeptuneClientBuilder> clientConfigure;
+        private Consumer<NeptuneClient> clientConsumer;
+        private Boolean shouldContainPreSignedUrl;
+        private String expectedDestinationRegion;
+        private Clock signingClockOverride;
+        private String expectedUri;
+
+        private TestCaseBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        private TestCaseBuilder clientConfigure(Consumer<NeptuneClientBuilder> clientConfigure) {
+            this.clientConfigure = clientConfigure;
+            return this;
+        }
+
+        private TestCaseBuilder clientConsumer(Consumer<NeptuneClient> clientConsumer) {
+            this.clientConsumer = clientConsumer;
+            return this;
+        }
+
+        private TestCaseBuilder shouldContainPreSignedUrl(Boolean value) {
+            this.shouldContainPreSignedUrl = value;
+            return this;
+        }
+
+        private TestCaseBuilder expectedDestinationRegion(String value) {
+            this.expectedDestinationRegion = value;
+            return this;
+        }
+
+        public TestCaseBuilder signingClockOverride(Clock signingClockOverride) {
+            this.signingClockOverride = signingClockOverride;
+            return this;
+        }
+
+        public TestCaseBuilder expectedUri(String expectedUri) {
+            this.expectedUri = expectedUri;
+            return this;
+        }
+
+        public TestCase build() {
+            return new TestCase(this);
+        }
+    }
+
+    static class CapturingInterceptor implements ExecutionInterceptor {
+        private static final RuntimeException BOOM = new RuntimeException("boom!");
+        private Context.BeforeTransmission context;
+        private ExecutionAttributes executionAttributes;
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            this.context = context;
+            this.executionAttributes = executionAttributes;
+            throw BOOM;
+        }
+
+        public ExecutionAttributes executionAttributes() {
+            return executionAttributes;
+        }
+
+        public SdkHttpRequest httpRequest() {
+            return context.httpRequest();
+        }
     }
 }

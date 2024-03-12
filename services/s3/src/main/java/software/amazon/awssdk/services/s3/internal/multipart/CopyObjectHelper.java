@@ -146,8 +146,7 @@ public final class CopyObjectHelper {
                                                                                     optimalPartSize);
         CompletableFutureUtils.allOfExceptionForwarded(futures.toArray(new CompletableFuture[0]))
                               .thenCompose(ignore -> completeMultipartUpload(copyObjectRequest, uploadId, completedParts))
-                              .handle(genericMultipartHelper.handleExceptionOrResponse(copyObjectRequest, returnFuture,
-                                                                                       uploadId))
+                              .handle(genericMultipartHelper.handleExceptionOrResponse(copyObjectRequest, returnFuture, uploadId))
                               .exceptionally(throwable -> {
                                   genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred",
                                                                          throwable);

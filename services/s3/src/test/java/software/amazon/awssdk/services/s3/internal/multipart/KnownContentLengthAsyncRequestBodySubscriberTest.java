@@ -103,7 +103,8 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         KnownContentLengthAsyncRequestBodySubscriber subscriber = subscriber(putObjectRequest, asyncRequestBody, existingParts);
 
         when(multipartUploadHelper.completeMultipartUpload(any(CompletableFuture.class), any(String.class),
-             any(CompletedPart[].class), any(PutObjectRequest.class))).thenReturn(completeMpuFuture);
+                                                           any(CompletedPart[].class), any(PutObjectRequest.class)))
+            .thenReturn(completeMpuFuture);
         subscriber.onComplete();
         return subscriber.pause();
     }

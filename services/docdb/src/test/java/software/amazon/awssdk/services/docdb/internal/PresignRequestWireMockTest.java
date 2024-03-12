@@ -78,12 +78,6 @@ public class PresignRequestWireMockTest {
                 "CreateDBCluster");
     }
 
-    @Test
-    public void createDBInstanceReadReplicaWithSourceRegionSendsPresignedUrl() {
-        verifyMethodCallSendsPresignedUrl(() -> client.createDBCluster(r -> r.sourceRegion("us-west-2")),
-                "CreateDBCluster");
-    }
-
     public void verifyMethodCallSendsPresignedUrl(Runnable methodCall, String actionName) {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody("<body/>")));
 

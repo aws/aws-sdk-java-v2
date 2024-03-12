@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Queue;
@@ -28,6 +30,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -116,6 +119,7 @@ public final class UploadWithUnknownContentLengthHelper {
         private final long maximumChunkSizeInByte;
         private final PutObjectRequest putObjectRequest;
         private final CompletableFuture<PutObjectResponse> returnFuture;
+        private final PublisherListener<Long> progressListener;
         private Subscription subscription;
         private AsyncRequestBody firstRequestBody;
 
@@ -128,6 +132,9 @@ public final class UploadWithUnknownContentLengthHelper {
             this.maximumChunkSizeInByte = maximumChunkSizeInByte;
             this.putObjectRequest = putObjectRequest;
             this.returnFuture = returnFuture;
+            this.progressListener = putObjectRequest.overrideConfiguration()
+                                                    .map(c -> c.executionAttributes().getAttribute(JAVA_PROGRESS_LISTENER))
+                                                    .orElseGet(PublisherListener::noOp);
         }
 
         @Override
@@ -193,7 +200,7 @@ public final class UploadWithUnknownContentLengthHelper {
 
         private void sendUploadPartRequest(String uploadId, AsyncRequestBody asyncRequestBody) {
             multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedParts::add, futures,
-                                                                  uploadPart(asyncRequestBody))
+                                                                  uploadPart(asyncRequestBody), progressListener)
                 .whenComplete((r, t) -> {
                     if (t != null) {
                         if (failureActionInitiated.compareAndSet(false, true)) {

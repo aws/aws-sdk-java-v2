@@ -501,7 +501,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         private Integer maxHttp2Streams;
         private Http2Configuration http2Configuration;
         private SslProvider sslProvider;
-        private ProxyConfiguration proxyConfiguration;
+        private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
         private Boolean useNonBlockingDnsResolver;
 
         private DefaultBuilder() {
