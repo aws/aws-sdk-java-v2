@@ -340,7 +340,6 @@
         <module>scheduler</module>
         <module>ssmsap</module>
         <module>chimesdkvoice</module>
-        <module>iotroborunner</module>
         <module>oam</module>
         <module>arczonalshift</module>
         <module>simspaceweaver</module>
