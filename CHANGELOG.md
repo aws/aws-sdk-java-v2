@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.9__ __2024-03-13__
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - adds support for multiple new composition layout configuration options (grid, pip)
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support new RuntimeEnvironmentUpdate parameter within UpdateApplication API allowing callers to change the Flink version upon which their application runs.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release makes the default option for S3 on Outposts request signing to use the SigV4A algorithm when using AWS Common Runtime (CRT).
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - AWS-CRT based S3 Transfer Manager now relies on CRT to perform file reading for upload directory. Related to [#4999](https://github.com/aws/aws-sdk-java-v2/issues/4999)
+
 # __2.25.8__ __2024-03-12__
 ## __AWS CloudFormation__
   - ### Features
