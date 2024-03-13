@@ -728,7 +728,7 @@ public class S3PresignerTest {
                                                                                // we set it in TestSigner
                                                                                .signatureDuration(urlDuration));
 
-        String expectedSignature = "7f93df0b81f80e590d95442d579bd6cf749a35ff4bbdc6373fa669b89c7fce4e";
+        String expectedSignature = "37fc84e69f32c828013021b313953b984d8d74a6d4e776751535e6d87e71a272";
         assertThat(presigned.url().toString()).contains("X-Amz-Signature=" + expectedSignature);
     }
 
