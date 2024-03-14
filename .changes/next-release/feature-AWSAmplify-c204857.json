@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify",
+    "contributor": "",
+    "description": "Documentation updates for Amplify. Identifies the APIs available only to apps created using Amplify Gen 1."
+}
