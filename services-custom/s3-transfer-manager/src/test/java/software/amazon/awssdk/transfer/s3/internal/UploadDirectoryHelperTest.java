@@ -52,6 +52,7 @@ import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.config.TransferRequestOverrideConfiguration;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
@@ -102,7 +103,8 @@ public class UploadDirectoryHelperTest {
 
         singleUploadFunction = mock(Function.class);
 
-        uploadDirectoryHelper = new UploadDirectoryHelper(TransferManagerConfiguration.builder().build(), singleUploadFunction);
+        uploadDirectoryHelper = new UploadDirectoryHelper(new TransferManagerConfiguration(new TransferManagerFactory.DefaultBuilder()),
+                                                          singleUploadFunction);
     }
 
     @AfterEach

@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Exposes an option in S3TransferManager Builder to allow users to configure the max allowed concurrent requests for `downloadDirectory` through `S3TransferManager.Builder#downloadDirectoryMaxConcurrency`. See [#4987](https://github.com/aws/aws-sdk-java-v2/issues/4987)."
+}

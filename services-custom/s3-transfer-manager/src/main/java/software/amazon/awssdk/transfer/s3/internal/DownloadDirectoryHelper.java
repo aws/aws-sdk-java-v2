@@ -16,8 +16,8 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
-import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DOWNLOAD_DIRECTORY_MAX_CONCURRENCY;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -111,7 +111,7 @@ public class DownloadDirectoryHelper {
             new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest, request,
                                                               failedFileDownloads),
                                            allOfFutures,
-                                           DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
+                                           transferConfiguration.option(DOWNLOAD_DIRECTORY_MAX_CONCURRENCY));
         listObjectsHelper.listS3ObjectsRecursively(request)
                          .filter(downloadDirectoryRequest.filter())
                          .subscribe(asyncBufferingSubscriber);

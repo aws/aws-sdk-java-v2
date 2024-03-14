@@ -64,7 +64,7 @@ public class CrtS3TransferManagerTest {
 
     @BeforeEach
     public void setUpPerMethod() {
-        transferManager = new CrtS3TransferManager(TransferManagerConfiguration.builder().build(),
+        transferManager = new CrtS3TransferManager(new TransferManagerConfiguration(new TransferManagerFactory.DefaultBuilder()),
                                                                         s3AsyncClient, false);
     }
 

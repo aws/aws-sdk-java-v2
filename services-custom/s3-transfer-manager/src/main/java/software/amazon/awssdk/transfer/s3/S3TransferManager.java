@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -535,6 +537,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * limit the S3 objects to download.
      *
      * <p>
+     * By default, at most 10 {@link DownloadFileRequest}s will be sent in parallel. You can configure this behavior
+     * through {@link S3TransferManager.Builder#downloadDirectoryMaxConcurrency(Integer)}.
+     *
+     * <p>
      * The downloaded directory structure will match with the provided S3 virtual bucket.
      * For example, assume that you have the following keys in your bucket:
      * <ul>
@@ -544,7 +550,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *     <li>photos/2022/February/sample2.jpg</li>
      *     <li>photos/2022/February/sample3.jpg</li>
      * </ul>
-     * Give a request to download the bucket to a destination with path of "/test", the downloaded directory would look like this
+     * Given a request to download the bucket to a destination with path of "/test", the downloaded directory would look like this
      *
      * <pre>
      *   {@code
@@ -619,7 +625,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * supported by the underlying S3Client, this behavior can be configured via
      * {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}. Note that for multipart copy request, existing metadata
      * stored in the source object is NOT copied to the destination object; if required, you can retrieve the metadata from the
-     * source object and set it explicitly in the @link CopyObjectRequest.Builder#metadata(Map)}.
+     * source object and set it explicitly in the {@link CopyObjectRequest.Builder#metadata(Map)}.
      *
      * <p>
      * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
@@ -629,7 +635,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * <p>
      * If you are copying an object to a bucket in a different region, you need to enable cross region access
-     * on the {@link S3AsyncClient}.
+     * on the {@link S3AsyncClientBuilder#crossRegionAccessEnabled(Boolean)} or
+     * {@link S3CrtAsyncClientBuilder#crossRegionAccessEnabled(Boolean)}.
      *
      * <p>
      * <b>Usage Example:</b>
@@ -759,6 +766,19 @@ public interface S3TransferManager extends SdkAutoCloseable {
          * @return This builder for method chaining.
          */
         Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth);
+
+        /**
+         * The maximum number of concurrent {@link DownloadFileRequest}s are allowed.
+         * By default, it is 10.
+         *
+         * <p>
+         * If the underlying S3 client is AWS-CRT based (created via S3AsyncClient.crtBuilder.build()),
+         * increasing it may improve the performance, but it may increase the heap memory usage.
+         *
+         * @param downloadDirectoryMaxConcurrency the maximum of concurrent download file requests are allowed
+         * @return This builder for method chaining.
+         */
+        Builder downloadDirectoryMaxConcurrency(Integer downloadDirectoryMaxConcurrency);
 
         /**
          * Builds an instance of {@link S3TransferManager} based on the settings supplied to this builder

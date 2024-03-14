@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DOWNLOAD_DIRECTORY_MAX_CONCURRENCY;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.TRANSFER_MANAGER_DEFAULTS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH;
@@ -38,19 +39,19 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 public class TransferManagerConfiguration implements SdkAutoCloseable {
     private final AttributeMap options;
 
-    private TransferManagerConfiguration(Builder builder) {
+    public TransferManagerConfiguration(TransferManagerFactory.DefaultBuilder builder) {
         AttributeMap.Builder standardOptions = AttributeMap.builder();
-        standardOptions.put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, builder.uploadDirectoryFollowSymbolicLinks);
-        standardOptions.put(UPLOAD_DIRECTORY_MAX_DEPTH, builder.uploadDirectoryMaxDepth);
+        standardOptions.put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, builder.getUploadDirectoryFollowSymbolicLinks());
+        standardOptions.put(UPLOAD_DIRECTORY_MAX_DEPTH, builder.getUploadDirectoryMaxDepth());
+        standardOptions.put(DOWNLOAD_DIRECTORY_MAX_CONCURRENCY, builder.getDownloadDirectoryMaxConcurrency());
         finalizeExecutor(builder, standardOptions);
         options = standardOptions.build().merge(TRANSFER_MANAGER_DEFAULTS);
     }
 
-    private void finalizeExecutor(Builder builder, AttributeMap.Builder standardOptions) {
-        if (builder.executor != null) {
-            standardOptions.put(TransferConfigurationOption.EXECUTOR, ExecutorUtils.unmanagedExecutor(builder.executor));
+    private void finalizeExecutor(TransferManagerFactory.DefaultBuilder builder, AttributeMap.Builder standardOptions) {
+        if (builder.getExecutor() != null) {
+            standardOptions.put(TransferConfigurationOption.EXECUTOR, ExecutorUtils.unmanagedExecutor(builder.getExecutor()));
         } else {
-
             standardOptions.put(TransferConfigurationOption.EXECUTOR, defaultExecutor());
         }
     }
@@ -87,36 +88,5 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
         // Allow idle core threads to time out
         executor.allowCoreThreadTimeOut(true);
         return executor;
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static final class Builder {
-
-        private Boolean uploadDirectoryFollowSymbolicLinks;
-        private Integer uploadDirectoryMaxDepth;
-        private Executor executor;
-
-
-        public Builder uploadDirectoryFollowSymbolicLinks(Boolean uploadDirectoryFollowSymbolicLinks) {
-            this.uploadDirectoryFollowSymbolicLinks = uploadDirectoryFollowSymbolicLinks;
-            return this;
-        }
-
-        public Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth) {
-            this.uploadDirectoryMaxDepth = uploadDirectoryMaxDepth;
-            return this;
-        }
-
-        public Builder executor(Executor executor) {
-            this.executor = executor;
-            return this;
-        }
-
-        public TransferManagerConfiguration build() {
-            return new TransferManagerConfiguration(this);
-        }
     }
 }

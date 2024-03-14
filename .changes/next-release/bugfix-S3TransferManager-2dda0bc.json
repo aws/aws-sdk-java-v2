@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Reduces the default max number of concurrent download file requests to 10 for `S3TransferManager#downloadDirectory`."
+}

@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 
 /**
@@ -38,6 +39,7 @@ public final class TransferManagerFactory {
     }
 
     public static S3TransferManager createTransferManager(DefaultBuilder tmBuilder) {
+        Validate.isPositiveOrNull(tmBuilder.downloadDirectoryMaxConcurrency, "downloadDirectoryMaxConcurrency");
         TransferManagerConfiguration transferConfiguration = resolveTransferManagerConfiguration(tmBuilder);
         S3AsyncClient s3AsyncClient;
         boolean isDefaultS3AsyncClient;
@@ -86,11 +88,7 @@ public final class TransferManagerFactory {
     }
 
     private static TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
-        TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
-        transferConfigBuilder.uploadDirectoryFollowSymbolicLinks(tmBuilder.uploadDirectoryFollowSymbolicLinks);
-        transferConfigBuilder.uploadDirectoryMaxDepth(tmBuilder.uploadDirectoryMaxDepth);
-        transferConfigBuilder.executor(tmBuilder.executor);
-        return transferConfigBuilder.build();
+        return new TransferManagerConfiguration(tmBuilder);
     }
 
     public static final class DefaultBuilder implements S3TransferManager.Builder {
@@ -98,6 +96,7 @@ public final class TransferManagerFactory {
         private Executor executor;
         private Boolean uploadDirectoryFollowSymbolicLinks;
         private Integer uploadDirectoryMaxDepth;
+        private Integer downloadDirectoryMaxConcurrency;
 
         @Override
         public DefaultBuilder s3Client(S3AsyncClient s3AsyncClient) {
@@ -105,10 +104,18 @@ public final class TransferManagerFactory {
             return this;
         }
 
+        public S3AsyncClient getS3Client() {
+            return s3AsyncClient;
+        }
+
         @Override
         public DefaultBuilder executor(Executor executor) {
             this.executor = executor;
             return this;
+        }
+
+        public Executor getExecutor() {
+            return executor;
         }
 
         @Override
@@ -137,6 +144,16 @@ public final class TransferManagerFactory {
 
         public Integer getUploadDirectoryMaxDepth() {
             return uploadDirectoryMaxDepth;
+        }
+
+        @Override
+        public DefaultBuilder downloadDirectoryMaxConcurrency(Integer downloadDirectoryMaxConcurrency) {
+            this.downloadDirectoryMaxConcurrency = downloadDirectoryMaxConcurrency;
+            return this;
+        }
+
+        public Integer getDownloadDirectoryMaxConcurrency() {
+            return downloadDirectoryMaxConcurrency;
         }
 
         @Override

@@ -80,7 +80,7 @@ public class DownloadDirectoryHelperTest {
         directory = fs.getPath("test");
         listObjectsHelper = mock(ListObjectsHelper.class);
         singleDownloadFunction = mock(Function.class);
-        downloadDirectoryHelper = new DownloadDirectoryHelper(TransferManagerConfiguration.builder().build(),
+        downloadDirectoryHelper = new DownloadDirectoryHelper(new TransferManagerConfiguration(new TransferManagerFactory.DefaultBuilder()),
                                                               listObjectsHelper,
                                                               singleDownloadFunction);
     }
