@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "contributor": "",
+    "description": "This release allows you to configure HTTP client keep-alive duration for communication between clients and Application Load Balancers."
+}
