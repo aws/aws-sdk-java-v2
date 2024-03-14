@@ -169,7 +169,10 @@ public class AsyncClientInterface implements ClassSpec {
 
     private String getJavadoc() {
         return "Service client for accessing " + model.getMetadata().getDescriptiveServiceName() + " asynchronously. This can be "
-               + "created using the static {@link #builder()} method.\n\n" + model.getMetadata().getDocumentation();
+               + "created using the static {@link #builder()} method.\nWe strongly discourage "
+               + "configuring main I/O threads to run future-completion objects. This could "
+               + "lead to deadlock as the SDK may perform blocking calls in some cases."
+               + "\n\n" + model.getMetadata().getDocumentation();
     }
 
     private MethodSpec create() {
