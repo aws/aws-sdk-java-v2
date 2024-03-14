@@ -169,9 +169,12 @@ public class AsyncClientInterface implements ClassSpec {
 
     private String getJavadoc() {
         return "Service client for accessing " + model.getMetadata().getDescriptiveServiceName() + " asynchronously. This can be "
-               + "created using the static {@link #builder()} method.\nWe strongly discourage "
-               + "configuring main I/O threads to run future-completion objects. This could "
-               + "lead to deadlock as the SDK may perform blocking calls in some cases."
+               + "created using the static {@link #builder()} method."
+               + "The asynchronous client performs non-blocking I/O when configured "
+               + "with any {@link SdkAsyncHttpClient} supported in the SDK. "
+               + "However, full non-blocking is not guaranteed as the async client may perform "
+               + "blocking calls in some cases such as credentials retrieval and "
+               + "endpoint discovery as part of the async API call."
                + "\n\n" + model.getMetadata().getDocumentation();
     }
 
