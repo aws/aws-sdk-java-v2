@@ -1,4 +1,42 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.11__ __2024-03-15__
+## __AWS Backup__
+  - ### Features
+    - This release introduces a boolean attribute ManagedByAWSBackupOnly as part of ListRecoveryPointsByResource api to filter the recovery points based on ownership. This attribute can be used to filter out the recovery points protected by AWSBackup.
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports overflow behavior on Reserved Capacity.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the model for S3 Event Notifications and json parsers for them
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds Hierarchy based Access Control fields to Security Profile public APIs and adds support for UserAttributeFilter to SearchUsers API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add media accelerator and neuron device information on the describe instance types API.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.18 in Managed Service for Apache Flink
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds m6i, m6id, m7i, c6i, c6id, c7i, r6i r6id, r7i, p5 instance type support to Sagemaker Notebook Instances and miscellaneous wording fixes for previous Sagemaker documentation.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Removed unused parameter kmsKeyArn from UpdateDeviceRequest
+
 # __2.25.10__ __2024-03-14__
 ## __AWS Amplify__
   - ### Features

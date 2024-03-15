@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.Constant;
@@ -78,11 +79,7 @@ final class AddMetadata {
                 .withSupportsH2(supportsH2(serviceMetadata))
                 .withJsonVersion(getJsonVersion(metadata, serviceMetadata))
                 .withAwsQueryCompatible(serviceMetadata.getAwsQueryCompatible())
-                .withAuth(Optional.ofNullable(serviceMetadata.getAuth())
-                                  .orElseGet(() -> Collections.singletonList(serviceMetadata.getSignatureVersion()))
-                                  .stream()
-                                  .map(AuthType::fromValue)
-                                  .collect(Collectors.toList()));
+                .withAuth(getAuthFromServiceMetadata(serviceMetadata, customizationConfig.useMultiAuth()));
 
         return metadata;
     }
@@ -134,5 +131,21 @@ final class AddMetadata {
         } else {
             return serviceMetadata.getJsonVersion();
         }
+    }
+
+    /**
+     * Converts service metadata into a list of AuthTypes. If useMultiAuth is enabled, then
+     * {@code metadata.auth} will be used in the conversion if present. Otherwise, use
+     * {@code metadata.signatureVersion}.
+     */
+    private static List<AuthType> getAuthFromServiceMetadata(ServiceMetadata serviceMetadata,
+                                                             boolean useMultiAuth) {
+        if (useMultiAuth) {
+            List<String> serviceAuth = serviceMetadata.getAuth();
+            if (serviceAuth != null) {
+                return serviceAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
+            }
+        }
+        return Collections.singletonList(AuthType.fromValue(serviceMetadata.getSignatureVersion()));
     }
 }
