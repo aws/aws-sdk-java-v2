@@ -115,6 +115,14 @@ public class AwsServiceException extends SdkServiceException {
                         .orElse(false);
     }
 
+    @Override
+    public boolean retryable() {
+        return super.retryable() ||
+                Optional.ofNullable(awsErrorDetails)
+                        .map(a -> AwsErrorCode.isRetryableErrorCode(a.errorCode()))
+                        .orElse(isThrottlingException());
+    }
+
     /**
      * @return {@link Builder} instance to construct a new {@link AwsServiceException}.
      */

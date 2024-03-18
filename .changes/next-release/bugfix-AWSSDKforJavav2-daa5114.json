@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "marcogrcr",
+    "description": "[SdkServiceException.retryable()](https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/core/exception/SdkException.html#retryable--) and [AwsServiceException.retryable()](https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/awscore/exception/AwsServiceException.html#retryable--) now returns `true` when appropriate. Previously it always returned `false`."
+}
