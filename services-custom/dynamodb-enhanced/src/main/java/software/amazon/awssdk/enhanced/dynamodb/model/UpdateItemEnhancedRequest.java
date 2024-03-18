@@ -22,6 +22,11 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.update.AddAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -45,6 +50,7 @@ public final class UpdateItemEnhancedRequest<T> {
     private final T item;
     private final Boolean ignoreNulls;
     private final Expression conditionExpression;
+    private final UpdateExpression updateExpression;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
     private final String returnValuesOnConditionCheckFailure;
@@ -54,6 +60,7 @@ public final class UpdateItemEnhancedRequest<T> {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.updateExpression = builder.updateExpression;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
@@ -77,6 +84,7 @@ public final class UpdateItemEnhancedRequest<T> {
         return new Builder<T>().item(item)
                                .ignoreNulls(ignoreNulls)
                                .conditionExpression(conditionExpression)
+                               .updateExpression(updateExpression)
                                .returnConsumedCapacity(returnConsumedCapacity)
                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
                                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
@@ -101,6 +109,13 @@ public final class UpdateItemEnhancedRequest<T> {
      */
     public Expression conditionExpression() {
         return conditionExpression;
+    }
+
+    /**
+     * Returns the update expression {@link UpdateExpression} set on this request object, or null if it doesn't exist.
+     */
+    public UpdateExpression updateExpression() {
+        return updateExpression;
     }
 
     /**
@@ -173,6 +188,7 @@ public final class UpdateItemEnhancedRequest<T> {
         return Objects.equals(item, that.item)
                && Objects.equals(ignoreNulls, that.ignoreNulls)
                && Objects.equals(conditionExpression, that.conditionExpression)
+               && Objects.equals(updateExpression, that.updateExpression)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
                && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
                && Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
@@ -183,6 +199,7 @@ public final class UpdateItemEnhancedRequest<T> {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        result = 31 * result + (updateExpression != null ? updateExpression.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
         result = 31 * result + (returnValuesOnConditionCheckFailure != null ? returnValuesOnConditionCheckFailure.hashCode() : 0);
@@ -199,6 +216,7 @@ public final class UpdateItemEnhancedRequest<T> {
         private T item;
         private Boolean ignoreNulls;
         private Expression conditionExpression;
+        private UpdateExpression updateExpression;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
         private String returnValuesOnConditionCheckFailure;
@@ -243,6 +261,35 @@ public final class UpdateItemEnhancedRequest<T> {
          */
         public Builder<T> item(T item) {
             this.item = item;
+            return this;
+        }
+
+        /**
+         * Define an {@link UpdateExpression} to control updating specific parts of the item in DynamoDb. The update expression
+         * corresponds to the DynamoDb update expression format. It can be used to set, modify and delete attributes for
+         * use cases that simply supplying the item does not cover; in particular, manipulating composed attributes such as
+         * sets or lists:
+         * <ul>
+         * <li>Add/remove elements to/from list attributes</li>
+         * <li>Add/remove elements to/from set attributes</li>
+         * <li>Unset or nullify attributes without modifying the whole attribute</li>
+         * </ul>
+         * <p>
+         * This method will throw an exception if the expression references an attribute that is already present on the
+         * item, or is modified through an extension.
+         * <p>
+         * <b>Note: </b>This is a powerful mechanism that bypasses many of the abstractions and
+         * safety checks in the enhanced client, and should be used with caution. Only use it when submitting only
+         * a configured item bean/object is insufficient.
+         * <p>
+         * See {@link UpdateExpression}, {@link AddAction}, {@link DeleteAction}, {@link SetAction} and
+         * {@link RemoveAction} for syntax and examples.
+         *
+         * @param updateExpression a composed expression of type {@link UpdateExpression}
+         * @return a builder of this type
+         */
+        public Builder<T> updateExpression(UpdateExpression updateExpression) {
+            this.updateExpression = updateExpression;
             return this;
         }
 

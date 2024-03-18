@@ -76,7 +76,7 @@ public final class UpdateExpressionConverter {
      * @return an Expression representing the concatenation of all actions in this UpdateExpression
      */
     public static Expression toExpression(UpdateExpression expression) {
-        if (expression == null) {
+        if (expression == null || expression.isEmpty()) {
             return null;
         }
         Map<String, AttributeValue> expressionValues = mergeExpressionValues(expression);
@@ -91,8 +91,9 @@ public final class UpdateExpressionConverter {
     }
 
     /**
-     * Attempts to find the list of attribute names that will be updated for the supplied {@link UpdateExpression} by looking at
-     * the combined collection of paths and ExpressionName values. Because attribute names can be composed from nested
+     * Attempts to find the list of attributes associated with update actions for the supplied {@link UpdateExpression} by
+     * looking at
+     * the combined collection of paths and ExpressionName values. Because attribute names can be composed of nested
      * attribute references and list references, the leftmost part will be returned if composition is detected.
      * <p>
      * Examples: The expression contains a {@link DeleteAction} with a path value of 'MyAttribute[1]'; the list returned
