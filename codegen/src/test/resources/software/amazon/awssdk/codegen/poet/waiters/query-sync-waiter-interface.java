@@ -2,7 +2,9 @@ package software.amazon.awssdk.services.query.waiters;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.services.query.QueryClient;
@@ -16,6 +18,8 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
+@ThreadSafe
+@Immutable
 public interface QueryWaiter extends SdkAutoCloseable {
     /**
      * Polls {@link QueryClient#aPostOperation} API until the desired condition {@code PostOperationSuccess} is met, or
@@ -43,7 +47,7 @@ public interface QueryWaiter extends SdkAutoCloseable {
      *         condition
      */
     default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(
-        Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
+            Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }
 
@@ -59,7 +63,7 @@ public interface QueryWaiter extends SdkAutoCloseable {
      *         condition
      */
     default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(APostOperationRequest aPostOperationRequest,
-                                                                                 WaiterOverrideConfiguration overrideConfig) {
+            WaiterOverrideConfiguration overrideConfig) {
         throw new UnsupportedOperationException();
     }
 
@@ -78,10 +82,10 @@ public interface QueryWaiter extends SdkAutoCloseable {
      *         condition
      */
     default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(
-        Consumer<APostOperationRequest.Builder> aPostOperationRequest,
-        Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+            Consumer<APostOperationRequest.Builder> aPostOperationRequest,
+            Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build(),
-                                             WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+                WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
     }
 
     /**
