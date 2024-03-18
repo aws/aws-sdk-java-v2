@@ -1,4 +1,95 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.11__ __2024-03-15__
+## __AWS Backup__
+  - ### Features
+    - This release introduces a boolean attribute ManagedByAWSBackupOnly as part of ListRecoveryPointsByResource api to filter the recovery points based on ownership. This attribute can be used to filter out the recovery points protected by AWSBackup.
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports overflow behavior on Reserved Capacity.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the model for S3 Event Notifications and json parsers for them
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds Hierarchy based Access Control fields to Security Profile public APIs and adds support for UserAttributeFilter to SearchUsers API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add media accelerator and neuron device information on the describe instance types API.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.18 in Managed Service for Apache Flink
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds m6i, m6id, m7i, c6i, c6id, c7i, r6i r6id, r7i, p5 instance type support to Sagemaker Notebook Instances and miscellaneous wording fixes for previous Sagemaker documentation.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Removed unused parameter kmsKeyArn from UpdateDeviceRequest
+
+# __2.25.10__ __2024-03-14__
+## __AWS Amplify__
+  - ### Features
+    - Documentation updates for Amplify. Identifies the APIs available only to apps created using Amplify Gen 1.
+
+## __AWS EC2 Instance Connect__
+  - ### Features
+    - This release includes a new exception type "SerialConsoleSessionUnsupportedException" for SendSerialConsoleSSHPublicKey API.
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds support for previewing target resources before running a FIS experiment. It also adds resource ARNs for actions, experiments, and experiment templates to API responses.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in `ByteBufferStoringSubscriber` where it could buffer more data than configured, resulting in out of memory error. See [#4999](https://github.com/aws/aws-sdk-java-v2/issues/4999).
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for EBCDIC collation for RDS for Db2.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release allows you to configure HTTP client keep-alive duration for communication between clients and Application Load Balancers.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This is the initial SDK release for Amazon Timestream for InfluxDB. Amazon Timestream for InfluxDB is a new time-series database engine that makes it easy for application developers and DevOps teams to run InfluxDB databases on AWS for near real-time time-series applications using open source APIs.
+
+# __2.25.9__ __2024-03-13__
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - adds support for multiple new composition layout configuration options (grid, pip)
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support new RuntimeEnvironmentUpdate parameter within UpdateApplication API allowing callers to change the Flink version upon which their application runs.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release makes the default option for S3 on Outposts request signing to use the SigV4A algorithm when using AWS Common Runtime (CRT).
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - AWS-CRT based S3 Transfer Manager now relies on CRT to perform file reading for upload directory. Related to [#4999](https://github.com/aws/aws-sdk-java-v2/issues/4999)
+
 # __2.25.8__ __2024-03-12__
 ## __AWS CloudFormation__
   - ### Features

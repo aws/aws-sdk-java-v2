@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "AWS-CRT based S3 Transfer Manager now relies on CRT to perform file reading for upload directory. Related to [#4999](https://github.com/aws/aws-sdk-java-v2/issues/4999)"
-}
