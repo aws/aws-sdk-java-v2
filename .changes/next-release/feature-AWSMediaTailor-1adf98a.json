@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaTailor",
-    "contributor": "",
-    "description": "This release adds support to allow customers to show different content within a channel depending on metadata associated with the viewer."
-}
