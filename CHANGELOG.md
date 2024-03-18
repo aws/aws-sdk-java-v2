@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.12__ __2024-03-18__
+## __AWS CloudFormation__
+  - ### Features
+    - This release supports for a new API ListStackSetAutoDeploymentTargets, which provider auto-deployment configuration as a describable resource. Customers can now view the specific combinations of regions and OUs that are being auto-deployed.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Adds the ability to use the default policy name by omitting the policyName parameter in calls to PutKeyPolicy and GetKeyPolicy
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release adds support to allow customers to show different content within a channel depending on metadata associated with the viewer.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release launches the ModifyIntegration API and support for data filtering for zero-ETL Integrations.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Fix two issues with response root node names.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Documentation updates, March 2024
+
 # __2.25.11__ __2024-03-15__
 ## __AWS Backup__
   - ### Features
