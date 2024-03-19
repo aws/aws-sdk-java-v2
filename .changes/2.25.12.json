@@ -1,0 +1,48 @@
+{
+    "version": "2.25.12",
+    "date": "2024-03-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "This release supports for a new API ListStackSetAutoDeploymentTargets, which provider auto-deployment configuration as a describable resource. Customers can now view the specific combinations of regions and OUs that are being auto-deployed."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Adds the ability to use the default policy name by omitting the policyName parameter in calls to PutKeyPolicy and GetKeyPolicy"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "This release adds support to allow customers to show different content within a channel depending on metadata associated with the viewer."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release launches the ModifyIntegration API and support for data filtering for zero-ETL Integrations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Fix two issues with response root node names."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Query",
+            "contributor": "",
+            "description": "Documentation updates, March 2024"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
