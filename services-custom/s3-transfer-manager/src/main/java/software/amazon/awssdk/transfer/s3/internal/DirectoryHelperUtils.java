@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -30,22 +29,19 @@ final class DirectoryHelperUtils {
 
     /**
      * If the prefix is not empty AND the key contains the delimiter, normalize the key by stripping the prefix from the key. If a
-     * delimiter is null (not provided by user), use "/" by default. For example: given a request with prefix = "notes/2021"  or
+     * delimiter is null (not provided by user), use "/" by default.
+     * For example: given a request with prefix = "notes/2021"  or
      * "notes/2021/", delimiter = "/" and key = "notes/2021/1.txt", the normalized key should be "1.txt".
+     * If the prefix is not the full name of the folder, the folder name will be truncated. For example: given a request
+     * with prefix = "top-" , delimiter = "/" and key = "top-level/sub-folder/1.txt", the normalized key should be
+     * "level/sub-folder/1.txt"
      */
-    static String normalizeKey(ListObjectsV2Request listObjectsRequest,
+    static String normalizeKey(String prefix,
                                       String key,
                                       String delimiter) {
-        Validate.paramNotNull(listObjectsRequest, "listObjectsRequest must not be null");
-        String delimiterToUse = Validate.getOrDefault(delimiter, () -> DEFAULT_DELIMITER);
+        Validate.notNull(delimiter, "delimiter must not be null");
 
-        if (StringUtils.isEmpty(key) || StringUtils.isEmpty(listObjectsRequest.prefix())) {
-            return key;
-        }
-
-        String prefix = listObjectsRequest.prefix();
-
-        if (!key.contains(delimiterToUse)) {
+        if (StringUtils.isEmpty(key) || StringUtils.isEmpty(prefix)) {
             return key;
         }
 
@@ -53,8 +49,12 @@ final class DirectoryHelperUtils {
             return key;
         }
 
+        if (!key.contains(delimiter)) {
+            return key;
+        }
+
         String stripped = key.substring(prefix.length());
-        if (prefix.endsWith(delimiterToUse) || !stripped.startsWith(delimiterToUse)) {
+        if (prefix.endsWith(delimiter) || !stripped.startsWith(delimiter)) {
             return stripped;
         }
 

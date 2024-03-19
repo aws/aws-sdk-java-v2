@@ -148,7 +148,7 @@ public class DownloadDirectoryHelper {
                                           S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destination().getFileSystem();
         String delimiter = listRequest.delimiter() == null ? DEFAULT_DELIMITER : listRequest.delimiter();
-        String key = DirectoryHelperUtils.normalizeKey(listRequest, s3Object.key(), delimiter);
+        String key = DirectoryHelperUtils.normalizeKey(listRequest.prefix(), s3Object.key(), delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
         Path destinationPath = downloadDirectoryRequest.destination().resolve(relativePath);
         validatePath(downloadDirectoryRequest.destination(), destinationPath, s3Object.key());

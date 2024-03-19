@@ -31,8 +31,8 @@ class DirectoryHelperUtilsTest {
 
     @ParameterizedTest
     @MethodSource("arguments")
-    void testNormalizeKey(ListObjectsV2Request listObjectsRequest, String key, String expected) {
-        String normalized = DirectoryHelperUtils.normalizeKey(listObjectsRequest, key, "/");
+    void testNormalizeKey(String prefix, String key, String expected) {
+        String normalized = DirectoryHelperUtils.normalizeKey(prefix, key, "/");
         assertThat(normalized).isEqualTo(expected);
     }
 
@@ -41,13 +41,13 @@ class DirectoryHelperUtilsTest {
     void testDelimiter(String delimiter) {
         String prefix = String.format("notes%s2021%s", delimiter, delimiter);
         String key = String.format("notes%s2021%s1.txt", delimiter, delimiter);
-        String normalized = DirectoryHelperUtils.normalizeKey(
-            ListObjectsV2Request.builder().prefix(prefix).build(), key, delimiter);
+        String normalized = DirectoryHelperUtils.normalizeKey(prefix, key, delimiter);
         assertThat(normalized).isEqualTo("1.txt");
     }
 
     private static List<Arguments> arguments() {
         return Arrays.asList(
+            arg(null, "no-delim", "no-delim"),
             arg("", "no-delim", "no-delim"),
             arg("", "delim/with/separator", "delim/with/separator"),
             arg("no-delim", "", ""),
@@ -56,14 +56,16 @@ class DirectoryHelperUtilsTest {
             arg("prefix", "not-in-key", "not-in-key"),
             arg("notes/2021", "notes/2021/1.txt", "1.txt"),
             arg("notes/2021/", "notes/2021/1.txt", "1.txt"),
+            arg("top-", "top-level/sub-folder/1.txt", "level/sub-folder/1.txt"),
             arg("someInner", "someInnerFolder/another/file1.txt", "Folder/another/file1.txt"),
             arg("someInner", "someInnerF/another/file1.txt", "F/another/file1.txt"),
-            arg("someInner", "someInner/another/file1.txt", "another/file1.txt")
+            arg("someInner", "someInner/another/file1.txt", "another/file1.txt"),
+            arg("someInner/a", "someInner/another/file1.txt", "nother/file1.txt")
         );
     }
 
     private static Arguments arg(String prefix, String key, String expected) {
-        return Arguments.of(ListObjectsV2Request.builder().prefix(prefix).build(), key, expected);
+        return Arguments.of(prefix, key, expected);
     }
 
 }
