@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Blockchain Query",
+    "contributor": "",
+    "description": "Introduces a new API for Amazon Managed Blockchain Query: ListFilteredTransactionEvents."
+}
