@@ -107,7 +107,7 @@ public class DownloadDirectoryHelper {
 
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
         AsyncBufferingSubscriber<S3Object> asyncBufferingSubscriber =
-            new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest, request,
+            new AsyncBufferingSubscriber<>(downloadSingleFile(downloadDirectoryRequest, request,
                                                               failedFileDownloads),
                                            allOfFutures,
                                            DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
@@ -128,7 +128,6 @@ public class DownloadDirectoryHelper {
     }
 
     private Function<S3Object, CompletableFuture<?>> downloadSingleFile(
-        CompletableFuture<CompletedDirectoryDownload> returnFuture,
         DownloadDirectoryRequest downloadDirectoryRequest,
         ListObjectsV2Request listRequest,
         Queue<FailedFileDownload> failedFileDownloads) {
