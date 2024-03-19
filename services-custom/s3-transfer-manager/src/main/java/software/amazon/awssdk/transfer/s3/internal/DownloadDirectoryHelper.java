@@ -148,7 +148,7 @@ public class DownloadDirectoryHelper {
                                           S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destination().getFileSystem();
         String delimiter = listRequest.delimiter() == null ? DEFAULT_DELIMITER : listRequest.delimiter();
-        String key = normalizeKey(listRequest, s3Object.key(), delimiter);
+        String key = DirectoryHelperUtils.normalizeKey(listRequest, s3Object.key(), delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
         Path destinationPath = downloadDirectoryRequest.destination().resolve(relativePath);
         validatePath(downloadDirectoryRequest.destination(), destinationPath, s3Object.key());
@@ -197,37 +197,6 @@ public class DownloadDirectoryHelper {
         }
     }
 
-    /**
-     * If the prefix is not empty AND the key contains the delimiter, normalize the key by stripping the prefix from the key.
-     *
-     * If a delimiter is null (not provided by user), use "/" by default.
-     *
-     * For example: given a request with prefix = "notes/2021"  or "notes/2021/", delimiter = "/" and key = "notes/2021/1.txt",
-     * the normalized key should be "1.txt".
-     */
-    private static String normalizeKey(ListObjectsV2Request listObjectsRequest,
-                                       String key,
-                                       String delimiter) {
-        if (StringUtils.isEmpty(listObjectsRequest.prefix())) {
-            return key;
-        }
-
-        String prefix = listObjectsRequest.prefix();
-
-        if (!key.contains(delimiter)) {
-            return key;
-        }
-
-        String normalizedKey;
-
-        if (prefix.endsWith(delimiter)) {
-            normalizedKey = key.substring(prefix.length());
-        } else {
-            normalizedKey = key.substring(prefix.length() + delimiter.length());
-        }
-        return normalizedKey;
-
-    }
 
     private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
         if (delimiter == null) {
