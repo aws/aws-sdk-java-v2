@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.13__ __2024-03-19__
+## __AWS CloudFormation__
+  - ### Features
+    - Documentation update, March 2024. Corrects some formatting.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Update LogSamples field in Anomaly model to be a list of LogEvent
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds the new DescribeMacHosts API operation for getting information about EC2 Mac Dedicated Hosts. Users can now see the latest macOS versions that their underlying Apple Mac can support without needing to be updated.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - Introduces a new API for Amazon Managed Blockchain Query: ListFilteredTransactionEvents.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Adding new attributes readWrite and onDemand to dataview models for Database Maintenance operations.
+
 # __2.25.12__ __2024-03-18__
 ## __AWS CloudFormation__
   - ### Features
