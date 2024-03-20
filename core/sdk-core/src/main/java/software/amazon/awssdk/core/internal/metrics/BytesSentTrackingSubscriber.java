@@ -14,16 +14,21 @@
  */
 
 package software.amazon.awssdk.core.internal.metrics;
+
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 
+@SdkInternalApi
 public class BytesSentTrackingSubscriber implements Subscriber<ByteBuffer> {
 
     private Subscriber<? super ByteBuffer> subscriber;
     private ProgressUpdater progressUpdater;
+    private AtomicLong bytesSent;
 
     public BytesSentTrackingSubscriber(Subscriber<? super ByteBuffer> subscriber, Optional<ProgressUpdater> progressUpdater) {
         this.subscriber = subscriber;
@@ -40,9 +45,10 @@ public class BytesSentTrackingSubscriber implements Subscriber<ByteBuffer> {
     @Override
     public void onNext(ByteBuffer byteBuffer) {
         subscriber.onNext(byteBuffer);
+        bytesSent.addAndGet(byteBuffer.remaining());
 
-        if(progressUpdater != null) {
-            progressUpdater.incrementBytesSent(byteBuffer.remaining());
+        if (progressUpdater != null) {
+            progressUpdater.incrementBytesSent(bytesSent.get());
         }
     }
 

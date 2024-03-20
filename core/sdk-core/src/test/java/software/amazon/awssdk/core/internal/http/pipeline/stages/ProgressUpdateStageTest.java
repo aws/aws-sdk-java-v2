@@ -16,16 +16,21 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.net.URI;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
+import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -37,46 +42,76 @@ public class ProgressUpdateStageTest {
     private static final RequestBody REQUEST_BODY = RequestBody.fromString("TestBody");
 
     @Test
-    public void sync_progressListener_calledFrom_ExecutionPipeline() throws Exception {
+    public void sync_preExecutionProgressListener_calledFrom_ExecutionPipeline() throws Exception {
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);
-        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        boolean isAsyncStreaming = false;
-        RequestExecutionContext.Builder ctx = progressListenerContext(isAsyncStreaming, progressListener);
-        PreExecuteProgressUpdateStage preExecutionProgressUpdateStage = new PreExecuteProgressUpdateStage();
-        preExecutionProgressUpdateStage.execute(requestBuilder.build(), ctx.build());
-        Mockito.verify(progressListener, Mockito.times(1)).requestPrepared(Mockito.any());
-        Mockito.verify(progressListener, Mockito.times(1)).requestHeaderSent(Mockito.any());
-        Mockito.verify(progressListener, Mockito.times(0)).responseHeaderReceived(Mockito.any());
-        Mockito.verify(progressListener, Mockito.times(0)).executionSuccess(Mockito.any());
 
+        SdkRequestOverrideConfiguration config = SdkRequestOverrideConfiguration.builder()
+                                                                                .addProgressListener(progressListener)
+                                                                                .build();
+
+        SdkHttpFullRequest requestBuilder = createHttpRequestBuilder().build();
+
+        SdkRequest request = createSdkHttpRequest(config).build();
+
+        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+        ExecutionContext executionContext = ExecutionContext.builder()
+                                                            .progressUpdater(progressUpdater)
+                                                            .build();
+
+        RequestExecutionContext requestExecutionContext = progressListenerContext(false, request,
+                                                                                  executionContext).build();
+
+        PreExecutionUpdateProgressStage preExecutionUpdateProgressStage = new PreExecutionUpdateProgressStage();
+        preExecutionUpdateProgressStage.execute(requestBuilder, requestExecutionContext);
+
+        Mockito.verify(progressListener, Mockito.times(1)).requestPrepared(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).requestBytesSent(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).responseHeaderReceived(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).responseBytesReceived(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).executionSuccess(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).executionFailure(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).attemptFailure(Mockito.any());
 
     }
 
     @Test
-    public void sync_postExecuteProgressListener_calledFrom_ExecutionPipeline() throws Exception {
+    public void sync_postExecutionProgressListener_calledFrom_ExecutionPipeline() throws Exception {
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);
-        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        boolean isAsyncStreaming = false;
-        RequestExecutionContext.Builder ctx = progressListenerContext(isAsyncStreaming, progressListener);
 
-        PreExecuteProgressUpdateStage preExecutionProgressUpdateStage = new PreExecuteProgressUpdateStage();
-        RequestExecutionContext context = ctx.build();
-        preExecutionProgressUpdateStage.execute(requestBuilder.build(), context);
+        SdkRequestOverrideConfiguration config = SdkRequestOverrideConfiguration.builder()
+                                                                                .addProgressListener(progressListener)
+                                                                                .build();
 
-        PostExecutionProgressUpdateStage postExecutionProgressUpdateStage = new PostExecutionProgressUpdateStage();
-        postExecutionProgressUpdateStage.execute(requestBuilder.build(), context);
-        // TODO : This test cases are failing since context is passes as args and is immutable.
-        // Mockito.verify(progressListener, Mockito.times(1)).responseHeaderReceived(Mockito.any());
-        // Mockito.verify(progressListener, Mockito.times(1)).executionSuccess(Mockito.any());
+        SdkRequest request = createSdkHttpRequest(config).build();
 
+        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+        ExecutionContext executionContext = ExecutionContext.builder()
+                                                            .progressUpdater(progressUpdater)
+                                                            .build();
 
+        RequestExecutionContext requestExecutionContext = progressListenerContext(false, request,
+                                                                                  executionContext).build();
+
+        SdkResponse response = createSdkResponseBuilder().build();
+
+        PostExecutionUpdateProgressStage postExecutionUpdateProgressStage = new PostExecutionUpdateProgressStage();
+        postExecutionUpdateProgressStage.execute(response, requestExecutionContext);
+
+        Mockito.verify(progressListener, Mockito.times(0)).requestPrepared(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).requestBytesSent(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).responseHeaderReceived(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).responseBytesReceived(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(1)).executionSuccess(Mockito.any());
+        Mockito.verify(progressListener, Mockito.times(0)).executionFailure(Mockito.any());
     }
 
 
-    private RequestExecutionContext.Builder progressListenerContext(boolean isAsyncStreaming, ProgressListener progressListener) {
+    private RequestExecutionContext.Builder progressListenerContext(boolean isAsyncStreaming, SdkRequest sdkRequest,
+                                                                    ExecutionContext executionContext) {
 
         RequestExecutionContext.Builder builder =
-            RequestExecutionContext.builder().executionContext(ExecutionContext.builder().build()).originalRequest(NoopTestRequest.builder().overrideConfiguration(SdkRequestOverrideConfiguration.builder().addProgressListener(progressListener).build()).build());
+            RequestExecutionContext.builder().executionContext(executionContext).
+                                   originalRequest(sdkRequest);
         if (isAsyncStreaming) {
             builder.requestProvider(ASYNC_REQUEST_BODY);
         }
@@ -85,6 +120,17 @@ public class ProgressUpdateStageTest {
     }
 
     private SdkHttpFullRequest.Builder createHttpRequestBuilder() {
-        return SdkHttpFullRequest.builder().uri(URI.create("https://endpoint.host")).method(SdkHttpMethod.GET).contentStreamProvider(REQUEST_BODY.contentStreamProvider());
+        return SdkHttpFullRequest.builder().uri(URI.create("https://endpoint.host"))
+                                 .method(SdkHttpMethod.GET)
+                                 .contentStreamProvider(REQUEST_BODY.contentStreamProvider());
+    }
+
+    private SdkResponse.Builder createSdkResponseBuilder() {
+        return VoidSdkResponse.builder();
+    }
+
+    private SdkRequest.Builder createSdkHttpRequest(SdkRequestOverrideConfiguration config) {
+        return NoopTestRequest.builder()
+                       .overrideConfiguration(config);
     }
 }
