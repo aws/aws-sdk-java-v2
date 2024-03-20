@@ -106,15 +106,15 @@ public class DownloadDirectoryHelper {
         Queue<FailedFileDownload> failedFileDownloads = new ConcurrentLinkedQueue<>();
 
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
-
         AsyncBufferingSubscriber<S3Object> asyncBufferingSubscriber =
-            new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest, request,
+            new AsyncBufferingSubscriber<>(downloadSingleFile(downloadDirectoryRequest, request,
                                                               failedFileDownloads),
                                            allOfFutures,
                                            DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
         listObjectsHelper.listS3ObjectsRecursively(request)
                          .filter(downloadDirectoryRequest.filter())
                          .subscribe(asyncBufferingSubscriber);
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, allOfFutures);
 
         allOfFutures.whenComplete((r, t) -> {
             if (t != null) {
@@ -128,19 +128,14 @@ public class DownloadDirectoryHelper {
     }
 
     private Function<S3Object, CompletableFuture<?>> downloadSingleFile(
-        CompletableFuture<CompletedDirectoryDownload> returnFuture,
         DownloadDirectoryRequest downloadDirectoryRequest,
         ListObjectsV2Request listRequest,
         Queue<FailedFileDownload> failedFileDownloads) {
 
-        return s3Object -> {
-            CompletableFuture<CompletedFileDownload> future = doDownloadSingleFile(downloadDirectoryRequest,
-                                                                                   failedFileDownloads,
-                                                                                   listRequest,
-                                                                                   s3Object);
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
-            return future;
-        };
+        return s3Object -> doDownloadSingleFile(downloadDirectoryRequest,
+                                            failedFileDownloads,
+                                            listRequest,
+                                            s3Object);
     }
 
     private Path determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest,
