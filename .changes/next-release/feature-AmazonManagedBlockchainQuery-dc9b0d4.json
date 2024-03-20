@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Managed Blockchain Query",
-    "contributor": "",
-    "description": "AMB Query: update GetTransaction to include transactionId as input"
-}
