@@ -120,6 +120,11 @@
             <scope>test</scope>
             <version>${slf4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
