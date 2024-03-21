@@ -15,113 +15,56 @@
 
 package software.amazon.awssdk.utils.async;
 
-
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.internal.async.EmptySubscription;
 
-/**
- * Converts an {@link Iterable} to a {@link Publisher}.
- */
 @SdkProtectedApi
 public class IterablePublisher<T> implements Publisher<T> {
-
-    private final Iterator<T> iterator;
-    private Subscriber<? super T> subscriber;
-    private AtomicBoolean isSendingData = new AtomicBoolean(false);
-    private final AtomicLong outstandingDemand = new AtomicLong();
+    private final Object iterableLock = new Object();
+    private final Iterable<T> iterable;
 
     public IterablePublisher(Iterable<T> iterable) {
-        Validate.notNull(iterable, "iterable");
-        this.iterator = iterable.iterator();
+        this.iterable = Validate.paramNotNull(iterable, "iterable");
     }
 
     @Override
-    public void subscribe(Subscriber<? super T> s) {
-        if (subscriber != null) {
-            s.onSubscribe(new NoOpSubscription(s));
-            s.onError(new IllegalArgumentException("Only one subscription may be active at a time."));
-        }
+    public void subscribe(Subscriber<? super T> subscriber) {
+        Iterator<T> iterator = iterable.iterator();
+        SimplePublisher<T> publisher = new SimplePublisher<>();
 
-        this.subscriber = s;
+        // Prime the simple publisher with 1 event. More will be sent as these complete.
+        sendEvent(iterator, publisher);
 
-        if (!iterator.hasNext()) {
-            subscriber.onSubscribe(new EmptySubscription(s));
-            return;
-        }
-
-        subscriber.onSubscribe(new IteratorSubscription());
+        publisher.subscribe(subscriber);
     }
 
-    private class IteratorSubscription implements Subscription {
-        private volatile boolean done;
-
-        @Override
-        public void request(long newDemand) {
-            if (newDemand <= 0) {
-                subscriber.onError(new IllegalArgumentException("demand is not positive"));
-            }
-
-            outstandingDemand.updateAndGet(current -> {
-                if (Long.MAX_VALUE - current < newDemand) {
-                    return Long.MAX_VALUE;
-                }
-
-                return current + newDemand;
-            });
-            sendData();
-        }
-
-        private void sendData() {
-            do {
-                if (!isSendingData.compareAndSet(false, true)) {
+    private void sendEvent(Iterator<T> iterator, SimplePublisher<T> publisher) {
+        try {
+            synchronized (iterableLock) {
+                if (!iterator.hasNext()) {
+                    publisher.complete();
                     return;
                 }
-                try {
-                    doSendData();
-                } finally {
-                    isSendingData.set(false);
-                }
-            } while (shouldSendMoreData());
-        }
 
-        private boolean shouldSendMoreData() {
-            if (done) {
-                return false;
-            }
-
-            if (!iterator.hasNext()) {
-                done = true;
-                subscriber.onComplete();
-                return false;
-            }
-
-            return outstandingDemand.get() > 0;
-        }
-
-        private void doSendData() {
-            while (shouldSendMoreData()) {
-                outstandingDemand.decrementAndGet();
                 T next = iterator.next();
                 if (next == null) {
-                    done = true;
-                    subscriber.onError(new IllegalArgumentException("Iterable returned null"));
-                } else {
-                    subscriber.onNext(next);
+                    publisher.error(new IllegalArgumentException("Iterable returned null"));
+                    return;
                 }
-            }
-        }
 
-        @Override
-        public void cancel() {
-            done = true;
-            subscriber = null;
+                publisher.send(next).whenComplete((v, t) -> {
+                    if (t != null) {
+                        publisher.error(t);
+                    } else {
+                        sendEvent(iterator, publisher);
+                    }
+                });
+            }
+        } catch (Throwable e) {
+            publisher.error(e);
         }
     }
 }

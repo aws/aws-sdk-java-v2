@@ -197,7 +197,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
     @Override
     public void subscribe(Subscriber<? super T> s) {
         if (subscriber != null) {
-            s.onSubscribe(new NoOpSubscription(s));
+            s.onSubscribe(new NoOpSubscription());
             s.onError(new IllegalStateException("Only one subscription may be active at a time."));
         }
         this.subscriber = s;
@@ -278,7 +278,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
 
                         OnErrorQueueEntry<T> onErrorEntry = (OnErrorQueueEntry<T>) entry;
                         failureMessage.trySet(() -> new IllegalStateException("onError() was already invoked.",
-                                                                             onErrorEntry.failure));
+                                                                              onErrorEntry.failure));
                         log.trace(() -> "Calling onError() with " + onErrorEntry.failure, onErrorEntry.failure);
                         subscriber.onError(onErrorEntry.failure);
                         break;
@@ -487,6 +487,20 @@ public final class SimplePublisher<T> implements Publisher<T> {
         @Override
         protected Type type() {
             return CANCEL;
+        }
+    }
+
+    /**
+     * A subscription that does nothing. This is used for signaling {@code onError} to subscribers that subscribe to this
+     * publisher for the second time. Only one subscriber is supported.
+     */
+    private static final class NoOpSubscription implements Subscription {
+        @Override
+        public void request(long n) {
+        }
+
+        @Override
+        public void cancel() {
         }
     }
 }
