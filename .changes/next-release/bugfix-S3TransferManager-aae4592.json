@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fix normalize key method to not strip extra character when prefix is not immediately followed by separator in the key."
+}
