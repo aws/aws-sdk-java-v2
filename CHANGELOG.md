@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.14__ __2024-03-20__
+## __AWS CodeBuild__
+  - ### Features
+    - This release adds support for new webhook events (RELEASED and PRERELEASED) and filter types (TAG_NAME and RELEASE_NAME).
+
+## __AWS Savings Plans__
+  - ### Features
+    - Introducing the Savings Plans Return feature enabling customers to return their Savings Plans within 7 days of purchase.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for policy validation and external access findings for DynamoDB tables and streams. IAM Access Analyzer helps you author functional and secure resource-based policies and identify cross-account access. Updated service API, documentation, and paginators.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates the *InstanceStorageConfig APIs to support a new ResourceType: REAL_TIME_CONTACT_ANALYSIS_CHAT_SEGMENTS. Use this resource type to enable streaming for real-time analysis of chat contacts and to associate a Kinesis stream where real-time analysis chat segments will be published.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release introduces 3 new APIs ('GetResourcePolicy', 'PutResourcePolicy' and 'DeleteResourcePolicy') and modifies the existing 'CreateTable' API for the resource-based policy support. It also modifies several APIs to accept a 'TableArn' for the 'TableName' parameter.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - AMB Query: update GetTransaction to include transactionId as input
+
 # __2.25.13__ __2024-03-19__
 ## __AWS CloudFormation__
   - ### Features
