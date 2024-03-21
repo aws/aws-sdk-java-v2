@@ -1,4 +1,14 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.15__ __2024-03-21__
+## __CodeArtifact__
+  - ### Features
+    - This release adds Package groups to CodeArtifact so you can more conveniently configure package origin controls for multiple packages.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix normalize key method to not strip extra character when prefix is not immediately followed by separator in the key.
+    - Fixed OOM issue that could surface when users try to download objects from an S3 bucket that has millions of small files. See [#4987](https://github.com/aws/aws-sdk-java-v2/issues/4987)
+
 # __2.25.14__ __2024-03-20__
 ## __AWS CodeBuild__
   - ### Features
