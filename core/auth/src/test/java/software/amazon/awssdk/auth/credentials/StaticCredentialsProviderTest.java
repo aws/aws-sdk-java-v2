@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -22,17 +23,20 @@ import org.junit.Test;
 public class StaticCredentialsProviderTest {
     @Test
     public void getAwsCredentials_ReturnsSameCredentials() throws Exception {
-        final AwsCredentials credentials = new AwsBasicCredentials("akid", "skid");
-        final AwsCredentials actualCredentials =
-                StaticCredentialsProvider.create(credentials).resolveCredentials();
+        AwsCredentials credentials = new AwsBasicCredentials("akid", "skid");
+        AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertEquals(credentials, actualCredentials);
+        assertThat(credentials.provider()).isNotPresent();
+        assertThat(actualCredentials.provider()).isPresent();
     }
 
     @Test
     public void getSessionAwsCredentials_ReturnsSameCredentials() throws Exception {
-        final AwsSessionCredentials credentials = AwsSessionCredentials.create("akid", "skid", "token");
-        final AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
+        AwsSessionCredentials credentials = AwsSessionCredentials.create("akid", "skid", "token");
+        AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertEquals(credentials, actualCredentials);
+        assertThat(credentials.provider()).isNotPresent();
+        assertThat(actualCredentials.provider()).isPresent();
     }
 
     @Test(expected = RuntimeException.class)
