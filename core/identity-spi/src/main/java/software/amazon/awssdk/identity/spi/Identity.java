@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.identity.spi.internal.ProviderNameAware;
 
 /**
  * Interface to represent <b>who</b> is using the SDK, i.e., the identity of the caller, used for authentication.
@@ -30,13 +29,22 @@ import software.amazon.awssdk.identity.spi.internal.ProviderNameAware;
  */
 @SdkPublicApi
 @ThreadSafe
-public interface Identity extends ProviderNameAware {
+public interface Identity {
     /**
      * The time after which this identity will no longer be valid. If this is empty,
      * an expiration time is not known (but the identity may still expire at some
      * time in the future).
      */
     default Optional<Instant> expirationTime() {
+        return Optional.empty();
+    }
+
+    /**
+     * The source that resolved this identity, normally an identity provider. Note that
+     * this string value would be set by an identity provider implementation and is
+     * intended to be used for for tracking purposes. Avoid building logic on its value.
+     */
+    default Optional<String> provider() {
         return Optional.empty();
     }
 }

@@ -20,31 +20,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-public class IdentityProviderNameMappingTest {
+class IdentityProviderNameMappingTest {
 
     @Test
     void when_providerIsKnown_shortValueIsReturned() {
-        Optional<String> mappedProviderName = IdentityProviderNameMapping.fromValue("StaticCredentialsProvider");
-        assertThat(mappedProviderName).isPresent();
-        assertThat(mappedProviderName.get()).isEqualTo("STAT");
+        Optional<String> mappedProviderName = IdentityProviderNameMapping.mapFrom("StaticCredentialsProvider");
+        assertThat(mappedProviderName).isPresent().contains("stat");
     }
 
     @Test
     void when_providerIsUnknown_stringIsReturned() {
-        Optional<String> mappedProviderName = IdentityProviderNameMapping.fromValue("MyHomebrewedCredentialsProvider");
-        assertThat(mappedProviderName).isPresent();
-        assertThat(mappedProviderName.get()).isEqualTo("MyHomebrewedCredentialsProvider");
+        Optional<String> mappedProviderName = IdentityProviderNameMapping.mapFrom("MyHomebrewedCredentialsProvider");
+        assertThat(mappedProviderName).isPresent().contains("MyHomebrewedCredentialsProvider");
     }
 
     @Test
     void when_providerIsIllegal_noValueIsReturned() {
-        Optional<String> mappedProviderName = IdentityProviderNameMapping.fromValue("My@#$%$CredentialsProvider");
+        Optional<String> mappedProviderName = IdentityProviderNameMapping.mapFrom("My@#$%$CredentialsProvider");
         assertThat(mappedProviderName).isNotPresent();
     }
 
     @Test
     void when_providerIsTooLong_noValueIsReturned() {
-        Optional<String> mappedProviderName = IdentityProviderNameMapping.fromValue(
+        Optional<String> mappedProviderName = IdentityProviderNameMapping.mapFrom(
             "MyMegaGinormousBubbaBubbaBubbaBubbaBubbaBubbaCredentialsProvider");
         assertThat(mappedProviderName).isNotPresent();
     }

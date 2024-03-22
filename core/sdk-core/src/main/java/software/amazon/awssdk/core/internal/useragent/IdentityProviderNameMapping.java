@@ -16,8 +16,10 @@
 package software.amazon.awssdk.core.internal.useragent;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * A enum class representing a short form of identity providers to record in the UA string.
@@ -36,9 +38,13 @@ public enum IdentityProviderNameMapping {
     CONT("ContainerCredentialsProvider"),
     IMDS("InstanceProfileCredentialsProvider"),
     STAT("StaticCredentialsProvider"),
-    PROC("ProcessCredentialsProvider");
+    PROC("ProcessCredentialsProvider"),
+    ANON("AnonymousCredentialsProvider"),
+    UNKNOWN("Unknown");
 
     private static final Pattern CLASS_NAME_CHARACTERS = Pattern.compile("[a-zA-Z_$\\d]{0,62}");
+    private static final Map<String, IdentityProviderNameMapping> VALUE_MAP =
+        EnumUtils.uniqueIndex(IdentityProviderNameMapping.class, IdentityProviderNameMapping::toString);
     private final String value;
 
     IdentityProviderNameMapping(String value) {
@@ -49,27 +55,34 @@ public enum IdentityProviderNameMapping {
         return value;
     }
 
-    public static Optional<String> fromValue(String value) {
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
+
+    public static Optional<String> mapFrom(String source) {
+        return mappedName(source).map(mapping -> Optional.of(mapping.name().toLowerCase(Locale.US)))
+                                 .orElseGet(() -> sanitizedProviderOrNull(source));
+    }
+
+    private static Optional<IdentityProviderNameMapping> mappedName(String value) {
         if (value == null) {
-            return Optional.empty();
+            return Optional.of(UNKNOWN);
         }
-
-        for (IdentityProviderNameMapping provider : values()) {
-            if (provider.value().equals(value)) {
-                return Optional.of(provider.name());
-            }
+        if (VALUE_MAP.containsKey(value)) {
+            return Optional.of(VALUE_MAP.get(value));
         }
-        return Optional.ofNullable(sanitizedProviderOrNull(value));
+        return Optional.empty();
     }
 
-    private static String sanitizedProviderOrNull(String value) {
-        if (containsAllowedCharacters(value) && value.toLowerCase(Locale.US).endsWith("provider")) {
-            return value;
+    private static Optional<String> sanitizedProviderOrNull(String value) {
+        if (hasAcceptedFormat(value)) {
+            return Optional.of(value);
         }
-        return null;
+        return Optional.empty();
     }
 
-    private static boolean containsAllowedCharacters(String input) {
+    private static boolean hasAcceptedFormat(String input) {
         return CLASS_NAME_CHARACTERS.matcher(input).matches();
     }
 }

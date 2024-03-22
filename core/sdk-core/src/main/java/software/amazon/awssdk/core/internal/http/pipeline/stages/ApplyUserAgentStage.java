@@ -45,6 +45,10 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
+/**
+ * A stage for adding the user agent header to the request, after retrieving the current string
+ * from execution attributes and adding any additional information. 
+ */
 @SdkInternalApi
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
@@ -166,7 +170,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     private static <T extends Identity> Optional<String> providerNameFromIdentity(SelectedAuthScheme<T> selectedAuthScheme) {
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
-        return identity.provider().flatMap(IdentityProviderNameMapping::fromValue);
+        return identity.provider().flatMap(IdentityProviderNameMapping::mapFrom);
     }
 
     private Optional<String> requestApiNames(List<ApiName> requestApiNames) {

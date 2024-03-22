@@ -83,7 +83,7 @@ public class ApplyUserAgentStageTest {
 
         List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains("auth-source#PROC");
+        assertThat(userAgentHeaders.get(0)).contains("auth-source#proc");
     }
 
     @Test
