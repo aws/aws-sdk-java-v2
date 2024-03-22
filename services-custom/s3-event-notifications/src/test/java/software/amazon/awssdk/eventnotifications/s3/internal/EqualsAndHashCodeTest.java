@@ -13,10 +13,20 @@
  * permissions and limitations under the License.
  */
 
-console.log('Loading event')
+package software.amazon.awssdk.eventnotifications.s3.internal;
 
-exports.handler = function (event, context) {
-    console.log(event);
-    if (event === "BOOM") context.blowUp();
-    context.done(null, "Hello World");
+import nl.jqno.equalsverifier.Warning;
+
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.jupiter.api.Test;
+
+class EqualsAndHashCodeTest {
+    @Test
+    void allClasses_equalsHashCode_isCorrect() {
+        EqualsVerifier
+            .forPackage("software.amazon.awssdk.eventnotifications.s3.model", true)
+            .suppress(Warning.NONFINAL_FIELDS)
+            .usingGetClass()
+            .verify();
+    }
 }

@@ -27,6 +27,7 @@
         "protocol-core": { "packageName": "AwsJavaSdk-Core-ProtocolCore" },
         "regions": { "packageName": "AwsJavaSdk-Core-Regions" },
         "s3-transfer-manager": { "packageName": "AwsJavaSdk-S3-TransferManager" },
+        "s3-event-notifications": { "packageName": "AwsJavaSdk-S3-EventNotifications" },
         "sdk-core": { "packageName": "AwsJavaSdk-Core" },
         "url-connection-client": { "packageName": "AwsJavaSdk-HttpClient-UrlConnectionClient" },
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
