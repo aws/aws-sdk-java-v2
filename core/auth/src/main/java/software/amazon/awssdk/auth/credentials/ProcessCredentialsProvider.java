@@ -76,30 +76,19 @@ public final class ProcessCredentialsProvider
 
     private final String commandFromBuilder;
 
+    private final List<String> commandsFromBuilder;
+
     private final Boolean asyncCredentialUpdateEnabled;
 
     /**
      * @see #builder()
      */
     private ProcessCredentialsProvider(Builder builder) {
-        List<String> cmd = new ArrayList<>();
-
-        if (Platform.isWindows()) {
-            cmd.add("cmd.exe");
-            cmd.add("/C");
-        } else {
-            cmd.add("sh");
-            cmd.add("-c");
-        }
-
-        String builderCommand = Validate.paramNotNull(builder.command, "command");
-
-        cmd.add(builderCommand);
-
-        this.executableCommand = Collections.unmodifiableList(cmd);
+        this.executableCommand = executableCommand(builder);
         this.processOutputLimit = Validate.isPositive(builder.processOutputLimit, "processOutputLimit");
         this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
         this.commandFromBuilder = builder.command;
+        this.commandsFromBuilder = builder.commands;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
@@ -109,6 +98,26 @@ public final class ProcessCredentialsProvider
         }
 
         this.processCredentialCache = cacheBuilder.build();
+    }
+
+    private List<String> executableCommand(Builder builder) {
+        if (builder.commands != null) {
+            return Collections.unmodifiableList(builder.commands);
+        } else {
+            List<String> cmd = new ArrayList<>();
+
+            if (Platform.isWindows()) {
+                cmd.add("cmd.exe");
+                cmd.add("/C");
+            } else {
+                cmd.add("sh");
+                cmd.add("-c");
+            }
+
+            String builderCommand = Validate.paramNotNull(builder.command, "command");
+            cmd.add(builderCommand);
+            return Collections.unmodifiableList(cmd);
+        }
     }
 
     /**
@@ -241,6 +250,7 @@ public final class ProcessCredentialsProvider
     public static class Builder implements CopyableBuilder<Builder, ProcessCredentialsProvider> {
         private Boolean asyncCredentialUpdateEnabled = false;
         private String command;
+        private List<String> commands;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
 
@@ -253,6 +263,7 @@ public final class ProcessCredentialsProvider
         private Builder(ProcessCredentialsProvider provider) {
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.command = provider.commandFromBuilder;
+            this.commands = provider.commandsFromBuilder;
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
         }
@@ -271,10 +282,20 @@ public final class ProcessCredentialsProvider
         }
 
         /**
-         * Configure the command that should be executed to retrieve credentials.
+         * Configure the command that should be executed to retrieve credentials. The command will be executed in a shell,
+         * which brings the risk of command injections. The recommended approach is to specify the command as a list of
+         * Strings, using {@link #commands(List)} instead.
          */
         public Builder command(String command) {
             this.command = command;
+            return this;
+        }
+
+        /**
+         * Configure the commands that should be executed to retrieve credentials.
+         */
+        public Builder commands(List<String> commands) {
+            this.commands = commands;
             return this;
         }
 

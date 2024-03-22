@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -67,6 +68,19 @@ public class ProcessCredentialsProviderTest {
                                           .build()
                                           .resolveCredentials();
  
+        Assert.assertFalse(credentials instanceof AwsSessionCredentials);
+        Assert.assertEquals("accessKeyId", credentials.accessKeyId());
+        Assert.assertEquals("secretAccessKey", credentials.secretAccessKey());
+    }
+
+    @Test
+    public void staticCredentials_commandsAsListOfStrings_CanBeLoaded() {
+        AwsCredentials credentials =
+            ProcessCredentialsProvider.builder()
+                                      .commands(Arrays.asList(scriptLocation, "accessKeyId", "secretAccessKey"))
+                                      .build()
+                                      .resolveCredentials();
+
         Assert.assertFalse(credentials instanceof AwsSessionCredentials);
         Assert.assertEquals("accessKeyId", credentials.accessKeyId());
         Assert.assertEquals("secretAccessKey", credentials.secretAccessKey());
