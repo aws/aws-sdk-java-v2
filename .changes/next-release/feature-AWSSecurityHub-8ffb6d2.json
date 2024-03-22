@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "contributor": "",
+    "description": "Added new resource detail object to ASFF, including resource for LastKnownExploitAt"
+}
