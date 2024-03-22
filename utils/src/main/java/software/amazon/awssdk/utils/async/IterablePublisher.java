@@ -23,7 +23,6 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
 public class IterablePublisher<T> implements Publisher<T> {
-    private final Object iterableLock = new Object();
     private final Iterable<T> iterable;
 
     public IterablePublisher(Iterable<T> iterable) {
@@ -43,26 +42,24 @@ public class IterablePublisher<T> implements Publisher<T> {
 
     private void sendEvent(Iterator<T> iterator, SimplePublisher<T> publisher) {
         try {
-            synchronized (iterableLock) {
-                if (!iterator.hasNext()) {
-                    publisher.complete();
-                    return;
-                }
-
-                T next = iterator.next();
-                if (next == null) {
-                    publisher.error(new IllegalArgumentException("Iterable returned null"));
-                    return;
-                }
-
-                publisher.send(next).whenComplete((v, t) -> {
-                    if (t != null) {
-                        publisher.error(t);
-                    } else {
-                        sendEvent(iterator, publisher);
-                    }
-                });
+            if (!iterator.hasNext()) {
+                publisher.complete();
+                return;
             }
+
+            T next = iterator.next();
+            if (next == null) {
+                publisher.error(new IllegalArgumentException("Iterable returned null"));
+                return;
+            }
+
+            publisher.send(next).whenComplete((v, t) -> {
+                if (t != null) {
+                    publisher.error(t);
+                } else {
+                    sendEvent(iterator, publisher);
+                }
+            });
         } catch (Throwable e) {
             publisher.error(e);
         }
