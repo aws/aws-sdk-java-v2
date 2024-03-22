@@ -1,4 +1,44 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.16__ __2024-03-22__
+## __AWS Price List Service__
+  - ### Features
+    - Add ResourceNotFoundException to ListPriceLists and GetPriceListFileUrl APIs
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improve HTTP2/PING timeout logic. Improvement avoids premature timeouts due to delays in scheduling the write of PING frame to the channel and/or flushing it to the socket.
+        - Contributed by: [@akidambisrinivasan](https://github.com/akidambisrinivasan)
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail object to ASFF, including resource for LastKnownExploitAt
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Documentation update, March 2024. Corrects some docs for Amazon Kendra.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Updates Amazon Firehose documentation for message regarding Enforcing Tags IAM Policy.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release relaxes constraints on the durationSeconds request parameter for the *Profile APIs that support it. This parameter can now take on values that go up to 43200.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akidambisrinivasan](https://github.com/akidambisrinivasan)
+# __2.25.15__ __2024-03-21__
+## __CodeArtifact__
+  - ### Features
+    - This release adds Package groups to CodeArtifact so you can more conveniently configure package origin controls for multiple packages.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix normalize key method to not strip extra character when prefix is not immediately followed by separator in the key.
+    - Fixed OOM issue that could surface when users try to download objects from an S3 bucket that has millions of small files. See [#4987](https://github.com/aws/aws-sdk-java-v2/issues/4987)
+
 # __2.25.14__ __2024-03-20__
 ## __AWS CodeBuild__
   - ### Features

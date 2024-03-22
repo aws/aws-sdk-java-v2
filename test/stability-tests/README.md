@@ -31,10 +31,9 @@ First add tests to TestRunner Class, then run the following command.
 
 ```
 mvn clean install -pl :stability-tests --am -P quick
-mvn clean install -pl :bom-inernal
-cd test/stability-tests
-mvn package -P test-jar
-java -jar target/stability-tests-uber.jar
+mvn clean install -pl :bom-internal
+mvn package -P test-jar -pl :stability-tests
+java -jar test/stability-tests/target/stability-tests-uber.jar
 ```
 
 ## Adding New Tests
