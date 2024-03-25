@@ -76,7 +76,7 @@ public final class ProcessCredentialsProvider
 
     private final String commandFromBuilder;
 
-    private final List<String> commandsFromBuilder;
+    private final List<String> commandAsListOfStringsFromBuilder;
 
     private final Boolean asyncCredentialUpdateEnabled;
 
@@ -88,7 +88,7 @@ public final class ProcessCredentialsProvider
         this.processOutputLimit = Validate.isPositive(builder.processOutputLimit, "processOutputLimit");
         this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
         this.commandFromBuilder = builder.command;
-        this.commandsFromBuilder = builder.commands;
+        this.commandAsListOfStringsFromBuilder = builder.commandAsListOfStrings;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
@@ -101,8 +101,8 @@ public final class ProcessCredentialsProvider
     }
 
     private List<String> executableCommand(Builder builder) {
-        if (builder.commands != null) {
-            return Collections.unmodifiableList(builder.commands);
+        if (builder.commandAsListOfStrings != null) {
+            return Collections.unmodifiableList(builder.commandAsListOfStrings);
         } else {
             List<String> cmd = new ArrayList<>();
 
@@ -250,7 +250,7 @@ public final class ProcessCredentialsProvider
     public static class Builder implements CopyableBuilder<Builder, ProcessCredentialsProvider> {
         private Boolean asyncCredentialUpdateEnabled = false;
         private String command;
-        private List<String> commands;
+        private List<String> commandAsListOfStrings;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
 
@@ -263,7 +263,7 @@ public final class ProcessCredentialsProvider
         private Builder(ProcessCredentialsProvider provider) {
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.command = provider.commandFromBuilder;
-            this.commands = provider.commandsFromBuilder;
+            this.commandAsListOfStrings = provider.commandAsListOfStringsFromBuilder;
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
         }
@@ -284,7 +284,7 @@ public final class ProcessCredentialsProvider
         /**
          * Configure the command that should be executed to retrieve credentials. The command will be executed in a shell,
          * which brings the risk of command injections. The recommended approach is to specify the command as a list of
-         * Strings, using {@link #commands(List)} instead.
+         * Strings, using {@link #command(List)} instead.
          */
         public Builder command(String command) {
             this.command = command;
@@ -292,10 +292,10 @@ public final class ProcessCredentialsProvider
         }
 
         /**
-         * Configure the commands that should be executed to retrieve credentials.
+         * Configure the commands that should be executed to retrieve credentials, as a list of strings.
          */
-        public Builder commands(List<String> commands) {
-            this.commands = commands;
+        public Builder command(List<String> commandAsListOfStrings) {
+            this.commandAsListOfStrings = commandAsListOfStrings;
             return this;
         }
 

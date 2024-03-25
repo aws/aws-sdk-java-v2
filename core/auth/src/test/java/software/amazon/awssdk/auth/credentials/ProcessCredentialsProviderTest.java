@@ -77,7 +77,7 @@ public class ProcessCredentialsProviderTest {
     public void staticCredentials_commandsAsListOfStrings_CanBeLoaded() {
         AwsCredentials credentials =
             ProcessCredentialsProvider.builder()
-                                      .commands(Arrays.asList(scriptLocation, "accessKeyId", "secretAccessKey"))
+                                      .command(Arrays.asList(scriptLocation, "accessKeyId", "secretAccessKey"))
                                       .build()
                                       .resolveCredentials();
 
