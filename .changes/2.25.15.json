@@ -1,0 +1,24 @@
+{
+    "version": "2.25.15",
+    "date": "2024-03-21",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fixed OOM issue that could surface when users try to download objects from an S3 bucket that has millions of small files. See [#4987](https://github.com/aws/aws-sdk-java-v2/issues/4987)"
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fix normalize key method to not strip extra character when prefix is not immediately followed by separator in the key."
+        },
+        {
+            "type": "feature",
+            "category": "CodeArtifact",
+            "contributor": "",
+            "description": "This release adds Package groups to CodeArtifact so you can more conveniently configure package origin controls for multiple packages."
+        }
+    ]
+}

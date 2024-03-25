@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
  */
 @SdkPublicApi
 @ThreadSafe
+@Immutable
 public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**

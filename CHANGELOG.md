@@ -1,4 +1,193 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.16__ __2024-03-22__
+## __AWS Price List Service__
+  - ### Features
+    - Add ResourceNotFoundException to ListPriceLists and GetPriceListFileUrl APIs
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improve HTTP2/PING timeout logic. Improvement avoids premature timeouts due to delays in scheduling the write of PING frame to the channel and/or flushing it to the socket.
+        - Contributed by: [@akidambisrinivasan](https://github.com/akidambisrinivasan)
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail object to ASFF, including resource for LastKnownExploitAt
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Documentation update, March 2024. Corrects some docs for Amazon Kendra.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Updates Amazon Firehose documentation for message regarding Enforcing Tags IAM Policy.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release relaxes constraints on the durationSeconds request parameter for the *Profile APIs that support it. This parameter can now take on values that go up to 43200.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akidambisrinivasan](https://github.com/akidambisrinivasan)
+# __2.25.15__ __2024-03-21__
+## __CodeArtifact__
+  - ### Features
+    - This release adds Package groups to CodeArtifact so you can more conveniently configure package origin controls for multiple packages.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix normalize key method to not strip extra character when prefix is not immediately followed by separator in the key.
+    - Fixed OOM issue that could surface when users try to download objects from an S3 bucket that has millions of small files. See [#4987](https://github.com/aws/aws-sdk-java-v2/issues/4987)
+
+# __2.25.14__ __2024-03-20__
+## __AWS CodeBuild__
+  - ### Features
+    - This release adds support for new webhook events (RELEASED and PRERELEASED) and filter types (TAG_NAME and RELEASE_NAME).
+
+## __AWS Savings Plans__
+  - ### Features
+    - Introducing the Savings Plans Return feature enabling customers to return their Savings Plans within 7 days of purchase.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for policy validation and external access findings for DynamoDB tables and streams. IAM Access Analyzer helps you author functional and secure resource-based policies and identify cross-account access. Updated service API, documentation, and paginators.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates the *InstanceStorageConfig APIs to support a new ResourceType: REAL_TIME_CONTACT_ANALYSIS_CHAT_SEGMENTS. Use this resource type to enable streaming for real-time analysis of chat contacts and to associate a Kinesis stream where real-time analysis chat segments will be published.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release introduces 3 new APIs ('GetResourcePolicy', 'PutResourcePolicy' and 'DeleteResourcePolicy') and modifies the existing 'CreateTable' API for the resource-based policy support. It also modifies several APIs to accept a 'TableArn' for the 'TableName' parameter.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - AMB Query: update GetTransaction to include transactionId as input
+
+# __2.25.13__ __2024-03-19__
+## __AWS CloudFormation__
+  - ### Features
+    - Documentation update, March 2024. Corrects some formatting.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Update LogSamples field in Anomaly model to be a list of LogEvent
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds the new DescribeMacHosts API operation for getting information about EC2 Mac Dedicated Hosts. Users can now see the latest macOS versions that their underlying Apple Mac can support without needing to be updated.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - Introduces a new API for Amazon Managed Blockchain Query: ListFilteredTransactionEvents.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Adding new attributes readWrite and onDemand to dataview models for Database Maintenance operations.
+
+# __2.25.12__ __2024-03-18__
+## __AWS CloudFormation__
+  - ### Features
+    - This release supports for a new API ListStackSetAutoDeploymentTargets, which provider auto-deployment configuration as a describable resource. Customers can now view the specific combinations of regions and OUs that are being auto-deployed.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Adds the ability to use the default policy name by omitting the policyName parameter in calls to PutKeyPolicy and GetKeyPolicy
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release adds support to allow customers to show different content within a channel depending on metadata associated with the viewer.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release launches the ModifyIntegration API and support for data filtering for zero-ETL Integrations.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Fix two issues with response root node names.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Documentation updates, March 2024
+
+# __2.25.11__ __2024-03-15__
+## __AWS Backup__
+  - ### Features
+    - This release introduces a boolean attribute ManagedByAWSBackupOnly as part of ListRecoveryPointsByResource api to filter the recovery points based on ownership. This attribute can be used to filter out the recovery points protected by AWSBackup.
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports overflow behavior on Reserved Capacity.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the model for S3 Event Notifications and json parsers for them
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds Hierarchy based Access Control fields to Security Profile public APIs and adds support for UserAttributeFilter to SearchUsers API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add media accelerator and neuron device information on the describe instance types API.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.18 in Managed Service for Apache Flink
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds m6i, m6id, m7i, c6i, c6id, c7i, r6i r6id, r7i, p5 instance type support to Sagemaker Notebook Instances and miscellaneous wording fixes for previous Sagemaker documentation.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Removed unused parameter kmsKeyArn from UpdateDeviceRequest
+
+# __2.25.10__ __2024-03-14__
+## __AWS Amplify__
+  - ### Features
+    - Documentation updates for Amplify. Identifies the APIs available only to apps created using Amplify Gen 1.
+
+## __AWS EC2 Instance Connect__
+  - ### Features
+    - This release includes a new exception type "SerialConsoleSessionUnsupportedException" for SendSerialConsoleSSHPublicKey API.
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds support for previewing target resources before running a FIS experiment. It also adds resource ARNs for actions, experiments, and experiment templates to API responses.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in `ByteBufferStoringSubscriber` where it could buffer more data than configured, resulting in out of memory error. See [#4999](https://github.com/aws/aws-sdk-java-v2/issues/4999).
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for EBCDIC collation for RDS for Db2.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release allows you to configure HTTP client keep-alive duration for communication between clients and Application Load Balancers.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This is the initial SDK release for Amazon Timestream for InfluxDB. Amazon Timestream for InfluxDB is a new time-series database engine that makes it easy for application developers and DevOps teams to run InfluxDB databases on AWS for near real-time time-series applications using open source APIs.
+
 # __2.25.9__ __2024-03-13__
 ## __Amazon Interactive Video Service RealTime__
   - ### Features
