@@ -1,4 +1,68 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.17__ __2024-03-25__
+## __AWS CodeBuild__
+  - ### Features
+    - Supporting GitLab and GitLab Self Managed as source types in AWS CodeBuild.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Exposing TileMedia H265 options
+
+## __AWS Global Accelerator__
+  - ### Features
+    - AWS Global Accelerator now supports cross-account sharing for bring your own IP addresses.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Support creating an `SdkPublisher` from an `Iterable`
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This release increases the number of supported job template parameters from 20 to 100.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for ModifyInstanceMetadataDefaults and GetInstanceMetadataDefaults to set Instance Metadata Service account defaults
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for the following new instance types on SageMaker Studio for JupyterLab and CodeEditor applications: m6i, m6id, m7i, c6i, c6id, c7i, r6i, r6id, r7i, and p5
+
+# __2.25.16__ __2024-03-22__
+## __AWS Price List Service__
+  - ### Features
+    - Add ResourceNotFoundException to ListPriceLists and GetPriceListFileUrl APIs
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improve HTTP2/PING timeout logic. Improvement avoids premature timeouts due to delays in scheduling the write of PING frame to the channel and/or flushing it to the socket.
+        - Contributed by: [@akidambisrinivasan](https://github.com/akidambisrinivasan)
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail object to ASFF, including resource for LastKnownExploitAt
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Documentation update, March 2024. Corrects some docs for Amazon Kendra.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Updates Amazon Firehose documentation for message regarding Enforcing Tags IAM Policy.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release relaxes constraints on the durationSeconds request parameter for the *Profile APIs that support it. This parameter can now take on values that go up to 43200.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akidambisrinivasan](https://github.com/akidambisrinivasan)
 # __2.25.15__ __2024-03-21__
 ## __CodeArtifact__
   - ### Features
