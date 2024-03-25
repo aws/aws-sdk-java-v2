@@ -38,6 +38,7 @@ import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
  */
 @SdkPublicApi
 public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBody {
+    private static final Duration DEFAULT_SUBSCRIBE_TIMEOUT = Duration.ofSeconds(10);
     private final InputStreamConsumingPublisher delegate = new InputStreamConsumingPublisher();
     private final CountDownLatch subscribedLatch = new CountDownLatch(1);
     private final AtomicBoolean subscribeCalled = new AtomicBoolean(false);
@@ -48,7 +49,7 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
         this.contentLength = builder.contentLength;
         this.subscribeTimeout = Validate.isPositiveOrNull(builder.subscribeTimeout, "subscribeTimeout") != null ?
                                 builder.subscribeTimeout :
-                                Duration.ofSeconds(10);
+                                DEFAULT_SUBSCRIBE_TIMEOUT;
     }
 
     /**
