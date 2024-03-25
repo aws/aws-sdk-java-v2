@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "Supporting GitLab and GitLab Self Managed as source types in AWS CodeBuild."
+}
