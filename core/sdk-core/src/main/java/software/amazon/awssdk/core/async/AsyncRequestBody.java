@@ -384,6 +384,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
     /**
      * Creates a {@link BlockingInputStreamAsyncRequestBody} to use for writing an input stream to the downstream service.
      *
+     * <p>By default, it will time out if streaming hasn't started within 10 seconds, and you can configure the timeout
+     * via {@link BlockingInputStreamAsyncRequestBody#builder()}
      * <p><b>Example Usage</b>
      *
      * <p>
@@ -408,7 +410,9 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * }
      */
     static BlockingInputStreamAsyncRequestBody forBlockingInputStream(Long contentLength) {
-        return new BlockingInputStreamAsyncRequestBody(contentLength);
+        return BlockingInputStreamAsyncRequestBody.builder()
+                                                  .contentLength(contentLength)
+                                                  .build();
     }
 
     /**
