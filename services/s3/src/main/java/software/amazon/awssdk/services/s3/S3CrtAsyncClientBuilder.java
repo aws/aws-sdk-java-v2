@@ -323,12 +323,12 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      *     or sharing a single pool between multiple clients.
      *     <li>You want to add instrumentation (i.e., metrics) around how the {@link Executor} is used.
      * </ol>
-     *
+     * <p>
      * <b>WARNING</b>
      * We strongly <strong>discourage</strong> using {@code Runnable::run}, which executes the future-completion directly from
      * within the I/O thread because it may block the I/O thread and cause deadlock, especially if you are sending
      * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
-     *
+     * </p>
      * @param futureCompletionExecutor the executor
      * @return an instance of this builder.
      */
