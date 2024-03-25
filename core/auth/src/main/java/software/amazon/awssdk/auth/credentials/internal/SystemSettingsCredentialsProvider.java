@@ -43,6 +43,7 @@ import software.amazon.awssdk.utils.SystemSetting;
  */
 @SdkInternalApi
 public abstract class SystemSettingsCredentialsProvider implements AwsCredentialsProvider {
+
     @Override
     public AwsCredentials resolveCredentials() {
         String accessKey = trim(loadSetting(SdkSystemSetting.AWS_ACCESS_KEY_ID).orElse(null));
@@ -67,12 +68,23 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
                                     .build();
         }
 
-        return StringUtils.isBlank(sessionToken) ? AwsBasicCredentials.create(accessKey, secretKey)
-                                                 : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
+        return StringUtils.isBlank(sessionToken) ? AwsBasicCredentials.builder()
+                                                                      .accessKeyId(accessKey)
+                                                                      .secretAccessKey(secretKey)
+                                                                      .provider(provider())
+                                                                      .build()
+                                                 : AwsSessionCredentials.builder()
+                                                                        .accessKeyId(accessKey)
+                                                                        .secretAccessKey(secretKey)
+                                                                        .sessionToken(sessionToken)
+                                                                        .provider(provider())
+                                                                        .build();
     }
 
     /**
      * Implemented by child classes to load the requested setting.
      */
     protected abstract Optional<String> loadSetting(SystemSetting setting);
+
+    protected abstract String provider();
 }

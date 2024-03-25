@@ -98,6 +98,8 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
 
     protected abstract ResponseT callClient(StsClient client, RequestT request);
 
+    protected abstract String providerName();
+
     public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider, boolean overrideStaleAndPrefetchTimes) {
         Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();
         RequestT request = getRequest();
@@ -129,6 +131,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
                 assertThat(providedCredentials.accessKeyId()).isEqualTo("a");
                 assertThat(providedCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(providedCredentials.sessionToken()).isEqualTo("c");
+                assertThat(providedCredentials.provider()).isPresent().contains(providerName());
             }
         }
     }

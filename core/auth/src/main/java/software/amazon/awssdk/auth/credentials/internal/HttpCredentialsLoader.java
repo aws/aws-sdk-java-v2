@@ -45,11 +45,14 @@ public final class HttpCredentialsLoader {
 
     private static final Pattern TRAILING_ZERO_OFFSET_TIME_PATTERN = Pattern.compile("\\+0000$");
 
-    private HttpCredentialsLoader() {
+    private final String providerName;
+
+    private HttpCredentialsLoader(String providerName) {
+        this.providerName = providerName;
     }
 
-    public static HttpCredentialsLoader create() {
-        return new HttpCredentialsLoader();
+    public static HttpCredentialsLoader create(String providerName) {
+        return new HttpCredentialsLoader(providerName);
     }
 
     public LoadedCredentials loadCredentials(ResourcesEndpointProvider endpoint) {
@@ -68,7 +71,8 @@ public final class HttpCredentialsLoader {
             return new LoadedCredentials(accessKey.text(),
                                          secretKey.text(),
                                          token != null ? token.text() : null,
-                                         expiration != null ? expiration.text() : null);
+                                         expiration != null ? expiration.text() : null,
+                                         providerName);
         } catch (SdkClientException e) {
             throw e;
         } catch (RuntimeException | IOException e) {
@@ -84,20 +88,29 @@ public final class HttpCredentialsLoader {
         private final String secretKey;
         private final String token;
         private final Instant expiration;
+        private final String providerName;
 
-        private LoadedCredentials(String accessKeyId, String secretKey, String token, String expiration) {
+        private LoadedCredentials(String accessKeyId, String secretKey, String token, String expiration, String providerName) {
             this.accessKeyId = Validate.paramNotBlank(accessKeyId, "accessKeyId");
             this.secretKey = Validate.paramNotBlank(secretKey, "secretKey");
             this.token = token;
             this.expiration = expiration == null ? null : parseExpiration(expiration);
+            this.providerName = providerName;
         }
 
         public AwsCredentials getAwsCredentials() {
-            if (token == null) {
-                return AwsBasicCredentials.create(accessKeyId, secretKey);
-            } else {
-                return AwsSessionCredentials.create(accessKeyId, secretKey, token);
-            }
+            return token != null ?
+                   AwsSessionCredentials.builder()
+                                        .accessKeyId(accessKeyId)
+                                        .secretAccessKey(secretKey)
+                                        .sessionToken(token)
+                                        .provider(providerName)
+                                        .build() :
+                   AwsBasicCredentials.builder()
+                                      .accessKeyId(accessKeyId)
+                                      .secretAccessKey(secretKey)
+                                      .provider(providerName)
+                                      .build();
         }
 
         public Optional<Instant> getExpiration() {
