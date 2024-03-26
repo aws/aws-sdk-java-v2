@@ -257,6 +257,8 @@ how Lombok's 'onMethod' feature is leveraged to copy the attribute based DynamoD
     }
 ```
 
+The third-party Immutables library also has a [guide](https://immutables.github.io/dynamodb.html) for generating `@DynamoDBImmutable` classes.
+
 ### Non-blocking asynchronous operations
 If your application requires non-blocking asynchronous calls to
 DynamoDb, then you can use the asynchronous implementation of the
