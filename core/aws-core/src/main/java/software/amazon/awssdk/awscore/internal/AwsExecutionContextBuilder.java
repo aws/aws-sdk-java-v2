@@ -19,6 +19,7 @@ import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResol
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 
 import java.util.Map;
+import java.util.TreeMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -184,21 +185,32 @@ public final class AwsExecutionContextBuilder {
                                                           SdkClientConfiguration clientConfig,
                                                           SdkRequest originalRequest) {
 
-        // TODO(sra-identity-and-auth): When request-level auth scheme provider is added, use the request-level auth scheme
-        //  provider if the customer specified an override, otherwise fall back to the one on the client.
-        AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
+        // Use auth scheme provider that the user specified at the request level with
+        // preference over that which is configured on the client.
+        AuthSchemeProvider authSchemeProvider =
+            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER)
+                               .orElseGet(() -> clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER));
 
         // Use auth schemes that the user specified at the request level with
         // preference over those on the client.
-        // TODO(sra-identity-and-auth): The request level schemes should be "merged" with client level, with request preferred
-        //  over client.
-        Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
+        Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
+        Map<String, AuthScheme<?>> clientAuthSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
+        Map<String, AuthScheme<?>> mergedAuthSchemes = new TreeMap<>();
+
+        if (authSchemes == null) {
+            mergedAuthSchemes = clientAuthSchemes;
+        } else if (clientAuthSchemes == null) {
+            mergedAuthSchemes = authSchemes;
+        } else {
+            mergedAuthSchemes.putAll(authSchemes);
+            mergedAuthSchemes.putAll(clientAuthSchemes);
+        }
 
         IdentityProviders identityProviders = resolveIdentityProviders(originalRequest, clientConfig);
 
         executionAttributes
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
-            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes)
+            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, mergedAuthSchemes)
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
     }
 
