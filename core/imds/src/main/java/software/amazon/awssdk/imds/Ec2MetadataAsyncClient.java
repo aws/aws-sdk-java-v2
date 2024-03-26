@@ -18,7 +18,9 @@ package software.amazon.awssdk.imds;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2MetadataAsyncClient;
@@ -56,6 +58,8 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * <br/>Note: A single client instance should be reused for multiple requests when possible.
  */
 @SdkPublicApi
+@ThreadSafe
+@Immutable
 public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
 
     /**

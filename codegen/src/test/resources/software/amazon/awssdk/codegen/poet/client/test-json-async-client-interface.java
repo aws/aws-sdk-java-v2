@@ -53,7 +53,9 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 
 /**
  * Service client for accessing Json Service asynchronously. This can be created using the static {@link #builder()}
- * method.
+ * method.The asynchronous client performs non-blocking I/O when configured with any {@link SdkAsyncHttpClient}
+ * supported in the SDK. However, full non-blocking is not guaranteed as the async client may perform blocking calls in
+ * some cases such as credentials retrieval and endpoint discovery as part of the async API call.
  *
  * A service that is implemented using the query protocol
  */
