@@ -1,4 +1,72 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.18__ __2024-03-26__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Adds support for backfill of cost allocation tags, with new StartCostAllocationTagBackfill and ListCostAllocationTagBackfillHistory API.
+
+## __AWS S3__
+  - ### Features
+    - allow user to configure subscriber timeout for input stream
+        - Contributed by: [@benarnao](https://github.com/benarnao)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support to customize prompts sent through the RetrieveAndGenerate API in Agents for Amazon Bedrock.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation update for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Add new operation delete-kx-cluster-node and add status parameter to list-kx-cluster-node operation.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@benarnao](https://github.com/benarnao)
+# __2.25.17__ __2024-03-25__
+## __AWS CodeBuild__
+  - ### Features
+    - Supporting GitLab and GitLab Self Managed as source types in AWS CodeBuild.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Exposing TileMedia H265 options
+
+## __AWS Global Accelerator__
+  - ### Features
+    - AWS Global Accelerator now supports cross-account sharing for bring your own IP addresses.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Support creating an `SdkPublisher` from an `Iterable`
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This release increases the number of supported job template parameters from 20 to 100.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for ModifyInstanceMetadataDefaults and GetInstanceMetadataDefaults to set Instance Metadata Service account defaults
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for the following new instance types on SageMaker Studio for JupyterLab and CodeEditor applications: m6i, m6id, m7i, c6i, c6id, c7i, r6i, r6id, r7i, and p5
+
 # __2.25.16__ __2024-03-22__
 ## __AWS Price List Service__
   - ### Features
