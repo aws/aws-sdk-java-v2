@@ -31,9 +31,9 @@ import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.async.InputStreamSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
@@ -87,8 +87,10 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     @Override
     public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
         if (inputStreamSubscriber == null) {
-            inputStreamSubscriber = new AbortableInputStreamSubscriber(() -> responseHandlerHelper.closeConnection(stream),
-                                                                       new InputStreamSubscriber());
+            inputStreamSubscriber =
+                AbortableInputStreamSubscriber.builder()
+                                              .doAfterClose(() -> responseHandlerHelper.closeConnection(stream))
+                                              .build();
             simplePublisher.subscribe(inputStreamSubscriber);
             // For response with a payload, we need to complete the future here to allow downstream to retrieve the data from
             // the stream directly.

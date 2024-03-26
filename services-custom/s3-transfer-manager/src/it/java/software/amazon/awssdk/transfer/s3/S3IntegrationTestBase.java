@@ -68,7 +68,9 @@ public class S3IntegrationTestBase extends AwsTestBase {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
-        s3Async = s3AsyncClientBuilder().build();
+        s3Async = s3AsyncClientBuilder()
+            .multipartEnabled(true)
+            .build();
         s3CrtAsync = S3CrtAsyncClient.builder()
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .region(DEFAULT_REGION)

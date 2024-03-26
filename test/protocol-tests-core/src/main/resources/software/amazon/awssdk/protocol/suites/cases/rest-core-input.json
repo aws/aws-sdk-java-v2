@@ -442,6 +442,11 @@
     },
     "then": {
       "serializedAs": {
+        "headers": {
+          "contains": {
+            "content-length": "8"
+          }
+        },
         "body": {
           "equals": "contents"
         }

@@ -19,7 +19,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.24.3-SNAPSHOT</version>
+        <version>2.25.18-SNAPSHOT</version>
     </parent>
     <artifactId>services-custom</artifactId>
     <name>AWS Java SDK :: Custom Services</name>
@@ -31,6 +31,7 @@
         <module>dynamodb-enhanced</module>
         <module>s3-transfer-manager</module>
         <module>iam-policy-builder</module>
+        <module>s3-event-notifications</module>
     </modules>
 
     <dependencyManagement>

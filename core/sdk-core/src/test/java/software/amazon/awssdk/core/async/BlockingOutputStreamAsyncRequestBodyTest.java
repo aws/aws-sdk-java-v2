@@ -50,9 +50,9 @@ class BlockingOutputStreamAsyncRequestBodyTest {
 
     @Test
     @Timeout(10)
-    public void outputStream_failsIfSubscriptionNeverComes()  {
+    public void outputStream_overrideSubscribeTimeout_failsIfSubscriptionNeverComes()  {
         BlockingOutputStreamAsyncRequestBody requestBody =
-            new BlockingOutputStreamAsyncRequestBody(0L, Duration.ofSeconds(1));
+            BlockingOutputStreamAsyncRequestBody.builder().contentLength(0L).subscribeTimeout(Duration.ofSeconds(1)).build();
         assertThatThrownBy(requestBody::outputStream).hasMessageContaining("The service request was not made");
     }
 
