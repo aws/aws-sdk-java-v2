@@ -133,11 +133,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         CompletableFuture<Response<OutputT>> responseHandlerFuture = responseHandler.prepare();
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
-                                                  ? new SimpleHttpContentPublisher(
-                                                      request)
-                                                  : new SdkHttpContentPublisherAdapter(
-                                                      context.requestProvider());
-
+                                                  ? new SimpleHttpContentPublisher(request)
+                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider());
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
