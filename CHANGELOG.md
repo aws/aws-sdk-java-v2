@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.18__ __2024-03-26__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Adds support for backfill of cost allocation tags, with new StartCostAllocationTagBackfill and ListCostAllocationTagBackfillHistory API.
+
+## __AWS S3__
+  - ### Features
+    - allow user to configure subscriber timeout for input stream
+        - Contributed by: [@benarnao](https://github.com/benarnao)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support to customize prompts sent through the RetrieveAndGenerate API in Agents for Amazon Bedrock.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation update for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Add new operation delete-kx-cluster-node and add status parameter to list-kx-cluster-node operation.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@benarnao](https://github.com/benarnao)
 # __2.25.17__ __2024-03-25__
 ## __AWS CodeBuild__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3",
-    "contributor": "benarnao",
-    "description": "allow user to configure subscriber timeout for input stream"
-}
