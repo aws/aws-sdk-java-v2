@@ -42,11 +42,14 @@ public final class AsyncExecutionFailureExceptionReportingStage<OutputT>
         CompletableFuture<OutputT> executeFuture = wrappedExecute.handle((o, t) -> {
             if (t != null) {
                 Throwable toReport = t;
-
                 if (toReport instanceof CompletionException) {
                     toReport = toReport.getCause();
                 }
                 toReport = reportFailureToInterceptors(context, toReport);
+
+                context.executionContext().progressUpdater().ifPresent(progressUpdater -> {
+                    progressUpdater.attemptFailure(t);
+                });
 
                 throw CompletableFutureUtils.errorAsCompletionException(ThrowableUtils.asSdkException(toReport));
             } else {

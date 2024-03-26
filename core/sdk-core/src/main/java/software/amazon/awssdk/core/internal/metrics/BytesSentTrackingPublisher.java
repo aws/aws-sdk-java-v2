@@ -23,43 +23,52 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
-/**
- * Publisher that tracks how many bytes are published from the wrapped publisher to the downstream subscriber.
- */
 @SdkInternalApi
-public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
-    private final Publisher<ByteBuffer> upstream;
-    private final AtomicLong bytesRead;
-    private ProgressUpdater progressUpdater;
+public class BytesSentTrackingPublisher implements SdkHttpContentPublisher {
 
-    public BytesReadTrackingPublisher(Publisher<ByteBuffer> upstream, AtomicLong bytesRead,
-                                      Optional<ProgressUpdater> progressUpdater) {
+    private final Publisher<ByteBuffer> upstream;
+    private final AtomicLong bytesSent;
+    private ProgressUpdater progressUpdater;
+    private Long contentLength;
+
+    public BytesSentTrackingPublisher(Publisher<ByteBuffer> upstream,
+                                      ProgressUpdater progressUpdater,
+                                      Optional<Long> contentLength) {
         this.upstream = upstream;
-        this.bytesRead = bytesRead;
-        progressUpdater.ifPresent(value -> {
-            this.progressUpdater = value;
+        this.bytesSent = new AtomicLong(0L);
+        this.progressUpdater = progressUpdater;
+        contentLength.ifPresent(value -> {
+            this.contentLength = value;
         });
     }
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-        upstream.subscribe(new BytesReadTracker(subscriber, bytesRead, progressUpdater));
+        upstream.subscribe(new BytesSentTrackingPublisher.BytesSentTracker(subscriber,
+                                                                           bytesSent,
+                                                                           progressUpdater));
     }
 
-    public long bytesRead() {
-        return bytesRead.get();
+    public long bytesSent() {
+        return bytesSent.get();
     }
 
-    private static final class BytesReadTracker implements Subscriber<ByteBuffer> {
+    @Override
+    public Optional<Long> contentLength() {
+        return Optional.ofNullable(contentLength);
+    }
+
+    private static final class BytesSentTracker implements Subscriber<ByteBuffer> {
         private final Subscriber<? super ByteBuffer> downstream;
-        private final AtomicLong bytesRead;
+        private final AtomicLong bytesSent;
         private final ProgressUpdater progressUpdater;
 
-        private BytesReadTracker(Subscriber<? super ByteBuffer> downstream,
-                                 AtomicLong bytesRead, ProgressUpdater progressUpdater) {
+        private BytesSentTracker(Subscriber<? super ByteBuffer> downstream, AtomicLong bytesSent,
+                                 ProgressUpdater progressUpdater) {
             this.downstream = downstream;
-            this.bytesRead = bytesRead;
+            this.bytesSent = bytesSent;
             this.progressUpdater = progressUpdater;
         }
 
@@ -67,16 +76,16 @@ public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
         public void onSubscribe(Subscription subscription) {
             downstream.onSubscribe(subscription);
             if (progressUpdater != null) {
-                progressUpdater.resetBytesReceived();
+                progressUpdater.resetBytesSent();
             }
         }
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            bytesRead.addAndGet(byteBuffer.remaining());
             downstream.onNext(byteBuffer);
+            bytesSent.addAndGet(byteBuffer.remaining());
             if (progressUpdater != null) {
-                progressUpdater.incrementBytesReceived(bytesRead.get());
+                progressUpdater.incrementBytesSent(bytesSent.get());
             }
         }
 

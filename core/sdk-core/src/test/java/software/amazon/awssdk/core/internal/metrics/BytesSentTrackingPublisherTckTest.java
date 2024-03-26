@@ -21,21 +21,23 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 
-/**
- * TCK verification class for {@link BytesReadTrackingPublisher}.
- */
-public class BytesReadTrackingPublisherTckTest extends PublisherVerification<ByteBuffer> {
-    public BytesReadTrackingPublisherTckTest() {
+public class BytesSentTrackingPublisherTckTest extends PublisherVerification<ByteBuffer> {
+
+    ProgressUpdater progressUpdater = Mockito.mock(ProgressUpdater.class);
+
+    public BytesSentTrackingPublisherTckTest() {
         super(new TestEnvironment());
     }
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new BytesReadTrackingPublisher(createUpstreamPublisher(l), new AtomicLong(0), Optional.empty());
+        return new BytesSentTrackingPublisher(createUpstreamPublisher(l), progressUpdater, Optional.empty());
     }
 
     @Override

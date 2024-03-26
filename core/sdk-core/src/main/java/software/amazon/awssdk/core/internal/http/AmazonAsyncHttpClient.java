@@ -46,6 +46,8 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmu
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.PostExecutionUpdateProgressStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.PreExecutionUpdateProgressStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.QueryParametersToBodyStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
@@ -201,12 +203,14 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(() -> new HttpChecksumStage(ClientType.ASYNC))
                                 .then(MakeRequestImmutableStage::new)
                                 .then(RequestPipelineBuilder
-                                        .first(AsyncSigningStage::new)
+                                        .first(PreExecutionUpdateProgressStage::new)
+                                        .then(AsyncSigningStage::new)
                                         .then(AsyncBeforeTransmissionExecutionInterceptorsStage::new)
                                         .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, d))
                                         .wrappedWith(AsyncApiCallAttemptMetricCollectionStage::new)
                                         .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps, wrapped))
                                         .then(async(() -> new UnwrapResponseContainer<>()))
+                                        .then(() -> new PostExecutionUpdateProgressStage<>())
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
                                         .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)
