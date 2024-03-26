@@ -75,8 +75,8 @@ class UserAgentProviderTest {
 
     private static Stream<Arguments> credentialProviders() {
         return Stream.of(
-            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), "STAT"),
-            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), "STAT")
+            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), "stat"),
+            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), "stat")
         );
     }
 

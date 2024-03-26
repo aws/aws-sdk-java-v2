@@ -44,9 +44,8 @@ public final class AwsBasicCredentials implements AwsCredentials,
                                                   ToCopyableBuilder<AwsBasicCredentials.Builder, AwsBasicCredentials> {
     /**
      * A set of AWS credentials without an access key or secret access key, indicating that anonymous access should be used.
-     *
-     * This should be accessed via {@link AnonymousCredentialsProvider#resolveCredentials()}.
      */
+    // TODO(sra-identity-and-auth): Check if this static member can be removed after cleanup
     @SdkInternalApi
     static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = builder().validateCredentials(false).build();
 

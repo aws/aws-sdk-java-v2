@@ -131,10 +131,13 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_queriesTokenResource_includesTokenInCredentialsRequests() {
+    public void resolveCredentials_usesTokenByDefault() {
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-        provider.resolveCredentials();
+        AwsCredentials credentials = provider.resolveCredentials();
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.provider()).isPresent().contains("InstanceProfileCredentialsProvider");
         verifyImdsCallWithToken();
     }
 
