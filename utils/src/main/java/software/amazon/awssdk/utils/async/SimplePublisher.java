@@ -278,7 +278,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
 
                         OnErrorQueueEntry<T> onErrorEntry = (OnErrorQueueEntry<T>) entry;
                         failureMessage.trySet(() -> new IllegalStateException("onError() was already invoked.",
-                                                                             onErrorEntry.failure));
+                                                                              onErrorEntry.failure));
                         log.trace(() -> "Calling onError() with " + onErrorEntry.failure, onErrorEntry.failure);
                         subscriber.onError(onErrorEntry.failure);
                         break;

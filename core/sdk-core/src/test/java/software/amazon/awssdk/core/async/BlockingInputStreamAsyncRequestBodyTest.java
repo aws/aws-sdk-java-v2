@@ -47,9 +47,9 @@ class BlockingInputStreamAsyncRequestBodyTest {
 
     @Test
     @Timeout(10)
-    public void doBlockingWrite_failsIfSubscriptionNeverComes()  {
+    public void doBlockingWrite_overrideSubscribeTimeout_failsIfSubscriptionNeverComes()  {
         BlockingInputStreamAsyncRequestBody requestBody =
-            new BlockingInputStreamAsyncRequestBody(0L, Duration.ofSeconds(1));
+            BlockingInputStreamAsyncRequestBody.builder().contentLength(0L).subscribeTimeout(Duration.ofSeconds(1)).build();
         assertThatThrownBy(() -> requestBody.writeInputStream(new StringInputStream("")))
             .hasMessageContaining("The service request was not made");
     }

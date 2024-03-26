@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.24.3-SNAPSHOT</version>
+    <version>2.25.18-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -88,6 +88,7 @@
         <module>test/ruleset-testing-core</module>
         <module>test/old-client-version-compatibility-test</module>
         <module>test/bundle-logging-bridge-binding-test</module>
+        <module>test/crt-unavailable-tests</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
@@ -95,7 +96,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.24.2</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.25.17</awsjavasdk.previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
@@ -108,7 +109,7 @@
         <equalsverifier.version>3.15.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
-        <netty.version>4.1.100.Final</netty.version>
+        <netty.version>4.1.107.Final</netty.version>
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -656,6 +657,7 @@
                             <includeModule>dynamodb-enhanced</includeModule>
                             <includeModule>s3-transfer-manager</includeModule>
                             <includeModule>iam-policy-builder</includeModule>
+                            <includeModule>s3-event-notifications</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
                             <includeModule>s3</includeModule>
@@ -805,7 +807,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
-                <javadoc.skip>true</javadoc.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
             </properties>
         </profile>
 
@@ -822,7 +824,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
-                <javadoc.skip>true</javadoc.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -872,7 +874,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
-                <javadoc.skip>true</javadoc.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -917,7 +919,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
-                <javadoc.skip>true</javadoc.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -956,7 +958,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
-                <javadoc.skip>true</javadoc.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -1002,7 +1004,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
-                <javadoc.skip>true</javadoc.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
             </properties>
             <build>
                 <plugins>

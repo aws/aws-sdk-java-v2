@@ -43,9 +43,12 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.RdsClient;
-import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
-import software.amazon.awssdk.services.rds.model.RdsRequest;
-import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
+import software.amazon.awssdk.services.rds.RdsClientBuilder;
+import software.amazon.awssdk.services.rds.RdsServiceClientConfiguration;
+import software.amazon.awssdk.services.rds.auth.scheme.RdsAuthSchemeProvider;
+import software.amazon.awssdk.services.rds.model.CopyDbClusterSnapshotRequest;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Unit Tests for {@link RdsPresignInterceptor}
@@ -141,50 +144,49 @@ public class PresignRequestHandlerTest {
 
         final SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
 
-        final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
-        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
+        private TestCaseBuilder shouldContainPreSignedUrl(Boolean value) {
+            this.shouldContainPreSignedUrl = value;
+            return this;
+        }
 
+        private TestCaseBuilder expectedDestinationRegion(String value) {
+            this.expectedDestinationRegion = value;
+            return this;
+        }
+
+        public TestCaseBuilder signingClockOverride(Clock signingClockOverride) {
+            this.signingClockOverride = signingClockOverride;
+            return this;
+        }
+
+        public TestCaseBuilder expectedUri(String expectedUri) {
+            this.expectedUri = expectedUri;
+            return this;
+        }
+
+        public TestCase build() {
+            return new TestCase(this);
+        }
     }
 
-    @Test
-    public void testSourceRegionRemovedFromOriginalRequest() {
-        CopyDbSnapshotRequest request = makeTestRequest();
-        SdkHttpFullRequest marshalled = marshallRequest(request);
-        SdkHttpRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
+    static class CapturingInterceptor implements ExecutionInterceptor {
+        private static final RuntimeException BOOM = new RuntimeException("boom!");
+        private Context.BeforeTransmission context;
+        private ExecutionAttributes executionAttributes;
 
-        assertFalse(actual.rawQueryParameters().containsKey("SourceRegion"));
-    }
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            this.context = context;
+            this.executionAttributes = executionAttributes;
+            throw BOOM;
+        }
 
-    private SdkHttpFullRequest marshallRequest(CopyDbSnapshotRequest request) {
-        SdkHttpFullRequest.Builder marshalled = marshaller.marshall(request).toBuilder();
+        public ExecutionAttributes executionAttributes() {
+            return executionAttributes;
+        }
 
-        URI endpoint = new DefaultServiceEndpointBuilder("rds", Protocol.HTTPS.toString())
-                          .withRegion(DESTINATION_REGION)
-                          .getServiceEndpoint();
-        return marshalled.uri(endpoint).build();
-    }
-
-    private ExecutionAttributes executionAttributes() {
-        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION)
-                                        .putAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER,
-                                                      ProfileFile::defaultProfileFile)
-                                        .putAttribute(SdkExecutionAttribute.PROFILE_NAME, "default");
-    }
-
-    private CopyDbSnapshotRequest makeTestRequest() {
-        return CopyDbSnapshotRequest.builder()
-                .sourceDBSnapshotIdentifier("arn:aws:rds:us-east-1:123456789012:snapshot:rds:test-instance-ss-2016-12-20-23-19")
-                .targetDBSnapshotIdentifier("test-instance-ss-copy-2")
-                .sourceRegion("us-east-1")
-                .kmsKeyId("arn:aws:kms:us-west-2:123456789012:key/11111111-2222-3333-4444-555555555555")
-                .build();
-    }
-
-    private SdkHttpRequest modifyHttpRequest(ExecutionInterceptor interceptor,
-                                             RdsRequest request,
-                                             SdkHttpFullRequest httpRequest) {
-        InterceptorContext context = InterceptorContext.builder().request(request).httpRequest(httpRequest).build();
-        return interceptor.modifyHttpRequest(context, executionAttributes());
+        public SdkHttpRequest httpRequest() {
+            return context.httpRequest();
+        }
     }
 }

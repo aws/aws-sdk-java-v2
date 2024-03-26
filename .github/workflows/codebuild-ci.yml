@@ -1,10 +1,6 @@
 name: AWS CodeBuild CI
 on:
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '.all-contributorsrc'
-      - 'docs/**'
   push:
     branches:
       - master

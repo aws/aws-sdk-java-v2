@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -117,6 +118,14 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                 .add(() -> String.format("'%s' does not have an identity provider configured.", authOption.schemeId()));
             return null;
         }
+        HttpSigner<T> signer;
+        try {
+            signer = authScheme.signer();
+        } catch (RuntimeException e) {
+            discardedReasons.add(() -> String.format("'%s' signer could not be retrieved: %s", authOption.schemeId(),
+                                                     e.getMessage()));
+            return null;
+        }
         ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
         authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
         CompletableFuture<? extends T> identity;
@@ -127,7 +136,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
             identity = MetricUtils.reportDuration(() -> identityProvider.resolveIdentity(identityRequestBuilder.build()),
                                                   metricCollector, metric);
         }
-        return new SelectedAuthScheme<>(identity, authScheme.signer(), authOption);
+        return new SelectedAuthScheme<>(identity, signer, authOption);
     }
 
     private SdkMetric<Duration> getIdentityMetric(IdentityProvider<?> identityProvider) {
