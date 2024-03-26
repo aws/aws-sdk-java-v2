@@ -116,6 +116,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
 
             // Wait for it to become ACTIVE.
             List<Shard> shards = waitForStream(streamName);
+            Thread.sleep(1000);
 
             Assert.assertEquals(1, shards.size());
             Shard shard = shards.get(0);
