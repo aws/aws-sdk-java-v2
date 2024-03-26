@@ -101,7 +101,7 @@ import software.amazon.awssdk.utils.Validate;
  * <p>This can be created via {@link #builder()}</p>
  */
 @SdkPublicApi
-public final class ApacheHttpClient implements SdkHttpClient {
+public class ApacheHttpClient implements SdkHttpClient {
 
     public static final String CLIENT_NAME = "Apache";
 
@@ -140,11 +140,15 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return new DefaultBuilder().build();
     }
 
+    protected HttpClientBuilder createHttpClientBuidler() {
+        return HttpClients.custom();
+    }
+
     private ConnectionManagerAwareHttpClient createClient(ApacheHttpClient.DefaultBuilder configuration,
                                                           AttributeMap standardOptions) {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
-        HttpClientBuilder builder = HttpClients.custom();
+        HttpClientBuilder builder = this.createHttpClientBuidler();
         // Note that it is important we register the original connection manager with the
         // IdleConnectionReaper as it's required for the successful deregistration of managers
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
