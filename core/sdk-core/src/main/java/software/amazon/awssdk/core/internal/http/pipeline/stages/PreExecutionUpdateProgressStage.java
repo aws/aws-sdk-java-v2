@@ -34,11 +34,10 @@ public class PreExecutionUpdateProgressStage implements RequestToRequestPipeline
                 context.requestProvider().contentLength().get() : null;
 
             if (context.executionContext().progressUpdater().isPresent()) {
-                context.executionContext().progressUpdater().get().requestPrepared();
-            }
-            else {
+                context.executionContext().progressUpdater().get().requestPrepared(input);
+            } else {
                 ProgressUpdater progressUpdater = new ProgressUpdater(context.originalRequest(), requestContentLength);
-                progressUpdater.requestPrepared();
+                progressUpdater.requestPrepared(input);
                 context.executionContext().toBuilder().progressUpdater(progressUpdater);
             }
         }

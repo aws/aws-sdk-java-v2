@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -32,48 +31,29 @@ import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-/**
- * Functional tests for {@link BytesReadTrackingPublisher}.
- */
-public class BytesReadTrackingPublisherTest {
+public class BytesSentTrackingPublisherTest {
 
     @Test
-    public void test_requestAll_calculatesCorrectTotal() {
-        long nElements = 1024;
-        int elementSize = 4;
-        Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0), Optional.empty());
-        readFully(trackingPublisher);
-
-        assertThat(trackingPublisher.bytesRead()).isEqualTo(nElements * elementSize);
-    }
-
-    @Test
-    public void test_requestAll_updatesInputCount() {
-        long nElements = 8;
-        int elementSize = 2;
-
-        long baseBytesRead = 1024;
-        AtomicLong bytesRead = new AtomicLong(baseBytesRead);
-
-        Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, Optional.empty());
-        readFully(trackingPublisher);
-
-        long expectedRead = baseBytesRead + nElements * elementSize;
-        assertThat(bytesRead.get()).isEqualTo(expectedRead);
-        assertThat(trackingPublisher.bytesRead()).isEqualTo(expectedRead);
-    }
-
-    @Test
-    public void test_progressUpdater_invokes_incrementBytesReceived() {
+    public void test_updatesBytesSent() {
         int nElements = 8;
         int elementSize = 2;
 
-        long baseBytesRead = 1024;
-        AtomicLong bytesRead = new AtomicLong(baseBytesRead);
+        ProgressUpdater progressUpdater = Mockito.mock(ProgressUpdater.class);
+
+        Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
+        BytesSentTrackingPublisher trackingPublisher = new BytesSentTrackingPublisher(upstreamPublisher, progressUpdater, Optional.empty());
+        readFully(trackingPublisher);
+
+        long expectedSent = nElements * elementSize;
+
+        assertThat(trackingPublisher.bytesSent()).isEqualTo(expectedSent);
+    }
+
+    @Test
+    public void test_progressUpdater_invokes_incrementBytesSent() {
+        int nElements = 8;
+        int elementSize = 2;
 
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);
 
@@ -88,10 +68,13 @@ public class BytesReadTrackingPublisherTest {
         ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        Publisher<ByteBuffer> trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, Optional.of(progressUpdater));
+        BytesSentTrackingPublisher trackingPublisher = new BytesSentTrackingPublisher(upstreamPublisher, progressUpdater, Optional.empty());
         readFully(trackingPublisher);
 
-        Mockito.verify(progressListener, Mockito.times(nElements)).responseBytesReceived(ArgumentMatchers.any());
+        long expectedSent = nElements * elementSize;
+
+        assertThat(trackingPublisher.bytesSent()).isEqualTo(expectedSent);
+        Mockito.verify(progressListener, Mockito.times(nElements)).requestBytesSent(ArgumentMatchers.any());
     }
 
     private Publisher<ByteBuffer> createUpstreamPublisher(long elements, int elementSize) {
@@ -104,3 +87,4 @@ public class BytesReadTrackingPublisherTest {
         Flowable.fromPublisher(publisher).toList().blockingGet();
     }
 }
+

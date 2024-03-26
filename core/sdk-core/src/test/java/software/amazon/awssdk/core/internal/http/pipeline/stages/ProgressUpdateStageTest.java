@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.net.URI;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;

@@ -22,7 +22,6 @@ import java.util.Optional;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.IoUtils;
@@ -37,15 +36,10 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
     private final byte[] content;
     private final int length;
 
-    private ProgressUpdater progressUpdater;
-
-    public SimpleHttpContentPublisher(SdkHttpFullRequest request, Optional<ProgressUpdater> progressUpdater) {
+    public SimpleHttpContentPublisher(SdkHttpFullRequest request) {
         this.content = request.contentStreamProvider().map(p -> invokeSafely(() -> IoUtils.toByteArray(p.newStream())))
                                                       .orElseGet(() -> new byte[0]);
         this.length = content.length;
-        progressUpdater.ifPresent(value -> {
-            this.progressUpdater = value;
-        });
     }
 
     @Override
@@ -55,21 +49,15 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
-        s.onSubscribe(new SubscriptionImpl(s,
-                                           Optional.ofNullable(progressUpdater)));
+        s.onSubscribe(new SubscriptionImpl(s));
     }
 
     private class SubscriptionImpl implements Subscription {
         private boolean running = true;
         private final Subscriber<? super ByteBuffer> s;
-        private ProgressUpdater progressUpdater;
 
-        private SubscriptionImpl(Subscriber<? super ByteBuffer> s,
-                                 Optional<ProgressUpdater> progressUpdater) {
+        private SubscriptionImpl(Subscriber<? super ByteBuffer> s) {
             this.s = s;
-            progressUpdater.ifPresent(value -> {
-                this.progressUpdater = value;
-            });
         }
 
         @Override
@@ -80,9 +68,6 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
                     s.onError(new IllegalArgumentException("Demand must be positive"));
                 } else {
                     s.onNext(ByteBuffer.wrap(content));
-                    if(progressUpdater != null) {
-                        progressUpdater.incrementBytesSent(content.length);
-                    }
                     s.onComplete();
                 }
             }
