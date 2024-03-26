@@ -4,7 +4,7 @@
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-106-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-107-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -320,14 +320,15 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/michaeldimchuk"><img src="https://avatars.githubusercontent.com/u/22773297?v=4?s=100" width="100px;" alt="Michael Dimchuk"/><br /><sub><b>Michael Dimchuk</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=michaeldimchuk" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/faucct"><img src="https://avatars.githubusercontent.com/u/5202503?v=4?s=100" width="100px;" alt="Nikita Sokolov"/><br /><sub><b>Nikita Sokolov</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=faucct" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/anirudh9391"><img src="https://avatars.githubusercontent.com/u/15699250?v=4?s=100" width="100px;" alt="Anirudh"/><br /><sub><b>Anirudh</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=anirudh9391" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/sugmanue"><img src="https://avatars.githubusercontent.com/u/108146565?v=4?s=100" width="100px;" alt="Manuel Sugawara"/><br /><sub><b>Manuel Sugawara</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=sugmanue" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/anirudh9391"><img src="https://avatars.githubusercontent.com/u/15699250?v=4?s=100" width="100px;" alt="Anirudh"/><br /><sub><b>Anirudh</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=anirudh9391" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/haydenbaker"><img src="https://avatars.githubusercontent.com/u/26096419?v=4?s=100" width="100px;" alt="Hayden Baker"/><br /><sub><b>Hayden Baker</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=haydenbaker" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/gosar"><img src="https://avatars.githubusercontent.com/u/5666661?v=4?s=100" width="100px;" alt="Jaykumar Gosar"/><br /><sub><b>Jaykumar Gosar</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=gosar" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/graebm"><img src="https://avatars.githubusercontent.com/u/24399397?v=4?s=100" width="100px;" alt="Michael Graeb"/><br /><sub><b>Michael Graeb</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=graebm" title="Code">💻</a></td>
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mgrundie-r7"><img src="https://avatars.githubusercontent.com/u/103498312?v=4?s=100" width="100px;" alt="Michael Grundie"/><br /><sub><b>Michael Grundie</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=mgrundie-r7" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/akidambisrinivasan"><img src="https://avatars.githubusercontent.com/u/129209066?v=4?s=100" width="100px;" alt="Aravinda Kidambi Srinivasan"/><br /><sub><b>Aravinda Kidambi Srinivasan</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=akidambisrinivasan" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
