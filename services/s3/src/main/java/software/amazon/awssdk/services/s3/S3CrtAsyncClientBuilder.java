@@ -322,10 +322,12 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      *     <li>You want more fine-grained control over the {@link ThreadPoolExecutor} used, such as configuring the pool size
      *     or sharing a single pool between multiple clients.
      *     <li>You want to add instrumentation (i.e., metrics) around how the {@link Executor} is used.
-     *     <li>You know, for certain, that all of your {@link CompletableFuture} usage is strictly non-blocking, and you wish to
-     *     remove the minor overhead incurred by using a separate thread. In this case, you can use
-     *     {@code Runnable::run} to execute the future-completion directly from within the I/O thread.
      * </ol>
+     * <p>
+     * <b>WARNING</b>
+     * We strongly <strong>discourage</strong> using {@code Runnable::run}, which executes the future-completion directly from
+     * within the I/O thread because it may block the I/O thread and cause deadlock, especially if you are sending
+     * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
      *
      * @param futureCompletionExecutor the executor
      * @return an instance of this builder.
