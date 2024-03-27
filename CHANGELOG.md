@@ -1,4 +1,42 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.19__ __2024-03-27__
+## __AWS Batch__
+  - ### Features
+    - This feature allows AWS Batch to support configuration of imagePullSecrets and allowPrivilegeEscalation for jobs running on EKS
+
+## __AWS SDK For Java v2__
+  - ### Bugfixes
+    - Remediate CVE-2024-29025 by updating netty version
+        - Contributed by: [@FatalEnigma](https://github.com/FatalEnigma)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This changes introduces metadata documents statistics and also updates the documentation for bedrock agent.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces filtering support on Retrieve and RetrieveAndGenerate APIs.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added minimum capacity to Amazon ElastiCache Serverless. This feature allows customer to ensure minimum capacity even without current load
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Set a limit on the number of concurrent upload file requests for upload directory. This fixes the OOM issue that could surface when users try to upload a directory that has millions of small files. See [#5023](https://github.com/aws/aws-sdk-java-v2/issues/5023).
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@FatalEnigma](https://github.com/FatalEnigma)
 # __2.25.18__ __2024-03-26__
 ## __AWS Cost Explorer Service__
   - ### Features
