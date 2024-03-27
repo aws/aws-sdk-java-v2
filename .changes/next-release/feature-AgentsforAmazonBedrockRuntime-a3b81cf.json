@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agents for Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "This release introduces filtering support on Retrieve and RetrieveAndGenerate APIs."
+}
