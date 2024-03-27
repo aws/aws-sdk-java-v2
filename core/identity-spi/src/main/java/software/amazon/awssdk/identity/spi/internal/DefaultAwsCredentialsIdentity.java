@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi.internal;
 
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
@@ -26,10 +27,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
 
     private final String accessKeyId;
     private final String secretAccessKey;
+    private final String provider;
 
     private DefaultAwsCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
+        this.provider = builder.provider;
 
         Validate.paramNotNull(accessKeyId, "accessKeyId");
         Validate.paramNotNull(secretAccessKey, "secretAccessKey");
@@ -50,9 +53,15 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     }
 
     @Override
+    public Optional<String> provider() {
+        return Optional.ofNullable(provider);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("AwsCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
+                       .add("provider", provider)
                        .build();
     }
 
@@ -80,6 +89,7 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     private static final class Builder implements AwsCredentialsIdentity.Builder {
         private String accessKeyId;
         private String secretAccessKey;
+        private String provider;
 
         private Builder() {
         }
@@ -93,6 +103,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         @Override
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        @Override
+        public Builder provider(String provider) {
+            this.provider = provider;
             return this;
         }
 

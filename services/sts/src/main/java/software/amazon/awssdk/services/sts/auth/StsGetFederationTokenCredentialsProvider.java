@@ -25,7 +25,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -46,6 +45,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class StsGetFederationTokenCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsGetFederationTokenCredentialsProvider.Builder, StsGetFederationTokenCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsGetFederationTokenCredentialsProvider";
+
     private final GetFederationTokenRequest getFederationTokenRequest;
 
     /**
@@ -67,12 +68,7 @@ public class StsGetFederationTokenCredentialsProvider
 
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
-        return toAwsSessionCredentials(stsClient.getFederationToken(getFederationTokenRequest).credentials());
-    }
-
-    @Override
-    public String toString() {
-        return ToString.create("StsGetFederationTokenCredentialsProvider");
+        return toAwsSessionCredentials(stsClient.getFederationToken(getFederationTokenRequest).credentials(), PROVIDER_NAME);
     }
 
     @Override
@@ -80,6 +76,11 @@ public class StsGetFederationTokenCredentialsProvider
         return new Builder(this);
     }
 
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
+    }
+    
     /**
      * A builder (created by {@link StsGetFederationTokenCredentialsProvider#builder()}) for creating a
      * {@link StsGetFederationTokenCredentialsProvider}.

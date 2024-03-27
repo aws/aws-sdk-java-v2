@@ -28,6 +28,8 @@ import software.amazon.awssdk.utils.ToString;
 @SdkPublicApi
 public final class EnvironmentVariableCredentialsProvider extends SystemSettingsCredentialsProvider {
 
+    private static final String PROVIDER_NAME = "EnvironmentVariableCredentialsProvider";
+
     private EnvironmentVariableCredentialsProvider() {
     }
 
@@ -44,7 +46,12 @@ public final class EnvironmentVariableCredentialsProvider extends SystemSettings
     }
 
     @Override
+    protected String provider() {
+        return PROVIDER_NAME;
+    }
+
+    @Override
     public String toString() {
-        return ToString.create("EnvironmentVariableCredentialsProvider");
+        return ToString.create(PROVIDER_NAME);
     }
 }

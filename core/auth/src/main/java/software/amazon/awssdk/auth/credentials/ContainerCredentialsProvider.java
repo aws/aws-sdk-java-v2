@@ -72,6 +72,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 public final class ContainerCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<ContainerCredentialsProvider.Builder, ContainerCredentialsProvider> {
+    private static final String PROVIDER_NAME = "ContainerCredentialsProvider";
     private static final Predicate<InetAddress> IS_LOOPBACK_ADDRESS = InetAddress::isLoopbackAddress;
     private static final Predicate<InetAddress> ALLOWED_HOSTS_RULES = IS_LOOPBACK_ADDRESS;
     private static final String HTTPS = "https";
@@ -97,7 +98,7 @@ public final class ContainerCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.httpCredentialsLoader = HttpCredentialsLoader.create();
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -121,7 +122,7 @@ public final class ContainerCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.create("ContainerCredentialsProvider");
+        return ToString.create(PROVIDER_NAME);
     }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {

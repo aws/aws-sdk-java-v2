@@ -133,6 +133,7 @@ public class SsoCredentialsProviderTest {
                 assertThat(actualCredentials.accessKeyId()).isEqualTo("a");
                 assertThat(actualCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(actualCredentials.sessionToken()).isEqualTo("c");
+                assertThat(actualCredentials.provider()).isPresent().contains("SsoCredentialsProvider");
             }
         }
 

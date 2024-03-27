@@ -32,7 +32,6 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.internal.AssumeRoleWithWebIdentityRequestSupplier;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -55,6 +54,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsWebIdentityTokenFileCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsWebIdentityTokenFileCredentialsProvider.Builder, StsWebIdentityTokenFileCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsWebIdentityTokenFileCredentialsProvider";
 
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
@@ -134,15 +134,10 @@ public final class StsWebIdentityTokenFileCredentialsProvider
     }
 
     @Override
-    public String toString() {
-        return ToString.create("StsWebIdentityTokenFileCredentialsProvider");
-    }
-
-    @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         AssumeRoleWithWebIdentityRequest request = assumeRoleWithWebIdentityRequest.get();
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
-        return toAwsSessionCredentials(stsClient.assumeRoleWithWebIdentity(request).credentials());
+        return toAwsSessionCredentials(stsClient.assumeRoleWithWebIdentity(request).credentials(), PROVIDER_NAME);
     }
 
     @Override
@@ -150,6 +145,11 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         return new Builder(this);
     }
 
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
+    }
+    
     public static final class Builder extends BaseBuilder<Builder, StsWebIdentityTokenFileCredentialsProvider> {
         private String roleArn;
         private String roleSessionName;

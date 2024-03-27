@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Records identity provider names in a resolved identity and adds this information to the user agent string"
+}

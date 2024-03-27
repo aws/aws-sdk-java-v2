@@ -42,6 +42,7 @@ public interface AwsCredentialsIdentity extends Identity {
      */
     String secretAccessKey();
 
+
     static Builder builder() {
         return DefaultAwsCredentialsIdentity.builder();
     }
@@ -68,6 +69,13 @@ public interface AwsCredentialsIdentity extends Identity {
          * The AWS secret access key, used to authenticate the user interacting with services.
          */
         Builder secretAccessKey(String secretAccessKey);
+
+        /**
+         * The name of the identity provider that created this credential identity.
+         */
+        default Builder provider(String provider) {
+            return this;
+        }
 
         AwsCredentialsIdentity build();
     }

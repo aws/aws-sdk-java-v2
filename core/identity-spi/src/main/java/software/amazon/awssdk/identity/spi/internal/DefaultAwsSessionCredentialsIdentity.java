@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi.internal;
 
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
@@ -27,11 +28,13 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
+    private final String provider;
 
     private DefaultAwsSessionCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
         this.sessionToken = builder.sessionToken;
+        this.provider = builder.provider;
 
         Validate.paramNotNull(accessKeyId, "accessKeyId");
         Validate.paramNotNull(secretAccessKey, "secretAccessKey");
@@ -58,9 +61,15 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     }
 
     @Override
+    public Optional<String> provider() {
+        return Optional.ofNullable(provider);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("AwsSessionCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
+                       .add("provider", provider)
                        .build();
     }
 
@@ -91,6 +100,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         private String accessKeyId;
         private String secretAccessKey;
         private String sessionToken;
+        private String provider;
 
         private Builder() {
         }
@@ -110,6 +120,12 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         @Override
         public Builder sessionToken(String sessionToken) {
             this.sessionToken = sessionToken;
+            return this;
+        }
+
+        @Override
+        public Builder provider(String provider) {
+            this.provider = provider;
             return this;
         }
 

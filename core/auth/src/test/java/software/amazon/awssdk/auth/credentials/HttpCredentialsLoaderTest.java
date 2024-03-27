@@ -27,8 +27,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Date;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -48,6 +46,7 @@ public class HttpCredentialsLoaderTest {
     private static final long ONE_MINUTE = 1000L * 60;
     /** Environment variable name for the AWS ECS Container credentials path. */
     private static final String CREDENTIALS_PATH = "/dummy/credentials/path";
+    private static final String PROVIDER_NAME = "HttpCredentialsProvider";
     private static String successResponse;
 
     private static String successResponseWithInvalidBody;
@@ -70,7 +69,7 @@ public class HttpCredentialsLoaderTest {
     public void testLoadCredentialsParsesJsonResponseProperly() {
         stubForSuccessResponseWithCustomBody(successResponse);
 
-        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create();
+        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create(PROVIDER_NAME);
         AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.loadCredentials(testEndpointProvider())
                                                                                        .getAwsCredentials();
 
@@ -88,7 +87,7 @@ public class HttpCredentialsLoaderTest {
         // Stub for success response but without keys in the response body
         stubForSuccessResponseWithCustomBody(successResponseWithInvalidBody);
 
-        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create();
+        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create(PROVIDER_NAME);
 
         assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> credentialsProvider.loadCredentials(testEndpointProvider()))
                                                            .withMessage("Failed to load credentials from metadata service.");
@@ -102,7 +101,7 @@ public class HttpCredentialsLoaderTest {
     public void testNoMetadataService() throws Exception {
         stubForErrorResponse();
 
-        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create();
+        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create(PROVIDER_NAME);
 
         // When there are no credentials, the provider should throw an exception if we can't connect
         assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> credentialsProvider.loadCredentials(testEndpointProvider()));

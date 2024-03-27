@@ -64,6 +64,7 @@ public final class ProcessCredentialsProvider
     implements AwsCredentialsProvider,
                SdkAutoCloseable,
                ToCopyableBuilder<ProcessCredentialsProvider.Builder, ProcessCredentialsProvider> {
+    private static final String PROVIDER_NAME = "ProcessCredentialsProvider";
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
@@ -170,11 +171,18 @@ public final class ProcessCredentialsProvider
         Validate.notEmpty(accessKeyId, "AccessKeyId cannot be empty.");
         Validate.notEmpty(secretAccessKey, "SecretAccessKey cannot be empty.");
 
-        if (sessionToken != null) {
-            return AwsSessionCredentials.create(accessKeyId, secretAccessKey, sessionToken);
-        } else {
-            return AwsBasicCredentials.create(accessKeyId, secretAccessKey);
-        }
+        return sessionToken != null ?
+               AwsSessionCredentials.builder()
+                                    .accessKeyId(accessKeyId)
+                                    .secretAccessKey(secretAccessKey)
+                                    .sessionToken(sessionToken)
+                                    .provider(PROVIDER_NAME)
+                                    .build() :
+               AwsBasicCredentials.builder()
+                                  .accessKeyId(accessKeyId)
+                                  .secretAccessKey(secretAccessKey)
+                                  .provider(PROVIDER_NAME)
+                                  .build();
     }
 
     /**
@@ -307,7 +315,7 @@ public final class ProcessCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("ProcessCredentialsProvider")
+        return ToString.builder(PROVIDER_NAME)
                        .add("cmd", executableCommand)
                        .build();
     }

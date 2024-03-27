@@ -68,8 +68,8 @@ public final class InstanceProfileCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<InstanceProfileCredentialsProvider.Builder, InstanceProfileCredentialsProvider> {
     private static final Logger log = Logger.loggerFor(InstanceProfileCredentialsProvider.class);
+    private static final String PROVIDER_NAME = "InstanceProfileCredentialsProvider";
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
-
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private static final String TOKEN_RESOURCE = "/latest/api/token";
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
@@ -103,7 +103,7 @@ public final class InstanceProfileCredentialsProvider
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
 
-        this.httpCredentialsLoader = HttpCredentialsLoader.create();
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
                                      .profileFile(profileFile)
@@ -203,7 +203,7 @@ public final class InstanceProfileCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.create("InstanceProfileCredentialsProvider");
+        return ToString.create(PROVIDER_NAME);
     }
 
     private ResourcesEndpointProvider createEndpointProvider() {
