@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK For Java v2",
-    "contributor": "FatalEnigma",
-    "description": "Remediate CVE-2024-29025 by updating netty version"
-}
