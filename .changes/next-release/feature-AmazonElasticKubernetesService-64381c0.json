@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Add multiple customer error code to handle customer caused failure when managing EKS node groups"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Neptune Graph",
-    "contributor": "",
-    "description": "Update ImportTaskCancelled waiter to evaluate task state correctly and minor documentation changes."
-}
