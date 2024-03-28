@@ -41,6 +41,7 @@ public final class AwsCrtConfigurationUtils {
         }
 
         if (tcpKeepAliveConfiguration != null) {
+            clientSocketOptions.keepAlive = true;
             clientSocketOptions.keepAliveIntervalSecs =
                 NumericUtils.saturatedCast(tcpKeepAliveConfiguration.keepAliveInterval().getSeconds());
             clientSocketOptions.keepAliveTimeoutSecs =
