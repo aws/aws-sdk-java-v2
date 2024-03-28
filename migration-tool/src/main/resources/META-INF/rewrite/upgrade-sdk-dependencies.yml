@@ -187,6 +187,12 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-timestreaminfluxdb
+      newGroupId: software.amazon.awssdk
+      newArtifactId: timestreaminfluxdb
+      newVersion: 2.23.16-SNAPSHOT
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-lakeformation
       newGroupId: software.amazon.awssdk
       newArtifactId: lakeformation
@@ -586,6 +592,12 @@ recipeList:
       oldArtifactId: aws-java-sdk-paymentcryptography
       newGroupId: software.amazon.awssdk
       newArtifactId: paymentcryptography
+      newVersion: 2.23.16-SNAPSHOT
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-chatbot
+      newGroupId: software.amazon.awssdk
+      newArtifactId: chatbot
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
@@ -1708,6 +1720,12 @@ recipeList:
       oldArtifactId: aws-java-sdk-internetmonitor
       newGroupId: software.amazon.awssdk
       newArtifactId: internetmonitor
+      newVersion: 2.23.16-SNAPSHOT
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-artifact
+      newGroupId: software.amazon.awssdk
+      newArtifactId: artifact
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws

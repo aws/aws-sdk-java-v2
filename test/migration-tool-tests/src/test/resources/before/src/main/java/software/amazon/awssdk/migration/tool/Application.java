@@ -13,10 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migrationtool.test;
+package software.amazon.awssdk.migrationtool;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.model.ListQueuesRequest;
+import com.amazonaws.services.sqs.model.ListQueuesResult;
 
 public class Application {
 
@@ -26,6 +28,8 @@ public class Application {
 
     public static void main(String... args) {
         AmazonSQS sqs = AmazonSQSClient.builder().build();
-        sqs.listQueues();
+        ListQueuesRequest request = new ListQueuesRequest();
+        ListQueuesResult listQueuesResult = sqs.listQueues(request);
+        System.out.println(listQueuesResult);
     }
 }
