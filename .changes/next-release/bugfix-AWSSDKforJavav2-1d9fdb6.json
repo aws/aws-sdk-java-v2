@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Prevent subsequent retries for request bodies that are not\nrepeatable (i.e. cannot be reset to the initial position), since they will\nalways fail."
+}

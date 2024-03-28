@@ -31,7 +31,9 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
+import software.amazon.awssdk.core.internal.sync.SingleShotContentStreamProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -130,12 +132,17 @@ public final class RequestBody {
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        return fromContentProvider(() -> {
-            if (nonCloseable.markSupported()) {
+
+        ContentStreamProvider provider;
+        if (nonCloseable.markSupported()) {
+            provider = () -> {
                 invokeSafely(nonCloseable::reset);
-            }
-            return nonCloseable;
-        }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+                return nonCloseable;
+            };
+        } else {
+            provider = new SingleShotContentStreamProvider(nonCloseable);
+        }
+        return fromContentProvider(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
