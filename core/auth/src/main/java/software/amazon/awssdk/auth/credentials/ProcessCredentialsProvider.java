@@ -282,17 +282,19 @@ public final class ProcessCredentialsProvider
         }
 
         /**
-         * Configure the command that should be executed to retrieve credentials. The command will be executed in a shell,
-         * which brings the risk of command injections. The recommended approach is to specify the command as a list of
-         * Strings, using {@link #command(List)} instead.
+         * Configure the command that should be executed to retrieve credentials.
+         *
+         * @deprecated The recommended approach is to specify the command as a list of Strings, using {@link #command(List)}
+         * instead. This single-string command will be executed in a shell, which brings the risk of command injections.
          */
+        @Deprecated
         public Builder command(String command) {
             this.command = command;
             return this;
         }
 
         /**
-         * Configure the commands that should be executed to retrieve credentials, as a list of strings.
+         * Configure the command that should be executed to retrieve credentials, as a list of strings.
          */
         public Builder command(List<String> commandAsListOfStrings) {
             this.commandAsListOfStrings = commandAsListOfStrings;
