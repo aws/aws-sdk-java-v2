@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeConnections",
+    "contributor": "",
+    "description": "Duplicating the CodeStar Connections service into the new, rebranded AWS CodeConnections service."
+}
