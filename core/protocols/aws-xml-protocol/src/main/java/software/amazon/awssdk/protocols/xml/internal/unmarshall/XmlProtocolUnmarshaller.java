@@ -47,11 +47,11 @@ import software.amazon.awssdk.utils.builder.Buildable;
 
 @SdkInternalApi
 public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
-    private static final Logger log = LoggerFactory.getLogger(XmlProtocolUnmarshaller.class);
 
     public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
         = StringToInstant.create(getDefaultTimestampFormats());
     private static final XmlUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
+    private static final Logger log = LoggerFactory.getLogger(XmlProtocolUnmarshaller.class);
 
     private XmlProtocolUnmarshaller() {
     }
