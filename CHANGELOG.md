@@ -1,4 +1,113 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.20__ __2024-03-28__
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate recommendations with a new customization preference, Memory Utilization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - This release adds support for understanding pending changes to subscriptions by including two new response parameters for the GetSubscription API for Amazon CodeCatalyst.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 C7gd, M7gd and R7gd metal instances with up to 3.8 TB of local NVMe-based SSD block-level storage have up to 45% improved real-time NVMe storage performance than comparable Graviton2-based instances.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add multiple customer error code to handle customer caused failure when managing EKS node groups
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add EC2 support for GuardDuty Runtime Monitoring auto management.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Update ImportTaskCancelled waiter to evaluate task state correctly and minor documentation changes.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight: Adds support for setting up VPC Endpoint restrictions for accessing QuickSight Website.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - This release adds support for sharing AWS::InternetMonitor::Monitor resources.
+
+# __2.25.19__ __2024-03-27__
+## __AWS Batch__
+  - ### Features
+    - This feature allows AWS Batch to support configuration of imagePullSecrets and allowPrivilegeEscalation for jobs running on EKS
+
+## __AWS SDK For Java v2__
+  - ### Bugfixes
+    - Remediate CVE-2024-29025 by updating netty version
+        - Contributed by: [@FatalEnigma](https://github.com/FatalEnigma)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This changes introduces metadata documents statistics and also updates the documentation for bedrock agent.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces filtering support on Retrieve and RetrieveAndGenerate APIs.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added minimum capacity to Amazon ElastiCache Serverless. This feature allows customer to ensure minimum capacity even without current load
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Set a limit on the number of concurrent upload file requests for upload directory. This fixes the OOM issue that could surface when users try to upload a directory that has millions of small files. See [#5023](https://github.com/aws/aws-sdk-java-v2/issues/5023).
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@FatalEnigma](https://github.com/FatalEnigma)
+# __2.25.18__ __2024-03-26__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Adds support for backfill of cost allocation tags, with new StartCostAllocationTagBackfill and ListCostAllocationTagBackfillHistory API.
+
+## __AWS S3__
+  - ### Features
+    - allow user to configure subscriber timeout for input stream
+        - Contributed by: [@benarnao](https://github.com/benarnao)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support to customize prompts sent through the RetrieveAndGenerate API in Agents for Amazon Bedrock.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation update for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Add new operation delete-kx-cluster-node and add status parameter to list-kx-cluster-node operation.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@benarnao](https://github.com/benarnao)
 # __2.25.17__ __2024-03-25__
 ## __AWS CodeBuild__
   - ### Features

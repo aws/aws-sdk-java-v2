@@ -36935,7 +36935,10 @@
         "r7i.metal-24xl",
         "r7i.metal-48xl",
         "r7iz.metal-16xl",
-        "r7iz.metal-32xl"
+        "r7iz.metal-32xl",
+        "c7gd.metal",
+        "m7gd.metal",
+        "r7gd.metal"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -46103,13 +46106,15 @@
       "members":{
         "Key":{
           "shape":"String",
-          "locationName":"key"
+          "documentation":"<p>The name of a DHCP option.</p>"
         },
         "Values":{
           "shape":"ValueStringList",
+          "documentation":"<p>The values for the DHCP option.</p>",
           "locationName":"Value"
         }
-      }
+      },
+      "documentation":"<p>Describes a DHCP configuration option.</p>"
     },
     "NewDhcpConfigurationList":{
       "type":"list",
@@ -52481,7 +52486,7 @@
         },
         "MaxResults":{
           "shape":"TransitGatewayMaxResults",
-          "documentation":"<p>The maximum number of routes to return. If a value is not provided, the default is 1000.</p>"
+          "documentation":"<p>The maximum number of routes to return.</p>"
         },
         "DryRun":{
           "shape":"Boolean",

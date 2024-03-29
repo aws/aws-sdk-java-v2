@@ -11696,8 +11696,14 @@
       },
       "media-pipelines-chime" : {
         "endpoints" : {
+          "ap-northeast-1" : { },
+          "ap-northeast-2" : { },
+          "ap-south-1" : { },
           "ap-southeast-1" : { },
+          "ap-southeast-2" : { },
+          "ca-central-1" : { },
           "eu-central-1" : { },
+          "eu-west-2" : { },
           "us-east-1" : {
             "variants" : [ {
               "hostname" : "media-pipelines-chime-fips.us-east-1.amazonaws.com",
@@ -11808,6 +11814,7 @@
             "deprecated" : true,
             "hostname" : "mediaconvert-fips.us-west-2.amazonaws.com"
           },
+          "me-central-1" : { },
           "sa-east-1" : { },
           "us-east-1" : {
             "variants" : [ {
@@ -11841,6 +11848,7 @@
           "ap-northeast-2" : { },
           "ap-northeast-3" : { },
           "ap-south-1" : { },
+          "ap-south-2" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
           "ap-southeast-4" : { },
@@ -11871,6 +11879,7 @@
             "deprecated" : true,
             "hostname" : "medialive-fips.us-west-2.amazonaws.com"
           },
+          "me-central-1" : { },
           "sa-east-1" : { },
           "us-east-1" : {
             "variants" : [ {
@@ -27723,6 +27732,16 @@
         }
       },
       "logs" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
+      "medialive" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
+      "mediapackage" : {
         "endpoints" : {
           "us-isob-east-1" : { }
         }
