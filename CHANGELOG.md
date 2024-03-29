@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.21__ __2024-03-29__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Supporting new EDI X12 transaction sets for X12 versions 4010, 4030, and 5010.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add new fleet status code for Reserved Capacity.
+
+## __AWS CodeConnections__
+  - ### Features
+    - Duplicating the CodeStar Connections service into the new, rebranded AWS CodeConnections service.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add support for retrieving key historical and live metrics for LoRaWAN devices and gateways
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release enhances the ListEntities API to support ResaleAuthorizationId filter and sort for OfferEntity in the request and the addition of a ResaleAuthorizationId field in the response of OfferSummary.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds support to allow customers to track cross account monitors through ListMonitor, GetMonitor, ListHealthEvents, GetHealthEvent, StartQuery APIs.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Add the new API Start-Import-Task for Amazon Neptune Analytics.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for custom images for the CodeEditor App on SageMaker Studio
+
 # __2.25.20__ __2024-03-28__
 ## __AWS Compute Optimizer__
   - ### Features

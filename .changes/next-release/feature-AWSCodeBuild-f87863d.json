@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "contributor": "",
-    "description": "Add new fleet status code for Reserved Capacity."
-}
