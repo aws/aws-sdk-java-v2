@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.22__ __2024-04-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud is a new fully managed service that helps customers set up, deploy, and scale rendering projects in minutes, so they can improve the efficiency of their rendering pipelines and take on more projects.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds support for CloudWatch Anomaly Detection on cross-account metrics. SingleMetricAnomalyDetector and MetricDataQuery inputs to Anomaly Detection APIs now take an optional AccountId field.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the feature of AI recommendations for descriptions to enrich the business data catalog in Amazon DataZone.
+
+## __Amazon EMR__
+  - ### Features
+    - This release fixes a broken link in the documentation.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to upgrade the TLS version of the distribution.
+
 # __2.25.21__ __2024-03-29__
 ## __AWS B2B Data Interchange__
   - ### Features
