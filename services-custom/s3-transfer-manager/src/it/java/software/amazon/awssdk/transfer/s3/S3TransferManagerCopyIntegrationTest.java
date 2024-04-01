@@ -59,8 +59,8 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
 
     private static Stream<Arguments> transferManagers() {
         return Stream.of(
-            Arguments.of(TmType.JAVA)
-            //Arguments.of(TmType.CRT)
+            Arguments.of(TmType.JAVA),
+            Arguments.of(TmType.CRT)
         );
     }
 
